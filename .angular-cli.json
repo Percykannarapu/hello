@@ -17,9 +17,12 @@
       "test": "test.ts",
       "tsconfig": "tsconfig.app.json",
       "testTsconfig": "tsconfig.spec.json",
-      "prefix": "app",
+      "prefix": "val",
       "styles": [
-        "styles.css"
+        "styles.css",
+        "../node_modules/font-awesome/css/font-awesome.css",
+        "../node_modules/primeng/resources/themes/redmond/theme.css",
+        "../node_modules/primeng/resources/primeng.css"
       ],
       "scripts": [],
       "environmentSource": "environments/environment.ts",
