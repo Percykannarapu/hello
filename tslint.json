@@ -125,6 +125,7 @@
       true,
       "element",
       "app",
+      "val",
       "kebab-case"
     ],
     "use-input-property-decorator": true,
