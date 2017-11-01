@@ -1,4 +1,3 @@
-<!--The content below is only a placeholder and can be replaced.-->
 <div class="ui-g">
     <div class="ui-g-12" style="text-align:center">
         Header
@@ -22,12 +21,19 @@
         <div class="ui-g-12 ui-g-nopad">
             <div class="ui-g">
                 <div class="ui-g-12 ui-md-3">
-                    <val-geofootprint-geo-list>Loading geofootprintGeos...</val-geofootprint-geo-list>
+                   <val-geofootprint-geo-list>Loading geofootprintGeos...</val-geofootprint-geo-list>
                 </div>
                 <div class="ui-g-12 ui-md-7">
                     <!-- ESRI Map -->
                     <p-fieldset legend="Map" [toggleable]="true">
-                        <div><app-esri-map></app-esri-map></div>
+                       <div>
+                          <app-esri-map [zoom]="mapZoom">
+                                
+                          </app-esri-map>
+                        </div>
+                        <div>
+                            Slider Zoom: {{mapZoom}}<p-slider [(ngModel)]="mapZoom"></p-slider>
+                        </div>
                     </p-fieldset>
                 </div>
                 <div class="ui-g-12 ui-md-2">Proin efficitur in leo eget ornare. Nam vestibulum neque sed velit sagittis sodales. Sed scelerisque hendrerit magna a hendrerit. Cras tempor sem at justo pharetra convallis. Curabitur vel sodales purus. Vestibulum interdum facilisis nulla imperdiet suscipit. Quisque lectus felis, condimentum eget hendrerit sit amet.</div>

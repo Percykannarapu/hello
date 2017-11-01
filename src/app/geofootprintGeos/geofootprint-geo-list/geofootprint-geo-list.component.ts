@@ -17,6 +17,7 @@ import { GfGeoService } from './../../Models/gf-geo/gf-geo.service';
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
   private dbResetSubscription: Subscription;
 
+  anInt: number = 1;
   selectAllGeos: boolean;
   testGeocode: GeofootprintGeo = new GeofootprintGeo();
 

@@ -7,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'ESRI / Angular First Look';
+  mapZoom: number = 12;
 }

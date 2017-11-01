@@ -30,8 +30,11 @@ export class EsriMapComponent implements OnInit {
   constructor(
     private esriLoader: EsriLoaderService
   ) { this.zoom = 12;
-      this.centerLng = -12.287;
-      this.centerLat = -37.114;
+/*    this.centerLng = -12.287;  // The island
+      this.centerLat = -37.114;*/
+
+      this.centerLng = -118.244;
+      this.centerLat =  34.052;
     }
 
   public ngOnInit() {
@@ -41,15 +44,14 @@ export class EsriMapComponent implements OnInit {
       url: CONFIG.baseUrls.esriApi, // 'https://js.arcgis.com/4.3/'
     }).then(() => {
       // load the needed Map and MapView modules from the JSAPI
-      this.esriLoader.loadModules([
-        'esri/Map',
-        'esri/views/MapView'
-      ]).then(([
-        Map,
-        MapView
-      ]) => {
+      this.esriLoader.loadModules(['esri/Map',
+                                   'esri/views/MapView'
+                                  ])
+                     .then(([Map,
+                             MapView
+                            ]) => {
         const mapProperties: any = {
-          basemap: 'hybrid'
+          basemap: 'streets'           // values: hybrid, streets
         };
 
         const map: any = new Map(mapProperties);
@@ -60,7 +62,7 @@ export class EsriMapComponent implements OnInit {
           // supply additional options
           center: [this.centerLng, this.centerLat],
           zoom: this.zoom,
-          map // property shorthand for object literal
+          map: map // property shorthand for object literal
         };
 
         this.mapView = new MapView(mapViewProperties);
