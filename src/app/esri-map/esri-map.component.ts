@@ -4,6 +4,9 @@ import { Input, Output, EventEmitter } from '@angular/core';
 // also import the "angular2-esri-loader" to be able to load JSAPI modules
 import { EsriLoaderService } from 'angular2-esri-loader';
 
+// Import Core Modules
+import { CONFIG, MessageService } from '../core';
+
 @Component({
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
@@ -35,7 +38,7 @@ export class EsriMapComponent implements OnInit {
     // only load the ArcGIS API for JavaScript when this component is loaded
     return this.esriLoader.load({
       // use a specific version of the JSAPI
-      url: 'https://js.arcgis.com/4.3/'
+      url: CONFIG.baseUrls.esriApi, // 'https://js.arcgis.com/4.3/'
     }).then(() => {
       // load the needed Map and MapView modules from the JSAPI
       this.esriLoader.loadModules([
