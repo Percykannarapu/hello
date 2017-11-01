@@ -5,12 +5,12 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 // import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
+import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 
 // Service Imports
 // import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryStubService } from '../api/in-memory-stub.service';
-import { GeofootprintGeoService } from './Models/geofootprintGeo.service';
+// import { GeofootprintGeoService } from './Models/geofootprintGeo.service';
 import { GfGeoService } from './Models/gf-geo/gf-geo.service';
 
 import { AppComponent } from './app.component';
@@ -26,6 +26,8 @@ import { PanelMenuModule, MenuItem } from 'primeng/primeng';
 import { ToolbarModule } from 'primeng/primeng';
 import { FieldsetModule } from 'primeng/primeng';
 import { SliderModule } from 'primeng/primeng';
+import { SharedModule } from 'primeng/primeng';
+import { CheckboxModule } from 'primeng/primeng';
 
 // Custom Component Imports
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
@@ -55,6 +57,8 @@ import { CoreModule } from './core/core.module';
     FieldsetModule,
     PanelMenuModule,
     SliderModule,
+    SharedModule,
+    CheckboxModule,
     CoreModule
   ],
   providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],

@@ -8,4 +8,5 @@ export class GeofootprintGeo {
     geo_sort_order: number;
     hhc:            number;
     distance:       number;
+    isSelected:     boolean;
 }

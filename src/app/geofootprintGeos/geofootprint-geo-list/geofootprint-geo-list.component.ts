@@ -17,6 +17,7 @@ import { GfGeoService } from './../../Models/gf-geo/gf-geo.service';
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
   private dbResetSubscription: Subscription;
 
+  selectAllGeos: boolean;
   testGeocode: GeofootprintGeo = new GeofootprintGeo();
 
   geofootprintGeos: GeofootprintGeo[] = [];
@@ -52,6 +53,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.dbResetSubscription.unsubscribe();
+  }
+
+  toggleGeocode(geo: GeofootprintGeo) {
+    console.log('toggling geoccode');
+    console.log(geo);
+    geo.isSelected = !geo.isSelected;
+  }
+
+  printGeocode(geo: GeofootprintGeo) {
+     console.log(geo);
+  }
+
+  setAllGeocodesIsSelected(value: boolean) {
+    console.log ('setAllGeocodesIsSelected to ' + value);
+    for (const geo of this.geofootprintGeos) {
+      geo.isSelected = value;
+    }
   }
 
 }
