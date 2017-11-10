@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 // import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
+import { HttpModule } from '@angular/http';
 
 // Service Imports
 // import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
@@ -35,13 +36,15 @@ import { GeofootprintGeoListComponent } from './geofootprintGeos/geofootprint-ge
 
 // Feature Module Imports
 import { CoreModule } from './core/core.module';
+import { GeocoderComponent } from './components/geocoder/geocoder.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     EsriMapComponent,
     MainNavigationComponent,
-    GeofootprintGeoListComponent
+    GeofootprintGeoListComponent,
+    GeocoderComponent
   ],
   imports: [
     BrowserModule,
@@ -59,7 +62,8 @@ import { CoreModule } from './core/core.module';
     SliderModule,
     SharedModule,
     CheckboxModule,
-    CoreModule
+    CoreModule,
+    HttpModule
   ],
   providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]

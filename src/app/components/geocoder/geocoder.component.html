@@ -1,0 +1,20 @@
+<h3>Geocode an Address</h3>
+    <table>
+      <tr>
+        <td><label for="address">Street Address</label></td>
+        <td><input [(ngModel)]="street" name="_street"></td>
+      </tr>
+      <tr>
+        <td><label for="address">City</label></td>
+        <td><input [(ngModel)]="city" name="_city"></td>
+      </tr>
+      <tr>
+        <td><label for="address">State</label></td>
+        <td><input [(ngModel)]="state" name="_state"></td>
+      </tr>
+      <tr>
+        <td><label for="address">Zip Code</label></td>
+        <td><input [(ngModel)]="zip" name="_zip"></td>
+      </tr>
+    </table>
+    <button (click)="geocodeAddress()">Submit</button>
