@@ -1,5 +1,5 @@
 export interface RestResponse {
-    payload:    string;
+    payload:    any;
     exception:  string;
     returnCode: number;
 }

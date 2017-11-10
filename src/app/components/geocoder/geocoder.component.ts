@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AccountLocation } from '../../Models/AccountLocation';
 import { GeocoderService } from '../../services/geocoder.service';
+import { GeocodingResponse } from '../../Models/GeocodingResponse';
 
 @Component({
   providers: [GeocoderService],
@@ -14,6 +15,8 @@ export class GeocoderComponent implements OnInit {
   public city: string;
   public state: string;
   public zip: number;
+  
+  private geocodingResponse: GeocodingResponse;
 
   constructor(private geocoderService: GeocoderService) { }
 
@@ -29,7 +32,16 @@ export class GeocoderComponent implements OnInit {
       postalCode: this.zip
     }
     console.log("Calling GeocoderService")
-    this.geocoderService.geocode(accountLocation);
+    var observable = this.geocoderService.geocode(accountLocation);
+    observable.subscribe((res) => {
+      this.geocodingResponse = res.payload;
+      console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
+    });
+    
+  }
+
+  delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }

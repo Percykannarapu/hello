@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import { RestResponse } from '../Models/RestResponse';
 import { AccountLocation } from '../Models/AccountLocation';
+import { GeocodingResponse } from '../Models/GeocodingResponse';
 
 import 'rxjs/add/operator/map'
 
@@ -11,6 +12,7 @@ export class GeocoderService {
   private restResponse: RestResponse;
   private xcoord: number;
   private ycoord: number;
+  private GeocodingResponse;
 
   constructor(public http: Http) {
     console.log('Fired GeocoderService ctor');
@@ -21,10 +23,7 @@ export class GeocoderService {
     /*this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).subscribe((response) => {
       console.log("Received response from remote geocoding service: " + response);
     });*/
-    var observable = this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).map(res => res.json() as RestResponse);
-    observable.subscribe((res) => {
-      console.log("Received response from remote geocoding service: " + JSON.stringify(res, null, 4));
-    });
+    return this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).map(res => res.json() as RestResponse);
   }
 
 }
