@@ -15,6 +15,8 @@ export class GeocoderComponent implements OnInit {
   public city: string;
   public state: string;
   public zip: number;
+  public xcoord: string;
+  public ycoord: string;
   
   private geocodingResponse: GeocodingResponse;
 
@@ -36,6 +38,8 @@ export class GeocoderComponent implements OnInit {
     observable.subscribe((res) => {
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
+      this.xcoord = String(this.geocodingResponse.latitude);
+      this.ycoord = String(this.geocodingResponse.longitude);
     });
     
   }
