@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { AccountLocation } from '../../Models/AccountLocation';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { EsriMapComponent } from '../../esri-map/esri-map.component';
 
 @Component({
-  providers: [GeocoderService],
+  providers: [GeocoderService,],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
   styleUrls: ['./geocoder.component.css']
@@ -19,6 +20,7 @@ export class GeocoderComponent implements OnInit {
   public ycoord: string;
   
   private geocodingResponse: GeocodingResponse;
+  private esriMapComponent: EsriMapComponent;
 
   constructor(private geocoderService: GeocoderService) { }
 
@@ -39,7 +41,7 @@ export class GeocoderComponent implements OnInit {
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
       this.xcoord = String(this.geocodingResponse.latitude);
-      this.ycoord = String(this.geocodingResponse.longitude);
+      this.ycoord = String(this.geocodingResponse.longitude);      
     });
     
   }

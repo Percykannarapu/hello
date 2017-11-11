@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
+import { MapService } from '../services/map.service';
 
 // also import the "angular2-esri-loader" to be able to load JSAPI modules
 import { EsriLoaderService } from 'angular2-esri-loader';
@@ -8,6 +9,7 @@ import { EsriLoaderService } from 'angular2-esri-loader';
 import { CONFIG, MessageService } from '../core';
 
 @Component({
+  providers: [MapService],
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
@@ -28,7 +30,8 @@ export class EsriMapComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   constructor(
-    private esriLoader: EsriLoaderService
+    private esriLoader: EsriLoaderService,
+    private mapService: MapService
   ) { this.zoom = 12;
 /*    this.centerLng = -12.287;  // The island
       this.centerLat = -37.114;*/
@@ -66,8 +69,10 @@ export class EsriMapComponent implements OnInit {
         };
 
         this.mapView = new MapView(mapViewProperties);
+        this.mapService.esriLoaderService = this.esriLoader;
       });
     });
+    
   }
 
 }
