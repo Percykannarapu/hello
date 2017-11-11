@@ -17,7 +17,7 @@ import { GfGeoService } from './Models/gf-geo/gf-geo.service';
 import { AppComponent } from './app.component';
 
 // ESRI Imports
-import { EsriLoaderService } from 'angular2-esri-loader';
+import { EsriLoaderService } from 'angular-esri-loader';
 import { EsriMapComponent } from './esri-map/esri-map.component';
 
 // PrimeNG Imports

@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AccountLocation } from '../../Models/AccountLocation';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
-import { EsriMapComponent } from '../../esri-map/esri-map.component';
+import { MapService } from '../../services/map.service';
+import { EsriLoaderService } from 'angular-esri-loader';
 
 @Component({
-  providers: [GeocoderService,],
+  providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
   styleUrls: ['./geocoder.component.css']
@@ -20,11 +21,17 @@ export class GeocoderComponent implements OnInit {
   public ycoord: string;
   
   private geocodingResponse: GeocodingResponse;
-  private esriMapComponent: EsriMapComponent;
+  private esriMap: __esri.Map;
 
-  constructor(private geocoderService: GeocoderService) { }
+  //get the map from the service and add the new graphic
+  @ViewChild('mapViewNode') private mapViewEl: ElementRef;
+
+  constructor(private geocoderService: GeocoderService, private mapService: MapService, private esriLoader: EsriLoaderService) { }
 
   ngOnInit() {
+    /*this.mapService.getMap().then(esriMap => {
+      this.esriMap = esriMap;
+    })*/
   }
 
   geocodeAddress() {
@@ -41,13 +48,8 @@ export class GeocoderComponent implements OnInit {
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
       this.xcoord = String(this.geocodingResponse.latitude);
-      this.ycoord = String(this.geocodingResponse.longitude);      
+      this.ycoord = String(this.geocodingResponse.longitude);
+      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude);
     });
-    
-  }
-
-  delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
+  } 
 }
