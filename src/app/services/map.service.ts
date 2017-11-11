@@ -71,17 +71,25 @@ export class MapService {
         console.log("fired plotMarker() in MapService");
 
         //load required modules for this method
-        //const loader = await this.setup();
-        const [SimpleMarkerSymbol, Point, Graphic] = await this.esriLoader.loadModules([
+        const [SimpleMarkerSymbol, Point, Graphic, Color] = await this.esriLoader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
             'esri/geometry/Point',
-            'esri/Graphic'
+            'esri/Graphic',
+            'esri/Color'
         ]);
+
+        //let's give the symbol a prettier color
+        const color: __esri.Color = new Color();
+        color.a = 0.5;
+        color.r = 35;
+        color.g = 93;
+        color.b = 186
 
         //set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
             style: "circle",
-            size: 12
+            size: 12,
+            color: color
         }
         const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
 

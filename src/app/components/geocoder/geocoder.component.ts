@@ -4,6 +4,8 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
+import { InputTextModule, ButtonModule } from 'primeng/primeng';
+
 
 @Component({
   providers: [GeocoderService, MapService],
