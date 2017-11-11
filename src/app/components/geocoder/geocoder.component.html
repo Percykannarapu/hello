@@ -1,40 +1,26 @@
 <h3>Geocode an Address</h3>
-<table>
-  <tr>
-    <td>
-        <span class="ui-float-label">
-      <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
-      <label for="streetInput">Street</label>
-      </span>
-    </td>
-  </tr>
-  <tr>
-    <td>
-        <span class="ui-float-label">
-      <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
-      <label for="cityInput">City</label>
-      </span>
-    </td>
-  </tr>
-  <tr>
-    <td>
-        <span class="ui-float-label">
-      <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
-      <label for="stateInput">State</label>
-        </span>
-    </td>
-  </tr>
-  <tr>
-    <td>
-        <span class="ui-float-label">
-      <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
-      <label for="stateInput">Zip</label>
-        </span>
-    </td>
-  </tr>
-</table>
+
+<span class="ui-float-label">
+  <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
+  <label for="streetInput">Street</label>
+</span>
+<br>
+<span class="ui-float-label">
+  <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
+  <label for="cityInput">City</label>
+</span>
+<br>
+<span class="ui-float-label">
+  <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
+  <label for="stateInput">State</label>
+</span>
+<br>
+<span class="ui-float-label">
+  <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
+  <label for="stateInput">Zip</label>
+</span>
+<br>
 <button (click)="geocodeAddress()" pButton label="submit"></button>
 <br>
-{{xcoord}}
-<br>
-{{ycoord}}
+<br> {{xcoord}}
+<br> {{ycoord}}
