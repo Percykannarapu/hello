@@ -53,5 +53,12 @@ export class GeocoderComponent implements OnInit {
       this.ycoord = String(this.geocodingResponse.longitude);
       this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude);
     });
-  } 
+  }
+
+  loadVPW() {
+    this.street = "1995 Victor Pkwy";
+    this.city = "Livonia";
+    this.state = "MI";
+    this.zip = 48152;
+  }
 }
