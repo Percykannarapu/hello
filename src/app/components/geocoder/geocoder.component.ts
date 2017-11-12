@@ -4,7 +4,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
-import { InputTextModule, ButtonModule, SharedModule, FileUploadModule } from 'primeng/primeng';
+import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message } from 'primeng/primeng';
 
 
 @Component({
@@ -22,6 +22,7 @@ export class GeocoderComponent implements OnInit {
   public xcoord: string;
   public ycoord: string;
   public CSVMessage: string;
+  public geocodingErrors: Message[] = [];
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -52,6 +53,15 @@ export class GeocoderComponent implements OnInit {
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
       this.xcoord = String(this.geocodingResponse.latitude);
       this.ycoord = String(this.geocodingResponse.longitude);
+      if(this.geocodingResponse.locationQualityCode == "E") {
+        const growlMessage: Message = {
+          summary: "Failed to geocode your address",
+          severity: "error",
+          detail: JSON.stringify(accountLocation, null, 4)
+        }
+        this.geocodingErrors[0] = growlMessage;
+        return;
+      }
       this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude);
     });
   }

@@ -31,6 +31,7 @@ import { SharedModule } from 'primeng/primeng';
 import { CheckboxModule } from 'primeng/primeng';
 import { MenubarModule } from 'primeng/primeng';
 import { FileUploadModule } from 'primeng/primeng';
+import { GrowlModule } from 'primeng/primeng';
 
 // Custom Component Imports
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
@@ -69,7 +70,8 @@ import { MenuComponent } from './components/menu/menu.component';
     CoreModule,
     HttpModule,
     MenubarModule,
-    FileUploadModule
+    FileUploadModule,
+    GrowlModule
   ],
   providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]
