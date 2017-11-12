@@ -4,7 +4,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
-import { InputTextModule, ButtonModule } from 'primeng/primeng';
+import { InputTextModule, ButtonModule, SharedModule } from 'primeng/primeng';
 
 
 @Component({
@@ -21,7 +21,8 @@ export class GeocoderComponent implements OnInit {
   public zip: number;
   public xcoord: string;
   public ycoord: string;
-  
+  public CSVMessage: string;
+
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
 
@@ -60,5 +61,10 @@ export class GeocoderComponent implements OnInit {
     this.city = "Livonia";
     this.state = "MI";
     this.zip = 48152;
+  }
+
+  showCSVMessage() {
+    console.log("fired message");
+    this.CSVMessage = "Yeah, I wish this worked too";
   }
 }

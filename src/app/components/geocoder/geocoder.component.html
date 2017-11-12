@@ -1,27 +1,35 @@
-<h3>Geocode an Address</h3>
-
-<span class="ui-float-label">
-  <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
-  <label for="streetInput">Street</label>
-</span>
+<p-fieldset legend="Geocode Single Address" [toggleable]="true">
+  <br>
+  <span class="ui-float-label">
+    <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
+    <label for="streetInput">Street</label>
+  </span>
+  <br>
+  <span class="ui-float-label">
+    <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
+    <label for="cityInput">City</label>
+  </span>
+  <br>
+  <span class="ui-float-label">
+    <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
+    <label for="stateInput">State</label>
+  </span>
+  <br>
+  <span class="ui-float-label">
+    <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
+    <label for="stateInput">Zip</label>
+  </span>
+  <br>
+  <button (click)="loadVPW()" pButton label="Do VPW"></button>
+  <button (click)="geocodeAddress()" pButton label="submit"></button>
+  <br>
+  <br> {{xcoord}}
+  <br> {{ycoord}}
+</p-fieldset>
 <br>
-<span class="ui-float-label">
-  <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
-  <label for="cityInput">City</label>
-</span>
-<br>
-<span class="ui-float-label">
-  <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
-  <label for="stateInput">State</label>
-</span>
-<br>
-<span class="ui-float-label">
-  <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
-  <label for="stateInput">Zip</label>
-</span>
-<br>
-<button (click)="loadVPW()" pButton label="Do VPW"></button>
-<button (click)="geocodeAddress()" pButton label="submit"></button>
-<br>
-<br> {{xcoord}}
-<br> {{ycoord}}
+<p-fieldset legend="Geocode CSV File" [toggleable]="true">
+  <br>
+  <button pButton label="Load File" (click)=showCSVMessage()></button>
+  <br><br>
+  {{CSVMessage}}
+</p-fieldset>
