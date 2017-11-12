@@ -51,8 +51,6 @@ export class GeocoderComponent implements OnInit {
     observable.subscribe((res) => {
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
-      this.xcoord = String(this.geocodingResponse.latitude);
-      this.ycoord = String(this.geocodingResponse.longitude);
       if(this.geocodingResponse.locationQualityCode == "E") {
         const growlMessage: Message = {
           summary: "Failed to geocode your address",
@@ -62,6 +60,8 @@ export class GeocoderComponent implements OnInit {
         this.geocodingErrors[0] = growlMessage;
         return;
       }
+      this.xcoord = String(this.geocodingResponse.latitude);
+      this.ycoord = String(this.geocodingResponse.longitude);
       this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude);
     });
   }
