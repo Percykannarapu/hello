@@ -29,6 +29,7 @@ import { FieldsetModule } from 'primeng/primeng';
 import { SliderModule } from 'primeng/primeng';
 import { SharedModule } from 'primeng/primeng';
 import { CheckboxModule } from 'primeng/primeng';
+import { MenubarModule } from 'primeng/primeng';
 
 // Custom Component Imports
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
@@ -37,6 +38,7 @@ import { GeofootprintGeoListComponent } from './geofootprintGeos/geofootprint-ge
 // Feature Module Imports
 import { CoreModule } from './core/core.module';
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
+import { MenuComponent } from './components/menu/menu.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +46,8 @@ import { GeocoderComponent } from './components/geocoder/geocoder.component';
     EsriMapComponent,
     MainNavigationComponent,
     GeofootprintGeoListComponent,
-    GeocoderComponent
+    GeocoderComponent,
+    MenuComponent
   ],
   imports: [
     BrowserModule,
@@ -63,7 +66,8 @@ import { GeocoderComponent } from './components/geocoder/geocoder.component';
     SharedModule,
     CheckboxModule,
     CoreModule,
-    HttpModule
+    HttpModule,
+    MenubarModule
   ],
   providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]
