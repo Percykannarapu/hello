@@ -4,7 +4,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
-import { InputTextModule, ButtonModule, SharedModule } from 'primeng/primeng';
+import { InputTextModule, ButtonModule, SharedModule, FileUploadModule } from 'primeng/primeng';
 
 
 @Component({
@@ -66,5 +66,34 @@ export class GeocoderComponent implements OnInit {
   showCSVMessage() {
     console.log("fired message");
     this.CSVMessage = "Yeah, I wish this worked too";
+  }
+
+  geocodeCSV(event) {
+    console.log("fired geocodeCSV()");
+    var input = event.target;
+    var reader = new FileReader();
+    reader.readAsText(input.files[0]);
+    reader.onload = (data) => {
+      console.log("read file data");
+      const csvData = reader.result;
+      const csvRecords = csvData.split(/\r\n|\n/);
+      const headers = csvRecords[0].split(',');
+
+      //make sure to start loop at 1 to skip headers
+      for (let i = 1; i < csvRecords.length; i++) {
+        const data = csvRecords[i].split(',');
+        if (data.length == headers.length) {
+          const csvRecord = [];
+          for (let j = 0; j < headers.length; j++) {
+            csvRecord.push(data[j]);
+          }
+          this.street = csvRecord[0];
+          this.city = csvRecord[1];
+          this.state = csvRecord[2];
+          this.zip = csvRecord[3];
+          this.geocodeAddress();
+        }
+      }
+    }
   }
 }
