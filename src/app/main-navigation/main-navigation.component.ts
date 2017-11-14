@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PanelMenuModule, MenuItem } from 'primeng/primeng';
+import { PanelMenuModule, MenuItem, AccordionModule } from 'primeng/primeng';
 
 @Component({
   selector: 'val-main-navigation',

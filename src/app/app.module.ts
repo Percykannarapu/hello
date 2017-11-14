@@ -1,4 +1,5 @@
 // Angular Imports
+import { RouterModule } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
@@ -23,6 +24,7 @@ import { EsriMapComponent } from './esri-map/esri-map.component';
 // PrimeNG Imports
 import { InputTextModule, ButtonModule, DataTableModule, DialogModule } from 'primeng/primeng';
 import { AccordionModule } from 'primeng/primeng';
+import { MenuModule } from 'primeng/primeng';
 import { PanelMenuModule, MenuItem } from 'primeng/primeng';
 import { ToolbarModule } from 'primeng/primeng';
 import { FieldsetModule } from 'primeng/primeng';
@@ -33,11 +35,16 @@ import { MenubarModule } from 'primeng/primeng';
 import { FileUploadModule } from 'primeng/primeng';
 import { GrowlModule } from 'primeng/primeng';
 
+import { SplitButtonModule } from 'primeng/primeng';
+import { PanelModule } from 'primeng/primeng';
+import { RadioButtonModule } from 'primeng/primeng';
+
 // Custom Component Imports
 import { MainNavigationComponent } from './main-navigation/main-navigation.component';
 import { GeofootprintGeoListComponent } from './geofootprintGeos/geofootprint-geo-list/geofootprint-geo-list.component';
 
 // Feature Module Imports
+import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { MenuComponent } from './components/menu/menu.component';
@@ -52,6 +59,8 @@ import { MenuComponent } from './components/menu/menu.component';
     MenuComponent
   ],
   imports: [
+    AppRoutingModule,
+    RouterModule,
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
@@ -60,9 +69,11 @@ import { MenuComponent } from './components/menu/menu.component';
     HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService), //  , { dataEncapsulation: false, delay: 600 }),
     InputTextModule,
     DialogModule,
+    AccordionModule,
     ButtonModule,
     ToolbarModule,
     FieldsetModule,
+    MenuModule,
     PanelMenuModule,
     SliderModule,
     SharedModule,
@@ -71,7 +82,10 @@ import { MenuComponent } from './components/menu/menu.component';
     HttpModule,
     MenubarModule,
     FileUploadModule,
-    GrowlModule
+    GrowlModule,
+    PanelModule,
+    SplitButtonModule,
+    RadioButtonModule
   ],
   providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]
