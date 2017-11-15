@@ -9,7 +9,7 @@ export class EsriIdentityService {
   public async authenticate() {
     console.log("Fired authenticate() in EsriIdentityService");
     var loader = EsriLoaderWrapperService.esriLoader;
-    var [OAuthInfo, IdentityManager, ServerInfo] = await loader.loadModules([
+    var [OAuthInfo, identityManager, ServerInfo] = await loader.loadModules([
       "esri/identity/OAuthInfo",
       "esri/identity/IdentityManager",
       "esri/identity/ServerInfo"
@@ -29,7 +29,10 @@ export class EsriIdentityService {
     }
     var serverInfo: __esri.ServerInfo = new ServerInfo(serverInfoProps);
     console.log("registering OAuth");
-    IdentityManager.registerOAuthInfos([oauthInfo]);
-    //IdentityManager.oAuthSignIn("https://valvcshad001vm.val.vlss.local/portal", serverInfo, oauthInfo, null);
+    identityManager.registerOAuthInfos([oauthInfo]);
+    //identityManager.registerServers(serverInfo);
+    identityManager.oAuthSignIn("https://valvcshad001vm.val.vlss.local/portal", serverInfo, oauthInfo, null);
+    //identityManager.checkSignInStatus(oauthInfo.portalUrl + "/sharing");
+    //identityManager.getCredentials(oauthInfo.portalUrl + "/sharing");
   }
 }
