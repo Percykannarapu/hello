@@ -8,17 +8,7 @@ export class MapService {
     private mapInstance: __esri.Map;
     private static mapView: __esri.MapView;
 
-    constructor() {
-        //
-
-    }
-
-    /*public async setup(): Promise<EsriLoaderService> {
-        await this.esriLoader.load({
-            url: 'https://js.arcgis.com/4.5/init.js'
-        });
-        return this.esriLoader;
-    }*/
+    constructor() { }
 
     public async getMap(): Promise<__esri.Map> {
         if (!!this.mapInstance) {
