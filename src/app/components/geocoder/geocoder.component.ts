@@ -31,10 +31,10 @@ export class GeocoderComponent implements OnInit {
   //get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService) { }
+  constructor(private geocoderService: GeocoderService, private mapService: MapService, private esriIdentityService: EsriIdentityService) { }
 
   ngOnInit() {
-    //this.esriIdentityService.authenticate();
+    this.esriIdentityService.authenticate();
   }
 
   geocodeAddress() {
