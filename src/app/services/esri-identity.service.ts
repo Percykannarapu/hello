@@ -6,7 +6,7 @@ export class EsriIdentityService {
 
   constructor() { }
 
-  public async authenticate() {
+ /* public async authenticate() {
     console.log("Fired authenticate() in EsriIdentityService");
     var loader = EsriLoaderWrapperService.esriLoader;
     var [OAuthInfo, identityManager, ServerInfo] = await loader.loadModules([
@@ -34,5 +34,5 @@ export class EsriIdentityService {
     identityManager.oAuthSignIn("https://valvcshad001vm.val.vlss.local/portal", serverInfo, oauthInfo, null);
     //identityManager.checkSignInStatus(oauthInfo.portalUrl + "/sharing");
     //identityManager.getCredentials(oauthInfo.portalUrl + "/sharing");
-  }
+  }*/
 }
