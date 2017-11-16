@@ -8,7 +8,7 @@ import { PanelMenuModule, MenuItem, AccordionModule } from 'primeng/primeng';
 })
 export class MainNavigationComponent implements OnInit {
 
-  private items: MenuItem[];
+  public items: MenuItem[];
 
   constructor() { }
 
