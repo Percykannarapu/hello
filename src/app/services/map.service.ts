@@ -30,7 +30,7 @@ export class MapService {
     public async createMapView(element: HTMLDivElement): Promise<EsriWrapper<__esri.MapView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
-        const [MapView] = await loader.loadModules(['esri/views/MapView']);
+        const [MapView, Home] = await loader.loadModules(['esri/views/MapView', 'esri/widgets/Home']);
         const opts: __esri.MapViewProperties = {
             container: element,
             map: theMap,
@@ -38,6 +38,13 @@ export class MapService {
             zoom: 10
         };
         const mapView: __esri.MapView = new MapView(opts);
+
+        // Add the home button to the top left corner of the view
+        const homeBtn = new Home({ 
+                                   view: mapView 
+                                 });
+        mapView.ui.add(homeBtn, "top-left");
+
         MapService.mapView = mapView;
         return { val: mapView };
     }
