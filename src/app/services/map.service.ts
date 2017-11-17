@@ -30,7 +30,18 @@ export class MapService {
     public async createMapView(element: HTMLDivElement): Promise<EsriWrapper<__esri.MapView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
-        const [MapView, Home] = await loader.loadModules(['esri/views/MapView', 'esri/widgets/Home']);
+        const [MapView, 
+               Home, 
+               Search, 
+               ScaleBar, 
+               Track
+              ] = await loader.loadModules(['esri/views/MapView',
+                                                          'esri/widgets/Home',
+                                                          'esri/widgets/Search',
+                                                          'esri/widgets/ScaleBar',
+                                                          'esri/widgets/Track',
+                                                          'esri/widgets/BasemapToggle'
+                                           ]);
         const opts: __esri.MapViewProperties = {
             container: element,
             map: theMap,
@@ -43,9 +54,35 @@ export class MapService {
         const homeBtn = new Home({ 
                                    view: mapView 
                                  });
-        mapView.ui.add(homeBtn, "top-left");
+        // Create an instace of the Track widget
+        const track = new Track({ 
+                                   view: mapView 
+                                 });
+
+        // Add the search widget to the top left corner of the view
+        const searchWidget = new Search({ 
+                                   view: mapView 
+                                 });
+
+        // Add the scale bar widget
+        const scaleBar = new ScaleBar({ 
+                                   view: mapView,
+                                   unit: "dual" // The scale bar displays both metric and non-metric units.
+                                 });
+        
+        // Add widgets to the view
+        mapView.ui.add(searchWidget, "top-right");
+        mapView.ui.add(homeBtn,      "top-left");
+        mapView.ui.add(track,        "top-left");
+        mapView.ui.add(scaleBar,     "bottom-left");
 
         MapService.mapView = mapView;
+
+        // The widget will start tracking your location once the view becomes ready
+        mapView.then(function() {
+          track.start();
+        });
+
         return { val: mapView };
     }
 
