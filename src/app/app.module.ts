@@ -51,6 +51,8 @@ import { MenuComponent } from './components/menu/menu.component';
 import { BusinessComponent } from './components/business/business.component';
 import { AppService } from './services/app.service';
 
+import { ModalModule } from 'ngx-bootstrap';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -59,7 +61,7 @@ import { AppService } from './services/app.service';
     GeofootprintGeoListComponent,
     GeocoderComponent,
     MenuComponent,
-    BusinessComponent    
+    BusinessComponent
   ],
   entryComponents: [
     BusinessComponent
@@ -91,7 +93,8 @@ import { AppService } from './services/app.service';
     GrowlModule,
     PanelModule,
     SplitButtonModule,
-    RadioButtonModule
+    RadioButtonModule,
+    ModalModule.forRoot()
   ],
   providers: [EsriLoaderService, GfGeoService, AppService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]
