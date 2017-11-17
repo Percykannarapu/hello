@@ -34,13 +34,20 @@ export class MapService {
                Home, 
                Search, 
                ScaleBar, 
-               Track
+               Locate,
+               //Print
+               Compass,
+               Expand,
+               BasemapGallery
               ] = await loader.loadModules(['esri/views/MapView',
-                                                          'esri/widgets/Home',
-                                                          'esri/widgets/Search',
-                                                          'esri/widgets/ScaleBar',
-                                                          'esri/widgets/Track',
-                                                          'esri/widgets/BasemapToggle'
+                                            'esri/widgets/Home',
+                                            'esri/widgets/Search',
+                                            'esri/widgets/ScaleBar',
+                                            'esri/widgets/Locate',
+                                            //'esri/widgets/Print',
+                                            'esri/widgets/Compass',
+                                            'esri/widgets/Expand',
+                                            'esri/widgets/BasemapGallery'
                                            ]);
         const opts: __esri.MapViewProperties = {
             container: element,
@@ -50,39 +57,70 @@ export class MapService {
         };
         const mapView: __esri.MapView = new MapView(opts);
 
-        // Add the home button to the top left corner of the view
-        const homeBtn = new Home({ 
-                                   view: mapView 
-                                 });
-        // Create an instace of the Track widget
-        const track = new Track({ 
+        // Create an instance of the Home widget
+        const home = new Home({ 
+                                view: mapView 
+                              });
+
+        // Create an instace of the Compass widget
+        const compass = new Compass({ 
                                    view: mapView 
                                  });
 
-        // Add the search widget to the top left corner of the view
-        const searchWidget = new Search({ 
+        // Create an instace of the Locate widget
+        const locate = new Locate({ 
                                    view: mapView 
                                  });
 
-        // Add the scale bar widget
+        // Create an instance of the Search widget
+        const search = new Search({ 
+                                     view: mapView 
+                                   });
+
+        // Create an instance of the Scalebar widget
         const scaleBar = new ScaleBar({ 
                                    view: mapView,
                                    unit: "dual" // The scale bar displays both metric and non-metric units.
                                  });
         
-        // Add widgets to the view
-        mapView.ui.add(searchWidget, "top-right");
-        mapView.ui.add(homeBtn,      "top-left");
-        mapView.ui.add(track,        "top-left");
-        mapView.ui.add(scaleBar,     "bottom-left");
 
-        MapService.mapView = mapView;
+        // Create an instance of the BasemapGallery widget
+        const basemapGallery = new BasemapGallery({ 
+                                     view: mapView,
+                                     container: document.createElement("div")
+                                   });
 
-        // The widget will start tracking your location once the view becomes ready
-        mapView.then(function() {
-          track.start();
+        // Create an Expand instance and set the content
+        // property to the DOM node of the basemap gallery widget
+        // Use an Esri icon font to represent the content inside
+        // of the Expand widget
+        const bgExpand = new Expand({
+          view: mapView,
+          content: basemapGallery.container,
+          expandIconClass: "esri-icon-basemap"
         });
 
+
+        // Add widgets to the viewUI
+        mapView.ui.add(search,  "top-right");
+        mapView.ui.add(bgExpand,"bottom-right");
+        mapView.ui.add(home,    "top-left");
+        mapView.ui.add(locate,  "top-left");
+        mapView.ui.add(compass, "top-left");
+        mapView.ui.add(scaleBar,"bottom-left");
+
+/*
+        mapView.then(function() {
+          const print = new Print({
+            view: mapView,
+            printServiceUrl: "https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+          });
+          // Add widget to the top right corner of the view
+          mapView.ui.add(print, "top-right");
+        });
+*/
+
+        MapService.mapView = mapView;
         return { val: mapView };
     }
 
