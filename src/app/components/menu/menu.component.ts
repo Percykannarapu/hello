@@ -2,6 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { MenubarModule, MenuItem } from 'primeng/primeng';
 import { Message } from 'primeng/primeng';
 
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BusinessComponent } from '../business/business.component';
+import { AppService } from '../../services/app.service';
+
 @Component({
   selector: 'val-menu',
   templateUrl: './menu.component.html',
@@ -12,9 +18,18 @@ export class MenuComponent implements OnInit {
     public items: MenuItem[];
     public menuItems: MenuItem[];
 
-    msgs: Message[] = [];
+    bsModalRef: BsModalRef; //nallana:Added US6087
+    config = {
+      animated: true,
+      keyboard: true,
+      backdrop: true,
+      ignoreBackdropClick: false
+    };
 
-  constructor() { }
+    msgs: Message[] = [];
+    selected: string;//nallana:Added US6087    
+
+  constructor(private modalService: BsModalService,private appService: AppService) { }
 
   ngOnInit() {
     this.items = [
@@ -49,7 +64,7 @@ export class MenuComponent implements OnInit {
 
     this.menuItems = [
         {label: 'Competitor Search', icon: 'fa-search', command: () => {
-            this.update();
+            this.openModal();
         }},
         {label: 'Composite Variable', icon: 'fa-compress', command: () => {
             this.update();
@@ -78,5 +93,11 @@ export class MenuComponent implements OnInit {
     delete() {
         this.msgs = [];
         this.msgs.push({severity: 'info', summary: 'Success', detail: 'Data Deleted'});
+    }
+    openModal(){//nallana:Added US6057
+        this.bsModalRef = this.modalService.show(BusinessComponent, {class: 'modal-lg'});
+        this.bsModalRef.content.title = 'Modal with component';
+        this.bsModalRef.content.leftList = this.appService.categoriesList;
+
     }
 }

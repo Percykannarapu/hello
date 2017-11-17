@@ -1,0 +1,57 @@
+{
+    "payload": {
+      "total": 1,
+      "records": 11,
+      "pageSize": 11,
+      "page": 1,
+      "rows": [
+                {
+
+                    "name": "CLINICS",
+                    "primarysic": "8011-04"
+                },
+                {
+                    "name": "PHYSICIANS&SURGEONS-EMERGENCYSERVICE",
+                    "primarysic": "8011-05"
+                },
+                {
+                    "name": "PSYCHOANALYSTS",
+                    "primarysic": "8011-06"
+                },
+                {
+                    "name": "TATTOOS-REMOVED",
+                    "primarysic": "8011-07"
+                },
+                {
+                    "name": "ANESTHETISTS",
+                    "primarysic": "8011-08"
+                },
+                {
+                    "name": "OPHTHALMOLOGISTS",
+                    "primarysic": "8011-11"
+                },
+                {
+                    "name": "PSYCHIATRY-ADULTCHILD&ADOLESCENT",
+                    "primarysic": "8011-13"
+                },
+                {
+                    "name": "PHYSICIANS&SURGEONS",
+                    "primarysic": "8011-01"
+                },
+                {
+                    "name": "SPORTSMEDICINE&INJURIES",
+                    "primarysic": "8011-02"
+                },
+                {
+                    "name": "ALLERGYPHYSICIANS",
+                    "primarysic": "8011-20"
+                },
+                {
+                    "name": "INDIANGOODS",
+                    "primarysic": "5947-09"
+                }
+            ]
+        },
+    "exception": null,
+    "returnCode": 200
+}

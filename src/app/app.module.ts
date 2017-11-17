@@ -48,6 +48,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { MenuComponent } from './components/menu/menu.component';
+import { BusinessComponent } from './components/business/business.component';
+import { AppService } from './services/app.service';
 
 @NgModule({
   declarations: [
@@ -56,7 +58,11 @@ import { MenuComponent } from './components/menu/menu.component';
     MainNavigationComponent,
     GeofootprintGeoListComponent,
     GeocoderComponent,
-    MenuComponent
+    MenuComponent,
+    BusinessComponent    
+  ],
+  entryComponents: [
+    BusinessComponent
   ],
   imports: [
     AppRoutingModule,
@@ -87,7 +93,7 @@ import { MenuComponent } from './components/menu/menu.component';
     SplitButtonModule,
     RadioButtonModule
   ],
-  providers: [EsriLoaderService, GfGeoService], // , GeofootprintGeoService],
+  providers: [EsriLoaderService, GfGeoService, AppService], // , GeofootprintGeoService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

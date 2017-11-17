@@ -1,0 +1,119 @@
+<!--Added nallana: US6087 --> 
+<div class="modal-header">
+  <h4 class="modal-title pull-left">Competitors Search</h4>
+  <button type="button" class="close pull-right" style="cursor: pointer" aria-label="Close" (click)="bsModalRef.hide()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+</div>
+<div class="modal-body">
+  <div class="row">
+    <div class="col-md-8">
+    
+      <input #searchModel class="form-control" name="search" placeholder="Search..." type="text" (input)="filterCategory(searchModel.value)">
+      
+      <select class="form-control w-200 m-t-10">
+        <option value="">Building Materials & Hardware</option>
+        <option value="">General Merchandise Stores</option>
+        <option value="Leisure Services">Leisure Services</option>
+        <option value="Dentists & Doctors">Dentists & Doctors</option>
+        <option value="Schools & Universities">Schools & Universities</option>
+      </select>
+
+      <div class="row">
+        <div class="col-md-5">
+          <div style="overflow-y:auto;height: 200px;margin-top:10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+            <div *ngFor="let category of filteredList">
+              <input type="checkbox" [(ngModel)]="category.selected" /> <span style="word-break: break-all;">{{category.name}}</span>
+            </div>
+          </div> 
+        </div>
+        <div class="col-md-2 p-0">
+          <button type="button" class="btn" style="margin-top: 100px; margin-left:12px; cursor:pointer" (click)="onAddToRightList()">Add</button>
+          <br/>
+          <button type="button" class="btn" style="margin-top: 5px; cursor:pointer" (click)="onRemoveFromLeftList()">Remove</button>
+        </div>
+        <div class="col-md-5">
+          <div style="overflow-y: auto;height: 200px;margin-top: 10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+            <div *ngFor="let category of rightList">
+              <input type="checkbox" [(ngModel)]="category.selected" />
+              <span style="word-break: break-all;">{{category.name}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top: 15px">
+        <form class="form-horizontal">
+          <div class="form-group row">
+            <div class="col-sm-4">
+              <label class="control-label">Business/Franchise</label>
+            </div>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" name="businessFranchise" placeholder="Business/Franchise" [(ngModel)]="businessObj.business">
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-4">
+              <label class="control-label">City</label>
+            </div>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" name="city" placeholder="City" [(ngModel)]="businessObj.city">
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-2">
+              <label class="control-label">State</label>
+            </div>
+            <div class="col-sm-4">
+              <input type="text" class="form-control" name="state" placeholder="State" [(ngModel)]="businessObj.state">
+            </div>
+            <div class="col-sm-1">
+              <label class="control-label">Zip</label>
+            </div>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" name="zip" placeholder="Zip" [(ngModel)]="businessObj.zip">
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-3">
+              <label class="control-label">Near site(s)</label>
+            </div>
+            <div class="col-sm-5">
+              <select class="dropdown form-control">
+                <option value="Accessories">Accessories-Fasion</option>
+                <option value="Alternation-Clothing">Alternation-Clothing</option>
+                <option value="Navy Goods">Army & Navy Goods</option>
+                <option value="Baby Accessories">Baby Accessories</option>
+              </select>
+            </div> 
+            <div class="col-sm-4">
+              <button type="button" class="btn btn-primary" style="cursor:pointer" (click)="searchBusinesses()"> Search Businesses </button>
+            </div>
+          </div>
+          <div class="form-group row">
+                <div class="col-sm-4">
+                <label class="control-label">Miles from site</label></div>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" id="email" placeholder="Miles from site">
+                </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <h5 class="card-header">Selected Competitors</h5>
+      <div style="margin-top: 13px;"><input type="checkbox" [value]="true">All</div>
+      <div style="overflow-y:auto;height: 200px;margin-top:10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+        <div>
+          <input type="checkbox" /> <span style="word-break: break-all;">selectedCompetitors</span>
+        </div>
+      </div>
+      <div class="row col-sm-5">
+        <button type="button" class="btn" style="cursor:pointer">AddToMap</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+</div>
