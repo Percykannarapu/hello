@@ -66,7 +66,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   loadVPW() {
-    this.street = "1995 Victor Pkwy";
+    this.street = "19975 Victor Pkwy";
     this.city = "Livonia";
     this.state = "MI";
     this.zip = 48152;
