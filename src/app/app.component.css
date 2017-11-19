@@ -1,0 +1,7 @@
+.top {
+    width: 100%;
+    position: fixed;
+    z-index: 99;
+    box-shadow: 0px 0px 8px 2px #000000;
+    background-color: #eeeeee;
+}

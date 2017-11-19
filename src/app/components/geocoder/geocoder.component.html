@@ -32,13 +32,10 @@
   <br>
   <div>
     <p-panel header="Geocode CSV File">
-      <br>
       <label for="fileUpload" class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text">
         <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" />
         Choose File
       </label>
-      <br>
-      <br> {{CSVMessage}}
     </p-panel>
   </div>
 </div>
