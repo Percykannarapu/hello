@@ -1,6 +1,6 @@
 <div>
   <div>
-    <p-fieldset legend="Geocode Single Address" [toggleable]="true">
+    <p-panel header="Geocode Single Address">
       <br>
       <span class="ui-float-label">
         <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
@@ -27,11 +27,11 @@
       <br>
       <br> {{xcoord}}
       <br> {{ycoord}}
-    </p-fieldset>
+    </p-panel>
   </div>
   <br>
   <div>
-    <p-fieldset legend="Geocode CSV File" [toggleable]="true">
+    <p-panel header="Geocode CSV File">
       <br>
       <label for="fileUpload" class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text">
         <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" />
@@ -39,7 +39,7 @@
       </label>
       <br>
       <br> {{CSVMessage}}
-    </p-fieldset>
+    </p-panel>
   </div>
 </div>
 <p-growl [(value)]="geocodingErrors"></p-growl>
