@@ -183,6 +183,13 @@ export class MapService {
         MapService.mapView.graphics.add(graphic);
         return { val: MapService.mapView };
     }
+  
+  public getMapView() :  __esri.MapView{
+    //to return Mapview
+    
+    return MapService.mapView;
+    
+  }
 
 }
 

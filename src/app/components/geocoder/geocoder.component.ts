@@ -24,6 +24,7 @@ export class GeocoderComponent implements OnInit {
   public ycoord: string;
   public CSVMessage: string;
   public geocodingErrors: Message[] = [];
+  public mapView: __esri.MapView;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -69,6 +70,14 @@ export class GeocoderComponent implements OnInit {
     this.city = "Livonia";
     this.state = "MI";
     this.zip = 48152;
+  }
+  
+  loadGeocode(){
+    this.mapView = this.mapService.getMapView();
+    this.mapView.graphics.forEach( function(current : any ){
+      console.log("lat:::"+current.geometry.latitude);
+      console.log("long:::"+current.geometry.longitude);
+    })
   }
 
   showCSVMessage() {
