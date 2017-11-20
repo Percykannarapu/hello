@@ -16,6 +16,22 @@ export class BusinessComponent implements OnInit {
   rightList: any[] = [];
   filteredList: any[] = [];
   businessObj: any = {};
+  dropdownList:any = [  {name: 'Building Materials & Hardware'}, 
+                        {name: 'General Merchandise Stores'}, 
+                        {name:'Food Stores'},
+                        {name:'Apparel & Accessory Stores'},
+                        {name:'Automotive Dealers & Service Stations'},
+                        {name:'Home Furniture & Furnishings Stores'},
+                        {name:'Eating & Drinking Places'},
+                        {name:'Miscellaneous Retail'},
+                        {name:'Depository Institutions'},
+                        {name:'Personal Services'},
+                        {name:'Auto Services'},
+                        {name:'Leisure Services'},
+                        {name:'Dentists & Doctors'},
+                        {name:'Schools & Universities'}
+                      ];
+
   constructor(public bsModalRef: BsModalRef, private appservice: AppService) { }
 
   ngOnInit() {
@@ -34,7 +50,7 @@ export class BusinessComponent implements OnInit {
     //post(url: string, body:any, options?: RequestOptionsArgs): Obserable<Response>;
     console.log(this.businessObj);
     let paramObj = {};
-    this.appservice.getbusinesses(paramObj).subscribe((data) => {
+    this.appservice.getbusinesses().subscribe((data) => {
       console.log(data);
     });
   }

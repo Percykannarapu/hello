@@ -32,7 +32,42 @@ export class AppService {
     private readonly searchbusiness = 'url';
     
         constructor(private http: Http) { }
-        public getbusinesses(paramObj): Observable<any> {
+        public getbusinesses(): Observable<any> {
+
+            let paramObj = {
+                "sites": [
+                    {
+                        "x": "-117.351856",
+                        "y": "34.470195"
+                    },
+                    {
+                        "x": "-117.156703",
+                        "y": "33.684842"
+                    },
+                    {
+                        "x": "-84.30181",
+                        "y": "33.898628"
+                    }
+                    
+                ],
+                "sics": [
+                    {
+                        "sic": "8011-01"
+                    },
+                    {
+                        "sic": "8011-05"
+                    }
+                ],
+                "radius": "3",
+                "name": "INSTITUTE",
+                "city": "ST LOUIS",
+                "state": "MO",
+                "zip": "63127",
+                "countyName": "SAINT LOUIS",
+                "eliminateBlankFirmNames": "True",
+                "siteLimit": "200"
+            };
+
             return this.http.post(`${this.searchbusiness}`, paramObj)
                 .map((resp: Response) => resp.json());
         }
