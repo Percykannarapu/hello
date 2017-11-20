@@ -5,11 +5,11 @@ import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message } from 'primeng/primeng';
-import { EsriIdentityService } from '../../services/esri-identity.service';
+
 
 
 @Component({
-  providers: [GeocoderService, MapService, EsriIdentityService],
+  providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
   styleUrls: ['./geocoder.component.css']
@@ -31,10 +31,9 @@ export class GeocoderComponent implements OnInit {
   //get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService, private esriIdentityService: EsriIdentityService) { }
+  constructor(private geocoderService: GeocoderService, private mapService: MapService) { }
 
   ngOnInit() {
-    this.esriIdentityService.authenticate();
   }
 
   geocodeAddress() {
