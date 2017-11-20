@@ -12,7 +12,7 @@
       <input #searchModel class="form-control" name="search" placeholder="Search..." type="text" (input)="filterCategory(searchModel.value)">
       
       <select class="form-control w-200 m-t-10">
-        <option *ngFor="let obj of drowpdownList" [value]="obj">{{obj.name}}</option>
+        <option *ngFor="let obj of dropdownList" [value]="obj">{{obj.name}}</option>
         
       </select>
 

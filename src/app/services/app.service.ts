@@ -29,7 +29,7 @@ export class AppService {
     //         .map((resp: Response) => resp.json());
     // }
 
-    private readonly searchbusiness = 'url';
+    private readonly searchbusiness = 'https://services.valassislab.com/services/v1/mediaexpress/base/targetingsearch/search';
     
         constructor(private http: Http) { }
         public getbusinesses(): Observable<any> {

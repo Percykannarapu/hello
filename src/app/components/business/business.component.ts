@@ -16,10 +16,10 @@ export class BusinessComponent implements OnInit {
   rightList: any[] = [];
   filteredList: any[] = [];
   businessObj: any = {};
-  dropdownList:any = [  {name: 'Building Materials & Hardware'}, 
+  dropdownList:any = [  {name:'Apparel & Accessory Stores'},
+                        {name: 'Building Materials & Hardware'}, 
                         {name: 'General Merchandise Stores'}, 
                         {name:'Food Stores'},
-                        {name:'Apparel & Accessory Stores'},
                         {name:'Automotive Dealers & Service Stations'},
                         {name:'Home Furniture & Furnishings Stores'},
                         {name:'Eating & Drinking Places'},
