@@ -22,18 +22,6 @@
         
         <div class="layout-main">
             <router-outlet></router-outlet>
-
-            <!-- ESRI Map -->
-            <p-panel header="Map" [toggleable]="true">
-                <div>
-                <app-esri-map [zoom]="mapZoom">
-                        
-                </app-esri-map>
-                </div>
-                <div>
-                    Slider Zoom: {{mapZoom}}<p-slider [(ngModel)]="mapZoom"></p-slider>
-                </div>
-            </p-panel>
                         
             <app-footer></app-footer>
         </div>

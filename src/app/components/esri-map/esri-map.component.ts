@@ -3,7 +3,7 @@ import { Input, Output, EventEmitter } from '@angular/core';
 import { MapService } from '../../services/map.service';
 
 // Import Core Modules
-// import { CONFIG, MessageService } from '../core';
+import { CONFIG, MessageService } from '../../core';
 
 @Component({
   providers: [MapService],

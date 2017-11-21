@@ -1,4 +1,6 @@
 import {Component, AfterViewInit, ElementRef, Renderer, ViewChild, OnDestroy} from '@angular/core';
+import { EsriLoaderWrapperService } from './services/esri-loader-wrapper.service';
+import { EsriIdentityService } from './services/esri-identity.service';
 
 enum MenuOrientation {
     STATIC,
@@ -10,9 +12,10 @@ enum MenuOrientation {
 declare var jQuery: any;
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    providers: [EsriLoaderWrapperService, EsriIdentityService],
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
 
@@ -56,7 +59,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
-    constructor(public renderer: Renderer) {}
+    constructor(public renderer: Renderer
+              , private esriLoaderWrapperService: EsriLoaderWrapperService
+              , private esriIdentityService: EsriIdentityService) { }
+
+
+    ngOnInit() {
+        this.esriLoaderWrapperService.loadApi();
+        this.esriIdentityService.authenticate();
+    }
+
+    ngOnDestroy() {
+        jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
+    }
 
     ngAfterViewInit() {
         this.layoutContainer = <HTMLDivElement> this.layourContainerViewChild.nativeElement;
@@ -195,10 +210,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     changeToSlimMenu() {
         this.layoutMode = MenuOrientation.SLIM;
-    }
-
-    ngOnDestroy() {
-        jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
     }
 
 }

@@ -5,8 +5,8 @@ import {Component, trigger, state, transition, style, animate} from '@angular/co
     template: `
         <div class="profile" [ngClass]="{'profile-expanded':active}">
             <a href="#" (click)="onClick($event)">
-                <img class="profile-image" src="assets/layout/images/avatar.png" />
-                <span class="profile-name">Jane Williams</span>
+                <img class="profile-image" src="assets/layout/images/nancy_curmi.png" />
+                <span class="profile-name">Nancy Curmi</span>
                 <i class="material-icons">keyboard_arrow_down</i>
             </a>
         </div>

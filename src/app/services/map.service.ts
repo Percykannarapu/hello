@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EsriLoaderWrapperService} from "./esri-loader-wrapper.service";
+import { EsriLoaderWrapperService} from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 
 @Injectable()
@@ -30,12 +30,12 @@ export class MapService {
     public async createMapView(element: HTMLDivElement): Promise<EsriWrapper<__esri.MapView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
-        const [MapView, 
-               Home, 
-               Search, 
-               ScaleBar, 
+        const [MapView,
+               Home,
+               Search,
+               ScaleBar,
                Locate,
-               //Print
+               // Print
                Compass,
                Expand,
                BasemapGallery
@@ -44,7 +44,7 @@ export class MapService {
                                             'esri/widgets/Search',
                                             'esri/widgets/ScaleBar',
                                             'esri/widgets/Locate',
-                                            //'esri/widgets/Print',
+                                            // 'esri/widgets/Print',
                                             'esri/widgets/Compass',
                                             'esri/widgets/Expand',
                                             'esri/widgets/BasemapGallery'
@@ -58,36 +58,36 @@ export class MapService {
         const mapView: __esri.MapView = new MapView(opts);
 
         // Create an instance of the Home widget
-        const home = new Home({ 
-                                view: mapView 
+        const home = new Home({
+                                view: mapView
                               });
 
         // Create an instace of the Compass widget
-        const compass = new Compass({ 
-                                   view: mapView 
+        const compass = new Compass({
+                                   view: mapView
                                  });
 
         // Create an instace of the Locate widget
-        const locate = new Locate({ 
-                                   view: mapView 
+        const locate = new Locate({
+                                   view: mapView
                                  });
 
         // Create an instance of the Search widget
-        const search = new Search({ 
-                                     view: mapView 
+        const search = new Search({
+                                     view: mapView
                                    });
 
         // Create an instance of the Scalebar widget
-        const scaleBar = new ScaleBar({ 
+        const scaleBar = new ScaleBar({
                                    view: mapView,
-                                   unit: "dual" // The scale bar displays both metric and non-metric units.
+                                   unit: 'dual' // The scale bar displays both metric and non-metric units.
                                  });
-        
+
 
         // Create an instance of the BasemapGallery widget
-        const basemapGallery = new BasemapGallery({ 
+        const basemapGallery = new BasemapGallery({
                                      view: mapView,
-                                     container: document.createElement("div")
+                                     container: document.createElement('div')
                                    });
 
         // Create an Expand instance and set the content
@@ -97,17 +97,17 @@ export class MapService {
         const bgExpand = new Expand({
           view: mapView,
           content: basemapGallery.container,
-          expandIconClass: "esri-icon-basemap"
+          expandIconClass: 'esri-icon-basemap'
         });
 
 
         // Add widgets to the viewUI
-        mapView.ui.add(search,  "top-right");
-        mapView.ui.add(bgExpand,"bottom-right");
-        mapView.ui.add(home,    "top-left");
-        mapView.ui.add(locate,  "top-left");
-        mapView.ui.add(compass, "top-left");
-        mapView.ui.add(scaleBar,"bottom-left");
+        mapView.ui.add(search,   'top-right');
+        mapView.ui.add(bgExpand, 'bottom-right');
+        mapView.ui.add(home,     'top-left');
+        mapView.ui.add(locate,   'top-left');
+        mapView.ui.add(compass,  '"top-left');
+        mapView.ui.add(scaleBar, '"bottom-left');
 
 /*
         mapView.then(function() {
@@ -142,7 +142,7 @@ export class MapService {
 
         console.log("fired plotMarker() in MapService");
 
-        //load required modules for this method
+        // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -151,14 +151,14 @@ export class MapService {
             'esri/Color'
         ]);
 
-        //let's give the symbol a prettier color
+        // let's give the symbol a prettier color
         const color: __esri.Color = new Color();
         color.a = 0.5;
         color.r = 35;
         color.g = 93;
-        color.b = 186
+        color.b = 186;
 
-        //set up the first required piece, a symbol
+        // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
             style: "circle",
             size: 12,
@@ -166,14 +166,14 @@ export class MapService {
         }
         const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
 
-        //the point holds the coordinates the graphic will be displayed at
+        // the point holds the coordinates the graphic will be displayed at
         const pointProps: __esri.PointProperties = {
             latitude: lat,
             longitude: lon
         }
         const point: __esri.Point = new Point(pointProps);
 
-        //the grpahic is what ultimately gets rendered to the map
+        // the grpahic is what ultimately gets rendered to the map
         const graphicProps: __esri.GraphicProperties = {
             geometry: point,
             symbol: symbol
@@ -183,12 +183,11 @@ export class MapService {
         MapService.mapView.graphics.add(graphic);
         return { val: MapService.mapView };
     }
-  
-  public getMapView() :  __esri.MapView{
-    //to return Mapview
-    
+
+  public getMapView():  __esri.MapView{
+    // to return Mapview
+
     return MapService.mapView;
-    
   }
 
 }
