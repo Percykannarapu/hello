@@ -60,6 +60,7 @@ import {RadioButtonModule} from 'primeng/primeng';
 import {RatingModule} from 'primeng/primeng';
 import {ScheduleModule} from 'primeng/primeng';
 import {SelectButtonModule} from 'primeng/primeng';
+import {SidebarModule} from 'primeng/primeng';
 import {SlideMenuModule} from 'primeng/primeng';
 import {SliderModule} from 'primeng/primeng';
 import {SpinnerModule} from 'primeng/primeng';
@@ -176,6 +177,7 @@ import { BusinessSearchComponent } from './components/business-search/business-s
         RatingModule,
         ScheduleModule,
         SelectButtonModule,
+        SidebarModule,
         SlideMenuModule,
         SliderModule,
         SpinnerModule,

@@ -19,6 +19,8 @@ export class DashboardDemoComponent implements OnInit {
 
     selectedCity: any;
 
+    display: boolean;
+
     constructor(private carService: CarService, private eventService: EventService) { }
 
     ngOnInit() {
