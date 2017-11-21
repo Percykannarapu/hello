@@ -1,0 +1,220 @@
+<!--Added nallana: US6087 --> 
+
+<div class="ui-g">
+    <div class="ui-g-6">
+
+      <div class="ui-g">
+          <div class="ui-g-12">
+              <span class="md-inputfield">
+                  <input id="search" type="text" pInputText />
+                  <label for="search">Search SIC codes</label>
+              </span>
+          </div>
+          <div class="ui-g-12">
+            <p-dropdown placeholder="Select SIC Cluster" [options]="cities" [autoWidth]="false" [(ngModel)]="selectedCity"></p-dropdown>
+          </div>
+
+          <p-pickList [source]="sourceCars" [target]="targetCars" sourceHeader="Available SIC Codes" targetHeader="Selected SIC Codes" [responsive]="true"
+          [sourceStyle]="{'height':'250px'}" [targetStyle]="{'height':'250px'}">
+          <ng-template let-car pTemplate="item">
+              <div class="ui-helper-clearfix">
+                  <img src="assets/demo/images/car/{{car.brand}}.gif" style="display:inline-block;margin:2px 0 2px 2px"/>
+                  <div style="font-size:16px;float:right;margin:15px 5px 0 0">{{car.brand}}</div>
+              </div>
+          </ng-template>
+          </p-pickList>
+
+          <div class="ui-g-12">
+              <span class="md-inputfield">
+                  <input id="businessName" type="text" pInputText />
+                  <label for="businessName">Business Name</label>
+              </span>
+          </div>
+          <div class="ui-g-12">
+              <span class="md-inputfield">
+                  <input id="city" type="text" pInputText />
+                  <label for="city">City</label>
+              </span>
+          </div>
+          <div class="ui-g-6">
+              <span class="md-inputfield">
+                  <input id="state" type="text" pInputText />
+                  <label for="state">State</label>
+              </span>
+          </div>
+          <div class="ui-g-6">
+              <span class="md-inputfield">
+                  <input id="zip" type="text" pInputText />
+                  <label for="zip">Zip</label>
+              </span>
+          </div>
+          <div class="ui-g-6">
+              <span class="md-inputfield">
+                  <input id="countryFips" type="text" pInputText />
+                  <label for="countryFips">Country FIPs</label>
+              </span>
+          </div>
+          <div class="ui-g-6">
+              <span class="md-inputfield">
+                  <input id="market" type="text" pInputText />
+                  <label for="market">Market Code</label>
+              </span>
+          </div>
+          <div class="ui-g-6">
+              <span class="md-inputfield">
+                  <input id="distance" type="text" pInputText />
+                  <label for="distance">Miles From Site</label>
+              </span>
+          </div>
+          <div class="ui-g-12">
+              <button type="button" label="Search Businesses" icon="ui-icon-send" pButton></button>
+          </div>
+          <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
+        </div>
+        <button type="button" label="Send" icon="ui-icon-send" pButton></button>
+      </div>
+<div class="ui-g-6">
+    <div class="ui-g-12">
+        <span class="md-inputfield">
+            <label>Businesses found (#)</label>
+          </span>
+    </div>
+    <div class="ui-g-12">
+        <p-dataTable [value]="geofootprintGeos" sortField="geocode" [rows]="17" [paginator]="true">
+        <p-header>Businesses</p-header>
+        <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['fk_site']}}</ng-template>      
+        <p-column field="geocode" header="Business">
+            <ng-template pTemplate="header">            
+               <p-checkbox label="Business" [(ngModel)]="selectAllGeos" binary="true" (click)="setAllGeocodesIsSelected(selectAllGeos)"></p-checkbox>
+            </ng-template>
+            <ng-template let-geocode="rowData" pTemplate="body">
+                <!-- Toggle Geocode -->
+                <p-checkbox [(ngModel)]="geocode['isSelected']" binary="true" value="{{geocode['geocode']}}" label="{{geocode['geocode']}}" (click)="printGeocode(geocode)"></p-checkbox>
+            </ng-template>        
+        </p-column>
+      </p-dataTable>
+    </div>
+    <div class="ui-g-6"><label>Select as:</label></div>
+    <div class="ui-g-3"><p-radioButton name="add_to_group" value="sites" label="Sites" [(ngModel)]="sites" inputId="sites"></p-radioButton></div>    
+    <div class="ui-g-3"><p-radioButton name="add_to_group" value="competitors" label="competitors" [(ngModel)]="competitors" inputId="competitors"></p-radioButton></div>    
+    <div class="ui-g-12"><button type="button" label="Add to Project" icon="ui-icon-send" pButton></button></div>
+
+  </div>
+</div>
+<!--
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">Competitors Search</h4>
+    <button type="button" class="close pull-right" style="cursor: pointer" aria-label="Close" (click)="bsModalRef.hide()">
+              <span aria-hidden="true">&times;</span>
+          </button>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-8">
+      
+        <input #searchModel class="form-control" name="search" placeholder="Search..." type="text" (input)="filterCategory(searchModel.value)">
+        
+        <select class="form-control w-200 m-t-10">
+          <option *ngFor="let obj of dropdownList" [value]="obj">{{obj.name}}</option>
+          
+        </select>
+  
+        <div class="row">
+          <div class="col-md-5">
+            <div style="overflow-y:auto;height: 200px;margin-top:10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+              <div *ngFor="let category of filteredList">
+                <input type="checkbox" [(ngModel)]="category.selected" /> <span style="word-break: break-all;">{{category.name}}</span>
+              </div>
+            </div> 
+          </div>
+          <div class="col-md-2 p-0">
+            <button type="button" class="btn" style="margin-top: 100px; margin-left:12px; cursor:pointer" (click)="onAddToRightList()">Add</button>
+            <br/>
+            <button type="button" class="btn" style="margin-top: 5px; cursor:pointer" (click)="onRemoveFromLeftList()">Remove</button>
+          </div>
+          <div class="col-md-5">
+            <div style="overflow-y: auto;height: 200px;margin-top: 10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+              <div *ngFor="let category of rightList">
+                <input type="checkbox" [(ngModel)]="category.selected" />
+                <span style="word-break: break-all;">{{category.name}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding-top: 15px">
+          <form class="form-horizontal">
+            <div class="form-group row">
+              <div class="col-sm-4">
+                <label class="control-label">Business/Franchise</label>
+              </div>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" name="businessFranchise" placeholder="Business/Franchise" [(ngModel)]="businessObj.businesName">
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-4">
+                <label class="control-label">City</label>
+              </div>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" name="city" placeholder="City" [(ngModel)]="businessObj.city">
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-2">
+                <label class="control-label">State</label>
+              </div>
+              <div class="col-sm-4">
+                <input type="text" class="form-control" name="state" placeholder="State" [(ngModel)]="businessObj.state">
+              </div>
+              <div class="col-sm-1">
+                <label class="control-label">Zip</label>
+              </div>
+              <div class="col-sm-5">
+                <input type="text" class="form-control" name="zip" placeholder="Zip" [(ngModel)]="businessObj.zip">
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-3">
+                <label class="control-label">Near site(s)</label>
+              </div>
+              <div class="col-sm-5">
+                <select class="dropdown form-control">
+                  <option value="allEntriesNear">All</option>
+                  <option value="messageEnvy">Message Envy</option>
+                  
+                </select>
+              </div> 
+              <div class="col-sm-4">
+                <button type="button" class="btn btn-primary" style="cursor:pointer" (click)="searchBusinesses()"> Search Businesses </button>
+              </div>
+            </div>
+            <div class="form-group row">
+                  <div class="col-sm-4">
+                  <label class="control-label">Miles from site</label></div>
+                  <div class="col-sm-8">
+                      <input type="text" class="form-control" id="email" placeholder="Miles from site">
+                  </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h5 class="card-header">Selected Competitors</h5>
+        <div style="margin-top: 13px;"><input type="checkbox" [value]="true">All</div>
+        <div style="overflow-y:auto;height: 200px;margin-top:10px;border: 1px solid #c1c1c1;padding: 3px 5px;">
+          <div>
+            <input type="checkbox" /> <span style="word-break: break-all;">selectedCompetitors</span>
+          </div>
+        </div>
+        <div class="row col-sm-5">
+          <button type="button" class="btn" style="cursor:pointer">AddToMap</button>
+        </div>
+      </div>
+    </div>
+  
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="bsModalRef.hide()">Close</button>
+  </div>
+-->
