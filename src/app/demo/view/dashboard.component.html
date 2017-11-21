@@ -37,6 +37,8 @@
         </div>
     </div>
 -->    
+
+<!-- PUT BACK
     <div class="ui-g-12 ui-md-6 ui-lg-3">
         <div class="ui-g card colorbox colorbox-1">
             <div class="ui-g-4">
@@ -81,7 +83,7 @@
             </div>
         </div>
     </div>
-
+-->
     <div class="ui-g-12 ui-md-6 ui-lg-12">
         <!-- ESRI Map -->
         <p-panel header="Map" [toggleable]="true">
@@ -92,7 +94,7 @@
     </div>
             
     
-    <div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form">
+    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
             <!-- div class="ui-g-12 ui-md-6 ui-lg-4 task-list" -->
         <val-geocoder>Loading Geocoder...</val-geocoder>
         <!--
@@ -137,34 +139,16 @@
         </p-panel>
     -->
     </div>
-    <div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form">
-        <p-panel header="Contact Us">
+    <div class="ui-g-12 ui-md-8 ui-lg-8 ui-fluid contact-form">
+        <p-panel header="Business Search">
             <div class="ui-g">
                 <div class="ui-g-12">
-                    <p-dropdown [options]="cities" [autoWidth]="false" [(ngModel)]="selectedCity"></p-dropdown>
-                </div>
-                <div class="ui-g-12">
-                    <span class="md-inputfield">
-                        <input id="name" type="text" pInputText />
-                        <label for="name">Name</label>
-                    </span>
-                </div>
-                <div class="ui-g-12">
-                    <span class="md-inputfield">
-                        <input id="age" type="text" pInputText />
-                        <label for="age">Age</label>
-                    </span>
-                </div>
-                <div class="ui-g-12">
-                    <span class="md-inputfield">
-                        <input id="message" type="text" pInputText />
-                        <label for="message">Message</label>
-                    </span>
+                    <val-business-search>Loading business search component...</val-business-search>
                 </div>
             </div>
-            <button type="button" label="Send" icon="ui-icon-send" pButton></button>
         </p-panel>
     </div>
+
     <div class="ui-g-12 ui-lg-4 contacts">
         <p-panel header="Contacts">
             <ul>
@@ -350,4 +334,5 @@
             </ul>
         </p-panel>
     </div>
+
 </div>

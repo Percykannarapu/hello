@@ -6,10 +6,12 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./business-search.component.css']
 })
 export class BusinessSearchComponent implements OnInit {
+  public name: string;
 
   constructor() { }
 
   ngOnInit() {
+    this.name = 'Business Search';
   }
 
 }
