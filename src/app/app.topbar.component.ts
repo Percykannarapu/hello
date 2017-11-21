@@ -27,8 +27,8 @@ import {AppComponent} from './app.component';
                         [ngClass]="{'active-top-menu':app.activeTopbarItem === profile}">
 
                         <a href="#" (click)="app.onTopbarItemClick($event,profile)">
-                            <img class="profile-image" src="assets/layout/images/avatar.png" />
-                            <span class="topbar-item-name">Jane Williams</span>
+                            <img class="profile-image" src="assets/layout/images/nancy_curmi.png" />
+                            <span class="topbar-item-name">Nancy Curmi</span>
                         </a>
 
                         <ul class="ultima-menu animated fadeInDown">
@@ -99,31 +99,31 @@ import {AppComponent} from './app.component';
                         <ul class="ultima-menu animated fadeInDown">
                             <li role="menuitem">
                                 <a href="#" class="topbar-message">
-                                    <img src="assets/layout/images/avatar1.png" width="35"/>
+                                    <img src="assets/layout/images/brian_bratney.png" width="35"/>
                                     <span>Give me a call</span>
                                 </a>
                             </li>
                             <li role="menuitem">
                                 <a href="#" class="topbar-message">
-                                    <img src="assets/layout/images/avatar2.png" width="35"/>
+                                    <img src="assets/layout/images/alia_sibinic.png" width="35"/>
                                     <span>Sales reports attached</span>
                                 </a>
                             </li>
                             <li role="menuitem">
                                 <a href="#" class="topbar-message">
-                                    <img src="assets/layout/images/avatar3.png" width="35"/>
+                                    <img src="assets/layout/images/natalie_crain.png" width="35"/>
                                     <span>About your invoice</span>
                                 </a>
                             </li>
                             <li role="menuitem">
                                 <a href="#" class="topbar-message">
-                                    <img src="assets/layout/images/avatar2.png" width="35"/>
+                                    <img src="assets/layout/images/prasanna_deshmuhk.png" width="35"/>
                                     <span>Meeting today at 10pm</span>
                                 </a>
                             </li>
                             <li role="menuitem">
                                 <a href="#" class="topbar-message">
-                                    <img src="assets/layout/images/avatar4.png" width="35"/>
+                                    <img src="assets/layout/images/alia_sibinic.png" width="35"/>
                                     <span>Out of office</span>
                                 </a>
                             </li>
