@@ -11,7 +11,7 @@ import { GeofootprintTaName } from '../../Models/GeofootprintTaName';
 import { GeofootprintTradeArea } from '../../Models/GeofootprintTradeArea';
 import { GeofootprintVar } from '../../Models/GeofootprintVar';
 import { GeofootprintGeo } from '../../Models/geofootprintGeo.model';
-import { LinkedList } from 'ngx-bootstrap';
+
 
 
 
@@ -88,12 +88,6 @@ export class GeocoderComponent implements OnInit {
     let geoTradeAreas       = new GeofootprintTradeArea();
     let geoVars             = new GeofootprintVar();
     
-    let geoGeosList         = new LinkedList<GeofootprintGeo>();
-    let geoSitesList        = new LinkedList<GeofootprintSite>();
-    let geoTaNamesList      = new LinkedList<GeofootprintTaName>();
-    let geoTradeAreasList   = new LinkedList<GeofootprintTradeArea>();
-    let geoVarsList         = new LinkedList<GeofootprintVar>();
-
     // array implementation
     let geoGeosArray        : Array<GeofootprintGeo>
     let geoSitesArray       : Array<GeofootprintSite>
@@ -222,10 +216,7 @@ export class GeocoderComponent implements OnInit {
       
     })
     
-    geoGeosList.add(geoGeos);
-    geoTaNamesList.add(geoTaNames);
-    geoTradeAreasList.add(geoTradeAreas);
-    geoVarsList.add(geoVars);
+    
     
     /* 
      * Sitting geoLists  to GeofootprintMaster

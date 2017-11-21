@@ -5,7 +5,6 @@ import { GeofootprintTaName } from './GeofootprintTaName';
 import { GeofootprintTradeArea } from './GeofootprintTradeArea';
 import { GeofootprintVar } from './GeofootprintVar';
 import { GeofootprintGeo } from './geofootprintGeo.model';
-import { LinkedList } from 'ngx-bootstrap';
 export class GeofootprintMaster {
   
   constructor( ){}
