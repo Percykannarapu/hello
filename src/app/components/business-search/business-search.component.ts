@@ -7,6 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class BusinessSearchComponent implements OnInit {
   public name: string;  // Used by parent as a header
+  public numFound: number = 2;
 
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
@@ -15,7 +16,7 @@ export class BusinessSearchComponent implements OnInit {
   geofootprintGeos: any;
   competitors: any;
   sites: any;
-  
+
   constructor() { }
 
   ngOnInit() {

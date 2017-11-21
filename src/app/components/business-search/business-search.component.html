@@ -73,11 +73,23 @@
     </div>
   </div>
   <div class="ui-g-6 card card-w-title">
-    <div class="ui-g-12">
+    <!-- div class="ui-g-12">
       <span class="md-inputfield">
         <label>Businesses found (#)</label>
       </span>
+    </div -->
+    <div class="ui-g-12">
+        <div class="ui-g card colorbox colorbox-1">
+            <div class="ui-g-4">
+                <i class="material-icons">store</i>
+            </div>
+            <div class="ui-g-8">
+                <span class="colorbox-name">Businesses found</span>
+                <span class="colorbox-count">{{numFound}}</span>
+            </div>
+        </div>
     </div>
+    
     <div class="ui-g-12">
       <p-dataTable [value]="geofootprintGeos" sortField="geocode" [rows]="17" [paginator]="true">
         <p-header>Businesses</p-header>
