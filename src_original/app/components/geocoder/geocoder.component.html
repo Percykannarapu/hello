@@ -40,7 +40,9 @@
   </div>
   <br>
   <div>
-  		<button (click)="loadGeocode()" pButton label="Mock Geofootprint"></button>
+    <p-panel header="Mock Geofootprint">
+      <button (click)="loadGeocode()" pButton label="Mock Geofootprint"></button>
+    </p-panel>  
   </div>
 </div>
 <p-growl [(value)]="geocodingErrors"></p-growl>

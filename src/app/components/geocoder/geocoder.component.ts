@@ -36,6 +36,8 @@ export class GeocoderComponent implements OnInit {
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
 
+  public profileId : number;
+
   //get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
@@ -80,6 +82,8 @@ export class GeocoderComponent implements OnInit {
   }
   
   loadGeocode(){
+
+      this.profileId  = 11223344;
     //var geofootprintMaster : GeofootprintMaster = new geofootprintMaster();
     let geoMaster           = new GeofootprintMaster();
     let geoGeos             = new GeofootprintGeo();
@@ -107,7 +111,7 @@ export class GeocoderComponent implements OnInit {
     geoMaster.isMarketBased           = false;
     geoMaster.methAnalysis            = "ATZ";
     geoMaster.methSeason              = "W";
-    geoMaster.profile                 = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+    geoMaster.profile                 = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoMaster.profileName             = "Impower test site";
     geoMaster.status                  = "SUCCESS";
     geoMaster.summaryInd              = 0;
@@ -120,7 +124,7 @@ export class GeocoderComponent implements OnInit {
     geoTaNames.cgmId                  = null;
     geoTaNames.dirty                  = true;
     geoTaNames.gtanId                 = null;
-    geoTaNames.profile                = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+    geoTaNames.profile                = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoTaNames.taNameWebDisplay       = "3 Miles";
     geoTaNames.tradeArea              = 1;
     
@@ -131,7 +135,7 @@ export class GeocoderComponent implements OnInit {
     geoTradeAreas.cgmId               = null;
     geoTradeAreas.dirty               = true;
     geoTradeAreas.gtaId               = null;
-    geoTradeAreas.profile             = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+    geoTradeAreas.profile             = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoTradeAreas.site                = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoTradeAreas.taMinHhc            = 0;
     geoTradeAreas.taName              = "3 Miles";
@@ -147,7 +151,7 @@ export class GeocoderComponent implements OnInit {
      */
     geoGeos.distance                  = 3.62;
     geoGeos.fk_cgm_id                 = null;
-    geoGeos.fk_profile                = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+    geoGeos.fk_profile                = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoGeos.fk_site                   = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoGeos.fk_trade_area             = 1;
     geoGeos.geo_sort_order            = 14;
@@ -175,7 +179,7 @@ export class GeocoderComponent implements OnInit {
     geoVars.isNumber                  = true;
     geoVars.isString                  = false;
     geoVars.natlAvg                   = null;
-    geoVars.profile                   = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+    geoVars.profile                   = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoVars.site                      = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
     geoVars.tradeArea                 = 1;
     geoVars.valueNumber               = 3.63;
@@ -198,7 +202,7 @@ export class GeocoderComponent implements OnInit {
       geoSites.gsId                   = null;
       geoSites.homeGeocode            = "48170G1";
       geoSites.homeGeoName            = "Impower";
-      geoSites.profile                = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
+      geoSites.profile                = this.profileId; // need to set new profile id from SDE.AM_PROFILES for every request.
       geoSites.siteId                 = 12345; // need to set new profile id from SDE.AM_PROFILES for every request.
       geoSites.siteAddress            = "IMPOWER TEST SITE";
       geoSites.siteCity               = "FARMINGTON HILLS";
