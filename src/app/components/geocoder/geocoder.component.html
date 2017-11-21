@@ -1,51 +1,47 @@
-    <!-- div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form" -->
-    <div class="ui-g">
-        <p-panel header="Geocoder">
-          <div class="ui-g">
-              <div class="ui-g-12">
-                  <span class="md-inputfield">
-                      <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
-                      <label for="streetInput">Street</label>
+<!-- div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form" -->
+<div class="ui-g">
+    <p-panel header="Geocoder">
+        <div class="ui-g">
+            <div class="ui-g-12">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
+                    <label for="streetInput">Street</label>
                 </span>
-              </div>
-              <div class="ui-g-12">
-                  <span class="md-inputfield">
-                      <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
-                      <label for="cityInput">City</label>
-                  </span>
-              </div>
-              <div class="ui-g-12">
-                  <span class="md-inputfield">
-                      <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
-                      <label for="stateInput">State</label>
-                  </span>
-              </div>
-              <div class="ui-g-12">
-                  <span class="md-inputfield">
-                      <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
-                      <label for="stateInput">Zip</label>
-                  </span>
-              </div>
-          <div class="ui-g-6">
-              <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton></button>
-          </div>
-          <div class="ui-g-6">
-              <button (click)="geocodeAddress()" type="button" label="submit" icon="ui-icon-send" pButton></button>
-          </div>
-          <div class="ui-g-12">
-              <button (click)="geocodeCSV($event)" type="button" label="Upload CSV" icon="ui-icon-file-upload" pButton>
-                  <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" />
-              </button>
-          </div>
-          <div class="ui-g-12">
-              <label for="fileUpload" class="ui-button-text ui-clickable" label="Test label">
-                  <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" />
-                  Choose File
-              </label>
-            </div>            
-          </div>
-        </p-panel>
-<!--
+            </div>
+            <div class="ui-g-12">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
+                    <label for="cityInput">City</label>
+                </span>
+            </div>
+            <div class="ui-g-12">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
+                    <label for="stateInput">State</label>
+                </span>
+            </div>
+            <div class="ui-g-12">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
+                    <label for="stateInput">Zip</label>
+                </span>
+            </div>
+            <div class="ui-g-6">
+                <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton></button>
+            </div>
+            <div class="ui-g-6">
+                <button (click)="geocodeAddress()" type="button" label="submit" icon="ui-icon-send" pButton></button>
+            </div>
+            <div class="ui-g-12">
+                <label for="fileUpload" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left">
+                    <div style="padding-top: 6px;">
+                        <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" /> Geocode CSV File
+                    </div>
+                </label>
+            </div>
+        </div>
+    </p-panel>
+    <!--
           <br>
             <p-panel header="Geocode CSV File">
               <label for="fileUpload" class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text">
@@ -55,10 +51,10 @@
             </p-panel>
           <br>
               <button (click)="loadGeocode()" pButton label="Mock Geofootprint"></button>-->
-                  
-    </div>
-  
-  <!-- div>
+
+</div>
+
+<!-- div>
     <p-panel header="Geocode Single Address">
       <br>
       <span class="ui-float-label">
@@ -89,4 +85,4 @@
     </p-panel>
   </div-->
 
-<!-- p-growl [(value)]="geocodingErrors"></p-growl -->
+<p-growl [(value)]="geocodingErrors"></p-growl>
