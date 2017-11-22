@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { AppService } from '../../services/app.service';
+
 
 @Component({
   selector: 'val-business-search',
@@ -11,16 +13,17 @@ export class BusinessSearchComponent implements OnInit {
 
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
-  sourceCars: any;
-  targetCars: any;
+  sourceCategories: any = [];
+  targetCategories: any = [];
   geofootprintGeos: any;
   competitors: any;
   sites: any;
 
-  constructor() { }
+  constructor(private appService: AppService) { }
 
   ngOnInit() {
     this.name = 'Business Search';
+    this.sourceCategories = this.appService.categoriesList;
   }
 
 }
