@@ -3,6 +3,7 @@ import { AppService } from '../../services/app.service';
 
 
 @Component({
+  providers: [AppService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']

@@ -8,9 +8,17 @@ import { GeofootprintGeo } from '../../Models/geofootprintGeo.model';
 import { MapService } from '../../services/map.service';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { TargetingProfile } from '../../Models/TargetingProfile';
+import { TargetingSite } from '../../Models/TargetingSite';
+import { GeofootprintGeoService } from '../../Models/geofootprintGeo.service';
+import { GeoFootPrint } from '../../services/geofootprint.service';
+import { TargetingResponse } from '../../Models/TargetingResponse';
+import { Targetingservice } from '../../services/Targeting.service';
+
+
 
 @Component({
-  providers: [GeocoderService, MapService],
+  providers: [GeocoderService, MapService,GeoFootPrint, Targetingservice],
   selector: 'val-geofootprint',
   templateUrl: './geofootprint.component.html',
   styleUrls: ['./geofootprint.component.css']
@@ -22,16 +30,112 @@ export class GeofootprintComponent implements OnInit {
   public siteId    : number;
   public mapView: __esri.MapView;
   private geocodingResponse: GeocodingResponse;
+  private targetingResponse: TargetingResponse;
+  public proString : string;
+  
 
-  constructor(private mapService: MapService,private geocoderService: GeocoderService) { }
+
+  constructor(private mapService: MapService,private geocoderService: GeocoderService
+    ,private geofootprintService : GeoFootPrint, private targetingService: Targetingservice ) { }
 
   ngOnInit() {
   }
 
   loadGeocode(){
     
-          this.profileId  = 450419;
-          this.siteId     = 12554944;
+          this.profileId  = 450433;
+          this.siteId     = 12554963;
+        //Construct targeting sites and profiles
+        let targetingProfile = new TargetingProfile();
+        let targetingSite    = new TargetingSite();
+
+        targetingSite.address         = "testImpower";
+        targetingSite.baseStatus      = "INSERT";
+        targetingSite.city            = "MI";
+        targetingSite.createType      = 1;
+        targetingSite.crossStreet     = "impowe";
+        targetingSite.dirty           = true;
+        targetingSite.franchisee      = "test Impower";
+        targetingSite.legacySiteId    = "test";
+        targetingSite.name            = "impower";
+        targetingSite.owner           = "IMpower";
+        targetingSite.pk              = null;
+        targetingSite.profile         = null;
+        targetingSite.siteType        = 1;
+        targetingSite.state           = "MI";
+        targetingSite.taSource        = 1;
+        targetingSite.xcoord          = 0.123450000000000004174438572590588591992855072021484375;
+        targetingSite.xmlLocation     = null;
+        targetingSite.xmlTradeArea    = null;
+        targetingSite.ycoord          = -0.123450000000000004174438572590588591992855072021484375;
+        targetingSite.zip             ="1234-5678";
+
+        targetingProfile.baseStatus              = "INSERT";
+        targetingProfile.clientId                = "impower";
+        targetingProfile.createDate              = new Date();
+        targetingProfile.createUser              = 12356;
+        targetingProfile.description             = "impower";
+        targetingProfile.dirty                   = true;
+        targetingProfile.group                   = 1234;
+        targetingProfile.methAccess              = 14
+        targetingProfile.methAnalysis            = "A";
+        targetingProfile.methSeason              = "2";
+        targetingProfile.modifyDate              = new Date();
+        targetingProfile.modifyUser              = 13567;
+        targetingProfile.name                    = "test Data";
+        targetingProfile.pk                      = null;
+        targetingProfile.preferredDate           = null;
+        targetingProfile.promoPeriodEndDate      = null;
+        targetingProfile.promoPeriodStartDate    = null;
+        targetingProfile.taSource                = 1;
+        targetingProfile.xmlSicquery             = null;
+        targetingProfile.xmlTradearea            = null;   
+        targetingProfile.xmlVariables            = "impower";
+        targetingProfile.sites                   = [targetingSite];
+
+
+        /*
+        * calling fuse service to persist the Targeting data
+        */
+        
+
+        console.log("calling GeoFootPrintService to save targetingprofile");
+        var observable = this.geofootprintService.saveTargetingProfile(targetingProfile);
+        observable.subscribe((res) => {
+          this.profileId = res.payload;
+          console.log("profileid::::::"+this.profileId);
+
+          targetingProfile =  this.loadTargetingSites(this.profileId);
+
+          //this.buildGeofootprint(this.profileId,1234);
+         
+
+       
+        });
+       
+
+         /*
+        * calling fuse service to load the Targeting data
+        */
+        
+        /*console.log("calling GeoFootPrintService to load targetingprofile");
+         observable  = this.geofootprintService.loadTargetingProfile(this.profileId);
+         observable.subscribe((res) =>{
+           targetingProfile = res.payload;
+           console.log("in geofoorprint load response : "+ JSON.stringify(targetingProfile,null,4));
+
+         }) */
+
+
+
+        
+           
+      }
+
+      
+
+      buildGeofootprint(profileid: number, siteid: number){
+
         //var geofootprintMaster : GeofootprintMaster = new geofootprintMaster();
         let geoMaster           = new GeofootprintMaster();
         let geoGeos             = new GeofootprintGeo();
@@ -41,11 +145,7 @@ export class GeofootprintComponent implements OnInit {
         let geoVars             = new GeofootprintVar();
         
         // array implementation
-        let geoGeosArray        : Array<GeofootprintGeo>
-        let geoSitesArray       : Array<GeofootprintSite>
-        let geoTaNamesArray     : Array<GeofootprintTaName>
-        let geoTradeAreasArray  : Array<GeofootprintTradeArea>
-        let geoVarsArray        : Array<GeofootprintVar>
+        
         
         /*
          * setting geofootprintMaster
@@ -150,8 +250,8 @@ export class GeofootprintComponent implements OnInit {
           geoSites.gsId                   = null;
           geoSites.homeGeocode            = "48170G1";
           geoSites.homeGeoName            = "Impower";
-          geoSites.profile                = 450419; // need to set new profile id from SDE.AM_PROFILES for every request.
-          geoSites.site                   = 12554944; // need to set new profile id from SDE.AM_PROFILES for every request.
+          geoSites.profile                = profileid;
+          geoSites.site                   = siteid;
           geoSites.siteAddress            = "IMPOWER TEST SITE";
           geoSites.siteCity               = "FARMINGTON HILLS";
           geoSites.siteFranchisee         = "IMPOWER";
@@ -167,9 +267,9 @@ export class GeofootprintComponent implements OnInit {
          
           geoMaster.geofootprintSites = [geoSites];
 
-          if(geoMaster.geofootprintSites.length>0){
+          /*if(geoMaster.geofootprintSites.length>0){
             geoMaster.geofootprintSites = geoMaster.geofootprintSites.concat(geoMaster.geofootprintSites);
-          }
+          }*/
           
         })
         
@@ -192,9 +292,22 @@ export class GeofootprintComponent implements OnInit {
         var observable = this.geocoderService.saveGeofootprintMaster(geoMaster);
         observable.subscribe((res) => {
           this.geocodingResponse = res.payload;
-          console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
+          console.log("In geofootprint response: " + JSON.stringify(this.geocodingResponse, null, 4));
         })
-           
+
+      }
+
+      loadTargetingSites(profileId : number): any{
+        console.log("fired loadTargetingSites:::");
+        var observable = this.geofootprintService.loadTargetingProfile(profileId);
+        observable.subscribe((res) => {
+          let targetingprofile  = new TargetingProfile();
+          targetingprofile = res.payload;
+         console.log("tostring ::::"+ JSON.stringify(targetingprofile, null, 4));
+         console.log("text ::::    "+targetingprofile.pk);
+         this.buildGeofootprint(targetingprofile.sites[0].pk,targetingprofile.sites[0].profile);
+        });
+
       }
 
 }
