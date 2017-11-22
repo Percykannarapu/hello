@@ -1,12 +1,17 @@
 export class GeofootprintGeo {
-    gg_id:          number;
-    fk_cgm_id:      number;
-    fk_profile:     number;
-    fk_site:        number;
-    fk_trade_area:  number;
-    geocode:        string;
-    geo_sort_order: number;
-    hhc:            number;
-    distance:       number;
-    isSelected:     boolean;
+    
+    constructor( ){}
+
+    public dirty            : boolean;
+    public baseStatus       : string;
+    public ggId             : number;
+    public cgmId            : number;
+    public profile          : number;
+    public site             : number;
+    public tradeArea        : number;
+    public geocode          : string;
+    public geoSortOrder     : number;
+    public hhc              : number;     
+
+
 }

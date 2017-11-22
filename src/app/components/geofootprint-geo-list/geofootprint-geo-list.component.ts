@@ -59,7 +59,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
   toggleGeocode(geo: GeofootprintGeo) {
     console.log('toggling geoccode');
     console.log(geo);
-    geo.isSelected = !geo.isSelected;
+    //geo.isSelected = !geo.isSelected;
   }
 
   printGeocode(geo: GeofootprintGeo) {
@@ -69,7 +69,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
   setAllGeocodesIsSelected(value: boolean) {
     console.log ('setAllGeocodesIsSelected to ' + value);
     for (const geo of this.geofootprintGeos) {
-      geo.isSelected = value;
+      //geo.isSelected = value;
     }
   }
 

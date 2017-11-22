@@ -116,6 +116,7 @@ import { EsriMapComponent } from './components/esri-map/esri-map.component';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
+import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
 
 
 @NgModule({
@@ -217,7 +218,8 @@ import { BusinessSearchComponent } from './components/business-search/business-s
         FileDemoComponent,
         UtilsDemoComponent,
         DocumentationComponent,
-        BusinessSearchComponent
+        BusinessSearchComponent,
+        GeofootprintComponent
     ],
 
     providers: [
