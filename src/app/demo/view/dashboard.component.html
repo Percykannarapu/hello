@@ -38,8 +38,13 @@
     </div>
 -->    
 
+<p-overlayPanel #op>
+    Content
+</p-overlayPanel>
+
+<!-- button type="text" pButton label="Basic" (click)="op.toggle($event)"></button -->
     <div class="ui-g-12 ui-md-6 ui-lg-3">
-        <div class="ui-g card colorbox colorbox-1">
+        <div class="ui-g card colorbox colorbox-1" (click)="op.toggle($event)">
             <div class="ui-g-4">
                 <i class="material-icons">store</i>
             </div>
@@ -148,7 +153,7 @@
         </p-panel> -->
         <button type="text" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>    
     </div>
-    <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="right" >
+    <p-sidebar [(visible)]="display" styleClass="ui-sidebar-xlg" position="right" >
         <div class="ug-g-12">
            <label class="ui-datatable-header ui-widget-header">Business Search</label>
            <val-business-search>Loading business search component...</val-business-search>
