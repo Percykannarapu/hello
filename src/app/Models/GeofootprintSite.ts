@@ -7,7 +7,7 @@ export class GeofootprintSite {
     public gsId                : number;
     public cgmId               : number;
     public profile             : number;
-    public siteId              : number;
+    public site                : number;
     public siteName            : string;
     public siteIdDisplay       : string;
     public xcoord              : number;

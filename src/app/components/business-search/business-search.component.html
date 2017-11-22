@@ -13,16 +13,14 @@
           <p-dropdown placeholder="Select SIC Cluster" [autoWidth]="false"></p-dropdown>
           <!-- p-dropdown placeholder="Select SIC Cluster" [options]="cities" [autoWidth]="false" [(ngModel)]="selectedCity"></p-dropdown -->
       </div>
-
-      <p-pickList [source]="sourceCars" [target]="targetCars" sourceHeader="Available SIC Codes" targetHeader="Selected SIC Codes"
-        [responsive]="true" [sourceStyle]="{'height':'250px'}" [targetStyle]="{'height':'250px'}">
+       
+      <p-pickList [source]="sourceCategories" sourceHeader="Available SIC Codes" targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'250px'}" [targetStyle]="{'height':'250px'}">
         <ng-template let-car pTemplate="item">
-          <div class="ui-helper-clearfix">
-            <img src="assets/demo/images/car/{{car.brand}}.gif" style="display:inline-block;margin:2px 0 2px 2px" />
-            <div style="font-size:16px;float:right;margin:15px 5px 0 0">{{car.brand}}</div>
-          </div>
+            <div class="ui-helper-clearfix">
+                <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{car.name}}</div>
+            </div>
         </ng-template>
-      </p-pickList>
+    </p-pickList>
 
       <div class="ui-g-12">
         <span class="md-inputfield">
