@@ -10,15 +10,12 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { TargetingProfile } from '../../Models/TargetingProfile';
 import { TargetingSite } from '../../Models/TargetingSite';
-import { GeofootprintGeoService } from '../../Models/geofootprintGeo.service';
 import { GeoFootPrint } from '../../services/geofootprint.service';
-import { TargetingResponse } from '../../Models/TargetingResponse';
-import { Targetingservice } from '../../services/Targeting.service';
 
 
 
 @Component({
-  providers: [GeocoderService, MapService,GeoFootPrint, Targetingservice],
+  providers: [GeocoderService, MapService,GeoFootPrint],
   selector: 'val-geofootprint',
   templateUrl: './geofootprint.component.html',
   styleUrls: ['./geofootprint.component.css']
@@ -30,13 +27,12 @@ export class GeofootprintComponent implements OnInit {
   public siteId    : number;
   public mapView: __esri.MapView;
   private geocodingResponse: GeocodingResponse;
-  private targetingResponse: TargetingResponse;
   public proString : string;
   
 
 
   constructor(private mapService: MapService,private geocoderService: GeocoderService
-    ,private geofootprintService : GeoFootPrint, private targetingService: Targetingservice ) { }
+    ,private geofootprintService : GeoFootPrint) { }
 
   ngOnInit() {
   }
