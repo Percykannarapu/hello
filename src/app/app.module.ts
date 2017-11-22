@@ -119,6 +119,7 @@ import { BusinessSearchComponent } from './components/business-search/business-s
 import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
 
 
+
 @NgModule({
     imports: [
         BrowserModule,
@@ -208,6 +209,7 @@ import { GeofootprintComponent } from './components/geofootprint/geofootprint.co
         FormsDemoComponent,
         GeofootprintGeoListComponent,
         GeocoderComponent,
+        GeofootprintComponent,
         DataDemoComponent,
         PanelsDemoComponent,
         OverlaysDemoComponent, MenusDemoComponent,
@@ -218,8 +220,8 @@ import { GeofootprintComponent } from './components/geofootprint/geofootprint.co
         FileDemoComponent,
         UtilsDemoComponent,
         DocumentationComponent,
-        BusinessSearchComponent,
-        GeofootprintComponent
+        BusinessSearchComponent
+        
     ],
 
     providers: [
