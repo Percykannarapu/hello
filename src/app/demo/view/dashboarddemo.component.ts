@@ -3,6 +3,7 @@ import {CarService} from '../service/carservice';
 import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';
 import {SelectItem} from 'primeng/primeng';
+import {StepsModule, MenuItem} from 'primeng/primeng';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -10,22 +11,24 @@ import {SelectItem} from 'primeng/primeng';
 export class DashboardDemoComponent implements OnInit {
 
     cities: SelectItem[];
-
     cars: Car[];
-
     chartData: any;
-
     events: any[];
-
     selectedCity: any;
-
     display: boolean;
+
+    fakeItems: MenuItem[];
 
     constructor(private carService: CarService, private eventService: EventService) { }
 
     ngOnInit() {
-        this.carService.getCarsSmall().then(cars => this.cars = cars);
+        this.fakeItems = [
+            {label: 'Step 1'},
+            {label: 'Step 2'},
+            {label: 'Step 3'}
+        ];
 
+        this.carService.getCarsSmall().then(cars => this.cars = cars);
         this.eventService.getEvents().then(events => {this.events = events; });
 
         this.cities = [];

@@ -38,13 +38,93 @@
     </div>
 -->    
 
-<p-overlayPanel #op>
-    Content
+<!-- Home for Green Sites Box Overlay -->
+<p-overlayPanel #op_green class="green-panel">
+    <!-- To be replaced with a component -->
+    <p-tabView>
+        <p-tabPanel header="Sites">
+            Site Manipulation Functionality will go here
+            <ul>
+                <li>Enter sites manually</li>
+                <li>Upload sites</li>
+                <li>Ability to edit site / ta info</li>
+                <li>Defining Trade areas</li>
+                <li>Applying Trade areas</li>
+            </ul>
+        </p-tabPanel>
+        <p-tabPanel header="Trade Areas">
+            Multiple tabs available to break up input forms
+        </p-tabPanel>
+        <p-tabPanel header="Upload / Export">
+            We can have as many tabs as necessary
+        </p-tabPanel>
+    </p-tabView>
 </p-overlayPanel>
 
-<!-- button type="text" pButton label="Basic" (click)="op.toggle($event)"></button -->
+<!-- Home for Blue Household Count Box Overlay -->
+<p-overlayPanel #op_blue class="blue-panel">
+    <!-- To be replaced with a component -->
+    <div class="ui-g">
+        <div class="ui-g-12">
+            <p-steps [model]="fakeItems" [readonly]="false"></p-steps>
+        </div>
+        <div class="ui-g-12">
+            <p-tabView>
+                <p-tabPanel header="Step 1 Activities">
+                    Content 1 - 🌮
+                </p-tabPanel>
+                <p-tabPanel header="Step 2 Activities">
+                    Content 2 - 🍖
+                </p-tabPanel>
+                <p-tabPanel header="Step 3 Activities">
+                    Content 3 - 🥓
+                </p-tabPanel>
+            </p-tabView>
+        </div>
+    </div>
+</p-overlayPanel>
+    
+<!-- Home for Purple Progress To Budget Box Overlay -->
+<p-overlayPanel #op_purple class="purple-panel">
+    <!-- To be replaced with a component -->
+    <p-tabView>
+        <p-tabPanel header="Header Tab 1">
+            Content 1
+        </p-tabPanel>
+        <p-tabPanel header="Header Tab 2">
+            Content 2
+        </p-tabPanel>
+        <p-tabPanel header="Header Tab 3">
+            Content 3    
+        </p-tabPanel>
+    </p-tabView>
+</p-overlayPanel>
+
+<!-- Home for Teal Messages Box Overlay -->
+<p-overlayPanel #op_teal class="teal-panel">
+    <!-- To be replaced with a component -->
+    <p-panel class="light-teal-panel">
+    <p-header>
+        Some sort of chart that tells somebody something
+    </p-header>
+    <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
+    </p-panel>
+    <p-tabView>
+        <p-tabPanel header="Header Tab 1">
+            Content 1
+        </p-tabPanel>
+        <p-tabPanel header="Header Tab 2">
+            Content 2
+        </p-tabPanel>
+        <p-tabPanel header="Header Tab 3">
+            Content 3    
+        </p-tabPanel>
+    </p-tabView>
+</p-overlayPanel>
+    
+    <!-- button type="text" pButton label="Basic" (click)="op.toggle($event)"></button -->
     <div class="ui-g-12 ui-md-6 ui-lg-3">
-        <div class="ui-g card colorbox colorbox-1" (click)="op.toggle($event)">
+        <div class="ui-g card colorbox colorbox-1" (click)="op_green.toggle($event)">
             <div class="ui-g-4">
                 <i class="material-icons">store</i>
             </div>
@@ -55,7 +135,7 @@
         </div>
     </div>
     <div class="ui-g-12 ui-md-6 ui-lg-3">
-        <div class="ui-g card colorbox colorbox-2">
+        <div class="ui-g card colorbox colorbox-2" (click)="op_blue.toggle($event)">
             <div class="ui-g-4">
                 <i class="material-icons">home</i>
             </div>
@@ -66,7 +146,7 @@
         </div>
     </div>
     <div class="ui-g-12 ui-md-6 ui-lg-3">
-        <div class="ui-g card colorbox colorbox-3">
+        <div class="ui-g card colorbox colorbox-3" (click)="op_purple.toggle($event)">
             <div class="ui-g-4">
                 <i class="material-icons">timelapse</i>
             </div>
@@ -77,7 +157,7 @@
         </div>
     </div>
     <div class="ui-g-12 ui-md-6 ui-lg-3">
-        <div class="ui-g card colorbox colorbox-4">
+        <div class="ui-g card colorbox colorbox-4" (click)="op_teal.toggle($event)">
             <div class="ui-g-4">
                 <i class="material-icons">email</i>
             </div>
@@ -91,8 +171,32 @@
     <div class="ui-g-12 ui-md-6 ui-lg-12">
         <!-- ESRI Map -->
         <p-panel header="Map" [toggleable]="true">
+                <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="left" >
+                        <div class="ug-g-12">
+                        <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
+                        </div>
+                </p-sidebar>            
             <div>
-            <app-esri-map>Loading Map...</app-esri-map>
+                <p-toolbar>
+                    <div class="ui-toolbar-group-left">
+                        <i style="margin-left: 20px"></i>
+                        <button pButton type="button" label="New" icon="fa-plus"></button>
+                        <button pButton type="button" label="Open" icon="fa-folder-open"></button>
+                                
+                        <i class="fa fa-bars"></i>
+                        <p-splitButton label="Targeting Toolbox" icon="fa-check" [model]="fakeItems"></p-splitButton>
+                    </div>
+                    
+                    <div class="ui-toolbar-group-right">
+                        <input type="text" pInputText placeholder="Search">
+                        <button pButton type="button" icon="fa-search"></button>
+                        <i class="fa fa-bars"></i>
+                        <button pButton type="button" icon="fa-refresh"></button>
+                        <button pButton type="button" icon="fa-trash" class="ui-button-danger"></button>
+                        <button pButton label="Logout" icon="fa-sign-out" class="ui-button-success"></button>
+                    </div>
+                </p-toolbar>
+                <app-esri-map>Loading Map...</app-esri-map>
             </div>
         </p-panel>
     </div>
@@ -101,8 +205,7 @@
     <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
             <!-- div class="ui-g-12 ui-md-6 ui-lg-4 task-list" -->
         <val-geocoder>Loading Geocoder...</val-geocoder>
-        <val-geofootprint>loading geofootprint...</val-geofootprint>
-        <!--
+            <!--
         <p-panel header="Tasks">
             <ul>
                 <li>
@@ -144,23 +247,19 @@
         </p-panel>
     -->
     </div>
-    <div class="ui-g-12 ui-md-8 ui-lg-8 ui-fluid">
-<!--        <p-panel header="Business Search">
-            <div class="ui-g">
-                <div class="ui-g-12">
-                    <val-business-search>Loading business search component...</val-business-search>
-                </div>
+    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
+        <p-panel header="Work In Progress Stuff">
+            <val-geofootprint>loading geofootprint...</val-geofootprint>
+            <button type="text" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>
+        </p-panel>
+
+        <p-sidebar [(visible)]="display" styleClass="ui-sidebar-xlg" position="right" >
+            <div class="ug-g-12">
+            <label class="ui-datatable-header ui-widget-header">Business Search</label>
+            <val-business-search>Loading business search component...</val-business-search>
             </div>
-        </p-panel> -->
-        <button type="text" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>    
-    </div>
-    <p-sidebar [(visible)]="display" styleClass="ui-sidebar-xlg" position="right" >
-        <div class="ug-g-12">
-           <label class="ui-datatable-header ui-widget-header">Business Search</label>
-           <val-business-search>Loading business search component...</val-business-search>
-        </div>
-    </p-sidebar>
- 
+        </p-sidebar>
+    </div> 
     <div class="ui-g-12 ui-lg-4 contacts">
         <p-panel header="Contacts">
             <ul>

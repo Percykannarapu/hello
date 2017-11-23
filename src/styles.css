@@ -3,3 +3,23 @@
 .ui-sidebar-right.ui-sidebar-xlg {
     width: 80em;
 }
+
+/*-- Top Info Box Overlay Panel Styles */
+.green-panel .ui-overlaypanel-content {
+    background: #3A7D2E
+}
+.blue-panel .ui-overlaypanel-content {
+    background: #2977BF
+}
+.purple-panel .ui-overlaypanel-content {
+    background: #4529A3
+}
+.teal-panel .ui-overlaypanel-content {
+    background: #1E695C
+}
+.light-teal-panel .ui-panel .ui-panel-content {
+    background: #3EC1B2
+}
+.light-teal-panel .ui-panel .ui-panel-titlebar {
+    background: #2F9688
+}
