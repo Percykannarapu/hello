@@ -30,8 +30,8 @@ export class GeocoderService {
   saveGeofootprintMaster(geofootprintMaster : GeofootprintMaster){
     //JSON mapper = new JSON();
     console.log("fired saveGeofootprintMaster in GeocoderService "+JSON.stringify(geofootprintMaster,null,4));
-    
-    return this.http.post("http://valwgpjbs002vm:8181/cxf/services/v1/mediaexpress/base/geofootprintmaster/save", geofootprintMaster).map(res => res.json() as RestResponse);
+     
+    return this.http.post("http://vallomjbs002vm/services/v1/mediaexpress/base/geofootprintmaster/save", geofootprintMaster).map(res => res.json() as RestResponse);
   }
 
 }

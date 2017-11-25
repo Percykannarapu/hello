@@ -11,6 +11,9 @@ import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { TargetingProfile } from '../../Models/TargetingProfile';
 import { TargetingSite } from '../../Models/TargetingSite';
 import { GeoFootPrint } from '../../services/geofootprint.service';
+import {GrowlModule,Message,ButtonModule} from 'primeng/primeng';
+
+
 
 
 
@@ -18,7 +21,7 @@ import { GeoFootPrint } from '../../services/geofootprint.service';
   providers: [GeocoderService, MapService,GeoFootPrint],
   selector: 'val-geofootprint',
   templateUrl: './geofootprint.component.html',
-  styleUrls: ['./geofootprint.component.css']
+  styleUrls: ['./geofootprint.component.css'],
 })
 export class GeofootprintComponent implements OnInit {
   
@@ -28,43 +31,59 @@ export class GeofootprintComponent implements OnInit {
   public mapView: __esri.MapView;
   private geocodingResponse: GeocodingResponse;
   public proString : string;
+  public geofootprintCgmId : Message[] = [];
   
 
 
-  constructor(private mapService: MapService,private geocoderService: GeocoderService
-    ,private geofootprintService : GeoFootPrint) { }
+  constructor(
+     private mapService: MapService
+     ,private geocoderService: GeocoderService
+    ,private geofootprintService : GeoFootPrint
+    
+  ) { }
 
   ngOnInit() {
   }
 
   loadGeocode(){
     
-          this.profileId  = 450433;
-          this.siteId     = 12554963;
+        
         //Construct targeting sites and profiles
         let targetingProfile = new TargetingProfile();
-        let targetingSite    = new TargetingSite();
+       
 
-        targetingSite.address         = "testImpower";
-        targetingSite.baseStatus      = "INSERT";
-        targetingSite.city            = "MI";
-        targetingSite.createType      = 1;
-        targetingSite.crossStreet     = "impowe";
-        targetingSite.dirty           = true;
-        targetingSite.franchisee      = "test Impower";
-        targetingSite.legacySiteId    = "test";
-        targetingSite.name            = "impower";
-        targetingSite.owner           = "IMpower";
-        targetingSite.pk              = null;
-        targetingSite.profile         = null;
-        targetingSite.siteType        = 1;
-        targetingSite.state           = "MI";
-        targetingSite.taSource        = 1;
-        targetingSite.xcoord          = 0.123450000000000004174438572590588591992855072021484375;
-        targetingSite.xmlLocation     = null;
-        targetingSite.xmlTradeArea    = null;
-        targetingSite.ycoord          = -0.123450000000000004174438572590588591992855072021484375;
-        targetingSite.zip             ="1234-5678";
+        this.mapView = this.mapService.getMapView();
+        var tgSiteArray: TargetingSite[] = [];
+        this.mapView.graphics.forEach(function(current : any) {
+          let targetingSite    = new TargetingSite();
+
+          targetingSite.address         = "testImpower";
+          targetingSite.baseStatus      = "INSERT";
+          targetingSite.city            = "MI";
+          targetingSite.createType      = 1;
+          targetingSite.crossStreet     = "impowe";
+          targetingSite.dirty           = true;
+          targetingSite.franchisee      = "test Impower";
+          targetingSite.legacySiteId    = "test";
+          targetingSite.name            = "impower";
+          targetingSite.owner           = "IMpower";
+          targetingSite.pk              = null;
+          targetingSite.profile         = null;
+          targetingSite.siteType        = 1;
+          targetingSite.state           = "MI";
+          targetingSite.taSource        = 1;
+          targetingSite.xcoord          = current.geometry.latitude;
+          targetingSite.xmlLocation     = null;
+          targetingSite.xmlTradeArea    = null;
+          targetingSite.ycoord          = current.geometry.longitude;
+          targetingSite.zip             ="1234-5678";
+
+          tgSiteArray.push(targetingSite);
+          console.log("Targeting sites size:::"+tgSiteArray.length)
+
+        });
+
+        
 
         targetingProfile.baseStatus              = "INSERT";
         targetingProfile.clientId                = "impower";
@@ -87,8 +106,12 @@ export class GeofootprintComponent implements OnInit {
         targetingProfile.xmlSicquery             = null;
         targetingProfile.xmlTradearea            = null;   
         targetingProfile.xmlVariables            = "impower";
-        targetingProfile.sites                   = [targetingSite];
 
+        targetingProfile.sites                   = tgSiteArray
+        
+       
+        
+                
 
         /*
         * calling fuse service to persist the Targeting data
@@ -102,40 +125,17 @@ export class GeofootprintComponent implements OnInit {
           console.log("profileid::::::"+this.profileId);
 
           targetingProfile =  this.loadTargetingSites(this.profileId);
-
-          //this.buildGeofootprint(this.profileId,1234);
-         
-
-       
-        });
-       
-
-         /*
-        * calling fuse service to load the Targeting data
-        */
-        
-        /*console.log("calling GeoFootPrintService to load targetingprofile");
-         observable  = this.geofootprintService.loadTargetingProfile(this.profileId);
-         observable.subscribe((res) =>{
-           targetingProfile = res.payload;
-           console.log("in geofoorprint load response : "+ JSON.stringify(targetingProfile,null,4));
-
-         }) */
-
-
-
-        
-           
+         });
+          
       }
 
       
 
-      buildGeofootprint(profileid: number, siteid: number){
+      buildGeofootprint(targetingProfile : TargetingProfile){
 
         //var geofootprintMaster : GeofootprintMaster = new geofootprintMaster();
         let geoMaster           = new GeofootprintMaster();
         let geoGeos             = new GeofootprintGeo();
-        let geoSites            = new GeofootprintSite();
         let geoTaNames          = new GeofootprintTaName();
         let geoTradeAreas       = new GeofootprintTradeArea();
         let geoVars             = new GeofootprintVar();
@@ -234,41 +234,45 @@ export class GeofootprintComponent implements OnInit {
          /* setting geofootprintSites
          * CBX_GEOFOOTPRINT_SITES
          */
-        this.mapView = this.mapService.getMapView();
-        this.mapView.graphics.forEach( function(current : any ){
-          console.log("lat:::"+current.geometry.latitude);
-          console.log("long:::"+current.geometry.longitude);
-          geoSites.baseStatus             = "INSERT";
-          geoSites.cgmId                  = null;
-          geoSites.dirty                  = true;
-          geoSites.geoProfileId           = null;
-          geoSites.geoProfileTypeAbbr     = null;
-          geoSites.gsId                   = null;
-          geoSites.homeGeocode            = "48170G1";
-          geoSites.homeGeoName            = "Impower";
-          geoSites.profile                = profileid;
-          geoSites.site                   = siteid;
-          geoSites.siteAddress            = "IMPOWER TEST SITE";
-          geoSites.siteCity               = "FARMINGTON HILLS";
-          geoSites.siteFranchisee         = "IMPOWER";
-          geoSites.siteIdDisplay          = "TEST IMPOWER";
-          geoSites.siteName               = "IMPOWER";
-          geoSites.siteSortOrder          = 2;
-          geoSites.siteState              = "MI";
-          geoSites.siteZip                = "23220-4621";
-          geoSites.xcoord                 = current.geometry.latitude;
-          geoSites.ycoord                 = current.geometry.longitude;    
-          //geoSitesList.add(geoSites);
-          //geoSitesArray = geoSites;
-         
-          geoMaster.geofootprintSites = [geoSites];
+      
+         var geoSiteArray: GeofootprintSite[] = [];
+         for(let tgsite of targetingProfile.sites){
+           let geoSites            = new GeofootprintSite();
+                    geoSites.baseStatus             = "INSERT";
+                    geoSites.cgmId                  = null;
+                    geoSites.dirty                  = true;
+                    geoSites.geoProfileId           = null;
+                    geoSites.geoProfileTypeAbbr     = null;
+                    geoSites.gsId                   = null;
+                    geoSites.homeGeocode            = "48170G1";
+                    geoSites.homeGeoName            = "Impower";
+                    geoSites.profile                = tgsite.profile;
+                    geoSites.site                   = tgsite.pk;
+                    geoSites.siteAddress            = "IMPOWER TEST SITE";
+                    geoSites.siteCity               = "FARMINGTON HILLS";
+                    geoSites.siteFranchisee         = "IMPOWER";
+                    geoSites.siteIdDisplay          = "TEST IMPOWER";
+                    geoSites.siteName               = "IMPOWER";
+                    geoSites.siteSortOrder          = 2;
+                    geoSites.siteState              = "MI";
+                    geoSites.siteZip                = "23220-4621";
+                    geoSites.xcoord                 = tgsite.xcoord;
+                    geoSites.ycoord                 = tgsite.ycoord; 
 
-          /*if(geoMaster.geofootprintSites.length>0){
-            geoMaster.geofootprintSites = geoMaster.geofootprintSites.concat(geoMaster.geofootprintSites);
-          }*/
-          
-        })
+                    console.log("geosite id ::"+geoSites.site);
+
+                    geoSiteArray.push(geoSites);
+                    console.log("geoFootprint sites size:::"+geoSiteArray.length)
+                    
+         /*   if(geoMaster.geofootprintSites.length>1){
+                 console.log("inside:::"+geoMaster.geofootprintSites.length)
+                 geoMaster.geofootprintSites = geoMaster.geofootprintSites.concat(geoMaster.geofootprintSites);
+            } */
+                 
+
+        }
         
+        geoMaster.geofootprintSites = geoSiteArray;
         
         
         /* 
@@ -287,8 +291,11 @@ export class GeofootprintComponent implements OnInit {
         console.log("calling GeododerService to save GrofootprintMaster");
         var observable = this.geocoderService.saveGeofootprintMaster(geoMaster);
         observable.subscribe((res) => {
-          this.geocodingResponse = res.payload;
-          console.log("In geofootprint response: " + JSON.stringify(this.geocodingResponse, null, 4));
+          const glowmessage : Message= res.payload;
+          console.log("In geofootprint response: " + JSON.stringify(glowmessage, null, 4));
+          this.geofootprintCgmId.push({severity:'success', summary:'GeoFootprint save', detail:JSON.stringify(glowmessage, null, 4)});
+          console.log("geofootprintCgmId::"+this.geofootprintCgmId);
+          return;  
         })
 
       }
@@ -301,9 +308,8 @@ export class GeofootprintComponent implements OnInit {
           targetingprofile = res.payload;
          console.log("tostring ::::"+ JSON.stringify(targetingprofile, null, 4));
          console.log("text ::::    "+targetingprofile.pk);
-         this.buildGeofootprint(targetingprofile.sites[0].pk,targetingprofile.sites[0].profile);
+         this.buildGeofootprint(targetingprofile);
         });
 
       }
-
 }
