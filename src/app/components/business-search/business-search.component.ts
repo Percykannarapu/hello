@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../../services/app.service';
 import {DropdownModule} from 'primeng/primeng';
-import { Response } from '_debugger';
-
 
 @Component({
   providers: [AppService],
@@ -23,11 +21,9 @@ export class BusinessSearchComponent implements OnInit {
   sourceCategories: any = [];
   targetCategories: any = [];
   filteredCategories: any = [];
-
   geofootprintGeos: any;
   competitors: any;
   sites: any;
-  data: Object;//
 
   constructor(private appService: AppService) { 
     this.dropdownList = [  {name:'Apparel & Accessory Stores'},
@@ -106,7 +102,7 @@ export class BusinessSearchComponent implements OnInit {
   });
   console.log(paramObj);
     this.appService.getbusinesses(paramObj).subscribe((data) => {
-      console.log('returnData'+ data.payload);
+      console.log('returnData'+ data.payload); 
       //let searchDatageos = [(resp:Response) => resp.json().data.payload.rows];
   
     });
