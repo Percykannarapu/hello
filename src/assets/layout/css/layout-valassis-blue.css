@@ -225,9 +225,9 @@
     display: inline-block;
     vertical-align: middle;
     width: 200px;
-    height: 30px;
+    height: 63px;
     background: url("../images/logo2x.png") top left no-repeat;
-    background-size: 200px 30px; }
+    background-size: 200px 63px; }
   .splash-screen .load-bar {
     position: relative;
     margin-top: 20px;
