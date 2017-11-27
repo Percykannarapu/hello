@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../../services/app.service';
 import {DropdownModule} from 'primeng/primeng';
+import { Response } from '_debugger';
 
 
 @Component({
@@ -15,16 +16,18 @@ export class BusinessSearchComponent implements OnInit {
   dropdownList: any[];
   
   selectedCategory: string;
-  
+  searchDatageos: any[];//
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
   model: any = {};
   sourceCategories: any = [];
   targetCategories: any = [];
   filteredCategories: any = [];
+
   geofootprintGeos: any;
   competitors: any;
   sites: any;
+  data: Object;//
 
   constructor(private appService: AppService) { 
     this.dropdownList = [  {name:'Apparel & Accessory Stores'},
@@ -65,18 +68,15 @@ export class BusinessSearchComponent implements OnInit {
   onSearchBusiness(){
     let paramObj = {
       "sites": [
-          {
-              "x": "-117.351856",
-              "y": "34.470195"
-          },
-          {
-              "x": "-117.156703",
-              "y": "33.684842"
-          },
-          {
-              "x": "-84.30181",
-              "y": "33.898628"
-          }
+      
+        {
+          "x": "-90.38018",
+          "y": "38.557349"
+        },
+        {
+          "x": "-118.361572",
+          "y": "34.068947"
+        }    
           
       ],
       
@@ -107,6 +107,8 @@ export class BusinessSearchComponent implements OnInit {
   console.log(paramObj);
     this.appService.getbusinesses(paramObj).subscribe((data) => {
       console.log('returnData'+ data.payload);
+      //let searchDatageos = [(resp:Response) => resp.json().data.payload.rows];
+  
     });
   }
 
