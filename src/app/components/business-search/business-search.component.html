@@ -11,15 +11,15 @@
       </div>
       <div class="ui-g-12">
           <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" placeholder="Select SIC Cluster" [autoWidth]="false"></p-dropdown>
-          <p>{{selectedCategory ? selectedCategory.name:'none'}}</p>
+          <!-- <p>{{selectedCategory ? selectedCategory.name:'none'}}</p> -->
           
           <!-- p-dropdown placeholder="Select SIC Cluster" [options]="cities" [autoWidth]="false" [(ngModel)]="selectedCity"></p-dropdown -->
       </div>
        
       <p-pickList [source]="sourceCategories" sourceHeader="Available SIC Codes" targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'250px'}" [targetStyle]="{'height':'250px'}">
-        <ng-template let-car pTemplate="item">
+        <ng-template let-category pTemplate="item">
             <div class="ui-helper-clearfix">
-                <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{car.name}}</div>
+                <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{category.name}}</div>
             </div>
         </ng-template>
     </p-pickList>
