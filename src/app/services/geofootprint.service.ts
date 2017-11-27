@@ -24,14 +24,14 @@ export class GeoFootPrint {
 
         console.log("fired GeoFootPrint saveTarhetingProfile Service "+JSON.stringify(targetingprofile,null,4));
        
-        return this.http.post("http://vallomjbs002vm/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
+        return this.http.post("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
 
     }
 
     loadTargetingProfile(profileid : number){
 
-        console.log("url:::"+"http://vallomjbs002vm/services/v1/targeting/base/targetingprofile/load/"+profileid);
-        return this.http.get("http://vallomjbs002vm/services/v1/targeting/base/targetingprofile/load/"+profileid).map(res => res.json() as RestResponse);
+        console.log("url:::"+"http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/load/"+profileid);
+        return this.http.get("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/load/"+profileid).map(res => res.json() as RestResponse);
 
     }
 }
