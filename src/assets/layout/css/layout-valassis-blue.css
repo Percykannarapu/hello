@@ -515,18 +515,18 @@
     .login-panel .ui-g .ui-g-12 .ui-button {
       margin-bottom: 20px; }
   .login-panel .ui-button:hover {
-    background-color: #0277BD; }
+    background-color: #2e5473; }
   .login-panel .ui-button:focus {
     outline: 0 none;
-    background-color: #2ebcfc; }
+    background-color: #5991bc; }
   .login-panel .ui-button.secondary:hover {
-    background-color: #FF8F00; }
+    background-color: #bd7400; }
   .login-panel .ui-button.secondary:focus {
     outline: 0 none;
-    background-color: #ffce3a; }
+    background-color: #ffaa23; }
   .login-panel .ui-inputtext:focus {
     border-width: 0 0 2px 0;
-    border-color: #03A9F4;
+    border-color: #4177a1;
     padding-bottom: 0px; }
 
 .login-footer {
@@ -586,7 +586,7 @@
     -webkit-border-radius: 3px;
     border-radius: 3px; }
     .exception-body .ui-button:hover {
-      background-color: #FF8F00; }
+      background-color: #bd7400; }
   .exception-body.error-page .exception-type {
     background-color: #e62a10; }
     .exception-body.error-page .exception-type img {
@@ -618,7 +618,7 @@
   -webkit-border-radius: 3px;
   border-radius: 3px; }
   .landing-wrapper .ui-button:hover {
-    background-color: #FF8F00; }
+    background-color: #bd7400; }
 .landing-wrapper #header {
   width: 100%;
   min-height: 400px;
@@ -935,7 +935,7 @@ body {
   z-index: 100;
   width: 100%;
   height: 75px;
-  background-color: #03A9F4;
+  background-color: #4177a1;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
   -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
   -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26); }
@@ -952,7 +952,7 @@ body {
     padding-left: 18px;
     height: 75px;
     width: 250px;
-    background-color: #0277BD;
+    background-color: #2e5473;
     float: left;
     box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
     -webkit-box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
@@ -961,7 +961,7 @@ body {
     padding: 15px;
     position: relative; }
     .layout-container .topbar .topbar-right #menu-button {
-      color: #212121;
+      color: #ffffff;
       display: inline-block;
       vertical-align: middle;
       height: 36px;
@@ -969,7 +969,7 @@ body {
       position: relative;
       left: -16px;
       top: 3px;
-      background-color: #FFC107;
+      background-color: #EF9300;
       -moz-border-radius: 50%;
       -webkit-border-radius: 50%;
       border-radius: 50%;
@@ -1053,7 +1053,7 @@ body {
     .layout-container .topbar .topbar-right .topbar-items .search-item input:focus ~ label {
       top: -5px;
       font-size: 12px;
-      color: #03A9F4; }
+      color: #4177a1; }
     .layout-container .topbar .topbar-right .topbar-items .search-item input.ui-state-filled ~ label {
       display: none; }
     .layout-container .topbar .topbar-right .topbar-items .search-item label {
@@ -1147,19 +1147,19 @@ body {
       .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li a:hover {
         background-color: #676767; }
       .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink {
-        color: #FFC107; }
+        color: #9fa8da; }
         .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink i {
-          color: #FFC107; }
+          color: #9fa8da; }
         .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink:hover {
           color: #ffffff; }
           .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink:hover > i {
             color: #ffffff; }
     .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li.active-menuitem > a {
-      color: #212121;
-      background-color: #FFC107; }
+      color: #ffffff;
+      background-color: #EF9300; }
       .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li.active-menuitem > a.active-menuitem-routerlink {
-        color: #212121;
-        background-color: #FFC107; }
+        color: #ffffff;
+        background-color: #EF9300; }
         .layout-container .layout-menu.layout-menu-dark ul.ultima-menu li.active-menuitem > a.active-menuitem-routerlink i {
           color: #212121; }
   .layout-container .layout-menu .menuitem-badge {
@@ -1171,8 +1171,8 @@ body {
     height: 1em;
     margin-right: .5em;
     text-align: center;
-    background-color: #FFC107;
-    color: #212121;
+    background-color: #EF9300;
+    color: #ffffff;
     font-size: 14px;
     font-weight: 700;
     line-height: 1em;
@@ -1282,18 +1282,18 @@ body {
       display: inline-block;
       vertical-align: middle; }
     .layout-container .ultima-menu li a.active-menuitem-routerlink {
-      color: #03A9F4; }
+      color: #2e5473; }
       .layout-container .ultima-menu li a.active-menuitem-routerlink > i {
-        color: #03A9F4; }
+        color: #2e5473; }
       .layout-container .ultima-menu li a.active-menuitem-routerlink:hover {
         color: #212121; }
         .layout-container .ultima-menu li a.active-menuitem-routerlink:hover > i {
           color: #757575; }
   .layout-container .ultima-menu li.active-menuitem > a {
-    color: #03A9F4;
+    color: #4177a1;
     background-color: #e8e8e8; }
     .layout-container .ultima-menu li.active-menuitem > a i {
-      color: #03A9F4; }
+      color: #4177a1; }
     .layout-container .ultima-menu li.active-menuitem > a i:last-child {
       -webkit-transform: rotate(-180deg);
       -moz-transform: rotate(-180deg);
@@ -1379,7 +1379,7 @@ body {
 
 .ajax-loader {
   font-size: 2em;
-  color: #FFC107; }
+  color: #EF9300; }
 
 @media (min-width: 1025px) {
   .layout-container .topbar-items {
@@ -1400,8 +1400,8 @@ body {
           position: absolute;
           right: -5px;
           top: -5px;
-          background-color: #FFC107;
-          color: #212121;
+          background-color: #EF9300;
+          color: #ffffff;
           -moz-border-radius: 50%;
           -webkit-border-radius: 50%;
           border-radius: 50%;
@@ -1461,7 +1461,7 @@ body {
     -webkit-box-shadow: none;
     -moz-box-shadow: none; }
     .layout-container.menu-layout-horizontal .topbar .topbar-left {
-      background-color: #03A9F4;
+      background-color: #4177a1;
       box-shadow: none;
       -webkit-box-shadow: none;
       -moz-box-shadow: none; }
@@ -1473,7 +1473,7 @@ body {
     width: 100%;
     top: 75px;
     height: auto;
-    background-color: #0277BD;
+    background-color: #2e5473;
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
     -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
     -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26); }
@@ -1505,9 +1505,9 @@ body {
           .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > a:hover i {
             color: #212121; }
         .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > a.active-menuitem-routerlink {
-          color: #FFC107; }
+          color: #9fa8da; }
           .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > a.active-menuitem-routerlink > i {
-            color: #FFC107; }
+            color: #9fa8da; }
           .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > a.active-menuitem-routerlink:hover {
             color: #212121; }
             .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > a.active-menuitem-routerlink:hover i {
@@ -1537,15 +1537,15 @@ body {
           .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > ul li ul ul ul ul ul li a {
             padding-left: 96px; }
         .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > ul li.active-menuitem > a {
-          color: #03A9F4;
+          color: #4177a1;
           background-color: #e8e8e8; }
         .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > ul li.active-menuitem > ul {
           display: block; }
       .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li.active-menuitem > a {
-        color: #212121;
-        background-color: #FFC107; }
+        color: #ffffff;
+        background-color: #EF9300; }
         .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li.active-menuitem > a i {
-          color: #212121; }
+          color: #ffffff; }
       .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li.active-menuitem > ul {
         display: block; }
     .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark {
@@ -1558,16 +1558,16 @@ body {
           .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li a:hover i {
             color: #ffffff; }
         .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink {
-          color: #FFC107; }
+          color: #9fa8da; }
           .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink i {
-            color: #FFC107; }
+            color: #9fa8da; }
           .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink:hover {
             color: #ffffff; }
             .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li a.active-menuitem-routerlink:hover i {
               color: #ffffff; }
       .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li.active-menuitem > a {
-        color: #212121;
-        background-color: #FFC107; }
+        color: #ffffff;
+        background-color: #EF9300; }
       .layout-container.menu-layout-horizontal .layout-menu.layout-menu-dark ul.ultima-menu li ul {
         background-color: #424242; }
     .layout-container.menu-layout-horizontal .layout-menu .menuitem-badge {
@@ -1724,8 +1724,8 @@ body {
         position: absolute;
         left: 30px;
         top: 10px;
-        background-color: #FFC107;
-        color: #212121;
+        background-color: #EF9300;
+        color: #ffffff;
         -moz-border-radius: 50%;
         -webkit-border-radius: 50%;
         border-radius: 50%;
@@ -1739,7 +1739,7 @@ body {
         display: inline-block;
         vertical-align: middle; }
     .layout-container .topbar .topbar-right .topbar-items > li.active-top-menu > a {
-      color: #03A9F4; }
+      color: #4177a1; }
     .layout-container .topbar .topbar-right .topbar-items > li.active-top-menu > ul {
       display: block; }
       .layout-container .topbar .topbar-right .topbar-items > li.active-top-menu > ul li a {
@@ -1765,7 +1765,7 @@ body {
       .layout-container .topbar .topbar-right .topbar-items > li.search-item input:focus ~ label,
       .layout-container .topbar .topbar-right .topbar-items > li.search-item input.ui-state-filled ~ label {
         top: -20px;
-        color: #03A9F4; }
+        color: #4177a1; }
       .layout-container .topbar .topbar-right .topbar-items > li.search-item label {
         top: 1px;
         color: #212121; }

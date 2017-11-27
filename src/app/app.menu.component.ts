@@ -23,6 +23,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Themes', icon: 'palette', badge: '6',
                 items: [
+                    {label: 'Valassis - Blue', icon: 'brush', command: (event) => {this.changeTheme('valassis-blue'); }},
                     {label: 'Indigo - Pink', icon: 'brush', command: (event) => {this.changeTheme('indigo'); }},
                     {label: 'Brown - Green', icon: 'brush', command: (event) => {this.changeTheme('brown'); }},
                     {label: 'Blue - Amber', icon: 'brush', command: (event) => {this.changeTheme('blue'); }},

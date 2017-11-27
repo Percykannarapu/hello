@@ -943,12 +943,13 @@ body {
     display: inline-block;
     vertical-align: middle;
     width: 200px;
-    height: 30px;
+    height: 63px;
     background: url("../images/logo2x.png") top left no-repeat;
-    background-size: 200px 30px; }
+    background-size: 200px 63px; }
   .layout-container .topbar .topbar-left {
     box-sizing: border-box;
-    padding: 20px;
+    padding: 7px;
+    padding-left: 18px;
     height: 75px;
     width: 250px;
     background-color: #2b3135;
