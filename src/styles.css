@@ -6,16 +6,16 @@
 
 /*-- Top Info Box Overlay Panel Styles */
 .green-panel .ui-overlaypanel-content {
-    background: #3A7D2E
+    background: #436f3b
 }
 .blue-panel .ui-overlaypanel-content {
-    background: #2977BF
+    background: #4275a5
 }
 .purple-panel .ui-overlaypanel-content {
-    background: #4529A3
+    background: #503d8e
 }
 .teal-panel .ui-overlaypanel-content {
-    background: #1E695C
+    background: #2a5c53
 }
 .light-teal-panel .ui-panel .ui-panel-content {
     background: #3EC1B2

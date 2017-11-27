@@ -225,9 +225,9 @@
     display: inline-block;
     vertical-align: middle;
     width: 200px;
-    height: 63px;
+    height: 30px;
     background: url("../images/logo2x.png") top left no-repeat;
-    background-size: 200px 63px; }
+    background-size: 200px 30px; }
   .splash-screen .load-bar {
     position: relative;
     margin-top: 20px;
@@ -306,21 +306,21 @@
   .dashboard .colorbox .colorbox-count {
     font-weight: bold; }
   .dashboard .colorbox.colorbox-1 {
-    background-color: #4CAF50; }
+    background-color: #659e5b; }
     .dashboard .colorbox.colorbox-1 div:first-child {
-      background-color: #2E7D32; }
+      background-color: #436f3b; }
   .dashboard .colorbox.colorbox-2 {
-    background-color: #03A9F4; }
+    background-color: #5ca4d7; }
     .dashboard .colorbox.colorbox-2 div:first-child {
-      background-color: #0277BD; }
+      background-color: #4275a5; }
   .dashboard .colorbox.colorbox-3 {
-    background-color: #673AB7; }
+    background-color: #6c50a4; }
     .dashboard .colorbox.colorbox-3 div:first-child {
-      background-color: #4527A0; }
+      background-color: #503d8e; }
   .dashboard .colorbox.colorbox-4 {
-    background-color: #009688; }
+    background-color: #40847a; }
     .dashboard .colorbox.colorbox-4 div:first-child {
-      background-color: #00695C; }
+      background-color: #2a5c53; }
 .dashboard .task-list {
   overflow: hidden; }
   .dashboard .task-list > .ui-panel {
