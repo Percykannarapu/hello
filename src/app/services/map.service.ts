@@ -52,8 +52,8 @@ export class MapService {
         const opts: __esri.MapViewProperties = {
             container: element,
             map: theMap,
-            center: { longitude: -83.4096256, latitude: 42.4087785 },
-            zoom: 10
+            center: { longitude: -96.563776, latitude: 40.328240 },
+            zoom: 4.4
         };
         const mapView: __esri.MapView = new MapView(opts);
 
