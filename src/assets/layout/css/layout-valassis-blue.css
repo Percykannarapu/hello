@@ -212,7 +212,7 @@
     opacity: 0;
     transform: scale(2.5); } }
 .splash-screen {
-  background-color: #3F51B5;
+  background-color: #2e5473;
   height: 100%;
   width: 100%;
   position: fixed; }
@@ -232,8 +232,8 @@
     position: relative;
     margin-top: 20px;
     width: 100%;
-    height: 6px;
-    background-color: #ffffff; }
+    height: 8px;
+    background-color: #ff7300; }
   .splash-screen .bar {
     content: "";
     display: inline;
@@ -243,10 +243,10 @@
     left: 50%;
     text-align: center; }
   .splash-screen .bar:nth-child(1) {
-    background-color: #E91E63;
+    background-color: #EF9300;
     animation: loading 3s linear infinite; }
   .splash-screen .bar:nth-child(2) {
-    background-color: #8BC34A;
+    background-color: #961414;
     animation: loading 3s linear 1s infinite; }
   .splash-screen .bar:nth-child(3) {
     background-color: #FFC107;
