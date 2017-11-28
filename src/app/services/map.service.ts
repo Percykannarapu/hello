@@ -34,6 +34,7 @@ export class MapService {
                Home,
                Search,
                Legend,
+               LayerList,
                ScaleBar,
                Locate,
                Compass,
@@ -43,6 +44,7 @@ export class MapService {
                                             'esri/widgets/Home',
                                             'esri/widgets/Search',
                                             'esri/widgets/Legend',
+                                            'esri/widgets/LayerList',
                                             'esri/widgets/ScaleBar',
                                             'esri/widgets/Locate',
                                             'esri/widgets/Compass',
@@ -52,10 +54,20 @@ export class MapService {
         const opts: __esri.MapViewProperties = {
             container: element,
             map: theMap,
-            center: { longitude: -83.4096256, latitude: 42.4087785 },
-            zoom: 10
+            // center: { longitude: -83.4096256, latitude: 42.4087785 },
+            center: { longitude: -98.5795, latitude: 39.8282 },
+            zoom: 4.25
         };
         const mapView: __esri.MapView = new MapView(opts);
+
+        // Create the LayerList widget with the associated actions
+        // and add it to the top-right corner of the view.
+        const layerList = new LayerList({
+          view: mapView,
+          container: document.createElement('div')
+          // executes for each ListItem in the LayerList
+          // listItemCreatedFunction: defineActions
+        });
 
         // Create an instance of the Home widget
         const home = new Home({
@@ -79,7 +91,8 @@ export class MapService {
 
         // Create an instance of the Legend widget
         const legend = new Legend({
-                                     view: mapView
+                                     view: mapView,
+                                     container: document.createElement('div')
                                    });
 
 
@@ -103,18 +116,34 @@ export class MapService {
         const bgExpand = new Expand({
           view: mapView,
           content: basemapGallery.container,
-          expandIconClass: 'esri-icon-basemap'
+          expandIconClass: 'esri-icon-basemap',
+          expandTooltip: "Basemap Gallery", 
+        });
+        const layerListExpand = new Expand({
+          view: mapView,
+          content: layerList.container,
+          expandIconClass: 'esri-icon-layer-list',
+          expandTooltip: "Expand LayerList", 
+        });
+        const legendExpand = new Expand({
+          view: mapView,
+          content: legend.container,
+          expandIconClass: 'esri-icon-documentation',
+          expandTooltip: "Expand Legend", 
         });
 
 
         // Add widgets to the viewUI
         mapView.ui.add(search,   'top-right');
-        mapView.ui.add(legend   , 'top-right');
+        mapView.ui.add(legend,   'top-left');
         mapView.ui.add(bgExpand, 'bottom-right');
+        mapView.ui.add(layerListExpand,'top-right');
+        mapView.ui.add(legendExpand,'top-left');
         mapView.ui.add(home,     'top-left');
         mapView.ui.add(locate,   'top-left');
      // mapView.ui.add(compass,  'top-left');
         mapView.ui.add(scaleBar, 'bottom-left');
+        // mapView.ui.add(layerList, 'top-right');
 
         MapService.mapView = mapView;
         return { val: mapView };
@@ -185,16 +214,18 @@ export class MapService {
     return MapService.mapView;
   }
 
-  public async setMapLayer(url: string, layerType: string = 'FeatureLayer'): Promise<EsriWrapper<__esri.MapView>> {
+  public async setMapLayer(name: string, url: string, layerType: string = 'FeatureLayer'): Promise<EsriWrapper<__esri.MapView>> {
 
-        // console.log("fired setMapLayer() in MapService");
+        console.log("fired setMapLayer() in MapService");
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer,GraphicsLayer,MapLayer] = await loader.loadModules([
+        const [FeatureLayer,GraphicsLayer,MapLayer,geometryEngine] = await loader.loadModules([
             'esri/layers/FeatureLayer',
             'esri/layers/GraphicsLayer',
-            'esri/layers/MapImageLayer'
+            'esri/layers/MapImageLayer',
+            'esri/geometry/geometryEngine',
+            'dojo/domReady!'
         ]);
 
 /*
@@ -210,9 +241,26 @@ export class MapService {
         else
         if (layerType == 'FeatureLayer') {
             const fl = new MapLayer({url: url, opacity: 0.65});
+
+             const Census = new MapLayer({url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer", opacity: 0.65});
+             Census.then(function(){
+               console.log('created Census Layer!');
+             })
+            
+             const Atz_Top_Vars  = new MapLayer({url: 'https://valvcshad001vm.val.vlss.local/server/rest/services/ATZ_Top_Vars_Portal_ReferenceRegisteredData/MapServer' , opacity: 1.00, visible: false});
+             Atz_Top_Vars.then(function(){
+               console.log('created ATZ_Top_Vars Layer!');
+             }) 
+
+             const Atz_Centroids  = new MapLayer({url: "https://valvcshad001vm.val.vlss.local/server/rest/services/ATZ_Centroids_Portal_ReferenceRegisteredData/MapServer", opacity: 1.00, visible: false});
+             Atz_Centroids.then(function(){
+               console.log('created ATZ_Centroids Layer!');
+             })
+
          // fl.popupTemplate = popupTemplate;
+
             MapService.mapView.map.layers.removeAll();
-            MapService.mapView.map.add(fl);
+            MapService.mapView.map.addMany([fl, Census, Atz_Centroids, Atz_Top_Vars]);
         }
        // gl = new GraphicsLayer(url);
        // ml = new MapImageLayer(url);

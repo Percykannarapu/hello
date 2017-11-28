@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
 
+// import {GrowlModule,Message,ButtonModule} from 'primeng/primeng';
+
 // Map Services
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
@@ -21,6 +23,7 @@ export class EsriLayerSelectComponent implements OnInit {
   private s_name: string;
   private s_url: string;
 
+  // public msgs: Message[] = [];
   public esriDemographicItems: any[];
   public mapView: __esri.MapView;
   private esriMap: __esri.Map;
@@ -28,9 +31,10 @@ export class EsriLayerSelectComponent implements OnInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  constructor(private mapService: MapService) {
+  constructor(private mapService: MapService
+              // private messageService: MessageService
+             ) {
      this.mapView = this.mapService.getMapView();
-     //this.esriMap = this.mapService.getMap();
   }
 
   public ngOnInit() {
@@ -59,7 +63,7 @@ export class EsriLayerSelectComponent implements OnInit {
             {name: 'USA_Social_Vulnerability_Index'     , code: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Social_Vulnerability_Index/MapServer'},
             {name: 'USA_Tapestry'                       , code: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Tapestry/MapServer'},
             {name: 'USA_Unemployment_Rate'              , code: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Unemployment_Rate/MapServer'},
-            {name: 'Census_2000'                        , code: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer'},
+            {name: 'Census_2000'                        , code: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer'}
         ];
     }
     // tslint:disable-next-line:one-line
@@ -74,7 +78,9 @@ export class EsriLayerSelectComponent implements OnInit {
             console.log(this.s_name, this.s_url);
 
             //add feature layer
-            this.mapService.setMapLayer(this.s_url, 'FeatureLayer');
+            // this.msgs.addSingle('info','Loading Layer', this.s_name);
+            // this.msgs.push({severity:'info', summary:'Info Message', detail:'PrimeNG rocks'});
+            this.mapService.setMapLayer(this.s_name, this.s_url, 'FeatureLayer');
 /*
 
                 //wait until the layer is loaded.
