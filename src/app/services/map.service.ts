@@ -77,6 +77,12 @@ export class MapService {
                                      view: mapView
                                    });
 
+        // Create an instance of the Legend widget
+        const legend = new Legend({
+                                     view: mapView
+                                   });
+
+
         // Create an instance of the Scalebar widget
         const scaleBar = new ScaleBar({
                                    view: mapView,
@@ -106,8 +112,9 @@ export class MapService {
         mapView.ui.add(bgExpand, 'bottom-right');
         mapView.ui.add(home,     'top-left');
         mapView.ui.add(locate,   'top-left');
-        mapView.ui.add(compass,  '"top-left');
-        mapView.ui.add(scaleBar, '"bottom-left');
+        // mapView.ui.add(compass,  'top-left');
+        mapView.ui.add(scaleBar, 'bottom-left');
+        mapView.ui.add(legend   , 'bottom-right');
 
         MapService.mapView = mapView;
         return { val: mapView };
@@ -192,7 +199,7 @@ export class MapService {
 
         // FeatureLayer
         if (layerType == 'FeatureLayer') {
-            const fl = new MapLayer(url);
+            const fl = new MapLayer({url: url, opacity: 0.65});
             MapService.mapView.map.layers.removeAll();
             MapService.mapView.map.add(fl);
         }
