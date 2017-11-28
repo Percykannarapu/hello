@@ -103,7 +103,7 @@ export class BusinessSearchComponent implements OnInit {
         'sic': obj.sic
       }
     });
-    this.searchDatageos = [
+    /*this.searchDatageos = [
       {
         firm: "INSTITUTEFORRESEARCH&EDUC",
         address: "4590SLINDBERGHBLVD#2",
@@ -280,7 +280,7 @@ export class BusinessSearchComponent implements OnInit {
         site_name: null,
         dist_to_site: 0.1240286491065102527423829926148792864173
       }
-    ];
+    ];*/
     console.log(paramObj);
     this.appService.getbusinesses(paramObj).subscribe((data)=> {
       console.log('returnData' + data.payload);
@@ -298,7 +298,7 @@ export class BusinessSearchComponent implements OnInit {
         return { x: obj.x, y: obj.y }
       }
     });
-    this.mapService.plotMarker(finalData.x, finalData.y);
+    //this.mapService.plotMarker(finalData.x, finalData.y);
     console.log(finalData);
   }
 
