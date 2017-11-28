@@ -1,0 +1,6 @@
+<b>Layer</b>:
+  <p-dropdown #ddSelectedService
+     [options]="esriDemographicItems" optionLabel="name"
+     [filter]="true" filterBy="name,value.name"
+     (click)="onChangeMapService(ddSelectedService)">
+</p-dropdown>

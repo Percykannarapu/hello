@@ -117,8 +117,7 @@ import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
 import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
-
-
+import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
 
 @NgModule({
     imports: [
@@ -220,8 +219,8 @@ import { GeofootprintComponent } from './components/geofootprint/geofootprint.co
         FileDemoComponent,
         UtilsDemoComponent,
         DocumentationComponent,
-        BusinessSearchComponent
-        
+        BusinessSearchComponent,
+        EsriLayerSelectComponent
     ],
 
     providers: [

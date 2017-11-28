@@ -33,18 +33,18 @@ export class MapService {
         const [MapView,
                Home,
                Search,
+               Legend,
                ScaleBar,
                Locate,
-               // Print
                Compass,
                Expand,
                BasemapGallery
               ] = await loader.loadModules(['esri/views/MapView',
                                             'esri/widgets/Home',
                                             'esri/widgets/Search',
+                                            'esri/widgets/Legend',
                                             'esri/widgets/ScaleBar',
                                             'esri/widgets/Locate',
-                                            // 'esri/widgets/Print',
                                             'esri/widgets/Compass',
                                             'esri/widgets/Expand',
                                             'esri/widgets/BasemapGallery'
@@ -108,17 +108,6 @@ export class MapService {
         mapView.ui.add(locate,   'top-left');
         mapView.ui.add(compass,  '"top-left');
         mapView.ui.add(scaleBar, '"bottom-left');
-
-/*
-        mapView.then(function() {
-          const print = new Print({
-            view: mapView,
-            printServiceUrl: "https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
-          });
-          // Add widget to the top right corner of the view
-          mapView.ui.add(print, "top-right");
-        });
-*/
 
         MapService.mapView = mapView;
         return { val: mapView };
@@ -186,8 +175,30 @@ export class MapService {
 
   public getMapView():  __esri.MapView{
     // to return Mapview
-
     return MapService.mapView;
+  }
+
+  public async setMapLayer(url: string, layerType: string = 'FeatureLayer'): Promise<EsriWrapper<__esri.MapView>> {
+
+       console.log("fired setMapLayer() in MapService");
+
+        // load required modules for this method
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [FeatureLayer,GraphicsLayer,MapLayer] = await loader.loadModules([
+            'esri/layers/FeatureLayer',
+            'esri/layers/GraphicsLayer',
+            'esri/layers/MapImageLayer'
+        ]);
+
+        // FeatureLayer
+        if (layerType == 'FeatureLayer') {
+            const fl = new MapLayer(url);
+            MapService.mapView.map.layers.removeAll();
+            MapService.mapView.map.add(fl);
+        }
+       // gl = new GraphicsLayer(url);
+       // ml = new MapImageLayer(url);
+      return { val: MapService.mapView };
   }
 
 }
