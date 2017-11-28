@@ -23,14 +23,13 @@ export class AppService {
         {name:'PIZZA', sic:'5812-22'}
     ]
 
-    // public readonly categoryList = 'assets/categories.json'; 
-
-    // constructor(private http: Http) { }
-    // public getList(): Observable<any> {
-    //     return this.http.get(`${this.categoryList}`)
-    //         .map((resp: Response) => resp.json());
-    // }
-
+   /* saveTargetingProfile(targetingprofile : TargetingProfile){
+        
+                console.log("fired GeoFootPrint saveTarhetingProfile Service "+JSON.stringify(targetingprofile,null,4));
+               
+                return this.http.post("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
+        
+            } */
     private readonly searchbusiness = 'https://servicesdev.valassislab.com/services/v1/targeting/base/targetingsearch/search';
     
         constructor(private http: Http) { }
@@ -39,6 +38,11 @@ export class AppService {
             return this.http.post(`${this.searchbusiness}`, paramObj)
                 .map((resp: Response) => resp.json() as RestResponse);
                 
+        }
+
+        businessSearch(paramObj){
+            console.log("Fired business Search Api")
+            return this.http.post("https://servicesdev.valassislab.com/services/v1/targeting/base/targetingsearch/search",paramObj).map(res => res.json() as RestResponse);
         }
         
 
