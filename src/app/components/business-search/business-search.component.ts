@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from '../../services/app.service';
-import {DropdownModule} from 'primeng/primeng';
+import { DropdownModule } from 'primeng/primeng';
+import { MapService } from '../../services/map.service';
 
 @Component({
-  providers: [AppService],
+  providers: [AppService,MapService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -12,9 +13,9 @@ export class BusinessSearchComponent implements OnInit {
   public name: string;  // Used by parent as a header
   public numFound: number = 2;
   dropdownList: any[];
-  
+
   selectedCategory: string;
-  searchDatageos: any[];//
+  searchDatageos: any = [];//
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
   model: any = {};
@@ -25,22 +26,22 @@ export class BusinessSearchComponent implements OnInit {
   competitors: any;
   sites: any;
 
-  constructor(private appService: AppService) { 
-    this.dropdownList = [  {name:'Apparel & Accessory Stores'},
-    {name: 'Building Materials & Hardware'}, 
-    {name: 'General Merchandise Stores'}, 
-    {name:'Food Stores'},
-    {name:'Automotive Dealers & Service Stations'},
-    {name:'Home Furniture & Furnishings Stores'},
-    {name:'Eating & Drinking Places'},
-    {name:'Miscellaneous Retail'},
-    {name:'Depository Institutions'},
-    {name:'Personal Services'},
-    {name:'Auto Services'},
-    {name:'Leisure Services'},
-    {name:'Dentists & Doctors'},
-    {name:'Schools & Universities'}
-];
+  constructor(private appService: AppService, private mapService: MapService) {
+    this.dropdownList = [{ label: 'Apparel & Accessory Stores' },
+    { label: 'Building Materials & Hardware' },
+    { label: 'General Merchandise Stores' },
+    { label: 'Food Stores' },
+    { label: 'Automotive Dealers & Service Stations' },
+    { label: 'Home Furniture & Furnishings Stores' },
+    { label: 'Eating & Drinking Places' },
+    { label: 'Miscellaneous Retail' },
+    { label: 'Depository Institutions' },
+    { label: 'Personal Services' },
+    { label: 'Auto Services' },
+    { label: 'Leisure Services' },
+    { label: 'Dentists & Doctors' },
+    { label: 'Schools & Universities' }
+    ];
 
   }
 
@@ -49,11 +50,11 @@ export class BusinessSearchComponent implements OnInit {
     this.sourceCategories = this.appService.categoriesList;
     this.filteredCategories = this.appService.categoriesList;
   }
-  assignCopy(){
+  assignCopy() {
     this.sourceCategories = Object.assign([], this.filteredCategories);
   }
   filterCategory(value) {
-    if (!value){
+    if (!value) {
       this.assignCopy();
     }
     this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
@@ -61,10 +62,11 @@ export class BusinessSearchComponent implements OnInit {
     })
   }
 
-  onSearchBusiness(){
+  onSearchBusiness() {
     let paramObj = {
+
       "sites": [
-      
+
         {
           "x": "-90.38018",
           "y": "38.557349"
@@ -72,40 +74,56 @@ export class BusinessSearchComponent implements OnInit {
         {
           "x": "-118.361572",
           "y": "34.068947"
-        }    
-          
-      ],
-      
-    // "radius" : "3",
-    // "name" : "INSTITUTE",
-    // "city" : "ST LOUIS",
-    // "state" : "MO",
-    // "zip" : "63127",
-    // "countyName" : "SAINT LOUIS",
-    // "eliminateBlankFirmNames" : "True",
-    // "siteLimit" : "200"
-    // };
+        }
 
-      "radius": this.model.radius,
-      "name": this.model.name,
-      "city": this.model.city,
-      "state": this.model.state,
-      "zip": this.model.zip,
-      "countyName": this.model.countyName,
+      ],
+
+      "radius": "3",
+      "name": "INSTITUTE",
+      "city": "ST LOUIS",
+      "state": "MO",
+      "zip": "63127",
+      "countyName": "SAINT LOUIS",
       "eliminateBlankFirmNames": "True",
       "siteLimit": "200"
-  };
-  paramObj['sics'] = this.targetCategories.map((obj) => {
-    return {
-      'sic': obj.sic
-    }
-  });
-  console.log(paramObj);
-    this.appService.getbusinesses(paramObj).subscribe((data) => {
-      console.log('returnData'+ data.payload); 
-      //let searchDatageos = [(resp:Response) => resp.json().data.payload.rows];
-  
+    };
+
+    //     "radius": this.model.radius,
+    //     "name": this.model.name,
+    //     "city": this.model.city,
+    //     "state": this.model.state,
+    //     "zip": this.model.zip,
+    //     "countyName": this.model.countyName,
+    //     "eliminateBlankFirmNames": "True",
+    //     "siteLimit": "200"
+    // };
+
+    paramObj['sics'] = this.targetCategories.map((obj) => {
+      return {
+        'sic': obj.sic
+      }
     });
+    
+      console.log("request to business search"+paramObj);
+  
+
+      var observable = this.appService.businessSearch(paramObj);
+     
+      observable.subscribe((res) => {
+      var any = res.payload;
+      console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(any.rows, null, 4));
+      this.searchDatageos = any.rows;
+    });
+  }
+
+  onAddToProject() {
+    let finalData = this.searchDatageos.map((obj) => {
+      if (obj.checked) {
+        return { x: obj.x, y: obj.y }
+      }
+    });
+    //this.mapService.plotMarker(finalData.x, finalData.y);
+    console.log(finalData);
   }
 
 }

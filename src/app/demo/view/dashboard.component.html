@@ -73,10 +73,10 @@
             <p-tabView>
                 <p-tabPanel header="Step 1 Activities">
                   <div>🚨🚧 Under Construction 🚧🚨</div>
-                  Content 1 - 🌮
+                  <p>This demostrates that we can have functionality<br> broken up into steps to indicate where the user is<br> in a process.</p>
                 </p-tabPanel>
                 <p-tabPanel header="Step 2 Activities">
-                    Content 2 - 🍖
+                    Content 2 - 🍖 🌮
                 </p-tabPanel>
                 <p-tabPanel header="Step 3 Activities">
                     Content 3 - 🥓
@@ -184,7 +184,7 @@
                     <div class="ui-toolbar-group-left">
                         <i style="margin-left: 20px"></i>
                         <button pButton type="button" label="New" icon="fa-plus"></button>
-                        <button pButton type="button" label="Open" icon="fa-folder-open"></button>
+                        <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
                                 
                         <i class="fa fa-bars"></i>
                         <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
@@ -195,9 +195,9 @@
                         <input type="text" pInputText placeholder="Search">
                         <button pButton type="button" icon="fa-search"></button>
                         <i class="fa fa-bars"></i>
-                        <button pButton type="button" icon="fa-refresh"></button>
-                        <button pButton type="button" icon="fa-trash" class="ui-button-danger"></button>
-                        <button pButton label="Logout" icon="fa-sign-out" class="ui-button-success"></button>
+                        <button pButton type="button" icon="ui-icon-refresh"></button>
+                        <button pButton type="button" icon="ui-icon-delete" class="ui-button-danger"></button>
+                        <button pButton label="Save" icon="ui-icon-save" class="ui-button-success"></button>
                     </div>
                 </p-toolbar>
                 <app-esri-map>Loading Map...</app-esri-map>
@@ -386,9 +386,9 @@
     </div>
     
     <div class="ui-g-12 ui-md-8">
-        <p-panel header="Calendar" [style]="{'height':'100%'}">
+<!--        <p-panel header="Calendar" [style]="{'height':'100%'}">
             <p-schedule [events]="events" defaultDate="2016-01-12"></p-schedule>
-        </p-panel>
+        </p-panel> -->
     </div>
     <div class="ui-g-12 ui-md-4">
         <p-panel header="Activity" [style]="{'height':'100%'}">
