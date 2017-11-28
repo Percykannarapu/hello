@@ -109,12 +109,12 @@ export class MapService {
 
         // Add widgets to the viewUI
         mapView.ui.add(search,   'top-right');
+        mapView.ui.add(legend   , 'top-right');
         mapView.ui.add(bgExpand, 'bottom-right');
         mapView.ui.add(home,     'top-left');
         mapView.ui.add(locate,   'top-left');
-        // mapView.ui.add(compass,  'top-left');
+     // mapView.ui.add(compass,  'top-left');
         mapView.ui.add(scaleBar, 'bottom-left');
-        mapView.ui.add(legend   , 'bottom-right');
 
         MapService.mapView = mapView;
         return { val: mapView };
@@ -187,7 +187,7 @@ export class MapService {
 
   public async setMapLayer(url: string, layerType: string = 'FeatureLayer'): Promise<EsriWrapper<__esri.MapView>> {
 
-       console.log("fired setMapLayer() in MapService");
+        // console.log("fired setMapLayer() in MapService");
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -197,14 +197,26 @@ export class MapService {
             'esri/layers/MapImageLayer'
         ]);
 
-        // FeatureLayer
+/*
+       // Create the PopupTemplate
+       const popupTemplate = { // autocasts as new PopupTemplate()
+       // title: "[{GEOCODE}] - ATZ boundary + TDA Top Variables including IHD and TAB14",
+          content: "{*}"
+       };
+*/
+
+        // Remove/Add Layers
+        if (url == '')  MapService.mapView.map.layers.removeAll();
+        else
         if (layerType == 'FeatureLayer') {
             const fl = new MapLayer({url: url, opacity: 0.65});
+         // fl.popupTemplate = popupTemplate;
             MapService.mapView.map.layers.removeAll();
             MapService.mapView.map.add(fl);
         }
        // gl = new GraphicsLayer(url);
        // ml = new MapImageLayer(url);
+
       return { val: MapService.mapView };
   }
 
