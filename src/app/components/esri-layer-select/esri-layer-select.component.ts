@@ -17,11 +17,11 @@ import { CONFIG, MessageService } from '../../core';
 export class EsriLayerSelectComponent implements OnInit {
 
   // MapService Items
-  private esriDemographicItems: any[];
   private selectedService: string;
   private s_name: string;
   private s_url: string;
 
+  public esriDemographicItems: any[];
   public mapView: __esri.MapView;
   private esriMap: __esri.Map;
 
