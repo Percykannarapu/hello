@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import { RestResponse } from '../Models/RestResponse';
 
 @Injectable()
 export class AppService {
@@ -36,7 +37,7 @@ export class AppService {
         public getbusinesses(paramObj): Observable<any> {
         
             return this.http.post(`${this.searchbusiness}`, paramObj)
-                .map((resp: Response) => resp.json());
+                .map((resp: Response) => resp.json() as RestResponse);
                 
         }
         
