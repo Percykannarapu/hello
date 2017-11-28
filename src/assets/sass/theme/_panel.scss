@@ -84,7 +84,7 @@ body {
             
             > a {
                 padding: $headerPadding;
-                padding-left: 2.5em;
+                padding-left: 0.5em;
                 color: #ffffff;
             }
             
@@ -103,12 +103,12 @@ body {
             }
             
             .fa-caret-right {
-                margin-top: -.5em;
+                margin-top: -0.25em;
                 font-size: 1.5em;
             }
             
             .fa-caret-down {
-                margin-top: -.5em;
+                margin-top: -0.25em;
                 font-size: 1.5em;
             }
         }

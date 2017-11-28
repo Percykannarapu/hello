@@ -4471,7 +4471,7 @@ body .ui-accordion .ui-accordion-header {
   transition: background-color 0.3s; }
   body .ui-accordion .ui-accordion-header > a {
     padding: 0.625em 1em;
-    padding-left: 2.5em;
+    padding-left: 0.5em;
     color: #ffffff; }
   body .ui-accordion .ui-accordion-header:not(.ui-state-active):not(.ui-state-disabled):hover {
     background-color: #2e5473; }
@@ -4487,10 +4487,10 @@ body .ui-accordion .ui-accordion-header {
     body .ui-accordion .ui-accordion-header.ui-state-active > a {
       color: #ffffff; }
   body .ui-accordion .ui-accordion-header .fa-caret-right {
-    margin-top: -.5em;
+    margin-top: -0.25em;
     font-size: 1.5em; }
   body .ui-accordion .ui-accordion-header .fa-caret-down {
-    margin-top: -.5em;
+    margin-top: -0.25em;
     font-size: 1.5em; }
 body .ui-accordion .ui-accordion-content {
   padding: 0.625em 1em;

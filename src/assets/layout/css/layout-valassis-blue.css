@@ -902,7 +902,7 @@
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .landing-wrapper .header .header-top .logo {
     background: url("../images/logo2x.png") top left no-repeat;
-    background-size: 200px 63px; } }
+    background-size: 200px 30px; } }
 html {
   height: 100%; }
 
