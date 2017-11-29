@@ -1,6 +1,6 @@
 <!--Added nallana: US6087 -->
 
-<div class="ui-g">
+<div class="ui-g business-search">
   <div class="ui-g-6 card card-w-title">
     <div class="ui-g">
       <div class="ui-g-12">
@@ -20,7 +20,7 @@
       <p-pickList [source]="sourceCategories" sourceHeader="Available SIC Codes" targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'250px'}" [targetStyle]="{'height':'250px'}">
         <ng-template let-category pTemplate="item">
             <div class="ui-helper-clearfix">
-                <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{category.name}}</div>
+                <div style="font-size:14px;float:left;margin:15px 5px 0 0">{{category.name}}</div>
             </div>
         </ng-template>
     </p-pickList>
@@ -86,17 +86,17 @@
             </div>
             <div class="ui-g-8">
                 <span class="colorbox-name">Businesses found</span>
-                <span class="colorbox-count">{{numFound}}</span>
+                <span class="colorbox-count">{{searchDatageos.length}}</span>
             </div>
         </div>
     </div>
     
-    <div class="ui-g-12">
+    <div class="ui-g-12 businesses-found">
       <p-panel header="Businesses">
         <ul style="list-style: none;">
           
             <li *ngFor="let x of searchDatageos">
-              <div style="padding:5px;"><p-checkbox name="{{x.wrap_id}}" value="{{x.firm}}" label="{{x.firm}}" [(ngModel)]="x.checked"></p-checkbox></div>
+              <div style="padding:10px;"><p-checkbox name="{{x.wrap_id}}" value="{{x.firm}}" label="{{x.firm}}" [(ngModel)]="x.checked"></p-checkbox></div>
             </li>
         </ul>
     </p-panel>

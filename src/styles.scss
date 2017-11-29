@@ -23,3 +23,13 @@
 .light-teal-panel .ui-panel .ui-panel-titlebar {
     background: #2F9688
 }
+
+.business-search{
+    .businesses-found{
+        .ui-panel .ui-panel-content{
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    }
+}
+
