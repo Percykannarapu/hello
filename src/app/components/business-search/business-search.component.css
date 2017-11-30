@@ -1,0 +1,6 @@
+.has-error-border{
+    border-bottom: 1px solid red;
+}
+.has-error{
+    color:red;
+}

@@ -24,7 +24,7 @@
             </div>
         </ng-template>
     </p-pickList>
-
+    <form novalidate>
       <div class="ui-g-12">
         <span class="md-inputfield">
           <input id="businessName" type="text" pInputText name="businessName" [(ngModel)]="model.name"/>
@@ -63,13 +63,16 @@
       </div>
       <div class="ui-g-6">
         <span class="md-inputfield">
-          <input id="distance" type="text" pInputText name="radius" [(ngModel)]="model.radius"/>
-          <label for="distance">Miles From Site</label>
+          <input id="distance" type="text" pInputText name="radius" 
+          [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"/>
+          <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
         </span>
       </div>
       <div class="ui-g-12">
-        <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()"></button>
+        <button type="button" label="Search Businesses" 
+        icon="ui-icon-send" pButton (click)="onSearchBusiness()"></button>
       </div>
+      </form>
       <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
     </div>
   </div>
@@ -93,10 +96,10 @@
     
     <div class="ui-g-12 businesses-found">
       <p-panel header="Businesses">
-        <ul style="list-style: none;">
+        <ul style="list-style: none;padding:0px">
           
             <li *ngFor="let x of searchDatageos">
-              <div style="padding:10px;"><p-checkbox name="{{x.wrap_id}}" value="{{x.firm}}" label="{{x.firm}}" [(ngModel)]="x.checked"></p-checkbox></div>
+              <div style="padding:10px;"><p-checkbox name="{{x.wrap_id}}" value="{{x.dist_to_site}}" label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox></div>
             </li>
         </ul>
     </p-panel>
