@@ -214,27 +214,8 @@ export class MapService {
     return MapService.mapView;
   }
 
-  public async removeMapLayers(): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("fired removeMapLayers() in MapService");
-
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer,GraphicsLayer,MapLayer,geometryEngine] = await loader.loadModules([
-            'esri/layers/FeatureLayer',
-            'esri/layers/GraphicsLayer',
-            'esri/layers/MapImageLayer',
-            'esri/geometry/geometryEngine',
-            'dojo/domReady!'
-        ]);
-
-        // remove all layers
-        MapService.mapView.map.layers.removeAll();
-        return { val: MapService.mapView };
-  }
-
   public async setMapLayers(selectedLayers: any[]): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("fired setMapLayers() in MapService");
-
+        console.log("fired setMapLayer() in MapService");
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer,GraphicsLayer,MapLayer,geometryEngine] = await loader.loadModules([
@@ -245,22 +226,59 @@ export class MapService {
             'dojo/domReady!'
         ]);
 
-        // remove all layers
         MapService.mapView.map.layers.removeAll();
-
-        // loop through array setting each layer based on layer type
+        // console.log(selectedLayers);
         selectedLayers.forEach((element, index) => {
+           console.log('current index: ' + index);
            if (element.indexOf('MapServer') !== -1) {
                MapService.mapView.map.add(new MapLayer({url: element, opacity: 0.65}));
                console.log('added MapLayer:' + element);
-           };
+           }
            if (element.indexOf('FeatureServer') !== -1) {
                MapService.mapView.map.add(new FeatureLayer({url: element, opacity: 0.65}));
                console.log('added FeatureLayer:' + element);
            }
-        });
+        }
+/*
+       // Create the PopupTemplate
+       const popupTemplate = { // autocasts as new PopupTemplate()
+       // title: "[{GEOCODE}] - ATZ boundary + TDA Top Variables including IHD and TAB14",
+          content: "{*}"
+       };
+*/
+/*
+        // Remove/Add Layers
+        if (url == '')  MapService.mapView.map.layers.removeAll();
+        else
+        if (layerType == 'FeatureLayer') {
+            // const fl = new MapLayer({url: url, opacity: 0.65});
+            const fl = new FeatureLayer({url: url, opacity: 0.65});
 
-        return { val: MapService.mapView };
+             const Census = new MapLayer({url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer", opacity: 0.65});
+             Census.then(function(){
+               console.log('created Census Layer!');
+             })
+            
+             const Atz_Top_Vars  = new MapLayer({url: 'https://valvcshad001vm.val.vlss.local/server/rest/services/ATZ_Top_Vars_Portal_ReferenceRegisteredData/MapServer' , opacity: 1.00, visible: false});
+             // const Atz_Top_Vars  = new MapLayer({url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer' , opacity: 1.00, visible: false});
+             Atz_Top_Vars.then(function(){
+               console.log('created ATZ_Top_Vars Layer!');
+             }) 
+
+             const Atz_Centroids  = new MapLayer({url: "https://valvcshad001vm.val.vlss.local/server/rest/services/ATZ_Centroids_Portal_ReferenceRegisteredData/MapServer", opacity: 1.00, visible: false});
+             Atz_Centroids.then(function(){
+               console.log('created ATZ_Centroids Layer!');
+             })
+
+         // fl.popupTemplate = popupTemplate;
+
+            MapService.mapView.map.layers.removeAll();
+            MapService.mapView.map.addMany([fl, Census, Atz_Centroids, Atz_Top_Vars]);
+        }
+       // gl = new GraphicsLayer(url);
+       // ml = new MapImageLayer(url);
+*/
+      return { val: MapService.mapView };
   }
 
 }

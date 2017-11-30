@@ -1,7 +1,11 @@
-<b>Layer</b>:
-  <p-dropdown #ddSelectedService
-     [options]="esriDemographicItems" optionLabel="name"
-     [filter]="true" filterBy="name,value.name"
-     (click)="onChangeMapService(ddSelectedService)">
-</p-dropdown>
-<!-- <p-growl [(value)]="msgs"></p-growl> -->
+     <p-multiSelect 
+        [options]="esriDemographicItems" 
+        [(ngModel)]="selectedLayers" 
+        defaultLabel="Choose Map Layers" 
+        scrollHeight="400px" 
+        [displaySelectedLabel]="false" 
+        [showToggleAll]="true" 
+        [panelStyle]="{minWidth:'12em'}">
+     </p-multiSelect>
+     <button pButton type="button" class="ui-button-info" title="Add Selected Layers" icon="ui-icon-add" (click)="onSetMapServices()"></button>
+     <button pButton type="button" class="ui-button-info" title="Remove All Layers" icon="ui-icon-remove" (click)="onRemoveMapServices()"></button>
