@@ -235,6 +235,7 @@ export class MapService {
 
   public async setMapLayers(selectedLayers: any[]): Promise<EsriWrapper<__esri.MapView>> {
         console.log("fired setMapLayers() in MapService");
+        const census = "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer";
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -261,6 +262,8 @@ export class MapService {
            }
         });
 
+        // load census layer last
+        MapService.mapView.map.add(new MapLayer({url: census, opacity: 1}));
         return { val: MapService.mapView };
   }
 

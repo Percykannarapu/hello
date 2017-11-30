@@ -45,7 +45,7 @@ export class EsriLayerSelectComponent implements OnInit {
             {label: 'ZIP_Centroids'                      , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer'},
             {label: 'ATZ_Centroids'                      , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer'},
         // -----------------
-            {label: 'Census_2000'                        , value: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer'},
+        //  {label: 'Census_2000'                        , value: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer'},
         // -----------------
             {label: 'USA_1990-2000_Population_Change'    , value: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_1990-2000_Population_Change/MapServer'},
             {label: 'USA_2000-2010_Population_Change'    , value: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_2000-2010_Population_Change/MapServer'},
