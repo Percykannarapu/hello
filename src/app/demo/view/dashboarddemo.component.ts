@@ -4,9 +4,11 @@ import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';
 import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
+import { MapService } from '../../services/map.service';
 
 @Component({
-    templateUrl: './dashboard.component.html'
+    templateUrl: './dashboard.component.html',
+    providers: [MapService],
 })
 export class DashboardDemoComponent implements OnInit {
 
@@ -19,7 +21,7 @@ export class DashboardDemoComponent implements OnInit {
 
     fakeItems: MenuItem[];
 
-    constructor(private carService: CarService, private eventService: EventService) { }
+    constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
     ngOnInit() {
         this.fakeItems = [
@@ -56,5 +58,9 @@ export class DashboardDemoComponent implements OnInit {
                 }
             ]
         };
+    }
+    showSideBar($event){
+        this.display = $event;
+        //this.mapService.plotMarker($event.x, $event.y);
     }
 }

@@ -163,10 +163,9 @@ export class MapService {
         return { val: sceneView };
     }
 
-    public async plotMarker(lat: number, lon: number): Promise<EsriWrapper<__esri.MapView>> {
+    public async plotMarker(lat: number, lon: number, pointColor): Promise<EsriWrapper<__esri.MapView>> {
 
         console.log("fired plotMarker() in MapService");
-
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
@@ -175,13 +174,13 @@ export class MapService {
             'esri/Graphic',
             'esri/Color'
         ]);
-
+        
         // let's give the symbol a prettier color
         const color: __esri.Color = new Color();
-        color.a = 0.5;
-        color.r = 35;
-        color.g = 93;
-        color.b = 186;
+        color.a = pointColor.a;
+        color.r = pointColor.r;
+        color.g = pointColor.g;
+        color.b = pointColor.b;
 
         // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
@@ -197,15 +196,17 @@ export class MapService {
             longitude: lon
         }
         const point: __esri.Point = new Point(pointProps);
-
+        
         // the grpahic is what ultimately gets rendered to the map
         const graphicProps: __esri.GraphicProperties = {
             geometry: point,
             symbol: symbol
+            
         }
+        console.log('graphicprops',graphicProps);
         const graphic: __esri.Graphic = new Graphic(graphicProps);
-
         MapService.mapView.graphics.add(graphic);
+        
         return { val: MapService.mapView };
     }
 

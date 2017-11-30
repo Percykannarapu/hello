@@ -68,9 +68,15 @@ export class GeocoderComponent implements OnInit {
         this.geocodingErrors[0] = growlMessage;
         return;
       }
+      const color = {
+        a: 0.5,
+        r: 35,
+        g: 93,
+        b: 186
+      }
       this.xcoord = String(this.geocodingResponse.latitude);
       this.ycoord = String(this.geocodingResponse.longitude);
-      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude);
+      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color);
     });
   }
 

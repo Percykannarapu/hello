@@ -118,6 +118,7 @@ import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
 import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
 import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
+import { MapService } from './services/map.service';
 
 @NgModule({
     imports: [
@@ -226,7 +227,7 @@ import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-la
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService,
+        EsriLoaderService, GfGeoService
     ],
     bootstrap: [AppComponent]
 })
