@@ -1,5 +1,4 @@
 {
-    "payload": {
         "rows": [
             {
                 "category": 52,
@@ -13572,7 +13571,4 @@
                 "name": "SCHOOLS & EDUCATIONAL SERVICES NEC"
             }
         ]
-    },
-    "exception": null,
-    "returnCode": 200
 }
