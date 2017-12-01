@@ -19,8 +19,9 @@ export class BusinessSearchComponent implements OnInit {
   
   public mapView: __esri.MapView;
   dropdownList: any[];
-  
-  selectedCategory: string;
+  public color :any ;
+  selectedCategory: any;
+  selector: any;
   searchDatageos: any = [];//
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
@@ -35,28 +36,42 @@ export class BusinessSearchComponent implements OnInit {
 
   constructor(private appService: AppService, private mapService: MapService) {
     //Dropdown data
-    this.dropdownList = [{ label: 'Apparel & Accessory Stores' },
-    { label: 'Building Materials & Hardware' },
-    { label: 'General Merchandise Stores' },
-    { label: 'Food Stores' },
-    { label: 'Automotive Dealers & Service Stations' },
-    { label: 'Home Furniture & Furnishings Stores' },
-    { label: 'Eating & Drinking Places' },
-    { label: 'Miscellaneous Retail' },
-    { label: 'Depository Institutions' },
-    { label: 'Personal Services' },
-    { label: 'Auto Services' },
-    { label: 'Leisure Services' },
-    { label: 'Dentists & Doctors' },
-    { label: 'Schools & Universities' }
+    // this.dropdownList = [{ label: 'Apparel & Accessory Stores' , value: '56' },
+    // { label: 'Building Materials & Hardware' , value: '52' }
+    // ];
+    this.dropdownList = [
+    { label: 'Apparel & Accessory Stores' , value:{name: 'Apparel & Accessory Stores', category: 56} },
+    { label: 'Building Materials & Hardware' , value:{name: 'Building Materials & Hardware', category: 52} },
+    { label: 'General Merchandise Stores' , value:{name: 'General Merchandise Stores', category: 53} },
+    { label: 'Food Stores' , value:{name: 'Food Stores', category: 54} },
+    { label: 'Automotive Dealers & Service Stations' , value:{name: 'Automotive Dealers & Service Stations', category: 55} },
+    { label: 'Home Furniture & Furnishings Stores' , value:{name: 'Home Furniture & Furnishings Stores', category: 57} },
+    { label: 'Eating & Drinking Places' , value:{name: 'Eating & Drinking Places', category: 58} },
+    { label: 'Miscellaneous Retail' , value:{name: 'Miscellaneous Retail', category: 59} },
+    { label: 'Depository Institutions' , value:{name: 'Depository Institutions', category: 60} },
+    { label: 'Personal Services' , value:{name: 'Personal Services', category: 72} },
+    { label: 'Business Services' , value:{name: 'Business Services', category: 73} },
+    { label: 'Auto Services' , value:{name: 'Auto Services', category: 75} },
+    { label: 'Leisure Services' , value:{name: 'Leisure Services', category: 79} },
+    { label: 'Dentists & Doctors' , value:{name: 'Dentists & Doctors', category: 80} },
+    { label: 'Schools & Universities' , value:{name: 'Schools & Universities', category: 82} }
     ];
+    
 
   }
 
   ngOnInit() {
     this.name = 'Business Search';
-    this.sourceCategories = this.appService.categoriesList;
-    this.filteredCategories = this.appService.categoriesList;
+    this.sourceCategories = this.appService.categoryList;
+    this.filteredCategories = this.appService.categoryList;
+    this.selectedCategory = this.dropdownList[0].value;
+    this.categoryChange();
+  }
+  categoryChange(){
+    console.log(this.selectedCategory)
+    this.sourceCategories = this.filteredCategories.filter((item) => {
+      return item.category === this.selectedCategory.category;
+    })
   }
   assignCopy() {
     this.sourceCategories = Object.assign([], this.filteredCategories);
@@ -114,20 +129,36 @@ export class BusinessSearchComponent implements OnInit {
 
   }
   //adding color to the points
-  onAddToProject() {
-    const color = {
+  onAddToProject(selector) {
+    console.log('selector: ',selector);
+    
+    if(selector === 'Sites'){
+      this.color = {
+        a: 0.5,
+        r: 35,
+        g: 93,
+        b: 186
+      }
+    }else if(selector === 'Competitors'){
+    this.color = {
       a: 0.5,
       r: 236,
       g: 1,
       b: 1
     }
+  }
+  else{
+    alert('Please select');
+  }
     //Close the sidebar after we select the points to be mapped
     this.showSideBar.emit(false);
     this.searchDatageos.forEach(business => {
       if (business.checked && business.checked.length > 0) {
         console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
+        console.log(business.x,business.y);
+        //this.mapService.plotMarker(42.412941,-83.374309,color);
 
-        this.mapService.plotMarker(business.y, business.x, color);
+        this.mapService.plotMarker(business.y, business.x, this.color);
 
       }
     });
