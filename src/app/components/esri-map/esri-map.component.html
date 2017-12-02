@@ -1,8 +1,11 @@
-<!-- h1>
-  <a href="https://github.com/tomwayson/angular2-esri-loader" target="_blank">
-  <code>angular2-esri-loader</code>
-  </a>
-</h1 -->
-<link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
-<div #mapViewNode></div>
+<div #mapViewNode>
+
+<div id="topbar">
+<button class="action-button esri-icon-blank-map-pin" id="pointButton"    type="button" title="Draw point"></button>
+<button class="action-button esri-icon-polyline"      id="polylineButton" type="button" title="Draw polyline"></button>
+<button class="action-button esri-icon-polygon"       id="polygonButton"  type="button" title="Draw polygon"></button>
+<button class="action-button esri-icon-trash"         id="resetBtn"       type="button" title="Clear graphics"></button>
+</div>
+
+</div>
 <!-- Map Zoom: {{zoom}} -->

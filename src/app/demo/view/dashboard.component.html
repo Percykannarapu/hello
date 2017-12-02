@@ -182,13 +182,18 @@
             <div>
                 <p-toolbar>
                     <div class="ui-toolbar-group-left">
-                        <i style="margin-left: 20px"></i>
+                        <!-- <i style="margin-left: 20px"></i> -->
                         <button pButton type="button" label="New" icon="fa-plus"></button>
                         <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
-                                
-                        <i class="fa fa-bars"></i>
-                        <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
+                        <!-- <i class="fa fa-bars"></i> -->
+                    </div>
+
+                    <div class="ui-toolbar-group-left">
                         <p-splitButton label="Targeting Toolbox" icon="fa-check" [model]="fakeItems"></p-splitButton>
+                    </div>
+
+                    <div class="ui-toolbar-group-left">
+                        <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
                     </div>
                     
                     <div class="ui-toolbar-group-right">

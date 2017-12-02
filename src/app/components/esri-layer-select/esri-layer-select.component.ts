@@ -12,6 +12,7 @@ import { CONFIG, MessageService } from '../../core';
 
 // import primeng 
 import {SelectItem} from 'primeng/primeng';
+// import {ToolbarModule} from 'primeng/primeng';
 // import {ButtonModule} from 'primeng/primeng';
 
 @Component({
@@ -30,20 +31,32 @@ export class EsriLayerSelectComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   public esriDemographicItems: SelectItem[];
-  selectedLayers: string[] = [];
+  public selectedLayers: string[] = [];
+  public layerToggle: boolean = false;
+
+  public analysisLevels: SelectItem[];
+  public selectedAnalysisLevel: string;
 
   constructor(private mapService: MapService) {
-     this.mapView = this.mapService.getMapView();
+      this.mapView = this.mapService.getMapView();
     }
 
   public ngOnInit() {
     try {
+      this.analysisLevels = [];
+      this.analysisLevels.push({label:'None',value:'None'});
+      this.analysisLevels.push({label:'Zip', value:'Zip'});
+      this.analysisLevels.push({label:'Atz', value:'Atz'});
+      this.analysisLevels.push({label:'Pcr', value:'Pcr'});
+
+      this.selectedAnalysisLevel = 'Zip';
+
       this.esriDemographicItems = [
-            {label: 'Digital_ATZ'                        , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer'},
-            {label: 'ZIP_Top_Vars'                       , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer'},
-            {label: 'ATZ_Top_Vars'                       , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer'},
-            {label: 'ZIP_Centroids'                      , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer'},
-            {label: 'ATZ_Centroids'                      , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer'},
+            {label: 'ATZ_Top_Vars (defaults - ATZ Analysis)'   , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer'},
+            {label: 'ATZ_Digital (defaults - ATZ Analysis)'    , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer'},
+            {label: 'ATZ_Centroids (defaults - ATZ Analysis)' , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer'},
+            {label: 'ZIP_Top_Vars (defaults - ZIP Analysis)'   , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer'},
+            {label: 'ZIP_Centroids (defaults - ZIP Analysis)'  , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer'},
         // -----------------
         //  {label: 'Census_2000'                        , value: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer'},
         // -----------------
@@ -75,12 +88,18 @@ export class EsriLayerSelectComponent implements OnInit {
     }
   }
 
-   onRemoveMapServices() {
-     this.mapService.removeMapLayers();
+   // set layers on panel hide, checking to see if layers are enabled
+   checkLayers() {
+        if (this.layerToggle)
+            this.mapService.setMapLayers(this.selectedLayers,this.selectedAnalysisLevel)
     }
 
-   onSetMapServices() {
-     this.mapService.setMapLayers(this.selectedLayers);
+   // this event handler is for the Toggle Layers control
+   handleChange(e) {
+        if (e.checked)
+            this.mapService.setMapLayers(this.selectedLayers,this.selectedAnalysisLevel)
+        else
+            this.mapService.removeMapLayers();
     }
 
 }

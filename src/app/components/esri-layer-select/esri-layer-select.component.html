@@ -1,11 +1,15 @@
      <p-multiSelect 
+        id="LayerList"
         [options]="esriDemographicItems" 
         [(ngModel)]="selectedLayers" 
         defaultLabel="Choose Map Layers" 
         scrollHeight="400px" 
         [displaySelectedLabel]="false" 
         [showToggleAll]="true" 
-        [panelStyle]="{minWidth:'12em'}">
+        [panelStyle]="{minWidth:'12em'}" 
+        (onPanelHide)="checkLayers()">
      </p-multiSelect>
-     <button pButton type="button" class="ui-button-info" title="Add Selected Layers" icon="ui-icon-add" (click)="onSetMapServices()"></button>
-     <button pButton type="button" class="ui-button-info" title="Remove All Layers" icon="ui-icon-remove" (click)="onRemoveMapServices()"></button>
+     <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers" (onChange)="handleChange($event)" onLabel="Layers On" offLabel="Layers Off" 
+                      onIcon="ui-icon-blur-on" offIcon="ui-icon-blur-off"></p-toggleButton>
+     <i class="fa fa-bars"></i>
+     <p-selectButton id="analysisLevels" title="Analysis Level" [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel"></p-selectButton>

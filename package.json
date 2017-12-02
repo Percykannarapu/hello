@@ -27,6 +27,7 @@
     "angular-in-memory-web-api": "^0.5.1",
     "chart.js": "2.7.1",
     "core-js": "^2.5.1",
+    "font-awesome": "^4.7.0",
     "fullcalendar": "3.7.0",
     "http-server": "^0.10.0",
     "intl": "1.2.5",
