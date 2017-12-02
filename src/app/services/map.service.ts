@@ -251,7 +251,7 @@ export class MapService {
         console.log("fired setMapLayers() in MapService");
 
         const Census         = "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer";
-        const Digital_ATZ    = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer";
+        const ATZ_Digital    = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer";
         const ZIP_Top_Vars   = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer";
         const ATZ_Top_Vars   = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
         const PCR_Top_Vars   = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
@@ -309,6 +309,7 @@ export class MapService {
         } else
         if (analysisLevel == 'Atz') {
             MapService.mapView.map.add(new FeatureLayer({url: ATZ_Top_Vars, opacity: 1, visible: false}));
+            MapService.mapView.map.add(new FeatureLayer({url: ATZ_Digital, opacity: 1, visible: false}));
             MapService.mapView.map.add(new FeatureLayer({url: ATZ_Centroids, opacity: 1, visible: false}));
         } else
         if (analysisLevel == 'Pcr') {
