@@ -101,7 +101,7 @@ export class GeoprocessingComponent implements OnInit {
     
   }
 
-  private selectGpTool(event: any) {
+  public selectGpTool(event: any) {
 
     //Bail out if the event doesn't have a vlaue
     if(event.value == null) {
@@ -131,7 +131,7 @@ export class GeoprocessingComponent implements OnInit {
     this.selectedGpTool = "Select Geoprocessing Tool";
   }
 
-  private async executeRAD() {
+  public async executeRAD() {
     console.log("Executing RAD tool");
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Geoprocessor] = await loader.loadModules(['esri/tasks/Geoprocessor']);
