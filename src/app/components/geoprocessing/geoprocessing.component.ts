@@ -56,6 +56,12 @@ interface DropdownItem {
   code: String
 }
 
+interface GpResponse {
+  jobId: string,
+  jobStatus: string,
+  messages: string[]
+}
+
 @Component({
   selector: 'val-geoprocessing',
   templateUrl: './geoprocessing.component.html',
@@ -152,11 +158,16 @@ export class GeoprocessingComponent implements OnInit {
   }
 
   public async executeRAD() {
+
+    //these are the output variables we will look for from the service call
+    var predictedResponse: string;
+    var avergaeTicket: string;
+    var estimatedCPM: string;
+    var predictedSalesLift: string;
     
     console.log("Executing RAD tool");
     const loader = EsriLoaderWrapperService.esriLoader;
-    const [Geoprocessor] = await loader.loadModules(['esri/tasks/Geoprocessor']);
-    console.log(JSON.stringify(this.selectedRADCategory, null, 4));
+    const [Geoprocessor, JobInfo, ParameterValue] = await loader.loadModules(['esri/tasks/Geoprocessor', 'esri/tasks/support/JobInfo', 'esri/tasks/support/ParameterValue']);
     const categoryItem: DropdownItem = JSON.parse(JSON.stringify(this.selectedRADCategory, null, null));
     const productItem: DropdownItem = JSON.parse(JSON.stringify(this.selectedRADProduct, null, null));
     const params = {
@@ -166,8 +177,28 @@ export class GeoprocessingComponent implements OnInit {
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
     geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/PredictedPerformanceAnalysisRB/GPServer/Predicted%20Performance%20Analysis_RB';
-    console.log("Invoking RAD service with params: " + JSON.stringify(params, null, 4));
-    geoprocessor.submitJob(params, null);
+    geoprocessor.submitJob(params, null).then(response =>{
+      geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        predictedResponse = pv.value;
+        console.log("Predicted Response: " + predictedResponse);
+      });
+      geoprocessor.getResultData((<GpResponse>response).jobId, "Average_Ticket", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        avergaeTicket = pv.value;
+        console.log("Average Ticket: " + avergaeTicket);
+      });
+      geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        estimatedCPM = pv.value;
+        console.log("Estimated CPM: " + estimatedCPM);
+      });
+      geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Sales_Lift", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        predictedSalesLift = pv.value;
+        console.log("Predicted Sales Lift: " + predictedSalesLift);
+      });
+    });
     this.displayRADInputs = false;
     this.radHouseholdCount = null;
   }
