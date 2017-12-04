@@ -3,7 +3,7 @@ import { SelectItem } from 'primeng/primeng';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { Http } from '@angular/http';
-import { InputTextModule, Dropdown } from 'primeng/primeng';
+import { InputTextModule, Dropdown, GrowlModule, Message } from 'primeng/primeng';
 
 
 enum GpTool {
@@ -90,6 +90,7 @@ export class GeoprocessingComponent implements OnInit {
   public selectedRADProduct: string;
   public radHouseholdCount: number;
   
+  public growlMessages: Message[] = new Array();
 
   constructor() {
     //Set up the list of available Geoprocessing Tools
@@ -153,11 +154,14 @@ export class GeoprocessingComponent implements OnInit {
   }
 
   private resetGpSelector() {
-    console.log("resetting dropdown list");
     this.selectedGpTool = "Select Geoprocessing Tool";
   }
 
   public async executeRAD() {
+
+    //hide the modal popup and reset the HHC
+    this.displayRADInputs = false;
+    this.radHouseholdCount = null;
 
     //these are the output variables we will look for from the service call
     var predictedResponse: string;
@@ -177,30 +181,39 @@ export class GeoprocessingComponent implements OnInit {
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
     geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/PredictedPerformanceAnalysisRB/GPServer/Predicted%20Performance%20Analysis_RB';
-    geoprocessor.submitJob(params, null).then(response =>{
-      geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
+    await geoprocessor.submitJob(params, null).then(async response =>{
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
         let pv = result as __esri.ParameterValue;
         predictedResponse = pv.value;
         console.log("Predicted Response: " + predictedResponse);
       });
-      geoprocessor.getResultData((<GpResponse>response).jobId, "Average_Ticket", null).then(result => {
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Average_Ticket", null).then(result => {
         let pv = result as __esri.ParameterValue;
         avergaeTicket = pv.value;
         console.log("Average Ticket: " + avergaeTicket);
       });
-      geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM", null).then(result => {
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM", null).then(result => {
         let pv = result as __esri.ParameterValue;
         estimatedCPM = pv.value;
         console.log("Estimated CPM: " + estimatedCPM);
       });
-      geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Sales_Lift", null).then(result => {
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Sales_Lift", null).then(result => {
         let pv = result as __esri.ParameterValue;
         predictedSalesLift = pv.value;
         console.log("Predicted Sales Lift: " + predictedSalesLift);
       });
     });
-    this.displayRADInputs = false;
-    this.radHouseholdCount = null;
+    const growlMessage: Message = {
+      summary: "Results from RAD Service",
+      severity: "info",
+      detail: "Predicted Response: " + predictedResponse + "<br>" +
+              "Avergae Ticket: " + avergaeTicket + "<br>" +
+              "Estimated CPM: " + estimatedCPM + "<br>" +
+              "Predicted Sales Lift: " + predictedSalesLift + "<br>"
+    }
+    this.growlMessages.push(growlMessage);
   }
+
+  private async
 
 }
