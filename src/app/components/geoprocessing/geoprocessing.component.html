@@ -1,13 +1,13 @@
-<p-dropdown [options]="gpToolsList" [(ngModel)]="selectedGpTool" (onChange)="selectGpTool($event)"></p-dropdown>
+<p-dropdown [options]="gpToolsList" [(ngModel)]="selectedGpTool" (onChange)="selectGpTool($event)" #gpSelector></p-dropdown>
 
 <div class="ui-g ui-fluid dashboard">
   <p-dialog header="RAD Configuration" [(visible)]="displayRADInputs" [contentStyle]="{'overflow':'visible'}" width="300" height="250"
     modal="true">
     <div class="ui-g-12" style="padding: 10px 10px 10px 10px; width: 100%;">
-      <p-dropdown [options]="radCategoryList" [(ngModel)]="selectedRADCategory"></p-dropdown>
+      <p-dropdown [options]="radCategoryList" [(ngModel)]="selectedRADCategory" [autoWidth]="false"></p-dropdown>
     </div>
     <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
-      <p-dropdown [options]="radProductList" [(ngModel)]="selectedRADProduct"></p-dropdown>
+      <p-dropdown [options]="radProductList" [(ngModel)]="selectedRADProduct" [autoWidth]="false"></p-dropdown>
     </div>
     <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
       <span class="ui-float-label">
