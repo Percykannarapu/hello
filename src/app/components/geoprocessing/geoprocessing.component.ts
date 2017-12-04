@@ -12,7 +12,7 @@ enum GpTool {
 }
 
 enum RADCategory {
-  QSRPIZZA = 'QSRPizza',
+  QSRPIZZA = 'QSR Pizza',
   AUTO_SERVICE = 'Auto Service/Parts',
   DISCOUNT_STORES = 'Discount Stores',
   EDUCATION = 'Education',
@@ -50,6 +50,12 @@ enum Products {
   VPD = 'VDP'
 }
 
+interface DropdownItem {
+  id: number,
+  name: String,
+  code: String
+}
+
 @Component({
   selector: 'val-geoprocessing',
   templateUrl: './geoprocessing.component.html',
@@ -60,17 +66,23 @@ export class GeoprocessingComponent implements OnInit {
   //this annotation makes the dropdown menu in the HTML available in the typscript code
   //the HTML has #gpSelector in the dropdown tag, and that's how this annotation finds it
   @ViewChild('gpSelector')
-  gpSelector: Dropdown;
+  public gpSelector: Dropdown;
+
+  @ViewChild('radCategorySelector')
+  public radCategorySelector: Dropdown;
+
+  @ViewChild('radProductSelector')
+  public radProductSelector: Dropdown;
 
   public gpToolsList: SelectItem[];
   public selectedGpTool: String;
   
   public radCategoryList: SelectItem[] = new Array();
-  public selectedRADCategory: String;
-  public displayRADInputs: Boolean = false;
+  public selectedRADCategory: string;
+  public displayRADInputs: boolean = false;
   public radProductList: SelectItem[] = new Array();
-  public selectedRADProduct: String;
-  public radHouseholdCount: Number;
+  public selectedRADProduct: string;
+  public radHouseholdCount: number;
   
 
   constructor() {
@@ -81,16 +93,20 @@ export class GeoprocessingComponent implements OnInit {
       {label: "Draw Buffer", value: {id: 1, name: "Draw Buffer", code: GpTool.BUFFER}}
     ]
 
-    let counter: number = 1;
+    let counter: number = 0;
+    let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
+    let names = objValues.filter(v => typeof v === "string") as string[];    
     for(let category in RADCategory) {
-      const item: SelectItem = {label: category.valueOf(), value: {id: counter, name: category.valueOf(), code: category}}
+      const item: SelectItem = {label: names[counter], value: {id: counter, name: names[counter], code: category}}
       this.radCategoryList.push(item);
       counter++;
     }
 
-    counter = 1;
+    counter = 0;
+    objValues = Object.keys(Products).map(k => Products[k]);
+    names = objValues.filter(v => typeof v === "string") as string[];
     for(let product in Products) {
-      const item: SelectItem = {label: product.valueOf(), value: {id: product, name: product.valueOf(), code: product}}
+      const item: SelectItem = {label: names[counter], value: {id: counter, name: names[counter], code: product}}
       this.radProductList.push(item);
       counter++;
     }
@@ -132,18 +148,24 @@ export class GeoprocessingComponent implements OnInit {
   }
 
   public async executeRAD() {
+    
     console.log("Executing RAD tool");
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Geoprocessor] = await loader.loadModules(['esri/tasks/Geoprocessor']);
+    console.log(JSON.stringify(this.selectedRADCategory, null, 4));
+    const categoryItem: DropdownItem = JSON.parse(JSON.stringify(this.selectedRADCategory, null, null));
+    const productItem: DropdownItem = JSON.parse(JSON.stringify(this.selectedRADProduct, null, null));
     const params = {
-      Category: this.selectedRADCategory,
-      Product: this.selectedRADProduct,
+      Category: categoryItem.name,
+      Product: productItem.name,
       Distribution_Household_Count: this.radHouseholdCount
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
     geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/PredictedPerformanceAnalysisRB/GPServer/Predicted%20Performance%20Analysis_RB';
+    console.log("Invoking RAD service with params: " + JSON.stringify(params, null, 4));
     geoprocessor.submitJob(params, null);
     this.displayRADInputs = false;
+    this.radHouseholdCount = null;
   }
 
 }
