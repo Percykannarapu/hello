@@ -32,6 +32,7 @@ export class BusinessSearchComponent implements OnInit {
   geofootprintGeos: any;
   competitors: any;
   sites: any;
+  businessCategories: any;
 
 
   constructor(private appService: AppService, private mapService: MapService) {
@@ -62,25 +63,29 @@ export class BusinessSearchComponent implements OnInit {
 
   ngOnInit() {
     this.name = 'Business Search';
-    this.sourceCategories = this.appService.categoryList;
-    this.filteredCategories = this.appService.categoryList;
-    this.selectedCategory = this.dropdownList[0].value;
-    this.categoryChange();
+    this.appService.getList().subscribe((data) =>{
+      this.filteredCategories = data.rows;
+      this.selectedCategory = this.dropdownList[0].value;
+      this.categoryChange();
+    })
+    //this.sourceCategories = this.appService.categoryList;
+    //this.filteredCategories = this.appService.categoryList;
   }
   categoryChange(){
     console.log(this.selectedCategory)
-    this.sourceCategories = this.filteredCategories.filter((item) => {
+    this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
-    })
+    });
+    this.sourceCategories = this.businessCategories;
   }
   assignCopy() {
-    this.sourceCategories = Object.assign([], this.filteredCategories);
+    this.sourceCategories = Object.assign([], this.businessCategories);
   }
   filterCategory(value) {
     if (!value) {
       this.assignCopy();
     }
-    this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
+    this.sourceCategories = Object.assign([], this.businessCategories).filter((item) => {
       return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
     })
   }
@@ -100,6 +105,7 @@ export class BusinessSearchComponent implements OnInit {
 
     this.mapView = this.mapService.getMapView();
     let sites = this.mapView.graphics.map((obj) => {
+    
       return {
         x: obj.geometry['x'],
         y: obj.geometry['y']
@@ -108,10 +114,21 @@ export class BusinessSearchComponent implements OnInit {
     paramObj['sites'] = sites['items'];
 
     paramObj['sics'] = this.targetCategories.map((obj) => {
+      
       return {
         'sic': obj.sic
       }
     });
+
+    if(paramObj['sites'].length === 0){
+        alert('please select a site');
+      } 
+    if(paramObj['sics'].length === 0){
+        alert('please select an sic');
+      }
+    if(paramObj['radius'] === undefined){
+        alert('miles from site cannot be blank');
+      }
 
     console.log("request to business search", paramObj);
 
@@ -126,6 +143,7 @@ export class BusinessSearchComponent implements OnInit {
           ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
       })
     });
+    
 
   }
   //adding color to the points
