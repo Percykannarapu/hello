@@ -1,5 +1,6 @@
 <p-dropdown [options]="gpToolsList" [(ngModel)]="selectedGpTool" (onChange)="selectGpTool($event)" #gpSelector></p-dropdown>
 
+<!-- Modal window for RAD inputs -->
 <div class="ui-g ui-fluid">
   <p-dialog header="RAD Configuration" [(visible)]="displayRADInputs" [contentStyle]="{'overflow':'visible'}" width="300" height="250"
     modal="true">
@@ -18,6 +19,17 @@
     <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
       <button pButton type="button" (click)="executeRAD()" label="Execute RAD Service"></button>
     </div>
+  </p-dialog>
+</div>
+
+<!-- Modal window for GP spinner -->
+<div class="ui-g ui-fluid">
+  <p-dialog closable="false" header="Executing Geoprocessing Service" [(visible)]="displayGpSpinner" [contentStyle]="{'overflow':'visible'}" width="300" height="250">
+    <div class="ui-g-3"></div>
+    <div class="ui-g-5">
+        <p-progressSpinner></p-progressSpinner>
+    </div>
+    <div class="ui-g-4"></div>
   </p-dialog>
 </div>
 

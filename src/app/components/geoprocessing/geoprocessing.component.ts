@@ -3,7 +3,7 @@ import { SelectItem } from 'primeng/primeng';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { Http } from '@angular/http';
-import { InputTextModule, Dropdown, GrowlModule, Message } from 'primeng/primeng';
+import { InputTextModule, Dropdown, GrowlModule, Message, ProgressSpinnerModule, ProgressBarModule } from 'primeng/primeng';
 
 
 enum GpTool {
@@ -91,6 +91,7 @@ export class GeoprocessingComponent implements OnInit {
   public radHouseholdCount: number;
   
   public growlMessages: Message[] = new Array();
+  public displayGpSpinner: boolean = false;
 
   constructor() {
     //Set up the list of available Geoprocessing Tools
@@ -163,6 +164,9 @@ export class GeoprocessingComponent implements OnInit {
     this.displayRADInputs = false;
     this.radHouseholdCount = null;
 
+    //show the spinner while we do our work
+    this.displayGpSpinner = true;
+
     //these are the output variables we will look for from the service call
     var predictedResponse: string;
     var avergaeTicket: string;
@@ -203,6 +207,8 @@ export class GeoprocessingComponent implements OnInit {
         console.log("Predicted Sales Lift: " + predictedSalesLift);
       });
     });
+    
+    //configure the growl message that will be displayed
     const growlMessage: Message = {
       summary: "Results from RAD Service",
       severity: "info",
@@ -211,6 +217,9 @@ export class GeoprocessingComponent implements OnInit {
               "Estimated CPM: " + estimatedCPM + "<br>" +
               "Predicted Sales Lift: " + predictedSalesLift + "<br>"
     }
+
+    //hide the spinner and display the results
+    this.displayGpSpinner = false;
     this.growlMessages.push(growlMessage);
   }
 
