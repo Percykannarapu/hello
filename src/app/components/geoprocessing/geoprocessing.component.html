@@ -1,0 +1,22 @@
+<p-dropdown [options]="gpToolsList" [(ngModel)]="selectedGpTool" (onChange)="selectGpTool($event)"></p-dropdown>
+
+<div class="ui-g ui-fluid dashboard">
+  <p-dialog header="RAD Configuration" [(visible)]="displayRADInputs" [contentStyle]="{'overflow':'visible'}" width="300" height="250"
+    modal="true">
+    <div class="ui-g-12" style="padding: 10px 10px 10px 10px; width: 100%;">
+      <p-dropdown [options]="radCategoryList" [(ngModel)]="selectedRADCategory"></p-dropdown>
+    </div>
+    <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
+      <p-dropdown [options]="radProductList" [(ngModel)]="selectedRADProduct"></p-dropdown>
+    </div>
+    <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
+      <span class="ui-float-label">
+        <input pInputText type="text" id="householdCount" [(ngModel)]="radHouseholdCount" />
+        <label for="householdCount">Household Count</label>
+      </span>
+    </div>
+    <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
+      <button pButton type="button" (click)="executeRAD()" label="Execute RAD Service"></button>
+    </div>
+  </p-dialog>
+</div>

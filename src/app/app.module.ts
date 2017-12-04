@@ -119,6 +119,7 @@ import { BusinessSearchComponent } from './components/business-search/business-s
 import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
 import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
 import { MapService } from './services/map.service';
+import { GeoprocessingComponent } from './components/geoprocessing/geoprocessing.component';
 
 @NgModule({
     imports: [
@@ -221,7 +222,8 @@ import { MapService } from './services/map.service';
         UtilsDemoComponent,
         DocumentationComponent,
         BusinessSearchComponent,
-        EsriLayerSelectComponent
+        EsriLayerSelectComponent,
+        GeoprocessingComponent
     ],
 
     providers: [
