@@ -1,18 +1,18 @@
 <p-dropdown [options]="gpToolsList" [(ngModel)]="selectedGpTool" (onChange)="selectGpTool($event)" #gpSelector></p-dropdown>
 
-<div class="ui-g ui-fluid dashboard">
+<div class="ui-g ui-fluid">
   <p-dialog header="RAD Configuration" [(visible)]="displayRADInputs" [contentStyle]="{'overflow':'visible'}" width="300" height="250"
     modal="true">
-    <div class="ui-g-12" style="padding: 10px 10px 10px 10px; width: 100%;">
+    <div class="ui-g-12" style="padding: 10px 10px 10px 10px; width: 100%; color: #000000">
       <p-dropdown [options]="radCategoryList" [(ngModel)]="selectedRADCategory" [autoWidth]="false" #radCategorySelector></p-dropdown>
     </div>
-    <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
+    <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%; color: #000000">
       <p-dropdown [options]="radProductList" [(ngModel)]="selectedRADProduct" [autoWidth]="false" #radProductSelector></p-dropdown>
     </div>
     <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">
       <span class="ui-float-label">
         <input pInputText type="text" id="householdCount" [(ngModel)]="radHouseholdCount" />
-        <label for="householdCount">Household Count</label>
+        <label for="householdCount">Enter Household Count</label>
       </span>
     </div>
     <div class="ui-g-g12" style="padding: 10px 10px 10px 10px; width: 100%;">

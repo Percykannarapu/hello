@@ -95,9 +95,11 @@ export class GeoprocessingComponent implements OnInit {
 
     let counter: number = 0;
     let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
-    let names = objValues.filter(v => typeof v === "string") as string[];    
+    let names = objValues.filter(v => typeof v === "string") as string[];
+    let firstItem: SelectItem = {label: "Select Category", value: null}
+    this.radCategoryList.push(firstItem);
     for(let category in RADCategory) {
-      const item: SelectItem = {label: names[counter], value: {id: counter, name: names[counter], code: category}}
+      const item: SelectItem = {label: names[counter], value: {id: counter+1, name: names[counter], code: category}}
       this.radCategoryList.push(item);
       counter++;
     }
@@ -105,8 +107,10 @@ export class GeoprocessingComponent implements OnInit {
     counter = 0;
     objValues = Object.keys(Products).map(k => Products[k]);
     names = objValues.filter(v => typeof v === "string") as string[];
+    firstItem = {label: "Select Product", value: null}
+    this.radProductList.push(firstItem);
     for(let product in Products) {
-      const item: SelectItem = {label: names[counter], value: {id: counter, name: names[counter], code: product}}
+      const item: SelectItem = {label: names[counter], value: {id: counter+1, name: names[counter], code: product}}
       this.radProductList.push(item);
       counter++;
     }
