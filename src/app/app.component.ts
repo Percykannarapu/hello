@@ -66,7 +66,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.esriLoaderWrapperService.loadApi();
-        // this.esriIdentityService.authenticate();
+        this.esriIdentityService.authenticate();
     }
 
     ngOnDestroy() {
