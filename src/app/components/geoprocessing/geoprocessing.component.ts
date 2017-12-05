@@ -36,11 +36,9 @@ enum RADCategory {
 }
 
 enum Products {
-  CTRS_GROSS_MARGIN = 'Ctrs Gross Margin',
   CTRS_NP_MULTI_PAGE_INSERT = 'NP Multi page Insert',
   CTRS_SM_MULTI_PAGE_INSERT = 'SM Multi page Insert',
   FSI_COOP_OP = 'FSI Coop op',
-  //GROSS_MARGIN = 'Gross Margin',
   NP_INSERT = 'NP Insert',
   NP_MULTI_PAGE_INSERT = 'NP Multi page Insert',
   SM_COUPON_BOOKLET = 'SM Coupon Booklet',
