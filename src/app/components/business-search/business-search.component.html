@@ -4,6 +4,7 @@
   <div class="ui-g-6 card card-w-title">
     <div class="ui-g">
       <div class="ui-g-12">
+          <p-growl [(value)]="msgs"></p-growl>
         <span class="md-inputfield">
           <input #searchModel type="text" pInputText name="search" (input)="filterCategory(searchModel.value)" />
           <label for="search">Search SIC codes</label>
@@ -98,10 +99,19 @@
     <div class="ui-g-12 businesses-found">
       <p-panel header="Businesses">
         <ul style="list-style: none;padding:0px">
-
+          <!-- <val-businessFound>loading......</val-businessFound> -->
+          <li *ngIf="showLoader">Searching...</li>
+          <li *ngIf="searchDatageos.length > 0"> 
+              <div style="padding:10px;">
+                <p-checkbox binary="true" (onChange)="onSelectAll($event)"
+                 label="Select All" 
+                [(ngModel)]="selectAll"></p-checkbox>
+              </div>
+            </li>
           <li *ngFor="let x of searchDatageos">
             <div style="padding:10px;">
-              <p-checkbox name="{{x.wrap_id}}" value="{{x.dist_to_site}}" label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
+              <p-checkbox binary="true"
+              label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
             </div>
           </li>
         </ul>

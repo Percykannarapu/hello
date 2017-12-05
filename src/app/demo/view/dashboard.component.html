@@ -214,7 +214,7 @@
     
     <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
             <!-- div class="ui-g-12 ui-md-6 ui-lg-4 task-list" -->
-        <val-geocoder>Loading Geocoder...</val-geocoder>
+        <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
             <!--
         <p-panel header="Tasks">
             <ul>
@@ -260,12 +260,12 @@
     <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
         <p-panel header="Work In Progress Stuff">
             <val-geofootprint>loading geofootprint...</val-geofootprint>
-            <button type="text" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>
+            <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>
         </p-panel>
 
         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-xlg" position="right" >
             <div class="ug-g-12">
-            <label class="ui-datatable-header ui-widget-header">Business Search</label>
+            <h1>Business Search</h1>
             <val-business-search (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
             </div>
         </p-sidebar>

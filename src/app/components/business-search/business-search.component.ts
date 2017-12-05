@@ -2,9 +2,13 @@ import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { AppService } from '../../services/app.service';
 import { DropdownModule } from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
+import {GrowlModule} from 'primeng/primeng';
+import {SelectItem} from 'primeng/components/common/api';
+import {Message} from 'primeng/components/common/api';
+import {MessageService} from 'primeng/components/common/messageservice';
 
 @Component({
-  providers: [AppService, MapService],
+  providers: [AppService, MapService, MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -14,15 +18,16 @@ export class BusinessSearchComponent implements OnInit {
 
   @Output()
   showSideBar: EventEmitter<any> = new EventEmitter<any>();
+
   public name: string;  // Used by parent as a header
   public numFound: number;
-  
   public mapView: __esri.MapView;
-  dropdownList: any[];
   public color :any ;
+  dropdownList: any[];
   selectedCategory: any;
   selector: any;
   searchDatageos: any = [];//
+  msgs: Message[] = [];
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
   model: any = {};
@@ -30,35 +35,37 @@ export class BusinessSearchComponent implements OnInit {
   targetCategories: any = [];
   filteredCategories: any = [];
   geofootprintGeos: any;
-  competitors: any;
+  competitors: any =[];
   sites: any;
   businessCategories: any;
+  
+  public plottedPoints: any = [];
+  showLoader: boolean = false;
 
 
-  constructor(private appService: AppService, private mapService: MapService) {
+  constructor(private appService: AppService, private mapService: MapService, private messageService: MessageService) {
     //Dropdown data
     // this.dropdownList = [{ label: 'Apparel & Accessory Stores' , value: '56' },
     // { label: 'Building Materials & Hardware' , value: '52' }
     // ];
     this.dropdownList = [
     { label: 'Apparel & Accessory Stores' , value:{name: 'Apparel & Accessory Stores', category: 56} },
-    { label: 'Building Materials & Hardware' , value:{name: 'Building Materials & Hardware', category: 52} },
-    { label: 'General Merchandise Stores' , value:{name: 'General Merchandise Stores', category: 53} },
-    { label: 'Food Stores' , value:{name: 'Food Stores', category: 54} },
-    { label: 'Automotive Dealers & Service Stations' , value:{name: 'Automotive Dealers & Service Stations', category: 55} },
-    { label: 'Home Furniture & Furnishings Stores' , value:{name: 'Home Furniture & Furnishings Stores', category: 57} },
-    { label: 'Eating & Drinking Places' , value:{name: 'Eating & Drinking Places', category: 58} },
-    { label: 'Miscellaneous Retail' , value:{name: 'Miscellaneous Retail', category: 59} },
-    { label: 'Depository Institutions' , value:{name: 'Depository Institutions', category: 60} },
-    { label: 'Personal Services' , value:{name: 'Personal Services', category: 72} },
-    { label: 'Business Services' , value:{name: 'Business Services', category: 73} },
     { label: 'Auto Services' , value:{name: 'Auto Services', category: 75} },
-    { label: 'Leisure Services' , value:{name: 'Leisure Services', category: 79} },
+    { label: 'Automotive Dealers & Service Stations' , value:{name: 'Automotive Dealers & Service Stations', category: 55} },
+    { label: 'Building Materials & Hardware' , value:{name: 'Building Materials & Hardware', category: 52} },
+    { label: 'Business Services' , value:{name: 'Business Services', category: 73} },
     { label: 'Dentists & Doctors' , value:{name: 'Dentists & Doctors', category: 80} },
+    { label: 'Depository Institutions' , value:{name: 'Depository Institutions', category: 60} },
+    { label: 'Eating & Drinking Places' , value:{name: 'Eating & Drinking Places', category: 58} },
+    { label: 'Food Stores' , value:{name: 'Food Stores', category: 54} },
+    { label: 'General Merchandise Stores' , value:{name: 'General Merchandise Stores', category: 53} },
+    { label: 'Home Furniture & Furnishings Stores' , value:{name: 'Home Furniture & Furnishings Stores', category: 57} },
+    { label: 'Leisure Services' , value:{name: 'Leisure Services', category: 79} },
+    { label: 'Miscellaneous Retail' , value:{name: 'Miscellaneous Retail', category: 59} },
+    { label: 'Personal Services' , value:{name: 'Personal Services', category: 72} },
     { label: 'Schools & Universities' , value:{name: 'Schools & Universities', category: 82} }
     ];
     
-
   }
 
   ngOnInit() {
@@ -84,13 +91,16 @@ export class BusinessSearchComponent implements OnInit {
   filterCategory(value) {
     if (!value) {
       this.assignCopy();
+    }else if(value.length > 2){
+      this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
+        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
+      })
     }
-    this.sourceCategories = Object.assign([], this.businessCategories).filter((item) => {
-      return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
-    })
+
   }
 
   onSearchBusiness() {
+    this.showLoader = true;
     let paramObj = {
 
       "radius": this.model.radius,
@@ -119,26 +129,30 @@ export class BusinessSearchComponent implements OnInit {
         'sic': obj.sic
       }
     });
+    this.msgs = [];
 
     if(paramObj['sites'].length === 0){
-        alert('please select a site');
+      this.msgs.push({severity:'error', summary:'Error Message', detail:'Sites cannot be empty'});
       } 
     if(paramObj['sics'].length === 0){
-        alert('please select an sic');
+      this.msgs.push({severity:'error', summary:'Error Message', detail:'There should be atleast one selection of SIC"s'});
       }
-    if(paramObj['radius'] === undefined){
-        alert('miles from site cannot be blank');
+    if(paramObj['radius'] === undefined || paramObj['radius'] === ""){
+      this.msgs.push({severity:'error', summary:'Error Message', detail:'Radius cannot be left blank'});
       }
 
     console.log("request to business search", paramObj);
 
     //Using TypeScript would help for code optimization : reverting to original code
     this.appService.getBusinesses(paramObj).subscribe((res) => {
+      this.showLoader = false;
       let data = res.payload;
+      
       console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(data.rows, null, 4));
       this.searchDatageos = data.rows;
       this.searchDatageos.forEach((obj) => {
         //Building label to show adresses
+        obj['checked'] = false;
         obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)
           ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
       })
@@ -146,10 +160,24 @@ export class BusinessSearchComponent implements OnInit {
     
 
   }
-  //adding color to the points
+
+//   showError() {
+//     this.msgs = [];
+//     this.msgs.push({severity:'error', summary:'Error Message', detail:'Validation failed'});
+// }
+
+// For Enabling selectall functionality for the business found
+onSelectAll(e){
+  this.searchDatageos.forEach((cat)=>{
+    cat['checked'] = e;
+  })
+}
+
+
+  //adding points on the map
   onAddToProject(selector) {
     console.log('selector: ',selector);
-    
+    //Giving color to the point on the map
     if(selector === 'Sites'){
       this.color = {
         a: 0.5,
@@ -157,6 +185,8 @@ export class BusinessSearchComponent implements OnInit {
         g: 93,
         b: 186
       }
+      //Close the sidebar after we select the points to be mapped
+      this.showSideBar.emit(false);
     }else if(selector === 'Competitors'){
     this.color = {
       a: 0.5,
@@ -164,21 +194,29 @@ export class BusinessSearchComponent implements OnInit {
       g: 1,
       b: 1
     }
+    this.showSideBar.emit(false);
   }
   else{
-    alert('Please select');
+    this.msgs.push({severity:'error', summary:'Error Message', detail:'Please select Sites/Competitors'});
   }
-    //Close the sidebar after we select the points to be mapped
-    this.showSideBar.emit(false);
+    
     this.searchDatageos.forEach(business => {
-      if (business.checked && business.checked.length > 0) {
+
+      if (business.checked) {
         console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
-        console.log(business.x,business.y);
+        console.log('long: x' ,business.x + 'lat: y',business.y);
         //this.mapService.plotMarker(42.412941,-83.374309,color);
+        this.plottedPoints.push([business.x, business.y]);
 
-        this.mapService.plotMarker(business.y, business.x, this.color);
-
-      }
+        console.log('this.plottedPoints' , this.plottedPoints);
+        // for(let i = 0; i < this.plottedPoints.length; i++){
+        //   if(this.plottedPoints[i](1) === business.x && this.plottedPoints[i](0) === business.y ){
+              
+        //   } else{
+            this.mapService.plotMarker(business.y, business.x, this.color);
+          //}
+        }
+        
     });
   }
 }

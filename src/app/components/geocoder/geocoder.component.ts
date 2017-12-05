@@ -37,6 +37,7 @@ export class GeocoderComponent implements OnInit {
   private esriMap: __esri.Map;
 
   public profileId : number;
+  public disableshowBusiness: boolean = true; //flag for enabling/disabling the show business search button
 
   //get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
@@ -57,6 +58,7 @@ export class GeocoderComponent implements OnInit {
     console.log("Calling GeocoderService")
     var observable = this.geocoderService.geocode(accountLocation);
     observable.subscribe((res) => {
+      this.disableshowBusiness = false;
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
       if(this.geocodingResponse.locationQualityCode == "E") {
@@ -68,6 +70,7 @@ export class GeocoderComponent implements OnInit {
         this.geocodingErrors[0] = growlMessage;
         return;
       }
+      //giving color to our point on the map
       const color = {
         a: 0.5,
         r: 35,
