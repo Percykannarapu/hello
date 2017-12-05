@@ -19,7 +19,7 @@ enum RADCategory {
   EDUCATION = 'Education',
   FINANCIAL_SERVICES = 'Financial Services',
   FULL_SERVICE_RESTAURANTS = 'Full Service Restaurants',
-  HARDWARE_HOME_IMPROVEMENT = 'Hardware_Home Improvement',
+  HARDWARE_HOME_IMPROVEMENT = 'Hardware_Home Improvement Ctrs',
   HEALTH_AND_BEAUTY = 'Health and Beauty',
   HEALTHCARE = 'Healthcare',
   HEALTHCARE_OPTICAL = 'Healthcare_Optical',
@@ -37,10 +37,10 @@ enum RADCategory {
 
 enum Products {
   CTRS_GROSS_MARGIN = 'Ctrs Gross Margin',
-  CTRS_NP_MULTI_PAGE_INSERT = 'Ctrs NP Multi page Insert',
-  CTRS_SM_MULTI_PAGE_INSERT = 'Ctrs SM Multi page Insert',
+  CTRS_NP_MULTI_PAGE_INSERT = 'NP Multi page Insert',
+  CTRS_SM_MULTI_PAGE_INSERT = 'SM Multi page Insert',
   FSI_COOP_OP = 'FSI Coop op',
-  GROSS_MARGIN = 'Gross Margin',
+  //GROSS_MARGIN = 'Gross Margin',
   NP_INSERT = 'NP Insert',
   NP_MULTI_PAGE_INSERT = 'NP Multi page Insert',
   SM_COUPON_BOOKLET = 'SM Coupon Booklet',
