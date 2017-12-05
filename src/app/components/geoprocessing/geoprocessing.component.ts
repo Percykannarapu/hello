@@ -4,6 +4,7 @@ import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.ser
 import { EsriLoaderService } from 'angular-esri-loader';
 import { Http } from '@angular/http';
 import { InputTextModule, Dropdown, GrowlModule, Message, ProgressSpinnerModule, ProgressBarModule } from 'primeng/primeng';
+import { error } from 'selenium-webdriver';
 
 
 enum GpTool {
@@ -171,10 +172,17 @@ export class GeoprocessingComponent implements OnInit {
     this.displayGpSpinner = true;
 
     //these are the output variables we will look for from the service call
-    var predictedResponse: string;
-    var avergaeTicket: string;
-    var estimatedCPM: string;
+    var predictedResponse: number;
+    var averageTicket: number;
+    var estimatedCPM: number;
     var predictedSalesLift: string;
+    var category2: string;
+    var product2: string;
+    var distributionHouseholdCount2;
+    var budget2: string;
+    var totalEstimatedSpend: string;
+    var budgetVsSpend: string;
+    var predictedROI: string;
 
     console.log("Executing RAD tool");
     const loader = EsriLoaderWrapperService.esriLoader;
@@ -184,30 +192,78 @@ export class GeoprocessingComponent implements OnInit {
     const params = {
       Category: categoryItem.name,
       Product: productItem.name,
-      Distribution_Household_Count: this.radHouseholdCount
+      Distribution_Household_Count: this.radHouseholdCount,
+      Estimated_CPM: this.radEstimatedCPM,
+      Budget: this.radBudget
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
-    geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/PredictedPerformanceAnalysisRB/GPServer/Predicted%20Performance%20Analysis_RB';
+    geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RADExlRB9/GPServer/RADExlRB9';
     await geoprocessor.submitJob(params, null).then(async response => {
       await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
         let pv = result as __esri.ParameterValue;
         predictedResponse = pv.value;
-        console.log("Predicted Response: " + predictedResponse);
+      }, error => {
+        this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Average_Ticket", null).then(result => {
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "AVG_Ticket", null).then(result => {
         let pv = result as __esri.ParameterValue;
-        avergaeTicket = pv.value;
-        console.log("Average Ticket: " + avergaeTicket);
+        averageTicket = pv.value;
+      }, error => {
+        this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM", null).then(result => {
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM2", null).then(result => {
         let pv = result as __esri.ParameterValue;
         estimatedCPM = pv.value;
-        console.log("Estimated CPM: " + estimatedCPM);
+      }, error => {
+        this.displayRADError();
       });
       await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Sales_Lift", null).then(result => {
         let pv = result as __esri.ParameterValue;
         predictedSalesLift = pv.value;
-        console.log("Predicted Sales Lift: " + predictedSalesLift);
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Category2", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        category2 = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Product2", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        product2 = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Distribution_Household_Count2", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        distributionHouseholdCount2 = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Budget2", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        budget2 = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Total_Estimated_Spend", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        totalEstimatedSpend = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "BudgetVsSpend", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        budgetVsSpend = pv.value;
+      }, error => {
+        this.displayRADError();
+      });
+      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Return_on_Investment", null).then(result => {
+        let pv = result as __esri.ParameterValue;
+        predictedROI = pv.value;
+      }, error => {
+        this.displayRADError();
       });
 
       //configure the growl message that will be displayed
@@ -215,26 +271,35 @@ export class GeoprocessingComponent implements OnInit {
         summary: "Results from RAD Service",
         severity: "info",
         detail: "Predicted Response: " + predictedResponse + "<br>" +
-          "Avergae Ticket: " + avergaeTicket + "<br>" +
+          "Average Ticket: " + averageTicket + "<br>" +
           "Estimated CPM: " + estimatedCPM + "<br>" +
-          "Predicted Sales Lift: " + predictedSalesLift + "<br>"
+          "Predicted Sales Lift: " + predictedSalesLift + "<br>" +
+          "Category: " + category2 + "<br>" +
+          "Product: " + product2 + "<br>" +
+          "Distribution Household Count: " + distributionHouseholdCount2 + "<br>" +
+          "Budget: " + budget2 + "<br>" +
+          "Total Estimated Spend: " + totalEstimatedSpend + "<br>" +
+          "Budget vs Spend: " + budgetVsSpend + "<br>" +
+          "Predicted ROI: " + predictedROI + "<br>"
       }
-
       //hide the spinner and display the results
       this.displayGpSpinner = false;
       this.growlMessages.push(growlMessage);
-
     }, error => {
-      const growlMessage: Message = {
-        summary: "Error Executing RAD Service",
-        severity: "error",
-        detail: "Please contact the Valassis helpdesk"
-      }
-      this.displayGpSpinner = false;
-      this.growlMessages.push(growlMessage);
+      this.displayRADError();
     });
 
 
+  }
+
+  private displayRADError() {
+    const growlMessage: Message = {
+      summary: "Error Executing RAD Service",
+      severity: "error",
+      detail: "Please contact the Valassis helpdesk"
+    }
+    this.displayGpSpinner = false;
+    this.growlMessages.push(growlMessage);
   }
 
 }
