@@ -82,32 +82,35 @@ export class GeoprocessingComponent implements OnInit {
 
   public gpToolsList: SelectItem[];
   public selectedGpTool: String;
-  
+
   public radCategoryList: SelectItem[] = new Array();
   public selectedRADCategory: string;
   public displayRADInputs: boolean = false;
   public radProductList: SelectItem[] = new Array();
   public selectedRADProduct: string;
   public radHouseholdCount: number;
-  
+  public radEstimatedCPM: number;
+  public radBudget: number;
+  public radDistributionHouseholdCount: number;
+
   public growlMessages: Message[] = new Array();
   public displayGpSpinner: boolean = false;
 
   constructor() {
     //Set up the list of available Geoprocessing Tools
     this.gpToolsList = [
-      {label: "Select Geoprocessing Tool", value: null},
-      {label: "RAD Data", value: {id: 1, name: "RAD Data", code: GpTool.RAD}},
-      {label: "Draw Buffer", value: {id: 1, name: "Draw Buffer", code: GpTool.BUFFER}}
+      { label: "Select Geoprocessing Tool", value: null },
+      { label: "RAD Data", value: { id: 1, name: "RAD Data", code: GpTool.RAD } },
+      { label: "Draw Buffer", value: { id: 1, name: "Draw Buffer", code: GpTool.BUFFER } }
     ]
 
     let counter: number = 0;
     let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
     let names = objValues.filter(v => typeof v === "string") as string[];
-    let firstItem: SelectItem = {label: "Select Category", value: null}
+    let firstItem: SelectItem = { label: "Select Category", value: null }
     this.radCategoryList.push(firstItem);
-    for(let category in RADCategory) {
-      const item: SelectItem = {label: names[counter], value: {id: counter+1, name: names[counter], code: category}}
+    for (let category in RADCategory) {
+      const item: SelectItem = { label: names[counter], value: { id: counter + 1, name: names[counter], code: category } }
       this.radCategoryList.push(item);
       counter++;
     }
@@ -115,30 +118,30 @@ export class GeoprocessingComponent implements OnInit {
     counter = 0;
     objValues = Object.keys(Products).map(k => Products[k]);
     names = objValues.filter(v => typeof v === "string") as string[];
-    firstItem = {label: "Select Product", value: null}
+    firstItem = { label: "Select Product", value: null }
     this.radProductList.push(firstItem);
-    for(let product in Products) {
-      const item: SelectItem = {label: names[counter], value: {id: counter+1, name: names[counter], code: product}}
+    for (let product in Products) {
+      const item: SelectItem = { label: names[counter], value: { id: counter + 1, name: names[counter], code: product } }
       this.radProductList.push(item);
       counter++;
     }
-   }
+  }
 
   ngOnInit() {
 
-    
+
   }
 
   public selectGpTool(event: any) {
 
     //Bail out if the event doesn't have a vlaue
-    if(event.value == null) {
+    if (event.value == null) {
       this.resetGpSelector();
       return;
     }
-    
+
     //Read the event from the geoprocessing tool dropdown list and determine which tool was selected
-    switch(event.value.code) {
+    switch (event.value.code) {
 
       case GpTool.RAD:
         console.log('selected RAD Geoprocessing tool');
@@ -172,7 +175,7 @@ export class GeoprocessingComponent implements OnInit {
     var avergaeTicket: string;
     var estimatedCPM: string;
     var predictedSalesLift: string;
-    
+
     console.log("Executing RAD tool");
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Geoprocessor, JobInfo, ParameterValue] = await loader.loadModules(['esri/tasks/Geoprocessor', 'esri/tasks/support/JobInfo', 'esri/tasks/support/ParameterValue']);
@@ -185,7 +188,7 @@ export class GeoprocessingComponent implements OnInit {
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
     geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/PredictedPerformanceAnalysisRB/GPServer/Predicted%20Performance%20Analysis_RB';
-    await geoprocessor.submitJob(params, null).then(async response =>{
+    await geoprocessor.submitJob(params, null).then(async response => {
       await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
         let pv = result as __esri.ParameterValue;
         predictedResponse = pv.value;
@@ -206,23 +209,32 @@ export class GeoprocessingComponent implements OnInit {
         predictedSalesLift = pv.value;
         console.log("Predicted Sales Lift: " + predictedSalesLift);
       });
+
+      //configure the growl message that will be displayed
+      const growlMessage: Message = {
+        summary: "Results from RAD Service",
+        severity: "info",
+        detail: "Predicted Response: " + predictedResponse + "<br>" +
+          "Avergae Ticket: " + avergaeTicket + "<br>" +
+          "Estimated CPM: " + estimatedCPM + "<br>" +
+          "Predicted Sales Lift: " + predictedSalesLift + "<br>"
+      }
+
+      //hide the spinner and display the results
+      this.displayGpSpinner = false;
+      this.growlMessages.push(growlMessage);
+
+    }, error => {
+      const growlMessage: Message = {
+        summary: "Error Executing RAD Service",
+        severity: "error",
+        detail: "Please contact the Valassis helpdesk"
+      }
+      this.displayGpSpinner = false;
+      this.growlMessages.push(growlMessage);
     });
-    
-    //configure the growl message that will be displayed
-    const growlMessage: Message = {
-      summary: "Results from RAD Service",
-      severity: "info",
-      detail: "Predicted Response: " + predictedResponse + "<br>" +
-              "Avergae Ticket: " + avergaeTicket + "<br>" +
-              "Estimated CPM: " + estimatedCPM + "<br>" +
-              "Predicted Sales Lift: " + predictedSalesLift + "<br>"
-    }
 
-    //hide the spinner and display the results
-    this.displayGpSpinner = false;
-    this.growlMessages.push(growlMessage);
+
   }
-
-  private async
 
 }
