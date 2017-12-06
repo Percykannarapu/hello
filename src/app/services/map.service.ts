@@ -362,10 +362,10 @@ export class MapService {
     new SimpleFillSymbol(
         SimpleFillSymbol.STYLE_SOLID
         , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,new Color([255,0,0]),2)
-        ,new Color([255,255,0,0.25])
+        ,new Color([0.5,49,150,0.25])
             );
          
-    sym.outline.color  = new Color([255,255,0,0.25]); 
+    sym.outline.color  = new Color([39,49,33,0.25]); 
     
     let gl : __esri.GraphicsLayer = new GraphicsLayer({id: "circles"});
 
