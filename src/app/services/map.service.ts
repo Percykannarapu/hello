@@ -339,13 +339,14 @@ export class MapService {
         'esri/Color','dojo/domReady!'  
     ]);
 
-    this.mapInstance = new Map(
+    /*this.mapInstance = new Map(
         {   center: [lat, lon],
             basemap: 'topo' ,
             zoom: 9,
             slider: false
         }
-    );
+    ); */
+    
 
     let pointIndex = 0;
     let pointLongitude = lon;
