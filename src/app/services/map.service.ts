@@ -320,6 +320,103 @@ export class MapService {
         MapService.mapView.map.add(new MapLayer({url: Census, opacity: 1}));
         return { val: MapService.mapView };
   }
+//lat: number, lon: number
+  public async drawCircle(lat: number, lon: number,pointColor,miles: number): Promise<EsriWrapper<__esri.MapView>>{
+      console.log("inside drawCircle"+lat + "long::"+lon + "color::"+pointColor + "miles::"+miles);
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [Map,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+     = await loader.loadModules([
+        'esri/Map', 
+        'esri/core/Collection',
+        'esri/views/MapView',
+        'esri/geometry/Circle',
+        'esri/layers/GraphicsLayer',
+        'esri/Graphic',
+        'esri/geometry/Point',
+        'esri/symbols/SimpleFillSymbol',
+        'esri/symbols/SimpleLineSymbol',
+        'esri/symbols/SimpleMarkerSymbol',
+        'esri/Color','dojo/domReady!'  
+    ]);
+
+    this.mapInstance = new Map(
+        {   center: [lat, lon],
+            basemap: 'topo' ,
+            zoom: 9,
+            slider: false
+        }
+    );
+
+    let pointIndex = 0;
+    let pointLongitude = lon;
+    let pointLatitude = lat;
+
+    let defaultSymbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol({
+        style: 'circle',
+        size: 12,
+        color: new Color('#000000')
+      });
+
+    let sym : __esri.SimpleFillSymbol = 
+    new SimpleFillSymbol(
+        SimpleFillSymbol.STYLE_SOLID
+        , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,new Color([255,0,0]),2)
+        ,new Color([255,255,0,0.25])
+            );
+         
+    sym.outline.color  = new Color([255,255,0,0.25]); 
+    
+    let gl : __esri.GraphicsLayer = new GraphicsLayer({id: "circles"});
+
+    MapService.mapView.map.add(gl);
+
+    let radius1 = MapService.mapView.extent.width / 10;
+
+    console.log("calculated radius::"+radius1);
+
+    console.log("actual value::"+MapService.mapView.extent.width);
+
+    console.log("miles radius"+miles);
+
+      pointIndex++;
+     // pointLatitude+=0.001;
+     // pointLatitude+=0.001;
+      
+      let p = new Point({
+        x: pointLongitude,
+        y: pointLatitude,
+        spatialReference: 4326
+      });
+
+      let circle = new Circle({
+        radius : miles,
+        center : p,
+        geodesic: true,
+        radiusUnit: 'miles'
+      });
+
+      let g = new Graphic({
+        geometry: circle,
+        symbol: sym
+      });
+
+      gl.add(g);
+
+      
+    
+
+  return { val: MapService.mapView };
+    /*const graphicA = new Graphic();
+
+    const layer = new GraphicsLayer({
+        graphics: [graphicA]
+      });
+
+    console.log("layer added");  
+    this.mapInstance.add(layer);*/
+     
+    
+  }
 
 }
 

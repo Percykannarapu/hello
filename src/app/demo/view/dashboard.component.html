@@ -54,7 +54,9 @@
             </ul>
         </p-tabPanel>
         <p-tabPanel header="Trade Areas">
-            Multiple tabs available to break up input forms
+                <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
+                <input [(ngModel)]="miles" type="text" pInputText placeholder="Enter Miles">
+                <button pButton type="button" icon="fa-close" class="ui-button-danger"></button>
         </p-tabPanel>
         <p-tabPanel header="Upload / Export">
             We can have as many tabs as necessary

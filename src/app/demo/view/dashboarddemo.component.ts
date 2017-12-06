@@ -5,6 +5,7 @@ import {Car} from '../domain/car';
 import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
+import { Points } from '../../Models/Points';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -18,8 +19,10 @@ export class DashboardDemoComponent implements OnInit {
     events: any[];
     selectedCity: any;
     display: boolean;
+    mapView: __esri.MapView;
 
     fakeItems: MenuItem[];
+    public miles : number;
 
     constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
@@ -62,5 +65,40 @@ export class DashboardDemoComponent implements OnInit {
     showSideBar($event){
         this.display = $event;
         //this.mapService.plotMarker($event.x, $event.y);
+    }
+
+    public async drawBuffer(){
+        console.log("under construction")
+        console.log("miles"+this.miles);
+        var latitude : number;
+        var longitude: number;
+        try {  
+            this.mapView = this.mapService.getMapView();
+            var pointsArray: Points[] = [];
+            this.mapView.graphics.forEach(function(current : any) {
+                let points = new Points();
+                points.latitude =  current.geometry.latitude;
+                points.longitude = current.geometry.longitude; 
+                pointsArray.push(points);  
+            });
+
+            const color = {
+                a: 0.5,
+                r: 35,
+                g: 93,
+                b: 186
+            }
+
+            for(let point of pointsArray){
+                await this.mapService.drawCircle(point.latitude,point.longitude,color,this.miles);
+            }
+           
+            //await this.mapService.drawCircle(latitude,longitude,color,this.miles);
+          }
+          catch (ex) {
+            console.error(ex);
+          }
+        console.log("test end of drawbuffer")
+        
     }
 }
