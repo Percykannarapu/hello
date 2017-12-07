@@ -6,6 +6,7 @@ import {GrowlModule} from 'primeng/primeng';
 import {SelectItem} from 'primeng/components/common/api';
 import {Message} from 'primeng/components/common/api';
 import {MessageService} from 'primeng/components/common/messageservice';
+import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 
 @Component({
   providers: [AppService, MapService, MessageService],
@@ -175,7 +176,7 @@ onSelectAll(e){
 
 
   //adding points on the map
-  onAddToProject(selector) {
+  async onAddToProject(selector) {
     console.log('selector: ',selector);
     //Giving color to the point on the map
     if(selector === 'Sites'){
@@ -199,8 +200,18 @@ onSelectAll(e){
   else{
     this.msgs.push({severity:'error', summary:'Error Message', detail:'Please select Sites/Competitors'});
   }
-    
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
+    var popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     this.searchDatageos.forEach(business => {
+      popupTemplate.content = "Firm: " + business.firm + "<br>" +
+                              "Address: " + business.address + "<br>" +
+                              "City: " + business.city + "<br>" +
+                              "State: " + business.state + "<br>" +
+                              "Zip: " + business.zip + "<br>" +
+                              "Wrap Zone: " + business.wrap_name + "<br>" +
+                              "ATZ: " + business.atz_name + "<br>" +
+                              "Carrier Route: " + business.carrier_route_name + "<br>";
 
       if (business.checked) {
         console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
@@ -213,7 +224,7 @@ onSelectAll(e){
         //   if(this.plottedPoints[i](1) === business.x && this.plottedPoints[i](0) === business.y ){
               
         //   } else{
-            this.mapService.plotMarker(business.y, business.x, this.color);
+            this.mapService.plotMarker(business.y, business.x, this.color, popupTemplate);
           //}
         }
         

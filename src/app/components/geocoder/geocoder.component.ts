@@ -3,7 +3,7 @@ import { AccountLocation } from '../../Models/AccountLocation';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
-import { EsriLoaderWrapperService} from '../../services/esri-loader-wrapper.service';
+import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message } from 'primeng/primeng';
 import { GeofootprintMaster } from '../../Models/GeofootprintMaster';
 import { GeofootprintSite } from '../../Models/GeofootprintSite';
