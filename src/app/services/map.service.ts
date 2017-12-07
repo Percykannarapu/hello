@@ -177,7 +177,7 @@ export class MapService {
         return { val: sceneView };
     }
 
-    public async plotMarker(lat: number, lon: number, pointColor): Promise<EsriWrapper<__esri.MapView>> {
+    public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
 
         console.log("fired plotMarker() in MapService");
         // load required modules for this method
@@ -217,6 +217,12 @@ export class MapService {
             symbol: symbol
             
         }
+
+        //if we got a popup template add that to the graphic as well
+        if(popupTemplate != null) {
+            graphicProps.popupTemplate = popupTemplate;
+        }
+        
         console.log('graphicprops',graphicProps);
         const graphic: __esri.Graphic = new Graphic(graphicProps);
         MapService.mapView.graphics.add(graphic);

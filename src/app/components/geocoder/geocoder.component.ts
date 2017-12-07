@@ -3,7 +3,7 @@ import { AccountLocation } from '../../Models/AccountLocation';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
-import { EsriLoaderService } from 'angular-esri-loader';
+import { EsriLoaderWrapperService} from '../../services/esri-loader-wrapper.service';
 import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message } from 'primeng/primeng';
 import { GeofootprintMaster } from '../../Models/GeofootprintMaster';
 import { GeofootprintSite } from '../../Models/GeofootprintSite';
@@ -47,14 +47,22 @@ export class GeocoderComponent implements OnInit {
   ngOnInit() {
   }
 
-  geocodeAddress() {
+  async geocodeAddress() {
     console.log("Geocoding request received in GeocoderComponent for: " + this.street + " " + this.city + " " + this.state + " " + this.zip);
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     var accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
       state: this.state,
       postalCode: this.zip
     }
+    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    popupTemplate.content = "Street: " + this.street + "<br>" +
+                            "City: " + this.city + "<br>" +
+                            "State: " + this.state + "<br>" +
+                            "Zip: " + this.zip + "<br>";
+
     console.log("Calling GeocoderService")
     var observable = this.geocoderService.geocode(accountLocation);
     observable.subscribe((res) => {
@@ -79,7 +87,7 @@ export class GeocoderComponent implements OnInit {
       }
       this.xcoord = String(this.geocodingResponse.latitude);
       this.ycoord = String(this.geocodingResponse.longitude);
-      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color);
+      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
     });
   }
 
