@@ -33,6 +33,8 @@ export class DashboardDemoComponent implements OnInit {
     ta2Miles : number;
     ta3Miles : number;
     milesList : number[];
+    selectedValue : String;
+    checked2 : string;
 
     constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
