@@ -39,25 +39,65 @@
 -->    
 
 <!-- Home for Green Sites Box Overlay -->
-<p-overlayPanel #op_green class="green-panel">
+<p-overlayPanel #op_green class="green-panel" [style]="{'width':'25%'}">
     <!-- To be replaced with a component -->
-    <p-tabView>
+    <p-tabView styleClass="ui-tabview-panels">
         <p-tabPanel header="Sites">
-            <div>🚨🚧 Under Construction 🚧🚨</div>
-            Site Manipulation Functionality will go here
-            <ul>
-                <li>Enter sites manually</li>
-                <li>Upload sites</li>
-                <li>Ability to edit site / ta info</li>
-                <li>Defining Trade areas</li>
-                <li>Applying Trade areas</li>
-            </ul>
         </p-tabPanel>
-        <p-tabPanel header="Trade Areas">
-                <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
-                <input [(ngModel)]="miles" type="text" pInputText placeholder="Enter Miles">
-                <button pButton type="button" icon="fa-close" class="ui-button-danger"></button>
-        </p-tabPanel>
+        <p-tabPanel header="Define Trade Areas">
+            <div class="ui-g">
+                  <div class="ui-g-3">
+                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites"></p-radioButton>
+                  </div>
+                  <div class="ui-g-9">
+                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"></p-radioButton>
+                  </div>
+
+                  <div class="ui-g-3">
+                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                  </div>                        
+                  <div class="ui-g-9">
+                     <span class="ui-float-label">
+                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input">
+                        <label for="ta1Input">Trade Area 1</label>
+                        <i class="material-icons">check</i>
+                     </span>
+                  </div>
+
+                  <div class="ui-g-3">
+                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                  </div>                        
+                  <div class="ui-g-9">
+                        <span class="md-inputfield">
+                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input">
+                           <label for="ta2Input">Trade Area 2</label>
+                           <i class="material-icons">check</i>
+                        </span>
+                  </div>
+
+                  <div class="ui-g-3">
+                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                  </div>                        
+                  <div class="ui-g-9">
+                     <span class="md-inputfield">
+                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input">
+                        <label for="ta3Input">Trade Area 3</label>
+                        <i class="material-icons">check</i>
+                     </span>
+                  </div>
+
+                  <div class="ui-g-12">
+                     <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
+                  </div>                  
+                        
+               <div class="ui-g-3">
+                  <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
+               </div>
+               <div class="ui-g-9">
+                  <button pButton type="button" icon="fa-close" class="ui-button-danger"></button>
+               </div>
+         </div>            
+         </p-tabPanel>
         <p-tabPanel header="Upload / Export">
             We can have as many tabs as necessary
         </p-tabPanel>
@@ -264,7 +304,7 @@
         </p-panel>
     -->
     </div>
-    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
+    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">       
         <p-panel header="Work In Progress Stuff">
             <val-geofootprint>loading geofootprint...</val-geofootprint>
             <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>

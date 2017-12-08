@@ -6,6 +6,7 @@ import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
 import { Points } from '../../Models/Points';
+import { AmSite } from '../../Models/AmSite';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -22,7 +23,12 @@ export class DashboardDemoComponent implements OnInit {
     mapView: __esri.MapView;
 
     fakeItems: MenuItem[];
-    public miles : number;
+    public miles: number;
+
+    public amSite: AmSite = new AmSite();
+
+    public tradeAreaMergeTypes: SelectItem[];
+    public selectedMergeTypes: string;
 
     constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
@@ -33,8 +39,20 @@ export class DashboardDemoComponent implements OnInit {
             {label: 'Step 3'}
         ];
 
+        this.amSite = new AmSite();
+        this.amSite.pk = 1000;
+        this.amSite.name = 'Test Site';
+        console.log('amSite.pk = ' + this.amSite.pk);
+        console.log('amSite: ' + this.amSite.toString());
+
         this.carService.getCarsSmall().then(cars => this.cars = cars);
         this.eventService.getEvents().then(events => {this.events = events; });
+
+        this.tradeAreaMergeTypes = [];
+        this.tradeAreaMergeTypes.push({label: 'No Merge', value: 'No Merge'});
+        this.tradeAreaMergeTypes.push({label: 'Merge Each', value: 'Merge Each'});
+        this.tradeAreaMergeTypes.push({label: 'Merge All', value: 'Merge All'});
+        this.selectedMergeTypes = 'Merge Each';
 
         this.cities = [];
         this.cities.push({label: 'Select City', value: null});
