@@ -198,7 +198,7 @@ export class MapService {
 
         // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
-            style: "circle",
+            style: "diamond",
             size: 12,
             color: color
         }
@@ -330,9 +330,11 @@ export class MapService {
   public async drawCircle(lat: number, lon: number,pointColor,miles: number): Promise<EsriWrapper<__esri.MapView>>{
       console.log("inside drawCircle"+lat + "long::"+lon + "color::"+pointColor + "miles::"+miles);
     const loader = EsriLoaderWrapperService.esriLoader;
-    const [Map,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+    const [Map,array,geometryEngine,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
      = await loader.loadModules([
         'esri/Map', 
+        'dojo/_base/array',
+        'esri/geometry/geometryEngine',
         'esri/core/Collection',
         'esri/views/MapView',
         'esri/geometry/Circle',
@@ -377,12 +379,6 @@ export class MapService {
 
     MapService.mapView.map.add(gl);
 
-    let radius1 = MapService.mapView.extent.width / 10;
-
-    console.log("calculated radius::"+radius1);
-
-    console.log("actual value::"+MapService.mapView.extent.width);
-
     console.log("miles radius"+miles);
 
       pointIndex++;
@@ -408,21 +404,7 @@ export class MapService {
       });
 
       gl.add(g);
-
-      
-    
-
   return { val: MapService.mapView };
-    /*const graphicA = new Graphic();
-
-    const layer = new GraphicsLayer({
-        graphics: [graphicA]
-      });
-
-    console.log("layer added");  
-    this.mapInstance.add(layer);*/
-     
-    
   }
 
 }
