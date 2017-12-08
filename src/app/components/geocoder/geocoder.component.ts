@@ -80,7 +80,7 @@ export class GeocoderComponent implements OnInit {
       }
       //giving color to our point on the map
       const color = {
-        a: 0.5,
+        a: 1,
         r: 35,
         g: 93,
         b: 186

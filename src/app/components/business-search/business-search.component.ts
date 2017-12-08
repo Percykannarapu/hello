@@ -181,7 +181,7 @@ onSelectAll(e){
     //Giving color to the point on the map
     if(selector === 'Sites'){
       this.color = {
-        a: 0.5,
+        a: 1,
         r: 35,
         g: 93,
         b: 186
@@ -190,7 +190,7 @@ onSelectAll(e){
       this.showSideBar.emit(false);
     }else if(selector === 'Competitors'){
     this.color = {
-      a: 0.5,
+      a: 1,
       r: 236,
       g: 1,
       b: 1
