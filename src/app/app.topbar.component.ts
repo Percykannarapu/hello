@@ -40,12 +40,6 @@ import {AppComponent} from './app.component';
                             </li>
                             <li role="menuitem">
                                 <a href="#">
-                                    <i class="material-icons">security</i>
-                                    <span>Privacy</span>
-                                </a>
-                            </li>
-                            <li role="menuitem">
-                                <a href="#">
                                     <i class="material-icons">settings_applications</i>
                                     <span>Settings</span>
                                 </a>

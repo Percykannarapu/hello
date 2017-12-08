@@ -20,7 +20,7 @@ export class AppMenuComponent implements OnInit {
     ngOnInit() {
         this.model = [
             {label: 'Dashboard', icon: 'dashboard', routerLink: ['/']},
-            {
+/*          {
                 label: 'Themes', icon: 'palette', badge: '6',
                 items: [
                     {label: 'Valassis - Blue', icon: 'brush', command: (event) => {this.changeTheme('valassis-blue'); }},
@@ -37,7 +37,7 @@ export class AppMenuComponent implements OnInit {
                     {label: 'Cyan - Amber', icon: 'brush', command: (event) => {this.changeTheme('cyan'); }},
                     {label: 'Grey - Deep Orange', icon: 'brush', command: (event) => {this.changeTheme('grey'); }}
                 ]
-            },
+            },*/
             {
                 label: 'Customization', icon: 'settings_application',
                 items: [
@@ -47,12 +47,45 @@ export class AppMenuComponent implements OnInit {
                     {label: 'Overlay Menu', icon: 'exit_to_app',  command: () => this.app.changeToOverlayMenu()},
                     {label: 'Slim Menu', icon: 'more_vert',  command: () => this.app.changeToSlimMenu()},
                     {label: 'Horizontal Menu', icon: 'border_horizontal',  command: () => this.app.changeToHorizontalMenu()},
-                    {label: 'Light Menu', icon: 'label_outline',  command: () => this.app.darkMenu = false},
+/*                  {label: 'Light Menu', icon: 'label_outline',  command: () => this.app.darkMenu = false},
                     {label: 'Dark Menu', icon: 'label',  command: () => this.app.darkMenu = true},
                     {label: 'Inline Profile', icon: 'contacts',  command: () => this.app.profileMode = 'inline'},
-                    {label: 'Top Profile', icon: 'person_pin',  command: () => this.app.profileMode = 'top'},
+                    {label: 'Top Profile', icon: 'person_pin',  command: () => this.app.profileMode = 'top'},*/
+                    {
+                     label: 'Themes', icon: 'palette',
+                     items: [
+                        {label: 'Valassis - Blue', icon: 'brush', command: (event) => {this.changeTheme('valassis-blue'); }},
+                        {label: 'Indigo - Pink', icon: 'brush', command: (event) => {this.changeTheme('indigo'); }},
+                        {label: 'Brown - Green', icon: 'brush', command: (event) => {this.changeTheme('brown'); }},
+                        {label: 'Blue - Amber', icon: 'brush', command: (event) => {this.changeTheme('blue'); }},
+                        {label: 'Blue Grey - Green', icon: 'brush', command: (event) => {this.changeTheme('blue-grey'); }},
+                        {label: 'Dark - Blue', icon: 'brush', command: (event) => {this.changeTheme('dark-blue'); }},
+                        {label: 'Dark - Green', icon: 'brush', command: (event) => {this.changeTheme('dark-green'); }},
+                        {label: 'Green - Yellow', icon: 'brush', command: (event) => {this.changeTheme('green'); }},
+                        {label: 'Purple - Cyan', icon: 'brush', command: (event) => {this.changeTheme('purple-cyan'); }},
+                        {label: 'Purple - Amber', icon: 'brush', command: (event) => {this.changeTheme('purple-amber'); }},
+                        {label: 'Teal - Lime', icon: 'brush', command: (event) => {this.changeTheme('teal'); }},
+                        {label: 'Cyan - Amber', icon: 'brush', command: (event) => {this.changeTheme('cyan'); }},
+                        {label: 'Grey - Deep Orange', icon: 'brush', command: (event) => {this.changeTheme('grey'); }}
+                        ]
+                     },
+                     {
+                        label: 'Components', icon: 'list', badge: '2', badgeStyleClass: 'teal-badge',
+                        items: [
+                            {label: 'Sample Page', icon: 'desktop_mac', routerLink: ['/sample']},
+                            {label: 'Forms', icon: 'input', routerLink: ['/forms']},
+                            {label: 'Data', icon: 'grid_on', routerLink: ['/data']},
+                            {label: 'Panels', icon: 'content_paste', routerLink: ['/panels']},
+                            {label: 'Overlays', icon: 'content_copy', routerLink: ['/overlays']},
+                            {label: 'Menus', icon: 'menu', routerLink: ['/menus']},
+                            {label: 'Messages', icon: 'message', routerLink: ['/messages']},
+                            {label: 'Charts', icon: 'insert_chart', routerLink: ['/charts']},
+                            {label: 'File', icon: 'attach_file', routerLink: ['/file']},
+                            {label: 'Misc', icon: 'toys', routerLink: ['/misc']}
+                        ]
+                    }
                 ]
-            },
+            }/*,
             {
                 label: 'Components', icon: 'list', badge: '2', badgeStyleClass: 'teal-badge',
                 items: [
@@ -125,7 +158,7 @@ export class AppMenuComponent implements OnInit {
                 ]
             },
             {label: 'Utils', icon: 'build', routerLink: ['/utils']},
-            {label: 'Documentation', icon: 'find_in_page', routerLink: ['/documentation']}
+            {label: 'Documentation', icon: 'find_in_page', routerLink: ['/documentation']}*/
         ];
     }
 
