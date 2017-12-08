@@ -6,7 +6,7 @@ import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
 import { Points } from '../../Models/Points';
-import { AmSite } from '../../Models/AmSite';
+//import { AmSite } from '../../Models/AmSite';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -25,10 +25,14 @@ export class DashboardDemoComponent implements OnInit {
     fakeItems: MenuItem[];
     public miles: number;
 
-    public amSite: AmSite = new AmSite();
+    //public amSite: AmSite = new AmSite();
 
     public tradeAreaMergeTypes: SelectItem[];
     public selectedMergeTypes: string;
+    ta1Miles : number;
+    ta2Miles : number;
+    ta3Miles : number;
+    milesList : number[];
 
     constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
@@ -39,11 +43,11 @@ export class DashboardDemoComponent implements OnInit {
             {label: 'Step 3'}
         ];
 
-        this.amSite = new AmSite();
+       /* this.amSite = new AmSite();
         this.amSite.pk = 1000;
         this.amSite.name = 'Test Site';
         console.log('amSite.pk = ' + this.amSite.pk);
-        console.log('amSite: ' + this.amSite.toString());
+        console.log('amSite: ' + this.amSite.toString());*/
 
         this.carService.getCarsSmall().then(cars => this.cars = cars);
         this.eventService.getEvents().then(events => {this.events = events; });
@@ -87,7 +91,15 @@ export class DashboardDemoComponent implements OnInit {
 
     public async drawBuffer(){
         console.log("under construction")
-        console.log("miles"+this.miles);
+        console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
+        this.milesList = [];
+        if(this.ta1Miles!=null)
+            this.milesList.push(this.ta1Miles);
+        if(this.ta2Miles!=null)    
+            this.milesList.push(this.ta2Miles);
+        if(this.ta3Miles!=null)    
+            this.milesList.push(this.ta3Miles);
+            
         var latitude : number;
         var longitude: number;
         try {  
@@ -101,14 +113,17 @@ export class DashboardDemoComponent implements OnInit {
             });
 
             const color = {
-                a: 0.5,
-                r: 35,
-                g: 93,
-                b: 186
+                a: 0,
+                r: 0,
+                g: 0,
+                b: 255
             }
 
             for(let point of pointsArray){
-                await this.mapService.drawCircle(point.latitude,point.longitude,color,this.miles);
+                for(let miles1 of this.milesList){
+                    console.log("miles:::"+miles1)
+                    await this.mapService.bufferMergeEach(point.latitude,point.longitude,color,miles1);
+                }
             }
            
             //await this.mapService.drawCircle(latitude,longitude,color,this.miles);

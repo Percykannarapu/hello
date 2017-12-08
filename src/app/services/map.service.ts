@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EsriLoaderWrapperService} from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
+import { map } from 'rxjs/operator/map';
 
 @Injectable()
 export class MapService {
@@ -203,6 +204,8 @@ export class MapService {
             color: color
         }
         const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
+        symbol.outline = null;
+        
 
         // the point holds the coordinates the graphic will be displayed at
         const pointProps: __esri.PointProperties = {
@@ -326,7 +329,7 @@ export class MapService {
         MapService.mapView.map.add(new MapLayer({url: Census, opacity: 1}));
         return { val: MapService.mapView };
   }
-//lat: number, lon: number
+
   public async drawCircle(lat: number, lon: number,pointColor,miles: number): Promise<EsriWrapper<__esri.MapView>>{
       console.log("inside drawCircle"+lat + "long::"+lon + "color::"+pointColor + "miles::"+miles);
     const loader = EsriLoaderWrapperService.esriLoader;
@@ -363,17 +366,17 @@ export class MapService {
     let defaultSymbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol({
         style: 'circle',
         size: 12,
-        color: new Color('#000000')
+        color: pointColor
       });
 
     let sym : __esri.SimpleFillSymbol = 
     new SimpleFillSymbol(
         SimpleFillSymbol.STYLE_SOLID
-        , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,new Color([255,0,0]),2)
-        ,new Color([0.5,49,150,0.25])
+        , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,pointColor,2)
+        ,pointColor
             );
          
-    sym.outline.color  = new Color([39,49,33,0.25]); 
+    sym.outline.color  = new Color([0,0,255,0.25]);  
     
     let gl : __esri.GraphicsLayer = new GraphicsLayer({id: "circles"});
 
@@ -406,6 +409,80 @@ export class MapService {
       gl.add(g);
   return { val: MapService.mapView };
   }
+  
+  public async bufferMergeEach(lat: number, lon: number,pointColor,miles: number): Promise<EsriWrapper<__esri.MapView>>{
+
+    console.log("inside bufferMergeEach:: UNDER CONSTRUCTION")
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [Map,graphicsUtils,array,geometryEngine,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+     = await loader.loadModules([
+        'esri/Map',
+        'esri/graphicsUtils', 
+        'dojo/_base/array',
+        'esri/geometry/geometryEngine',
+        'esri/core/Collection',
+        'esri/views/MapView',
+        'esri/geometry/Circle',
+        'esri/layers/GraphicsLayer',
+        'esri/Graphic',
+        'esri/geometry/Point',
+        'esri/symbols/SimpleFillSymbol',
+        'esri/symbols/SimpleLineSymbol',
+        'esri/symbols/SimpleMarkerSymbol',
+        'esri/Color','dojo/domReady!'  
+    ]);
+
+    let pointIndex = 0;
+    let pointLongitude = lon;
+    let pointLatitude = lat;
+
+    let sym : __esri.SimpleFillSymbol = 
+    new SimpleFillSymbol(
+        SimpleFillSymbol.STYLE_SOLID
+        , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,pointColor,2)
+        ,pointColor
+    );
+         
+    sym.outline.color  = new Color([0,0,255,0.25]);  
+
+    let gl : __esri.GraphicsLayer = new GraphicsLayer({id: "circles"});
+    
+    MapService.mapView.map.add(gl);
+
+    pointIndex++;
+     let p = new Point({
+       x: pointLongitude,
+       y: pointLatitude,
+       spatialReference: 4326
+     });
+
+     let circle = new Circle({
+       radius : miles,
+       center : p,
+       geodesic: true,
+       radiusUnit: 'miles'
+     });
+
+     let g = new Graphic({
+       geometry: circle,
+       symbol: sym
+     });
+
+     gl.add(g);
+
+    //var featureLayer = MapService.mapView.layerViews(MapService.mapView.a)
+    //map.get(MapService.mapView.map.g)
+    //    geodesicBuffer(geometry: Geometry | Geometry[], distance: number | number[], unit: string | number, unionResults?: boolean): Polygon | Polygon[];
+
+   // __esri.gr
+    let geometries = graphicsUtils.geometries(gl.graphics);
+    let bufferedGeometries = geometryEngine.geodesicBuffer(geometries, miles, "Miles", true);
+   
+   array.forEach(bufferedGeometries,function(geometry){
+        MapService.mapView.graphics.add(new Graphic(geometry,sym));
+    });
+     return { val: MapService.mapView };
+    }
 
 }
 
