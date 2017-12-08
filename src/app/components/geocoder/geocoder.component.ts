@@ -105,12 +105,12 @@ export class GeocoderComponent implements OnInit {
     this.CSVMessage = "Yeah, I wish this worked too";
   }
 
-  geocodeCSV(event) {
+  async geocodeCSV(event) {
     console.log("fired geocodeCSV()");
     var input = event.target;
     var reader = new FileReader();
     reader.readAsText(input.files[0]);
-    reader.onload = (data) => {
+    reader.onload = async (data) => {
       console.log("read file data");
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
@@ -128,7 +128,7 @@ export class GeocoderComponent implements OnInit {
           this.city = csvRecord[1];
           this.state = csvRecord[2];
           this.zip = csvRecord[3];
-          this.geocodeAddress();
+          await this.geocodeAddress();
         }
       }
     }
