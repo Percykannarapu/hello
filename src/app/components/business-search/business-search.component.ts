@@ -181,7 +181,7 @@ onSelectAll(e){
     //Giving color to the point on the map
     if(selector === 'Sites'){
       this.color = {
-        a: 0.5,
+        a: 1,
         r: 35,
         g: 93,
         b: 186
@@ -190,7 +190,7 @@ onSelectAll(e){
       this.showSideBar.emit(false);
     }else if(selector === 'Competitors'){
     this.color = {
-      a: 0.5,
+      a: 1,
       r: 236,
       g: 1,
       b: 1
@@ -202,16 +202,7 @@ onSelectAll(e){
   }
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
-    var popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    this.searchDatageos.forEach(business => {
-      popupTemplate.content = "Firm: " + business.firm + "<br>" +
-                              "Address: " + business.address + "<br>" +
-                              "City: " + business.city + "<br>" +
-                              "State: " + business.state + "<br>" +
-                              "Zip: " + business.zip + "<br>" +
-                              "Wrap Zone: " + business.wrap_name + "<br>" +
-                              "ATZ: " + business.atz_name + "<br>" +
-                              "Carrier Route: " + business.carrier_route_name + "<br>";
+    this.searchDatageos.forEach(business => {   
 
       if (business.checked) {
         console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
@@ -224,7 +215,16 @@ onSelectAll(e){
         //   if(this.plottedPoints[i](1) === business.x && this.plottedPoints[i](0) === business.y ){
               
         //   } else{
-            this.mapService.plotMarker(business.y, business.x, this.color, popupTemplate);
+            this.mapService.plotMarker(business.y, business.x, this.color, new PopupTemplate({
+              content: "Firm: " + business.firm + "<br>" +
+                       "Address: " + business.address + "<br>" +
+                       "City: " + business.city + "<br>" +
+                       "State: " + business.state + "<br>" +
+                       "Zip: " + business.zip + "<br>" +
+                       "Wrap Zone: " + business.wrap_name + "<br>" +
+                       "ATZ: " + business.atz_name + "<br>" +
+                       "Carrier Route: " + business.carrier_route_name + "<br>"
+            }));
           //}
         }
         
