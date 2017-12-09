@@ -93,7 +93,7 @@ export class GeocoderComponent implements OnInit {
         .then(async graphic => {
         graphics.push(graphic);
       });
-      this.mapService.createFeatureLayer(graphics, 'Sites');
+      this.mapService.updateFeatureLayer(graphics, 'Sites');
     });
     
   }

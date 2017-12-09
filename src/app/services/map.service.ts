@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { EsriLoaderWrapperService} from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { map } from 'rxjs/operator/map';
+import { forEach } from '@angular/router/src/utils/collection';
 
 @Injectable()
 export class MapService {
 
     private mapInstance: __esri.Map;
     private static mapView: __esri.MapView;
-    private static layerName: Set<string> = new Set<string>();
+    private static layerNames: Set<string> = new Set<string>();
+    private static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
 
     constructor() { }
 
@@ -443,11 +445,11 @@ export class MapService {
 
     public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
         console.log("fired createFeautreLayer() in MapService");
-        if (MapService.layerName.has(layerName)) {
+        if (MapService.layerNames.has(layerName)) {
             console.log("layer name already exists");
             throw new Error("Layer name already exists, please use a different name");
         }
-        MapService.layerName.add(layerName);
+        MapService.layerNames.add(layerName);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Renderer] = await loader.loadModules(['esri/layers/FeatureLayer', 'esri/renderers/Renderer']);
         const featureRenderer = {type: 'simple'};
@@ -473,58 +475,112 @@ export class MapService {
             source: graphics,
             popupTemplate: null,
             renderer: featureRenderer,
-            title: layerName
+            title: layerName,
+            /*capabilities: {
+                operations: {
+                    supportsAdd: true,
+                    supportsDelete: true,
+                    supportsUpdate: true,
+                    supportsEditing: true,
+                    supportsCalculate: true,
+                    supportsQuery: true 
+                }
+            }*/
         });
         MapService.mapView.map.add(lyr);
+        MapService.layers.add(lyr);
     }
-
-  public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
-        'esri/symbols/SimpleMarkerSymbol',
-        'esri/geometry/Point',
-        'esri/Graphic',
-        'esri/Color'
-    ]);
     
-    // let's give the symbol a prettier color
-    const color: __esri.Color = new Color();
-    color.a = pointColor.a;
-    color.r = pointColor.r;
-    color.g = pointColor.g;
-    color.b = pointColor.b;
+    public async updateFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+        console.log("fired updateFeatureList() in MapService");
 
-    // set up the first required piece, a symbol
-    const symbolProps: __esri.SimpleMarkerSymbolProperties = {
-        style: "diamond",
-        size: 12,
-        color: color
-    }
-    const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
-    symbol.outline = null;
-    
+        //check to see if this is the first layer being added
+        if(MapService.layers.size == 0 && MapService.layerNames.size == 0){
+            this.createFeatureLayer(graphics, layerName);
+            return;
+        }
 
-    // the point holds the coordinates the graphic will be displayed at
-    const pointProps: __esri.PointProperties = {
-        latitude: lat,
-        longitude: lon
-    }
-    const point: __esri.Point = new Point(pointProps);
-    
-    // the grpahic is what ultimately gets rendered to the map
-    const graphicProps: __esri.GraphicProperties = {
-        geometry: point,
-        symbol: symbol
-        
+        var existingGraphics: __esri.Collection<__esri.Graphic>;
+        var layerToRemove: __esri.Layer;
+
+        //loop through the existing layers to see if we can find one to update, otherwise create a new one
+        MapService.layers.forEach(async layer => {
+            MapService.layerNames.forEach(async layerName => {
+                console.log(layerName + "    " + layer.title);
+                if(layerName == layer.title) {
+                    layerToRemove = layer;
+                    
+                    //todo: ask ESRI if there's a way to get this to work
+                    /*await (<__esri.FeatureLayer>layer).applyEdits(graphics).then(data =>{
+                        console.log("Results of edit: " + JSON.stringify(data.addFeaturesResults, null, 4));
+                    });*/
+
+                    existingGraphics = (<__esri.FeatureLayer>layer).source;
+                    graphics.forEach(graphic => {
+                        existingGraphics.add(graphic);
+                    })
+                    
+                }
+                else {
+                    console.log("FeatureLayer requested for update does not exist, creating");
+                    this.createFeatureLayer(graphics, layerName);
+                    return;
+                }
+            });
+        });
+        MapService.mapView.map.remove(layerToRemove);
+        MapService.layers.delete(layerToRemove);
+        MapService.layerNames.delete(layerToRemove.title);
+        this.createFeatureLayer(existingGraphics.toArray(), layerName);
     }
 
-    //if we got a popup template add that to the graphic as well
-    if(popupTemplate != null) {
-        graphicProps.popupTemplate = popupTemplate;
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
+            'esri/symbols/SimpleMarkerSymbol',
+            'esri/geometry/Point',
+            'esri/Graphic',
+            'esri/Color'
+        ]);
+
+        // let's give the symbol a prettier color
+        const color: __esri.Color = new Color();
+        color.a = pointColor.a;
+        color.r = pointColor.r;
+        color.g = pointColor.g;
+        color.b = pointColor.b;
+
+        // set up the first required piece, a symbol
+        const symbolProps: __esri.SimpleMarkerSymbolProperties = {
+            style: "diamond",
+            size: 12,
+            color: color
+        }
+        const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
+        symbol.outline = null;
+
+
+        // the point holds the coordinates the graphic will be displayed at
+        const pointProps: __esri.PointProperties = {
+            latitude: lat,
+            longitude: lon
+        }
+        const point: __esri.Point = new Point(pointProps);
+
+        // the grpahic is what ultimately gets rendered to the map
+        const graphicProps: __esri.GraphicProperties = {
+            geometry: point,
+            symbol: symbol
+
+        }
+
+        //if we got a popup template add that to the graphic as well
+        if (popupTemplate != null) {
+            graphicProps.popupTemplate = popupTemplate;
+        }
+        const graphic: __esri.Graphic = new Graphic(graphicProps);
+        return graphic;
     }
-    const graphic: __esri.Graphic = new Graphic(graphicProps);
-    return graphic;
-  }
 
 }
 
