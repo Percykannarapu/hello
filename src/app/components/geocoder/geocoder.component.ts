@@ -50,13 +50,14 @@ export class GeocoderComponent implements OnInit {
   async geocodeAddress() {
     console.log("Geocoding request received in GeocoderComponent for: " + this.street + " " + this.city + " " + this.state + " " + this.zip);
     const loader = EsriLoaderWrapperService.esriLoader;
-    const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
+    const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     var accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
       state: this.state,
       postalCode: this.zip
     }
+    var graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     popupTemplate.content = "Street: " + this.street + "<br>" +
                             "City: " + this.city + "<br>" +
@@ -65,7 +66,7 @@ export class GeocoderComponent implements OnInit {
 
     console.log("Calling GeocoderService")
     var observable = this.geocoderService.geocode(accountLocation);
-    observable.subscribe((res) => {
+    await observable.subscribe(async (res) => {
       this.disableshowBusiness = false;
       this.geocodingResponse = res.payload;
       console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
@@ -87,8 +88,14 @@ export class GeocoderComponent implements OnInit {
       }
       this.xcoord = String(this.geocodingResponse.latitude);
       this.ycoord = String(this.geocodingResponse.longitude);
-      this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
+      //this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
+      await this.mapService.createGraphic(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate)
+        .then(async graphic => {
+        graphics.push(graphic);
+      });
+      this.mapService.createFeatureLayer(graphics, 'Sites');
     });
+    
   }
 
   loadVPW() {

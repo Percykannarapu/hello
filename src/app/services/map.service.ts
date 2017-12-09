@@ -8,7 +8,7 @@ export class MapService {
 
     private mapInstance: __esri.Map;
     private static mapView: __esri.MapView;
-    private static layerName: Set<string>;
+    private static layerName: Set<string> = new Set<string>();
 
     constructor() { }
 
@@ -182,54 +182,10 @@ export class MapService {
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
 
         console.log("fired plotMarker() in MapService");
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
-            'esri/symbols/SimpleMarkerSymbol',
-            'esri/geometry/Point',
-            'esri/Graphic',
-            'esri/Color'
-        ]);
+        this.createGraphic(lat, lon, pointColor, popupTemplate).then(graphic => {
+            MapService.mapView.graphics.add(graphic);
+        })
         
-        // let's give the symbol a prettier color
-        const color: __esri.Color = new Color();
-        color.a = pointColor.a;
-        color.r = pointColor.r;
-        color.g = pointColor.g;
-        color.b = pointColor.b;
-
-        // set up the first required piece, a symbol
-        const symbolProps: __esri.SimpleMarkerSymbolProperties = {
-            style: "diamond",
-            size: 12,
-            color: color
-        }
-        const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
-        symbol.outline = null;
-        
-
-        // the point holds the coordinates the graphic will be displayed at
-        const pointProps: __esri.PointProperties = {
-            latitude: lat,
-            longitude: lon
-        }
-        const point: __esri.Point = new Point(pointProps);
-        
-        // the grpahic is what ultimately gets rendered to the map
-        const graphicProps: __esri.GraphicProperties = {
-            geometry: point,
-            symbol: symbol
-            
-        }
-
-        //if we got a popup template add that to the graphic as well
-        if(popupTemplate != null) {
-            graphicProps.popupTemplate = popupTemplate;
-        }
-        
-        console.log('graphicprops',graphicProps);
-        const graphic: __esri.Graphic = new Graphic(graphicProps);
-        MapService.mapView.graphics.add(graphic);
         
         return { val: MapService.mapView };
     }
@@ -485,39 +441,89 @@ export class MapService {
      return { val: MapService.mapView };
     }
 
-  public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
-    if(MapService.layerName.has(layerName)) {
-        throw new Error("Layer name already exists, please use a different name");
-    }
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [FeatureLayer] = await loader.loadModules(['esri/layers/FeatureLayer']);
-    var lyr = new FeatureLayer({
+    public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+        console.log("fired createFeautreLayer() in MapService");
+        if (MapService.layerName.has(layerName)) {
+            console.log("layer name already exists");
+            throw new Error("Layer name already exists, please use a different name");
+        }
+        MapService.layerName.add(layerName);
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [FeatureLayer, Renderer] = await loader.loadModules(['esri/layers/FeatureLayer', 'esri/renderers/Renderer']);
+        const featureRenderer = {type: 'simple'};
         
-           // create an instance of esri/layers/support/Field for each field object
-           fields: [
-           {
-             name: "ObjectID",
-             alias: "ObjectID",
-             type: "oid"
-           }, {
-             name: "type",
-             alias: "Type",
-             type: "string"
-           }, {
-             name: "place",
-             alias: "Place",
-             type: "string"
-           }],
-           objectIdField: "ObjectID",
-           geometryType: "point",
-           spatialReference: { wkid: 5070 },
-           source: graphics,  //  an array of graphics with geometry and attributes
-                             // popupTemplate and symbol are not required in each graphic
-                             // since those are handled with the popupTemplate and
-                             // renderer properties of the layer
-           popupTemplate: null
+        var lyr = new FeatureLayer({
+            fields: [
+                {
+                    name: "ObjectID",
+                    alias: "ObjectID",
+                    type: "oid"
+                }, {
+                    name: "type",
+                    alias: "Type",
+                    type: "string"
+                }, {
+                    name: "place",
+                    alias: "Place",
+                    type: "string"
+                }],
+            objectIdField: "ObjectID",
+            geometryType: "point",
+            spatialReference: { wkid: 5070 },
+            source: graphics,
+            popupTemplate: null,
+            renderer: featureRenderer,
+            title: layerName
         });
-    MapService.mapView.map.add(lyr);
+        MapService.mapView.map.add(lyr);
+    }
+
+  public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
+        'esri/symbols/SimpleMarkerSymbol',
+        'esri/geometry/Point',
+        'esri/Graphic',
+        'esri/Color'
+    ]);
+    
+    // let's give the symbol a prettier color
+    const color: __esri.Color = new Color();
+    color.a = pointColor.a;
+    color.r = pointColor.r;
+    color.g = pointColor.g;
+    color.b = pointColor.b;
+
+    // set up the first required piece, a symbol
+    const symbolProps: __esri.SimpleMarkerSymbolProperties = {
+        style: "diamond",
+        size: 12,
+        color: color
+    }
+    const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
+    symbol.outline = null;
+    
+
+    // the point holds the coordinates the graphic will be displayed at
+    const pointProps: __esri.PointProperties = {
+        latitude: lat,
+        longitude: lon
+    }
+    const point: __esri.Point = new Point(pointProps);
+    
+    // the grpahic is what ultimately gets rendered to the map
+    const graphicProps: __esri.GraphicProperties = {
+        geometry: point,
+        symbol: symbol
+        
+    }
+
+    //if we got a popup template add that to the graphic as well
+    if(popupTemplate != null) {
+        graphicProps.popupTemplate = popupTemplate;
+    }
+    const graphic: __esri.Graphic = new Graphic(graphicProps);
+    return graphic;
   }
 
 }
