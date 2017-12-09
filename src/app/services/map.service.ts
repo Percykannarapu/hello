@@ -7,6 +7,7 @@ export class MapService {
 
     private mapInstance: __esri.Map;
     private static mapView: __esri.MapView;
+    private static layerName: Set<string>;
 
     constructor() { }
 
@@ -405,6 +406,41 @@ export class MapService {
 
       gl.add(g);
   return { val: MapService.mapView };
+  }
+
+  public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+    if(MapService.layerName.has(layerName)) {
+        throw new Error("Layer name already exists, please use a different name");
+    }
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [FeatureLayer] = await loader.loadModules(['esri/layers/FeatureLayer']);
+    var lyr = new FeatureLayer({
+        
+           // create an instance of esri/layers/support/Field for each field object
+           fields: [
+           {
+             name: "ObjectID",
+             alias: "ObjectID",
+             type: "oid"
+           }, {
+             name: "type",
+             alias: "Type",
+             type: "string"
+           }, {
+             name: "place",
+             alias: "Place",
+             type: "string"
+           }],
+           objectIdField: "ObjectID",
+           geometryType: "point",
+           spatialReference: { wkid: 5070 },
+           source: graphics,  //  an array of graphics with geometry and attributes
+                             // popupTemplate and symbol are not required in each graphic
+                             // since those are handled with the popupTemplate and
+                             // renderer properties of the layer
+           popupTemplate: null
+        });
+    MapService.mapView.map.add(lyr);
   }
 
 }
