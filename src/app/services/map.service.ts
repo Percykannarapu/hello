@@ -508,6 +508,7 @@ export class MapService {
         MapService.layers.forEach(layer => {
             if (layerToUpdate == layer.title) {
                 layerToRemove = layer;
+                console.log("updating existing layer with "  + graphics.length + " graphics");
 
                 ///
                 /// todo: ask ESRI if there's a way to get this to work, would be much nicer

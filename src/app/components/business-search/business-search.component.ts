@@ -167,7 +167,7 @@ export class BusinessSearchComponent implements OnInit {
       this.showLoader = false;
       let data = res.payload;
 
-      console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(data.rows, null, 4));
+      //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(data.rows, null, 4));
       this.searchDatageos = data.rows;
       this.searchDatageos.forEach((obj) => {
         //Building label to show adresses
@@ -221,10 +221,10 @@ export class BusinessSearchComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     var graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-    await this.searchDatageos.forEach(async business => {
-
+    //await this.searchDatageos.forEach(async business => {
+    for(let business of this.searchDatageos) {
       if (business.checked) {
-        console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
+        //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
         console.log('long: x', business.x + 'lat: y', business.y);
         //this.mapService.plotMarker(42.412941,-83.374309,color);
         this.plottedPoints.push([business.x, business.y]);
@@ -235,7 +235,7 @@ export class BusinessSearchComponent implements OnInit {
         });
       }
 
-    });
+    }
     if (selector === 'Competitors') {
       console.log("Adding competitors from store search");
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
