@@ -221,6 +221,7 @@ export class BusinessSearchComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     var graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+    let popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     //await this.searchDatageos.forEach(async business => {
     for(let business of this.searchDatageos) {
       if (business.checked) {
@@ -229,8 +230,18 @@ export class BusinessSearchComponent implements OnInit {
         //this.mapService.plotMarker(42.412941,-83.374309,color);
         this.plottedPoints.push([business.x, business.y]);
 
+        popupTemplate.content = 'Firm: ' + business.firm + '<br>' +
+                                'Address: ' + business.address + '<br>' +
+                                'City: ' + business.city + '<br>' +
+                                'State: ' + business.state + '<br>' +
+                                'Zip: ' + business.zip + '<br>' +
+                                'Wrap Zone: ' + business.wrap_name + '<br>' +
+                                'ATZ: ' + business.atz_name + '<br>' +
+                                'Carrier Route: ' + business.carrier_route_name + '<br>';
+
         console.log('this.plottedPoints', this.plottedPoints);
         await this.mapService.createGraphic(business.y, business.x, this.color).then(async graphic => {
+          graphic.popupTemplate = popupTemplate;
           graphics.push(graphic);
         });
       }

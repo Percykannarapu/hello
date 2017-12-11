@@ -470,7 +470,7 @@ export class MapService {
             geometryType: 'point',
             spatialReference: { wkid: 5070 },
             source: graphics,
-            popupTemplate: null,
+            popupTemplate: {content: '{*}'},
             renderer: featureRenderer,
             title: layerName,
             capabilities: {
