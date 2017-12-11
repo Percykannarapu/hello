@@ -33,8 +33,12 @@ export class DashboardDemoComponent implements OnInit {
     ta2Miles : number;
     ta3Miles : number;
     milesList : number[];
-    selectedValue : String;
-    checked2 : string;
+    selectedValue : String = 'Sites';
+    checked2 : boolean = false;
+    checked1 : boolean  = true;
+    checked3 : boolean = false;
+    kms     : number;
+    kmsList : number[] = [];
 
     constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
 
@@ -92,14 +96,24 @@ export class DashboardDemoComponent implements OnInit {
     }
 
     public async drawBuffer(){
-        console.log("under construction")
-        console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
+       console.log("under construction")
+       console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
+       console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
+       
+       let mergeEachBool : boolean = false;
+       let mergeAllBool : boolean  = false;
+       
+       if(this.selectedMergeTypes.match('Merge Each'))
+            mergeEachBool = true;
+       if(this.selectedMergeTypes.match('Merge All'))
+            mergeAllBool = true;
+      
         this.milesList = [];
-        if(this.ta1Miles!=null)
+        if(this.ta1Miles!=null && this.checked1)
             this.milesList.push(this.ta1Miles);
-        if(this.ta2Miles!=null)    
+        if(this.ta2Miles!=null && this.checked2)    
             this.milesList.push(this.ta2Miles);
-        if(this.ta3Miles!=null)    
+        if(this.ta3Miles!=null && this.checked3)    
             this.milesList.push(this.ta3Miles);
             
         var latitude : number;
@@ -107,27 +121,83 @@ export class DashboardDemoComponent implements OnInit {
         try {  
             this.mapView = this.mapService.getMapView();
             var pointsArray: Points[] = [];
-            this.mapView.graphics.forEach(function(current : any) {
+            console.log("test points")
+           // this.mapService.removeMapLayers();
+            var existingGraphics: __esri.Collection<__esri.Graphic>;
+        await  MapService.layers.forEach(layer => {   
+              console.log("reading the layer::"+ layer.title); 
+                existingGraphics = (<__esri.FeatureLayer>layer).source;
+               // if(layer.title == 'Sites'){
+                    existingGraphics.forEach(function(current : any){
+                        console.log("inside layer graphic loaded::"+current.geometry.latitude);
+                        let points = new Points();
+                        points.latitude =  current.geometry.latitude;
+                        points.longitude = current.geometry.longitude; 
+                        console.log("points loaded::"+points.latitude);
+                        pointsArray.push(points);  
+                    });
+               // }
+            });
+
+          /*console.log("entring :::graphics::")
+            existingGraphics.forEach(function(current : any){
+                console.log("inside layer graphic loaded::"+current.geometry.latitude);
                 let points = new Points();
                 points.latitude =  current.geometry.latitude;
                 points.longitude = current.geometry.longitude; 
+                console.log("points loaded::"+points.latitude);
                 pointsArray.push(points);  
-            });
-
+            }); */
             const color = {
                 a: 0,
                 r: 0,
                 g: 0,
                 b: 255
             }
+            console.log("mergeEachBool::::"+mergeEachBool);
+           
 
-            for(let point of pointsArray){
-                for(let miles1 of this.milesList){
-                    console.log("miles:::"+miles1)
-                    await this.mapService.bufferMergeEach(point.latitude,point.longitude,color,miles1);
+            if(mergeAllBool){
+                console.log("inside merge All");
+                if(this.ta1Miles>this.ta2Miles && this.ta1Miles > this.ta2Miles){
+                    console.log("Larger mile is:"+this.ta1Miles);
+                    this.kms = this.ta1Miles/0.62137;
+                    this.kmsList.push(this.kms);
+                    await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Merge All');
+                }
+                else if(this.ta2Miles>this.ta1Miles && this.ta2Miles > this.ta3Miles){
+                    console.log("Larger mile is:"+this.ta2Miles);
+                    this.kms = this.ta2Miles/0.62137;
+                    this.kmsList.push(this.kms);
+                    await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Merge All');
+                }
+                else{
+                    console.log("Larger mile is:"+this.ta3Miles);
+                    this.kms = this.ta3Miles/0.62137;
+                    this.kmsList.push(this.kms);
+                    await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Merge All');
                 }
             }
-           
+            else if(mergeEachBool){
+                console.log("inside merge Each");
+              //  for(let point of pointsArray){
+                    for(let miles1 of this.milesList){
+                         this.kms = miles1/0.62137;
+                         this.kmsList.push(this.kms);
+                        console.log("miles:::"+miles1)
+                        await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Merge Each');
+                    }
+               // }
+            }
+            else{
+                console.log("inside draw Circle");
+                for(let point of pointsArray){
+                    for(let miles1 of this.milesList){
+                        console.log("miles:::"+miles1)
+                        await this.mapService.drawCircle(point.latitude,point.longitude,color,miles1);
+                    }
+                }
+            }
             //await this.mapService.drawCircle(latitude,longitude,color,this.miles);
           }
           catch (ex) {
@@ -135,5 +205,9 @@ export class DashboardDemoComponent implements OnInit {
           }
         console.log("test end of drawbuffer")
         
+    }
+
+    public async removeBuffer(){
+        await this.mapService.removeMapLayers();
     }
 }
