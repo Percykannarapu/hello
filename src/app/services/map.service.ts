@@ -1,3 +1,4 @@
+import { element } from 'protractor';
 import { Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
@@ -216,20 +217,21 @@ export class MapService {
     }
 
     public async setMapLayers(selectedLayers: any[], analysisLevel: string): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("fired setMapLayers() in MapService");
+        console.log('fired setMapLayers() in MapService');
 
-        const Census = "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer";
-        const ATZ_Digital = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer";
-        const ZIP_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer";
-        const ATZ_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
-        const PCR_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
-        const ZIP_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer";
-        const ATZ_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer";
-        const PCR_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer";
+        const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
+        const ATZ_Digital   = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer';
+        const ZIP_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer';
+        const ATZ_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
+        const PCR_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
+        const ZIP_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer';
+        const ATZ_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
+        const PCR_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, ExpandVM] = await loader.loadModules([
+        const [PopupTemplate, FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, ExpandVM] = await loader.loadModules([
+            'esri/PopupTemplate',
             'esri/layers/FeatureLayer',
             'esri/layers/GraphicsLayer',
             'esri/layers/MapImageLayer',
@@ -237,6 +239,10 @@ export class MapService {
             'esri/widgets/Expand/ExpandViewModel',
             'dojo/domReady!'
         ]);
+
+        const popupTemplate = new PopupTemplate();
+        // popupTemplate.title   = 'title';
+        popupTemplate.content = '{*}';
 
         const expandVM = new ExpandVM({
             view: MapService.mapView
@@ -247,43 +253,60 @@ export class MapService {
         // MapService.mapView.ui.layerListExpand.expand();
 
         // loop through array setting each layer based on layer type
+        let popupTitle: string[];
+        let startPos: number;
+        let endPos: number;
+
         selectedLayers.forEach((element, index) => {
-            if (analysisLevel == 'None') {
+
+            // dynamically set the popup title to the layer being loaded
+            startPos = element.indexOf('/rest/services/');
+            endPos = element.indexOf('/FeatureServer');
+            if (endPos === -1) {
+                endPos = element.indexOf('/MapServer');
+                popupTitle = element.slice(startPos + 15, endPos);
+            } else {
+                popupTitle = element.slice(startPos + 15, endPos);
+            }
+            console.log('PopupTitle=' + popupTitle);
+
+            // Load other optional selected layers
+            if (analysisLevel === 'None') {
                 if (element.indexOf('MapServer') !== -1) {
-                    MapService.mapView.map.add(new MapLayer({ url: element, opacity: 0.65 }));
+                    MapService.mapView.map.add(new MapLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
                     console.log('added MapLayer:' + element);
                 } else
                     if (element.indexOf('FeatureServer') !== -1) {
-                        MapService.mapView.map.add(new FeatureLayer({ url: element, opacity: 0.65 }));
+                        MapService.mapView.map.add(new FeatureLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
                         console.log('added FeatureLayer:' + element);
                     }
             } else
                 if (element !== ATZ_Centroids && element !== ZIP_Centroids && element !== PCR_Centroids &&
                     element !== ATZ_Top_Vars && element !== ZIP_Top_Vars && element !== PCR_Top_Vars) {
                     if (element.indexOf('MapServer') !== -1) {
-                        MapService.mapView.map.add(new MapLayer({ url: element, opacity: 0.65 }));
+                        MapService.mapView.map.add(new MapLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
                         console.log('added MapLayer:' + element);
                     } else
                         if (element.indexOf('FeatureServer') !== -1) {
-                            MapService.mapView.map.add(new FeatureLayer({ url: element, opacity: 0.65 }));
+                            MapService.mapView.map.add(new FeatureLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
                             console.log('added FeatureLayer:' + element);
                         }
                 }
-        })
+        });
 
-        if (analysisLevel == 'Zip') {
-            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars, opacity: 1, visible: false }));
-            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, opacity: 1, visible: false }));
+        if (analysisLevel === 'Zip') {
+            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'ZIP Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
+            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, outfields: ["*"], popupTemplate: { title: 'ZIP Centroids', content: '{*}' }, opacity: 1, visible: false }));
         } else
-            if (analysisLevel == 'Atz') {
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, opacity: 1, visible: false }));
+            if (analysisLevel === 'Atz') {
+                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false }));
+                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
+                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false }));
             } else
-                if (analysisLevel == 'Pcr') {
-                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Top_Vars, opacity: 1, visible: false }));
-                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Centroids, opacity: 1, visible: false }));
-                };
+                if (analysisLevel === 'Pcr') {
+                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'PCR Top Vars', content: '{*}' }, opacity: 1, visible: false }));
+                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Centroids, outfields: ["*"], popupTemplate: { title: 'PCR Centroids', content: '{*}' }, opacity: 1, visible: false }));
+                }
 
         MapService.mapView.map.add(new MapLayer({ url: Census, opacity: 1 }));
         return { val: MapService.mapView };
