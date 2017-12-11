@@ -240,10 +240,6 @@ export class MapService {
             'dojo/domReady!'
         ]);
 
-        const popupTemplate = new PopupTemplate();
-        // popupTemplate.title   = 'title';
-        popupTemplate.content = '{*}';
-
         const expandVM = new ExpandVM({
             view: MapService.mapView
         });
