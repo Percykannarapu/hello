@@ -7,10 +7,11 @@ import { forEach } from '@angular/router/src/utils/collection';
 @Injectable()
 export class MapService {
 
-    private mapInstance: __esri.Map;
     private static mapView: __esri.MapView;
     public static layerNames: Set<string> = new Set<string>();
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
+
+    private mapInstance: __esri.Map;
 
     constructor() { }
 
@@ -73,7 +74,7 @@ export class MapService {
                 dockEnabled: true,
                 dockOptions: {
                     breakpoint: false,
-                    position: "top-right"
+                    position: 'top-right'
                 }
             },
             extent: {
@@ -137,19 +138,19 @@ export class MapService {
             view: mapView,
             content: basemapGallery.container,
             expandIconClass: 'esri-icon-basemap',
-            expandTooltip: "Basemap Gallery",
+            expandTooltip: 'Basemap Gallery',
         });
         const layerListExpand = new Expand({
             view: mapView,
             content: layerList.container,
             expandIconClass: 'esri-icon-layer-list',
-            expandTooltip: "Expand LayerList",
+            expandTooltip: 'Expand LayerList',
         });
         const legendExpand = new Expand({
             view: mapView,
             content: legend.container,
             expandIconClass: 'esri-icon-documentation',
-            expandTooltip: "Expand Legend",
+            expandTooltip: 'Expand Legend',
         });
 
 
@@ -183,10 +184,10 @@ export class MapService {
 
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
 
-        console.log("fired plotMarker() in MapService");
+        console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate).then(graphic => {
             MapService.mapView.graphics.add(graphic);
-        })
+        });
 
 
         return { val: MapService.mapView };
@@ -198,7 +199,7 @@ export class MapService {
     }
 
     public async removeMapLayers(): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("fired removeMapLayers() in MapService");
+        console.log('fired removeMapLayers() in MapService');
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -216,16 +217,16 @@ export class MapService {
     }
 
     public async setMapLayers(selectedLayers: any[], analysisLevel: string): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("fired setMapLayers() in MapService");
+        console.log('fired setMapLayers() in MapService');
 
-        const Census = "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer";
-        const ATZ_Digital = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer";
-        const ZIP_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer";
-        const ATZ_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
-        const PCR_Top_Vars = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer";
-        const ZIP_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer";
-        const ATZ_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer";
-        const PCR_Centroids = "https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer";
+        const Census = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
+        const ATZ_Digital = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer';
+        const ZIP_Top_Vars = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer';
+        const ATZ_Top_Vars = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
+        const PCR_Top_Vars = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
+        const ZIP_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer';
+        const ATZ_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
+        const PCR_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -248,7 +249,7 @@ export class MapService {
 
         // loop through array setting each layer based on layer type
         selectedLayers.forEach((element, index) => {
-            if (analysisLevel == 'None') {
+            if (analysisLevel === 'None') {
                 if (element.indexOf('MapServer') !== -1) {
                     MapService.mapView.map.add(new MapLayer({ url: element, opacity: 0.65 }));
                     console.log('added MapLayer:' + element);
@@ -269,28 +270,28 @@ export class MapService {
                             console.log('added FeatureLayer:' + element);
                         }
                 }
-        })
+        });
 
-        if (analysisLevel == 'Zip') {
+        if (analysisLevel === 'Zip') {
             MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars, opacity: 1, visible: false }));
             MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, opacity: 1, visible: false }));
         } else
-            if (analysisLevel == 'Atz') {
+            if (analysisLevel === 'Atz') {
                 MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars, opacity: 1, visible: false }));
                 MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital, opacity: 1, visible: false }));
                 MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, opacity: 1, visible: false }));
             } else
-                if (analysisLevel == 'Pcr') {
+                if (analysisLevel === 'Pcr') {
                     MapService.mapView.map.add(new FeatureLayer({ url: PCR_Top_Vars, opacity: 1, visible: false }));
                     MapService.mapView.map.add(new FeatureLayer({ url: PCR_Centroids, opacity: 1, visible: false }));
-                };
+                }
 
         MapService.mapView.map.add(new MapLayer({ url: Census, opacity: 1 }));
         return { val: MapService.mapView };
     }
 
     public async drawCircle(lat: number, lon: number, pointColor, miles: number): Promise<EsriWrapper<__esri.MapView>> {
-        console.log("inside drawCircle" + lat + "long::" + lon + "color::" + pointColor + "miles::" + miles);
+        console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -337,11 +338,11 @@ export class MapService {
 
         sym.outline.color = new Color([0, 0, 255, 0.25]);
 
-        let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: "circles" });
+        let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
 
         MapService.mapView.map.add(gl);
 
-        console.log("miles radius" + miles);
+        console.log('miles radius' + miles);
 
         pointIndex++;
         // pointLatitude+=0.001;
@@ -371,7 +372,7 @@ export class MapService {
 
     public async bufferMergeEach(lat: number, lon: number, pointColor, miles: number): Promise<EsriWrapper<__esri.MapView>> {
 
-        console.log("inside bufferMergeEach:: UNDER CONSTRUCTION")
+        console.log('inside bufferMergeEach:: UNDER CONSTRUCTION');
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, graphicsUtils, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -404,7 +405,7 @@ export class MapService {
 
         sym.outline.color = new Color([0, 0, 255, 0.25]);
 
-        let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: "circles" });
+        let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
 
         MapService.mapView.map.add(gl);
 
@@ -429,13 +430,13 @@ export class MapService {
 
         gl.add(g);
 
-        //var featureLayer = MapService.mapView.layerViews(MapService.mapView.a)
-        //map.get(MapService.mapView.map.g)
+        // var featureLayer = MapService.mapView.layerViews(MapService.mapView.a)
+        // map.get(MapService.mapView.map.g)
         //    geodesicBuffer(geometry: Geometry | Geometry[], distance: number | number[], unit: string | number, unionResults?: boolean): Polygon | Polygon[];
 
         // __esri.gr
         let geometries = graphicsUtils.geometries(gl.graphics);
-        let bufferedGeometries = geometryEngine.geodesicBuffer(geometries, miles, "Miles", true);
+        let bufferedGeometries = geometryEngine.geodesicBuffer(geometries, miles, 'Miles', true);
 
         array.forEach(bufferedGeometries, function (geometry) {
             MapService.mapView.graphics.add(new Graphic(geometry, sym));
@@ -444,33 +445,33 @@ export class MapService {
     }
 
     public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
-        console.log("fired createFeautreLayer() in MapService");
+        console.log('fired createFeautreLayer() in MapService');
         if (MapService.layerNames.has(layerName)) {
-            console.log("layer name already exists");
-            throw new Error("Layer name already exists, please use a different name");
+            console.log('layer name already exists');
+            throw new Error('Layer name already exists, please use a different name');
         }
         MapService.layerNames.add(layerName);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Renderer] = await loader.loadModules(['esri/layers/FeatureLayer', 'esri/renderers/Renderer']);
         const featureRenderer = { type: 'simple' };
 
-        var lyr = new FeatureLayer({
+        const lyr = new FeatureLayer({
             fields: [
                 {
-                    name: "ObjectID",
-                    alias: "ObjectID",
-                    type: "oid"
+                    name: 'ObjectID',
+                    alias: 'ObjectID',
+                    type: 'oid'
                 }, {
-                    name: "type",
-                    alias: "Type",
-                    type: "string"
+                    name: 'type',
+                    alias: 'Type',
+                    type: 'string'
                 }, {
-                    name: "place",
-                    alias: "Place",
-                    type: "string"
+                    name: 'place',
+                    alias: 'Place',
+                    type: 'string'
                 }],
-            objectIdField: "ObjectID",
-            geometryType: "point",
+            objectIdField: 'ObjectID',
+            geometryType: 'point',
             spatialReference: { wkid: 5070 },
             source: graphics,
             popupTemplate: null,
@@ -492,50 +493,35 @@ export class MapService {
         MapService.layerNames.add(lyr.title);
     }
 
-    public async updateFeatureLayer(graphics: __esri.Graphic[], layerToUpdate: string) {
-        console.log("fired updateFeatureList() in MapService");
+    public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
+        console.log('fired updateFeatureList() in MapService');
 
-        //check to see if this is the first layer being added
-        if (MapService.layers.size == 0 && MapService.layerNames.size == 0) {
-            this.createFeatureLayer(graphics, layerToUpdate);
+        // check to see if this is the first layer being added
+        if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+            this.createFeatureLayer(graphics, layerTitle);
             return;
         }
 
-        var existingGraphics: __esri.Collection<__esri.Graphic>;
-        var layerToRemove: __esri.Layer;
-        var layerUpdated: boolean = false;
-        //loop through the existing layers to see if we can find one to update, otherwise create a new one
-        MapService.layers.forEach(layer => {
-            if (layerToUpdate == layer.title) {
-                layerToRemove = layer;
-                console.log("updating existing layer with "  + graphics.length + " graphics");
+        let layerUpdated: boolean = false;
 
-                ///
-                /// todo: ask ESRI if there's a way to get this to work, would be much nicer
-                ///
+        // loop through the existing layers to see if we can find one to update, otherwise create a new one
+        MapService.layers.forEach(currentLayer => {
+            if (layerTitle === currentLayer.title) {
+                console.log('updating existing layer with '  + graphics.length + ' graphics');
 
-                /*await (<__esri.FeatureLayer>layer).applyEdits(graphics).then(data =>{
-                    console.log("Results of edit: " + JSON.stringify(data.addFeaturesResults, null, 4));
-                });*/
-
-                existingGraphics = (<__esri.FeatureLayer>layer).source;
-                graphics.forEach(graphic => {
-                    existingGraphics.add(graphic);
-                })
+                // add the new graphics to the existing layer
+                for (const graphic of graphics) {
+                    (<__esri.FeatureLayer>currentLayer).source.add(graphic);
+                }
                 layerUpdated = true;
             }
         });
 
         if (!layerUpdated) {
-            console.log("FeatureLayer requested for update does not exist, creating");
-            await this.createFeatureLayer(graphics, layerToUpdate);
+            console.log('FeatureLayer requested for update does not exist, creating');
+            await this.createFeatureLayer(graphics, layerTitle);
             return;
         }
-
-        MapService.mapView.map.remove(layerToRemove);
-        MapService.layers.delete(layerToRemove);
-        MapService.layerNames.delete(layerToRemove.title);
-        await this.createFeatureLayer(existingGraphics.toArray(), layerToUpdate);
     }
 
     public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
@@ -556,10 +542,10 @@ export class MapService {
 
         // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
-            style: "diamond",
+            style: 'diamond',
             size: 12,
             color: color
-        }
+        };
         const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
         symbol.outline = null;
 
@@ -568,7 +554,7 @@ export class MapService {
         const pointProps: __esri.PointProperties = {
             latitude: lat,
             longitude: lon
-        }
+        };
         const point: __esri.Point = new Point(pointProps);
 
         // the grpahic is what ultimately gets rendered to the map
@@ -576,9 +562,9 @@ export class MapService {
             geometry: point,
             symbol: symbol
 
-        }
+        };
 
-        //if we got a popup template add that to the graphic as well
+        // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
             graphicProps.popupTemplate = popupTemplate;
         }
