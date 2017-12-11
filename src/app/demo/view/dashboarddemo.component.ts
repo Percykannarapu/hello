@@ -127,7 +127,7 @@ export class DashboardDemoComponent implements OnInit {
         await  MapService.layers.forEach(layer => {   
               console.log("reading the layer::"+ layer.title); 
                 existingGraphics = (<__esri.FeatureLayer>layer).source;
-                if(layer.title == 'Sites'){
+               // if(layer.title == 'Sites'){
                     existingGraphics.forEach(function(current : any){
                         console.log("inside layer graphic loaded::"+current.geometry.latitude);
                         let points = new Points();
@@ -136,7 +136,7 @@ export class DashboardDemoComponent implements OnInit {
                         console.log("points loaded::"+points.latitude);
                         pointsArray.push(points);  
                     });
-                }
+               // }
             });
 
           /*console.log("entring :::graphics::")

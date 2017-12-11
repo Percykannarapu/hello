@@ -521,7 +521,7 @@ export class MapService {
                 layerUpdated = true;
             }
         });
-
+        console.log("test update:"+layerUpdated);
         if (!layerUpdated) {
             console.log("FeatureLayer requested for update does not exist, creating");
             await this.createFeatureLayer(graphics, layerToUpdate);
@@ -529,8 +529,8 @@ export class MapService {
         }
 
         MapService.mapView.map.remove(layerToRemove);
-       // MapService.layers.delete(layerToRemove);
-        //MapService.layerNames.delete(layerToRemove.title);
+        MapService.layers.delete(layerToRemove);
+        MapService.layerNames.delete(layerToRemove.title);
         await this.createFeatureLayer(existingGraphics.toArray(), layerToUpdate);
     }
 
