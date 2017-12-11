@@ -39,7 +39,7 @@
 -->    
 
 <!-- Home for Green Sites Box Overlay -->
-<p-overlayPanel #op_green class="green-panel" [style]="{'width':'25%'}">
+<p-overlayPanel #op_green class="green-panel" [style]="{'width':'30%'}">
     <!-- To be replaced with a component -->
     <p-tabView styleClass="ui-tabview-panels">
         <p-tabPanel header="Sites">
@@ -54,7 +54,7 @@
                   </div>
 
                   <div class="ui-g-3">
-                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                     <p-toggleButton  onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square" [(ngModel)]="checked1"></p-toggleButton>
                   </div>                        
                   <div class="ui-g-9">
                      <span class="ui-float-label">
@@ -76,7 +76,7 @@
                   </div>
 
                   <div class="ui-g-3">
-                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                     <p-toggleButton [(ngModel)]="checked3" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
                   <div class="ui-g-9">
                      <span class="md-inputfield">
@@ -94,7 +94,7 @@
                   <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
                </div>
                <div class="ui-g-9">
-                  <button pButton type="button" icon="fa-close" class="ui-button-danger"></button>
+                  <button (click)="removeBuffer()" pButton type="button" icon="fa-close" class="ui-button-danger"></button>
                </div>
          </div>            
          </p-tabPanel>
