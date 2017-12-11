@@ -122,7 +122,7 @@ export class DashboardDemoComponent implements OnInit {
             this.mapView = this.mapService.getMapView();
             var pointsArray: Points[] = [];
             console.log("test points")
-            this.mapService.removeMapLayers();
+           // this.mapService.removeMapLayers();
             var existingGraphics: __esri.Collection<__esri.Graphic>;
         await  MapService.layers.forEach(layer => {   
               console.log("reading the layer::"+ layer.title); 

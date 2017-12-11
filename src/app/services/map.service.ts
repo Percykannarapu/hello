@@ -529,8 +529,8 @@ export class MapService {
         }
 
         MapService.mapView.map.remove(layerToRemove);
-        MapService.layers.delete(layerToRemove);
-        MapService.layerNames.delete(layerToRemove.title);
+       // MapService.layers.delete(layerToRemove);
+        //MapService.layerNames.delete(layerToRemove.title);
         await this.createFeatureLayer(existingGraphics.toArray(), layerToUpdate);
     }
 
