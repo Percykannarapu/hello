@@ -36,10 +36,10 @@ export class GeocoderComponent implements OnInit {
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
 
-  public profileId : number;
-  public disableshowBusiness: boolean = true; //flag for enabling/disabling the show business search button
+  public profileId: number;
+  public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
 
-  //get the map from the service and add the new graphic
+  // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   constructor(private geocoderService: GeocoderService, private mapService: MapService) { }
@@ -48,85 +48,85 @@ export class GeocoderComponent implements OnInit {
   }
 
   async geocodeAddress() {
-    console.log("Geocoding request received in GeocoderComponent for: " + this.street + " " + this.city + " " + this.state + " " + this.zip);
+    console.log('Geocoding request received in GeocoderComponent for: ' + this.street + ' ' + this.city + ' ' + this.state + ' ' + this.zip);
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
-    var accountLocation: AccountLocation = {
+    const accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
       state: this.state,
       postalCode: this.zip
-    }
-    var graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+    };
+    const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.content = "Street: " + this.street + "<br>" +
-                            "City: " + this.city + "<br>" +
-                            "State: " + this.state + "<br>" +
-                            "Zip: " + this.zip + "<br>";
+    popupTemplate.content = 'Street: ' + this.street + '<br>' +
+                            'City: ' + this.city + '<br>' +
+                            'State: ' + this.state + '<br>' +
+                            'Zip: ' + this.zip + '<br>';
 
-    console.log("Calling GeocoderService")
-    var observable = this.geocoderService.geocode(accountLocation);
+    console.log('Calling GeocoderService');
+    const observable = this.geocoderService.geocode(accountLocation);
     await observable.subscribe(async (res) => {
       this.disableshowBusiness = false;
       this.geocodingResponse = res.payload;
-      console.log("In GeocoderComponent got back GeocodingResponse: " + JSON.stringify(this.geocodingResponse, null, 4));
-      if(this.geocodingResponse.locationQualityCode == "E") {
+      console.log('In GeocoderComponent got back GeocodingResponse: ' + JSON.stringify(this.geocodingResponse, null, 4));
+      if (this.geocodingResponse.locationQualityCode === 'E') {
         const growlMessage: Message = {
-          summary: "Failed to geocode your address",
-          severity: "error",
+          summary: 'Failed to geocode your address',
+          severity: 'error',
           detail: JSON.stringify(accountLocation, null, 4)
-        }
+        };
         this.geocodingErrors[0] = growlMessage;
         return;
       }
-      //giving color to our point on the map
+      // giving color to our point on the map
       const color = {
         a: 1,
         r: 35,
         g: 93,
         b: 186
-      }
+      };
       this.xcoord = String(this.geocodingResponse.latitude);
       this.ycoord = String(this.geocodingResponse.longitude);
-      //this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
+      // this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
       await this.mapService.createGraphic(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate)
         .then(async graphic => {
         graphics.push(graphic);
       });
       this.mapService.updateFeatureLayer(graphics, 'Sites');
     });
-    
+
   }
 
   loadVPW() {
-    this.street = "19975 Victor Pkwy";
-    this.city = "Livonia";
-    this.state = "MI";
+    this.street = '19975 Victor Pkwy';
+    this.city = 'Livonia';
+    this.state = 'MI';
     this.zip = 48152;
   }
-  
-  
+
+
 
   showCSVMessage() {
-    console.log("fired message");
-    this.CSVMessage = "Yeah, I wish this worked too";
+    console.log('fired message');
+    this.CSVMessage = 'Yeah, I wish this worked too';
   }
 
   async geocodeCSV(event) {
-    console.log("fired geocodeCSV()");
-    var input = event.target;
-    var reader = new FileReader();
+    console.log('fired geocodeCSV()');
+    const input = event.target;
+    const reader = new FileReader();
     reader.readAsText(input.files[0]);
     reader.onload = async (data) => {
-      console.log("read file data");
+      console.log('read file data');
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
       const headers = csvRecords[0].split(',');
 
-      //make sure to start loop at 1 to skip headers
+      // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
         const data = csvRecords[i].split(',');
-        if (data.length == headers.length) {
+        if (data.length === headers.length) {
           const csvRecord = [];
           for (let j = 0; j < headers.length; j++) {
             csvRecord.push(data[j]);
@@ -138,6 +138,6 @@ export class GeocoderComponent implements OnInit {
           await this.geocodeAddress();
         }
       }
-    }
+    };
   }
 }
