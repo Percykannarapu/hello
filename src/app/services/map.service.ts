@@ -63,7 +63,7 @@ export class MapService {
             container: element,
             map: theMap,
             center: { longitude: -98.5795, latitude: 39.8282 },
-            zoom: 4
+            zoom: 6
         };
         const mapView: __esri.MapView = new MapView(opts);
 
@@ -203,6 +203,13 @@ export class MapService {
 
     public getFeaturLayer() : __esri.FeatureLayer{
 
+        var featurelyr : __esri.FeatureLayer[] = [];
+       // MapService.mapView.map.layers.f
+       /* MapService.mapView.map.add(lyr);
+        MapService.layers.add(lyr);
+        MapService.layerNames.add(lyr.title);*/
+
+
         return null;
     }
 
@@ -316,7 +323,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number): Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number,title: string): Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -357,7 +364,7 @@ export class MapService {
 
         let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
 
-        MapService.mapView.map.add(gl);
+      //  MapService.mapView.map.add(gl);
 
         console.log('miles radius' + miles);
 
@@ -382,8 +389,9 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-
-        gl.add(g);
+        var graphicList : __esri.Graphic [] = [];
+        graphicList.push(g);
+        await this.updateFeatureLayer(graphicList , title);
         return { val: MapService.mapView };
     }
 
@@ -508,6 +516,7 @@ export class MapService {
                 // add the new graphics to the existing layer
                 for (const graphic of graphics) {
                     (<__esri.FeatureLayer>currentLayer).source.add(graphic);
+                   
                 }
                 layerUpdated = true;
             }
@@ -590,6 +599,8 @@ export class MapService {
             'esri/symbols/SimpleMarkerSymbol',
             'esri/Color','dojo/domReady!'  
         ]);
+
+        // (<__esri.FeatureLayer>currentLayer).source.remove(graphic);
 
         const color = {
             a: 0,
