@@ -60,13 +60,13 @@
                   </div>
 
                   <div class="ui-g-3">
-                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                     <p-toggleButton  onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square" [(ngModel)]="checked1"></p-toggleButton>
                   </div>                        
                   <div class="ui-g-9">
                      <span class="ui-float-label">
                         <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input">
                         <label for="ta1Input">Trade Area 1</label>
-                        <i class="material-icons">check</i>
+                        <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
                      </span>
                   </div>
 
@@ -77,37 +77,37 @@
                         <span class="md-inputfield">
                            <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input">
                            <label for="ta2Input">Trade Area 2</label>
-                           <i class="material-icons">check</i>
+                           <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
                         </span>
                   </div>
 
                   <div class="ui-g-3">
-                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
+                     <p-toggleButton [(ngModel)]="checked3" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
                   <div class="ui-g-9">
                      <span class="md-inputfield">
                         <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input">
                         <label for="ta3Input">Trade Area 3</label>
-                        <i class="material-icons">check</i>
+                        <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
                      </span>
                   </div>
 
                   <div class="ui-g-12">
                      <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
                   </div>                  
-                           
-                  <div class="ui-g-3">
-                     <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
-                  </div>
-                  <div class="ui-g-9">
-                     <button pButton type="button" icon="fa-close" class="ui-button-danger"></button>
-                  </div>
-               </div>            
-            </p-tabPanel>
-            <p-tabPanel header="Upload / Export">
-                  We can have as many tabs as necessary
-            </p-tabPanel>
-         </p-tabView>
+                        
+               <div class="ui-g-3">
+                  <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
+               </div>
+               <div class="ui-g-9">
+                  <button (click)="removeBuffer()" pButton type="button" icon="fa-close" class="ui-button-danger"></button>
+               </div>
+         </div>            
+         </p-tabPanel>
+         <p-tabPanel header="Upload / Export">
+             We can have as many tabs as necessary
+         </p-tabPanel>
+      </p-tabView>
 
       </val-color-box>
    </div>

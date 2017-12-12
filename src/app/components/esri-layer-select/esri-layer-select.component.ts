@@ -31,7 +31,7 @@ export class EsriLayerSelectComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   public esriDemographicItems: SelectItem[];
-  public selectedLayers: string[] = [];
+  public selectedLayers: SelectItem[];
   public layerToggle: boolean = false;
 
   public analysisLevels: SelectItem[];
@@ -44,17 +44,17 @@ export class EsriLayerSelectComponent implements OnInit {
   public ngOnInit() {
     try {
       this.analysisLevels = [];
-      this.analysisLevels.push({label:'None',value:'None'});
-      this.analysisLevels.push({label:'Zip', value:'Zip'});
-      this.analysisLevels.push({label:'Atz', value:'Atz'});
-      this.analysisLevels.push({label:'Pcr', value:'Pcr'});
+      this.analysisLevels.push({label: 'None', value: 'None'});
+      this.analysisLevels.push({label: 'Zip', value: 'Zip'});
+      this.analysisLevels.push({label: 'Atz', value: 'Atz'});
+      this.analysisLevels.push({label: 'Pcr', value: 'Pcr'});
 
       this.selectedAnalysisLevel = 'Zip';
 
       this.esriDemographicItems = [
             {label: 'ATZ_Top_Vars (defaults - ATZ Analysis)'   , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer'},
             {label: 'ATZ_Digital (defaults - ATZ Analysis)'    , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer'},
-            {label: 'ATZ_Centroids (defaults - ATZ Analysis)' , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer'},
+            {label: 'ATZ_Centroids (defaults - ATZ Analysis)'  , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer'},
             {label: 'ZIP_Top_Vars (defaults - ZIP Analysis)'   , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer'},
             {label: 'ZIP_Centroids (defaults - ZIP Analysis)'  , value: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer'},
         // -----------------
@@ -90,16 +90,19 @@ export class EsriLayerSelectComponent implements OnInit {
 
    // set layers on panel hide, checking to see if layers are enabled
    checkLayers() {
-        if (this.layerToggle)
-            this.mapService.setMapLayers(this.selectedLayers,this.selectedAnalysisLevel)
+        if (this.layerToggle) {
+            this.mapService.setMapLayers(this.selectedLayers, this.selectedAnalysisLevel)
+        }
     }
 
    // this event handler is for the Toggle Layers control
    handleChange(e) {
-        if (e.checked)
-            this.mapService.setMapLayers(this.selectedLayers,this.selectedAnalysisLevel)
-        else
+        if (e.checked) {
+            this.mapService.setMapLayers(this.selectedLayers, this.selectedAnalysisLevel)
+        }
+        else {
             this.mapService.removeMapLayers();
+        }
     }
 
 }

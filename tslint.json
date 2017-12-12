@@ -9,7 +9,7 @@
     "comment-format": [
       true
     ],
-    "curly": true,
+    "curly": false,
     "eofline": false,
     "forin": true,
     "import-blacklist": [
