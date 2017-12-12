@@ -1,0 +1,54 @@
+<!-- Color Box Overlay Container -->
+<p-overlayPanel #op class="{{popupStyle}}" [style]="{'width':'25%'}">
+   <ng-content></ng-content>
+</p-overlayPanel>
+  
+<div class="ui-g-12 ui-g-nopad colorboxPicker spinner shadow-box ui-shadow-3">
+   <div class="ui-g">
+      <div class="ui-g-11 card colorboxPicker {{boxStyle}} ui-clickable" (click)="op.toggle($event)">
+               
+         <div class="ui-g-2" style="cursor:pointer;">
+            <i class="material-icons">{{icon}}</i>
+         </div>
+         <div class="ui-g-10" style="cursor:pointer;">
+            <span class="colorboxPicker-name">{{metric}}</span>
+            <span class="colorboxPicker-count">{{metricValue}}</span>
+         </div>
+
+      </div>
+<!--      <div class="ui-g-1 card colorbox {{boxStyle}} ui-clickable" style="cursor:pointer;padding:0px"> -->
+      <div class="ui-g-1 card colorboxPicker {{boxStyle}} spinner ui-clickable" style="cursor:pointer;padding:0px">
+         <div class="ui-g-12 spinner" style="cursor:pointer;padding-bottom:0px" (click)="onClick('Up')">
+            <i class="material-icons" style="font-size:24px;margin:0px;padding:0px;">keyboard_arrow_up</i>
+         </div>
+         <div class="ui-g-12 spinner" style="cursor:pointer;padding-bottom:0px" (click)="onClick('Down')">
+            <i class="material-icons" style="font-size:24px;margin:0px;padding:0px;">keyboard_arrow_down</i>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Home for Green Sites Box Overlay 
+<p-overlayPanel #op class="{{popupStyle}}" [style]="{'width':'25%'}">
+      <ng-content></ng-content>
+   </p-overlayPanel>
+     
+   <div class="ui-g-12 ui-g-nopad shadow-box ui-shadow-4">
+      <div class="ui-g card colorbox {{boxStyle}} ui-clickable">
+         <div class="ui-g-8 ui-g-nopad" style="cursor:pointer;" (click)="op.toggle($event)">
+            <div class="ui-g-2" style="cursor:pointer;">
+               <i class="material-icons">{{icon}}</i>
+            </div>
+            <div class="ui-g-8 ui-g-nopad" style="cursor:pointer;">
+               <span class="colorbox-name"># Sites</span>
+               <span class="colorbox-count">5</span>
+            </div>
+         </div>
+         <div class="ui-g-2" style="cursor:pointer;" (click)="onClick('Left')">
+            <i class="material-icons">keyboard_arrow_left</i>
+         </div>
+         <div class="ui-g-2" style="cursor:pointer;" (click)="onClick('Right')">
+            <i class="material-icons">keyboard_arrow_right</i>
+         </div>
+      </div>
+   </div> -->

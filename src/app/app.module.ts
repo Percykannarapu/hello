@@ -113,6 +113,9 @@ import {NodeService} from './demo/service/nodeservice';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { EsriMapComponent } from './components/esri-map/esri-map.component';
 
+// Custom Model Imports
+import { TargetingModule } from './Models/targeting/targeting.module';
+
 // Custom Component Imports
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeocoderComponent } from './components/geocoder/geocoder.component';
@@ -121,6 +124,7 @@ import { GeofootprintComponent } from './components/geofootprint/geofootprint.co
 import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
 import { MapService } from './services/map.service';
 import { GeoprocessingComponent } from './components/geoprocessing/geoprocessing.component';
+import { ColorBoxComponent } from './components/color-box/color-box.component';
 
 @NgModule({
     imports: [
@@ -196,7 +200,8 @@ import { GeoprocessingComponent } from './components/geoprocessing/geoprocessing
         ToolbarModule,
         TooltipModule,
         TreeModule,
-        TreeTableModule
+        TreeTableModule,
+        TargetingModule
     ],
     declarations: [
         AppComponent,
@@ -225,7 +230,8 @@ import { GeoprocessingComponent } from './components/geoprocessing/geoprocessing
         DocumentationComponent,
         BusinessSearchComponent,
         EsriLayerSelectComponent,
-        GeoprocessingComponent
+        GeoprocessingComponent,
+        ColorBoxComponent
     ],
 
     providers: [

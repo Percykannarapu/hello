@@ -27,7 +27,7 @@ export class GeofootprintMaster {
 
     public geofootprintGeos?   : Array<GeofootprintGeo>;
     public geofootprintSites?  : Array<GeofootprintSite>;
-    public geofootprintTaNames?: Array<GeofootprintTaName>;
+    public geofootprintTaNames? : Array<GeofootprintTaName>;
     public geofootprintTradeAreas? : Array<GeofootprintTradeArea>; 
     public geofootprintVars?   : Array<GeofootprintVar>;     
 

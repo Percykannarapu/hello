@@ -337,7 +337,110 @@
       background-color: #2a5c53; }
       .dashboard .colorbox.colorbox-4 div:first-child:hover {
          background-color: #1e423c; }
-   .dashboard .task-list {
+
+   .colorboxPicker {
+      padding: 0 !important;
+      text-align: center;
+      overflow: hidden;
+      margin-bottom: 0px !important; 
+      -moz-border-radius: 0px;
+      -webkit-border-radius: 0px;
+      border-top-right-radius: 20px;
+      border-bottom-right-radius:20px;
+   border-radius: 0px; }
+      .colorboxPicker.spinner {
+         -moz-border-radius: 0px 2px 2px 0px;
+         -webkit-border-radius: 0px 2px 2px 0px;
+         border-top-left-radius: 0px;
+         border-bottom-left-radius: 0px;
+         border-top-right-radius: 2px;
+         border-bottom-right-radius:2px;
+      }
+
+      card.colorboxPicker.spinner {
+         -moz-border-radius: 0px 2px 2px 0px;
+         -webkit-border-radius: 0px 2px 2px 0px;
+         border-top-left-radius: 0px;
+         border-bottom-left-radius: 0px;
+         border-top-right-radius: 2px;
+         border-bottom-right-radius:2px;
+      }
+      
+      .colorboxPicker i {
+         font-size: 48px;
+         margin-top: 10px;
+         color: #ffffff; }
+      .colorboxPicker .colorboxPicker-name {
+         font-size: 20px;
+         display: inline-block;
+         width: 100%;
+         margin: 4px 0 10px 0;
+         color: #ffffff; }
+      .colorboxPicker .colorboxPicker-count {
+         color: #ffffff;
+         font-size: 36px; }
+      .colorboxPicker .colorboxPicker-count {
+         font-weight: bold; }
+      .colorboxPicker.spinner {
+         -webkit-user-select: none; /* Safari */        
+         -moz-user-select: none;    /* Firefox */
+         -ms-user-select: none;     /* IE10+/Edge */
+         user-select: none;         /* Standard */
+      }
+
+      .colorboxPicker.colorboxPicker-green {
+         background-color: #659e5b; }
+      .colorboxPicker.colorboxPicker-green div:hover{
+         background-color: #55854d; }       
+      .colorboxPicker.colorboxPicker-green div:first-child {
+         background-color: #436f3b; }
+      .colorboxPicker.spinner.colorboxPicker-green div {
+         background-color: #659e5b; }
+      .colorboxPicker.colorboxPicker-green div:first-child:hover {
+         background-color: #34572e; }
+      .colorboxPicker.spinner.colorboxPicker-green div:hover {
+         background-color: #34572e; }
+   
+      .colorboxPicker.colorboxPicker-blue {
+         background-color: #5ca4d7; }
+      .colorboxPicker.colorboxPicker-blue div:hover {
+         background-color: #5190bd; }
+      .colorboxPicker.colorboxPicker-blue div:first-child {
+         background-color: #4275a5; }
+      .colorboxPicker.spinner.colorboxPicker-blue div {
+         background-color: #5ca4d7; }            
+      .colorboxPicker.colorboxPicker-blue div:first-child:hover {
+         background-color: #38648c; }
+      .colorboxPicker.spinner.colorboxPicker-blue div:hover {
+         background-color: #38648c; }
+      
+      .colorboxPicker.colorboxPicker-purple {
+         background-color: #6c50a4; }
+      .colorboxPicker.colorboxPicker-purple div:hover{
+         background-color: #5b438a; }
+      .colorboxPicker.colorboxPicker-purple div:first-child {
+         background-color: #503d8e; }
+      .colorboxPicker.spinner.colorboxPicker-purple div {
+         background-color: #6c50a4; }
+      .colorboxPicker.colorboxPicker-purple div:first-child:hover {
+         background-color: #423275; }
+      .colorboxPicker.spinner.colorboxPicker-purple div:hover {
+         background-color: #423275; }
+
+      .colorboxPicker.colorboxPicker-teal {
+      background-color: #40847a; }
+      .colorboxPicker.colorboxPicker-teal div:hover{
+         background-color: #336b63; }
+      .colorboxPicker.colorboxPicker-teal div:first-child {
+         background-color: #2a5c53; }
+      .colorboxPicker.spinner.colorboxPicker-teal div {
+         background-color: #40847a; }
+      .colorboxPicker.colorboxPicker-teal div:first-child:hover {
+         background-color: #1e423c; }
+      .colorboxPicker.spinner.colorboxPicker-teal div:hover {
+         background-color: #1e423c; }
+                   
+.dashboard .task-list {
   overflow: hidden; }
   .dashboard .task-list > .ui-panel {
     min-height: 340px; }
