@@ -63,7 +63,7 @@ export class MapService {
             container: element,
             map: theMap,
             center: { longitude: -98.5795, latitude: 39.8282 },
-            zoom: 6
+            zoom: 4
         };
         const mapView: __esri.MapView = new MapView(opts);
 
