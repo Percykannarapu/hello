@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit,ViewChild} from '@angular/core';
 import {CarService} from '../service/carservice';
 import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';
@@ -128,125 +128,124 @@ export class DashboardDemoComponent implements OnInit {
    }
 
    public async drawBuffer(){
-       console.log('under construction')
-       console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + ' ta3Miles' + this.ta3Miles);
-       console.log('toggle box values:::' + this.checked1 + ' : ' + this.checked2 + ' : ' + this.checked3);
-       
-       let mergeEachBool: boolean = false;
-       let mergeAllBool: boolean  = false;
-       
-       if (this.selectedMergeTypes.match('Merge Each'))
-            mergeEachBool = true;
-       if(this.selectedMergeTypes.match('Merge All'))
-            mergeAllBool = true;
-      
-        this.milesList = [];
-        if (this.ta1Miles != null && this.checked1)
-            this.milesList.push(this.ta1Miles);
-        if (this.ta2Miles != null && this.checked2)    
-            this.milesList.push(this.ta2Miles);
-        if (this.ta3Miles != null && this.checked3)    
-            this.milesList.push(this.ta3Miles);
-            
-      var latitude: number;
-      var longitude: number;
-      try {  
+    console.log("under construction")
+    console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
+    console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
+    console.log("selectedValue::::"+this.selectedValue);
+    
+    let mergeEachBool : boolean = false;
+    let mergeAllBool : boolean  = false;
+    
+    if(this.selectedMergeTypes.match('Merge Each'))
+         mergeEachBool = true;
+    if(this.selectedMergeTypes.match('Merge All'))
+         mergeAllBool = true;
+   
+     this.milesList = [];
+     if(this.ta1Miles!=null && this.checked1)
+         this.milesList.push(this.ta1Miles);
+     if(this.ta2Miles!=null && this.checked2)    
+         this.milesList.push(this.ta2Miles);
+     if(this.ta3Miles!=null && this.checked3)    
+         this.milesList.push(this.ta3Miles);
+
+        // this.tradeArea1Check = true;
+
+         
+     var latitude : number;
+     var longitude: number;
+     try {  
          this.mapView = this.mapService.getMapView();
          var pointsArray: Points[] = [];
-            console.log('test points');
-           // this.mapService.removeMapLayers();
-         /*MapService.mapView.map.add(lyr);
-           MapService.layers.add(lyr);
-           MapService.layerNames.add(lyr.title);*/
-            var existingGraphics: __esri.Collection<__esri.Graphic>;
-        await  MapService.layers.forEach(layer => {   
-              console.log('reading the layer::' + layer.title); 
-                if (layer.title == 'Merge Each' || layer.title == 'Merge All' || layer.title == 'No Merge'){
-                    MapService.layers.delete(layer);
-                    MapService.layerNames.delete(layer.title);
-                    this.mapView = this.mapService.getMapView();
-                    this.mapView.map.remove(layer);
-                }    
-                existingGraphics = (<__esri.FeatureLayer>layer).source;
-                // if(layer.title == 'Sites'){
-                        existingGraphics.forEach(function(current: any){
-                            console.log('inside layer graphic loaded::' + current.geometry.latitude);
-               let points = new Points();
-               points.latitude =  current.geometry.latitude;
-               points.longitude = current.geometry.longitude; 
-                            console.log('points loaded::' + points.latitude);
-               pointsArray.push(points);  
+         console.log("test points")
+         var existingGraphics: __esri.Collection<__esri.Graphic>;
+         var lyrTitle : string;
+     await  MapService.layers.forEach(layer => {   
+           console.log("reading the layer::"+ layer.title); 
+             if(layer.title == 'Trade Area 1' || layer.title == 'Trade Area 2' || layer.title == 'Trade Area 3'){
+                 MapService.layers.delete(layer);
+                 MapService.layerNames.delete(layer.title);
+                 this.mapView = this.mapService.getMapView();
+                 this.mapView.map.remove(layer);
+             }    
+             existingGraphics = (<__esri.FeatureLayer>layer).source;
+              if(layer.title == this.selectedValue){
+                 lyrTitle = layer.title;
+                     existingGraphics.forEach(function(current : any){
+                         console.log("inside layer graphic loaded::"+current.geometry.latitude);
+                         let points = new Points();
+                         points.latitude =  current.geometry.latitude;
+                         points.longitude = current.geometry.longitude; 
+                         console.log("points loaded::"+points.latitude);
+                         pointsArray.push(points);  
+                     });
+                 }
          });
-                   // }
-            });
-
-          /*console.log("entring :::graphics::")
-            existingGraphics.forEach(function(current : any){
-                console.log("inside layer graphic loaded::"+current.geometry.latitude);
-                let points = new Points();
-                points.latitude =  current.geometry.latitude;
-                points.longitude = current.geometry.longitude; 
-                console.log("points loaded::"+points.latitude);
-                pointsArray.push(points);  
-            }); */
-         const color = {
-                a: 0,
-                r: 0,
-                g: 0,
-                b: 255
-            };
-            console.log('mergeEachBool::::' + mergeEachBool);
-           
-
-            if (mergeAllBool){
-                console.log('inside merge All');
-                if (this.ta1Miles > this.ta2Miles && this.ta1Miles > this.ta2Miles){
-                    console.log('Larger mile is:' + this.ta1Miles);
-                    this.kms = this.ta1Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-                else if (this.ta2Miles > this.ta1Miles && this.ta2Miles > this.ta3Miles){
-                    console.log('Larger mile is: ' + this.ta2Miles);
-                    this.kms = this.ta2Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-                else{
-                    console.log('Larger mile is: ' + this.ta3Miles);
-                    this.kms = this.ta3Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-            }
-            else if (mergeEachBool){
-                console.log('inside merge Each');
-              //  for(let point of pointsArray){
-                    for (let miles1 of this.milesList){
-                         this.kms = miles1 / 0.62137;
-                         this.kmsList.push(this.kms);
-                        console.log('miles:::' + miles1)
-                        await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge Each');
-                    }
-               // }
-            }
-            else{
-                console.log('inside draw Circle');
-         for (let point of pointsArray){
-                    for (let miles1 of this.milesList){
-                        console.log('miles:::' + miles1);
-                        await this.mapService.drawCircle(point.latitude, point.longitude, color, miles1, 'No Merge');
+         var color = null;
+         var outlneColor = null;
+        if(lyrTitle == 'Sites' ){
+          color = {a: 0,r: 0,g: 0,b: 255}
+          outlneColor= ([0,0,255,0.50]);  
+        }
+        else{
+          color = {a: 0,r: 255,g: 0,b:0}
+          outlneColor = ([255,0,0,0.50]);  
+        }
+         if(mergeAllBool){
+             console.log("inside merge All");
+             if(this.ta1Miles>this.ta2Miles && this.ta1Miles > this.ta2Miles){
+                 console.log("Larger mile is:"+this.ta1Miles);
+                 this.kms = this.ta1Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 1',outlneColor);
+             }
+             else if(this.ta2Miles>this.ta1Miles && this.ta2Miles > this.ta3Miles){
+                 console.log("Larger mile is:"+this.ta2Miles);
+                 this.kms = this.ta2Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 2',outlneColor);
+             }
+             else{
+                 console.log("Larger mile is:"+this.ta3Miles);
+                 this.kms = this.ta3Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 3',outlneColor);
+             }
          }
-                }
-            }
+         else if(mergeEachBool){
+             var meTitle = 'Trade Area ';
+             console.log("inside merge Each");
+             var i :number = 0;
+           //  for(let point of pointsArray){
+                 for(let miles1 of this.milesList){
+                      i++;
+                      this.kms = miles1/0.62137;
+                      this.kmsList.push(this.kms);
+                     console.log("miles:::"+miles1);
+                     await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+i,outlneColor);
+                 }
+            // }
+         }
+         else{
+            var meTitle = 'Trade Area ';
+             console.log("inside draw Circle");
+             var i :number = 0;
+             for(let miles1 of this.milesList){
+                 i++;
+                this.kms = miles1/0.62137;
+                 for(let point of pointsArray){
+                     console.log("miles:::"+miles1)
+                     await this.mapService.drawCircle(point.latitude,point.longitude,color,this.kms,meTitle+i,outlneColor);
+                 }
+             }
+         }
          //await this.mapService.drawCircle(latitude,longitude,color,this.miles);
-         }
-         catch (ex) {
+       }
+       catch (ex) {
          console.error(ex);
-         }
-        console.log('test end of drawbuffer');
-      
-   }
+       }
+     console.log("test end of drawbuffer")
+ }
       
     public async removeBuffer(){
         await this.mapService.removeMapLayers();
