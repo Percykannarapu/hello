@@ -52,54 +52,64 @@
             </p-tabPanel>
             <p-tabPanel header="Define Trade Areas">
                <div class="ui-g">
-                  <div class="ui-g-3">
+                  <div class="ui-g-4">
                      <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites"></p-radioButton>
                   </div>
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                      <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"></p-radioButton>
                   </div>
-
-                  <div class="ui-g-3">
+                  <br>
+                  <br>
+                  <br>  
+                  <div class="ui-g-4">
                      <p-toggleButton  onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square" [(ngModel)]="checked1"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                      <span class="ui-float-label">
-                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input">
-                        <label for="ta1Input">Trade Area 1(miles)</label>
-                        <i class="material-icons"  style="font-size:25px;color:rgb(10, 112, 25);" #tradeArea1Check>check</i>
+                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input" onchange="manageIcons()">
+                        <label for="ta1Input">Trade Area 1 (in miles)</label>
+                        <!--div ng-if="edited" -->
+                                <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                      </span>
                   </div>
 
-                  <div class="ui-g-3">
+                  <div class="ui-g-4">
                      <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                         <span class="md-inputfield">
                            <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input">
-                           <label for="ta2Input">Trade Area 2(miles)</label>
-                           <i class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                           <label for="ta2Input">Trade Area 2 (in miles)</label>
+                           <li *ngIf="editedta2" >
+                                <i class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                         </li>
                         </span>
                   </div>
 
-                  <div class="ui-g-3">
+                  <div class="ui-g-4">
                      <p-toggleButton [(ngModel)]="checked3" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                      <span class="md-inputfield">
                         <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input">
-                        <label for="ta3Input">Trade Area 3(miles)</label>
-                        <i class="material-icons"  style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                        <label for="ta3Input">Trade Area 3 (in miles)</label>
+                        <li *ngIf="editedta3" >
+                                <i class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                         </li>
                      </span>
                   </div>
-
+                  <br>
+                  <br>  
+                  <br>
+                  <br>  
                   <div class="ui-g-12">
                      <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
                   </div>                  
                         
-               <div class="ui-g-3">
+               <div class="ui-g-4">
                   <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
                </div>
-               <div class="ui-g-9">
+               <div class="ui-g-8">
                   <button (click)="removeBuffer()" pButton type="button" icon="fa-close" class="ui-button-danger"></button>
                </div>
          </div>            

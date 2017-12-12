@@ -41,6 +41,9 @@ export class DashboardDemoComponent implements OnInit {
    kms: number;
 
    kmsList: number[] = [];
+   editedta1 : boolean =false;
+   editedta2 : boolean =false;
+   editedta3 : boolean =false;
 
    public metricMapGreen:  Map<string, string>;
    public metricMapBlue:   Map<string, string>;
@@ -132,6 +135,10 @@ export class DashboardDemoComponent implements OnInit {
     console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
     console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
     console.log("selectedValue::::"+this.selectedValue);
+    const lyrNme : string = ' Mile Trade Area'; 
+    var meTitle = 'Site - ';
+    if(this.selectedValue == 'Competitors')
+       meTitle = 'Competitor -';
     
     let mergeEachBool : boolean = false;
     let mergeAllBool : boolean  = false;
@@ -142,12 +149,21 @@ export class DashboardDemoComponent implements OnInit {
          mergeAllBool = true;
    
      this.milesList = [];
-     if(this.ta1Miles!=null && this.checked1)
-         this.milesList.push(this.ta1Miles);
-     if(this.ta2Miles!=null && this.checked2)    
-         this.milesList.push(this.ta2Miles);
-     if(this.ta3Miles!=null && this.checked3)    
-         this.milesList.push(this.ta3Miles);
+     if(this.ta1Miles!=null && this.checked1){
+        this.milesList.push(this.ta1Miles);
+        this.editedta1 = true;
+     }
+        
+     if(this.ta2Miles!=null && this.checked2)   {
+        this.milesList.push(this.ta2Miles);
+        this.editedta2 = true;
+     } 
+        
+     if(this.ta3Miles!=null && this.checked3)   {
+        this.milesList.push(this.ta3Miles);
+        this.editedta3 = true;
+     } 
+         
 
         // this.tradeArea1Check = true;
 
@@ -162,12 +178,17 @@ export class DashboardDemoComponent implements OnInit {
          var lyrTitle : string;
      await  MapService.layers.forEach(layer => {   
            console.log("reading the layer::"+ layer.title); 
-             if(layer.title == 'Trade Area 1' || layer.title == 'Trade Area 2' || layer.title == 'Trade Area 3'){
-                 MapService.layers.delete(layer);
-                 MapService.layerNames.delete(layer.title);
-                 this.mapView = this.mapService.getMapView();
-                 this.mapView.map.remove(layer);
-             }    
+           if(this.selectedValue == 'Sites'){
+                if(layer.title.startsWith('Site -') ){
+                    this.disableLyr(layer);
+                }  
+           }
+           if(this.selectedValue == 'Competitors'){
+                if(layer.title.startsWith('Competitor -') ){
+                    this.disableLyr(layer);
+                }  
+            }
+              
              existingGraphics = (<__esri.FeatureLayer>layer).source;
               if(layer.title == this.selectedValue){
                  lyrTitle = layer.title;
@@ -197,32 +218,31 @@ export class DashboardDemoComponent implements OnInit {
                  console.log("Larger mile is:"+this.ta1Miles);
                  this.kms = this.ta1Miles/0.62137;
                  this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 1',outlneColor);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta1Miles+lyrNme,outlneColor);
              }
              else if(this.ta2Miles>this.ta1Miles && this.ta2Miles > this.ta3Miles){
                  console.log("Larger mile is:"+this.ta2Miles);
                  this.kms = this.ta2Miles/0.62137;
                  this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 2',outlneColor);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
              }
              else{
                  console.log("Larger mile is:"+this.ta3Miles);
                  this.kms = this.ta3Miles/0.62137;
                  this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,'Trade Area 3',outlneColor);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
              }
          }
          else if(mergeEachBool){
-             var meTitle = 'Trade Area ';
+           
+           
              console.log("inside merge Each");
-             var i :number = 0;
            //  for(let point of pointsArray){
                  for(let miles1 of this.milesList){
-                      i++;
                       this.kms = miles1/0.62137;
                       this.kmsList.push(this.kms);
                      console.log("miles:::"+miles1);
-                     await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+i,outlneColor);
+                     await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
                  }
             // }
          }
@@ -235,7 +255,7 @@ export class DashboardDemoComponent implements OnInit {
                 this.kms = miles1/0.62137;
                  for(let point of pointsArray){
                      console.log("miles:::"+miles1)
-                     await this.mapService.drawCircle(point.latitude,point.longitude,color,this.kms,meTitle+i,outlneColor);
+                     await this.mapService.drawCircle(point.latitude,point.longitude,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
                  }
              }
          }
@@ -244,8 +264,26 @@ export class DashboardDemoComponent implements OnInit {
        catch (ex) {
          console.error(ex);
        }
-     console.log("test end of drawbuffer")
- }
+       console.log("test end of drawbuffer")
+    }
+
+    public async manageIcons(){
+        console.log("manage icons Started:");
+        if(this.editedta1){
+            this.editedta1 = false;
+        }
+    }
+
+    public async disableLyr(layer: __esri.Layer){
+        console.log("disable Layer:");
+        MapService.layers.delete(layer);
+        MapService.layerNames.delete(layer.title);
+        this.mapView = this.mapService.getMapView();
+        this.mapView.map.remove(layer);
+       
+    }
+
+    
       
     public async removeBuffer(){
         await this.mapService.removeMapLayers();
