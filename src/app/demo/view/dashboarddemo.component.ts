@@ -161,10 +161,9 @@ export class DashboardDemoComponent implements OnInit {
    }      
    
    public async drawBuffer(){
-    console.log("under construction")
     console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
-    console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
-    console.log("selectedValue::::"+this.selectedValue);
+    /*console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
+    console.log("selectedValue::::"+this.selectedValue);*/
     const lyrNme : string = ' Mile Trade Area'; 
     var meTitle = 'Site - ';
     if(this.selectedValue == 'Competitors')
@@ -199,7 +198,6 @@ export class DashboardDemoComponent implements OnInit {
      try {  
          this.mapView = this.mapService.getMapView();
          var pointsArray: Points[] = [];
-         console.log("test points")
          var existingGraphics: __esri.Collection<__esri.Graphic>;
          var lyrTitle : string;
      await  MapService.layers.forEach(layer => {   
@@ -219,11 +217,9 @@ export class DashboardDemoComponent implements OnInit {
               if(layer.title == this.selectedValue){
                  lyrTitle = layer.title;
                      existingGraphics.forEach(function(current : any){
-                         console.log("inside layer graphic loaded::"+current.geometry.latitude);
                          let points = new Points();
                          points.latitude =  current.geometry.latitude;
                          points.longitude = current.geometry.longitude; 
-                         console.log("points loaded::"+points.latitude);
                          pointsArray.push(points);  
                      });
                  }
@@ -232,11 +228,11 @@ export class DashboardDemoComponent implements OnInit {
          var outlneColor = null;
         if(lyrTitle == 'Sites' ){
           color = {a: 0,r: 0,g: 0,b: 255}
-          outlneColor= ([0,0,255,0.50]);  
+          outlneColor= ([0,0,255,2.50]);  
         }
         else{
           color = {a: 0,r: 255,g: 0,b:0}
-          outlneColor = ([255,0,0,0.50]);  
+          outlneColor = ([255,0,0,2.50]);  
         }
          if(mergeAllBool){
              console.log("inside merge All");
@@ -273,7 +269,7 @@ export class DashboardDemoComponent implements OnInit {
             // }
          }
          else{
-            var meTitle = 'Trade Area ';
+            //var meTitle = 'Trade Area ';
              console.log("inside draw Circle");
              var i :number = 0;
              for(let miles1 of this.milesList){

@@ -107,12 +107,12 @@
                      <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
                   </div>                  
                         
+               <div class="ui-g-7">
+                 <!-- <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    -->
+               </div>
                <div class="ui-g-4">
-                  <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
-               </div>
-               <div class="ui-g-8">
-                  <button (click)="removeBuffer()" pButton type="button" icon="fa-close" class="ui-button-danger"></button>
-               </div>
+                  <button (click)="drawBuffer()" pButton label="Apply"></button>
+               </div><div class="ui-g-1"></div>
          </div>            
          </p-tabPanel>
          <p-tabPanel header="Upload / Export">
