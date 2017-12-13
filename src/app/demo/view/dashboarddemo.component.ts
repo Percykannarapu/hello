@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import {InMemoryStubService} from './../../api/in-memory-stub.service';
-import {Component, OnInit} from '@angular/core';
-=======
 import {Component, OnInit,ViewChild} from '@angular/core';
->>>>>>> 7521f232c8fad4c03a8d10a623ea6f5c4b20954b
 import {CarService} from '../service/carservice';
 import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';

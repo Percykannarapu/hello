@@ -63,7 +63,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
   }
 
   ngOnDestroy() {
-    this.dbResetSubscription.unsubscribe();
+    // this.dbResetSubscription.unsubscribe();
   }
 
   toggleGeocode(amSite: AmSite) {

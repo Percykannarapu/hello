@@ -97,6 +97,7 @@ import {ChartsDemoComponent} from './demo/view/chartsdemo.component';
 import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
+import {PocComponent} from './demo/view/poc.component';
 
 // Mock Service Imports
 import {InMemoryStubService} from './api/in-memory-stub.service';
@@ -226,7 +227,9 @@ import {MessageService} from './val-modules/common/services/message.service';
         GeofootprintComponent,
         DataDemoComponent,
         PanelsDemoComponent,
-        OverlaysDemoComponent, MenusDemoComponent,
+        OverlaysDemoComponent,
+        MenusDemoComponent,
+        PocComponent,
 //        MessageComponent,
         MessagesDemoComponent,
         MiscDemoComponent,
