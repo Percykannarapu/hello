@@ -66,10 +66,10 @@
                   </div>                        
                   <div class="ui-g-8">
                      <span class="ui-float-label">
-                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input" onchange="manageIcons()">
+                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input"  (ngModelChange)="manageIcons($event,'ta1miles')">
+                        <!--onchange="manageIcons()" -->
                         <label for="ta1Input">Trade Area 1 (in miles)</label>
-                        <!--div ng-if="edited" -->
-                                <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                        <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                      </span>
                   </div>
 
@@ -78,11 +78,9 @@
                   </div>                        
                   <div class="ui-g-8">
                         <span class="md-inputfield">
-                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input">
+                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input" (ngModelChange)="manageIcons($event,'ta2miles')">
                            <label for="ta2Input">Trade Area 2 (in miles)</label>
-                           <li *ngIf="editedta2" >
-                                <i class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
-                         </li>
+                           <i *ngIf="editedta2"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                         </span>
                   </div>
 
@@ -91,11 +89,9 @@
                   </div>                        
                   <div class="ui-g-8">
                      <span class="md-inputfield">
-                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input">
+                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input" (ngModelChange)="manageIcons($event,'ta3miles')">
                         <label for="ta3Input">Trade Area 3 (in miles)</label>
-                        <li *ngIf="editedta3" >
-                                <i class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
-                         </li>
+                        <i *ngIf="editedta3"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                      </span>
                   </div>
                   <br>

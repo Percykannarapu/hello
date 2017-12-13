@@ -36,7 +36,7 @@ export class DashboardDemoComponent implements OnInit {
    milesList: number[];
    selectedValue: String = 'Sites';
    checked2: boolean = false;
-   checked1: boolean  = true;
+   checked1: boolean  = false;
    checked3: boolean = false;
    kms: number;
 
@@ -164,10 +164,6 @@ export class DashboardDemoComponent implements OnInit {
         this.editedta3 = true;
      } 
          
-
-        // this.tradeArea1Check = true;
-
-         
      var latitude : number;
      var longitude: number;
      try {  
@@ -259,18 +255,25 @@ export class DashboardDemoComponent implements OnInit {
                  }
              }
          }
-         //await this.mapService.drawCircle(latitude,longitude,color,this.miles);
        }
        catch (ex) {
          console.error(ex);
        }
-       console.log("test end of drawbuffer")
     }
 
-    public async manageIcons(){
-        console.log("manage icons Started:");
-        if(this.editedta1){
+    public async manageIcons(eventVal:string,taType:string){
+      
+        if(this.editedta1 && taType=='ta1miles'){
             this.editedta1 = false;
+            this.checked1  = false;
+        }
+        if(this.editedta2 && taType=='ta2miles'){
+            this.editedta2 = false;
+            this.checked2  = false;
+        }
+        if(this.editedta3 && taType=='ta3miles'){
+            this.editedta3 = false;
+            this.checked3  = false;
         }
     }
 
@@ -280,11 +283,7 @@ export class DashboardDemoComponent implements OnInit {
         MapService.layerNames.delete(layer.title);
         this.mapView = this.mapService.getMapView();
         this.mapView.map.remove(layer);
-       
     }
-
-    
-      
     public async removeBuffer(){
         await this.mapService.removeMapLayers();
     }
