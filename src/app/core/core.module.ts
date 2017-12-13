@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 
 // import { EntityService } from './entity.service';
 // import { ExceptionService } from './exception.service';
-import { MessageService } from './message.service';
+import { MessageService } from '../val-modules/common/services/message.service';
 // import { NavComponent } from './nav/nav.component';
 
 import { throwIfAlreadyLoaded } from './module-import-guard';

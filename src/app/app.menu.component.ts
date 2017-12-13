@@ -20,7 +20,7 @@ export class AppMenuComponent implements OnInit {
     ngOnInit() {
         this.model = [
             {label: 'Dashboard', icon: 'dashboard', routerLink: ['/']},
-/*          {
+            /*          {
                 label: 'Themes', icon: 'palette', badge: '6',
                 items: [
                     {label: 'Valassis - Blue', icon: 'brush', command: (event) => {this.changeTheme('valassis-blue'); }},
@@ -67,6 +67,12 @@ export class AppMenuComponent implements OnInit {
                         {label: 'Teal - Lime', icon: 'brush', command: (event) => {this.changeTheme('teal'); }},
                         {label: 'Cyan - Amber', icon: 'brush', command: (event) => {this.changeTheme('cyan'); }},
                         {label: 'Grey - Deep Orange', icon: 'brush', command: (event) => {this.changeTheme('grey'); }}
+                        ]
+                     },
+                     {
+                        label: 'Developer Pages', icon: 'list',
+                        items: [
+                           {label: 'PoC Page', icon: 'build', routerLink: ['poc']},
                         ]
                      },
                      {

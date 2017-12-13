@@ -1,19 +1,26 @@
+import {InMemoryStubService} from './../../api/in-memory-stub.service';
 import {Component, OnInit,ViewChild} from '@angular/core';
 import {CarService} from '../service/carservice';
 import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';
 import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
-import { MapService } from '../../services/map.service';
-import { Points } from '../../Models/Points';
-import { AmSite } from '../../Models/targeting/AmSite';
-import { AmProfile } from '../../Models/targeting/AmProfile';
+import {MapService} from '../../services/map.service';
+import {Points} from '../../Models/Points';
+import {AmSite} from '../../val-modules/targeting/models/AmSite';
+import {AmProfile} from '../../val-modules/targeting/models/AmProfile';
+import {AmSiteService} from '../../val-modules/targeting/services/AmSite.service';
+import {AmSiteListComponent} from '../../val-modules/targeting/components/AmSiteList.component';
+import {MessageService} from '../../val-modules/common/services/message.service';
+import {Message} from '../../val-modules/common/models/Message';
 
 @Component({
     templateUrl: './dashboard.component.html',
     providers: [MapService],
 })
 export class DashboardDemoComponent implements OnInit {
+   msgs: Message[] = [];
+   
    cities: SelectItem[];
    cars: Car[];
    chartData: any;
@@ -50,9 +57,14 @@ export class DashboardDemoComponent implements OnInit {
    public metricMapPurple: Map<string, string>;
    public metricMapTeal:   Map<string, string>;
     
-   constructor(private carService: CarService, private eventService: EventService, private mapService: MapService) { }
+   constructor(private carService: CarService,
+               private eventService: EventService,
+               private mapService: MapService,
+               private messageService: MessageService,
+               private amSiteService: AmSiteService) { }
 
    ngOnInit() {
+
       // Load models
       this.metricMapGreen = new Map([
          ['#Sites', '5'],
@@ -83,6 +95,13 @@ export class DashboardDemoComponent implements OnInit {
          {label: 'Step 2'},
          {label: 'Step 3'}
       ];
+
+      this.amSiteService.createDb();
+
+      // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
+      //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);
+      //    this.geofootprintGeos = geofootprintGeos;
+      //  });
 
    /* this.amSite = new AmSite();
       this.amSite.pk = 1000;
@@ -130,6 +149,17 @@ export class DashboardDemoComponent implements OnInit {
       //this.mapService.plotMarker($event.x, $event.y);
    }
 
+   showViaService() {
+      console.log('showViaService fired');
+      if (this.messageService == null)
+         console.log('messageService not injected');
+      else
+         console.log('messageService was injected');
+      this.messageService.add({severity: 'success', summary: 'Service Message', detail: 'Via MessageService'});
+      console.log(this.messageService);
+      this.msgs.push({severity: 'success', summary: 'Info Message', detail: 'You have received a message from the message fairy.'});
+   }      
+   
    public async drawBuffer(){
     console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
     /*console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);

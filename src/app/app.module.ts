@@ -5,7 +5,7 @@ import {HttpClientModule} from '@angular/common/http';
 import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {LocationStrategy, HashLocationStrategy} from '@angular/common';
+import { LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
 import {AppRoutes} from './app.routes';
 import 'rxjs/add/operator/toPromise';
 
@@ -97,12 +97,14 @@ import {ChartsDemoComponent} from './demo/view/chartsdemo.component';
 import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
+import {PocComponent} from './demo/view/poc.component';
+
+// Mock Service Imports
+import {InMemoryStubService} from './api/in-memory-stub.service';
+import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
-// import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { InMemoryStubService } from './api/in-memory-stub.service';
-// import { GeofootprintGeoService } from './Models/geofootprintGeo.service';
-import { GfGeoService } from './Models/gf-geo/gf-geo.service';
+import {GfGeoService} from './Models/gf-geo/gf-geo.service';
 
 import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
@@ -110,21 +112,23 @@ import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
 
 // ESRI Imports
-import { EsriLoaderService } from 'angular-esri-loader';
-import { EsriMapComponent } from './components/esri-map/esri-map.component';
+import {EsriLoaderService} from 'angular-esri-loader';
+import {EsriMapComponent} from './components/esri-map/esri-map.component';
 
 // Custom Model Imports
-import { TargetingModule } from './Models/targeting/targeting.module';
+import {TargetingModule} from './val-modules/targeting/targeting.module';
 
 // Custom Component Imports
-import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
-import { GeocoderComponent } from './components/geocoder/geocoder.component';
-import { BusinessSearchComponent } from './components/business-search/business-search.component';
-import { GeofootprintComponent } from './components/geofootprint/geofootprint.component';
-import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
-import { MapService } from './services/map.service';
-import { GeoprocessingComponent } from './components/geoprocessing/geoprocessing.component';
-import { ColorBoxComponent } from './components/color-box/color-box.component';
+import {GeofootprintGeoListComponent} from './components/geofootprint-geo-list/geofootprint-geo-list.component';
+import {GeocoderComponent} from './components/geocoder/geocoder.component';
+import {BusinessSearchComponent} from './components/business-search/business-search.component';
+import {GeofootprintComponent} from './components/geofootprint/geofootprint.component';
+import {EsriLayerSelectComponent} from './components/esri-layer-select/esri-layer-select.component';
+import {MapService} from './services/map.service';
+import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
+import {ColorBoxComponent} from './components/color-box/color-box.component';
+import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
+import {MessageService} from './val-modules/common/services/message.service';
 
 @NgModule({
     imports: [
@@ -132,7 +136,9 @@ import { ColorBoxComponent } from './components/color-box/color-box.component';
         FormsModule,
         AppRoutes,
         HttpModule,
-        HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService), //  , { dataEncapsulation: false, delay: 600 }),
+        HttpClientModule,
+//        HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService), //  , { dataEncapsulation: false, delay: 600 }),
+//        HttpClientInMemoryWebApiModule.forRoot(AmSiteService),        
         BrowserAnimationsModule,
         AccordionModule,
         AutoCompleteModule,
@@ -201,7 +207,8 @@ import { ColorBoxComponent } from './components/color-box/color-box.component';
         TooltipModule,
         TreeModule,
         TreeTableModule,
-        TargetingModule
+        TargetingModule,
+        CommonModule
     ],
     declarations: [
         AppComponent,
@@ -220,7 +227,10 @@ import { ColorBoxComponent } from './components/color-box/color-box.component';
         GeofootprintComponent,
         DataDemoComponent,
         PanelsDemoComponent,
-        OverlaysDemoComponent, MenusDemoComponent,
+        OverlaysDemoComponent,
+        MenusDemoComponent,
+        PocComponent,
+//        MessageComponent,
         MessagesDemoComponent,
         MiscDemoComponent,
         ChartsDemoComponent,
@@ -231,13 +241,16 @@ import { ColorBoxComponent } from './components/color-box/color-box.component';
         BusinessSearchComponent,
         EsriLayerSelectComponent,
         GeoprocessingComponent,
-        ColorBoxComponent
+        ColorBoxComponent,
+        AmSiteListComponent
     ],
 
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
+        MessageService,
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService
+        EsriLoaderService, GfGeoService,
+        InMemoryStubService, AmSiteService
     ],
     bootstrap: [AppComponent]
 })

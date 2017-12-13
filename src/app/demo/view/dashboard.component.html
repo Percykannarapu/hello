@@ -38,6 +38,10 @@
     </div>
 -->    
 
+   <div class="ui-g-12">
+      <p-messages [(value)]="msgs"></p-messages>
+   </div>
+
    <!-- COLORBOX COMPONENTS -->
    <div class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Green Sites Box Overlay -->
@@ -49,6 +53,7 @@
 
          <p-tabView styleClass="ui-tabview-panels">
             <p-tabPanel header="Sites">
+               <val-amsite-list>Loading AmSiteList...</val-amsite-list>
             </p-tabPanel>
             <p-tabPanel header="Define Trade Areas">
                <div class="ui-g">
@@ -327,8 +332,10 @@
    </div>
    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">       
       <p-panel header="Work In Progress Stuff">
-         <val-geofootprint>loading geofootprint...</val-geofootprint>
-         <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" pButton icon="fa-external-link-square" label="Show Business Search"></button>
+         <button pButton label="Display Message" (click)="showViaService()"></button>
+         <!-- <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" qButton icon="fa-external-link-square" label="Show Business Search"></button> -->
+
+         <val-geofootprint>loading geofootprint...</val-geofootprint>         
       </p-panel>
 
       <p-sidebar [(visible)]="display" styleClass="ui-sidebar-xlg" position="right" >

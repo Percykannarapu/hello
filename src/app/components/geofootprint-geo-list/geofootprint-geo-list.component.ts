@@ -27,9 +27,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
               private gfGeoService: GfGeoService) { }
 
   getGeofootprintGeos() {
-    console.debug('called getGeofootprintGeos');
+    console.log('called getGeofootprintGeos');
     this.testGeocode.geocode = '46038';
-    console.debug('geocode: ' + this.testGeocode.geocode);
+    console.log('geocode: ' + this.testGeocode.geocode);
 /*
     this.geofootprintGeosService.getGeofootprintGeos().subscribe(geofootprintGeos => {
         console.log('geofootprintGeos.length: ' + geofootprintGeos.length);

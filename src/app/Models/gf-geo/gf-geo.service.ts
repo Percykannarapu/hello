@@ -9,7 +9,8 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
 // Import Core Modules
-import { CONFIG, MessageService } from '../../core';
+import { CONFIG } from '../../core';
+import { MessageService } from '../../val-modules/common/services/message.service';
 
 // Import Models
 import { GeofootprintGeo } from './../geofootprintGeo.model';
@@ -22,7 +23,7 @@ export class GfGeoService {
 
   constructor(private http: HttpClient) { }
 
-  getGeos(): Observable<GeofootprintGeo[]> {
+  getGeos() : Observable<GeofootprintGeo[]> {
     return this.http.get(geofootprintGeosUrl)
       .do(data => console.log(data)) // view results in the console
 //      .map(res => res.json())

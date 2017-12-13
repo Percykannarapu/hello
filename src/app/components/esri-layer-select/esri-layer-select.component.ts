@@ -8,7 +8,8 @@ import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 
 // Import Core Modules
-import { CONFIG, MessageService } from '../../core';
+import { CONFIG } from '../../core';
+import { MessageService } from '../../val-modules/common/services/message.service';
 
 // import primeng 
 import {SelectItem} from 'primeng/primeng';
