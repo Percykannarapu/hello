@@ -250,14 +250,12 @@ export class DashboardDemoComponent implements OnInit {
              var max = Math.max(this.ta1Miles,this.ta2Miles,this.ta3Miles);
              console.log("max value is :"+max);
              if(max!=null){
-                this.kms = this.ta1Miles/0.62137;
+                this.kms = max/0.62137;
                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+max+lyrNme,outlneColor);
 
              }
          }
          else if(mergeEachBool){
-           
-           
              console.log("inside merge Each");
            //  for(let point of pointsArray){
                  for(let miles1 of this.milesList){
