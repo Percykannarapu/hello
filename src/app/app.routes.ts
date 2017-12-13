@@ -15,6 +15,7 @@ import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
+import {ParkedComponent} from './demo/view/parked.component';
 
 export const routes: Routes = [
     {path: '', component: DashboardDemoComponent},
@@ -31,7 +32,8 @@ export const routes: Routes = [
     {path: 'file', component: FileDemoComponent},
     {path: 'utils', component: UtilsDemoComponent},
     {path: 'documentation', component: DocumentationComponent},
-    {path: 'poc', component: PocComponent}
-];
+    {path: 'poc', component: PocComponent},
+    {path: 'parked', component: ParkedComponent}
+   ];
 
 export const AppRoutes: ModuleWithProviders = RouterModule.forRoot(routes);
