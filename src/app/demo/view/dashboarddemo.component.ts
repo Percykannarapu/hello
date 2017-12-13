@@ -192,6 +192,14 @@ export class DashboardDemoComponent implements OnInit {
         this.milesList.push(this.ta3Miles);
         this.editedta3 = true;
      } 
+
+     if(this.ta3Miles==null)
+            this.ta3Miles=0;
+     if(this.ta2Miles==null)
+            this.ta2Miles=0;
+     if(this.ta1Miles==null)
+            this.ta1Miles=0;      
+
          
      var latitude : number;
      var longitude: number;
@@ -236,23 +244,12 @@ export class DashboardDemoComponent implements OnInit {
         }
          if(mergeAllBool){
              console.log("inside merge All");
-             if(this.ta1Miles>this.ta2Miles && this.ta1Miles > this.ta2Miles){
-                 console.log("Larger mile is:"+this.ta1Miles);
-                 this.kms = this.ta1Miles/0.62137;
-                 this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta1Miles+lyrNme,outlneColor);
-             }
-             else if(this.ta2Miles>this.ta1Miles && this.ta2Miles > this.ta3Miles){
-                 console.log("Larger mile is:"+this.ta2Miles);
-                 this.kms = this.ta2Miles/0.62137;
-                 this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
-             }
-             else{
-                 console.log("Larger mile is:"+this.ta3Miles);
-                 this.kms = this.ta3Miles/0.62137;
-                 this.kmsList.push(this.kms);
-                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
+             var max = Math.max(this.ta1Miles,this.ta2Miles,this.ta3Miles);
+             console.log("max value is :"+max);
+             if(max!=null){
+                this.kms = this.ta1Miles/0.62137;
+                await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+max+lyrNme,outlneColor);
+
              }
          }
          else if(mergeEachBool){
@@ -261,10 +258,10 @@ export class DashboardDemoComponent implements OnInit {
              console.log("inside merge Each");
            //  for(let point of pointsArray){
                  for(let miles1 of this.milesList){
-                      this.kms = miles1/0.62137;
-                      this.kmsList.push(this.kms);
+                     var kmsMereEach = miles1/0.62137;
                      console.log("miles:::"+miles1);
-                     await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
+                     console.log("Kms in Merge Each:::"+kmsMereEach);
+                     await this.mapService.bufferMergeEach(pointsArray,color,kmsMereEach,meTitle+miles1+lyrNme,outlneColor);
                  }
             // }
          }
@@ -274,10 +271,11 @@ export class DashboardDemoComponent implements OnInit {
              var i :number = 0;
              for(let miles1 of this.milesList){
                  i++;
-                this.kms = miles1/0.62137;
+                var kmsNomerge = miles1/0.62137;
                  for(let point of pointsArray){
-                     console.log("miles:::"+miles1)
-                     await this.mapService.drawCircle(point.latitude,point.longitude,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
+                     console.log("miles:::"+miles1);
+                     console.log("Kms in No Merge:::"+kmsNomerge);
+                     await this.mapService.drawCircle(point.latitude,point.longitude,color,kmsNomerge,meTitle+miles1+lyrNme,outlneColor);
                  }
              }
          }
@@ -288,7 +286,7 @@ export class DashboardDemoComponent implements OnInit {
     }
 
     public async manageIcons(eventVal:string,taType:string){
-      
+        console.log("manageIcons fired:: ")
         if(this.editedta1 && taType=='ta1miles'){
             this.editedta1 = false;
             this.checked1  = false;
@@ -304,10 +302,10 @@ export class DashboardDemoComponent implements OnInit {
     }
 
     public async clearFields(eventVal:string,taType:string){
-        console.log("inside clearFields:: ")
+        console.log("clearFields fired:: ")
         this.editedta1 = false;
         this.checked1  = false;
-      //  this.ta1Miles  = null;
+        this.ta1Miles  = null;
 
         this.editedta2 = false;
         this.checked2  = false;
