@@ -269,7 +269,7 @@ export class DashboardDemoComponent implements OnInit {
             // }
          }
          else{
-            var meTitle = 'Trade Area ';
+            //var meTitle = 'Trade Area ';
              console.log("inside draw Circle");
              var i :number = 0;
              for(let miles1 of this.milesList){
