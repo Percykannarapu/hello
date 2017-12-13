@@ -301,11 +301,11 @@ export class DashboardDemoComponent implements OnInit {
         }
     }
 
-    public async clearFields1(eventVal:string,taType:string){
+    public async clearFields(eventVal:string,taType:string){
         console.log("clearFields fired:: ")
         this.editedta1 = false;
         this.checked1  = false;
-      //  this.ta1Miles  = null;
+        this.ta1Miles  = null;
 
         this.editedta2 = false;
         this.checked2  = false;
