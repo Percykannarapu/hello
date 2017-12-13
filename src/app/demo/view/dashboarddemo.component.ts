@@ -1,8 +1,8 @@
 import {InMemoryStubService} from './../../api/in-memory-stub.service';
 import {Component, OnInit,ViewChild} from '@angular/core';
-import {CarService} from '../service/carservice';
-import {EventService} from '../service/eventservice';
-import {Car} from '../domain/car';
+// import {CarService} from '../service/carservice';
+//import {EventService} from '../service/eventservice';
+//import {Car} from '../domain/car';
 import {SelectItem} from 'primeng/primeng';
 import {StepsModule, MenuItem} from 'primeng/primeng';
 import {MapService} from '../../services/map.service';
@@ -21,11 +21,11 @@ import {Message} from '../../val-modules/common/models/Message';
 export class DashboardDemoComponent implements OnInit {
    msgs: Message[] = [];
    
-   cities: SelectItem[];
-   cars: Car[];
+//   cities: SelectItem[];
+//   cars: Car[];
    chartData: any;
    events: any[];
-   selectedCity: any;
+//   selectedCity: any;
    display: boolean;
    mapView: __esri.MapView;
 
@@ -57,8 +57,8 @@ export class DashboardDemoComponent implements OnInit {
    public metricMapPurple: Map<string, string>;
    public metricMapTeal:   Map<string, string>;
     
-   constructor(private carService: CarService,
-               private eventService: EventService,
+   constructor(// private carService: CarService,
+//               private eventService: EventService,
                private mapService: MapService,
                private messageService: MessageService,
                private amSiteService: AmSiteService) { }
@@ -109,8 +109,8 @@ export class DashboardDemoComponent implements OnInit {
       console.log('amSite.pk = ' + this.amSite.pk);
       console.log('amSite: ' + this.amSite.toString());*/
 
-      this.carService.getCarsSmall().then(cars => this.cars = cars);
-      this.eventService.getEvents().then(events => {this.events = events; });
+//      this.carService.getCarsSmall().then(cars => this.cars = cars);
+//      this.eventService.getEvents().then(events => {this.events = events; });
 
       this.tradeAreaMergeTypes = [];
       this.tradeAreaMergeTypes.push({label: 'No Merge', value: 'No Merge'});
@@ -118,13 +118,13 @@ export class DashboardDemoComponent implements OnInit {
       this.tradeAreaMergeTypes.push({label: 'Merge All', value: 'Merge All'});
       this.selectedMergeTypes = 'Merge Each';
 
-      this.cities = [];
-      this.cities.push({label: 'Select City', value: null});
-      this.cities.push({label: 'New York', value: {id: 1, name: 'New York', code: 'NY'}});
-      this.cities.push({label: 'Rome', value: {id: 2, name: 'Rome', code: 'RM'}});
-      this.cities.push({label: 'London', value: {id: 3, name: 'London', code: 'LDN'}});
-      this.cities.push({label: 'Istanbul', value: {id: 4, name: 'Istanbul', code: 'IST'}});
-      this.cities.push({label: 'Paris', value: {id: 5, name: 'Paris', code: 'PRS'}});
+      // this.cities = [];
+      // this.cities.push({label: 'Select City', value: null});
+      // this.cities.push({label: 'New York', value: {id: 1, name: 'New York', code: 'NY'}});
+      // this.cities.push({label: 'Rome', value: {id: 2, name: 'Rome', code: 'RM'}});
+      // this.cities.push({label: 'London', value: {id: 3, name: 'London', code: 'LDN'}});
+      // this.cities.push({label: 'Istanbul', value: {id: 4, name: 'Istanbul', code: 'IST'}});
+      // this.cities.push({label: 'Paris', value: {id: 5, name: 'Paris', code: 'PRS'}});
 
       this.chartData = {
          labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
