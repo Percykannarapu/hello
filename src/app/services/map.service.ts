@@ -382,7 +382,7 @@ export class MapService {
             radius: miles,
             center: p,
             geodesic: true,
-            radiusUnit: 'miles'
+            radiusUnit: 'kilometers'
         });
 
         let g = new Graphic({

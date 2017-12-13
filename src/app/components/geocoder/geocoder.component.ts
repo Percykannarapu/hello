@@ -99,8 +99,6 @@ export class GeocoderComponent implements OnInit {
         longitude: this.geocodingResponse.longitude
       };
       let p = new Point(pointProps);
-      //this.mapViewEl.nativeElement
-      //this.mapViewEl.nativeElement;
       this.mapView = this.mapService.getMapView();
       this.mapView.center = p;
       this.mapView.zoom =7;
