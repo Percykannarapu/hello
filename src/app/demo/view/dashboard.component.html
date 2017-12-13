@@ -333,8 +333,9 @@
    <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">       
       <p-panel header="Work In Progress Stuff">
          <button pButton label="Display Message" (click)="showViaService()"></button>
-         <!-- <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" qButton icon="fa-external-link-square" label="Show Business Search"></button> -->
-
+         <button pButton label="Show Business Search" (click)="display = true" [disabled]="geoCoder.disableshowBusiness"></button>
+    <!-- <button type="text" [disabled]="geoCoder.disableshowBusiness" (click)="display = true" qButton label="Show Business Search"></button> -->
+         
          <val-geofootprint>loading geofootprint...</val-geofootprint>         
       </p-panel>
 
