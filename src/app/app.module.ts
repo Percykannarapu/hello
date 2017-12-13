@@ -98,6 +98,7 @@ import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
+import {ParkedComponent} from './demo/view/parked.component';
 
 // Mock Service Imports
 import {InMemoryStubService} from './api/in-memory-stub.service';
@@ -230,6 +231,7 @@ import {MessageService} from './val-modules/common/services/message.service';
         OverlaysDemoComponent,
         MenusDemoComponent,
         PocComponent,
+        ParkedComponent,
 //        MessageComponent,
         MessagesDemoComponent,
         MiscDemoComponent,
