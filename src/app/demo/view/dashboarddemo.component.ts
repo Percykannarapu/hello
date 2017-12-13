@@ -68,26 +68,29 @@ export class DashboardDemoComponent implements OnInit {
       // Load models
       this.metricMapGreen = new Map([
          ['#Sites', '5'],
-         ['Metric #2', 'Metric Value #2'],
-         ['Metric #3', 'Metric Value #3']
+         ['# of Competitors', '2'],
+         ['# of Markets', '1']
       ]);
 
       this.metricMapBlue = new Map([
          ['Household Count', '1200'],
-         ['Blue Metric #2', 'Metric Value #2'],
-         ['Blue Metric #3', 'Metric Value #3']
+         ['IP Address Count', '10000'],
+         ['Total Investment', '$1500.00'],
+         ['Progress to Budget', '100%']
       ]);
 
       this.metricMapPurple = new Map([
-         ['Progress To Budget', '22'],
-         ['Purple Metric #2', 'Metric Value #2'],
-         ['Purple Metric #3', 'Metric Value #3']
+         ['Consumer Profile', '42'],
+         ['Comparison to previous buy', '1'],
+         ['DBM metrics', '18%']
       ]);
 
       this.metricMapTeal = new Map([
-         ['Messages', '10'],
-         ['Teal Metric #2', 'Metric Value #2'],
-         ['Teal Metric #3', 'Metric Value #3']
+         ['Predicted Response', '75%'],
+         ['Estimated Top Line Sales Generation', '$42,000'],
+         ['Predicted ROI $', '$100.00'],
+         ['Predicted ROI %', '2%'],
+         ['Targeting Score (Index)', '100']
       ]);
 
       this.fakeItems = [
