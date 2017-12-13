@@ -57,54 +57,60 @@
             </p-tabPanel>
             <p-tabPanel header="Define Trade Areas">
                <div class="ui-g">
-                  <div class="ui-g-3">
-                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites"></p-radioButton>
+                  <div class="ui-g-4">
+                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
                   </div>
-                  <div class="ui-g-9">
-                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"></p-radioButton>
+                  <div class="ui-g-8">
+                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors" (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
                   </div>
-
-                  <div class="ui-g-3">
+                  <br>
+                  <br>
+                  <br>  
+                  <div class="ui-g-4">
                      <p-toggleButton  onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square" [(ngModel)]="checked1"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                      <span class="ui-float-label">
-                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input">
-                        <label for="ta1Input">Trade Area 1</label>
-                        <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
+                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input"  (ngModelChange)="manageIcons($event,'ta1miles')">
+                        <!--onchange="manageIcons()" -->
+                        <label for="ta1Input">Trade Area 1 (in miles)</label>
+                        <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                      </span>
                   </div>
 
-                  <div class="ui-g-3">
+                  <div class="ui-g-4">
                      <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                         <span class="md-inputfield">
-                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input">
-                           <label for="ta2Input">Trade Area 2</label>
-                           <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
+                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input" (ngModelChange)="manageIcons($event,'ta2miles')">
+                           <label for="ta2Input">Trade Area 2 (in miles)</label>
+                           <i *ngIf="editedta2"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                         </span>
                   </div>
 
-                  <div class="ui-g-3">
+                  <div class="ui-g-4">
                      <p-toggleButton [(ngModel)]="checked3" onLabel="Show" offLabel="Hide" onIcon="fa-check-square" offIcon="fa-square"></p-toggleButton>
                   </div>                        
-                  <div class="ui-g-9">
+                  <div class="ui-g-8">
                      <span class="md-inputfield">
-                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input">
-                        <label for="ta3Input">Trade Area 3</label>
-                        <i class="material-icons" hidden="true" style="font-size:25px;color:rgb(0, 255, 42);">check</i>
+                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input" (ngModelChange)="manageIcons($event,'ta3miles')">
+                        <label for="ta3Input">Trade Area 3 (in miles)</label>
+                        <i *ngIf="editedta3"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
                      </span>
                   </div>
-
+                  <br>
+                  <br>  
+                  <br>
+                  <br>  
                   <div class="ui-g-12">
                      <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
                   </div>                  
                         
-               <div class="ui-g-3">
+               <div class="ui-g-4">
                   <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    
                </div>
-               <div class="ui-g-9">
+               <div class="ui-g-8">
                   <button (click)="removeBuffer()" pButton type="button" icon="fa-close" class="ui-button-danger"></button>
                </div>
          </div>            

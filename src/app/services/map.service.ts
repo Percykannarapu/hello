@@ -323,7 +323,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number,title: string): Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number,title: string,outlneColor): Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -360,7 +360,7 @@ export class MapService {
                 , pointColor
             );
 
-        sym.outline.color = new Color([0, 0, 255, 0.25]);
+        sym.outline.color = outlneColor;
 
         let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
 
@@ -395,7 +395,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[],pointColor,kms: number,title : string)
+    public async bufferMergeEach(pointsArray: Points[],pointColor,kms: number,title : string,outlneColor)
     : Promise<EsriWrapper<__esri.MapView>>{
             console.log("inside bufferMergeEach:: UNDER CONSTRUCTION")
             console.log("number of kilometers::::"+kms);
@@ -423,7 +423,7 @@ export class MapService {
                 , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,pointColor,2)
                 ,pointColor
             );
-            sym.outline.color  = new Color([0,0,255,0.25]);  
+            sym.outline.color  = outlneColor;
         
             let pointList : __esri.Point[] =[];
         

@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import {InMemoryStubService} from './../../api/in-memory-stub.service';
 import {Component, OnInit} from '@angular/core';
+=======
+import {Component, OnInit,ViewChild} from '@angular/core';
+>>>>>>> 7521f232c8fad4c03a8d10a623ea6f5c4b20954b
 import {CarService} from '../service/carservice';
 import {EventService} from '../service/eventservice';
 import {Car} from '../domain/car';
@@ -43,11 +47,14 @@ export class DashboardDemoComponent implements OnInit {
    milesList: number[];
    selectedValue: String = 'Sites';
    checked2: boolean = false;
-   checked1: boolean  = true;
+   checked1: boolean  = false;
    checked3: boolean = false;
    kms: number;
 
    kmsList: number[] = [];
+   editedta1 : boolean =false;
+   editedta2 : boolean =false;
+   editedta3 : boolean =false;
 
    public metricMapGreen:  Map<string, string>;
    public metricMapBlue:   Map<string, string>;
@@ -146,127 +153,6 @@ export class DashboardDemoComponent implements OnInit {
       //this.mapService.plotMarker($event.x, $event.y);
    }
 
-   public async drawBuffer(){
-       console.log('under construction')
-       console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + ' ta3Miles' + this.ta3Miles);
-       console.log('toggle box values:::' + this.checked1 + ' : ' + this.checked2 + ' : ' + this.checked3);
-       
-       let mergeEachBool: boolean = false;
-       let mergeAllBool: boolean  = false;
-       
-       if (this.selectedMergeTypes.match('Merge Each'))
-            mergeEachBool = true;
-       if(this.selectedMergeTypes.match('Merge All'))
-            mergeAllBool = true;
-      
-        this.milesList = [];
-        if (this.ta1Miles != null && this.checked1)
-            this.milesList.push(this.ta1Miles);
-        if (this.ta2Miles != null && this.checked2)    
-            this.milesList.push(this.ta2Miles);
-        if (this.ta3Miles != null && this.checked3)    
-            this.milesList.push(this.ta3Miles);
-            
-      var latitude: number;
-      var longitude: number;
-      try {  
-         this.mapView = this.mapService.getMapView();
-         var pointsArray: Points[] = [];
-            console.log('test points');
-           // this.mapService.removeMapLayers();
-         /*MapService.mapView.map.add(lyr);
-           MapService.layers.add(lyr);
-           MapService.layerNames.add(lyr.title);*/
-            var existingGraphics: __esri.Collection<__esri.Graphic>;
-        await  MapService.layers.forEach(layer => {   
-              console.log('reading the layer::' + layer.title); 
-                if (layer.title == 'Merge Each' || layer.title == 'Merge All' || layer.title == 'No Merge'){
-                    MapService.layers.delete(layer);
-                    MapService.layerNames.delete(layer.title);
-                    this.mapView = this.mapService.getMapView();
-                    this.mapView.map.remove(layer);
-                }    
-                existingGraphics = (<__esri.FeatureLayer>layer).source;
-                // if(layer.title == 'Sites'){
-                        existingGraphics.forEach(function(current: any){
-                            console.log('inside layer graphic loaded::' + current.geometry.latitude);
-               let points = new Points();
-               points.latitude =  current.geometry.latitude;
-               points.longitude = current.geometry.longitude; 
-                            console.log('points loaded::' + points.latitude);
-               pointsArray.push(points);  
-         });
-                   // }
-            });
-
-          /*console.log("entring :::graphics::")
-            existingGraphics.forEach(function(current : any){
-                console.log("inside layer graphic loaded::"+current.geometry.latitude);
-                let points = new Points();
-                points.latitude =  current.geometry.latitude;
-                points.longitude = current.geometry.longitude; 
-                console.log("points loaded::"+points.latitude);
-                pointsArray.push(points);  
-            }); */
-         const color = {
-                a: 0,
-                r: 0,
-                g: 0,
-                b: 255
-            };
-            console.log('mergeEachBool::::' + mergeEachBool);
-           
-
-            if (mergeAllBool){
-                console.log('inside merge All');
-                if (this.ta1Miles > this.ta2Miles && this.ta1Miles > this.ta2Miles){
-                    console.log('Larger mile is:' + this.ta1Miles);
-                    this.kms = this.ta1Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-                else if (this.ta2Miles > this.ta1Miles && this.ta2Miles > this.ta3Miles){
-                    console.log('Larger mile is: ' + this.ta2Miles);
-                    this.kms = this.ta2Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-                else{
-                    console.log('Larger mile is: ' + this.ta3Miles);
-                    this.kms = this.ta3Miles / 0.62137;
-                    this.kmsList.push(this.kms);
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge All');
-                }
-            }
-            else if (mergeEachBool){
-                console.log('inside merge Each');
-              //  for(let point of pointsArray){
-                    for (let miles1 of this.milesList){
-                         this.kms = miles1 / 0.62137;
-                         this.kmsList.push(this.kms);
-                        console.log('miles:::' + miles1)
-                        await this.mapService.bufferMergeEach(pointsArray, color, this.kms, 'Merge Each');
-                    }
-               // }
-            }
-            else{
-                console.log('inside draw Circle');
-         for (let point of pointsArray){
-                    for (let miles1 of this.milesList){
-                        console.log('miles:::' + miles1);
-                        await this.mapService.drawCircle(point.latitude, point.longitude, color, miles1, 'No Merge');
-         }
-                }
-            }
-         //await this.mapService.drawCircle(latitude,longitude,color,this.miles);
-         }
-         catch (ex) {
-         console.error(ex);
-         }
-        console.log('test end of drawbuffer');
-      
-   }
-
    showViaService() {
       console.log('showViaService fired');
       if (this.messageService == null)
@@ -277,8 +163,177 @@ export class DashboardDemoComponent implements OnInit {
       console.log(this.messageService);
       this.msgs.push({severity: 'success', summary: 'Info Message', detail: 'You have received a message from the message fairy.'});
    }      
+   
+   public async drawBuffer(){
+    console.log("under construction")
+    console.log("ta1miles::"+this.ta1Miles + "ta2miles::"+this.ta2Miles + " ta3Miles"+this.ta3Miles);
+    console.log("toggle box values:::"+this.checked1+" : "+this.checked2+" : "+this.checked3);
+    console.log("selectedValue::::"+this.selectedValue);
+    const lyrNme : string = ' Mile Trade Area'; 
+    var meTitle = 'Site - ';
+    if(this.selectedValue == 'Competitors')
+       meTitle = 'Competitor -';
+    
+    let mergeEachBool : boolean = false;
+    let mergeAllBool : boolean  = false;
+    
+    if(this.selectedMergeTypes.match('Merge Each'))
+         mergeEachBool = true;
+    if(this.selectedMergeTypes.match('Merge All'))
+         mergeAllBool = true;
+   
+     this.milesList = [];
+     if(this.ta1Miles!=null && this.checked1){
+        this.milesList.push(this.ta1Miles);
+        this.editedta1 = true;
+     }
+        
+     if(this.ta2Miles!=null && this.checked2)   {
+        this.milesList.push(this.ta2Miles);
+        this.editedta2 = true;
+     } 
+        
+     if(this.ta3Miles!=null && this.checked3)   {
+        this.milesList.push(this.ta3Miles);
+        this.editedta3 = true;
+     } 
+         
+     var latitude : number;
+     var longitude: number;
+     try {  
+         this.mapView = this.mapService.getMapView();
+         var pointsArray: Points[] = [];
+         console.log("test points")
+         var existingGraphics: __esri.Collection<__esri.Graphic>;
+         var lyrTitle : string;
+     await  MapService.layers.forEach(layer => {   
+           console.log("reading the layer::"+ layer.title); 
+           if(this.selectedValue == 'Sites'){
+                if(layer.title.startsWith('Site -') ){
+                    this.disableLyr(layer);
+                }  
+           }
+           if(this.selectedValue == 'Competitors'){
+                if(layer.title.startsWith('Competitor -') ){
+                    this.disableLyr(layer);
+                }  
+            }
+              
+             existingGraphics = (<__esri.FeatureLayer>layer).source;
+              if(layer.title == this.selectedValue){
+                 lyrTitle = layer.title;
+                     existingGraphics.forEach(function(current : any){
+                         console.log("inside layer graphic loaded::"+current.geometry.latitude);
+                         let points = new Points();
+                         points.latitude =  current.geometry.latitude;
+                         points.longitude = current.geometry.longitude; 
+                         console.log("points loaded::"+points.latitude);
+                         pointsArray.push(points);  
+                     });
+                 }
+         });
+         var color = null;
+         var outlneColor = null;
+        if(lyrTitle == 'Sites' ){
+          color = {a: 0,r: 0,g: 0,b: 255}
+          outlneColor= ([0,0,255,0.50]);  
+        }
+        else{
+          color = {a: 0,r: 255,g: 0,b:0}
+          outlneColor = ([255,0,0,0.50]);  
+        }
+         if(mergeAllBool){
+             console.log("inside merge All");
+             if(this.ta1Miles>this.ta2Miles && this.ta1Miles > this.ta2Miles){
+                 console.log("Larger mile is:"+this.ta1Miles);
+                 this.kms = this.ta1Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta1Miles+lyrNme,outlneColor);
+             }
+             else if(this.ta2Miles>this.ta1Miles && this.ta2Miles > this.ta3Miles){
+                 console.log("Larger mile is:"+this.ta2Miles);
+                 this.kms = this.ta2Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
+             }
+             else{
+                 console.log("Larger mile is:"+this.ta3Miles);
+                 this.kms = this.ta3Miles/0.62137;
+                 this.kmsList.push(this.kms);
+                 await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+this.ta2Miles+lyrNme,outlneColor);
+             }
+         }
+         else if(mergeEachBool){
+           
+           
+             console.log("inside merge Each");
+           //  for(let point of pointsArray){
+                 for(let miles1 of this.milesList){
+                      this.kms = miles1/0.62137;
+                      this.kmsList.push(this.kms);
+                     console.log("miles:::"+miles1);
+                     await this.mapService.bufferMergeEach(pointsArray,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
+                 }
+            // }
+         }
+         else{
+            var meTitle = 'Trade Area ';
+             console.log("inside draw Circle");
+             var i :number = 0;
+             for(let miles1 of this.milesList){
+                 i++;
+                this.kms = miles1/0.62137;
+                 for(let point of pointsArray){
+                     console.log("miles:::"+miles1)
+                     await this.mapService.drawCircle(point.latitude,point.longitude,color,this.kms,meTitle+miles1+lyrNme,outlneColor);
+                 }
+             }
+         }
+       }
+       catch (ex) {
+         console.error(ex);
+       }
+    }
 
-   public async removeBuffer(){
-      await this.mapService.removeMapLayers();
-   }
+    public async manageIcons(eventVal:string,taType:string){
+      
+        if(this.editedta1 && taType=='ta1miles'){
+            this.editedta1 = false;
+            this.checked1  = false;
+        }
+        if(this.editedta2 && taType=='ta2miles'){
+            this.editedta2 = false;
+            this.checked2  = false;
+        }
+        if(this.editedta3 && taType=='ta3miles'){
+            this.editedta3 = false;
+            this.checked3  = false;
+        }
+    }
+
+    public async clearFields(eventVal:string,taType:string){
+        console.log("inside clearFields:: ")
+        this.editedta1 = false;
+        this.checked1  = false;
+        this.ta1Miles  = null;
+
+        this.editedta2 = false;
+        this.checked2  = false;
+        this.ta2Miles  = null;
+
+        this.editedta3 = false;
+        this.checked3  = false;
+        this.ta3Miles  = null;
+    }
+
+    public async disableLyr(layer: __esri.Layer){
+        console.log("disable Layer:");
+        MapService.layers.delete(layer);
+        MapService.layerNames.delete(layer.title);
+        this.mapView = this.mapService.getMapView();
+        this.mapView.map.remove(layer);
+    }
+    public async removeBuffer(){
+        await this.mapService.removeMapLayers();
+    }
 }
