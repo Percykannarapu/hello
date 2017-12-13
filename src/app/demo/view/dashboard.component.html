@@ -53,10 +53,10 @@
             <p-tabPanel header="Define Trade Areas">
                <div class="ui-g">
                   <div class="ui-g-4">
-                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites"></p-radioButton>
+                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
                   </div>
                   <div class="ui-g-8">
-                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"></p-radioButton>
+                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors" (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
                   </div>
                   <br>
                   <br>

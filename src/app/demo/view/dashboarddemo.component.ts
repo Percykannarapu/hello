@@ -277,6 +277,21 @@ export class DashboardDemoComponent implements OnInit {
         }
     }
 
+    public async clearFields(eventVal:string,taType:string){
+        console.log("inside clearFields:: ")
+        this.editedta1 = false;
+        this.checked1  = false;
+        this.ta1Miles  = null;
+
+        this.editedta2 = false;
+        this.checked2  = false;
+        this.ta2Miles  = null;
+
+        this.editedta3 = false;
+        this.checked3  = false;
+        this.ta3Miles  = null;
+    }
+
     public async disableLyr(layer: __esri.Layer){
         console.log("disable Layer:");
         MapService.layers.delete(layer);
