@@ -50,7 +50,7 @@ export class GeocoderComponent implements OnInit {
   async geocodeAddress() {
     console.log('Geocoding request received in GeocoderComponent for: ' + this.street + ' ' + this.city + ' ' + this.state + ' ' + this.zip);
     const loader = EsriLoaderWrapperService.esriLoader;
-    const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
+    const [PopupTemplate, Graphic,Point] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic','esri/geometry/Point']);
     const accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
@@ -94,6 +94,16 @@ export class GeocoderComponent implements OnInit {
         graphics.push(graphic);
       });
       this.mapService.updateFeatureLayer(graphics, 'Sites');
+      const pointProps: __esri.PointProperties = {
+        latitude: this.geocodingResponse.latitude,
+        longitude: this.geocodingResponse.longitude
+      };
+      let p = new Point(pointProps);
+      //this.mapViewEl.nativeElement
+      //this.mapViewEl.nativeElement;
+      this.mapView = this.mapService.getMapView();
+      this.mapView.center = p;
+      this.mapView.zoom =7;
     });
 
   }

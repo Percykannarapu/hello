@@ -307,7 +307,7 @@ export class DashboardDemoComponent implements OnInit {
         console.log("inside clearFields:: ")
         this.editedta1 = false;
         this.checked1  = false;
-        this.ta1Miles  = null;
+      //  this.ta1Miles  = null;
 
         this.editedta2 = false;
         this.checked2  = false;
