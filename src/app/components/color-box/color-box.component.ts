@@ -6,6 +6,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 })
 export class ColorBoxComponent implements OnInit, OnDestroy
 {
+   @Input() header:     string = 'Header';
    @Input() boxStyle:   string = 'colorbox-1';
    @Input() popupStyle: string = 'green-panel';
    @Input() popupWidth: string = '40%';
