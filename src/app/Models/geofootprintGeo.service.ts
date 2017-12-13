@@ -8,7 +8,8 @@ import 'rxjs/add/operator/map';
 
 
 // Import Core Modules
-import { CONFIG, MessageService } from '../core';
+import { CONFIG } from '../core';
+import { MessageService } from '../val-modules/common/services/message.service';
 
 // Import Models
 import { GeofootprintGeo } from './geofootprintGeo.model';
@@ -17,11 +18,11 @@ const geofootprintGeosUrl = 'api/geofootprintGeos'; // .json'; // CONFIG.baseUrl
 
 @Injectable()
 export class GeofootprintGeoService {
-  onDbReset = this.messageService.state;
+//  onDbReset = this.messageService.state;
 
   constructor(private http: Http,
               private messageService: MessageService) {
-    this.messageService.state.subscribe(state => this.getGeofootprintGeos());
+//    this.messageService.state.subscribe(state => this.getGeofootprintGeos());
   }
 
 /*  getGeofootprintGeos(): Promise<GeofootprintGeo[]> {
