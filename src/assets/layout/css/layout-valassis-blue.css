@@ -343,12 +343,13 @@
       text-align: center;
       overflow: hidden;
      /* border: 1px solid black; -- Happy accident that outlined everything in colorbox black */
-      margin-bottom: 0px !important; 
+      /* margin-bottom: 0px !important; */
+      margin: 0px !important;
       -moz-border-radius: 0px;
       -webkit-border-radius: 0px;
-      border-top-right-radius: 20px;
-      border-bottom-right-radius:20px;
-   border-radius: 0px; }
+      border-top-right-radius: 2px;
+      border-bottom-right-radius:2px;
+      border-radius: 0px; }
       .colorboxPicker.spinner {
          -moz-border-radius: 0px 2px 2px 0px;
          -webkit-border-radius: 0px 2px 2px 0px;
@@ -368,23 +369,41 @@
       }
       
       .colorboxPicker i {
-         font-size: 48px;
-         margin-top: 10px;
+         /* font-size: 36px; */
+         /* font-size: 4.5vh; */
+         /* font-size: 100%; */
+         text-align: center;
+         width:100%;
+         height:100%;
+         /* margin-top: 10px;          */
          color: #ffffff; }
       .colorboxPicker .colorboxPicker-name {
-         font-size: 20px;
+         font-size: 16px;
          display: inline-block;
          width: 100%;
-         margin: 4px 0 10px 0;
+         margin: 0px 0px 8px 0px;
          text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
          color: #ffffff; }
       .colorboxPicker .colorboxPicker-count {
          text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
-         color: #ffffff;
+         width: 100%;
+         color: #ffffff;         
          font-size: 36px; }
       .colorboxPicker .colorboxPicker-count {
          font-weight: bold; }
+      .colorboxPicker.icon {
+         height:100%;
+      }
+      .colorboxPicker.icon.child {
+         padding-top:20%;
+         width:100%;
+         height:100%;
+         font-size: 300%;
+      }
       .colorboxPicker.spinner {
+         /* max-width:50%;
+         max-height:50%; */
+         font-size:100%;
          -webkit-user-select: none; /* Safari */        
          -moz-user-select: none;    /* Firefox */
          -ms-user-select: none;     /* IE10+/Edge */
@@ -396,6 +415,8 @@
       .colorboxPicker.spinner.colorboxPicker-green div {
          background-color: #50844a; }
       .colorboxPicker.spinner.colorboxPicker-green div:first-child {
+         /* height:50%; */
+         vertical-align: middle;
          background-color: #50844a; }
       .colorboxPicker.colorboxPicker-green div:hover {
          background-color: #406b3b; }
@@ -404,6 +425,7 @@
       .colorboxPicker-green .ui-overlaypanel-content {
          background: #365c31}
       .colorboxPicker.colorboxPicker-green div:first-child {
+         /* height:100%; */
          background-color: #365c31; }
       .colorboxPicker-green .ui-overlaypanel	{
          border: 1px solid #264223;
@@ -411,10 +433,12 @@
       .colorboxPicker.colorboxPicker-green div:first-child:hover {
          background-color: #264223; }
       .colorboxPicker.colorboxPicker-green.header {
+         max-height: 25px;
          background-color: #264223; }
       .colorboxPicker.colorboxPicker-green.header span {
-         padding-top: 5px;
-         font-size: 10px;
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
          }
          
       .colorboxPicker.colorboxPicker-greener {
@@ -435,11 +459,13 @@
          border: 1px solid #34572e;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-greener.header {
+         max-height: 25px;
          background-color: #34572e; }
       .colorboxPicker.colorboxPicker-greener.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
 
       .colorboxPicker.colorboxPicker-ochre {
          background-color: #84794a; }
@@ -461,11 +487,13 @@
          border: 1px solid #423c23;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-ochre.header {
+         max-height: 25px;
          background-color: #423c23; }
       .colorboxPicker.colorboxPicker-ochre.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
 
       .colorboxPicker.colorboxPicker-blue {
          background-color: #4a5a84; }
@@ -487,11 +515,13 @@
          border: 1px solid #232b42;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-blue.header {
+         max-height: 25px;
          background-color: #232b42; }
       .colorboxPicker.colorboxPicker-blue.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
       
       .colorboxPicker.colorboxPicker-purple {
          background-color: #5d4a84; }
@@ -513,11 +543,13 @@
          border: 1px solid #2e2342;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-purple.header {
+         max-height: 25px;
          background-color: #2e2342; }
       .colorboxPicker.colorboxPicker-purple.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
 
       .colorboxPicker.colorboxPicker-slate {
          background-color: #4a7184; }
@@ -539,11 +571,13 @@
          border: 1px solid #233842;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-slate.header {
+         max-height: 25px;
          background-color: #233842; }
       .colorboxPicker.colorboxPicker-slate.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
 
       .colorboxPicker.colorboxPicker-olive {
          background-color: #70844a; }
@@ -565,11 +599,13 @@
          border: 1px solid #374223;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-olive.header {
+         max-height: 25px;
          background-color: #374223; }
       .colorboxPicker.colorboxPicker-olive.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }  
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }  
 
       .colorboxPicker.colorboxPicker-rose {
          background-color: #844a5c; }
@@ -591,11 +627,13 @@
          border: 1px solid #42232c;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-rose.header {
+         max-height: 25px;
          background-color: #42232c; }
       .colorboxPicker.colorboxPicker-rose.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
 
       .colorboxPicker.colorboxPicker-teal {
          background-color: #4a847a; }
@@ -617,11 +655,14 @@
          border: 1px solid #23423c;
          border-radius: 0px }
       .colorboxPicker.colorboxPicker-teal.header {
-         background-color: #23423c; }
+         max-height: 25px;
+         background-color: #23423c; 
+      }
       .colorboxPicker.colorboxPicker-teal.header span {
-         padding-top: 5px;
-         font-size: 10px;
-         }
+         margin: 2px 0px 2px 0px;
+         vertical-align: center;
+         font-size: 12px;
+      }
          
 .dashboard .task-list {
   overflow: hidden; }

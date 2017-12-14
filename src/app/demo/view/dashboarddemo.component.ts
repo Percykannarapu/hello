@@ -71,30 +71,31 @@ export class DashboardDemoComponent implements OnInit {
 
       // Load models
       this.metricMapGreen = new Map([
-         ['#Sites', '5'],
-         ['# of Competitors', '2'],
-         ['# of Markets', '1']
+         ['#Sites', '25'],
+         ['# of Competitors', '15'],
+         ['# of Markets', '3']
       ]);
 
       this.metricMapBlue = new Map([
-         ['Household Count', '1200'],
-         ['IP Address Count', '10000'],
-         ['Total Investment', '$1500.00'],
-         ['Progress to Budget', '100%']
+         ['Household Count', '115,012'],
+         ['IP Address Count', '118,789'],
+         ['Total Investment', '$7,476'],
+         ['Progress to Budget', '83%']
       ]);
 
       this.metricMapPurple = new Map([
-         ['Consumer Profile', '42'],
-         ['Comparison to previous buy', '1'],
-         ['DBM metrics', '18%']
+         ['Median Household Income', '$50,678'],
+         ['Households with Children', '67%'],
+         ['Valassis Apio Index', '121'],
+         ['Sporting Good TAP Index', '108'],
+         ['Average Sales per HH', '115']
       ]);
 
       this.metricMapTeal = new Map([
-         ['Predicted Response', '75%'],
-         ['Estimated Top Line Sales Generation', '$42,000'],
-         ['Predicted ROI $', '$100.00'],
-         ['Predicted ROI %', '2%'],
-         ['Targeting Score (Index)', '100']
+         ['Predicted Response', '0.25%'],
+         ['Estimated Top Line Sales Generation', '$15,000'],
+         ['Predicted ROI $', '$1,524 (20%)'],
+         ['Targeting Index', '130']
       ]);
 
       this.fakeItems = [
