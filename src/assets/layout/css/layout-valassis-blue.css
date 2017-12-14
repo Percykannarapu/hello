@@ -376,8 +376,10 @@
          display: inline-block;
          width: 100%;
          margin: 4px 0 10px 0;
+         text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
          color: #ffffff; }
       .colorboxPicker .colorboxPicker-count {
+         text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
          color: #ffffff;
          font-size: 36px; }
       .colorboxPicker .colorboxPicker-count {
