@@ -47,7 +47,8 @@ export class MapService {
             Locate,
             Compass,
             Expand,
-            BasemapGallery
+            BasemapGallery,
+            Print
         ] = await loader.loadModules(['esri/views/MapView',
             'esri/widgets/Home',
             'esri/widgets/Search',
@@ -57,7 +58,8 @@ export class MapService {
             'esri/widgets/Locate',
             'esri/widgets/Compass',
             'esri/widgets/Expand',
-            'esri/widgets/BasemapGallery'
+            'esri/widgets/BasemapGallery',
+            'esri/widgets/Print'
         ]);
         const opts: __esri.MapViewProperties = {
             container: element,
@@ -119,13 +121,11 @@ export class MapService {
             container: document.createElement('div')
         });
 
-
         // Create an instance of the Scalebar widget
         const scaleBar = new ScaleBar({
             view: mapView,
             unit: 'dual' // The scale bar displays both metric and non-metric units.
         });
-
 
         // Create an instance of the BasemapGallery widget
         const basemapGallery = new BasemapGallery({
@@ -133,6 +133,12 @@ export class MapService {
             container: document.createElement('div')
         });
 
+        // Create an instance of the BasemapGallery widget
+        const print = new Print({
+            view: mapView,
+            printServiceUrl: "https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+            container: document.createElement('div')
+        });
         // Create an Expand instance and set the content
         // property to the DOM node of the basemap gallery widget
         // Use an Esri icon font to represent the content inside
@@ -156,6 +162,12 @@ export class MapService {
             expandTooltip: 'Expand Legend',
         });
 
+        const printExpand = new Expand({
+            view: mapView,
+            content: print.container,
+            expandIconClass: 'esri-icon-printer',
+            expandTooltip: 'Print',
+        });
 
         // Add widgets to the viewUI
         mapView.ui.add(search, 'top-right');
@@ -166,6 +178,7 @@ export class MapService {
         mapView.ui.add(home, 'top-left');
         mapView.ui.add(locate, 'top-left');
         mapView.ui.add(scaleBar, 'bottom-left');
+        mapView.ui.add(printExpand, 'top-right');
 
         MapService.mapView = mapView;
         return { val: mapView };
