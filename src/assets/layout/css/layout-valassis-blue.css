@@ -342,6 +342,7 @@
       padding: 0 !important;
       text-align: center;
       overflow: hidden;
+     /* border: 1px solid black; -- Happy accident that outlined everything in colorbox black */
       margin-bottom: 0px !important; 
       -moz-border-radius: 0px;
       -webkit-border-radius: 0px;
@@ -389,84 +390,132 @@
       }
 
       .colorboxPicker.colorboxPicker-green {
-         background-color: #659e5b; }
-      .colorboxPicker.colorboxPicker-green div:hover{
-         background-color: #55854d; }       
-      .colorboxPicker.colorboxPicker-green div:first-child {
-         background-color: #436f3b; }
+         background-color: #50844a; }
       .colorboxPicker.spinner.colorboxPicker-green div {
-         background-color: #659e5b; }
-      .colorboxPicker.colorboxPicker-green div:first-child:hover {
-         background-color: #34572e; }
+         background-color: #50844a; }
+      .colorboxPicker.spinner.colorboxPicker-green div:first-child {
+         background-color: #50844a; }
+      .colorboxPicker.colorboxPicker-green div:hover {
+         background-color: #406b3b; }
       .colorboxPicker.spinner.colorboxPicker-green div:hover {
-         background-color: #34572e; }
+         background-color: #365c31; }
+      .colorboxPicker-green .ui-overlaypanel-content {
+         background: #365c31}
+      .colorboxPicker.colorboxPicker-green div:first-child {
+         background-color: #365c31; }
+      .colorboxPicker-green .ui-overlaypanel	{
+         border: 1px solid #264223;
+         border-radius: 0px }
+      .colorboxPicker.colorboxPicker-green div:first-child:hover {
+         background-color: #264223; }
       .colorboxPicker.colorboxPicker-green.header {
-            font-size: 10px;
-            background-color: #34572e; }
+         background-color: #264223; }
       .colorboxPicker.colorboxPicker-green.header span {
-            padding-top: 5px;
-            font-size: 10px;
-          }
-
-          .colorboxPicker.colorboxPicker-ochre {
-            background-color: #84794a; }
-         .colorboxPicker.spinner.colorboxPicker-ochre div {
-            background-color: #84794a; }
-         .colorboxPicker.spinner.colorboxPicker-ochre div:first-child {
-            background-color: #84794a; }
-         .colorboxPicker.colorboxPicker-ochre div:hover {
-            background-color: #6b623b; }
-         .colorboxPicker.spinner.colorboxPicker-ochre div:hover {
-            background-color: #6b623b; }
-         .colorboxPicker.colorboxPicker-ochre div:first-child {
-            background-color: #5c5331; }
-         .colorboxPicker.colorboxPicker-ochre div:first-child:hover {
-            background-color: #423c23; }
-         .colorboxPicker.colorboxPicker-ochre.header {
-            background-color: #423c23; }
-         .colorboxPicker.colorboxPicker-ochre.header span {
-            padding-top: 5px;
-            font-size: 10px;
-            }
-   
-
-      .colorboxPicker.colorboxPicker-blue {
-         background-color: #5ca4d7; }
-      .colorboxPicker.colorboxPicker-blue div:hover {
-         background-color: #5190bd; }
-      .colorboxPicker.colorboxPicker-blue div:first-child {
-         background-color: #4275a5; }
-      .colorboxPicker.spinner.colorboxPicker-blue div {
-         background-color: #5ca4d7; }            
-      .colorboxPicker.colorboxPicker-blue div:first-child:hover {
-         background-color: #38648c; }
-      .colorboxPicker.spinner.colorboxPicker-blue div:hover {
-         background-color: #38648c; }
-      .colorboxPicker.colorboxPicker-blue.header {
-         background-color: #38648c; }
-      .colorboxPicker.colorboxPicker-blue.header span {
          padding-top: 5px;
          font-size: 10px;
          }
          
+      .colorboxPicker.colorboxPicker-greener {
+         background-color: #659e5b; }
+      .colorboxPicker.spinner.colorboxPicker-greener div {
+         background-color: #659e5b; }
+      .colorboxPicker.spinner.colorboxPicker-greener div:first-child {
+         background-color: #659e5b; }
+      .colorboxPicker.colorboxPicker-greener div:hover{
+         background-color: #55854d; }       
+      .colorboxPicker-greener .ui-overlaypanel-content {
+         background: #436f3b }
+      .colorboxPicker.colorboxPicker-greener div:first-child {
+         background-color: #436f3b; }
+      .colorboxPicker.colorboxPicker-greener div:first-child:hover {
+         background-color: #34572e; }
+      .colorboxPicker-greener .ui-overlaypanel	{
+         border: 1px solid #34572e;
+         border-radius: 0px }
+      .colorboxPicker.colorboxPicker-greener.header {
+         background-color: #34572e; }
+      .colorboxPicker.colorboxPicker-greener.header span {
+         padding-top: 5px;
+         font-size: 10px;
+         }
+
+      .colorboxPicker.colorboxPicker-ochre {
+         background-color: #84794a; }
+      .colorboxPicker.spinner.colorboxPicker-ochre div {
+         background-color: #84794a; }
+      .colorboxPicker.spinner.colorboxPicker-ochre div:first-child {
+         background-color: #84794a; }
+      .colorboxPicker.colorboxPicker-ochre div:hover {
+         background-color: #6b623b; }
+      .colorboxPicker.spinner.colorboxPicker-ochre div:hover {
+         background-color: #6b623b; }
+      .colorboxPicker-ochre .ui-overlaypanel-content {
+         background: #5c5331 }
+      .colorboxPicker.colorboxPicker-ochre div:first-child {
+         background-color: #5c5331; }
+      .colorboxPicker.colorboxPicker-ochre div:first-child:hover {
+         background-color: #423c23; }
+      .colorboxPicker-ochre .ui-overlaypanel	{
+         border: 1px solid #423c23;
+         border-radius: 0px }
+      .colorboxPicker.colorboxPicker-ochre.header {
+         background-color: #423c23; }
+      .colorboxPicker.colorboxPicker-ochre.header span {
+         padding-top: 5px;
+         font-size: 10px;
+         }
+
+      .colorboxPicker.colorboxPicker-blue {
+         background-color: #4a5a84; }
+      .colorboxPicker.spinner.colorboxPicker-blue div {
+         background-color: #4a5a84; }
+      .colorboxPicker.spinner.colorboxPicker-blue div:first-child {
+         background-color: #4a5a84; }
+      .colorboxPicker.colorboxPicker-blue div:hover {
+         background-color: #3b486b; }
+      .colorboxPicker.spinner.colorboxPicker-blue div:hover {
+         background-color: #313e5c; }
+      .colorboxPicker-blue .ui-overlaypanel-content {
+         background: #313e5c }            
+      .colorboxPicker.colorboxPicker-blue div:first-child {
+         background-color: #313e5c; }
+      .colorboxPicker.colorboxPicker-blue div:first-child:hover {
+         background-color: #232b42; }
+      .colorboxPicker-blue .ui-overlaypanel	{
+         border: 1px solid #232b42;
+         border-radius: 0px }
+      .colorboxPicker.colorboxPicker-blue.header {
+         background-color: #232b42; }
+      .colorboxPicker.colorboxPicker-blue.header span {
+         padding-top: 5px;
+         font-size: 10px;
+         }
+      
       .colorboxPicker.colorboxPicker-purple {
-         background-color: #6c50a4; }
-      .colorboxPicker.colorboxPicker-purple div:hover{
-         background-color: #5b438a; }
-      .colorboxPicker.colorboxPicker-purple div:first-child {
-         background-color: #503d8e; }
+         background-color: #5d4a84; }
       .colorboxPicker.spinner.colorboxPicker-purple div {
-         background-color: #6c50a4; }
-      .colorboxPicker.colorboxPicker-purple div:first-child:hover {
-         background-color: #423275; }
+         background-color: #5d4a84; }
+      .colorboxPicker.spinner.colorboxPicker-purple div:first-child {
+         background-color: #5d4a84; }
+      .colorboxPicker.colorboxPicker-purple div:hover {
+         background-color: #4b3b6b; }
       .colorboxPicker.spinner.colorboxPicker-purple div:hover {
-         background-color: #423275; }
+         background-color: #3e315c; }
+      .colorboxPicker-purple .ui-overlaypanel-content {
+         background: #3e315c }            
+      .colorboxPicker.colorboxPicker-purple div:first-child {
+         background-color: #3e315c; }
+      .colorboxPicker.colorboxPicker-purple div:first-child:hover {
+         background-color: #2e2342; }
+      .colorboxPicker-purple .ui-overlaypanel	{
+         border: 1px solid #2e2342;
+         border-radius: 0px }
       .colorboxPicker.colorboxPicker-purple.header {
-         background-color: #423275; }
+         background-color: #2e2342; }
       .colorboxPicker.colorboxPicker-purple.header span {
          padding-top: 5px;
          font-size: 10px;
-      }
+         }
 
       .colorboxPicker.colorboxPicker-slate {
          background-color: #4a7184; }
@@ -478,10 +527,15 @@
          background-color: #3b5b6b; }
       .colorboxPicker.spinner.colorboxPicker-slate div:hover {
          background-color: #3b5b6b; }
+      .colorboxPicker-slate .ui-overlaypanel-content {
+         background: #314f5c }            
       .colorboxPicker.colorboxPicker-slate div:first-child {
          background-color: #314f5c; }
       .colorboxPicker.colorboxPicker-slate div:first-child:hover {
          background-color: #233842; }
+      .colorboxPicker-slate .ui-overlaypanel	{
+         border: 1px solid #233842;
+         border-radius: 0px }
       .colorboxPicker.colorboxPicker-slate.header {
          background-color: #233842; }
       .colorboxPicker.colorboxPicker-slate.header span {
@@ -499,10 +553,15 @@
          background-color: #5a6b3b; }
       .colorboxPicker.spinner.colorboxPicker-olive div:hover {
          background-color: #5a6b3b; }
+      .colorboxPicker-olive .ui-overlaypanel-content {
+         background: #4e5c31 }            
       .colorboxPicker.colorboxPicker-olive div:first-child {
          background-color: #4e5c31; }
       .colorboxPicker.colorboxPicker-olive div:first-child:hover {
          background-color: #374223; }
+      .colorboxPicker-olive .ui-overlaypanel	{
+         border: 1px solid #374223;
+         border-radius: 0px }
       .colorboxPicker.colorboxPicker-olive.header {
          background-color: #374223; }
       .colorboxPicker.colorboxPicker-olive.header span {
@@ -520,10 +579,15 @@
          background-color: #6b3b49; }
       .colorboxPicker.spinner.colorboxPicker-rose div:hover {
          background-color: #6b3b49; }
+      .colorboxPicker-rose .ui-overlaypanel-content {
+         background: #5c313f }            
       .colorboxPicker.colorboxPicker-rose div:first-child {
          background-color: #5c313f; }
       .colorboxPicker.colorboxPicker-rose div:first-child:hover {
          background-color: #42232c; }
+      .colorboxPicker-rose .ui-overlaypanel	{
+         border: 1px solid #42232c;
+         border-radius: 0px }
       .colorboxPicker.colorboxPicker-rose.header {
          background-color: #42232c; }
       .colorboxPicker.colorboxPicker-rose.header span {
@@ -532,24 +596,30 @@
          }
 
       .colorboxPicker.colorboxPicker-teal {
-      background-color: #40847a; }
-      .colorboxPicker.colorboxPicker-teal div:hover{
-         background-color: #336b63; }
-      .colorboxPicker.colorboxPicker-teal div:first-child {
-         background-color: #2a5c53; }
+         background-color: #4a847a; }
       .colorboxPicker.spinner.colorboxPicker-teal div {
-         background-color: #40847a; }
-      .colorboxPicker.colorboxPicker-teal div:first-child:hover {
-         background-color: #1e423c; }
+         background-color: #4a847a; }
+      .colorboxPicker.spinner.colorboxPicker-teal div:first-child {
+         background-color: #4a847a; }
+      .colorboxPicker.colorboxPicker-teal div:hover {
+         background-color: #3b6b63; }
       .colorboxPicker.spinner.colorboxPicker-teal div:hover {
-         background-color: #1e423c; }
+         background-color: #3b6b63; }
+      .colorboxPicker-teal .ui-overlaypanel-content {
+         background: #315c53 }            
+      .colorboxPicker.colorboxPicker-teal div:first-child {
+         background-color: #315c53; }
+      .colorboxPicker.colorboxPicker-teal div:first-child:hover {
+         background-color: #23423c; }
+      .colorboxPicker-teal .ui-overlaypanel	{
+         border: 1px solid #23423c;
+         border-radius: 0px }
       .colorboxPicker.colorboxPicker-teal.header {
-         background-color: #1e423c; }
+         background-color: #23423c; }
       .colorboxPicker.colorboxPicker-teal.header span {
          padding-top: 5px;
          font-size: 10px;
          }
-         
          
 .dashboard .task-list {
   overflow: hidden; }
