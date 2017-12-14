@@ -32,6 +32,7 @@ export class GeocoderComponent implements OnInit {
   public CSVMessage: string;
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
+  public displayGcSpinner: boolean = false;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -50,7 +51,7 @@ export class GeocoderComponent implements OnInit {
   async geocodeAddress() {
     console.log('Geocoding request received in GeocoderComponent for: ' + this.street + ' ' + this.city + ' ' + this.state + ' ' + this.zip);
     const loader = EsriLoaderWrapperService.esriLoader;
-    const [PopupTemplate, Graphic,Point] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic','esri/geometry/Point']);
+    const [PopupTemplate, Graphic, Point] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic', 'esri/geometry/Point']);
     const accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
@@ -98,10 +99,10 @@ export class GeocoderComponent implements OnInit {
         latitude: this.geocodingResponse.latitude,
         longitude: this.geocodingResponse.longitude
       };
-      let p = new Point(pointProps);
+      const p = new Point(pointProps);
       this.mapView = this.mapService.getMapView();
       this.mapView.center = p;
-      this.mapView.zoom =7;
+      this.mapView.zoom = 7;
     });
 
   }
@@ -122,6 +123,7 @@ export class GeocoderComponent implements OnInit {
 
   async geocodeCSV(event) {
     console.log('fired geocodeCSV()');
+    this.displayGcSpinner = true;
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
@@ -147,5 +149,6 @@ export class GeocoderComponent implements OnInit {
         }
       }
     };
+    this.displayGcSpinner = false;
   }
 }

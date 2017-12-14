@@ -1,28 +1,29 @@
 <!-- div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form" -->
-<div class="ui-g">
-    <p-panel header="Geocoder">
+
+<div class="ui-g" style="width: 50%;">
+    <p-panel header="Enter site manually or upload CSV">
         <div class="ui-g">
             <div class="ui-g-12">
                 <span class="md-inputfield">
-                    <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
+                    <input [(ngModel)]="street" name="_street" pInputText id="streetInput" style="width: 100%;">
                     <label for="streetInput">Street</label>
                 </span>
             </div>
             <div class="ui-g-12">
                 <span class="md-inputfield">
-                    <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
+                    <input [(ngModel)]="city" name="_city" pInputText id="cityInput" style="width: 100%;">
                     <label for="cityInput">City</label>
                 </span>
             </div>
             <div class="ui-g-12">
                 <span class="md-inputfield">
-                    <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
+                    <input [(ngModel)]="state" name="_state" pInputText id="stateInput" style="width: 100%;">
                     <label for="stateInput">State</label>
                 </span>
             </div>
             <div class="ui-g-12">
                 <span class="md-inputfield">
-                    <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
+                    <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput" style="width: 100%;">
                     <label for="stateInput">Zip</label>
                 </span>
             </div>
@@ -41,7 +42,8 @@
             </div>
         </div>
     </p-panel>
-    <!--
+</div>
+<!--
           <br>
             <p-panel header="Geocode CSV File">
               <label for="fileUpload" class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text">
@@ -52,7 +54,7 @@
           <br>
               <button (click)="loadGeocode()" pButton label="Mock Geofootprint"></button>-->
 
-</div>
+
 
 <!-- div>
     <p-panel header="Geocode Single Address">
@@ -84,5 +86,17 @@
       <br> {{ycoord}}
     </p-panel>
   </div-->
+
+<!-- Modal window for GP spinner -->
+<div class="ui-g ui-fluid">
+    <p-dialog [closable]="false" header="Geocoding Operation Running" [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
+        width="300">
+        <div class="ui-g-3"></div>
+        <div class="ui-g-5">
+            <p-progressSpinner></p-progressSpinner>
+        </div>
+        <div class="ui-g-4"></div>
+    </p-dialog>
+</div>
 
 <p-growl [(value)]="geocodingErrors"></p-growl>
