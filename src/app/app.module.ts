@@ -130,6 +130,7 @@ import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.c
 import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
 import {MessageService} from './val-modules/common/services/message.service';
+import {MessageComponent} from './val-modules/common/components/message.component';
 
 @NgModule({
     imports: [
@@ -232,7 +233,7 @@ import {MessageService} from './val-modules/common/services/message.service';
         MenusDemoComponent,
         PocComponent,
         ParkedComponent,
-//        MessageComponent,
+        MessageComponent,
         MessagesDemoComponent,
         MiscDemoComponent,
         ChartsDemoComponent,

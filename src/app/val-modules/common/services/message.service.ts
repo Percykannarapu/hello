@@ -5,12 +5,6 @@ import {Observable} from 'rxjs/Observable';
 import {Message} from '../models/Message';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-// export interface Message {
-//    id: number | string;
-//    createdAt: number;
-//    value: string;
-//  }
-
 @Injectable()
 export class MessageService
 {
@@ -19,7 +13,7 @@ export class MessageService
    private _messages: BehaviorSubject<Message[]>;
    private baseUrl: string;
    private dataStore: { messages: Message[] };
-
+/*
    constructor(private http: HttpClient)
    {
       this.baseUrl   = 'https://56e05c3213da80110013eba3.mockapi.io/api';
@@ -86,5 +80,5 @@ export class MessageService
 
       this._messages.next(Object.assign({}, this.dataStore).messages);
       }, error => console.log('Could not delete todo.'));
-   }
+   }*/
 }

@@ -9,7 +9,7 @@ import {MessageService } from '../services/message.service';
   selector: 'val-message-component',
   template: `
     <div>
-      <form [formGroup]="messageForm" (submit)="onSubmit()">
+<!--      <form [formGroup]="messageForm" (submit)="onSubmit()">
          <button>Add Message</button><br />
       </form>
       
@@ -19,7 +19,7 @@ import {MessageService } from '../services/message.service';
       
       <div *ngFor="let message of messages | async">
         {{ message.value }} <button (click)="deleteMessage(message.id)">x</button>
-      </div>
+      </div>-->
     </div>
   `
 })
@@ -27,31 +27,32 @@ export class MessageComponent implements OnInit
 {
   messages: Observable<Message[]>;
   singleMessage$: Observable<Message>;
-  
+  messageForm: FormBuilder;
+ /* 
   constructor(
     private messageService: MessageService, 
-    private formBuilder: FormBuilder) {
+    private formBuilder: any) {
       
     this.messageForm = this.formBuilder.group({
-      'todo': ['', Validators.required]
+      'message': ['', Validators.required]
     });
-  }
+  }*/
   
   ngOnInit() {
-    this.messages = this.messageService.messages;
+ /*   this.messages = this.messageService.messages;
     this.singleMessage$ = this.messageService.messages.pipe(
-      map(todos => messages.find(item => item.id === '1'))
+      map(messages => messages.find(item => item.id === '1'))
     );
     
     this.messageService.loadAll();
-    this.messageService.load('1');
+    this.messageService.load('1');*/
   }
-  
+ /* 
   onSubmit() {
-    this.messageService.create({ value: this.messageForm.controls.message.value });
+    //this.messageService.create({ value: this.messageForm.control. .controls.message.value });
   }
   
-  deleteTodo(todoId: number) {
-    this.todoService.remove(todoId);
-  }
+  deleteTodo(messageId: number) {
+    this.messageService.remove(messageId);
+  }*/
 }

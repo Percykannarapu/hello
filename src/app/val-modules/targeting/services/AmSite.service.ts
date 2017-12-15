@@ -30,7 +30,7 @@ export class AmSiteService extends InMemoryStubService
    }
 
    private log(message: string) {
-      this.messageService.add({severity: 'success', summary: 'AmSiteService: ' + message, detail: 'Via MessageService'});
+//      this.messageService.add({severity: 'success', summary: 'AmSiteService: ' + message, detail: 'Via MessageService'});
    }  
 
    public getAmSites() : Observable<AmSite[]> {
