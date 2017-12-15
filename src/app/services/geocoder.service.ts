@@ -5,7 +5,7 @@ import { AccountLocation } from '../Models/AccountLocation';
 import { GeocodingResponse } from '../Models/GeocodingResponse';
 import { GeofootprintMaster } from '../Models/GeofootprintMaster';
 
-import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/map';
 
 @Injectable()
 export class GeocoderService {
@@ -20,18 +20,18 @@ export class GeocoderService {
   }
 
   geocode(accountLocation: AccountLocation){
-    console.log("fired geocode() in GeocoderService");
+    console.log('fired geocode() in GeocoderService');
     /*this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).subscribe((response) => {
       console.log("Received response from remote geocoding service: " + response);
     });*/
-    return this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).map(res => res.json() as RestResponse);
+    return this.http.post('http://vallomjbs002vm/services/v1/geocoder/singlesite', accountLocation).map(res => res.json() as RestResponse);
   }
   
-  saveGeofootprintMaster(geofootprintMaster : GeofootprintMaster){
+  saveGeofootprintMaster(geofootprintMaster: GeofootprintMaster){
     //JSON mapper = new JSON();
-    console.log("fired saveGeofootprintMaster in GeocoderService "+JSON.stringify(geofootprintMaster,null,4));
+    console.log('fired saveGeofootprintMaster in GeocoderService ' + JSON.stringify(geofootprintMaster, null, 4));
      
-    return this.http.post("http://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save", geofootprintMaster).map(res => res.json() as RestResponse);
+    return this.http.post('http://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster).map(res => res.json() as RestResponse);
   }
 
 }

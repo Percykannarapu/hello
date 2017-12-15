@@ -11,6 +11,10 @@ import { GeofootprintTaName } from '../../Models/GeofootprintTaName';
 import { GeofootprintTradeArea } from '../../Models/GeofootprintTradeArea';
 import { GeofootprintVar } from '../../Models/GeofootprintVar';
 import { GeofootprintGeo } from '../../Models/geofootprintGeo.model';
+import { AmSite } from '../../val-modules/targeting/models/AmSite';
+import { RestResponse } from '../../Models/RestResponse';
+import { DefaultLayers } from '../../Models/DefaultLayers';
+import 'rxjs/add/operator/toPromise';
 
 
 
@@ -40,6 +44,8 @@ export class GeocoderComponent implements OnInit {
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
 
+  private amSites: AmSite[] = new Array<AmSite>();
+
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
@@ -48,63 +54,106 @@ export class GeocoderComponent implements OnInit {
   ngOnInit() {
   }
 
-  async geocodeAddress() {
-    console.log('Geocoding request received in GeocoderComponent for: ' + this.street + ' ' + this.city + ' ' + this.state + ' ' + this.zip);
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [PopupTemplate, Graphic, Point] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic', 'esri/geometry/Point']);
+  // geocode an address
+  public async geocodeAddress(display: boolean = true) {
     const accountLocation: AccountLocation = {
       street: this.street,
       city: this.city,
       state: this.state,
       postalCode: this.zip
     };
-    const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.content = 'Street: ' + this.street + '<br>' +
-                            'City: ' + this.city + '<br>' +
-                            'State: ' + this.state + '<br>' +
-                            'Zip: ' + this.zip + '<br>';
-
-    console.log('Calling GeocoderService');
     const observable = this.geocoderService.geocode(accountLocation);
-    await observable.subscribe(async (res) => {
-      this.disableshowBusiness = false;
-      this.geocodingResponse = res.payload;
-      console.log('In GeocoderComponent got back GeocodingResponse: ' + JSON.stringify(this.geocodingResponse, null, 4));
-      if (this.geocodingResponse.locationQualityCode === 'E') {
-        const growlMessage: Message = {
-          summary: 'Failed to geocode your address',
-          severity: 'error',
-          detail: JSON.stringify(accountLocation, null, 4)
-        };
-        this.geocodingErrors[0] = growlMessage;
-        return;
-      }
-      // giving color to our point on the map
-      const color = {
-        a: 1,
-        r: 35,
-        g: 93,
-        b: 186
-      };
-      this.xcoord = String(this.geocodingResponse.latitude);
-      this.ycoord = String(this.geocodingResponse.longitude);
-      // this.mapService.plotMarker(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate);
-      await this.mapService.createGraphic(this.geocodingResponse.latitude, this.geocodingResponse.longitude, color, popupTemplate)
-        .then(async graphic => {
-        graphics.push(graphic);
-      });
-      this.mapService.updateFeatureLayer(graphics, 'Sites');
-      const pointProps: __esri.PointProperties = {
-        latitude: this.geocodingResponse.latitude,
-        longitude: this.geocodingResponse.longitude
-      };
-      const p = new Point(pointProps);
-      this.mapView = this.mapService.getMapView();
-      this.mapView.center = p;
-      this.mapView.zoom = 7;
-    });
+    
+    // running this through the observable isn't working out the way I want it to
+    observable.subscribe(res => this.parseResponse(res, display), err => this.handleError(err), null);
+    
+    // converting to a promise makes this run super, super slow. Need to figure out why
+    /*await observable.toPromise()
+      .then(res => this.parseResponse(res))
+      .catch(err => this.handleError(err));
+    if (display) {
+      this.addSitesToMap();
+    }*/
+  }
 
+  private async addSitesToMap() {
+    try {
+      const loader = EsriLoaderWrapperService.esriLoader;
+      const [Graphic] = await loader.loadModules(['esri/Graphic']);
+      const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+      for (const amSite of this.amSites) {
+        await this.createPopup(amSite)
+          .then(res => this.createGraphic(amSite, res))
+          .then(res => { graphics.push(res); });
+      }
+      await this.updateLayer(graphics);
+      this.amSites = new Array<AmSite>();
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
+  private parseResponse(restResponse: RestResponse, display?: boolean) {
+    const amSite: AmSite = new AmSite();
+    const geocodingResponse: GeocodingResponse = restResponse.payload;
+    amSite.ycoord = geocodingResponse.latitude;
+    amSite.xcoord = geocodingResponse.longitude;
+    amSite.address = geocodingResponse.addressline;
+    amSite.city = geocodingResponse.city;
+    amSite.state = geocodingResponse.state;
+    amSite.zip = geocodingResponse.zip10;
+    this.amSites.push(amSite);
+    if (display) {
+      this.addSitesToMap();
+    }
+  }
+
+  // create a PopupTemplate for the site that will be displayed on the map
+  private async createPopup(amSite: AmSite) : Promise<__esri.PopupTemplate> {
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
+    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    popupTemplate.content = 'Street: ' + amSite.address + '<br>' +
+      'City: ' + amSite.city + '<br>' +
+      'State: ' + amSite.state + '<br>' +
+      'Zip: ' + amSite.zip + '<br>';
+    return popupTemplate;
+  }
+
+  // create a Grahpic object for the site that will be displayed on the map
+  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [Graphic] = await loader.loadModules(['esri/Graphic']);
+    let graphic: __esri.Graphic = new Graphic();
+    
+    // give our site a blue color
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+    };
+
+    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate)
+      .then(res => {
+        graphic = res;
+      });
+    return graphic;
+  }
+
+  private async updateLayer(graphics: __esri.Graphic[]) {
+    this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+  }
+
+  private async handleError(error: Error) {
+    const growlMessage: Message = {
+      summary: 'Failed to geocode your address',
+      severity: 'error',
+      detail: JSON.stringify(error.message, null, 4)
+    };
+    this.geocodingErrors.push(growlMessage);
+    return;
   }
 
   loadVPW() {
@@ -114,21 +163,12 @@ export class GeocoderComponent implements OnInit {
     this.zip = 48152;
   }
 
-
-
-  showCSVMessage() {
-    console.log('fired message');
-    this.CSVMessage = 'Yeah, I wish this worked too';
-  }
-
   async geocodeCSV(event) {
-    console.log('fired geocodeCSV()');
     this.displayGcSpinner = true;
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
     reader.onload = async (data) => {
-      console.log('read file data');
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
       const headers = csvRecords[0].split(',');
