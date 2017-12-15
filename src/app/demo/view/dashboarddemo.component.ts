@@ -163,7 +163,7 @@ export class DashboardDemoComponent implements OnInit {
          console.log('messageService not injected');
       else
          console.log('messageService was injected');
-      this.messageService.add({severity: 'success', summary: 'Service Message', detail: 'Via MessageService'});
+//      this.messageService.add({severity: 'success', summary: 'Service Message', detail: 'Via MessageService'});
       console.log(this.messageService);
       this.msgs.push({severity: 'success', summary: 'Info Message', detail: 'You have received a message from the message fairy.'});
    }      

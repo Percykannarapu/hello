@@ -405,6 +405,7 @@ export class MapService {
         var graphicList : __esri.Graphic [] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList , title);
+        await this.zoomOnMap(graphicList);
         return { val: MapService.mapView };
     }
 
@@ -458,6 +459,8 @@ export class MapService {
             });
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
             await this.updateFeatureLayer(graphicList , title);
+            console.log('draw buffer--------->'+graphicList.length);
+            await this.zoomOnMap(graphicList);
         return { val: MapService.mapView };
     }
 
@@ -469,7 +472,8 @@ export class MapService {
         }
         MapService.layerNames.add(layerName);
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, Renderer] = await loader.loadModules(['esri/layers/FeatureLayer', 'esri/renderers/Renderer']);
+        const [FeatureLayer, Renderer,Polygon] = await loader.loadModules(['esri/layers/FeatureLayer', 
+        'esri/renderers/Renderer','esri/geometry/Polygon']);
         const featureRenderer = { type: 'simple' };
 
         const lyr = new FeatureLayer({
@@ -508,10 +512,16 @@ export class MapService {
         MapService.mapView.map.add(lyr);
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
+
+       // MapService.mapView.zoom = 7;
+        console.log('Test zoom:::');
+       // this.zoomOnMap(graphics);
+       this.zoomOnMap(graphics);
     }
 
     public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
         console.log('fired updateFeatureList() in MapService');
+
 
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
@@ -534,12 +544,13 @@ export class MapService {
                 layerUpdated = true;
             }
         });
-        console.log("test update:"+layerUpdated);
         if (!layerUpdated) {
             console.log('FeatureLayer requested for update does not exist, creating');
             await this.createFeatureLayer(graphics, layerTitle);
             return;
         }
+
+       // await this.zoomOnMap(graphics);
     }
 
     public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
@@ -588,6 +599,64 @@ export class MapService {
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
         return graphic;
+    }
+
+    public async zoomOnMap(graphics: __esri.Graphic[]){
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [SimpleMarkerSymbol, Point, Graphic, Color,Extent] = await loader.loadModules([
+            'esri/symbols/SimpleMarkerSymbol',
+            'esri/geometry/Point',
+            'esri/Graphic',
+            'esri/Color',
+            'esri/geometry/Extent'
+        ]);
+        console.log('loading done');
+        var lyr : __esri.FeatureLayer;
+        MapService.layers.forEach(layer => {
+            lyr = <__esri.FeatureLayer>layer;
+        });
+        console.log('title of layer:::'+lyr.title);
+
+        var p : __esri.Point = new Point();
+        var pList : __esri.Point[] = [];
+        var latList : number[] = [];
+        var lonList : number[] = [];
+        var graphicList1 : __esri.Graphic[] = [];
+
+      await  graphics.forEach(function(current : any){
+            //console.log('test inside current obj::'+current.geometry.latitude)
+            p.latitude  = current.geometry.latitude;
+            p.longitude = current.geometry.longitude; 
+            pList.push(p);
+            lonList.push(p.longitude);   /// this is X
+            latList.push(p.latitude) ;   /// this is y
+            graphicList1.push(current);
+        });
+        console.log("number of points on the map"+pList.length);
+        var minX = Math.min(...lonList);
+        var minY = Math.min(...latList);
+        var maxX = Math.max(...lonList);
+        var maxY = Math.max(...latList);
+
+        console.log("minX::"+minX+"::minY::"+minY+"::maxX::"+maxX+"::maxY::"+maxY);
+        var extent: __esri.Extent;// = new Extent();
+        
+        extent = new Extent({
+            xmin: minX,
+            ymin: minY,
+            xmax: maxX,
+            ymax: maxY,
+            spatialReference: {
+                wkid: 4326
+            }
+        })
+
+
+        console.log("zoom method fired:"+graphicList1.length);
+        //MapService.mapView.extent = extent;
+        MapService.mapView.extent = extent;
+       // MapService.mapView.goTo(graphicList1);
+       // MapService.mapView.zoom = 6;
     }
     
 }

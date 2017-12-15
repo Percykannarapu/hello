@@ -35,7 +35,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
 
    getAmSites()
    {
-      this.messageService.add({severity: 'success', summary: 'GetAmSites fired!', detail: 'Via MessageService'});
+//      this.messageService.add({severity: 'success', summary: 'GetAmSites fired!', detail: 'Via MessageService'});
 
       this.amSiteService.getAmSites()
           .subscribe(amSites => this.amSites = amSites);
