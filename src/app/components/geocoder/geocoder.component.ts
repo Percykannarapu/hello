@@ -150,6 +150,7 @@ export class GeocoderComponent implements OnInit {
   // draw the site graphics on the Sites layer
   private async updateLayer(graphics: __esri.Graphic[]) {
     this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+    this.mapService.zoomOnMap(graphics);
   }
 
   private async handleError(error: Error) {
