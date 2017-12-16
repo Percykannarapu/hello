@@ -15,6 +15,7 @@ import { AmSite } from '../../val-modules/targeting/models/AmSite';
 import { RestResponse } from '../../Models/RestResponse';
 import { DefaultLayers } from '../../Models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
+import { Observable } from 'rxjs/Rx';
 
 
 
@@ -74,9 +75,10 @@ export class GeocoderComponent implements OnInit {
       for (const amSite of this.amSites) {
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
-          .then(res => { graphics.push(res); });
+          .then(res => { graphics.push(res); })
+          .catch(err => this.handleError(err));
       }
-      await this.updateLayer(graphics);
+      await this.updateLayer(graphics).catch(err => this.handleError(err));
       this.amSites = new Array<AmSite>();
     } catch (error) {
       this.handleError(error);
@@ -150,7 +152,7 @@ export class GeocoderComponent implements OnInit {
     const growlMessage: Message = {
       summary: 'Failed to geocode your address',
       severity: 'error',
-      detail: JSON.stringify(error.message, null, 4)
+      detail: error.message
     };
     this.geocodingErrors.push(growlMessage);
     return;
@@ -168,10 +170,12 @@ export class GeocoderComponent implements OnInit {
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
-    reader.onload = async (data) => {
+    reader.onload = (data) => {
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
       const headers = csvRecords[0].split(',');
+
+      const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
 
       // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
@@ -181,14 +185,32 @@ export class GeocoderComponent implements OnInit {
           for (let j = 0; j < headers.length; j++) {
             csvRecord.push(data[j]);
           }
-          this.street = csvRecord[0];
-          this.city = csvRecord[1];
-          this.state = csvRecord[2];
-          this.zip = csvRecord[3];
-          await this.geocodeAddress();
+          const amSite: AmSite = new AmSite();
+          amSite.address = csvRecord[0];
+          amSite.city = csvRecord[1];
+          amSite.state = csvRecord[2];
+          amSite.zip = csvRecord[3];
+          observables.push(this.geocoderService.geocode(amSite));
         }
       }
+      Observable.forkJoin(observables).subscribe(res => this.parseCSVResults(res), err => this.handleError(err));
     };
     this.displayGcSpinner = false;
+  }
+
+  // parse the RestResponse[] that is the result of the CSV geocoding operation
+  private parseCSVResults(restResponses: RestResponse[]) {
+    for (const restResponse of restResponses) {
+      const amSite: AmSite = new AmSite();
+      const geocodingResponse: GeocodingResponse = restResponse.payload;
+      amSite.ycoord = geocodingResponse.latitude;
+      amSite.xcoord = geocodingResponse.longitude;
+      amSite.address = geocodingResponse.addressline;
+      amSite.city = geocodingResponse.city;
+      amSite.state = geocodingResponse.state;
+      amSite.zip = geocodingResponse.zip10;
+      this.amSites.push(amSite);
+    }
+    this.addSitesToMap();
   }
 }
