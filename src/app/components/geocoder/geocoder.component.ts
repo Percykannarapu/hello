@@ -54,28 +54,18 @@ export class GeocoderComponent implements OnInit {
   ngOnInit() {
   }
 
-  // geocode an address
+  // geocode an address by invoking the geocoding service
   public async geocodeAddress(display: boolean = true) {
-    const accountLocation: AccountLocation = {
-      street: this.street,
-      city: this.city,
-      state: this.state,
-      postalCode: this.zip
-    };
-    const observable = this.geocoderService.geocode(accountLocation);
-    
-    // running this through the observable isn't working out the way I want it to
+    const amSite: AmSite = new AmSite();
+    amSite.address = this.street;
+    amSite.city = this.city;
+    amSite.state = this.state;
+    amSite.zip = this.zip.toString();
+    const observable = this.geocoderService.geocode(amSite);
     observable.subscribe(res => this.parseResponse(res, display), err => this.handleError(err), null);
-    
-    // converting to a promise makes this run super, super slow. Need to figure out why
-    /*await observable.toPromise()
-      .then(res => this.parseResponse(res))
-      .catch(err => this.handleError(err));
-    if (display) {
-      this.addSitesToMap();
-    }*/
   }
 
+  // add all of the geocoded sites in this.amSites to the map
   private async addSitesToMap() {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
@@ -97,6 +87,15 @@ export class GeocoderComponent implements OnInit {
   private parseResponse(restResponse: RestResponse, display?: boolean) {
     const amSite: AmSite = new AmSite();
     const geocodingResponse: GeocodingResponse = restResponse.payload;
+    if (geocodingResponse.locationQualityCode === 'E') {
+      const error: string = 'Location Quality Code: ' + geocodingResponse.locationQualityCode + '<br>' +
+        'Address: ' + geocodingResponse.addressline + '<br>' +
+        'City: ' + geocodingResponse.city + '<br>' +
+        'Sate: ' + geocodingResponse.state + '<br>' +
+        'Zip: ' + geocodingResponse.zip10 + '<br>';
+      this.handleError(new Error(error));
+      return;
+    }
     amSite.ycoord = geocodingResponse.latitude;
     amSite.xcoord = geocodingResponse.longitude;
     amSite.address = geocodingResponse.addressline;
@@ -126,7 +125,7 @@ export class GeocoderComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
-    
+
     // give our site a blue color
     const color = {
       a: 1,
@@ -142,6 +141,7 @@ export class GeocoderComponent implements OnInit {
     return graphic;
   }
 
+  // draw the site graphics on the Sites layer
   private async updateLayer(graphics: __esri.Graphic[]) {
     this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
   }

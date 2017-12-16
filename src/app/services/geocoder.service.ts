@@ -6,6 +6,7 @@ import { GeocodingResponse } from '../Models/GeocodingResponse';
 import { GeofootprintMaster } from '../Models/GeofootprintMaster';
 
 import 'rxjs/add/operator/map';
+import { AmSite } from '../val-modules/targeting/models/AmSite';
 
 @Injectable()
 export class GeocoderService {
@@ -19,11 +20,14 @@ export class GeocoderService {
     console.log('Fired GeocoderService ctor');
   }
 
-  geocode(accountLocation: AccountLocation){
-    console.log('fired geocode() in GeocoderService');
-    /*this.http.post("http://vallomjbs002vm/services/v1/geocoder/singlesite", accountLocation).subscribe((response) => {
-      console.log("Received response from remote geocoding service: " + response);
-    });*/
+  // invoke the geocoding service in Fuse
+  geocode(amSite: AmSite){
+    const accountLocation: AccountLocation = {
+      street: amSite.address,
+      city: amSite.city,
+      state: amSite.state,
+      postalCode: Number(amSite.zip)
+    };
     return this.http.post('http://vallomjbs002vm/services/v1/geocoder/singlesite', accountLocation).map(res => res.json() as RestResponse);
   }
   
