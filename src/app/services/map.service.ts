@@ -610,7 +610,6 @@ export class MapService {
             'esri/Color',
             'esri/geometry/Extent'
         ]);
-        console.log('loading done');
         var lyr : __esri.FeatureLayer;
         MapService.layers.forEach(layer => {
             lyr = <__esri.FeatureLayer>layer;
@@ -650,10 +649,6 @@ export class MapService {
                 wkid: 4326
             }
         })
-
-
-        console.log("zoom method fired:"+graphicList1.length);
-        //MapService.mapView.extent = extent;
         MapService.mapView.extent = extent;
        // MapService.mapView.goTo(graphicList1);
        // MapService.mapView.zoom = 6;
