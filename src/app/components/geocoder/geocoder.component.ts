@@ -115,10 +115,14 @@ export class GeocoderComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.content = 'Street: ' + amSite.address + '<br>' +
+    popupTemplate.content = 'Name: ' + amSite.name + '<br>' +
+      'Number: ' + amSite.siteId + '<br>' +
+      'Street: ' + amSite.address + '<br>' +
       'City: ' + amSite.city + '<br>' +
       'State: ' + amSite.state + '<br>' +
-      'Zip: ' + amSite.zip + '<br>';
+      'Zip: ' + amSite.zip + '<br>' + 
+      'Latitude: ' + amSite.ycoord + '<br>' +
+      'Longitude: ' + amSite.xcoord + '<br>';
     return popupTemplate;
   }
 
