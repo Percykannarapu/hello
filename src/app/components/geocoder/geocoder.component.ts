@@ -45,8 +45,6 @@ export class GeocoderComponent implements OnInit {
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
 
-  private amSites: AmSite[] = new Array<AmSite>();
-
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
@@ -55,31 +53,40 @@ export class GeocoderComponent implements OnInit {
   ngOnInit() {
   }
 
-  // geocode an address by invoking the geocoding service
-  public async geocodeAddress(display: boolean = true) {
-    const amSite: AmSite = new AmSite();
-    amSite.address = this.street;
-    amSite.city = this.city;
-    amSite.state = this.state;
-    amSite.zip = this.zip.toString();
+  // collect the information entered by the user on the geocorder form and 
+  // create an AmSite, then invoke the geocoder
+  public async onGeocode() {
+    try {
+      const amSite = new AmSite();
+      amSite.address = this.street;
+      amSite.city = this.city;
+      amSite.state = this.state;
+      amSite.zip = this.zip.toString();
+      this.geocodeAddress(amSite);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  // geocode an AmSite by invoking the geocoding service
+  public async geocodeAddress(amSite: AmSite, display: boolean = true) {
     const observable = this.geocoderService.geocode(amSite);
     observable.subscribe(res => this.parseResponse(res, display), err => this.handleError(err), null);
   }
 
   // add all of the geocoded sites in this.amSites to the map
-  private async addSitesToMap() {
+  private async addSitesToMap(amSites: AmSite[]) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-      for (const amSite of this.amSites) {
+      for (const amSite of amSites) {
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
           .then(res => { graphics.push(res); })
           .catch(err => this.handleError(err));
       }
       await this.updateLayer(graphics).catch(err => this.handleError(err));
-      this.amSites = new Array<AmSite>();
     } catch (error) {
       this.handleError(error);
     }
@@ -88,6 +95,7 @@ export class GeocoderComponent implements OnInit {
   // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
   private parseResponse(restResponse: RestResponse, display?: boolean) {
     const amSite: AmSite = new AmSite();
+    const amSites: AmSite[] = new Array<AmSite>();
     const geocodingResponse: GeocodingResponse = restResponse.payload;
     if (geocodingResponse.locationQualityCode === 'E') {
       const error: string = 'Location Quality Code: ' + geocodingResponse.locationQualityCode + '<br>' +
@@ -104,14 +112,14 @@ export class GeocoderComponent implements OnInit {
     amSite.city = geocodingResponse.city;
     amSite.state = geocodingResponse.state;
     amSite.zip = geocodingResponse.zip10;
-    this.amSites.push(amSite);
+    amSites.push(amSite);
     if (display) {
-      this.addSitesToMap();
+      this.addSitesToMap(amSites);
     }
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
-  private async createPopup(amSite: AmSite) : Promise<__esri.PopupTemplate> {
+  private async createPopup(amSite: AmSite): Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
@@ -120,14 +128,14 @@ export class GeocoderComponent implements OnInit {
       'Street: ' + amSite.address + '<br>' +
       'City: ' + amSite.city + '<br>' +
       'State: ' + amSite.state + '<br>' +
-      'Zip: ' + amSite.zip + '<br>' + 
+      'Zip: ' + amSite.zip + '<br>' +
       'Latitude: ' + amSite.ycoord + '<br>' +
       'Longitude: ' + amSite.xcoord + '<br>';
     return popupTemplate;
   }
 
   // create a Grahpic object for the site that will be displayed on the map
-  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate): Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
@@ -170,7 +178,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   async geocodeCSV(event) {
-    
+
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
@@ -204,6 +212,7 @@ export class GeocoderComponent implements OnInit {
 
   // parse the RestResponse[] that is the result of the CSV geocoding operation
   private parseCSVResults(restResponses: RestResponse[]) {
+    const amSites: AmSite[] = new Array<AmSite>();
     for (const restResponse of restResponses) {
       const amSite: AmSite = new AmSite();
       const geocodingResponse: GeocodingResponse = restResponse.payload;
@@ -213,9 +222,9 @@ export class GeocoderComponent implements OnInit {
       amSite.city = geocodingResponse.city;
       amSite.state = geocodingResponse.state;
       amSite.zip = geocodingResponse.zip10;
-      this.amSites.push(amSite);
+      amSites.push(amSite);
     }
-    this.addSitesToMap();
+    this.addSitesToMap(amSites);
     this.displayGcSpinner = false;
   }
 }
