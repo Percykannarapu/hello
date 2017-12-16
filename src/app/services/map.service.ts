@@ -613,8 +613,9 @@ export class MapService {
         var lyr : __esri.FeatureLayer;
         MapService.layers.forEach(layer => {
             lyr = <__esri.FeatureLayer>layer;
+            console.log('title of layer:::'+lyr.title);
         });
-        console.log('title of layer:::'+lyr.title);
+        
 
         var p : __esri.Point = new Point();
         var pList : __esri.Point[] = [];
@@ -649,7 +650,19 @@ export class MapService {
                 wkid: 4326
             }
         })
-        MapService.mapView.extent = extent;
+        try {
+            if (extent.width === 0) {
+                extent.xmin = extent.xmin - 0.15;
+                extent.xmax = extent.xmax + 0.15;
+            }
+            if (extent.height === 0) {
+                extent.ymin = extent.ymin - 0.15;
+                extent.ymax = extent.ymax + 0.15;
+            }
+            MapService.mapView.extent = extent;
+        } catch (error) {
+            throw new Error(error.message);
+        }
        // MapService.mapView.goTo(graphicList1);
        // MapService.mapView.zoom = 6;
     }

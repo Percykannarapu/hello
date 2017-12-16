@@ -84,6 +84,7 @@ export class GeocoderComponent implements OnInit {
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
           .then(res => { graphics.push(res); })
+          .then(res => this.mapService.zoomOnMap(graphics))
           .catch(err => this.handleError(err));
       }
       await this.updateLayer(graphics).catch(err => this.handleError(err));
@@ -158,7 +159,6 @@ export class GeocoderComponent implements OnInit {
   // draw the site graphics on the Sites layer
   private async updateLayer(graphics: __esri.Graphic[]) {
     this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
-    this.mapService.zoomOnMap(graphics);
   }
 
   private async handleError(error: Error) {
