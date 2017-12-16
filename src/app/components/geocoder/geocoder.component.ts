@@ -170,11 +170,12 @@ export class GeocoderComponent implements OnInit {
   }
 
   async geocodeCSV(event) {
-    this.displayGcSpinner = true;
+    
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
     reader.onload = (data) => {
+      this.displayGcSpinner = true;
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
       const headers = csvRecords[0].split(',');
@@ -199,7 +200,6 @@ export class GeocoderComponent implements OnInit {
       }
       Observable.forkJoin(observables).subscribe(res => this.parseCSVResults(res), err => this.handleError(err));
     };
-    this.displayGcSpinner = false;
   }
 
   // parse the RestResponse[] that is the result of the CSV geocoding operation
@@ -216,5 +216,6 @@ export class GeocoderComponent implements OnInit {
       this.amSites.push(amSite);
     }
     this.addSitesToMap();
+    this.displayGcSpinner = false;
   }
 }
