@@ -29,7 +29,7 @@ export class BusinessSearchComponent implements OnInit {
   dropdownList: any[];
   selectedCategory: any;
   selector: any;
-  searchDatageos: any = [];//
+  searchDatageos: any = []; //
   msgs: Message[] = [];
   // As we wire the component up to real sources, we can remove the below
   selectedCity: string;
@@ -82,7 +82,7 @@ export class BusinessSearchComponent implements OnInit {
     //this.filteredCategories = this.appService.categoryList;
   }
   categoryChange() {
-    console.log(this.selectedCategory)
+    console.log(this.selectedCategory );
     this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
     });
@@ -97,7 +97,7 @@ export class BusinessSearchComponent implements OnInit {
     } else if (value.length > 2) {
       this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
         return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
-      })
+      });
     }
 
   }
@@ -108,14 +108,14 @@ export class BusinessSearchComponent implements OnInit {
     this.showLoader = true;
     let paramObj = {
 
-      "radius": this.model.radius,
-      "name": this.model.name,
-      "city": this.model.city,
-      "state": this.model.state,
-      "zip": this.model.zip,
-      "countyName": this.model.countyName,
-      "eliminateBlankFirmNames": "True",
-      "siteLimit": "200"
+      'radius': this.model.radius,
+      'name': this.model.name,
+      'city': this.model.city,
+      'state': this.model.state,
+      'zip': this.model.zip,
+      'countyName': this.model.countyName,
+      'eliminateBlankFirmNames': 'True',
+      'siteLimit': '200'
     };
 
     this.mapView = this.mapService.getMapView();
@@ -128,7 +128,7 @@ export class BusinessSearchComponent implements OnInit {
     });*/
 
     //get the coordinates for all sites from the sites layer
-    var sites: __esri.Collection<{x: any; y: any;}> = new Collection();
+    let sites: __esri.Collection<{x: any; y: any;}> = new Collection();
     MapService.layers.forEach(layer => {
       if (layer.title == DefaultLayers.SITES) {
         (<__esri.FeatureLayer>layer).source.forEach(graphic => {
@@ -156,11 +156,11 @@ export class BusinessSearchComponent implements OnInit {
     if (paramObj['sics'].length === 0) {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'There should be atleast one selection of SIC"s' });
     }
-    if (paramObj['radius'] === undefined || paramObj['radius'] === "") {
+    if (paramObj['radius'] === undefined || paramObj['radius'] === '') {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Radius cannot be left blank' });
     }
 
-    console.log("request to business search", paramObj);
+    console.log('request to business search', paramObj);
 
     //Using TypeScript would help for code optimization : reverting to original code
     this.appService.getBusinesses(paramObj).subscribe((res) => {
@@ -174,7 +174,7 @@ export class BusinessSearchComponent implements OnInit {
         obj['checked'] = false;
         obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)
           ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
-      })
+      });
     });
 
 
@@ -189,7 +189,7 @@ export class BusinessSearchComponent implements OnInit {
   onSelectAll(e) {
     this.searchDatageos.forEach((cat) => {
       cat['checked'] = e;
-    })
+    });
   }
 
 
@@ -200,19 +200,19 @@ export class BusinessSearchComponent implements OnInit {
     if (selector === 'Sites') {
       this.color = {
         a: 1,
-        r: 35,
-        g: 93,
-        b: 186
-      }
+        r: 0,
+        g: 0,
+        b: 255
+      };
       //Close the sidebar after we select the points to be mapped
       this.showSideBar.emit(false);
     } else if (selector === 'Competitors') {
       this.color = {
         a: 1,
-        r: 236,
-        g: 1,
-        b: 1
-      }
+        r: 255,
+        g: 0,
+        b: 0
+      };
       this.showSideBar.emit(false);
     }
     else {
@@ -220,7 +220,7 @@ export class BusinessSearchComponent implements OnInit {
     }
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
-    var graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+    let graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
     let popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     //await this.searchDatageos.forEach(async business => {
     for(let business of this.searchDatageos) {
@@ -248,10 +248,10 @@ export class BusinessSearchComponent implements OnInit {
 
     }
     if (selector === 'Competitors') {
-      console.log("Adding competitors from store search");
+      console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     } else {
-      console.log("adding sites from store search")
+      console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
     }
   }

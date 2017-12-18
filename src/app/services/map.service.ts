@@ -571,7 +571,7 @@ export class MapService {
 
         // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
-            style: 'diamond',
+            style: 'circle',
             size: 12,
             color: color
         };
@@ -649,7 +649,7 @@ export class MapService {
             spatialReference: {
                 wkid: 4326
             }
-        })
+        });
         try {
             if (extent.width === 0) {
                 extent.xmin = extent.xmin - 0.15;
