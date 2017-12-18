@@ -1,8 +1,16 @@
 /* import the required JSAPI css */
 @import 'https://js.arcgis.com/4.5/esri/css/main.css';
 
-.esri-view {
+.esriMapContainer {
     height: 530px;
+    resize: both;
+    overflow: auto;
+}
+
+.esri-view {
+    height: 99%;
+    resize: both;
+    overflow: auto;
 }
 
 #topbar {
