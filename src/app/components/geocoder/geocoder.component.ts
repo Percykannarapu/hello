@@ -17,7 +17,16 @@ import { DefaultLayers } from '../../Models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
 
-
+// this interface holds information on what position the columns in a CSV file are in
+interface CsvHeadersPosition {
+  street?: number;
+  city?: number;
+  state?: number;
+  zip?: number;
+  lat?: number;
+  lon?: number;
+  storeNumber?: number;
+}
 
 
 @Component({
@@ -74,7 +83,7 @@ export class GeocoderComponent implements OnInit {
     observable.subscribe(res => this.parseResponse(res, display), err => this.handleError(err), null);
   }
 
-  // add all of the geocoded sites in this.amSites to the map
+  // add all of the geocoded sites in the amSites array to the map
   private async addSitesToMap(amSites: AmSite[]) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
@@ -120,7 +129,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
-  private async createPopup(amSite: AmSite): Promise<__esri.PopupTemplate> {
+  private async createPopup(amSite: AmSite) : Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
@@ -136,7 +145,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // create a Grahpic object for the site that will be displayed on the map
-  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate): Promise<__esri.Graphic> {
+  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
@@ -168,6 +177,7 @@ export class GeocoderComponent implements OnInit {
       detail: error.message
     };
     this.geocodingErrors.push(growlMessage);
+    this.displayGcSpinner = false;
     return;
   }
 
@@ -178,6 +188,19 @@ export class GeocoderComponent implements OnInit {
     this.zip = 48152;
   }
 
+  // Business rules for CSV geocoding:
+  // 1. The first column is the store name
+  // 2. One column must contain STREET or ADDRESS 
+  // 3. One column must contain CITY
+  // 4. One column must contain STATE or ST
+  // 5. One column must contain ZIP or CODE or POSTAL
+  // 6. If STREET or ADDRESS is missing: CITY and STATE or ST must be provided, OR, ZIP or CODE or POSTAL. If not return a validation error: Either the City and State must be entered or a Postal Code
+  // 7. if a X or LATITUDE or LAT column is found, and is not blank, use it and bypass Address Broker geocoding.
+  // 8. if a Y or LONGITUDE or LONG column is found, and is not blank, use it and bypass Address Broker geocoding.
+  // 9. Retain any other column as is, as an attribute of that site point.
+  // 10. If a column with NUMBER, #, NBR, ID, is found, load it into the site number field
+  // 11. The geocoded stores becomes a layer that can be turned on and off. Its attribute table can be turned on and off. Prerequisite: US6231 Layer List in IMPower application
+  // 12. If the geocoder returned an invalid match code for some rows in the CSV file, an error is displayed somewhere. Very primitive UI please, as error handling is in US6348 Geocoding error handling in imPower application
   async geocodeCSV(event) {
 
     const input = event.target;
@@ -188,27 +211,87 @@ export class GeocoderComponent implements OnInit {
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
       const headers = csvRecords[0].split(',');
-
+      let headerPosition: CsvHeadersPosition = {};
+      try {
+        headerPosition = this.verifyCSVColumns(headers);
+      } catch (error) {
+        this.handleError(error);
+        return;
+      }
       const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
 
       // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
-        const data = csvRecords[i].split(',');
-        if (data.length === headers.length) {
-          const csvRecord = [];
-          for (let j = 0; j < headers.length; j++) {
-            csvRecord.push(data[j]);
-          }
-          const amSite: AmSite = new AmSite();
-          amSite.address = csvRecord[0];
-          amSite.city = csvRecord[1];
-          amSite.state = csvRecord[2];
-          amSite.zip = csvRecord[3];
-          observables.push(this.geocoderService.geocode(amSite));
+        const data: string[] = csvRecords[i].split(',');
+        const csvRecord = [];
+        for (let j = 0; j < headers.length; j++) {
+          csvRecord.push(data[j]);
         }
+        const amSite: AmSite = new AmSite();
+        amSite.name = csvRecord[0]; // the name is guaranteed to be the first column
+        amSite.address = csvRecord[headerPosition.street];
+        amSite.city = csvRecord[headerPosition.city];
+        amSite.state = csvRecord[headerPosition.state];
+        amSite.zip = csvRecord[headerPosition.zip];
+        observables.push(this.geocoderService.geocode(amSite));
       }
       Observable.forkJoin(observables).subscribe(res => this.parseCSVResults(res), err => this.handleError(err));
     };
+  }
+
+  // check the column headers accourding to the business rules above and figure out the positions of all the headers
+  private verifyCSVColumns(columns: string[]): CsvHeadersPosition {
+    let addressFlag: boolean = false;
+    let cityFlag: boolean = false;
+    let stateFlag: boolean = false;
+    let zipFlag: boolean = false;
+    let latFlag: boolean = false;
+    let lonFlag: boolean = false;
+    let count: number = 0;
+    const headerPosition: CsvHeadersPosition = {};
+    for (let column of columns) {
+      column = column.toUpperCase();
+      if (column === 'STREET' || column === 'ADDRESS') {
+        console.log('Found street in CSV headers');
+        addressFlag = true;
+        headerPosition.street = count;
+      }
+      if (column === 'CITY') {
+        console.log('Found city in CSV headers');
+        cityFlag = true;
+        headerPosition.city = count;
+      }
+      if (column === 'STATE' || column === 'ST') {
+        console.log('Found state in CSV headers');
+        stateFlag = true;
+        headerPosition.state = count;
+      }
+      if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
+        console.log('Found zip in CSV headers');
+        zipFlag = true;
+        headerPosition.zip = count;
+      }
+      if (column === 'Y') {
+        console.log('Found lat in CSV headers');
+        latFlag = true;
+        headerPosition.lat = count;
+      }
+      if (column === 'X') {
+        console.log('Found lon in CSV headers');
+        lonFlag = true;
+        headerPosition.lon = count;
+      }
+      count++;
+    }
+    if (!addressFlag) {
+      const validationError: string = 'Either the City and State must be entered or a Postal Code'
+      if (!zipFlag) {
+        if (!cityFlag && !stateFlag) {
+          throw new Error(validationError);
+        }
+      }
+    }
+    return headerPosition;
   }
 
   // parse the RestResponse[] that is the result of the CSV geocoding operation
