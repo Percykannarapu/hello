@@ -254,13 +254,13 @@
 
    <div class="ui-g-12 ui-md-6 ui-lg-12">          
       <!-- ESRI Map -->
-      <p-panel header="Map" [toggleable]="true">
+      <p-panel id="mapPanel" header="Map" [toggleable]="true">
          <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="left" >
             <div class="ug-g-12">
                <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
             </div>
          </p-sidebar>            
-         <div>
+         <div id="outerMapDiv">
             <p-toolbar>
                <!-- div class="ui-toolbar-group-left" -->
                   <!-- <i style="margin-left: 20px"></i> -->
