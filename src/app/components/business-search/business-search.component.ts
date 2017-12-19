@@ -115,7 +115,7 @@ export class BusinessSearchComponent implements OnInit {
       'zip': this.model.zip,
       'countyName': this.model.countyName,
       'eliminateBlankFirmNames': 'True',
-      'siteLimit': '200'
+      'siteLimit': '1000'
     };
 
     this.mapView = this.mapService.getMapView();

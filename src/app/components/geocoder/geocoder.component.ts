@@ -252,6 +252,7 @@ export class GeocoderComponent implements OnInit {
     let lonFlag: boolean = false;
     let count: number = 0;
     const headerPosition: CsvHeadersPosition = {};
+    this.disableshowBusiness = false; //enable the search business button
     for (let column of columns) {
       column = column.toUpperCase();
       if (column === 'STREET' || column === 'ADDRESS') {

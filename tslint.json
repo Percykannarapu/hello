@@ -72,11 +72,11 @@
     "no-var-keyword": true,
     "object-literal-sort-keys": false,
     "one-line": [
-      false,
+      true,
       "check-open-brace",
       "check-catch",
-      "check-else",
-      "check-whitespace"
+      "check-else"
+      //"check-whitespace"
     ],
     "prefer-const": true,
     "quotemark": [
