@@ -3542,6 +3542,26 @@
         },
         {
             "category": 58,
+            "sic": "5812-01",
+            "name": "LUAUS"
+        },
+        {
+            "category": 58,
+            "sic": "5812-02",
+            "name": "GREEK FOOD PRODUCTS"
+        },
+        {
+            "category": 58,
+            "sic": "5812-03",
+            "name": "ICE CREAM PARLORS"
+        },
+        {
+            "category": 58,
+            "sic": "5812-04",
+            "name": "HOT DOG STANDS"
+        },
+        {
+            "category": 58,
             "sic": "5812-05",
             "name": "HAMBURGER & HOT DOG STANDS"
         },
@@ -3746,238 +3766,13 @@
             "name": "PUBS"
         },
         {
-            "category": 59,
-            "sic": "5912-01",
-            "name": "LUAUS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-02",
-            "name": "GREEK FOOD PRODUCTS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-03",
-            "name": "ICE CREAM PARLORS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-04",
-            "name": "HOT DOG STANDS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-05",
-            "name": "HAMBURGER & HOT DOG STANDS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-06",
-            "name": "FOODS-CARRY OUT"
-        },
-        {
-            "category": 59,
-            "sic": "5912-07",
-            "name": "FOODS-INSTITUTIONAL"
-        },
-        {
-            "category": 59,
-            "sic": "5912-08",
-            "name": "RESTAURANTS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-09",
-            "name": "DELICATESSENS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-10",
-            "name": "COMMISSARY CONTRACTORS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-11",
-            "name": "CHICKEN DINNERS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-12",
-            "name": "CATERERS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-13",
-            "name": "CAFETERIAS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-14",
-            "name": "CAFES"
-        },
-        {
-            "category": 59,
-            "sic": "5912-15",
-            "name": "BOX LUNCHES"
-        },
-        {
-            "category": 59,
-            "sic": "5912-16",
-            "name": "BANQUETS-ARRANGED"
-        },
-        {
-            "category": 59,
-            "sic": "5912-17",
-            "name": "APPETIZERS & SNACKS ETC"
-        },
-        {
-            "category": 59,
-            "sic": "5912-18",
-            "name": "SODA FOUNTAIN SHOPS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-19",
-            "name": "SANDWICHES"
-        },
-        {
-            "category": 59,
-            "sic": "5912-20",
-            "name": "RESTAURANT MANAGEMENT"
-        },
-        {
-            "category": 59,
-            "sic": "5912-21",
-            "name": "REFRESHMENT STANDS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-22",
-            "name": "PIZZA"
-        },
-        {
-            "category": 59,
-            "sic": "5912-23",
-            "name": "BANQUET ROOMS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-24",
-            "name": "BARBECUE"
-        },
-        {
-            "category": 59,
-            "sic": "5912-25",
-            "name": "BEVERAGES-NON-ALCOHOLIC-RETAIL"
-        },
-        {
-            "category": 59,
-            "sic": "5912-26",
-            "name": "THEATRES-DINNER"
-        },
-        {
-            "category": 59,
-            "sic": "5912-27",
-            "name": "ITALIAN FOOD PRODUCTS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-28",
-            "name": "COFFEE SHOPS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-29",
-            "name": "DELI-BAKERY"
-        },
-        {
-            "category": 59,
-            "sic": "5912-30",
-            "name": "RESTAURANTS-FOOD DELIVERY"
-        },
-        {
-            "category": 59,
-            "sic": "5912-31",
-            "name": "FOOD SERVICE-INDUSTRIAL"
-        },
-        {
-            "category": 59,
-            "sic": "5912-34",
-            "name": "WEDDING & RECEPTION SITES"
-        },
-        {
-            "category": 59,
-            "sic": "5912-36",
-            "name": "TEA ROOMS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-37",
-            "name": "DESSERT PREPARATIONS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-38",
-            "name": "CAFETERIAS-INDUSTRIAL-OPERATORS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-39",
-            "name": "CATERING-KOSHER"
-        },
-        {
-            "category": 59,
-            "sic": "5912-42",
-            "name": "MOBILE CONCESSIONS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-43",
-            "name": "LUNCHEONETTE FOOD SUPPLY"
-        },
-        {
-            "category": 59,
-            "sic": "5912-46",
-            "name": "CHILI PARLORS"
-        },
-        {
-            "category": 59,
-            "sic": "5912-48",
-            "name": "JUICE BARS"
-        },
-        {
-            "category": 59,
-            "sic": "5913-01",
-            "name": "BARS"
-        },
-        {
-            "category": 59,
-            "sic": "5913-02",
-            "name": "DISCOTHEQUES"
-        },
-        {
-            "category": 59,
-            "sic": "5913-03",
-            "name": "COCKTAIL LOUNGES"
-        },
-        {
-            "category": 59,
-            "sic": "5913-04",
-            "name": "NIGHT CLUBS"
-        },
-        {
-            "category": 59,
-            "sic": "5913-05",
-            "name": "PUBS"
-        },
-        {
-            "category": 59,
-            "sic": "5913-07",
+            "category": 58,
+            "sic": "5813-07",
             "name": "COMEDY CLUBS"
         },
         {
-            "category": 59,
-            "sic": "5913-08",
+            "category": 58,
+            "sic": "5813-08",
             "name": "NIGHT CLUBS INFORMATION SERVICE"
         },
         {

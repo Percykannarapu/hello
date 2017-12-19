@@ -17,13 +17,13 @@
 
       <p-pickList [source]="sourceCategories" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
         targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'225px', 'width': '225px'}"
-        [targetStyle]="{'height':'225px', 'width': '250px'}">
+        [targetStyle]="{'height':'225px', 'width': '225px'}">
         <ng-template let-category pTemplate="item">
           <div class="ui-helper-clearfix">
             <!-- <div *ngFor = "let item of categoryList">
                 {{item.name}}
             </div> -->
-            <div style="font-size:14px;float:left">{{category.name}}</div>
+            <div style="font-size:12px;float:left">{{category.name}}</div>
           </div>
         </ng-template>
       </p-pickList>
@@ -117,10 +117,10 @@
         </ul>
       </p-panel>
     </div>
-    <div class="ui-g-6">
+    <div class="ui-g-2">
       <label>Select as:</label>
     </div>
-    <div class="ui-g-3">
+    <div class="ui-g-2">
       <p-radioButton name="add_to_group" value="Sites" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
     </div>
     <div class="ui-g-3">
