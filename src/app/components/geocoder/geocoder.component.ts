@@ -80,7 +80,10 @@ export class GeocoderComponent implements OnInit {
   // geocode an AmSite by invoking the geocoding service
   public async geocodeAddress(amSite: AmSite, display: boolean = true) {
     const observable = this.geocoderService.geocode(amSite);
-    observable.subscribe(res => this.parseResponse(res, display), err => this.handleError(err), null);
+    observable.subscribe((res) => {
+      this.parseResponse(res, display);
+      this.disableshowBusiness = false;
+    }, err => this.handleError(err), null);
   }
 
   // add all of the geocoded sites in the amSites array to the map

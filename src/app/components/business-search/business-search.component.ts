@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { AppService } from '../../services/app.service';
 import { DropdownModule } from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
@@ -18,7 +18,7 @@ import { forEach } from '@angular/router/src/utils/collection';
 })
 export class BusinessSearchComponent implements OnInit {
 
-
+  @Input() disableShowBusiness;
   @Output()
   showSideBar: EventEmitter<any> = new EventEmitter<any>();
 
@@ -200,9 +200,9 @@ export class BusinessSearchComponent implements OnInit {
     if (selector === 'Sites') {
       this.color = {
         a: 1,
-        r: 0,
-        g: 0,
-        b: 255
+        r: 35,
+        g: 93,
+        b: 186
       };
       //Close the sidebar after we select the points to be mapped
       this.showSideBar.emit(false);
