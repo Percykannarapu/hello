@@ -1,36 +1,108 @@
+import { map } from 'rxjs/operators';
+//import { MapService } from './map.service';
+import { SelectButtonModule } from 'primeng/primeng';
 import { element } from 'protractor';
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
-import { map } from 'rxjs/operator/map';
+//import { map } from 'rxjs/operator/map';
 import { forEach } from '@angular/router/src/utils/collection';
 import { Points } from '../Models/Points';
+
+// import primeng 
+import { SelectItem } from 'primeng/primeng';
 
 @Injectable()
 export class MapService {
 
+    // Group Layers
+    private static EsriGroupLayer: __esri.GroupLayer;
+    private static ZipGroupLayer: __esri.GroupLayer;
+    private static AtzGroupLayer: __esri.GroupLayer;
+    private static PcrGroupLayer: __esri.GroupLayer;
+    private static HHGroupLayer: __esri.GroupLayer;
+    private static SitesGroupLayer: __esri.GroupLayer;
+    private static CompetitorsGroupLayer: __esri.GroupLayer;
+
     private static mapView: __esri.MapView;
     public static layerNames: Set<string> = new Set<string>();
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
-    public static featureLayerView : __esri.FeatureLayerView;
+    public static featureLayerView: __esri.FeatureLayerView;
 
     private mapInstance: __esri.Map;
 
-    constructor() { }
+    constructor() {
+    }
+
+    public async initGroupLayers() : Promise<__esri.Map> {
+        console.log('fired initGroupLayers()');
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [GroupLayer] = await loader.loadModules([
+            'esri/layers/GroupLayer'
+        ]);
+        MapService.EsriGroupLayer = new GroupLayer({
+            title: 'ESRI',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.ZipGroupLayer = new GroupLayer({
+            title: 'Valassis ZIP',
+            listMode: 'show-children',
+            visible: true
+        });
+        
+        MapService.AtzGroupLayer = new GroupLayer({
+            title: 'Valassis ATZ',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.PcrGroupLayer = new GroupLayer({
+            title: 'Valassis PCR',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.HHGroupLayer = new GroupLayer({
+            title: 'Valassis Households',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.SitesGroupLayer = new GroupLayer({
+            title: 'Valassis Sites',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.CompetitorsGroupLayer = new GroupLayer({
+            title: 'Valassis Competitors',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        return this.mapInstance;
+    } 
+
 
     public async getMap(): Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
-        }
+        };
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Map, Basemap] = await loader.loadModules([
+        const [Map, GroupLayer, Basemap] = await loader.loadModules([
             'esri/Map',
+            'esri/layers/GroupLayer',
             'esri/Basemap'
         ]);
         if (!this.mapInstance) {
             this.mapInstance = new Map(
-                { basemap: Basemap.fromId('streets') }
+                { basemap: Basemap.fromId('streets'),
+                  layers: []
+                }
             );
+
         }
         return this.mapInstance;
     }
@@ -39,6 +111,7 @@ export class MapService {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
         const [MapView,
+            GroupLayer,
             Home,
             Search,
             Legend,
@@ -50,6 +123,7 @@ export class MapService {
             BasemapGallery,
             Print
         ] = await loader.loadModules(['esri/views/MapView',
+            'esri/layers/GroupLayer',
             'esri/widgets/Home',
             'esri/widgets/Search',
             'esri/widgets/Legend',
@@ -136,7 +210,7 @@ export class MapService {
         // Create an instance of the BasemapGallery widget
         const print = new Print({
             view: mapView,
-            printServiceUrl: "https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+            printServiceUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task',
             container: document.createElement('div')
         });
         // Create an Expand instance and set the content
@@ -161,7 +235,6 @@ export class MapService {
             expandIconClass: 'esri-icon-documentation',
             expandTooltip: 'Expand Legend',
         });
-
         const printExpand = new Expand({
             view: mapView,
             content: print.container,
@@ -179,11 +252,14 @@ export class MapService {
         mapView.ui.add(locate, 'top-left');
         mapView.ui.add(scaleBar, 'bottom-left');
         mapView.ui.add(printExpand, 'top-right');
-
+        
+        // Setup Default Group Layers
+        this.initGroupLayers();
+        
         MapService.mapView = mapView;
         return { val: mapView };
     }
-
+/*
     public async createSceneView(element: HTMLDivElement): Promise<EsriWrapper<__esri.SceneView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
@@ -197,14 +273,13 @@ export class MapService {
         const sceneView: __esri.SceneView = new SceneView(opts);
         return { val: sceneView };
     }
-
+*/
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
 
         console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate).then(graphic => {
             MapService.mapView.graphics.add(graphic);
         });
-
 
         return { val: MapService.mapView };
     }
@@ -222,11 +297,27 @@ export class MapService {
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);*/
 
-
         return null;
     }
 
-    public async removeMapLayers(): Promise<EsriWrapper<__esri.MapView>> {
+    public async hideMapLayers() : Promise<EsriWrapper<__esri.MapView>> {
+        console.log('fired hideMapLayers() in MapService');
+
+        // load required modules for this method
+        const loader = EsriLoaderWrapperService.esriLoader;
+ 
+        // Toggle all layers
+        MapService.mapView.map.layers.forEach(function(layer, i) {
+            if (layer.visible === true) {
+                //console.log (i + '. layer visible: ' + MapService.mapView.map.layers.getItemAt(i).visible);
+                MapService.mapView.map.layers.getItemAt(i).visible = false;
+            }
+        });
+        return { val: MapService.mapView };
+    }
+
+    // Physically Remove All MapLayers
+    public async removeMapLayers() : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired removeMapLayers() in MapService');
 
         // load required modules for this method
@@ -244,9 +335,42 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async setMapLayers(selectedLayers: any[], analysisLevel: string): Promise<EsriWrapper<__esri.MapView>> {
-        console.log('fired setMapLayers() in MapService');
 
+    // Physically Remove MapLayer (or GroupLayer)
+    public async removeLayer(layer: __esri.Layer) : Promise<EsriWrapper<__esri.MapView>> {
+        console.log('fired removeLayer() in MapService');
+        // remove Group Layer
+        MapService.mapView.map.remove(layer);
+        return { val: MapService.mapView };
+    }
+
+
+      // Returns a layer instance from the map based on its title property
+      public findLayerByTitle(title: string)  : __esri.Layer {
+        return MapService.mapView.map.layers.find(function(layer) {
+            if (layer.title === title) {
+                console.log ('findLayerByTitle Found: ' + title);
+            }
+            return layer.title === title;
+        });
+      }
+
+      // Returns a sublayer instance from the map based on its title property
+      public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string)  : __esri.Layer {
+        return GroupLayer.layers.find(function(layer) {
+            if (layer.title === title) {
+                console.log ('findSubLayerByTitle found: ' + layer.title );
+                return layer.title === title;                  
+            } 
+        });
+      }
+
+
+    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]): Promise<EsriWrapper<__esri.MapView>> {
+        console.log('fired setMapLayers() in MapService');
+        const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
+
+/*        
         const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
         const ATZ_Digital   = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer';
         const ZIP_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer';
@@ -255,84 +379,277 @@ export class MapService {
         const ZIP_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer';
         const ATZ_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
         const PCR_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
+*/        
 
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [PopupTemplate, FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, ExpandVM] = await loader.loadModules([
+        const [esriConfig, PopupTemplate, GroupLayer, LayerList, Layer, FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, first, all] = await loader.loadModules([
+            'esri/config',
             'esri/PopupTemplate',
+            'esri/layers/GroupLayer',
+            'esri/widgets/LayerList',                   
+            'esri/layers/Layer',
             'esri/layers/FeatureLayer',
             'esri/layers/GraphicsLayer',
             'esri/layers/MapImageLayer',
             'esri/geometry/geometryEngine',
-            'esri/widgets/Expand/ExpandViewModel',
+            'dojo/promise/first',
+            'dojo/promise/all',
             'dojo/domReady!'
         ]);
 
-        const expandVM = new ExpandVM({
-            view: MapService.mapView
-        });
-
-        // remove all layers
-        MapService.mapView.map.layers.removeAll();
-        // MapService.mapView.ui.layerListExpand.expand();
-
-        // loop through array setting each layer based on layer type
         let popupTitle: string[];
         let startPos: number;
         let endPos: number;
 
-        selectedLayers.forEach((element, index) => {
+        const hh_layerids = [
+         // '93ab85a0caf94f95b192b39fb194371a'  // webmap
+            '837f4f8be375464a8971c56a0856198e', // vt layer
+            '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
+          ];
 
+         const zip_layerids = [
+             'e35d20b9905c441b9f9bd0532b8e175e', // ZIP Top Vars
+             'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
+         ];
+          
+         const atz_layerids = [
+           'bf8c44d22e6f484285ca33a7efe0b6ec', // ATZ_Top_Vars
+           '9e250767027e4e1e8eb60eddde628e46'  // ATZ_Digital
+          // 'c1c6cc5903564800b2f656b5ff3c6eb5', // ATZ_Centroids
+          // '0ec7eff73453472ca0d13c59dbe16bd8' // ATZ_Centroids_Portal_CopyAllData
+        ];
+
+        const pcr_layerids = [];
+ 
+        const fromPortal = id => Layer.fromPortalItem({
+            portalItem: {
+              id: id
+            }
+          });
+
+        // Loop through each of the selected analysisLevels
+        MapService.EsriGroupLayer.visible = false;  
+        MapService.EsriGroupLayer.removeAll();
+
+        MapService.ZipGroupLayer.visible = false;  
+        MapService.AtzGroupLayer.visible = false;  
+        MapService.PcrGroupLayer.visible = false;  
+        MapService.HHGroupLayer.visible = false;  
+
+
+        selectedLayers.forEach((element, index) => {
+            console.log (element.name + ': ' + element.url);
             // dynamically set the popup title to the layer being loaded
-            startPos = element.indexOf('/rest/services/');
-            endPos = element.indexOf('/FeatureServer');
+            startPos = element.url.indexOf('/rest/services/');
+            endPos = element.url.indexOf('/FeatureServer');
             if (endPos === -1) {
-                endPos = element.indexOf('/MapServer');
-                popupTitle = element.slice(startPos + 15, endPos);
+                endPos = element.url.indexOf('/MapServer');
+                popupTitle = element.url.slice(startPos + 15, endPos);
             } else {
-                popupTitle = element.slice(startPos + 15, endPos);
+                popupTitle = element.url.slice(startPos + 15, endPos);
             }
             console.log('PopupTitle=' + popupTitle);
-
             // Load other optional selected layers
-            if (analysisLevel === 'None') {
-                if (element.indexOf('MapServer') !== -1) {
-                    MapService.mapView.map.add(new MapLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                    console.log('added MapLayer:' + element);
-                } else
-                    if (element.indexOf('FeatureServer') !== -1) {
-                        MapService.mapView.map.add(new FeatureLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        console.log('added FeatureLayer:' + element);
-                    }
+            if (element.url.indexOf('MapServer') !== -1) {
+                if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
+                    MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                    console.log('added MapLayer:' + element.name);
+                }    
             } else
-                if (element !== ATZ_Centroids && element !== ZIP_Centroids && element !== PCR_Centroids &&
-                    element !== ATZ_Top_Vars && element !== ZIP_Top_Vars && element !== PCR_Top_Vars) {
-                    if (element.indexOf('MapServer') !== -1) {
-                        MapService.mapView.map.add(new MapLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
-                        console.log('added MapLayer:' + element);
+                if (element.url.indexOf('FeatureServer') !== -1) {
+                    if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
+                        MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                        console.log('added FeatureLayer:' + element.name);
+                    }   
+                };
+            // Add ZIP Group Layer if it does not already exist
+            if (!this.findLayerByTitle('ESRI')) {
+                MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
+            }    
+            MapService.EsriGroupLayer.visible = true;  
+
+
+             // Load other optional selected layers
+            //if (analysisLevel === 'None') {
+            /*
+                if (element.url.indexOf('MapServer') !== -1) {
+                        // console.log(this.findLayerByTitle(element.name));
+                        // MapService.mapView.map.layers.remove(this.findLayerByTitle(element.name));                      
+                        // MapService.mapView.map.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
+                        // s.findLayerByTitle('ESRI').add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
+                        // MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
+                        console.log('added MapLayer:' + element.name);
+                    //}
+                } else
+                    if (element.url.indexOf('FeatureServer') !== -1) {
+                        // console.log(this.findLayerByTitle(element.name));
+                        // MapService.mapView.map.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
+                        // EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
+                        console.log('added FeatureLayer:' + element.name);
+                    }
+
+                // Add ESRI Group Layer
+                // MapService.mapView.map.layers.add(EsriGroupLayer);
+               
+            } else
+                
+                if (element.url !== ATZ_Centroids && element.url !== ZIP_Centroids && element !== PCR_Centroids &&
+                    element.url !== ATZ_Top_Vars && element.url !== ZIP_Top_Vars && element !== PCR_Top_Vars) {
+                        
+                    if (element.url.indexOf('MapServer') !== -1) {
+                        MapService.mapView.map.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                        console.log('added MapLayer:' + element.name);
                     } else
-                        if (element.indexOf('FeatureServer') !== -1) {
-                            MapService.mapView.map.add(new FeatureLayer({ url: element, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
-                            console.log('added FeatureLayer:' + element);
+                        if (element.url.indexOf('FeatureServer') !== -1) {
+                            MapService.mapView.map.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                            console.log('added FeatureLayer:' + element.name);
                         }
-                }
+                } */
         });
 
-        if (analysisLevel === 'Zip') {
-            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'ZIP Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
-            MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, outfields: ["*"], popupTemplate: { title: 'ZIP Centroids', content: '{*}' }, opacity: 1, visible: false }));
-        } else
-            if (analysisLevel === 'Atz') {
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false }));
-            } else
-                if (analysisLevel === 'Pcr') {
-                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'PCR Top Vars', content: '{*}' }, opacity: 1, visible: false }));
-                    MapService.mapView.map.add(new FeatureLayer({ url: PCR_Centroids, outfields: ["*"], popupTemplate: { title: 'PCR Centroids', content: '{*}' }, opacity: 1, visible: false }));
-                }
+        analysisLevels.forEach((analysisLevel, index) => {
 
-        MapService.mapView.map.add(new MapLayer({ url: Census, opacity: 1 }));
+        if (analysisLevel === 'ZIP') {
+             // Add ZIP layer IDs 
+             const layers = zip_layerids.map(fromPortal);
+  
+             // Add all ZIP Layers via Promise
+             all(layers)
+                 .then(results => {
+                 results.forEach(x => {
+                   if (x.type === "feature") {
+                     x.minScale = 5000000;
+                     x.mode = FeatureLayer.MODE_AUTO;
+                   }
+                   else {
+                     x.maxScale = 5000000;
+                   }
+                   // Add Layer to Group Layer if it does not already exist
+                   if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
+                       console.log ('adding subLayer: ' + x.portalItem.title)
+                       MapService.ZipGroupLayer.add(x);
+                   }
+                });
+            })
+            .catch(error => console.warn(error.message));
+
+               // Add ZIP Group Layer if it does not already exist
+               if (!this.findLayerByTitle('Valassis ZIP')) {
+                   MapService.mapView.map.layers.add(MapService.ZipGroupLayer);
+               }    
+               MapService.ZipGroupLayer.visible = true;  
+               // old method of loading via URL, popups don't work
+               // MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'ZIP Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
+               // MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, outfields: ["*"], popupTemplate: { title: 'ZIP Centroids', content: '{*}' }, opacity: 1, visible: false }));
+        } else
+            if (analysisLevel === 'ATZ') {
+                // Add atz layer IDs 
+                const layers = atz_layerids.map(fromPortal);
+  
+                // Add all ATZ Layers via Promise
+                all(layers)
+                 .then(results => {
+                 results.forEach(x => {
+                   if (x.type === "feature") {
+                     x.minScale = 5000000;
+                     x.mode = FeatureLayer.MODE_AUTO;
+                   }
+                   else {
+                     x.maxScale = 5000000;
+                   }
+                   // Add Layer to Group Layer if it does not already exist
+                   if (!this.findSubLayerByTitle(MapService.AtzGroupLayer, x.portalItem.title)) {
+                       console.log ('adding subLayer: ' + x.portalItem.title)
+                       MapService.AtzGroupLayer.add(x);
+                   }
+                });
+            })
+            .catch(error => console.warn(error.message));
+
+               // Add ZIP Group Layer if it does not already exist
+               if (!this.findLayerByTitle('Valassis ATZ')) {
+                   MapService.mapView.map.layers.add(MapService.AtzGroupLayer);
+               }    
+               MapService.AtzGroupLayer.visible = true;  
+
+                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false }));
+                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
+                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false }));
+            } else
+                if (analysisLevel === 'PCR') {  
+                    // Add PCR layer IDs 
+                    const layers = pcr_layerids.map(fromPortal);
+  
+                    // Add all PCR Layers via Promise
+                    all(layers)
+                     .then(results => {
+                     results.forEach(x => {
+                       if (x.type === "feature") {
+                         x.minScale = 5000000;
+                         x.mode = FeatureLayer.MODE_AUTO;
+                       }
+                       else {
+                         x.maxScale = 5000000;
+                       }
+                       // Add Layer to Group Layer if it does not already exist
+                       if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
+                           console.log ('adding subLayer: ' + x.portalItem.title)
+                           MapService.PcrGroupLayer.add(x);
+                       }
+                       });
+                    })
+                    .catch(error => console.warn(error.message));
+
+                    // Add PCR Group Layer if it does not already exist
+                    if (!this.findLayerByTitle('Valassis PCR')) {
+                        MapService.mapView.map.layers.add(MapService.PcrGroupLayer);
+                    }
+                    MapService.PcrGroupLayer.visible = true;  
+
+                } else
+                    if (analysisLevel === 'HH') {
+                        // Add HH layer IDs 
+                        const layers = hh_layerids.map(fromPortal);
+  
+                        // Add all HH Layers via Promise
+                        all(layers)
+                         .then(results => {
+                         results.forEach(x => {
+                           if (x.type === "feature") {
+                               x.minScale = 2300000;
+                               x.mode = FeatureLayer.MODE_AUTO;
+                           }
+                           else {
+                             x.maxScale = 2300000;
+                           }
+                           // Add Layer to Group Layer if it does not already exist
+                           if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
+                               console.log ('adding subLayer: ' + x.portalItem.title)
+                               MapService.HHGroupLayer.add(x);
+                           }
+                           });
+                        })
+                        .catch(error => console.warn(error.message));
+
+                        // Add HH Group Layer if it does not already exist
+                        if (!this.findLayerByTitle('Valassis Households')) {
+                            MapService.mapView.map.layers.add(MapService.HHGroupLayer);
+                        }
+                        MapService.HHGroupLayer.visible = true;  
+                } 
+        }); // End forEach analysisLevels   
+
+        // -------------------------------------------------------------------------------
+        // Add Census Layer if it does not exist
+        if (!this.findSubLayerByTitle(MapService.EsriGroupLayer,'Census')) {
+            MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1 }));
+        }    
+        if (!this.findLayerByTitle('ESRI')) {
+            MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
+        }    
+        MapService.EsriGroupLayer.visible = true;  
+        // -------------------------------------------------------------------------------
         return { val: MapService.mapView };
     }
 
@@ -509,6 +826,8 @@ export class MapService {
                 }
             }
         });
+        
+        // TODO: Add Content to SitesGroupLayer
         MapService.mapView.map.add(lyr);
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
