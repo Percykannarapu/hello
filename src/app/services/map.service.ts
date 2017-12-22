@@ -694,12 +694,12 @@ export class MapService {
                await lyr.queryFeatures(qry).then(function(featureSet){
                     fSet = featureSet;
                 });
-               await this.selectPoly(fSet);
+               await this.selectPoly(fSet.features);
             }
         }
     }
 
-    public async selectPoly(featureSet : __esri.FeatureSet){
+    public async selectPoly(centroidGraphics : __esri.Graphic[]){
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -729,7 +729,7 @@ export class MapService {
         for(let lyr of fLyrList){
             if(lyr.title.startsWith('ATZ Top')){
                 var polyGraphics : __esri.Graphic[] = [];
-                for(let centroidGraphic of featureSet.features){
+                for(let centroidGraphic of centroidGraphics){
                     var qry1 = lyr.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
