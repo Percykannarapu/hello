@@ -677,7 +677,8 @@ export class MapService {
         var graphicList : __esri.Graphic [] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList , title);
-        await this.zoomOnMap(graphicList);
+        await this.selectCentroid(graphicList);
+        //await this.zoomOnMap(graphicList);
         return { val: MapService.mapView };
     }
 
@@ -722,7 +723,6 @@ export class MapService {
                   pointList.push(p);
             }
            // MapService.mapView.graphics.removeAll();
-            console.log("geodesicBuffer:: check the magic");
             var graphicList : __esri.Graphic [] = [];
             let bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, "kilometers", true);
            array.forEach(bufferedGeometries,function(geometry){
