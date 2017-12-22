@@ -46,9 +46,9 @@ export class EsriLayerSelectComponent implements OnInit {
     try {
       this.analysisLevels = [];
       this.analysisLevels.push({label: 'None', value: 'None'});
-      this.analysisLevels.push({label: 'Zip', value: 'Zip'});
-      this.analysisLevels.push({label: 'Atz', value: 'Atz'});
-      this.analysisLevels.push({label: 'Pcr', value: 'Pcr'});
+      this.analysisLevels.push({label: 'ZIP', value: 'Zip'});
+      this.analysisLevels.push({label: 'ATZ', value: 'Atz'});
+      this.analysisLevels.push({label: 'PCR', value: 'Pcr'});
 
       this.selectedAnalysisLevel = 'Zip';
 

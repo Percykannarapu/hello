@@ -49,7 +49,7 @@
         <div class="ui-g-6">
           <span class="md-inputfield">
             <input id="zip" type="text" pInputText name="zip" [(ngModel)]="model.zip" />
-            <label for="zip">Zip</label>
+            <label for="zip">ZIP</label>
           </span>
         </div>
         <div class="ui-g-6">
@@ -110,7 +110,7 @@
             </li>
           <li *ngFor="let x of searchDatageos">
             <div style="padding:10px;">
-              <p-checkbox binary="true"
+              <p-checkbox binary="true" (onChange)="onSelectSD()"
               label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
             </div>
           </li>
