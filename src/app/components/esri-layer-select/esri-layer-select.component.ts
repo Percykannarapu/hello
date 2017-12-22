@@ -33,12 +33,12 @@ export class EsriLayerSelectComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   public esriDemographicItems: SelectItem[];
-  public selectedLayers: SelectItem[];
+  public selectedLayers: SelectItem[] = [];
   public layerToggle: boolean = false;
 
   public analysisLevels: SelectItem[];
   public selectedAnalysisLevel: string;
-  public selectedAnalysisLevels: string[];
+  public selectedAnalysisLevels: string[] = [];
 
   constructor(private mapService: MapService) {
       this.mapView = this.mapService.getMapView();
@@ -102,7 +102,8 @@ export class EsriLayerSelectComponent implements OnInit {
 
    // set layers on panel hide, checking to see if layers are enabled
    checkLayers() {
-        // remove groupLayers when analysis levels are not selected.
+     // remove groupLayers when analysis levels are not selected.
+     try {   
         if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ZIP'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ATZ'))
@@ -111,8 +112,12 @@ export class EsriLayerSelectComponent implements OnInit {
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis PCR'));
         if (!this.selectedAnalysisLevels.find(x => x === 'HH'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis Households'));
+     } 
+     finally {
+          // catch(error => console.warn(error.message));
+     }
 
-        if (this.layerToggle) {
+    if (this.layerToggle) {
             this.mapService.setMapLayers(this.esriDemographicItems, this.selectedLayers, this.selectedAnalysisLevels);
         }
     }

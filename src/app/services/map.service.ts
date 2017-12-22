@@ -339,7 +339,7 @@ export class MapService {
 
     // Physically Remove MapLayer (or GroupLayer)
     public async removeLayer(layer: __esri.Layer) : Promise<EsriWrapper<__esri.MapView>> {
-        console.log('fired removeLayer() in MapService');
+        // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         MapService.mapView.map.remove(layer);
         return { val: MapService.mapView };
@@ -403,25 +403,19 @@ export class MapService {
         let startPos: number;
         let endPos: number;
 
-        const hh_layerids = [
-         // '93ab85a0caf94f95b192b39fb194371a'  // webmap
-            '837f4f8be375464a8971c56a0856198e', // vt layer
-            '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
-          ];
-
          const zip_layerids = [
              'e35d20b9905c441b9f9bd0532b8e175e', // ZIP Top Vars
              'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
-         ];
-          
+         ];       
          const atz_layerids = [
            'bf8c44d22e6f484285ca33a7efe0b6ec', // ATZ_Top_Vars
            '9e250767027e4e1e8eb60eddde628e46'  // ATZ_Digital
-          // 'c1c6cc5903564800b2f656b5ff3c6eb5', // ATZ_Centroids
-          // '0ec7eff73453472ca0d13c59dbe16bd8' // ATZ_Centroids_Portal_CopyAllData
         ];
-
         const pcr_layerids = [];
+        const hh_layerids = [
+            '837f4f8be375464a8971c56a0856198e', // vt layer
+            '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
+          ];
  
         const fromPortal = id => Layer.fromPortalItem({
             portalItem: {
@@ -429,7 +423,7 @@ export class MapService {
             }
           });
 
-        // Loop through each of the selected analysisLevels
+        // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)  
         MapService.EsriGroupLayer.visible = false;  
         MapService.EsriGroupLayer.removeAll();
 
@@ -438,7 +432,8 @@ export class MapService {
         MapService.PcrGroupLayer.visible = false;  
         MapService.HHGroupLayer.visible = false;  
 
-
+    // Esri Layers    
+    if (selectedLayers.length != 0) {
         selectedLayers.forEach((element, index) => {
             console.log (element.name + ': ' + element.url);
             // dynamically set the popup title to the layer being loaded
@@ -470,7 +465,11 @@ export class MapService {
             }    
             MapService.EsriGroupLayer.visible = true;  
         });
+    }
 
+    // Analysis Levels
+    if (analysisLevels.length != 0) {
+        // Loop through each of the selected analysisLevels
         analysisLevels.forEach((analysisLevel, index) => {
 
         if (analysisLevel === 'ZIP') {
@@ -595,7 +594,7 @@ export class MapService {
                         MapService.HHGroupLayer.visible = true;  
                 } 
         }); // End forEach analysisLevels   
-
+    }
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer,'Census')) {
