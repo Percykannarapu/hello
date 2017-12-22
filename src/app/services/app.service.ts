@@ -1,5 +1,5 @@
 // Added nallana: US6087  
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
@@ -10,6 +10,7 @@ import { MapService } from './map.service';
 @Injectable()
 export class AppService {
     private static mapView: __esri.MapView;
+    updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
     public categoryList = './assets/demo/data/categories.json'; 
     
     /* saveTargetingProfile(targetingprofile : TargetingProfile){
@@ -21,18 +22,17 @@ export class AppService {
              } */
     private readonly searchbusiness = 'https://servicesdev.valassislab.com/services/v1/targeting/base/targetingsearch/search';
 
-
     constructor(private http: Http, private mapService: MapService) { }
     //load values from the json 
-    public getList(): Observable<any> {
+    public getList() : Observable<any> {
         return this.http.get(`${this.categoryList}`)
             .map((resp: Response) => resp.json());
     }
 
     //use the getbusiness method to get the data from the service
-    public getBusinesses(paramObj): Observable<any> {
+    public getBusinesses(paramObj) : Observable<any> {
 
-        console.log("Fired getbusiness");
+        console.log('Fired getbusiness');
         return this.http.post(`${this.searchbusiness}`, paramObj)
             .map((resp: Response) => resp.json() as RestResponse);
 

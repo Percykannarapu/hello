@@ -11,7 +11,7 @@ import { DefaultLayers } from '../../Models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
 
 @Component({
-  providers: [AppService, MapService, MessageService],
+  providers: [MapService, MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -48,9 +48,7 @@ export class BusinessSearchComponent implements OnInit {
 
   constructor(private appService: AppService, private mapService: MapService, private messageService: MessageService) {
     //Dropdown data
-    // this.dropdownList = [{ label: 'Apparel & Accessory Stores' , value: '56' },
-    // { label: 'Building Materials & Hardware' , value: '52' }
-    // ];
+    
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -77,7 +75,7 @@ export class BusinessSearchComponent implements OnInit {
       this.filteredCategories = data.rows;
       this.selectedCategory = this.dropdownList[0].value;
       this.categoryChange();
-    })
+    });
     //this.sourceCategories = this.appService.categoryList;
     //this.filteredCategories = this.appService.categoryList;
   }
@@ -115,7 +113,7 @@ export class BusinessSearchComponent implements OnInit {
       'zip': this.model.zip,
       'countyName': this.model.countyName,
       'eliminateBlankFirmNames': 'True',
-      'siteLimit': '1000'
+      'siteLimit': '2000'
     };
 
     this.mapView = this.mapService.getMapView();
@@ -146,7 +144,7 @@ export class BusinessSearchComponent implements OnInit {
 
       return {
         'sic': obj.sic
-      }
+      };
     });
     this.msgs = [];
 
@@ -177,14 +175,9 @@ export class BusinessSearchComponent implements OnInit {
       });
     });
 
-
   }
 
-  //   showError() {
-  //     this.msgs = [];
-  //     this.msgs.push({severity:'error', summary:'Error Message', detail:'Validation failed'});
-  // }
-
+ 
   // For Enabling selectall functionality for the business found
   onSelectAll(e) {
     this.searchDatageos.forEach((cat) => {
@@ -192,6 +185,14 @@ export class BusinessSearchComponent implements OnInit {
     });
   }
 
+  onSelectSD(){
+    this.plottedPoints = [];
+    this.searchDatageos.forEach((obj) => {
+      if(obj.checked){
+        this.plottedPoints.push([obj.x, obj.y]);
+      }
+    })
+  }
 
   //adding points on the map
   async onAddToProject(selector) {
@@ -205,7 +206,7 @@ export class BusinessSearchComponent implements OnInit {
         b: 186
       };
       //Close the sidebar after we select the points to be mapped
-      this.showSideBar.emit(false);
+      //this.showSideBar.emit(false);
     } else if (selector === 'Competitors') {
       this.color = {
         a: 1,
@@ -213,9 +214,8 @@ export class BusinessSearchComponent implements OnInit {
         g: 0,
         b: 0
       };
-      this.showSideBar.emit(false);
-    }
-    else {
+      //this.showSideBar.emit(false);
+    }else{
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Please select Sites/Competitors' });
     }
     const loader = EsriLoaderWrapperService.esriLoader;
@@ -228,7 +228,7 @@ export class BusinessSearchComponent implements OnInit {
         //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
         console.log('long: x', business.x + 'lat: y', business.y);
         //this.mapService.plotMarker(42.412941,-83.374309,color);
-        this.plottedPoints.push([business.x, business.y]);
+        //this.plottedPoints.push([business.x, business.y]);
 
         popupTemplate.content = 'Firm: ' + business.firm + '<br>' +
                                 'Address: ' + business.address + '<br>' +
@@ -248,9 +248,13 @@ export class BusinessSearchComponent implements OnInit {
 
     }
     if (selector === 'Competitors') {
+
+      this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     } else {
+      
+      this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
     }

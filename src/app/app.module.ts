@@ -131,6 +131,7 @@ import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
 import {MessageService} from './val-modules/common/services/message.service';
 import {MessageComponent} from './val-modules/common/components/message.component';
+import { AppService } from './services/app.service';
 
 @NgModule({
     imports: [
@@ -250,7 +251,7 @@ import {MessageComponent} from './val-modules/common/components/message.componen
 
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
-        MessageService,
+        MessageService, AppService,
         CarService, CountryService, EventService, NodeService,
         EsriLoaderService, GfGeoService,
         InMemoryStubService, AmSiteService
