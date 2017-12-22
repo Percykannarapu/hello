@@ -2,7 +2,7 @@
 @import 'https://js.arcgis.com/4.5/esri/css/main.css';
 
 .esriMapContainer {
-    height: 530px;
+    height: 500px;
     resize: both;
     overflow: auto;
 }
