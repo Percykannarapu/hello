@@ -468,44 +468,6 @@ export class MapService {
                 MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
             }    
             MapService.EsriGroupLayer.visible = true;  
-
-
-             // Load other optional selected layers
-            //if (analysisLevel === 'None') {
-            /*
-                if (element.url.indexOf('MapServer') !== -1) {
-                        // console.log(this.findLayerByTitle(element.name));
-                        // MapService.mapView.map.layers.remove(this.findLayerByTitle(element.name));                      
-                        // MapService.mapView.map.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        // s.findLayerByTitle('ESRI').add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        // MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        console.log('added MapLayer:' + element.name);
-                    //}
-                } else
-                    if (element.url.indexOf('FeatureServer') !== -1) {
-                        // console.log(this.findLayerByTitle(element.name));
-                        // MapService.mapView.map.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        // EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle , content: '{*}' }, opacity: 0.65 }));
-                        console.log('added FeatureLayer:' + element.name);
-                    }
-
-                // Add ESRI Group Layer
-                // MapService.mapView.map.layers.add(EsriGroupLayer);
-               
-            } else
-                
-                if (element.url !== ATZ_Centroids && element.url !== ZIP_Centroids && element !== PCR_Centroids &&
-                    element.url !== ATZ_Top_Vars && element.url !== ZIP_Top_Vars && element !== PCR_Top_Vars) {
-                        
-                    if (element.url.indexOf('MapServer') !== -1) {
-                        MapService.mapView.map.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
-                        console.log('added MapLayer:' + element.name);
-                    } else
-                        if (element.url.indexOf('FeatureServer') !== -1) {
-                            MapService.mapView.map.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
-                            console.log('added FeatureLayer:' + element.name);
-                        }
-                } */
         });
 
         analysisLevels.forEach((analysisLevel, index) => {
@@ -539,9 +501,6 @@ export class MapService {
                    MapService.mapView.map.layers.add(MapService.ZipGroupLayer);
                }    
                MapService.ZipGroupLayer.visible = true;  
-               // old method of loading via URL, popups don't work
-               // MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'ZIP Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
-               // MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, outfields: ["*"], popupTemplate: { title: 'ZIP Centroids', content: '{*}' }, opacity: 1, visible: false }));
         } else
             if (analysisLevel === 'ATZ') {
                 // Add atz layer IDs 
@@ -572,10 +531,6 @@ export class MapService {
                    MapService.mapView.map.layers.add(MapService.AtzGroupLayer);
                }    
                MapService.AtzGroupLayer.visible = true;  
-
-                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false }));
-                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
-                // MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false }));
             } else
                 if (analysisLevel === 'PCR') {  
                     // Add PCR layer IDs 
