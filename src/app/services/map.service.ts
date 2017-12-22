@@ -5,6 +5,7 @@ import { EsriLoaderService } from 'angular-esri-loader';
 import { map } from 'rxjs/operator/map';
 import { forEach } from '@angular/router/src/utils/collection';
 import { Points } from '../Models/Points';
+import { Query } from '@angular/core/src/metadata/di';
 
 @Injectable()
 export class MapService {
@@ -323,9 +324,15 @@ export class MapService {
             MapService.mapView.map.add(new FeatureLayer({ url: ZIP_Centroids, outfields: ["*"], popupTemplate: { title: 'ZIP Centroids', content: '{*}' }, opacity: 1, visible: false }));
         } else
             if (analysisLevel === 'Atz') {
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false }));
-                MapService.mapView.map.add(new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false }));
+                var atzDigitalFlyr = new FeatureLayer({ url: ATZ_Digital,   outfields: ["*"], popupTemplate: { title: 'Atz Digital'  , content: '{*}' }, opacity: 1, visible: false });
+                var atzTopVarsFlyr = new FeatureLayer({ url: ATZ_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'Atz Top Vars' , content: '{*}' }, opacity: 1, visible: false });
+                var atzCentroidFlyr = new FeatureLayer({ url: ATZ_Centroids, outfields: ["*"], popupTemplate: { title: 'Atz Centroids', content: '{*}' }, opacity: 1, visible: false });
+                MapService.mapView.map.add(atzDigitalFlyr);
+                MapService.mapView.map.add(atzTopVarsFlyr);
+                MapService.mapView.map.add(atzCentroidFlyr);
+                MapService.layers.add(atzDigitalFlyr);
+                MapService.layers.add(atzTopVarsFlyr);
+                MapService.layers.add(atzCentroidFlyr);
             } else
                 if (analysisLevel === 'Pcr') {
                     MapService.mapView.map.add(new FeatureLayer({ url: PCR_Top_Vars,  outfields: ["*"], popupTemplate: { title: 'PCR Top Vars', content: '{*}' }, opacity: 1, visible: false }));
@@ -460,7 +467,8 @@ export class MapService {
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->'+graphicList.length);
-            await this.zoomOnMap(graphicList);
+           // await this.zoomOnMap(graphicList);
+            await this.selectCentroid(graphicList);
         return { val: MapService.mapView };
     }
 
@@ -613,7 +621,6 @@ export class MapService {
         var lyr : __esri.FeatureLayer;
         MapService.layers.forEach(layer => {
             lyr = <__esri.FeatureLayer>layer;
-            console.log('title of layer:::'+lyr.title);
         });
         
 
@@ -666,7 +673,86 @@ export class MapService {
        // MapService.mapView.goTo(graphicList1);
        // MapService.mapView.zoom = 6;
     }
-    
+
+    public async selectCentroid(graphicList : __esri.Graphic[]){
+        console.log('selectCentroid fired::::');
+        
+
+        var graphic = graphicList[0];
+        var fSet : __esri.FeatureSet;
+        var fLyrList : __esri.FeatureLayer[] = [];
+        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+            fLyrList.push(lyr); 
+            
+        });
+
+        for(let lyr of fLyrList){
+            if(lyr.title.startsWith('IMPOWER')){
+                var qry = lyr.createQuery();
+                qry.geometry = graphic.geometry;
+                qry.outSpatialReference = MapService.mapView.spatialReference;
+               await lyr.queryFeatures(qry).then(function(featureSet){
+                    fSet = featureSet;
+                });
+               await this.selectPoly(fSet);
+            }
+        }
+    }
+
+    public async selectPoly(featureSet : __esri.FeatureSet){
+        console.log('fired selectPoly');
+
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [Query,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+         = await loader.loadModules([
+            'esri/tasks/support/Query',
+            'esri/Graphic',
+            'esri/symbols/SimpleFillSymbol',
+            'esri/symbols/SimpleLineSymbol',
+            'esri/symbols/SimpleMarkerSymbol',
+            'esri/Color','dojo/domReady!'  
+        ]);
+
+        var symbol123 = new SimpleFillSymbol(
+            SimpleFillSymbol.STYLE_SOLID,
+            new SimpleLineSymbol(
+              SimpleLineSymbol.STYLE_SOLID,
+              new Color([0,255,0,0.65]), 2
+            ),
+            new Color([0,255,0,0.35])
+          );
+          var fLyrList : __esri.FeatureLayer[] = [];
+        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+            fLyrList.push(lyr);
+        });
+
+        for(let lyr of fLyrList){
+            if(lyr.title.startsWith('ATZ Top')){
+                var polyGraphics : __esri.Graphic[] = [];
+                for(let centroidGraphic of featureSet.features){
+                    var qry1 = lyr.createQuery();
+                    qry1.geometry = centroidGraphic.geometry;
+                    qry1.outSpatialReference = MapService.mapView.spatialReference;
+                    
+                    await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
+                        for(var i =0 ; i<polyFeatureSet.features.length ; i++){
+                            polyFeatureSet.features[i].symbol = symbol123;
+                            polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol123));
+                        }
+                    });
+                 }
+                MapService.layers.forEach(function(polyLayer : __esri.FeatureLayer){
+                   if (polyLayer.title.startsWith('ATZ Top')) {
+                      for(const polyGraphic of polyGraphics){
+                         //(<__esri.FeatureLayer>polyLayer).source.add(polyGraphic);
+                         MapService.mapView.graphics.add(polyGraphic); 
+                        //polyLayer.source.push(polyGraphic);
+                        }
+                    }
+                });
+            }
+        }
+    }
 }
 
 export interface EsriWrapper<T> {

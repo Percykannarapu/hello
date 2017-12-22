@@ -267,7 +267,6 @@ export class DashboardDemoComponent implements OnInit {
          var existingGraphics: __esri.Collection<__esri.Graphic>;
          var lyrTitle : string;
      await  MapService.layers.forEach(layer => {   
-           console.log('reading the layer::' + layer.title); 
            if (this.selectedValue == 'Sites'){
                 if (layer.title.startsWith('Site -') ){
                     this.disableLyr(layer);
@@ -302,7 +301,6 @@ export class DashboardDemoComponent implements OnInit {
          if(mergeAllBool){
              console.log('inside merge All');
              var max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
-             console.log('max value is :' + max);
              if (max != null){
                 this.kms = max / 0.62137;
                 await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
@@ -313,7 +311,6 @@ export class DashboardDemoComponent implements OnInit {
            //  for(let point of pointsArray){
                  for (let miles1 of this.milesList){
                      var kmsMereEach = miles1 / 0.62137;
-                     console.log('miles:::' + miles1);
                      console.log('Kms in Merge Each:::' + kmsMereEach);
                      await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
                  }
@@ -326,7 +323,6 @@ export class DashboardDemoComponent implements OnInit {
                  i++;
                 var kmsNomerge = miles1 / 0.62137;
                  for (let point of pointsArray){
-                     console.log('miles:::' + miles1);
                      console.log('Kms in No Merge:::' + kmsNomerge);
                      await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
                  }
