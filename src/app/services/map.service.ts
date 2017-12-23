@@ -499,6 +499,7 @@ export class MapService {
                // Add ZIP Group Layer if it does not already exist
                if (!this.findLayerByTitle('Valassis ZIP')) {
                    MapService.mapView.map.layers.add(MapService.ZipGroupLayer);
+                   MapService.layers.add(MapService.ZipGroupLayer);
                }    
                MapService.ZipGroupLayer.visible = true;  
         } else
@@ -949,12 +950,19 @@ export class MapService {
         var fSet : __esri.FeatureSet;
         var fLyrList : __esri.FeatureLayer[] = [];
         await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+            console.log('lyr  title:::'+lyr.title);
             fLyrList.push(lyr); 
             
         });
 
+        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
+            console.log('zipLyr  title:::'+zipLyr.title);
+           // <__esri.FeatureLayer>zipLyr
+            fLyrList.push(zipLyr); 
+        });
+
         for(let lyr of fLyrList){
-            if(lyr.title.startsWith('IMPOWER')){
+            if(lyr.title === 'ZIP_centroids'){
                 var qry = lyr.createQuery();
                 qry.geometry = graphic.geometry;
                 qry.outSpatialReference = MapService.mapView.spatialReference;
@@ -979,7 +987,7 @@ export class MapService {
             'esri/symbols/SimpleMarkerSymbol',
             'esri/Color','dojo/domReady!'  
         ]);
-
+        console.log('centroidGraphics length:::'+centroidGraphics.length);
         var symbol123 = new SimpleFillSymbol(
             SimpleFillSymbol.STYLE_SOLID,
             new SimpleLineSymbol(
@@ -993,8 +1001,12 @@ export class MapService {
             fLyrList.push(lyr);
         });
 
+        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
+            fLyrList.push(zipLyr); 
+        });
+
         for(let lyr of fLyrList){
-            if(lyr.title.startsWith('ATZ Top')){
+            if(lyr.title === 'ZIP_Top_Vars'){
                 var polyGraphics : __esri.Graphic[] = [];
                 for(let centroidGraphic of centroidGraphics){
                     var qry1 = lyr.createQuery();
@@ -1008,15 +1020,23 @@ export class MapService {
                         }
                     });
                  }
-                MapService.layers.forEach(function(polyLayer : __esri.FeatureLayer){
-                   if (polyLayer.title.startsWith('ATZ Top')) {
+
+                 MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
+                    if (polyLayer.title ==='ZIP_Top_Vars') {
+                        for(const polyGraphic of polyGraphics){
+                            MapService.mapView.graphics.add(polyGraphic); 
+                        }
+                    }
+                 });
+                /*MapService.layers.forEach(function(polyLayer : __esri.FeatureLayer){
+                   if (polyLayer.title ==='ZIP_Top_Vars') {
                       for(const polyGraphic of polyGraphics){
                          //(<__esri.FeatureLayer>polyLayer).source.add(polyGraphic);
                          MapService.mapView.graphics.add(polyGraphic); 
                         //polyLayer.source.push(polyGraphic);
                         }
                     }
-                });
+                });*/
             }
         }
     }
