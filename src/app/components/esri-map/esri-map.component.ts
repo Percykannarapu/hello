@@ -41,4 +41,35 @@ export class EsriMapComponent implements OnInit {
     }
   }
 
+  public async mapClick(){ 
+    var mapView  = this.mapService.getMapView();
+   // var graphic ,latitude , longitude;
+   // var graphics : __esri.Graphic[] = [];
+
+    const color = {
+        a: 1,
+        r: 35,
+        g: 93,
+        b: 186
+      };
+    var layers : __esri.Layer[] = [];
+    var i = 0;  
+    await mapView.on('click' , (evt) =>{
+     if(i == 0){
+       i++
+        mapView.map.layers.forEach(function(layer : __esri.Layer){
+         // console.log('title name '+layer.title);
+          layers.push(layer);
+        });
+        for(let lyr of layers){
+          if(lyr.title==='Valassis ZIP'){
+            //latitude  = evt.mapPoint.latitude;
+            //longitude = evt.mapPoint.longitude;
+            this.mapService.selectSinglePolygon(evt);
+          }
+        }
+      }  
+      layers = [];
+    });
+  }
 }

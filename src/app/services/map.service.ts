@@ -253,6 +253,9 @@ export class MapService {
         mapView.ui.add(locate, 'top-left');
         mapView.ui.add(scaleBar, 'bottom-left');
         mapView.ui.add(printExpand, 'top-right');
+
+        // event handlers
+      // this.onClick(mapView);
         
         // Setup Default Group Layers
         this.initGroupLayers();
@@ -685,8 +688,6 @@ export class MapService {
 
     public async bufferMergeEach(pointsArray: Points[],pointColor,kms: number,title : string,outlneColor)
     : Promise<EsriWrapper<__esri.MapView>>{
-            console.log("inside bufferMergeEach:: UNDER CONSTRUCTION")
-            console.log("number of kilometers::::"+kms);
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Map,array,geometryEngine,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
              = await loader.loadModules([
@@ -789,9 +790,6 @@ export class MapService {
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
 
-       // MapService.mapView.zoom = 7;
-        console.log('Test zoom:::');
-       // this.zoomOnMap(graphics);
        this.zoomOnMap(graphics);
     }
 
@@ -950,14 +948,11 @@ export class MapService {
         var fSet : __esri.FeatureSet;
         var fLyrList : __esri.FeatureLayer[] = [];
         await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
-            console.log('lyr  title:::'+lyr.title);
             fLyrList.push(lyr); 
             
         });
 
         MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
-            console.log('zipLyr  title:::'+zipLyr.title);
-           // <__esri.FeatureLayer>zipLyr
             fLyrList.push(zipLyr); 
         });
 
@@ -995,8 +990,8 @@ export class MapService {
               new Color([0,255,0,0.65]), 2
             ),
             new Color([0,255,0,0.35])
-          );
-          var fLyrList : __esri.FeatureLayer[] = [];
+        );
+        var fLyrList : __esri.FeatureLayer[] = [];
         await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
             fLyrList.push(lyr);
         });
@@ -1021,24 +1016,85 @@ export class MapService {
                     });
                  }
 
-                 MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
+                MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
                     if (polyLayer.title ==='ZIP_Top_Vars') {
                         for(const polyGraphic of polyGraphics){
                             MapService.mapView.graphics.add(polyGraphic); 
                         }
                     }
                  });
-                /*MapService.layers.forEach(function(polyLayer : __esri.FeatureLayer){
-                   if (polyLayer.title ==='ZIP_Top_Vars') {
-                      for(const polyGraphic of polyGraphics){
-                         //(<__esri.FeatureLayer>polyLayer).source.add(polyGraphic);
-                         MapService.mapView.graphics.add(polyGraphic); 
-                        //polyLayer.source.push(polyGraphic);
-                        }
+              /*   MapService.ZipGroupLayer.layers.forEach(polyLayer =>{
+                    if (polyLayer.title ==='ZIP_Top_Vars') {
+                        this.updateFeatureLayer(polyGraphics,polyLayer.title);
                     }
-                });*/
+                 }); */
             }
         }
+    }
+
+    public async selectSinglePolygon(evt :__esri.MapViewClickEvent){
+        console.log('fired selectSinglePolygon');
+
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [Query,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+         = await loader.loadModules([
+            'esri/tasks/support/Query',
+            'esri/Graphic',
+            'esri/symbols/SimpleFillSymbol',
+            'esri/symbols/SimpleLineSymbol',
+            'esri/symbols/SimpleMarkerSymbol',
+            'esri/Color','dojo/domReady!'  
+        ]);
+        var polyGraphics : __esri.Graphic[] = [];
+
+        var symbol = new SimpleFillSymbol(
+            SimpleFillSymbol.STYLE_SOLID,
+            new SimpleLineSymbol(
+              SimpleLineSymbol.STYLE_SOLID,
+              new Color([0,255,0,0.65]), 2
+            ),
+            new Color([0,255,0,0.35])
+          );
+       /* var query = new Query();  
+        var currentClick = query.geometry = evt.mapPoint;
+        query.spatialRelationship = MapService.mapView.spatialReference;
+        // Query.SPATIAL_REL_INTERSECTS;
+        await lyr.queryFeatures(query).then(function(polyFeatureSet){
+            console.log('query loop::::');
+            for(var i =0 ; i<polyFeatureSet.features.length ; i++){
+                polyFeatureSet.features[i].symbol = symbol;
+                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+            }
+        });*/
+        var fLyrList : __esri.FeatureLayer[] = [];
+        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+            fLyrList.push(lyr);
+        });
+
+        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
+            fLyrList.push(zipLyr); 
+        });
+
+        for(let lyr of fLyrList){
+            if(lyr.title ==='ZIP_Top_Vars'){
+                var query = lyr.createQuery();
+                var currentClick = query.geometry = evt.mapPoint;
+                query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
+                await lyr.queryFeatures(query).then(function(polyFeatureSet){
+                    for(var i =0 ; i<polyFeatureSet.features.length ; i++){
+                        polyFeatureSet.features[i].symbol = symbol;
+                        polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+                    }
+                });
+            }
+        }
+        await MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
+            if (polyLayer.title ==='ZIP_Top_Vars') {
+                for(const polyGraphic of polyGraphics){
+                    MapService.mapView.graphics.add(polyGraphic); 
+                }
+            }
+         });
     }
 }
 
