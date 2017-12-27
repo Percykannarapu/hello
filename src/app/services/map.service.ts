@@ -30,6 +30,8 @@ export class MapService {
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
     public static featureLayerView: __esri.FeatureLayerView;
 
+    public static selectedGraphics : __esri.Graphic[] = [];
+
     private mapInstance: __esri.Map;
 
     constructor() {
@@ -937,27 +939,32 @@ export class MapService {
         console.log('selectCentroid fired::::');
         
 
-        var graphic = graphicList[0];
+        //var graphic = graphicList[0];
         var fSet : __esri.FeatureSet;
         var fLyrList : __esri.FeatureLayer[] = [];
-        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+        await this.getAllFeatureLayers().then(list =>{
+            fLyrList = list;
+        });
+       /* await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
             fLyrList.push(lyr); 
             
         });
 
         MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
             fLyrList.push(zipLyr); 
-        });
+        }); */
 
         for(let lyr of fLyrList){
             if(lyr.title === 'ZIP_centroids'){
-                var qry = lyr.createQuery();
-                qry.geometry = graphic.geometry;
-                qry.outSpatialReference = MapService.mapView.spatialReference;
-               await lyr.queryFeatures(qry).then(function(featureSet){
-                    fSet = featureSet;
-                });
-               await this.selectPoly(fSet.features);
+                for(let graphic of graphicList){
+                    var qry = lyr.createQuery();
+                    qry.geometry = graphic.geometry;
+                    qry.outSpatialReference = MapService.mapView.spatialReference;
+                   await lyr.queryFeatures(qry).then(function(featureSet){
+                        fSet = featureSet;
+                    });
+                   await this.selectPoly(fSet.features);
+                }
             }
         }
     }
@@ -1037,6 +1044,7 @@ export class MapService {
                         }
                     }
                  });
+                 MapService.selectedGraphics = centroidGraphics;
             }
         }
     }
@@ -1118,6 +1126,7 @@ export class MapService {
                 }
             }
          });
+        // MapService.selectedGraphics = polyGraphics;
     }
 
     public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
