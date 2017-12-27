@@ -58,7 +58,7 @@ export class EsriMapComponent implements OnInit {
      if(i == 0){
        i++
         mapView.map.layers.forEach(function(layer : __esri.Layer){
-         // console.log('title name '+layer.title);
+          console.log('title name '+layer.title);
           layers.push(layer);
         });
         for(let lyr of layers){

@@ -254,9 +254,6 @@ export class MapService {
         mapView.ui.add(scaleBar, 'bottom-left');
         mapView.ui.add(printExpand, 'top-right');
 
-        // event handlers
-      // this.onClick(mapView);
-        
         // Setup Default Group Layers
         this.initGroupLayers();
         
@@ -734,7 +731,7 @@ export class MapService {
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->'+graphicList.length);
-           // await this.zoomOnMap(graphicList);
+            //await this.zoomOnMap(graphicList);
             await this.selectCentroid(graphicList);
         return { val: MapService.mapView };
     }
@@ -795,8 +792,6 @@ export class MapService {
 
     public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
         console.log('fired updateFeatureList() in MapService');
-
-
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
             this.createFeatureLayer(graphics, layerTitle);
@@ -806,14 +801,13 @@ export class MapService {
         let layerUpdated: boolean = false;
 
         // loop through the existing layers to see if we can find one to update, otherwise create a new one
+        //MapService.mapView.map.allLayers
         MapService.layers.forEach(currentLayer => {
             if (layerTitle === currentLayer.title) {
                 console.log('updating existing layer with '  + graphics.length + ' graphics');
-
                 // add the new graphics to the existing layer
                 for (const graphic of graphics) {
                     (<__esri.FeatureLayer>currentLayer).source.add(graphic);
-                   
                 }
                 layerUpdated = true;
             }
@@ -823,7 +817,6 @@ export class MapService {
             await this.createFeatureLayer(graphics, layerTitle);
             return;
         }
-
        // await this.zoomOnMap(graphics);
     }
 
@@ -992,13 +985,16 @@ export class MapService {
             new Color([0,255,0,0.35])
         );
         var fLyrList : __esri.FeatureLayer[] = [];
-        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+         await this.getAllFeatureLayers().then(list =>{
+            fLyrList = list;
+        });
+       /* await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
             fLyrList.push(lyr);
         });
 
         MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
             fLyrList.push(zipLyr); 
-        });
+        });*/
 
         for(let lyr of fLyrList){
             if(lyr.title === 'ZIP_Top_Vars'){
@@ -1016,18 +1012,31 @@ export class MapService {
                     });
                  }
 
-                MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
+               /* MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
                     if (polyLayer.title ==='ZIP_Top_Vars') {
                         for(const polyGraphic of polyGraphics){
                             MapService.mapView.graphics.add(polyGraphic); 
                         }
                     }
-                 });
-              /*   MapService.ZipGroupLayer.layers.forEach(polyLayer =>{
-                    if (polyLayer.title ==='ZIP_Top_Vars') {
-                        this.updateFeatureLayer(polyGraphics,polyLayer.title);
-                    }
                  }); */
+
+              /*  await this.getAllFeatureLayers().then(list =>{
+                     for(let polyLayer of list){
+                        if (polyLayer.title ==='ZIP_Top_Vars') {
+                            this.updateFeatureLayer(polyGraphics,polyLayer.title);
+                        }
+                     }
+                });*/
+
+                await this.getAllFeatureLayers().then(list =>{
+                    for(const polyLayer of list){
+                         if (polyLayer.title ==='ZIP_Top_Vars') {
+                            for(const polyGraphic of polyGraphics){
+                                MapService.mapView.graphics.add(polyGraphic); 
+                            }
+                        }
+                    }
+                 });
             }
         }
     }
@@ -1055,25 +1064,22 @@ export class MapService {
             ),
             new Color([0,255,0,0.35])
           );
-       /* var query = new Query();  
-        var currentClick = query.geometry = evt.mapPoint;
-        query.spatialRelationship = MapService.mapView.spatialReference;
-        // Query.SPATIAL_REL_INTERSECTS;
-        await lyr.queryFeatures(query).then(function(polyFeatureSet){
-            console.log('query loop::::');
-            for(var i =0 ; i<polyFeatureSet.features.length ; i++){
-                polyFeatureSet.features[i].symbol = symbol;
-                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
-            }
-        });*/
+       
         var fLyrList : __esri.FeatureLayer[] = [];
-        await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
+
+        await this.getAllFeatureLayers().then(list =>{
+            fLyrList = list;
+        });
+
+        console.log('fLyrList size --->'+fLyrList.length);
+
+        /*await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
             fLyrList.push(lyr);
         });
 
         MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
             fLyrList.push(zipLyr); 
-        });
+        });*/
 
         for(let lyr of fLyrList){
             if(lyr.title ==='ZIP_Top_Vars'){
@@ -1088,13 +1094,49 @@ export class MapService {
                 });
             }
         }
-        await MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
+        /*await MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
             if (polyLayer.title ==='ZIP_Top_Vars') {
                 for(const polyGraphic of polyGraphics){
                     MapService.mapView.graphics.add(polyGraphic); 
                 }
             }
+         });*/
+        /* await this.getAllFeatureLayers().then(list =>{
+            for(let polyLayer of list){
+               if (polyLayer.title ==='ZIP_Top_Vars') {
+                   this.updateFeatureLayer(polyGraphics,polyLayer.title);
+               }
+            }
+         }); */
+
+         await this.getAllFeatureLayers().then(list =>{
+            for(const polyLayer of list){
+                 if (polyLayer.title ==='ZIP_Top_Vars') {
+                    for(const polyGraphic of polyGraphics){
+                        MapService.mapView.graphics.add(polyGraphic); 
+                    }
+                }
+            }
          });
+    }
+
+    public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
+        console.log('fired getAllFeatureLayers');
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [GroupLayer,FeatureLayer] = await loader.loadModules([
+            'esri/layers/GroupLayer',
+            'esri/layers/FeatureLayer'
+        ]);
+        MapService.mapView.map.allLayers.length;
+        var fLyrList : __esri.FeatureLayer[] = [];
+        MapService.mapView.map.allLayers.forEach(function(lyr : __esri.FeatureLayer){
+          //  console.log('lyrs names before adding::'+lyr.title);
+            if( lyr instanceof FeatureLayer){
+              //  console.log('lyrs names After adding::'+lyr.title);
+                fLyrList.push(lyr);
+            }
+        });
+        return fLyrList;
     }
 }
 
