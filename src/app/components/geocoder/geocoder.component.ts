@@ -4,7 +4,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message } from 'primeng/primeng';
+import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message, DataTableModule } from 'primeng/primeng';
 import { GeofootprintMaster } from '../../Models/GeofootprintMaster';
 import { GeofootprintSite } from '../../Models/GeofootprintSite';
 import { GeofootprintTaName } from '../../Models/GeofootprintTaName';
@@ -47,6 +47,8 @@ export class GeocoderComponent implements OnInit {
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
   public displayGcSpinner: boolean = false;
+  public failedSites: AmSite[] = [];
+  public displayFailureWindow: boolean = false;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -306,18 +308,23 @@ export class GeocoderComponent implements OnInit {
     for (const restResponse of restResponses) {
       const amSite: AmSite = new AmSite();
       const geocodingResponse: GeocodingResponse = restResponse.payload;
-      if (geocodingResponse.locationQualityCode === 'E') {
-        const error: string = 'Location Quality Code: ' + geocodingResponse.locationQualityCode + '<br>' +
-          'Address: ' + geocodingResponse.addressline + '<br>' +
-          'City: ' + geocodingResponse.city + '<br>' +
-          'Sate: ' + geocodingResponse.state + '<br>' +
-          'Zip: ' + geocodingResponse.zip10 + '<br>';
-        this.handleError(new Error(error));
+
+      // geocoding failures get pushed into the failedSites array for manual intervention by the user
+      if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+        const failedSite: AmSite = new AmSite();
+        failedSite.ycoord = geocodingResponse.latitude;
+        failedSite.xcoord = geocodingResponse.longitude;
+        failedSite.address = geocodingResponse.addressline;
+        failedSite.city = geocodingResponse.city;
+        failedSite.state = geocodingResponse.state;
+        failedSite.zip = geocodingResponse.zip10;
+        const failedSites = this.failedSites;
+        failedSites.push(failedSite);
+        this.failedSites = failedSites;
         continue;
       }
-      if (!geocodingResponse.latitude || !geocodingResponse.longitude) {
-        continue;
-      }
+
+      // populate the new AmSite record from the geocoding response
       amSite.ycoord = geocodingResponse.latitude;
       amSite.xcoord = geocodingResponse.longitude;
       amSite.address = geocodingResponse.addressline;
@@ -328,5 +335,10 @@ export class GeocoderComponent implements OnInit {
     }
     this.addSitesToMap(amSites);
     this.displayGcSpinner = false;
+  }
+
+  // show the modal window that the user will user to correct geocoding errors
+  public onViewFailures() {
+    this.displayFailureWindow = true;
   }
 }
