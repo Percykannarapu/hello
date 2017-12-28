@@ -788,8 +788,6 @@ export class MapService {
         MapService.mapView.map.add(lyr);
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
-
-       this.zoomOnMap(graphics);
     }
 
     public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {

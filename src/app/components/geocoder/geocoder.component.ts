@@ -96,10 +96,11 @@ export class GeocoderComponent implements OnInit {
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
           .then(res => { graphics.push(res); })
-          .then(res => this.mapService.zoomOnMap(graphics))
           .catch(err => this.handleError(err));
       }
-      await this.updateLayer(graphics).catch(err => this.handleError(err));
+      await this.updateLayer(graphics)
+        .then(res => { this.mapService.zoomOnMap(graphics); })
+        .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
     }
@@ -225,6 +226,13 @@ export class GeocoderComponent implements OnInit {
 
       // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
+
+        // this is a check to see if the record we are currently on is blank
+        // if it's an empty record skip over it
+        if (!csvRecords[i] || 0 === csvRecords[i].length) {
+          continue;
+        }
+
         const data: string[] = csvRecords[i].split(',');
         const csvRecord = [];
         for (let j = 0; j < headers.length; j++) {
@@ -256,32 +264,26 @@ export class GeocoderComponent implements OnInit {
     for (let column of columns) {
       column = column.toUpperCase();
       if (column === 'STREET' || column === 'ADDRESS') {
-        console.log('Found street in CSV headers');
         addressFlag = true;
         headerPosition.street = count;
       }
       if (column === 'CITY') {
-        console.log('Found city in CSV headers');
         cityFlag = true;
         headerPosition.city = count;
       }
       if (column === 'STATE' || column === 'ST') {
-        console.log('Found state in CSV headers');
         stateFlag = true;
         headerPosition.state = count;
       }
       if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
-        console.log('Found zip in CSV headers');
         zipFlag = true;
         headerPosition.zip = count;
       }
       if (column === 'Y') {
-        console.log('Found lat in CSV headers');
         latFlag = true;
         headerPosition.lat = count;
       }
       if (column === 'X') {
-        console.log('Found lon in CSV headers');
         lonFlag = true;
         headerPosition.lon = count;
       }
@@ -304,6 +306,18 @@ export class GeocoderComponent implements OnInit {
     for (const restResponse of restResponses) {
       const amSite: AmSite = new AmSite();
       const geocodingResponse: GeocodingResponse = restResponse.payload;
+      if (geocodingResponse.locationQualityCode === 'E') {
+        const error: string = 'Location Quality Code: ' + geocodingResponse.locationQualityCode + '<br>' +
+          'Address: ' + geocodingResponse.addressline + '<br>' +
+          'City: ' + geocodingResponse.city + '<br>' +
+          'Sate: ' + geocodingResponse.state + '<br>' +
+          'Zip: ' + geocodingResponse.zip10 + '<br>';
+        this.handleError(new Error(error));
+        continue;
+      }
+      if (!geocodingResponse.latitude || !geocodingResponse.longitude) {
+        continue;
+      }
       amSite.ycoord = geocodingResponse.latitude;
       amSite.xcoord = geocodingResponse.longitude;
       amSite.address = geocodingResponse.addressline;
