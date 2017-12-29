@@ -37,6 +37,7 @@ interface CsvHeadersPosition {
 })
 export class GeocoderComponent implements OnInit {
 
+  private static failedSiteCounter: number = 1;
   public street: string;
   public city: string;
   public state: string;
@@ -52,7 +53,7 @@ export class GeocoderComponent implements OnInit {
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
-
+  
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
 
@@ -113,15 +114,24 @@ export class GeocoderComponent implements OnInit {
     const amSite: AmSite = new AmSite();
     const amSites: AmSite[] = new Array<AmSite>();
     const geocodingResponse: GeocodingResponse = restResponse.payload;
-    if (geocodingResponse.locationQualityCode === 'E') {
-      const error: string = 'Location Quality Code: ' + geocodingResponse.locationQualityCode + '<br>' +
-        'Address: ' + geocodingResponse.addressline + '<br>' +
-        'City: ' + geocodingResponse.city + '<br>' +
-        'Sate: ' + geocodingResponse.state + '<br>' +
-        'Zip: ' + geocodingResponse.zip10 + '<br>';
-      this.handleError(new Error(error));
+    
+    // geocoding failures get pushed into the failedSites array for manual intervention by the user
+    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+      const failedSite: AmSite = new AmSite();
+      failedSite.ycoord = geocodingResponse.latitude;
+      failedSite.xcoord = geocodingResponse.longitude;
+      failedSite.address = geocodingResponse.addressline;
+      failedSite.city = geocodingResponse.city;
+      failedSite.state = geocodingResponse.state;
+      failedSite.zip = geocodingResponse.zip10;
+      failedSite.pk = GeocoderComponent.failedSiteCounter;
+      const failedSites = Array.from(this.failedSites);
+      failedSites.push(failedSite);
+      this.failedSites = failedSites;
+      GeocoderComponent.failedSiteCounter++;
       return;
     }
+
     amSite.ycoord = geocodingResponse.latitude;
     amSite.xcoord = geocodingResponse.longitude;
     amSite.address = geocodingResponse.addressline;
@@ -253,7 +263,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // check the column headers accourding to the business rules above and figure out the positions of all the headers
-  private verifyCSVColumns(columns: string[]): CsvHeadersPosition {
+  private verifyCSVColumns(columns: string[]) : CsvHeadersPosition {
     let addressFlag: boolean = false;
     let cityFlag: boolean = false;
     let stateFlag: boolean = false;
@@ -318,9 +328,11 @@ export class GeocoderComponent implements OnInit {
         failedSite.city = geocodingResponse.city;
         failedSite.state = geocodingResponse.state;
         failedSite.zip = geocodingResponse.zip10;
-        const failedSites = this.failedSites;
+        failedSite.pk = GeocoderComponent.failedSiteCounter;
+        const failedSites = Array.from(this.failedSites);
         failedSites.push(failedSite);
         this.failedSites = failedSites;
+        GeocoderComponent.failedSiteCounter++;
         continue;
       }
 
@@ -340,5 +352,50 @@ export class GeocoderComponent implements OnInit {
   // show the modal window that the user will user to correct geocoding errors
   public onViewFailures() {
     this.displayFailureWindow = true;
+  }
+
+  // resubmit a geocoding request for an AmSite that failed to geocode previously
+  public async onResubmit(row) {
+    const site: AmSite = new AmSite();
+    site.address = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.pk = row.pk;
+    for (let i = 0; i < this.failedSites.length; i++) {
+      if (this.compareSites(site, this.failedSites[i])) {
+        const failedSites = Array.from(this.failedSites);
+        failedSites.splice(i, 1);
+        this.failedSites = failedSites;
+      }
+    }
+    this.geocodeAddress(site, true);
+  }
+
+  // determine if two AmSite objects are the same
+  // this should be implemented in an equals() method in the model
+  public compareSites(site1: AmSite, site2: AmSite) : boolean {
+    if (site1.pk === site2.pk) {
+      return true;
+    }
+    /*
+        site1.xcoord === site2.xcoord &&
+        site1.ycoord === site2.ycoord &&
+        site1.siteType === site2.siteType &&
+        site1.siteId === site2.siteId &&
+        site1.name === site2.name &&
+        site1.owner === site2.owner &&
+        site1.franchisee === site2.franchisee &&
+        site1.address === site2.address &&
+        site1.crossStreet === site2.crossStreet &&
+        site1.city === site2.city &&
+        site1.state === site2.state &&
+        site1.zip === site2.zip &&
+        site1.taSource === site2.taSource &&
+        site1.xmlLocation === site2.xmlLocation &&
+        site1.xmlTradearea === site2.xmlTradearea &&
+        site1.createType === site2.createType &&
+      site1.grouping === site2.grouping*/
+    return false;
   }
 }

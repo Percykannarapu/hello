@@ -51,14 +51,14 @@
     <div *ngIf="failedSites.length > 0" class="ui-g-8">
         <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
             <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
-            <p-column field="pk" header="Site#"></p-column>
-            <p-column field="name" header="Name"></p-column>
-            <p-column field="address" header="Address"></p-column>
-            <p-column field="city" header="City"></p-column>
-            <p-column field="zip" header="Zip"></p-column>
+            <p-column field="pk" [hidden]="true"></p-column>
+            <p-column field="address" header="Street" [editable]="true"></p-column>
+            <p-column field="city" header="City" [editable]="true"></p-column>
+            <p-column field="state" header="State" [editable]="true"></p-column>
+            <p-column field="zip" header="Zip" [editable]="true"></p-column>
             <p-column>
                 <ng-template let-h="rowData" pTemplate="body">
-                    <button type="button" label="Resubmit" pButton style="width: 100%;"></button>
+                    <button (click)="onResubmit(h)" type="button" label="Resubmit" pButton style="width: 100%;"></button>
                 </ng-template>
             </p-column>
         </p-dataTable>
