@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
 import { MapService } from '../../services/map.service';
+//import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
+//import { EsriLoaderService } from 'angular-esri-loader';
 
 // Import Core Modules
 import { CONFIG } from '../../core';
@@ -42,6 +44,7 @@ export class EsriMapComponent implements OnInit {
   }
 
   public async mapClick(){ 
+    console.log('fired mapclick');
     var mapView  = this.mapService.getMapView();
    // var graphic ,latitude , longitude;
    // var graphics : __esri.Graphic[] = [];
@@ -61,10 +64,13 @@ export class EsriMapComponent implements OnInit {
           console.log('title name '+layer.title);
           layers.push(layer);
         });
+        var fLyrList : __esri.FeatureLayer[] = [];
+        this.mapService.getAllFeatureLayers().then(list =>{
+          fLyrList = list;
+        });  
+
         for(let lyr of layers){
           if(lyr.title==='Valassis ZIP'){
-            //latitude  = evt.mapPoint.latitude;
-            //longitude = evt.mapPoint.longitude;
             this.mapService.selectSinglePolygon(evt);
           }
         }
