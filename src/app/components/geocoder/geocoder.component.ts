@@ -53,7 +53,7 @@ export class GeocoderComponent implements OnInit {
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
-  
+
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
 
@@ -84,7 +84,7 @@ export class GeocoderComponent implements OnInit {
   public async geocodeAddress(amSite: AmSite, display: boolean = true) {
     const observable = this.geocoderService.geocode(amSite);
     observable.subscribe((res) => {
-      this.parseResponse(res, display);
+      this.parseResponse([res], display);
       this.disableshowBusiness = false;
     }, err => this.handleError(err), null);
   }
@@ -110,38 +110,49 @@ export class GeocoderComponent implements OnInit {
   }
 
   // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
-  private parseResponse(restResponse: RestResponse, display?: boolean) {
-    const amSite: AmSite = new AmSite();
+  private parseResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
-    const geocodingResponse: GeocodingResponse = restResponse.payload;
-    
-    // geocoding failures get pushed into the failedSites array for manual intervention by the user
-    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
-      const failedSite: AmSite = new AmSite();
-      failedSite.ycoord = geocodingResponse.latitude;
-      failedSite.xcoord = geocodingResponse.longitude;
-      failedSite.address = geocodingResponse.addressline;
-      failedSite.city = geocodingResponse.city;
-      failedSite.state = geocodingResponse.state;
-      failedSite.zip = geocodingResponse.zip10;
-      failedSite.pk = GeocoderComponent.failedSiteCounter;
-      const failedSites = Array.from(this.failedSites);
-      failedSites.push(failedSite);
-      this.failedSites = failedSites;
-      GeocoderComponent.failedSiteCounter++;
-      return;
-    }
+    for (const restResponse of restResponses) {
+      const geocodingResponse: GeocodingResponse = restResponse.payload;
+      const amSite: AmSite = new AmSite();
+      
+      // geocoding failures get pushed into the failedSites array for manual intervention by the user
+      if (this.geocodingFailure(geocodingResponse)) {
+        const failedSite: AmSite = new AmSite();
+        failedSite.ycoord = geocodingResponse.latitude;
+        failedSite.xcoord = geocodingResponse.longitude;
+        failedSite.address = geocodingResponse.addressline;
+        failedSite.city = geocodingResponse.city;
+        failedSite.state = geocodingResponse.state;
+        failedSite.zip = geocodingResponse.zip10;
+        failedSite.pk = GeocoderComponent.failedSiteCounter;
+        const failedSites = Array.from(this.failedSites);
+        failedSites.push(failedSite);
+        this.failedSites = failedSites;
+        GeocoderComponent.failedSiteCounter++;
+        continue;
+      }
 
-    amSite.ycoord = geocodingResponse.latitude;
-    amSite.xcoord = geocodingResponse.longitude;
-    amSite.address = geocodingResponse.addressline;
-    amSite.city = geocodingResponse.city;
-    amSite.state = geocodingResponse.state;
-    amSite.zip = geocodingResponse.zip10;
-    amSites.push(amSite);
+      amSite.ycoord = geocodingResponse.latitude;
+      amSite.xcoord = geocodingResponse.longitude;
+      amSite.address = geocodingResponse.addressline;
+      amSite.city = geocodingResponse.city;
+      amSite.state = geocodingResponse.state;
+      amSite.zip = geocodingResponse.zip10;
+      amSites.push(amSite);
+    }
     if (display) {
       this.addSitesToMap(amSites);
     }
+    return amSites;
+  }
+
+  // determine if the response from the geocoder was a failure or not based on the codes we get back
+  public geocodingFailure(geocodingResponse: GeocodingResponse) : boolean {
+    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+      return true;
+    }
+    return false;
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
@@ -258,7 +269,10 @@ export class GeocoderComponent implements OnInit {
         amSite.zip = csvRecord[headerPosition.zip];
         observables.push(this.geocoderService.geocode(amSite));
       }
-      Observable.forkJoin(observables).subscribe(res => this.parseCSVResults(res), err => this.handleError(err));
+      Observable.forkJoin(observables).subscribe(res => {
+        this.parseResponse(res, true);
+        this.displayGcSpinner = false;
+      }, err => this.handleError(err));
     };
   }
 
@@ -302,7 +316,7 @@ export class GeocoderComponent implements OnInit {
       count++;
     }
     if (!addressFlag) {
-      const validationError: string = 'Either the City and State must be entered or a Postal Code'
+      const validationError: string = 'Either the City and State must be entered or a Postal Code';
       if (!zipFlag) {
         if (!cityFlag && !stateFlag) {
           throw new Error(validationError);
@@ -310,43 +324,6 @@ export class GeocoderComponent implements OnInit {
       }
     }
     return headerPosition;
-  }
-
-  // parse the RestResponse[] that is the result of the CSV geocoding operation
-  private parseCSVResults(restResponses: RestResponse[]) {
-    const amSites: AmSite[] = new Array<AmSite>();
-    for (const restResponse of restResponses) {
-      const amSite: AmSite = new AmSite();
-      const geocodingResponse: GeocodingResponse = restResponse.payload;
-
-      // geocoding failures get pushed into the failedSites array for manual intervention by the user
-      if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
-        const failedSite: AmSite = new AmSite();
-        failedSite.ycoord = geocodingResponse.latitude;
-        failedSite.xcoord = geocodingResponse.longitude;
-        failedSite.address = geocodingResponse.addressline;
-        failedSite.city = geocodingResponse.city;
-        failedSite.state = geocodingResponse.state;
-        failedSite.zip = geocodingResponse.zip10;
-        failedSite.pk = GeocoderComponent.failedSiteCounter;
-        const failedSites = Array.from(this.failedSites);
-        failedSites.push(failedSite);
-        this.failedSites = failedSites;
-        GeocoderComponent.failedSiteCounter++;
-        continue;
-      }
-
-      // populate the new AmSite record from the geocoding response
-      amSite.ycoord = geocodingResponse.latitude;
-      amSite.xcoord = geocodingResponse.longitude;
-      amSite.address = geocodingResponse.addressline;
-      amSite.city = geocodingResponse.city;
-      amSite.state = geocodingResponse.state;
-      amSite.zip = geocodingResponse.zip10;
-      amSites.push(amSite);
-    }
-    this.addSitesToMap(amSites);
-    this.displayGcSpinner = false;
   }
 
   // show the modal window that the user will user to correct geocoding errors
