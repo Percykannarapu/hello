@@ -339,6 +339,18 @@ export class GeocoderComponent implements OnInit {
     site.state = row.state;
     site.zip = row.zip;
     site.pk = row.pk;
+    this.onRemove(row);
+    this.geocodeAddress(site, true);
+  }
+
+  // remove an AmSite from the list of sites that failed to geocode
+  public async onRemove(row) {
+    const site: AmSite = new AmSite();
+    site.address = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.pk = row.pk;
     for (let i = 0; i < this.failedSites.length; i++) {
       if (this.compareSites(site, this.failedSites[i])) {
         const failedSites = Array.from(this.failedSites);
@@ -346,7 +358,6 @@ export class GeocoderComponent implements OnInit {
         this.failedSites = failedSites;
       }
     }
-    this.geocodeAddress(site, true);
   }
 
   // determine if two AmSite objects are the same

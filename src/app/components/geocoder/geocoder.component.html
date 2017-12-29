@@ -61,6 +61,11 @@
                     <button (click)="onResubmit(h)" type="button" label="Resubmit" pButton style="width: 100%;"></button>
                 </ng-template>
             </p-column>
+            <p-column>
+                    <ng-template let-h="rowData" pTemplate="body">
+                        <button (click)="onRemove(h)" type="button" label="Remove" pButton style="width: 100%;"></button>
+                    </ng-template>
+                </p-column>
         </p-dataTable>
     </div>
 </div>
