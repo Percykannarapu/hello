@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
 import { of } from 'rxjs/observable/of';
+import { Subject } from 'rxjs/Subject';
 // import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
@@ -18,14 +19,30 @@ import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
 
 @Injectable()
-export class AmSiteService extends InMemoryStubService
+export class AmSiteService 
 {
+  private subject: Subject<AmSite> = new Subject<AmSite>();
+  public amSites: Array<AmSite> = new Array<AmSite>();
+
+  public addSites(amSites: AmSite[]) {
+    for (const amSite of amSites) {
+      const sites = Array.from(this.amSites);
+      sites.push(amSite);
+      this.amSites = sites;
+      this.subject.next(amSite);
+    }
+  }
+
+  public observeSites() : Observable<AmSite> {
+    return this.subject.asObservable();
+  }
+
 //   onDbReset = this.messageService.state;
 
    constructor(private http: HttpClient,
                private messageService: MessageService)
    {
-      super();
+//      super();
 //      this.messageService.state.subscribe(state => this.getAmSites());
    }
 
@@ -42,7 +59,7 @@ export class AmSiteService extends InMemoryStubService
   {
      console.log('getAmSites fired');
 
-     this.createDb();
+//     this.createDb();
 //    return <Observable<GeofootprintGeo[]>>this.http.get<GeofootprintGeo[]>(geofootprintGeosUrl); //  .http.get<GeofootprintGeo[]>()
 //    return <Observable<GeofootprintGeo[]>>this.http.get<GeofootprintGeo[]>(geofootprintGeosUrl); //  .http.get<GeofootprintGeo[]>()
 

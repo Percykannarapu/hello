@@ -1,5 +1,5 @@
 import {InMemoryStubService} from './../../api/in-memory-stub.service';
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
 // import {CarService} from '../service/carservice';
 //import {EventService} from '../service/eventservice';
 //import {Car} from '../domain/car';
@@ -13,6 +13,7 @@ import {AmSiteService} from '../../val-modules/targeting/services/AmSite.service
 import {AmSiteListComponent} from '../../val-modules/targeting/components/AmSiteList.component';
 import {MessageService} from '../../val-modules/common/services/message.service';
 import {Message} from '../../val-modules/common/models/Message';
+import { ColorBoxComponent } from '../../components/color-box/color-box.component';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -60,6 +61,9 @@ export class DashboardDemoComponent implements OnInit {
    competitorsMap : Map<string, string> = new Map<string, string>();
    sitesMap       : Map<string, string> = new Map<string, string>();
 
+   @ViewChild('greenColorBox')
+   private greenColorBox: ColorBoxComponent;
+
     
    constructor(// private carService: CarService,
 //               private eventService: EventService,
@@ -71,7 +75,7 @@ export class DashboardDemoComponent implements OnInit {
 
       // Load models
       this.metricMapGreen = new Map([
-         ['#Sites', '0'],
+         ['#Sites', this.amSiteService.amSites.length.toString()],
          ['# of Competitors', '0'],
          ['# of Markets', '3']
       ]);
@@ -104,7 +108,18 @@ export class DashboardDemoComponent implements OnInit {
          {label: 'Step 3'}
       ];
 
-      this.amSiteService.createDb();
+      // this.amSiteService.createDb();
+
+      // observe when new sites are added
+      this.amSiteService.observeSites().subscribe(site => {
+          console.log('Dashboard component detected new site');
+        const metricMapGreen = new Map([
+            ['#Sites', this.amSiteService.amSites.length.toString()],
+            ['# of Competitors', '0'],
+            ['# of Markets', '3']
+         ]);
+         this.greenColorBox.model = metricMapGreen;
+      });
 
       // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
       //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);

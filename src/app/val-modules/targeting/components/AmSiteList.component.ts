@@ -24,7 +24,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
 
    selectedSites: AmSite[];   
   
-   constructor(private amSiteService: AmSiteService,
+   constructor(public amSiteService: AmSiteService,
                private messageService: MessageService) { }
 
    // getAmSitesSynchronous()

@@ -2,9 +2,9 @@
    <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
    <input #gb type="text" pInputText size="50" placeholder="Global Filter">
 </div>
-<p-dataTable [value]="amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb"
-             selectionMode="multiple" [(selection)]="selectedSites" >
-   <p-header>Taco Bell Sites In Michigan</p-header>
+<p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb"
+             selectionMode="multiple" [(selection)]="selectedSites" [rows]="10" [paginator]="true" >
+   <p-header>Site List</p-header>
    <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
    <p-column field="pk" header="Site#"></p-column>
    <!-- <p-column field="name" header="name"></p-column> -->
