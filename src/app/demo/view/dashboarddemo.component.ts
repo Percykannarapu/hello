@@ -118,7 +118,7 @@ export class DashboardDemoComponent implements OnInit {
             ['# of Competitors', '0'],
             ['# of Markets', '3']
          ]);
-         this.greenColorBox.model = metricMapGreen;
+         this.greenColorBox.updateModel(metricMapGreen);
       });
 
       // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {

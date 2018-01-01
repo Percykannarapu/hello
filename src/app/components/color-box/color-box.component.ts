@@ -47,6 +47,14 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    }
    ngOnDestroy(){
    }
+
+   public updateModel(model: Map<string, string>) {
+     this.model = model;
+     const keys = Array.from(this.model.keys());
+     const vals = Array.from(this.model.values());
+     this.metric = keys[this.index];
+     this.metricValue = vals[this.index];
+   }
  
    onClick(direction: string){
       if (this.model == null) {
