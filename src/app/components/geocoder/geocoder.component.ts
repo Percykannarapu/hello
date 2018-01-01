@@ -60,6 +60,8 @@ export class GeocoderComponent implements OnInit {
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
+  @ViewChild('fileUpload') private fileUploadEl: ElementRef;
+
   constructor(private geocoderService: GeocoderService, private mapService: MapService) { }
 
   ngOnInit() {
@@ -271,6 +273,7 @@ export class GeocoderComponent implements OnInit {
       }
       Observable.forkJoin(observables).subscribe(res => {
         this.parseResponse(res, true);
+        this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
         this.displayGcSpinner = false;
       }, err => this.handleError(err));
     };
