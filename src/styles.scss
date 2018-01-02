@@ -40,7 +40,12 @@
         }
     }
     .ui-inputtext{
-        width: 35%;
+        width: 50%;
+    }
+    .category-dd{
+        .ui-dropdown{
+            width: 50%;
+        }
     }
 }
 
@@ -50,4 +55,8 @@
             width: 75% !important;
         }
     }
+}
+
+.p-t-15{
+    padding-top: 15px !important;
 }

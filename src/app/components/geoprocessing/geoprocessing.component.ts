@@ -146,7 +146,6 @@ export class GeoprocessingComponent implements OnInit {
         console.log('selected RAD Geoprocessing tool');
         this.resetGpSelector();
         this.displayRADInputs = true;
-        this
         break;
 
       case GpTool.BUFFER:

@@ -411,6 +411,7 @@ export class MapService {
          ];       
          const atz_layerids = [
            'bf8c44d22e6f484285ca33a7efe0b6ec', // ATZ_Top_Vars
+           '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
            '9e250767027e4e1e8eb60eddde628e46'  // ATZ_Digital
         ];
         const pcr_layerids = [];
@@ -482,12 +483,12 @@ export class MapService {
              all(layers)
                  .then(results => {
                  results.forEach(x => {
-                   if (x.type === "feature") {
+                   if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
                    }
                    else {
-                     x.maxScale = 5000000;
+                    x.maxScale = 5000000;
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
@@ -601,7 +602,7 @@ export class MapService {
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer,'Census')) {
-            MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1 }));
+            MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1, visible: false }));
         }    
         if (!this.findLayerByTitle('ESRI')) {
             MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
@@ -937,23 +938,14 @@ export class MapService {
         console.log('selectCentroid fired::::');
         
 
-        //var graphic = graphicList[0];
         var fSet : __esri.FeatureSet;
         var fLyrList : __esri.FeatureLayer[] = [];
         await this.getAllFeatureLayers().then(list =>{
             fLyrList = list;
         });
-       /* await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
-            fLyrList.push(lyr); 
-            
-        });
-
-        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
-            fLyrList.push(zipLyr); 
-        }); */
 
         for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_centroids'){
+            if(lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
                 for(let graphic of graphicList){
                     var qry = lyr.createQuery();
                     qry.geometry = graphic.geometry;
@@ -971,9 +963,11 @@ export class MapService {
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+        const [Query,GroupLayer,FeatureLayer,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
          = await loader.loadModules([
             'esri/tasks/support/Query',
+            'esri/layers/GroupLayer',
+            'esri/layers/FeatureLayer',
             'esri/Graphic',
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
@@ -993,47 +987,37 @@ export class MapService {
          await this.getAllFeatureLayers().then(list =>{
             fLyrList = list;
         });
-       /* await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
-            fLyrList.push(lyr);
-        });
-
-        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
-            fLyrList.push(zipLyr); 
-        });*/
 
         for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_Top_Vars'){
+            if(lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 var polyGraphics : __esri.Graphic[] = [];
                 for(let centroidGraphic of centroidGraphics){
                     var qry1 = lyr.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
-                    
+                    var edits;
+                    //edits.
                     await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
                         for(var i =0 ; i<polyFeatureSet.features.length ; i++){
                             polyFeatureSet.features[i].symbol = symbol123;
                             polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol123));
+                            MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol123)); 
+                          //  lyr.applyEdits(Graphic(polyFeatureSet.features[i].geometry,symbol123));
                         }
+                       /* for(const polyGraphic of polyGraphics){
+                            MapService.mapView.graphics.add(polyGraphic); 
+                        }*/
                     });
                  }
 
-               /* MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
-                    if (polyLayer.title ==='ZIP_Top_Vars') {
-                        for(const polyGraphic of polyGraphics){
-                            MapService.mapView.graphics.add(polyGraphic); 
-                        }
-                    }
-                 }); */
-
-              /*  await this.getAllFeatureLayers().then(list =>{
+               /* await this.getAllFeatureLayers().then(list =>{
                      for(let polyLayer of list){
                         if (polyLayer.title ==='ZIP_Top_Vars') {
                             this.updateFeatureLayer(polyGraphics,polyLayer.title);
                         }
                      }
                 });*/
-
-                await this.getAllFeatureLayers().then(list =>{
+               /* await this.getAllFeatureLayers().then(list =>{
                     for(const polyLayer of list){
                          if (polyLayer.title ==='ZIP_Top_Vars') {
                             for(const polyGraphic of polyGraphics){
@@ -1041,8 +1025,8 @@ export class MapService {
                             }
                         }
                     }
-                 });
-                 MapService.selectedGraphics = centroidGraphics;
+                 });*/
+                // MapService.selectedGraphics = centroidGraphics;
             }
         }
     }
@@ -1051,9 +1035,11 @@ export class MapService {
         console.log('fired selectSinglePolygon');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+        const [Query,GroupLayer,FeatureLayer,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
          = await loader.loadModules([
             'esri/tasks/support/Query',
+            'esri/layers/GroupLayer',
+            'esri/layers/FeatureLayer',
             'esri/Graphic',
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
@@ -1088,14 +1074,15 @@ export class MapService {
         });*/
 
         for(let lyr of fLyrList){
-            if(lyr.title ==='ZIP_Top_Vars'){
+            if(lyr.title ==='ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 var query = lyr.createQuery();
                 var currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
                     for(var i =0 ; i<polyFeatureSet.features.length ; i++){
-                        polyFeatureSet.features[i].symbol = symbol;
-                        polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+                        //polyFeatureSet.features[i].symbol = symbol;
+                       // polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+                       MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol)); 
                     }
                 });
             }
@@ -1115,7 +1102,7 @@ export class MapService {
             }
          }); */
 
-         await this.getAllFeatureLayers().then(list =>{
+        /* await this.getAllFeatureLayers().then(list =>{
             for(const polyLayer of list){
                  if (polyLayer.title ==='ZIP_Top_Vars') {
                     for(const polyGraphic of polyGraphics){
@@ -1123,8 +1110,20 @@ export class MapService {
                     }
                 }
             }
-         });
-        // MapService.selectedGraphics = polyGraphics;
+         });*/
+         /*await MapService.mapView.map.layers.forEach( (lyr) =>{
+            if(lyr instanceof GroupLayer){
+                var gpLyr : __esri.GroupLayer = <__esri.GroupLayer>lyr;
+                gpLyr.layers.forEach((subLyr) =>{
+                    if(subLyr instanceof FeatureLayer){
+                        console.log('test data')
+                    }
+                    if(subLyr.title ==='ZIP_Top_Vars'){
+                        this.updateFeatureLayer(polyGraphics,subLyr.title);
+                    }
+                });
+            }
+        });*/
     }
 
     public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
@@ -1134,7 +1133,7 @@ export class MapService {
             'esri/layers/GroupLayer',
             'esri/layers/FeatureLayer'
         ]);
-        MapService.mapView.map.allLayers.length;
+        //MapService.mapView.map.allLayers.length;
         var fLyrList : __esri.FeatureLayer[] = [];
         MapService.mapView.map.allLayers.forEach(function(lyr : __esri.FeatureLayer){
           //  console.log('lyrs names before adding::'+lyr.title);
