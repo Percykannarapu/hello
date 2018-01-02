@@ -188,10 +188,10 @@ export class BusinessSearchComponent implements OnInit {
   onSelectSD(){
     this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {
-      if(obj.checked){
+      if (obj.checked){
         this.plottedPoints.push([obj.x, obj.y]);
       }
-    })
+    });
   }
 
   //adding points on the map
