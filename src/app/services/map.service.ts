@@ -411,6 +411,7 @@ export class MapService {
          ];       
          const atz_layerids = [
            'bf8c44d22e6f484285ca33a7efe0b6ec', // ATZ_Top_Vars
+           '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
            '9e250767027e4e1e8eb60eddde628e46'  // ATZ_Digital
         ];
         const pcr_layerids = [];
@@ -482,12 +483,12 @@ export class MapService {
              all(layers)
                  .then(results => {
                  results.forEach(x => {
-                   if (x.type === "feature") {
+                   if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
                    }
                    else {
-                     x.maxScale = 5000000;
+                    x.maxScale = 5000000;
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
@@ -601,7 +602,7 @@ export class MapService {
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer,'Census')) {
-            MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1 }));
+            MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1, visible: false }));
         }    
         if (!this.findLayerByTitle('ESRI')) {
             MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
