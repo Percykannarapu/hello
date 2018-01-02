@@ -1088,7 +1088,7 @@ export class MapService {
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
                     for(var i =0 ; i<polyFeatureSet.features.length ; i++){
-                        polyFeatureSet.features[i].symbol = symbol;
+                        //polyFeatureSet.features[i].symbol = symbol;
                        // polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
                        MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol)); 
                     }
@@ -1119,7 +1119,7 @@ export class MapService {
                 }
             }
          });*/
-         await MapService.mapView.map.layers.forEach( (lyr) =>{
+         /*await MapService.mapView.map.layers.forEach( (lyr) =>{
             if(lyr instanceof GroupLayer){
                 var gpLyr : __esri.GroupLayer = <__esri.GroupLayer>lyr;
                 gpLyr.layers.forEach((subLyr) =>{
@@ -1131,7 +1131,7 @@ export class MapService {
                     }
                 });
             }
-        });
+        });*/
     }
 
     public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
