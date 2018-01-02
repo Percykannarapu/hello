@@ -212,13 +212,13 @@
                       [model]="metricMapPurple">
          <p-tabView>
             <p-tabPanel header="Header Tab 1">
-               <div>🚨🚧 Under Construction 🚧🚨</div>
+                Content 1
             </p-tabPanel>
             <p-tabPanel header="Header Tab 2">
-                  Content 2
+                Content 2
             </p-tabPanel>
             <p-tabPanel header="Header Tab 3">
-                  Content 3    
+                Content 3    
             </p-tabPanel>
          </p-tabView>
       </val-color-box>
@@ -239,8 +239,9 @@
             <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
          </p-panel>
          <p-tabView>
-            <p-tabPanel header="Header Tab 1">
-               Content 1
+            <p-tabPanel header="RAD Service">
+                <!-- <a (click)="displayRADInputs = true;">RAD Data</a> -->
+                <val-raddata></val-raddata>
             </p-tabPanel>
             <p-tabPanel header="Header Tab 2">
                Content 2

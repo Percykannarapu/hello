@@ -21,7 +21,7 @@ import { ColorBoxComponent } from '../../components/color-box/color-box.componen
 })
 export class DashboardDemoComponent implements OnInit {
    msgs: Message[] = [];
-   
+   public displayRADInputs: boolean = false;
 //   cities: SelectItem[];
 //   cars: Car[];
    chartData: any;

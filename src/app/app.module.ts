@@ -132,6 +132,7 @@ import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList
 import {MessageService} from './val-modules/common/services/message.service';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import { AppService } from './services/app.service';
+import { RaddataComponent } from './components/raddata/raddata.component';
 
 @NgModule({
     imports: [
@@ -246,7 +247,8 @@ import { AppService } from './services/app.service';
         EsriLayerSelectComponent,
         GeoprocessingComponent,
         ColorBoxComponent,
-        AmSiteListComponent
+        AmSiteListComponent,
+        RaddataComponent
     ],
 
     providers: [

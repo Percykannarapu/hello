@@ -170,8 +170,8 @@ export class BusinessSearchComponent implements OnInit {
       this.searchDatageos.forEach((obj) => {
         //Building label to show adresses
         obj['checked'] = false;
-        obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)
-          ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
+        obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)`;
+          // ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
       });
     });
 
