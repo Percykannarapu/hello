@@ -1089,7 +1089,8 @@ export class MapService {
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
                     for(var i =0 ; i<polyFeatureSet.features.length ; i++){
                         polyFeatureSet.features[i].symbol = symbol;
-                        polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+                       // polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
+                       MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol)); 
                     }
                 });
             }
