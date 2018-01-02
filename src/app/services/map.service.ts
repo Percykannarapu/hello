@@ -938,23 +938,14 @@ export class MapService {
         console.log('selectCentroid fired::::');
         
 
-        //var graphic = graphicList[0];
         var fSet : __esri.FeatureSet;
         var fLyrList : __esri.FeatureLayer[] = [];
         await this.getAllFeatureLayers().then(list =>{
             fLyrList = list;
         });
-       /* await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
-            fLyrList.push(lyr); 
-            
-        });
-
-        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
-            fLyrList.push(zipLyr); 
-        }); */
 
         for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_centroids'){
+            if(lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
                 for(let graphic of graphicList){
                     var qry = lyr.createQuery();
                     qry.geometry = graphic.geometry;
@@ -998,7 +989,7 @@ export class MapService {
         });
 
         for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_Top_Vars'){
+            if(lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 var polyGraphics : __esri.Graphic[] = [];
                 for(let centroidGraphic of centroidGraphics){
                     var qry1 = lyr.createQuery();
@@ -1083,7 +1074,7 @@ export class MapService {
         });*/
 
         for(let lyr of fLyrList){
-            if(lyr.title ==='ZIP_Top_Vars'){
+            if(lyr.title ==='ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 var query = lyr.createQuery();
                 var currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
