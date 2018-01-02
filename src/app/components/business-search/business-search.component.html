@@ -3,16 +3,16 @@
 <div class="ui-g business-search">
   <div class="ui-g-6 card card-w-title">
     <div class="ui-g">
-      <div class="ui-g-12">
+      <div class="ui-g-12 category-dd">
+          <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" (onChange)="categoryChange()" placeholder="Select SIC Cluster"
+            [autoWidth]="false"></p-dropdown>
+        </div>
+      <div class="ui-g-12 p-t-15">
           <p-growl [(value)]="msgs"></p-growl>
         <span class="md-inputfield">
           <input #searchModel type="text" pInputText name="search" (input)="filterCategory(searchModel.value)" />
           <label for="search">Search SIC codes</label>
         </span>
-      </div>
-      <div class="ui-g-12">
-        <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" (onChange)="categoryChange()" placeholder="Select SIC Cluster"
-          [autoWidth]="false"></p-dropdown>
       </div>
 
       <p-pickList [source]="sourceCategories" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
@@ -28,43 +28,43 @@
         </ng-template>
       </p-pickList>
       <form novalidate>
-        <div class="ui-g-12">
+        <div class="ui-g-12 p-t-15">
           <span class="md-inputfield">
             <input id="businessName" type="text" pInputText name="businessName" [(ngModel)]="model.name" />
             <label for="businessName">Business Name</label>
           </span>
         </div>
-        <div class="ui-g-12">
+        <div class="ui-g-12 p-t-15">
           <span class="md-inputfield">
             <input id="city" type="text" pInputText name="city" [(ngModel)]="model.city" />
             <label for="city">City</label>
           </span>
         </div>
-        <div class="ui-g-6">
+        <div class="ui-g-6 p-t-15">
           <span class="md-inputfield">
             <input id="state" type="text" pInputText name="state" [(ngModel)]="model.state" />
             <label for="state">State</label>
           </span>
         </div>
-        <div class="ui-g-6">
+        <div class="ui-g-6 p-t-15">
           <span class="md-inputfield">
             <input id="zip" type="text" pInputText name="zip" [(ngModel)]="model.zip" />
             <label for="zip">ZIP</label>
           </span>
         </div>
-        <div class="ui-g-6">
+        <div class="ui-g-6 p-t-15">
           <span class="md-inputfield">
             <input id="countyFips" type="text" pInputText name="countyName" [(ngModel)]="model.countyName" />
             <label for="countyFips">County FIPs</label>
           </span>
         </div>
-        <div class="ui-g-6">
+        <div class="ui-g-6 p-t-15">
           <span class="md-inputfield">
             <input id="market" type="text" pInputText />
             <label for="market">Market Code</label>
           </span>
         </div>
-        <div class="ui-g-6">
+        <div class="ui-g-6 p-t-15">
           <span class="md-inputfield">
             <input id="distance" type="text" pInputText name="radius" [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"
             />
@@ -85,6 +85,8 @@
       </span>
     </div -->
     <div class="ui-g-12">
+      <div class="card colorboxPicker colorboxPicker-green header">
+        <span class="colorboxPicker-name">Businesses found</span></div>
       <div class="ui-g card colorbox colorbox-1">
         <div class="ui-g-4">
           <i class="material-icons">store</i>
@@ -106,28 +108,31 @@
                 <p-checkbox binary="true" (onChange)="onSelectAll($event)"
                  label="Select All" 
                 [(ngModel)]="selectAll"></p-checkbox>
+                <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchDatageos = [];"></button>
               </div>
+              
             </li>
           <li *ngFor="let x of searchDatageos">
             <div style="padding:10px;">
               <p-checkbox binary="true" (onChange)="onSelectSD()"
               label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
+              <div style="margin-left: 24px">{{x.address}}, {{x.city}}, {{x.state}}, {{x.zip}}</div>
             </div>
           </li>
         </ul>
       </p-panel>
     </div>
-    <div class="ui-g-2">
+    <div class="ui-g-3">
       <label>Select as:</label>
     </div>
-    <div class="ui-g-2">
+    <div class="ui-g-3">
       <p-radioButton name="add_to_group" value="Sites" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
     </div>
-    <div class="ui-g-3">
+    <div class="ui-g-4">
       <p-radioButton name="add_to_group" value="Competitors" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
     </div>
     <div class="ui-g-12">
-      <button type="button" label="Add to Project" icon="ui-icon-send" pButton (click)="onAddToProject(selector)"></button>
+      <button type="button" style="float:right" label="Add to Project" icon="ui-icon-send" pButton (click)="onAddToProject(selector)"></button>
     </div>
   </div>
 </div>
