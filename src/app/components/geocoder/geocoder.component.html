@@ -56,14 +56,14 @@
             <p-column field="city" header="City" [editable]="true"></p-column>
             <p-column field="state" header="State" [editable]="true"></p-column>
             <p-column field="zip" header="Zip" [editable]="true"></p-column>
-            <p-column>
+            <p-column header="Resubmit">
                 <ng-template let-h="rowData" pTemplate="body">
-                    <button (click)="onResubmit(h)" type="button" label="Resubmit" pButton style="width: 100%;"></button>
+                    <button (click)="onResubmit(h)" icon="ui-icon-refresh"  pButton style="margin: auto; display: block"></button>
                 </ng-template>
             </p-column>
-            <p-column>
+            <p-column header="Remove">
                     <ng-template let-h="rowData" pTemplate="body">
-                        <button (click)="onRemove(h)" type="button" label="Remove" pButton style="width: 100%;"></button>
+                        <button (click)="onRemove(h)" icon="ui-icon-delete"  pButton style="margin: auto; display: block"></button>
                     </ng-template>
                 </p-column>
         </p-dataTable>
