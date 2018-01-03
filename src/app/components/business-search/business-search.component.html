@@ -104,16 +104,16 @@
           <!-- <val-businessFound>loading......</val-businessFound> -->
           <li *ngIf="showLoader">Searching...</li>
           <li *ngIf="searchDatageos.length > 0"> 
-              <div style="padding:10px;">
+              <div style="padding: 1px">
                 <p-checkbox binary="true" (onChange)="onSelectAll($event)"
                  label="Select All" 
                 [(ngModel)]="selectAll"></p-checkbox>
                 <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchDatageos = [];"></button>
               </div>
               
-            </li>
+          </li>
           <li *ngFor="let x of searchDatageos">
-            <div style="padding:10px;">
+            <div style="padding: 1px;">
               <p-checkbox binary="true" (onChange)="onSelectSD()"
               label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
               <div style="margin-left: 24px">{{x.address}}, {{x.city}}, {{x.state}}, {{x.zip}}</div>
