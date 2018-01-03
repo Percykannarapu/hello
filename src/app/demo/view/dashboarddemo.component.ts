@@ -58,8 +58,8 @@ export class DashboardDemoComponent implements OnInit {
    public metricMapPurple: Map<string, string>;
    public metricMapTeal:   Map<string, string>;
 
-   competitorsMap : Map<string, string> = new Map<string, string>();
-   sitesMap       : Map<string, string> = new Map<string, string>();
+   competitorsMap: Map<string, string> = new Map<string, string>();
+   sitesMap: Map<string, string> = new Map<string, string>();
 
    @ViewChild('greenColorBox')
    private greenColorBox: ColorBoxComponent;
@@ -185,9 +185,9 @@ export class DashboardDemoComponent implements OnInit {
    
    public async drawBuffer(){
     console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
-    const lyrNme : string = ' Mile Trade Area'; 
+    const lyrNme: string = ' Mile Trade Area'; 
     let meTitle = 'Site - ';
-        if (this.selectedValue == 'Competitors'){ 
+        if (this.selectedValue === 'Competitors'){ 
             meTitle = 'Competitor -';
             if (this.checked1){
                 this.competitorsMap.set('editedta1', String(this.editedta1));
@@ -218,7 +218,7 @@ export class DashboardDemoComponent implements OnInit {
                 this.sitesMap.delete('ta3Miles');
             }
         }
-        if (this.selectedValue == 'Sites'){ 
+        if (this.selectedValue === 'Sites'){ 
             if (this.checked1 && this.ta1Miles != null){
                 this.sitesMap.set('editedta1', String(this.editedta1));
                 this.sitesMap.set('checked1', String(this.checked1));
@@ -247,8 +247,8 @@ export class DashboardDemoComponent implements OnInit {
                 this.sitesMap.delete('ta3Miles');
             }
         }
-    let mergeEachBool : boolean = false;
-    let mergeAllBool : boolean  = false;
+    let mergeEachBool: boolean = false;
+    let mergeAllBool: boolean  = false;
     
     if (this.selectedMergeTypes.match('Merge Each')){  mergeEachBool = true; }
     if (this.selectedMergeTypes.match('Merge All')){ mergeAllBool = true; }

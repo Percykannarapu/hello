@@ -104,7 +104,7 @@ export class BusinessSearchComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Collection] = await loader.loadModules(['esri/core/Collection']);
     this.showLoader = true;
-    let paramObj = {
+    const paramObj = {
 
       'radius': this.model.radius,
       'name': this.model.name,
@@ -126,9 +126,9 @@ export class BusinessSearchComponent implements OnInit {
     });*/
 
     //get the coordinates for all sites from the sites layer
-    let sites: __esri.Collection<{x: any; y: any;}> = new Collection();
+    const sites: __esri.Collection<{x: any; y: any; }> = new Collection();
     MapService.layers.forEach(layer => {
-      if (layer.title == DefaultLayers.SITES) {
+      if (layer.title === DefaultLayers.SITES) {
         (<__esri.FeatureLayer>layer).source.forEach(graphic => {
           sites.add({
             x: graphic.geometry['x'], 
@@ -163,7 +163,7 @@ export class BusinessSearchComponent implements OnInit {
     //Using TypeScript would help for code optimization : reverting to original code
     this.appService.getBusinesses(paramObj).subscribe((res) => {
       this.showLoader = false;
-      let data = res.payload;
+      const data = res.payload;
 
       //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(data.rows, null, 4));
       this.searchDatageos = data.rows;
@@ -180,8 +180,10 @@ export class BusinessSearchComponent implements OnInit {
  
   // For Enabling selectall functionality for the business found
   onSelectAll(e) {
+    this.plottedPoints = [];
     this.searchDatageos.forEach((cat) => {
       cat['checked'] = e;
+      this.plottedPoints.push([cat.x, cat.y]);
     });
   }
 
@@ -220,10 +222,10 @@ export class BusinessSearchComponent implements OnInit {
     }
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
-    let graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+    const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
     let popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     //await this.searchDatageos.forEach(async business => {
-    for(let business of this.searchDatageos) {
+    for (const business of this.searchDatageos) {
       if (business.checked) {
         //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
         console.log('long: x', business.x + 'lat: y', business.y);

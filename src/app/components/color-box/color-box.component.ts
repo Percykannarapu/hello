@@ -29,7 +29,9 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
       if (plottedData.type === 'Competitors'){
         modelvalue.set('# of Competitors', (plottedData.countCompetitors).toString());
       }else{
-        modelvalue.set('#Sites', (plottedData.countSites).toString());
+        const count = + modelvalue.get('#Sites');
+        const sitesCount = (count + plottedData.countSites).toString();
+        modelvalue.set('#Sites', sitesCount);
       }
       this.generateColorBoxValues();
      });
