@@ -23,13 +23,16 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    constructor(private appService: AppService) { }
 
    ngOnInit(){
+    //US6475: Attach the # of Sites and Competitors; nallana
     this.appService.updateColorBoxValue.subscribe((data) => {
       let modelvalue = this.model;
       const plottedData = data;
       if (plottedData.type === 'Competitors'){
         modelvalue.set('# of Competitors', (plottedData.countCompetitors).toString());
       }else{
-        modelvalue.set('#Sites', (plottedData.countSites).toString());
+        const count = + modelvalue.get('#Sites');
+        const sitesCount = (count + plottedData.countSites).toString();
+        modelvalue.set('#Sites', sitesCount);
       }
       this.generateColorBoxValues();
      });

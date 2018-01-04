@@ -30,7 +30,7 @@ export class MapService {
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
     public static featureLayerView: __esri.FeatureLayerView;
 
-    public static selectedGraphics : __esri.Graphic[] = [];
+    public static selectedGraphics: __esri.Graphic[] = [];
 
     private mapInstance: __esri.Map;
 
@@ -89,7 +89,7 @@ export class MapService {
     } 
 
 
-    public async getMap(): Promise<__esri.Map> {
+    public async getMap() : Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
         };
@@ -110,7 +110,7 @@ export class MapService {
         return this.mapInstance;
     }
 
-    public async createMapView(element: HTMLDivElement): Promise<EsriWrapper<__esri.MapView>> {
+    public async createMapView(element: HTMLDivElement) : Promise<EsriWrapper<__esri.MapView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
         const [MapView,
@@ -287,7 +287,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public getMapView(): __esri.MapView {
+    public getMapView() : __esri.MapView {
         // to return Mapview
         return MapService.mapView;
     }
@@ -436,7 +436,7 @@ export class MapService {
         MapService.HHGroupLayer.visible = false;  
 
     // Esri Layers    
-    if (selectedLayers.length != 0) {
+    if (selectedLayers.length !== 0) {
         selectedLayers.forEach((element, index) => {
             console.log (element.name + ': ' + element.url);
             // dynamically set the popup title to the layer being loaded
@@ -452,16 +452,16 @@ export class MapService {
             // Load other optional selected layers
             if (element.url.indexOf('MapServer') !== -1) {
                 if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
-                    MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                    MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ['*'], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
                     console.log('added MapLayer:' + element.name);
                 }    
             } else
                 if (element.url.indexOf('FeatureServer') !== -1) {
                     if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
-                        MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ["*"], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                        MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ['*'], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
                         console.log('added FeatureLayer:' + element.name);
                     }   
-                };
+                }
             // Add ZIP Group Layer if it does not already exist
             if (!this.findLayerByTitle('ESRI')) {
                 MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
@@ -471,7 +471,7 @@ export class MapService {
     }
 
     // Analysis Levels
-    if (analysisLevels.length != 0) {
+    if (analysisLevels.length !== 0) {
         // Loop through each of the selected analysisLevels
         analysisLevels.forEach((analysisLevel, index) => {
 
@@ -486,13 +486,12 @@ export class MapService {
                    if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
-                   }
-                   else {
+                   }else {
                     x.maxScale = 5000000;
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
-                       console.log ('adding subLayer: ' + x.portalItem.title)
+                       console.log ('adding subLayer: ' + x.portalItem.title);
                        MapService.ZipGroupLayer.add(x);
                    }
                 });
@@ -514,16 +513,15 @@ export class MapService {
                 all(layers)
                  .then(results => {
                  results.forEach(x => {
-                   if (x.type === "feature") {
+                   if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
-                   }
-                   else {
+                   } else {
                      x.maxScale = 5000000;
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.AtzGroupLayer, x.portalItem.title)) {
-                       console.log ('adding subLayer: ' + x.portalItem.title)
+                       console.log ('adding subLayer: ' + x.portalItem.title);
                        MapService.AtzGroupLayer.add(x);
                    }
                 });
@@ -544,16 +542,15 @@ export class MapService {
                     all(layers)
                      .then(results => {
                      results.forEach(x => {
-                       if (x.type === "feature") {
+                       if (x.type === 'feature') {
                          x.minScale = 5000000;
                          x.mode = FeatureLayer.MODE_AUTO;
-                       }
-                       else {
+                       } else {
                          x.maxScale = 5000000;
                        }
                        // Add Layer to Group Layer if it does not already exist
                        if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
-                           console.log ('adding subLayer: ' + x.portalItem.title)
+                           console.log ('adding subLayer: ' + x.portalItem.title);
                            MapService.PcrGroupLayer.add(x);
                        }
                        });
@@ -575,16 +572,15 @@ export class MapService {
                         all(layers)
                          .then(results => {
                          results.forEach(x => {
-                           if (x.type === "feature") {
+                           if (x.type === 'feature') {
                                x.minScale = 2300000;
                                x.mode = FeatureLayer.MODE_AUTO;
-                           }
-                           else {
+                           } else {
                              x.maxScale = 2300000;
                            }
                            // Add Layer to Group Layer if it does not already exist
                            if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
-                               console.log ('adding subLayer: ' + x.portalItem.title)
+                               console.log ('adding subLayer: ' + x.portalItem.title);
                                MapService.HHGroupLayer.add(x);
                            }
                            });
@@ -601,7 +597,7 @@ export class MapService {
     }
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
-        if (!this.findSubLayerByTitle(MapService.EsriGroupLayer,'Census')) {
+        if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, 'Census')) {
             MapService.EsriGroupLayer.add(new MapLayer({ url: Census, opacity: 1, visible: false }));
         }    
         if (!this.findLayerByTitle('ESRI')) {
@@ -612,7 +608,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number,title: string,outlneColor): Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlneColor) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -633,16 +629,16 @@ export class MapService {
             ]);
 
         let pointIndex = 0;
-        let pointLongitude = lon;
-        let pointLatitude = lat;
+        const pointLongitude = lon;
+        const pointLatitude = lat;
 
-        let defaultSymbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol({
+        const defaultSymbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol({
             style: 'circle',
             size: 12,
             color: pointColor
         });
 
-        let sym: __esri.SimpleFillSymbol =
+        const sym: __esri.SimpleFillSymbol =
             new SimpleFillSymbol(
                 SimpleFillSymbol.STYLE_SOLID
                 , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, pointColor, 2)
@@ -651,7 +647,7 @@ export class MapService {
 
         sym.outline.color = outlneColor;
 
-        let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
+      //  let gl: __esri.GraphicsLayer = new GraphicsLayer({ id: 'circles' });
 
       //  MapService.mapView.map.add(gl);
 
@@ -661,24 +657,24 @@ export class MapService {
         // pointLatitude+=0.001;
         // pointLatitude+=0.001;
 
-        let p = new Point({
+        const p = new Point({
             x: pointLongitude,
             y: pointLatitude,
             spatialReference: 4326
         });
 
-        let circle = new Circle({
+        const circle = new Circle({
             radius: miles,
             center: p,
             geodesic: true,
             radiusUnit: 'kilometers'
         });
 
-        let g = new Graphic({
+        const g = new Graphic({
             geometry: circle,
             symbol: sym
         });
-        var graphicList : __esri.Graphic [] = [];
+        const graphicList: __esri.Graphic [] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList , title);
         await this.selectCentroid(graphicList);
@@ -686,10 +682,9 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[],pointColor,kms: number,title : string,outlneColor)
-    : Promise<EsriWrapper<__esri.MapView>>{
+    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor) { /*: Promise<EsriWrapper<__esri.MapView>>*/
             const loader = EsriLoaderWrapperService.esriLoader;
-            const [Map,array,geometryEngine,Collection,MapView,Circle,GraphicsLayer,Graphic,Point,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+            const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
              = await loader.loadModules([
                 'esri/Map',
                 'dojo/_base/array',
@@ -703,21 +698,21 @@ export class MapService {
                 'esri/symbols/SimpleFillSymbol',
                 'esri/symbols/SimpleLineSymbol',
                 'esri/symbols/SimpleMarkerSymbol',
-                'esri/Color','dojo/domReady!'  
+                'esri/Color', 'dojo/domReady!'  
             ]);
         
-            let sym : __esri.SimpleFillSymbol = 
+            const sym: __esri.SimpleFillSymbol = 
             new SimpleFillSymbol(
                 SimpleFillSymbol.STYLE_SOLID
-                , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,pointColor,2)
-                ,pointColor
+                , new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, pointColor, 2)
+                , pointColor
             );
             sym.outline.color  = outlneColor;
         
-            let pointList : __esri.Point[] =[];
+            const pointList: __esri.Point[] = [];
         
-            for(let point of pointsArray){
-                let p = new Point({
+            for (const point of pointsArray){
+                const p = new Point({
                     x: point.longitude,
                     y: point.latitude,
                     spatialReference: 4326
@@ -725,18 +720,19 @@ export class MapService {
                   pointList.push(p);
             }
            // MapService.mapView.graphics.removeAll();
-            var graphicList : __esri.Graphic [] = [];
-            let bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, "kilometers", true);
-           array.forEach(bufferedGeometries,function(geometry){
+            const graphicList: __esri.Graphic [] = [];
+            const bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, 'kilometers', true);
+           array.forEach(bufferedGeometries, function(geometry){
                 //MapService.mapView.graphics.add(new Graphic(geometry,sym));
-                graphicList.push(new Graphic(geometry,sym));
+                graphicList.push(new Graphic(geometry, sym));
             });
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
             await this.updateFeatureLayer(graphicList , title);
-            console.log('draw buffer--------->'+graphicList.length);
+            console.log('draw buffer--------->' + graphicList.length);
             //await this.zoomOnMap(graphicList);
             await this.selectCentroid(graphicList);
-        return { val: MapService.mapView };
+            console.log('completed select buffer::');
+       // return { val: MapService.mapView };
     }
 
     public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
@@ -747,8 +743,8 @@ export class MapService {
         }
         MapService.layerNames.add(layerName);
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, Renderer,Polygon] = await loader.loadModules(['esri/layers/FeatureLayer', 
-        'esri/renderers/Renderer','esri/geometry/Polygon']);
+        const [FeatureLayer, Renderer, Polygon] = await loader.loadModules(['esri/layers/FeatureLayer', 
+        'esri/renderers/Renderer', 'esri/geometry/Polygon']);
         const featureRenderer = { type: 'simple' };
 
         const lyr = new FeatureLayer({
@@ -821,7 +817,7 @@ export class MapService {
        // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate) : Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -871,26 +867,26 @@ export class MapService {
 
     public async zoomOnMap(graphics: __esri.Graphic[]){
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [SimpleMarkerSymbol, Point, Graphic, Color,Extent] = await loader.loadModules([
+        const [SimpleMarkerSymbol, Point, Graphic, Color, Extent] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
             'esri/geometry/Point',
             'esri/Graphic',
             'esri/Color',
             'esri/geometry/Extent'
         ]);
-        var lyr : __esri.FeatureLayer;
+        let lyr: __esri.FeatureLayer;
         MapService.layers.forEach(layer => {
             lyr = <__esri.FeatureLayer>layer;
         });
         
 
-        var p : __esri.Point = new Point();
-        var pList : __esri.Point[] = [];
-        var latList : number[] = [];
-        var lonList : number[] = [];
-        var graphicList1 : __esri.Graphic[] = [];
+        const p: __esri.Point = new Point();
+        const pList: __esri.Point[] = [];
+        const latList: number[] = [];
+        const lonList: number[] = [];
+        const graphicList1: __esri.Graphic[] = [];
 
-      await  graphics.forEach(function(current : any){
+      await  graphics.forEach(function(current: any){
             //console.log('test inside current obj::'+current.geometry.latitude)
             p.latitude  = current.geometry.latitude;
             p.longitude = current.geometry.longitude; 
@@ -899,14 +895,14 @@ export class MapService {
             latList.push(p.latitude) ;   /// this is y
             graphicList1.push(current);
         });
-        console.log("number of points on the map"+pList.length);
-        var minX = Math.min(...lonList);
-        var minY = Math.min(...latList);
-        var maxX = Math.max(...lonList);
-        var maxY = Math.max(...latList);
+        console.log('number of points on the map' + pList.length);
+        const minX = Math.min(...lonList);
+        const minY = Math.min(...latList);
+        const maxX = Math.max(...lonList);
+        const maxY = Math.max(...latList);
 
-        console.log("minX::"+minX+"::minY::"+minY+"::maxX::"+maxX+"::maxY::"+maxY);
-        var extent: __esri.Extent;// = new Extent();
+        console.log('minX::' + minX + '::minY::' + minY + '::maxX::' + maxX + '::maxY::' + maxY);
+        let extent: __esri.Extent; // = new Extent();
         
         extent = new Extent({
             xmin: minX,
@@ -934,20 +930,20 @@ export class MapService {
        // MapService.mapView.zoom = 6;
     }
 
-    public async selectCentroid(graphicList : __esri.Graphic[]){
+    public async selectCentroid(graphicList: __esri.Graphic[]){
         console.log('selectCentroid fired::::');
         
 
-        var fSet : __esri.FeatureSet;
-        var fLyrList : __esri.FeatureLayer[] = [];
-        await this.getAllFeatureLayers().then(list =>{
+        let fSet: __esri.FeatureSet;
+        let fLyrList: __esri.FeatureLayer[] = [];
+        await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
         });
 
-        for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
-                for(let graphic of graphicList){
-                    var qry = lyr.createQuery();
+        for (const lyr of fLyrList){
+            if (lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
+                for (const graphic of graphicList){
+                    const qry = lyr.createQuery();
                     qry.geometry = graphic.geometry;
                     qry.outSpatialReference = MapService.mapView.spatialReference;
                    await lyr.queryFeatures(qry).then(function(featureSet){
@@ -959,11 +955,11 @@ export class MapService {
         }
     }
 
-    public async selectPoly(centroidGraphics : __esri.Graphic[]){
+    public async selectPoly(centroidGraphics: __esri.Graphic[]){
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query,GroupLayer,FeatureLayer,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+        const [Query, GroupLayer, FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
             'esri/tasks/support/Query',
             'esri/layers/GroupLayer',
@@ -972,70 +968,57 @@ export class MapService {
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
             'esri/symbols/SimpleMarkerSymbol',
-            'esri/Color','dojo/domReady!'  
+            'esri/Color', 'dojo/domReady!'  
         ]);
-        console.log('centroidGraphics length:::'+centroidGraphics.length);
-        var symbol123 = new SimpleFillSymbol(
+        console.log('centroidGraphics length:::' + centroidGraphics.length);
+        const symbol123 = new SimpleFillSymbol(
             SimpleFillSymbol.STYLE_SOLID,
             new SimpleLineSymbol(
               SimpleLineSymbol.STYLE_SOLID,
-              new Color([0,255,0,0.65]), 2
+              new Color([0, 255, 0, 0.65]), 2
             ),
-            new Color([0,255,0,0.35])
+            new Color([0, 255, 0, 0.35])
         );
-        var fLyrList : __esri.FeatureLayer[] = [];
+        let fLyrList: __esri.FeatureLayer[] = [];
          await this.getAllFeatureLayers().then(list =>{
             fLyrList = list;
         });
 
-        for(let lyr of fLyrList){
-            if(lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
-                var polyGraphics : __esri.Graphic[] = [];
-                for(let centroidGraphic of centroidGraphics){
-                    var qry1 = lyr.createQuery();
+        for (const lyr of fLyrList){
+            if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
+                const polyGraphics: __esri.Graphic[] = [];
+                let highlightedGraphic: __esri.Graphic;
+                for (const centroidGraphic of centroidGraphics){
+                    const qry1 = lyr.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
-                    var edits;
-                    //edits.
                     await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
-                        for(var i =0 ; i<polyFeatureSet.features.length ; i++){
-                            polyFeatureSet.features[i].symbol = symbol123;
-                            polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol123));
-                            MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol123)); 
-                          //  lyr.applyEdits(Graphic(polyFeatureSet.features[i].geometry,symbol123));
+                        for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
+                            highlightedGraphic = new Graphic(polyFeatureSet.features[i].geometry, symbol123);
+                           
+                            console.log('hilighted graphic1::' + polyFeatureSet.features[i].attributes.isSelected);
+                            if ( polyFeatureSet.features[i].attributes.isSelected === undefined){
+                               // highlightedGraphic.attributes = 'selected';
+                                polyFeatureSet.features[i].attributes.isSelected = 'selected';
+                                console.log('hilighted graphic2::' + polyFeatureSet.features[i].attributes.isSelected);
+                                polyGraphics.push(highlightedGraphic);
+                            }
+                           
+                          // lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
-                       /* for(const polyGraphic of polyGraphics){
-                            MapService.mapView.graphics.add(polyGraphic); 
-                        }*/
                     });
                  }
-
-               /* await this.getAllFeatureLayers().then(list =>{
-                     for(let polyLayer of list){
-                        if (polyLayer.title ==='ZIP_Top_Vars') {
-                            this.updateFeatureLayer(polyGraphics,polyLayer.title);
-                        }
-                     }
-                });*/
-               /* await this.getAllFeatureLayers().then(list =>{
-                    for(const polyLayer of list){
-                         if (polyLayer.title ==='ZIP_Top_Vars') {
-                            for(const polyGraphic of polyGraphics){
-                                MapService.mapView.graphics.add(polyGraphic); 
-                            }
-                        }
-                    }
-                 });*/
-                // MapService.selectedGraphics = centroidGraphics;
+                 MapService.mapView.graphics.addMany(polyGraphics);
+                 //add(new Graphic(polyFeatureSet.features[i].geometry,symbol123)); 
             }
         }
     }
 
-    public async selectSinglePolygon(evt :__esri.MapViewClickEvent){
+    public async selectSinglePolygon(evt:__esri.MapViewClickEvent){
         console.log('fired selectSinglePolygon');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query,GroupLayer,FeatureLayer,Graphic,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Color]
+        const [Query, GroupLayer, FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
             'esri/tasks/support/Query',
             'esri/layers/GroupLayer',
@@ -1044,26 +1027,26 @@ export class MapService {
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
             'esri/symbols/SimpleMarkerSymbol',
-            'esri/Color','dojo/domReady!'  
+            'esri/Color', 'dojo/domReady!'  
         ]);
-        var polyGraphics : __esri.Graphic[] = [];
+        const polyGraphics: __esri.Graphic[] = [];
 
-        var symbol = new SimpleFillSymbol(
+        const symbol = new SimpleFillSymbol(
             SimpleFillSymbol.STYLE_SOLID,
             new SimpleLineSymbol(
               SimpleLineSymbol.STYLE_SOLID,
-              new Color([0,255,0,0.65]), 2
+              new Color([0, 255, 0, 0.65]), 2
             ),
-            new Color([0,255,0,0.35])
+            new Color([0, 255, 0, 0.35])
           );
        
-        var fLyrList : __esri.FeatureLayer[] = [];
+        let fLyrList: __esri.FeatureLayer[] = [];
 
-        await this.getAllFeatureLayers().then(list =>{
+        await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
         });
 
-        console.log('fLyrList size --->'+fLyrList.length);
+        console.log('fLyrList size --->' + fLyrList.length);
 
         /*await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
             fLyrList.push(lyr);
@@ -1073,13 +1056,13 @@ export class MapService {
             fLyrList.push(zipLyr); 
         });*/
 
-        for(let lyr of fLyrList){
-            if(lyr.title ==='ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
-                var query = lyr.createQuery();
-                var currentClick = query.geometry = evt.mapPoint;
+        for (const lyr of fLyrList){
+            if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
+                const query = lyr.createQuery();
+                const currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
-                    for(var i =0 ; i<polyFeatureSet.features.length ; i++){
+                    for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
                         //polyFeatureSet.features[i].symbol = symbol;
                        // polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
                        MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol)); 
@@ -1129,15 +1112,15 @@ export class MapService {
     public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
         console.log('fired getAllFeatureLayers');
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [GroupLayer,FeatureLayer] = await loader.loadModules([
+        const [GroupLayer, FeatureLayer] = await loader.loadModules([
             'esri/layers/GroupLayer',
             'esri/layers/FeatureLayer'
         ]);
         //MapService.mapView.map.allLayers.length;
-        var fLyrList : __esri.FeatureLayer[] = [];
-        MapService.mapView.map.allLayers.forEach(function(lyr : __esri.FeatureLayer){
+        const fLyrList: __esri.FeatureLayer[] = [];
+        MapService.mapView.map.allLayers.forEach(function(lyr: __esri.FeatureLayer){
           //  console.log('lyrs names before adding::'+lyr.title);
-            if( lyr instanceof FeatureLayer){
+            if ( lyr instanceof FeatureLayer){
               //  console.log('lyrs names After adding::'+lyr.title);
                 fLyrList.push(lyr);
             }

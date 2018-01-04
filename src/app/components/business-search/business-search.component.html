@@ -1,7 +1,7 @@
 <!--Added nallana: US6087 -->
 
 <div class="ui-g business-search">
-  <div class="ui-g-6 card card-w-title">
+  <div class="ui-g-7 card card-w-title">
     <div class="ui-g">
       <div class="ui-g-12 category-dd">
           <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" (onChange)="categoryChange()" placeholder="Select SIC Cluster"
@@ -78,7 +78,7 @@
       <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
     </div>
   </div>
-  <div class="ui-g-6 card card-w-title">
+  <div class="ui-g-5 card card-w-title">
     <!-- div class="ui-g-12">
       <span class="md-inputfield">
         <label>Businesses found (#)</label>
@@ -92,7 +92,8 @@
           <i class="material-icons">store</i>
         </div>
         <div class="ui-g-8">
-          <span class="colorbox-name">Businesses found</span>
+          <span class="colorbox-name" style="margin:0px">Businesses found</span>
+          <span style="font-size: 12px;color: #ffffff;">(Maximum 2000)</span><br>
           <span class="colorbox-count">{{searchDatageos.length}}</span>
         </div>
       </div>
@@ -104,16 +105,16 @@
           <!-- <val-businessFound>loading......</val-businessFound> -->
           <li *ngIf="showLoader">Searching...</li>
           <li *ngIf="searchDatageos.length > 0"> 
-              <div style="padding:10px;">
+              <div style="padding: 1px">
                 <p-checkbox binary="true" (onChange)="onSelectAll($event)"
                  label="Select All" 
                 [(ngModel)]="selectAll"></p-checkbox>
                 <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchDatageos = [];"></button>
               </div>
               
-            </li>
+          </li>
           <li *ngFor="let x of searchDatageos">
-            <div style="padding:10px;">
+            <div style="padding: 1px;">
               <p-checkbox binary="true" (onChange)="onSelectSD()"
               label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
               <div style="margin-left: 24px">{{x.address}}, {{x.city}}, {{x.state}}, {{x.zip}}</div>
