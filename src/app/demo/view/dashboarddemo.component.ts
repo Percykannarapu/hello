@@ -112,13 +112,8 @@ export class DashboardDemoComponent implements OnInit {
 
       // observe when new sites are added
       this.amSiteService.observeSites().subscribe(site => {
-          console.log('Dashboard component detected new site');
-        const metricMapGreen = new Map([
-            ['#Sites', this.amSiteService.amSites.length.toString()],
-            ['# of Competitors', '0'],
-            ['# of Markets', '3']
-         ]);
-         this.greenColorBox.updateModel(metricMapGreen);
+         console.log('Dashboard component detected new site');
+         this.greenColorBox.set('#Sites', this.amSiteService.amSites.length.toString());
       });
 
       // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {

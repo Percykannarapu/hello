@@ -58,7 +58,20 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
      this.metric = keys[this.index];
      this.metricValue = vals[this.index];
    }
+
+   // Model methods that update the UI
+   public set(key: string, value: string)
+   {
+      this.model.set(key, value);
+      this.updateModel(this.model);
+   }
  
+   public delete(key: string)
+   {
+      this.model.delete(key);
+      this.updateModel(this.model);
+   }
+
    onClick(direction: string){
       if (this.model == null) {
          console.log('model is null'); 
