@@ -100,6 +100,7 @@ export class BusinessSearchComponent implements OnInit {
 
   }
 
+  //nallana: Searchbusiness with the parameter obj
   async onSearchBusiness() {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Collection] = await loader.loadModules(['esri/core/Collection']);
@@ -177,7 +178,6 @@ export class BusinessSearchComponent implements OnInit {
 
   }
 
- 
   // For Enabling selectall functionality for the business found
   onSelectAll(e) {
     this.plottedPoints = [];
@@ -187,6 +187,7 @@ export class BusinessSearchComponent implements OnInit {
     });
   }
 
+  //Count the number of checked addressess: US6475 
   onSelectSD(){
     this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {
