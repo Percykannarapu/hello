@@ -17,6 +17,10 @@ export class AmSiteListComponent implements OnInit, OnDestroy
 {
    private dbResetSubscription: Subscription;
 
+   // Flags to control display of modal dialogs
+   displayAddDialog: boolean = false;
+   displaySearchDialog: boolean = false;
+
    anInt: number = 1;
    selectAllGeos: boolean;
 
@@ -79,4 +83,14 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       console.log ('pk: ' + site.pk + ', name: ' + site.name);
   }
 
+  // Toggle Modal Dialog Methods
+  showAddDialog()
+  {
+    this.displayAddDialog = true;
+  }
+
+  showSearchDialog()
+  {
+    this.displaySearchDialog = true;
+  }  
 }

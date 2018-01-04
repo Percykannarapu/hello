@@ -1,7 +1,28 @@
+            
+<div class="ui-g">
+   <p-dialog header="Manually Add Site" [(visible)]="displayAddDialog" [contentStyle]="{'overflow':'visible'}" modal="true">
+      <div class="ui-g-12">
+         <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
+      </div>
+   </p-dialog>
+</div>
+
+<!-- <div class="ui-g ui-fluid">   
+   <p-dialog header="Add Site From Search" [(visible)]="displaySearchDialog" modal="true" [responsive]="true">
+      <div class="ui-g-12">
+         <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
+      </div>
+   </p-dialog>
+</div> -->
+
 <div class="ui-widget-header" style="padding:4px 10px;border-bottom: 0 none">
+<!-- For some reason, modal dialogs are broken here.  TODO: Investigate
+   <button type="text" (click)="showAddDialog()" pButton icon="fa fa-plus" label="Add" pInputText pTooltip="Add a site manually" tooltipPosition="top" placeholder="Top"></button>
+   <button type="text" (click)="showSearchDialog()" pButton icon="fa-fontAwesome fa-search-plus" label="Search" pInputText pTooltip="Add sites using business search" tooltipPosition="top" placeholder="Top"></button> -->
    <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
    <input #gb type="text" pInputText size="50" placeholder="Global Filter">
 </div>
+
 <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb"
              selectionMode="multiple" [(selection)]="selectedSites" [rows]="10" [paginator]="true" >
    <p-header>Site List</p-header>

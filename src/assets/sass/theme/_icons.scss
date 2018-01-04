@@ -1,3 +1,44 @@
+@import '../../../../node_modules/font-awesome/scss/font-awesome.scss';
+ 
+ :not([class*="fa-fontAwesome"]) {
+   &.fa-sort {@include icon-override("sort");}
+   &.fa-sort-asc {@include icon-override("keyboard_arrow_up");}
+   &.fa-sort-desc {@include icon-override("keyboard_arrow_down");}
+   &.fa-angle-up {@include icon-override("play_arrow"); @include rotate(-90deg);}
+   &.fa-angle-double-up { @include icon-override("skip_next"); @include rotate(-90deg);}
+   &.fa-angle-down {@include icon-override("play_arrow"); @include rotate(90deg);}
+   &.fa-angle-double-down {@include icon-override("skip_previous"); @include rotate(-90deg);}
+   &.fa-angle-right {@include icon-override("play_arrow");}
+   &.fa-angle-double-right {@include icon-override("fast_forward");}
+   &.fa-angle-left {@include icon-override("play_arrow"); @include rotate(180deg);}
+   &.fa-angle-double-left {@include icon-override("fast_rewind");}
+   &.fa-check {@include icon-override("check");}
+   &.fa-caret-up {@include icon-override("keyboard_arrow_up");}
+   &.fa-caret-down {@include icon-override("keyboard_arrow_down");}
+   &.fa-caret-right {@include icon-override("keyboard_arrow_right");}
+   &.fa-caret-left {@include icon-override("keyboard_arrow_left");}
+   &.fa-search {@include icon-override("search");}
+   &.fa-close {@include icon-override("close");}
+   &.fa-minus {@include icon-override("remove");}
+   &.fa-plus {@include icon-override("add");}
+   &.fa-check {@include icon-override("check");}
+   &.fa-info-circle {@include icon-override("info");}
+   &.fa-upload  {@include icon-override("file_upload");}
+   &.fa-chevron-circle-left {@include icon-override("chevron_left");}
+   &.fa-chevron-circle-right {@include icon-override("chevron_right");}
+   &.fa-chevron-circle-down {@include icon-override("chevron_right"); @include rotate(90deg);}
+   //&.fa-home {@include icon-override("home");}
+   &.fa-chevron-right {@include icon-override("chevron_right");}
+   &.fa-chevron-left {@include icon-override("chevron_left");}
+   &.fa-circle-o{@include icon-override("radio_button_unchecked");}
+   &.fa-dot-circle-o{@include icon-override("radio_button_checked");}
+   &.fa-arrow-circle-right {@include icon-override("play_circle_outline"); }
+   &.fa-arrow-circle-left {@include icon-override("play_circle_outline"); @include rotate(180deg);}
+   &.fa-calendar { @include icon-override("date_range"); }
+   &.fa-arrow-down{ @include icon-override("arrow_downward"); }
+   &.fa-arrow-up { @include icon-override("arrow_upward"); }
+}
+
 .fa-sort {@include icon-override("sort");}
 .fa-sort-asc {@include icon-override("keyboard_arrow_up");}
 .fa-sort-desc {@include icon-override("keyboard_arrow_down");}
@@ -1039,3 +1080,7 @@
   /* Support for IE. */
   font-feature-settings: 'liga';
 }
+
+.fa-fontAwesome.fa, .fa-fontAwesome .fa {
+   font-family: 'FontAwesome';
+ }

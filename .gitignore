@@ -28,6 +28,8 @@ src/@types
 !.vscode/extensions.json
 
 # misc
+src/assets/theme/.sass-cache
+src/assets/layout/css/.sass-cache
 /.sass-cache
 /connect.lock
 /coverage

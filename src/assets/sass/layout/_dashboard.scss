@@ -67,33 +67,57 @@
         
         &.colorbox-1 {     
             background-color: #659e5b;
-                   
+
+            div:hover{
+               background-color:#55854d;
+            }
             div:first-child {
                 background-color: #436f3b;
+            }
+            div:first-child:hover{
+               background-color:#34572e;;
             }
         }
         
         &.colorbox-2 { 
             background-color: #5ca4d7;
-                       
+
+            div:hover {
+               background-color: #5190bd;
+            }
             div:first-child {
                 background-color: #4275a5;
+            }
+            div:first-child:hover {
+               background-color: #38648c;
             }
         }
         
         &.colorbox-3 {  
             background-color: #6c50a4;
                       
+            div:hover{
+               background-color: #5b438a;
+            }
             div:first-child {
                 background-color: #503d8e;
+            }
+            div:first-child:hover {
+               background-color: #423275;
             }
         }
         
         &.colorbox-4 { 
             background-color: #40847a;
-                       
+
+            div:hover{
+               background-color: #336b63;
+            }
             div:first-child {
                 background-color: #2a5c53;
+            }
+            div:first-child:hover {
+               background-color: #1e423c;
             }
         }
     }
