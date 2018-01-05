@@ -35,11 +35,8 @@ export class GeocoderService {
   }
   
   saveGeofootprintMaster(geofootprintMaster: GeofootprintMaster){
-    //JSON mapper = new JSON();
-    console.log('fired saveGeofootprintMaster in GeocoderService ' + JSON.stringify(geofootprintMaster, null, 4));
-     
-//    return this.http.post('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster).map(res => res.json() as RestResponse);
-    return this.http.post('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster);
+    console.log('fired saveGeofootprintMaster in GeocoderService ' + JSON.stringify(geofootprintMaster, null, 4));    
+    return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster);
   }
 
 }
