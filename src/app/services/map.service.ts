@@ -927,7 +927,7 @@ export class MapService {
             throw new Error(error.message);
         }
        // MapService.mapView.goTo(graphicList1);
-       // MapService.mapView.zoom = 6;
+       MapService.mapView.zoom += 2;
     }
 
     public async selectCentroid(graphicList: __esri.Graphic[]){

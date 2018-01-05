@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Component } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
 import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
+import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
+import { MapService } from '../../../services/map.service';
 // import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
@@ -23,6 +25,7 @@ export class AmSiteService
 {
   private subject: Subject<AmSite> = new Subject<AmSite>();
   public amSites: Array<AmSite> = new Array<AmSite>();
+  private mapService: MapService;
 
   public addSites(amSites: AmSite[]) {
     for (const amSite of amSites) {
@@ -31,6 +34,27 @@ export class AmSiteService
       this.amSites = sites;
       this.subject.next(amSite);
     }
+  }
+
+  // create a Grahpic object for the site that can be displayed on the map
+  public async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [Graphic] = await loader.loadModules(['esri/Graphic']);
+    let graphic: __esri.Graphic = new Graphic();
+
+    // give our site a blue color
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+    };
+
+    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate)
+      .then(res => {
+        graphic = res;
+      });
+    return graphic;
   }
 
   public observeSites() : Observable<AmSite> {
@@ -42,8 +66,7 @@ export class AmSiteService
    constructor(private http: HttpClient,
                private messageService: MessageService)
    {
-//      super();
-//      this.messageService.state.subscribe(state => this.getAmSites());
+    this.mapService = new MapService();
    }
 
    private log(message: string) {

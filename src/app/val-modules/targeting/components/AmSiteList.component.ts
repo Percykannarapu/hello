@@ -51,30 +51,9 @@ export class AmSiteListComponent implements OnInit, OnDestroy
     amSite.zip = row.zip;
     amSite.xcoord = row.xcoord;
     amSite.ycoord = row.ycoord;
-    const graphic = await this.createGraphic(amSite, null);
+    const graphic = await this.amSiteService.createGraphic(amSite, null);
     this.mapService.zoomOnMap([graphic]);
    }
-
-   // create a Grahpic object for the site that can be displayed on the map
-  public async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [Graphic] = await loader.loadModules(['esri/Graphic']);
-    let graphic: __esri.Graphic = new Graphic();
-
-    // give our site a blue color
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-    };
-
-    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate)
-      .then(res => {
-        graphic = res;
-      });
-    return graphic;
-  }
 
    getAmSites()
    {
