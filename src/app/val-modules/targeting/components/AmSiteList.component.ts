@@ -1,6 +1,9 @@
 import { state } from '@angular/animations';
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
+import { MapService } from '../../../services/map.service';
+import { GeocoderComponent } from '../../../components/geocoder/geocoder.component';
+import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 
 // Import Models
 import { AmSite } from '../models/AmSite';
@@ -29,13 +32,28 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    selectedSites: AmSite[];   
   
    constructor(public amSiteService: AmSiteService,
-               private messageService: MessageService) { }
+               private messageService: MessageService,
+               private mapService: MapService) { }
 
    // getAmSitesSynchronous()
    // {
    //    console.log('called getAmSites');
    //    this.amSites = this.amSiteService.getAmSites();
    // }
+
+   
+   // zoom to a site when the user clicks the zoom button on the sites grid
+   public async onZoomToSite(row: any) {
+    const amSite: AmSite = new AmSite();
+    amSite.address = row.address;
+    amSite.city = row.city;
+    amSite.state = row.state;
+    amSite.zip = row.zip;
+    amSite.xcoord = row.xcoord;
+    amSite.ycoord = row.ycoord;
+    const graphic = await this.amSiteService.createGraphic(amSite, null);
+    this.mapService.zoomOnMap([graphic]);
+   }
 
    getAmSites()
    {

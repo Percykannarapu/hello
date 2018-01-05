@@ -1,10 +1,9 @@
-            
 <div class="ui-g">
-   <p-dialog header="Manually Add Site" [(visible)]="displayAddDialog" [contentStyle]="{'overflow':'visible'}" modal="true">
-      <div class="ui-g-12">
-         <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
-      </div>
-   </p-dialog>
+    <p-dialog header="Manually Add Site" [(visible)]="displayAddDialog" [contentStyle]="{'overflow':'visible'}" modal="true">
+        <div class="ui-g-12">
+            <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
+        </div>
+    </p-dialog>
 </div>
 
 <!-- <div class="ui-g ui-fluid">   
@@ -16,20 +15,39 @@
 </div> -->
 
 <div class="ui-widget-header" style="padding:4px 10px;border-bottom: 0 none">
-<!-- For some reason, modal dialogs are broken here.  TODO: Investigate
+    <!-- For some reason, modal dialogs are broken here.  TODO: Investigate
    <button type="text" (click)="showAddDialog()" pButton icon="fa fa-plus" label="Add" pInputText pTooltip="Add a site manually" tooltipPosition="top" placeholder="Top"></button>
    <button type="text" (click)="showSearchDialog()" pButton icon="fa-fontAwesome fa-search-plus" label="Search" pInputText pTooltip="Add sites using business search" tooltipPosition="top" placeholder="Top"></button> -->
-   <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
-   <input #gb type="text" pInputText size="50" placeholder="Global Filter">
+    <div class="ui-g" style="flex-wrap: nowrap !important;">
+        <div class="ui-g-12 ui-g-nopad">
+            <div class="ui-g-1" style="min-width:25px; width:25px">
+                <i class="fa fa-search"></i>
+            </div>
+            <div class="ui-g-11">
+                <span class="md-inputfield">
+                    <input #gb type="text" id="gb" pInputText size="50" style="color: white;">
+                    <label for="gb" style="color: white;">Global Filter</label>
+                </span>
+            </div>
+        </div>
+    </div>
 </div>
 
-<p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb"
-             selectionMode="multiple" [(selection)]="selectedSites" [rows]="10" [paginator]="true" >
-   <p-header>Site List</p-header>
-   <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
-   <p-column field="pk" header="Site#"></p-column>
-   <!-- <p-column field="name" header="name"></p-column> -->
-   <p-column field="address" header="Address"></p-column>
-   <p-column field="city" header="city"></p-column>
-   <p-column field="zip" header="zip"></p-column>
+<p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
+    [(selection)]="selectedSites" [rows]="8" [paginator]="true">
+    <p-header>Site List</p-header>
+    <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
+    <p-column field="pk" header="Site#"></p-column>
+    <!-- <p-column field="name" header="name"></p-column> -->
+    <p-column field="address" header="Address"></p-column>
+    <p-column field="city" header="City"></p-column>
+    <p-column field="state" header="State"></p-column>
+    <p-column field="ycoord" header="Latitude (Y)"></p-column>
+    <p-column field="xcoord" header="Longitude (X)"></p-column>
+    <p-column field="zip" header="Zip"></p-column>
+    <p-column header="Zoom To">
+        <ng-template let-h="rowData" pTemplate="body">
+            <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+    </p-column>
 </p-dataTable>
