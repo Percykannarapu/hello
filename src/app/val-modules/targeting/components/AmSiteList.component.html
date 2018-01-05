@@ -37,14 +37,15 @@
     [(selection)]="selectedSites" [rows]="8" [paginator]="true">
     <p-header>Site List</p-header>
     <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
-    <p-column field="pk" header="Site#"></p-column>
+    <p-column field="pk" header="Site #"></p-column>
+    <p-column field="name" header="Name"></p-column>
     <!-- <p-column field="name" header="name"></p-column> -->
     <p-column field="address" header="Address"></p-column>
     <p-column field="city" header="City"></p-column>
     <p-column field="state" header="State"></p-column>
+    <p-column field="zip" header="Zip"></p-column>
     <p-column field="ycoord" header="Latitude (Y)"></p-column>
     <p-column field="xcoord" header="Longitude (X)"></p-column>
-    <p-column field="zip" header="Zip"></p-column>
     <p-column header="Zoom To">
         <ng-template let-h="rowData" pTemplate="body">
             <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
