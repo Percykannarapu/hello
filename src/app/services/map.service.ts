@@ -926,8 +926,11 @@ export class MapService {
         } catch (error) {
             throw new Error(error.message);
         }
-       // MapService.mapView.goTo(graphicList1);
-       MapService.mapView.zoom += 2;
+        
+       // if we are zooming to a single site we want to increase the zoom level
+       if (graphics.length === 1) {
+        MapService.mapView.zoom = 12;
+       }
     }
 
     public async selectCentroid(graphicList: __esri.Graphic[]){
