@@ -3,7 +3,7 @@ import {AmSite} from './models/AmSite';
 import {NgModule} from '@angular/core';
 import {HttpModule} from '@angular/http';
 import {HttpClientModule} from '@angular/common/http';
-import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
+//import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {LocationStrategy, HashLocationStrategy} from '@angular/common';
 import 'rxjs/add/operator/toPromise';
 
@@ -13,8 +13,8 @@ import { AmSiteService } from './services/AmSite.service';
 
 @NgModule({
    imports: [
-      HttpModule,
-      HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService) // , { dataEncapsulation: false, delay: 600 }),
+      HttpModule
+//    HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService) // , { dataEncapsulation: false, delay: 600 }),
    ],
    declarations: [
    ],

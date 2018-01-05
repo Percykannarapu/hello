@@ -288,6 +288,7 @@ export class GeofootprintComponent implements OnInit {
         /*
          * calling Fuse service to persist Data
          */
+/*
         console.log("calling GeododerService to save GrofootprintMaster");
         var observable = this.geocoderService.saveGeofootprintMaster(geoMaster);
         observable.subscribe((res) => {
@@ -296,7 +297,7 @@ export class GeofootprintComponent implements OnInit {
           this.geofootprintCgmId.push({severity:'success', summary:'GeoFootprint save', detail:JSON.stringify(glowmessage, null, 4)});
           console.log("geofootprintCgmId::"+this.geofootprintCgmId);
           return;  
-        })
+        });*/
 
       }
 

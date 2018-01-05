@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import { RestResponse } from '../Models/RestResponse';
 import { AccountLocation } from '../Models/AccountLocation';
 import { GeocodingResponse } from '../Models/GeocodingResponse';
@@ -7,6 +7,7 @@ import { GeofootprintMaster } from '../Models/GeofootprintMaster';
 
 import 'rxjs/add/operator/map';
 import { AmSite } from '../val-modules/targeting/models/AmSite';
+import { RequestOptionsArgs } from '@angular/http/src/interfaces';
 
 @Injectable()
 export class GeocoderService {
@@ -16,7 +17,7 @@ export class GeocoderService {
   private ycoord: number;
   private GeocodingResponse;
 
-  constructor(public http: Http) {
+  constructor(public http: HttpClient) {
     console.log('Fired GeocoderService ctor');
   }
 
@@ -28,14 +29,17 @@ export class GeocoderService {
       state: amSite.state,
       postalCode: Number(amSite.zip)
     };
-    return this.http.post('https://servicesdev.valassislab.com/services/v1/geocoder/singlesite', accountLocation).map(res => res.json() as RestResponse);
+// _gridOptions:Map<string, Array<string>> = new Map([["1", ["test"]], ["2", ["test2"]]])    
+    
+   return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/geocoder/singlesite', accountLocation);
   }
   
   saveGeofootprintMaster(geofootprintMaster: GeofootprintMaster){
     //JSON mapper = new JSON();
     console.log('fired saveGeofootprintMaster in GeocoderService ' + JSON.stringify(geofootprintMaster, null, 4));
      
-    return this.http.post('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster).map(res => res.json() as RestResponse);
+//    return this.http.post('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster).map(res => res.json() as RestResponse);
+    return this.http.post('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster);
   }
 
 }
