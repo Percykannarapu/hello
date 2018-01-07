@@ -31,6 +31,7 @@ export class MapService {
     public static featureLayerView: __esri.FeatureLayerView;
 
     public static selectedGraphics: __esri.Graphic[] = [];
+    public static selectedCentroidObjectIds: number[] = [];
 
     private mapInstance: __esri.Map;
 
@@ -936,7 +937,6 @@ export class MapService {
     public async selectCentroid(graphicList: __esri.Graphic[]){
         console.log('selectCentroid fired::::');
         
-
         let fSet: __esri.FeatureSet;
         let fLyrList: __esri.FeatureLayer[] = [];
         await this.getAllFeatureLayers().then(list => {
@@ -983,35 +983,30 @@ export class MapService {
             new Color([0, 255, 0, 0.35])
         );
         let fLyrList: __esri.FeatureLayer[] = [];
-         await this.getAllFeatureLayers().then(list =>{
+         await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
         });
+       MapService.selectedCentroidObjectIds = [];
 
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 const polyGraphics: __esri.Graphic[] = [];
-                let highlightedGraphic: __esri.Graphic;
                 for (const centroidGraphic of centroidGraphics){
                     const qry1 = lyr.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
                     await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
                         for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
-                            highlightedGraphic = new Graphic(polyFeatureSet.features[i].geometry, symbol123);
-                           
-                            console.log('hilighted graphic1::' + polyFeatureSet.features[i].attributes.isSelected);
-                            if ( polyFeatureSet.features[i].attributes.isSelected === undefined){
-                               // highlightedGraphic.attributes = 'selected';
-                                polyFeatureSet.features[i].attributes.isSelected = 'selected';
-                                console.log('hilighted graphic2::' + polyFeatureSet.features[i].attributes.isSelected);
-                                polyGraphics.push(highlightedGraphic);
-                            }
-                           
-                          // lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
+                               if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
+                                    polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID)); 
+                                    MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
+                               }
+                              //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                     });
                  }
                  MapService.mapView.graphics.addMany(polyGraphics);
+                // console.log('test:::' + polyFeatureSet.features[i].getAttribute('isSelected'));
                  //add(new Graphic(polyFeatureSet.features[i].geometry,symbol123)); 
             }
         }
@@ -1051,25 +1046,41 @@ export class MapService {
 
         console.log('fLyrList size --->' + fLyrList.length);
 
-        /*await MapService.layers.forEach(function(lyr:__esri.FeatureLayer){
-            fLyrList.push(lyr);
-        });
-
-        MapService.ZipGroupLayer.layers.forEach(function(zipLyr:__esri.FeatureLayer){
-            fLyrList.push(zipLyr); 
-        });*/
-
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 const query = lyr.createQuery();
                 const currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
-                    for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
-                        //polyFeatureSet.features[i].symbol = symbol;
-                       // polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry,symbol));
-                       MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[i].geometry,symbol)); 
-                    }
+                        console.log('polyFeatureSet size::' + polyFeatureSet.features.length);
+                       console.log('deselect polygon:::' + polyFeatureSet.features[0].attributes.OBJECTID);
+                       if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.OBJECTID)){
+
+                             console.log('polyFeatureSet attribute ID' + polyFeatureSet.features[0].attributes.OBJECTID);  
+                             const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
+                            // MapService.mapView.graphics.removeAt(0);
+                           // const collGraphics: __esri.Collection<__esri.Graphic> = MapService.mapView.graphics;
+                            MapService.mapView.graphics.forEach((graphic) => {
+                                console.log('mapView array attributid' + graphic.attributes);
+                                if (graphi.attributes.OBJECTID ===  graphic.attributes){
+                                    console.log('remove the graphic' + true);
+                                    MapService.mapView.graphics.remove(graphic);  
+                                    const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
+                                    console.log('index:::'+ index); 
+                                    MapService.selectedCentroidObjectIds.slice(index, 1);
+                                }
+
+                            });
+                            
+                             
+                           //  MapService.mapView.graphics.removeAt(0);
+                             
+                             console.log('remove from mapview::' + MapService.selectedCentroidObjectIds);
+                        }else{
+                            console.log('add to mapview');
+                            MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
+                            MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
+                        }
                 });
             }
         }
