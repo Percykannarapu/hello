@@ -14,10 +14,11 @@ import {AmSiteListComponent} from '../../val-modules/targeting/components/AmSite
 import {MessageService} from '../../val-modules/common/services/message.service';
 import {Message} from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';
+import { AppService } from '../../services/app.service';
 
 @Component({
     templateUrl: './dashboard.component.html',
-    providers: [MapService] //
+    providers: [MapService, AppService] //
 })
 export class DashboardDemoComponent implements OnInit {
    msgs: Message[] = [];
@@ -64,12 +65,17 @@ export class DashboardDemoComponent implements OnInit {
    @ViewChild('greenColorBox')
    private greenColorBox: ColorBoxComponent;
 
+
+   @ViewChild('campaineDetailsBox')
+   private campaineDetailsBox: ColorBoxComponent;
+
     
    constructor(// private carService: CarService,
 //               private eventService: EventService,
                private mapService: MapService,
                private messageService: MessageService,
-               private amSiteService: AmSiteService) { }
+               private amSiteService: AmSiteService,
+               private appService: AppService) { }
 
    ngOnInit() {
 
@@ -81,7 +87,7 @@ export class DashboardDemoComponent implements OnInit {
       ]);
 
       this.metricMapBlue = new Map([
-         ['Household Count', '115,012'],
+         ['Household Count', MapService.hhDetails.toString()],
          ['IP Address Count', '118,789'],
          ['Total Investment', '$7,476'],
          ['Progress to Budget', '83%']
@@ -115,6 +121,10 @@ export class DashboardDemoComponent implements OnInit {
          console.log('Dashboard component detected new site');
          this.greenColorBox.set('#Sites', this.amSiteService.amSites.length.toString());
       });
+
+
+
+
 
       // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
       //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);
@@ -323,6 +333,12 @@ export class DashboardDemoComponent implements OnInit {
                      var kmsMereEach = miles1 / 0.62137;
                      console.log('Kms in Merge Each:::' + kmsMereEach);
                      await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
+                    // this.appService.updateColorBoxValue.emit({type: 'hhCount', countHousehold: MapService.hhDetails});
+
+                    this.campaineDetailsBox.set('Household Count', MapService.hhDetails.toString());
+                    //  this.greenColorBox.updateModel()
+                    //this.metricMapBlue.set()
+                     console.log('hhcount total:::'+MapService.hhDetails);
                  }
             // }
          }else{

@@ -30,8 +30,8 @@ export class MapService {
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
     public static featureLayerView: __esri.FeatureLayerView;
 
-    public static selectedGraphics: __esri.Graphic[] = [];
     public static selectedCentroidObjectIds: number[] = [];
+    public static hhDetails : number = 0;
 
     private mapInstance: __esri.Map;
 
@@ -295,7 +295,7 @@ export class MapService {
 
     public getFeaturLayer() : __esri.FeatureLayer{
 
-        var featurelyr : __esri.FeatureLayer[] = [];
+        var featurelyr: __esri.FeatureLayer[] = [];
        // MapService.mapView.map.layers.f
        /* MapService.mapView.map.add(lyr);
         MapService.layers.add(lyr);
@@ -998,15 +998,22 @@ export class MapService {
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
                     await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
+                        let hhCount : number = 0
+                        let hhIpAddress : number = 0;
                         for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
+                               
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
+                                    MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
+                                    hhIpAddress = hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+
                                     polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID)); 
                                     MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
+                                    console.log('hh count::::'+MapService.hhDetails + 'individual count of::'+polyFeatureSet.features[i].attributes.HHLD_W);
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                     });
-                 }
+                }
                  MapService.mapView.graphics.addMany(polyGraphics);
             }
         }
