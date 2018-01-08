@@ -731,8 +731,12 @@ export class MapService {
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->' + graphicList.length);
             //await this.zoomOnMap(graphicList);
+            const t0 = performance.now();
             await this.selectCentroid(graphicList);
+            const t1 = performance.now();
+            console.log('Call to doSomething took: ' + (t1 - t0) + ' :milliseconds.');
             console.log('completed select buffer::');
+
        // return { val: MapService.mapView };
     }
 
@@ -962,10 +966,8 @@ export class MapService {
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query, GroupLayer, FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+        const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
-            'esri/tasks/support/Query',
-            'esri/layers/GroupLayer',
             'esri/layers/FeatureLayer',
             'esri/Graphic',
             'esri/symbols/SimpleFillSymbol',
@@ -1006,8 +1008,6 @@ export class MapService {
                     });
                  }
                  MapService.mapView.graphics.addMany(polyGraphics);
-                // console.log('test:::' + polyFeatureSet.features[i].getAttribute('isSelected'));
-                 //add(new Graphic(polyFeatureSet.features[i].geometry,symbol123)); 
             }
         }
     }
@@ -1044,83 +1044,33 @@ export class MapService {
             fLyrList = list;
         });
 
-        console.log('fLyrList size --->' + fLyrList.length);
-
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 const query = lyr.createQuery();
                 const currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(function(polyFeatureSet){
-                        console.log('polyFeatureSet size::' + polyFeatureSet.features.length);
-                       console.log('deselect polygon:::' + polyFeatureSet.features[0].attributes.OBJECTID);
                        if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.OBJECTID)){
 
-                             console.log('polyFeatureSet attribute ID' + polyFeatureSet.features[0].attributes.OBJECTID);  
-                             const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
-                            // MapService.mapView.graphics.removeAt(0);
-                           // const collGraphics: __esri.Collection<__esri.Graphic> = MapService.mapView.graphics;
+                            const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
                             MapService.mapView.graphics.forEach((graphic) => {
-                                console.log('mapView array attributid' + graphic.attributes);
                                 if (graphi.attributes.OBJECTID ===  graphic.attributes){
-                                    console.log('remove the graphic' + true);
+                                    console.log('select to mapview');
                                     MapService.mapView.graphics.remove(graphic);  
                                     const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
-                                    console.log('index:::'+ index); 
-                                    MapService.selectedCentroidObjectIds.slice(index, 1);
+                                    MapService.selectedCentroidObjectIds.splice(index, 1);
                                 }
 
                             });
-                            
-                             
-                           //  MapService.mapView.graphics.removeAt(0);
-                             
-                             console.log('remove from mapview::' + MapService.selectedCentroidObjectIds);
                         }else{
-                            console.log('add to mapview');
+                            console.log('select to mapview');
                             MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
                         }
                 });
             }
         }
-        /*await MapService.ZipGroupLayer.layers.forEach(function (polyLayer : __esri.FeatureLayer){
-            if (polyLayer.title ==='ZIP_Top_Vars') {
-                for(const polyGraphic of polyGraphics){
-                    MapService.mapView.graphics.add(polyGraphic); 
-                }
-            }
-         });*/
-        /* await this.getAllFeatureLayers().then(list =>{
-            for(let polyLayer of list){
-               if (polyLayer.title ==='ZIP_Top_Vars') {
-                   this.updateFeatureLayer(polyGraphics,polyLayer.title);
-               }
-            }
-         }); */
-
-        /* await this.getAllFeatureLayers().then(list =>{
-            for(const polyLayer of list){
-                 if (polyLayer.title ==='ZIP_Top_Vars') {
-                    for(const polyGraphic of polyGraphics){
-                        MapService.mapView.graphics.add(polyGraphic); 
-                    }
-                }
-            }
-         });*/
-         /*await MapService.mapView.map.layers.forEach( (lyr) =>{
-            if(lyr instanceof GroupLayer){
-                var gpLyr : __esri.GroupLayer = <__esri.GroupLayer>lyr;
-                gpLyr.layers.forEach((subLyr) =>{
-                    if(subLyr instanceof FeatureLayer){
-                        console.log('test data')
-                    }
-                    if(subLyr.title ==='ZIP_Top_Vars'){
-                        this.updateFeatureLayer(polyGraphics,subLyr.title);
-                    }
-                });
-            }
-        });*/
+        
     }
 
     public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]>{
