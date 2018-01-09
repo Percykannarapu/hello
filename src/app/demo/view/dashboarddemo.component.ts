@@ -196,7 +196,7 @@ export class DashboardDemoComponent implements OnInit {
     const lyrNme: string = ' Mile Trade Area'; 
     let meTitle = 'Site - ';
         if (this.selectedValue === 'Competitors'){ 
-            meTitle = 'Competitor -';
+            meTitle = 'Competitor - ';
             if (this.checked1){
                 this.competitorsMap.set('editedta1', String(this.editedta1));
                 this.competitorsMap.set('checked1', String(this.checked1));
@@ -288,7 +288,7 @@ export class DashboardDemoComponent implements OnInit {
          this.mapView = this.mapService.getMapView();
          var pointsArray: Points[] = [];
          var existingGraphics: __esri.Collection<__esri.Graphic>;
-         var lyrTitle : string;
+         let lyrTitle: string;
      await  MapService.layers.forEach(layer => {   
            if (this.selectedValue == 'Sites'){
                 if (layer.title.startsWith('Site -') ){
@@ -310,9 +310,7 @@ export class DashboardDemoComponent implements OnInit {
                          points.longitude = current.geometry.longitude; 
                          pointsArray.push(points);  
                      });
-                 }
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;	
+                 }	
         });
          var color = null;
          var outlneColor = null;
@@ -323,14 +321,14 @@ export class DashboardDemoComponent implements OnInit {
           color = {a: 0, r: 255, g: 0, b: 0 };
           outlneColor = ([255, 0, 0, 2.50]);  
         }
-         if(mergeAllBool){
+         if (mergeAllBool){
              console.log('inside merge All');
              var max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
              if (max != null){
                 this.kms = max / 0.62137;
                 await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
                 this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString())
+                this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
 
              }
          }else if (mergeEachBool){
@@ -341,7 +339,7 @@ export class DashboardDemoComponent implements OnInit {
                      console.log('Kms in Merge Each:::' + kmsMereEach);
                      await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
                     this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                    this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString())
+                    this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
                  }
             // }
          }else{
@@ -355,10 +353,13 @@ export class DashboardDemoComponent implements OnInit {
                      console.log('Kms in No Merge:::' + kmsNomerge);
                      await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
                      this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                     this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString())
+                     this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
                  }
              }
          }
+        //hide the spinner after drawing buffer
+        this.displayDBSpinner = false;
+        this.appService.closeOverLayPanel.next(true);
        }catch (ex) {
          console.error(ex);
        }
