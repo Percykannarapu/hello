@@ -32,6 +32,7 @@ export class MapService {
 
     public static selectedCentroidObjectIds: number[] = [];
     public static hhDetails : number = 0;
+    public static hhIpAddress: number = 0;
 
     private mapInstance: __esri.Map;
 
@@ -998,17 +999,14 @@ export class MapService {
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
                     await lyr.queryFeatures(qry1).then(function(polyFeatureSet){
-                        let hhCount : number = 0
-                        let hhIpAddress : number = 0;
                         for (let i = 0 ; i < polyFeatureSet.features.length ; i++){
                                
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
                                     MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
-                                    hhIpAddress = hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+                                    MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
 
                                     polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID)); 
                                     MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
-                                    console.log('hh count::::'+MapService.hhDetails + 'individual count of::'+polyFeatureSet.features[i].attributes.HHLD_W);
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
@@ -1062,17 +1060,25 @@ export class MapService {
                             const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
                             MapService.mapView.graphics.forEach((graphic) => {
                                 if (graphi.attributes.OBJECTID ===  graphic.attributes){
-                                    console.log('select to mapview');
+                                    console.log('deselect to mapview');
                                     MapService.mapView.graphics.remove(graphic);  
                                     const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
+                                    console.log('Before campaign values on deslect::HHcount:: '+polyFeatureSet.features[0].attributes.HHLD_W+'::HHipAdd::'+polyFeatureSet.features[0].attributes.NUM_IP_ADDRS);
+                                    MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
+                                    MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                                    console.log('After campaign values on deslect::HHcount:: '+MapService.hhDetails+'::HHipAdd::'+MapService.hhIpAddress);
                                 }
-
                             });
                         }else{
                             console.log('select to mapview');
                             MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
+                            console.log('Before campaign values on slect::HHcount:: '+polyFeatureSet.features[0].attributes.HHLD_W+'::HHipAdd::'+polyFeatureSet.features[0].attributes.NUM_IP_ADDRS);
+                            MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
+                            MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            console.log('After campaign values on deslect::HHcount:: '+MapService.hhDetails+'::HHipAdd::'+MapService.hhIpAddress);
+
                         }
                 });
             }
