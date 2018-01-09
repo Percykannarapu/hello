@@ -359,7 +359,7 @@ export class DashboardDemoComponent implements OnInit {
          }
         //hide the spinner after drawing buffer
         this.displayDBSpinner = false;
-        this.appService.closeOverLayPanel.next(true);
+        //this.appService.closeOverLayPanel.next(true);
        }catch (ex) {
          console.error(ex);
        }

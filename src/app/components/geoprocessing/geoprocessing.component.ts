@@ -194,7 +194,7 @@ export class GeoprocessingComponent implements OnInit {
       Budget: this.radBudget
     };
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
-    geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RADExlRB9/GPServer/RADExlRB9';
+    geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
     await geoprocessor.submitJob(params, null).then(async response => {
       await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
         let pv = result as __esri.ParameterValue;
