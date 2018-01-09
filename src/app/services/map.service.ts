@@ -735,7 +735,7 @@ export class MapService {
             const t0 = performance.now();
             await this.selectCentroid(graphicList);
             const t1 = performance.now();
-            console.log('Call to doSomething took: ' + (t1 - t0) + ' :milliseconds.');
+            console.log('Call to select polygon took: ' + (t1 - t0) + ' :milliseconds.');
             console.log('completed select buffer::');
 
        // return { val: MapService.mapView };
