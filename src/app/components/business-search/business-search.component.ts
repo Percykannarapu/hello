@@ -261,5 +261,6 @@ export class BusinessSearchComponent implements OnInit {
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
     }
+    this.appService.closeOverLayPanel.next(true);
   }
 }

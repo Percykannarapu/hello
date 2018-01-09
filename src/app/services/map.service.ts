@@ -31,7 +31,7 @@ export class MapService {
     public static featureLayerView: __esri.FeatureLayerView;
 
     public static selectedCentroidObjectIds: number[] = [];
-    public static hhDetails : number = 0;
+    public static hhDetails: number = 0;
     public static hhIpAddress: number = 0;
 
     private mapInstance: __esri.Map;

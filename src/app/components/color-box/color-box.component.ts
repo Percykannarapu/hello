@@ -7,6 +7,7 @@ import { AppService } from '../../services/app.service';
   providers: [AppService]
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
+  @ViewChild('op') overlayPanel; 
    @Input() header:     string = 'Header';
    @Input() boxStyle:   string = 'colorbox-1';
    @Input() popupStyle: string = 'green-panel';
@@ -20,7 +21,13 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    popupWidthStr: string = '{\'width\':\'40%\'}';
 
-   constructor(private appService: AppService) { }
+   constructor(private appService: AppService) {
+     this.appService.closeOverLayPanel.subscribe((value) => {
+      if (value){
+        this.overlayPanel.hide();
+      }
+     });
+    }
 
    ngOnInit(){
     //US6475: Attach the # of Sites and Competitors; nallana
@@ -30,9 +37,9 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
       if (plottedData.type === 'Competitors'){
         modelvalue.set('# of Competitors', (plottedData.countCompetitors).toString());
       }else{
-        const count = + modelvalue.get('#Sites');
+        const count = + modelvalue.get('# of Sites');
         const sitesCount = (count + plottedData.countSites).toString();
-        modelvalue.set('#Sites', sitesCount);
+        modelvalue.set('# of Sites', sitesCount);
       }
       this.generateColorBoxValues();
      });
@@ -60,14 +67,12 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    }
 
    // Model methods that update the UI
-   public set(key: string, value: string)
-   {
+   public set(key: string, value: string){
       this.model.set(key, value);
       this.updateModel(this.model);
    }
  
-   public delete(key: string)
-   {
+   public delete(key: string){
       this.model.delete(key);
       this.updateModel(this.model);
    }

@@ -71,11 +71,14 @@ export class EsriLayerSelectComponent implements OnInit {
         //    ESRI Layers
         // -----------------
             { label: 'Census'                             , value: { group: 'ESRI', portalitem: '', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer', name: 'Census'}},
-            { label: 'USA 1990-2000 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_1990-2000_Population_Change/MapServer', name: 'USA 1990-2000 Population Change'}},
-            { label: 'USA 2000-2010 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_2000-2010_Population_Change/MapServer', name: 'USA 2000-2010 Population Change'}},
+            { label: 'USA 1990-2000 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_1990-2000_Population_Change/MapServer',
+              name: 'USA 1990-2000 Population Change'}},
+            { label: 'USA 2000-2010 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_2000-2010_Population_Change/MapServer',
+              name: 'USA 2000-2010 Population Change'}},
             { label: 'USA Average Household Size'         , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Average_Household_Size/MapServer', name: 'USA Average Household Size'}},
             { label: 'USA Diversity Index'                , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Diversity_Index/MapServer', name: 'USA Diversity Index'}},
-            { label: 'USA Labor Force Participation Rate' , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Labor_Force_Participation_Rate/MapServer', name: 'USA Labor Force Participation Rate'}},
+            { label: 'USA Labor Force Participation Rate' , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Labor_Force_Participation_Rate/MapServer',
+              name: 'USA Labor Force Participation Rate'}},
             { label: 'USA Median Age'                     , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Age/MapServer', name: 'USA Median Age'}},
             { label: 'USA Median Home Value'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Home_Value/MapServer', name: 'USA Median Home Value'}},
             { label: 'USA Median Household Income'        , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Household_Income/MapServer', name: 'USA Median Household Income'}},
@@ -85,10 +88,12 @@ export class EsriLayerSelectComponent implements OnInit {
             { label: 'USA Percent Under 18'               , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Percent_Under_18/MapServer', name: 'USA Percent Under 18'}},
             { label: 'USA Population by Sex'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Population_by_Sex/MapServer', name: 'USA Population by Sex'}},
             { label: 'USA Population Density'             , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Population_Density/MapServer', name: 'USA Population Density'}},
-            { label: 'USA Projected Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Projected_Population_Change/MapServer', name: 'USA Projected Population Change'}},
+            { label: 'USA Projected Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Projected_Population_Change/MapServer',
+              name: 'USA Projected Population Change'}},
             { label: 'USA Recent Population Change'       , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Recent_Population_Change/MapServer', name: 'USA Recent Population Change'}},
             { label: 'USA Retail Spending Potential'      , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Retail_Spending_Potential/MapServer', name: 'USA Retail Spending Potential'}},
-            { label: 'USA Social Vulnerability Index'     , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Social_Vulnerability_Index/MapServer', name: 'USA Social Vulnerability Index'}},
+            { label: 'USA Social Vulnerability Index'     , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Social_Vulnerability_Index/MapServer',
+              name: 'USA Social Vulnerability Index'}},
             { label: 'USA Tapestry'                       , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Tapestry/MapServer', name: 'USA Tapestry'}},
             { label: 'USA Unemployment Rate'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Unemployment_Rate/MapServer', name: 'USA Unemployment Rate'}}
         ];
