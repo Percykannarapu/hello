@@ -359,7 +359,7 @@ export class DashboardDemoComponent implements OnInit {
          }
         //hide the spinner after drawing buffer
         this.displayDBSpinner = false;
-        this.appService.closeOverLayPanel.next(true);
+        //this.appService.closeOverLayPanel.next(true);
        }catch (ex) {
          console.error(ex);
        }
@@ -367,17 +367,26 @@ export class DashboardDemoComponent implements OnInit {
 
     public async manageIcons(eventVal: string, taType: string){
         console.log('manageIcons fired:: ');
-        if (this.editedta1 && taType=='ta1miles'){
+        if (this.editedta1 && taType === 'ta1miles'){
             this.editedta1 = false;
             this.checked1  = false;
+        }else{
+            this.editedta1 = true;
+            this.checked1  = true;
         }
-        if (this.editedta2 && taType=='ta2miles'){
+        if (this.editedta2 && taType === 'ta2miles'){
             this.editedta2 = false;
             this.checked2  = false;
+        }else{
+            this.editedta2 = true;
+            this.checked2  = true;
         }
-        if (this.editedta3 && taType=='ta3miles'){
+        if (this.editedta3 && taType === 'ta3miles'){
             this.editedta3 = false;
             this.checked3  = false;
+        }else{
+            this.editedta3 = true;
+            this.checked3  = true;
         }
     }
 
