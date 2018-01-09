@@ -38,6 +38,7 @@ export class DashboardDemoComponent implements OnInit {
 
    public tradeAreaMergeTypes: SelectItem[];
    public selectedMergeTypes: string;
+   public displayDBSpinner: boolean = false;
 
    ta1Miles: number;
    ta2Miles: number;
@@ -81,7 +82,7 @@ export class DashboardDemoComponent implements OnInit {
 
       // Load models
       this.metricMapGreen = new Map([
-         ['#Sites', this.amSiteService.amSites.length.toString()],
+         ['# of Sites', this.amSiteService.amSites.length.toString()],
          ['# of Competitors', '0'],
          ['# of Markets', '3']
       ]);
@@ -119,7 +120,7 @@ export class DashboardDemoComponent implements OnInit {
       // observe when new sites are added
       this.amSiteService.observeSites().subscribe(site => {
          console.log('Dashboard component detected new site');
-         this.greenColorBox.set('#Sites', this.amSiteService.amSites.length.toString());
+         this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
       });
 
 
@@ -190,6 +191,8 @@ export class DashboardDemoComponent implements OnInit {
    
    public async drawBuffer(){
     console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
+    //show the spinner while we do our work
+    this.displayDBSpinner = true;
     const lyrNme: string = ' Mile Trade Area'; 
     let meTitle = 'Site - ';
         if (this.selectedValue === 'Competitors'){ 
@@ -199,9 +202,9 @@ export class DashboardDemoComponent implements OnInit {
                 this.competitorsMap.set('checked1', String(this.checked1));
                 this.competitorsMap.set('ta1Miles', String(this.ta1Miles));  
             }else{
-                this.sitesMap.delete('editedta1');
-                this.sitesMap.delete('checked1');
-                this.sitesMap.delete('ta1Miles');
+                this.competitorsMap.delete('editedta1');
+                this.competitorsMap.delete('checked1');
+                this.competitorsMap.delete('ta1Miles');
             }
             
             if (this.checked2){
@@ -209,18 +212,18 @@ export class DashboardDemoComponent implements OnInit {
                 this.competitorsMap.set('checked2', String(this.checked2));
                 this.competitorsMap.set('ta2Miles', String(this.ta2Miles));
             }else{
-                this.sitesMap.delete('editedta2');
-                this.sitesMap.delete('checked2');
-                this.sitesMap.delete('ta2Miles');
+                this.competitorsMap.delete('editedta2');
+                this.competitorsMap.delete('checked2');
+                this.competitorsMap.delete('ta2Miles');
             }
             if (this.checked3){
                 this.competitorsMap.set('editedta3', String(this.editedta3));
                 this.competitorsMap.set('checked3', String(this.checked3));
                 this.competitorsMap.set('ta3Miles', String(this.ta3Miles));   
             }else{
-                this.sitesMap.delete('editedta3');
-                this.sitesMap.delete('checked3');
-                this.sitesMap.delete('ta3Miles');
+                this.competitorsMap.delete('editedta3');
+                this.competitorsMap.delete('checked3');
+                this.competitorsMap.delete('ta3Miles');
             }
         }
         if (this.selectedValue === 'Sites'){ 
@@ -308,7 +311,9 @@ export class DashboardDemoComponent implements OnInit {
                          pointsArray.push(points);  
                      });
                  }
-         });
+        //hide the spinner after drawing buffer
+        this.displayDBSpinner = false;	
+        });
          var color = null;
          var outlneColor = null;
         if (lyrTitle == 'Sites' ){

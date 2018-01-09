@@ -1,4 +1,5 @@
 // Added nallana: US6087  
+import { Subject } from 'rxjs/Subject';
 import { Injectable, EventEmitter } from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -11,6 +12,7 @@ import { MapService } from './map.service';
 export class AppService {
     private static mapView: __esri.MapView;
     updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
+    closeOverLayPanel: Subject<any> = new Subject<any>();
     public categoryList = './assets/demo/data/categories.json'; 
     
     /* saveTargetingProfile(targetingprofile : TargetingProfile){
