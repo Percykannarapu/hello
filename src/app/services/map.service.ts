@@ -983,7 +983,7 @@ export class MapService {
               SimpleLineSymbol.STYLE_SOLID,
               new Color([0, 255, 0, 0.65]), 2
             ),
-            new Color([0, 255, 0, 0.35])
+            new Color([0, 255, 0, 0.10])
         );
         let fLyrList: __esri.FeatureLayer[] = [];
          await this.getAllFeatureLayers().then(list => {
@@ -1040,7 +1040,7 @@ export class MapService {
               SimpleLineSymbol.STYLE_SOLID,
               new Color([0, 255, 0, 0.65]), 2
             ),
-            new Color([0, 255, 0, 0.35])
+            new Color([0, 255, 0, 0.10])
           );
        
         let fLyrList: __esri.FeatureLayer[] = [];
