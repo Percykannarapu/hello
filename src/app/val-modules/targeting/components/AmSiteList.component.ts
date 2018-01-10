@@ -27,7 +27,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    anInt: number = 1;
    selectAllGeos: boolean;
 
-   amSites: AmSite[] = [];
+  // amSites: AmSite[] = [];
 
    selectedSites: AmSite[];   
   
@@ -44,28 +44,28 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
-    const amSite: AmSite = new AmSite();
-    amSite.address = row.address;
-    amSite.city = row.city;
-    amSite.state = row.state;
-    amSite.zip = row.zip;
-    amSite.xcoord = row.xcoord;
-    amSite.ycoord = row.ycoord;
-    const graphic = await this.amSiteService.createGraphic(amSite, null);
-    this.mapService.zoomOnMap([graphic]);
+      const amSite: AmSite = new AmSite();
+      amSite.address = row.address;
+      amSite.city = row.city;
+      amSite.state = row.state;
+      amSite.zip = row.zip;
+      amSite.xcoord = row.xcoord;
+      amSite.ycoord = row.ycoord;
+      const graphic = await this.amSiteService.createGraphic(amSite, null);
+      this.mapService.zoomOnMap([graphic]);
    }
 
    getAmSites()
    {
 //      this.messageService.add({severity: 'success', summary: 'GetAmSites fired!', detail: 'Via MessageService'});
 
-      this.amSiteService.getAmSites()
-          .subscribe(amSites => this.amSites = amSites);
+//      this.amSiteService.getAmSites()
+//          .subscribe(amSites => this.amSites = amSites);
    }    
 
    ngOnInit()
    {
-      this.getAmSites();
+      //this.getAmSites();
       // this.dbResetSubscription = this.geofootprintGeosService.onDbReset
       //                              .subscribe(() => this.getGeofootprintGeos());*/
 
@@ -82,33 +82,44 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       (err) => {
          this.amSites = err;
       });*/
-  }
+   }
 
-  ngOnDestroy() {
+   ngOnDestroy() {
     // this.dbResetSubscription.unsubscribe();
-  }
+   }
 
-  toggleGeocode(amSite: AmSite) {
-    console.log('toggling site: ' + amSite);
-  }
+   onRowUnselect(event)
+   {
+      console.log('Unselected Site');
+      // this.msgs = [];
+      // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
+      this.printSite(event.data);
 
-  printGeocode(amSite: AmSite) {
-     console.log(amSite);
-  }
+      this.amSiteService.logSites();
+   }
 
-  logAllSites() {
-    for (const site of this.amSites)
-      console.log ('pk: ' + site.pk + ', name: ' + site.name);
-  }
+   onRowSelect(event)
+   {
+      console.log('Selected Site');
+      // this.msgs = [];
+      // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
+      this.printSite(event.data);
 
-  // Toggle Modal Dialog Methods
-  showAddDialog()
-  {
-    this.displayAddDialog = true;
-  }
+      this.amSiteService.logSites();
+   }
+   
+   printSite(amSite: AmSite) {
+      console.log(amSite);
+   }
 
-  showSearchDialog()
-  {
-    this.displaySearchDialog = true;
-  }  
+   // Toggle Modal Dialog Methods
+   showAddDialog()
+   {
+      this.displayAddDialog = true;
+   }
+
+   showSearchDialog()
+   {
+      this.displaySearchDialog = true;
+   }  
 }

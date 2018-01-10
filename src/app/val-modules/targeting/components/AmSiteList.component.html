@@ -36,8 +36,12 @@
     </div>
 </div>
 
-<p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
-    [(selection)]="selectedSites" [rows]="8" [paginator]="true">
+<!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
+    [(selection)]="selectedSites" [rows]="8" [paginator]="true"> -->
+<p-dataTable [value]="amSiteService.unselectedAmSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
+    [(selection)]="amSiteService.amSites" [rows]="8" [paginator]="true"
+    (onRowUnselect)="onRowUnselect($event)"
+    (onRowSelect)="onRowSelect($event)">
     <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
     <p-column field="pk" header="Site #"></p-column>
     <p-column field="name" header="Name"></p-column>
