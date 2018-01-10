@@ -1151,20 +1151,16 @@ export class MapService {
                                     MapService.mapView.graphics.remove(graphic);  
                                     const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
-                                    console.log('Before campaign values on deslect::HHcount:: '+polyFeatureSet.features[0].attributes.HHLD_W+'::HHipAdd::'+polyFeatureSet.features[0].attributes.NUM_IP_ADDRS);
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                                    console.log('After campaign values on deslect::HHcount:: '+MapService.hhDetails+'::HHipAdd::'+MapService.hhIpAddress);
                                 }
                             });
                         }else{
                             console.log('select to mapview');
                             MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
-                            console.log('Before campaign values on slect::HHcount:: '+polyFeatureSet.features[0].attributes.HHLD_W+'::HHipAdd::'+polyFeatureSet.features[0].attributes.NUM_IP_ADDRS);
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                            console.log('After campaign values on deslect::HHcount:: '+MapService.hhDetails+'::HHipAdd::'+MapService.hhIpAddress);
 
                         }
                 });
