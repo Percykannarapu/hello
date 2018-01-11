@@ -74,10 +74,10 @@ export class AmSiteService
       // }
 //      const i = this.unselectedAmSites.indexOf(unselectedAmSites[0]);
 
-  //    for (const amSite of unselectedAmSites)
-   //   {
-         this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, unselectedAmSite.ycoord, unselectedAmSite.xcoord);
-   //   }
+//    for (const amSite of unselectedAmSites)
+//    {
+//      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, unselectedAmSite.ycoord, unselectedAmSite.xcoord);
+//    }
 
       // Reflect selected sites on the map
       //this.refreshMapSites();

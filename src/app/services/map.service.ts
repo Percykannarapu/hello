@@ -848,10 +848,10 @@ export class MapService {
                {
                   console.log ('found graphic at lat: ' + lat + ', lon: ' + lon);
                   src.remove(graphic);
+                  layerCleared = true;
                   break;
                }
             }
-            layerCleared = true;
          }
       });
 
