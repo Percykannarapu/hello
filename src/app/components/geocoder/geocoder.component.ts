@@ -271,7 +271,13 @@ export class GeocoderComponent implements OnInit {
         amSite.city = csvRecord[headerPosition.city];
         amSite.state = csvRecord[headerPosition.state];
         amSite.zip = csvRecord[headerPosition.zip];
-        observables.push(this.geocoderService.geocode(amSite));
+
+        //if (headerPosition.lat === undefined || headerPosition.lon === undefined){
+          observables.push(this.geocoderService.geocode(amSite));
+        // }else{
+        //   amSite.xcoord = csvRecord[headerPosition.lat];
+        //   amSite.ycoord = csvRecord[headerPosition.lon];
+        //  }
       }
       Observable.forkJoin(observables).subscribe(res => {
         this.parseResponse(res, true);

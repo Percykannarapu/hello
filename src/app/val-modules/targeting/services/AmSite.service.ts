@@ -53,6 +53,9 @@ export class AmSiteService
 //      this.amSites = sites;
 //      this.subject.next(amSite);
 //    }
+//      this.amSites = sites;
+//      this.subject.next(amSite);
+//    }
 //  }
  
    // Remove sites from the amSites array and add them to unselectedAmSites

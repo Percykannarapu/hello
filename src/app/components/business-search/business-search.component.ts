@@ -9,6 +9,7 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { DefaultLayers } from '../../Models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
+import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 
 @Component({
   providers: [MapService, MessageService],
@@ -46,7 +47,8 @@ export class BusinessSearchComponent implements OnInit {
   showLoader: boolean = false;
 
 
-  constructor(private appService: AppService, private mapService: MapService, private messageService: MessageService) {
+  constructor(private appService: AppService, private mapService: MapService, 
+    private messageService: MessageService, private amSiteService: AmSiteService) {
     //Dropdown data
     
     this.dropdownList = [
@@ -76,8 +78,7 @@ export class BusinessSearchComponent implements OnInit {
       this.selectedCategory = this.dropdownList[0].value;
       this.categoryChange();
     });
-    //this.sourceCategories = this.appService.categoryList;
-    //this.filteredCategories = this.appService.categoryList;
+    
   }
   categoryChange() {
     console.log(this.selectedCategory );
@@ -172,7 +173,6 @@ export class BusinessSearchComponent implements OnInit {
         //Building label to show adresses
         obj['checked'] = false;
         obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)`;
-          // ${obj.address}, ${obj.city}, ${obj.state}, ${obj.zip}`;
       });
     });
 
@@ -217,21 +217,18 @@ export class BusinessSearchComponent implements OnInit {
         g: 0,
         b: 0
       };
-      //this.showSideBar.emit(false);
     }else{
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Please select Sites/Competitors' });
     }
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-    let popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     //await this.searchDatageos.forEach(async business => {
     for (const business of this.searchDatageos) {
       if (business.checked) {
         //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
         console.log('long: x', business.x + 'lat: y', business.y);
-        //this.mapService.plotMarker(42.412941,-83.374309,color);
-        //this.plottedPoints.push([business.x, business.y]);
 
         popupTemplate.content = 'Firm: ' + business.firm + '<br>' +
                                 'Address: ' + business.address + '<br>' +
@@ -256,8 +253,8 @@ export class BusinessSearchComponent implements OnInit {
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     } else {
-      
-      this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
+      this.amSiteService.addSites(this.plottedPoints);
+      //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
     }
