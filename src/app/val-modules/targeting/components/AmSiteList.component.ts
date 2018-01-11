@@ -1,3 +1,4 @@
+import { DataDemoComponent } from './../../../demo/view/datademo.component';
 import { state } from '@angular/animations';
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
@@ -91,6 +92,9 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    onRowUnselect(event)
    {
       console.log('Unselected Site');
+      console.log('event: ' + event.data);
+      // this.amSiteService.unselectSites(event.data);
+      this.amSiteService.siteWasUnselected (event.data);
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
       this.printSite(event.data);
@@ -103,8 +107,8 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       console.log('Selected Site');
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
-      this.printSite(event.data);
-
+      this.amSiteService.refreshMapSites();
+      this.amSiteService.siteWasSelected (event.data);
       this.amSiteService.logSites();
    }
    

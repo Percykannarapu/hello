@@ -793,6 +793,72 @@ export class MapService {
         MapService.layerNames.add(lyr.title);
     }
 
+   public clearFeatureLayer(layerTitle: string)
+   {
+      // If there are no layers, there is nothing to do
+      if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+         console.log('fired clearFeatureLayer() in MapService, but there were no feature layers to clear');
+         return;
+      }
+      else
+         console.log('fired clearFeatureLayer() in MapService');
+
+      let layerCleared: boolean = false;
+
+      // loop through the existing layers to see if we can find one to clear
+      MapService.layers.forEach(currentLayer => {
+         if (layerTitle === currentLayer.title)
+         {
+            console.log('Clearing layer: '  + layerTitle);
+            (<__esri.FeatureLayer>currentLayer).source.removeAll();
+            layerCleared = true;
+         }
+      });
+
+      if (!layerCleared)
+         console.log('Did not find layer: ' + layerTitle + ' to clear');
+   }
+
+   public clearFeatureLayerAt(layerTitle: string, lat: number, lon: number)
+   {
+      // If there are no layers, there is nothing to do
+      if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+         console.log('fired clearFeatureLayerAt() in MapService, but there were no feature layers to clear');
+         return;
+      }
+      else
+         console.log('fired clearFeatureLayer() in MapService');
+
+      let layerCleared: boolean = false;
+
+      // loop through the existing layers to see if we can find one to clear
+      MapService.layers.forEach(currentLayer => {
+         if (layerTitle === currentLayer.title)
+         {
+            console.log('Clearing layer: '  + layerTitle);
+            const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
+            const src: __esri.Collection<__esri.Graphic> = currLayer.source;
+
+            for (let i: number = 0; i < src.length; i++ )
+            {
+               const graphic: __esri.Graphic = src.getItemAt(i);
+               const point: __esri.Point = (<__esri.Point> graphic.geometry);
+               console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
+               if (point.latitude == lat && point.longitude == lon)
+               {
+                  console.log ('found graphic at lat: ' + lat + ', lon: ' + lon);
+                  src.remove(graphic);
+                  break;
+               }
+            }
+            layerCleared = true;
+         }
+      });
+
+      if (!layerCleared)
+         console.log('Did not find layer: ' + layerTitle + ' to clear');
+   }
+
     public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
         console.log('fired updateFeatureList() in MapService');
         // check to see if this is the first layer being added
