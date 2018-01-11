@@ -1,4 +1,3 @@
-import { AmSite } from './../models/AmSite';
 import { Injectable, Component } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
