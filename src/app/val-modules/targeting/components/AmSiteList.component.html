@@ -30,11 +30,15 @@
                   </span>
                </div>
                <div class="ui-g-3">
-                  <label style="text-align: center;">Site List</label>
+                  <label style="text-align: center;" pTooltip="Selected {{amSiteService.amSites.length}} / {{amSiteService.unselectedAmSites.length}} sites" tooltipPosition="top">Site List</label>
                </div>
                <div class="ui-g-3" style="float:right">
-                  <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All" (click)="siteDt.exportCSV()" style="float:right"></button>
-                  <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected" (click)="siteDt.exportCSV({selectionOnly:true})" style="float:right"></button>
+                  <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All" 
+                     (click)="siteDt.exportCSV()" style="float:right"
+                     pTooltip="This will export all of the sites, even if unchecked." tooltipPosition="top"></button>
+                  <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected" 
+                     (click)="siteDt.exportCSV({selectionOnly:true})" style="float:right"
+                     pTooltip="This will export only the sites that are checked." tooltipPosition="top"></button>
                </div>
             </div>
       </div>
