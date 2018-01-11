@@ -1032,7 +1032,7 @@ export class MapService {
                     loadedFeatureLayer = f1;
                 });
                 for (const graphic of graphicList){
-                    const qry = lyr.createQuery();
+                    const qry = loadedFeatureLayer.createQuery();
                     qry.geometry = graphic.geometry;
                     qry.outSpatialReference = MapService.mapView.spatialReference;
                     loadedFeatureLayer.queryFeatures(qry).then(featureSet => {
