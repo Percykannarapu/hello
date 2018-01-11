@@ -88,7 +88,9 @@
                         <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input"  (ngModelChange)="manageIcons($event,'ta1miles')">
                         <!--onchange="manageIcons()" -->
                         <label for="ta1Input">Trade Area 1 (in miles)</label>
-                        <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                        <!-- <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i> -->
+                        <i *ngIf="checked1"  class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
+                        <!-- <i class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);">check</i> -->
                      </span>
                   </div>
 
@@ -99,7 +101,7 @@
                         <span class="md-inputfield">
                            <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input" (ngModelChange)="manageIcons($event,'ta2miles')">
                            <label for="ta2Input">Trade Area 2 (in miles)</label>
-                           <i *ngIf="editedta2"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                           <i *ngIf="checked2" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
                         </span>
                   </div>
 
@@ -110,23 +112,20 @@
                      <span class="md-inputfield">
                         <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input" (ngModelChange)="manageIcons($event,'ta3miles')">
                         <label for="ta3Input">Trade Area 3 (in miles)</label>
-                        <i *ngIf="editedta3"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i>
+                        <i *ngIf="checked3" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
                      </span>
                   </div>
                   <br>
                   <br>  
                   <br>
                   <br>  
-                  <div class="ui-g-12">
+                  <div class="ui-g-4">
                      <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
                   </div>                  
                         
-               <div class="ui-g-7">
-                 <!-- <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>    -->
-               </div>
-               <div class="ui-g-4">
+               <div class="ui-g-8">
                   <button (click)="drawBuffer()" pButton label="Apply"></button>
-               </div><div class="ui-g-1"></div>
+               </div>
          </div>            
          </p-tabPanel>
          <p-tabPanel header="Upload / Export">
