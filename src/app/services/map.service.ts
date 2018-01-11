@@ -408,13 +408,13 @@ export class MapService {
         let endPos: number;
 
          const zip_layerids = [
-             'e35d20b9905c441b9f9bd0532b8e175e', // ZIP Top Vars
+             '50881b66a19049cbb7369236944663f0', // ZIP Top Vars
              'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
          ];       
          const atz_layerids = [
-           'bf8c44d22e6f484285ca33a7efe0b6ec', // ATZ_Top_Vars
+           'c63b20cc2f664c5ea0887847b3b9dd12', // ATZ_Top_Vars
            '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
-           '9e250767027e4e1e8eb60eddde628e46'  // ATZ_Digital
+           'b829498218cb413797ca9b1a98ca64a8'  // ATZ_Digital
         ];
         const pcr_layerids = [];
         const hh_layerids = [
