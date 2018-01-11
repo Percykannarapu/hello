@@ -1007,101 +1007,112 @@ export class MapService {
 
     public async selectCentroid(graphicList: __esri.Graphic[]){
         console.log('selectCentroid fired::::');
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+         = await loader.loadModules([
+            'esri/layers/FeatureLayer',
+            'esri/Graphic',
+            'esri/symbols/SimpleFillSymbol',
+            'esri/symbols/SimpleLineSymbol',
+            'esri/symbols/SimpleMarkerSymbol',
+            'esri/Color', 'dojo/domReady!'  
+        ]);
         
         let fSet: __esri.FeatureSet;
         let fLyrList: __esri.FeatureLayer[] = [];
         await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
         });
+        
 
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
+                let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
+                await lyr.load().then((f1: __esri.FeatureLayer)  => {
+                    loadedFeatureLayer = f1;
+                });
                 for (const graphic of graphicList){
                     const qry = lyr.createQuery();
                     qry.geometry = graphic.geometry;
                     qry.outSpatialReference = MapService.mapView.spatialReference;
-                   await lyr.queryFeatures(qry).then(function(featureSet){
-                        fSet = featureSet;
+                    loadedFeatureLayer.queryFeatures(qry).then(featureSet => {
+                        for (let i = 0 ; i < featureSet.features.length; i++){
+                            fSet = featureSet;
+                        }
+                        this.selectPoly(fSet.features);
                     });
-                   await this.selectPoly(fSet.features);
+                    /*await lyr.queryFeatures(qry).then(function(featureSet){
+                        fSet = featureSet;
+                    });*/
+                  
                 }
             }
         }
     }
 
-    /*public async __selectPoly(centroids: __esri.Graphic[]) {
-        console.log('fired new selectPoly');
+    public async selectPoly(centroidGraphics: __esri.Graphic[]){
+        console.log('fired selectPoly');
+
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query, Geometry, geometryEngine, FeatureLayer, Point, Extent, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+        const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
-            'esri/tasks/support/Query',
-            'esri/geometry/Geometry',
-            'esri/geometry/geometryEngine',
             'esri/layers/FeatureLayer',
-            'esri/geometry/Point',
-            'esri/geometry/Extent',
             'esri/Graphic',
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
             'esri/symbols/SimpleMarkerSymbol',
-            'esri/Color'
+            'esri/Color', 'dojo/domReady!'  
         ]);
-        
-        // first we need to get all of the geometries for the centroids we are working with
-        const geometries: __esri.Geometry[] = new Array<__esri.Geometry>();
-        for (const centroid of centroids) {
-            geometries.push(centroid.geometry);
-        }
-
-        // now we can call the geometry engine to get the union of all the centroid geometries
-        const unionGeo = geometryEngine.union(geometries);
-
-        // get the list of feature layers currently on the map
-        let layerList: __esri.FeatureLayer[] = [];
-        await this.getAllFeatureLayers().then(list => {
-           layerList = list;
-       });
-
-       const symbol123 = new SimpleFillSymbol(
-        SimpleFillSymbol.STYLE_SOLID,
-        new SimpleLineSymbol(
-          SimpleLineSymbol.STYLE_SOLID,
-          new Color([0, 255, 0, 0.65]), 2
-        ),
-          new Color([0, 255, 0, 0.10])
+        console.log('centroidGraphics length:::' + centroidGraphics.length);
+        const symbol123 = new SimpleFillSymbol(
+            SimpleFillSymbol.STYLE_SOLID,
+            new SimpleLineSymbol(
+              SimpleLineSymbol.STYLE_SOLID,
+              new Color([0, 255, 0, 0.65]), 2
+            ),
+            new Color([0, 255, 0, 0.10])
         );
+        let fLyrList: __esri.FeatureLayer[] = [];
+         await this.getAllFeatureLayers().then(list => {
+            fLyrList = list;
+        });
+       MapService.selectedCentroidObjectIds = [];
 
-       // loop through the layers looking for the Zip or ATZ layer
-       // when we find the layer we are looking for query for the features in it
-       const selectedGeos: __esri.Graphic[] = [];
-       for (const layer of layerList){
-        if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
-            let featureLayerView = null;
-            const query = layer.createQuery();
-            query.geometry = unionGeo;
-            query.spatialRelationship = "intersects";
-            await MapService.mapView.whenLayerView(layer)
-                .then(view => { featureLayerView = <__esri.FeatureLayerView> view; } )
-                .then(res => { featureLayerView.queryFeatures(query); })
-                .then(polyFeatureSet => {
-                    for (let i = 0 ; i < [polyFeatureSet].length ; i++){
-                           
-                           if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet[i].attributes.OBJECTID) ){
-                                MapService.hhDetails = MapService.hhDetails + polyFeatureSet[i].attributes.HHLD_W;
-                                MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet[i].attributes.NUM_IP_ADDRS;
+        for (const lyr of fLyrList){
+            if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
+                const polyGraphics: __esri.Graphic[] = [];
+                let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
-                                selectedGeos.push(new Graphic(polyFeatureSet[i].geometry, symbol123, polyFeatureSet[i].attributes.OBJECTID)); 
-                                MapService.selectedCentroidObjectIds.push( polyFeatureSet[i].attributes.OBJECTID) ;
-                           }
-                          //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
-                    }
-                } );
-                
+                await lyr.load().then((f1: __esri.FeatureLayer)  => {
+                    loadedFeatureLayer = f1;
+                });
+
+                for (const centroidGraphic of centroidGraphics){
+                    const qry1 = lyr.createQuery();
+                    qry1.geometry = centroidGraphic.geometry;
+                    qry1.outSpatialReference = MapService.mapView.spatialReference;
+
+                    loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
+                        //const t0 = performance.now();
+                        for (let i = 0 ; i < polyFeatureSet.features.length; i++){
+                               if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
+                                    MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
+                                    MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+                                    polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID)); 
+                                    MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
+                               }
+                              //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
+                        }
+                       
+                        MapService.mapView.graphics.addMany(polyGraphics);
+                    });
+                }
+                 //MapService.mapView.graphics.addMany(polyGraphics);
+            }
         }
-       
-    }
-}*/
-    public async selectPoly(centroidGraphics: __esri.Graphic[]){
+    }    
+     // to select based on featureLayerView   
+/*    public async selectPoly(centroidGraphics: __esri.Graphic[]){
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -1168,7 +1179,7 @@ export class MapService {
                  MapService.mapView.graphics.addMany(polyGraphics);
             }
         }
-    }
+    } */
 
     public async selectSinglePolygon(evt:__esri.MapViewClickEvent){
         console.log('fired selectSinglePolygon');
