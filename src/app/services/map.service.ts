@@ -735,8 +735,8 @@ export class MapService {
             const t0 = performance.now();
             await this.selectCentroid(graphicList);
             const t1 = performance.now();
-           // console.log('Call to select polygon took: ' + (t1 - t0) + ' :milliseconds.');
-           // console.log('completed select buffer::');
+            console.log('Call to select polygon took: ' + (t1 - t0) + ' :milliseconds.');
+            console.log('completed select buffer::');
 
        // return { val: MapService.mapView };
     }
@@ -1032,20 +1032,17 @@ export class MapService {
                     loadedFeatureLayer = f1;
                 });
                 for (const graphic of graphicList){
-                    const qry = loadedFeatureLayer.createQuery();
+                    const qry = lyr.createQuery();
                     qry.geometry = graphic.geometry;
                     qry.outSpatialReference = MapService.mapView.spatialReference;
-                    loadedFeatureLayer.queryFeatures(qry).then(featureSet => {
+                    await lyr.queryFeatures(qry).then(featureSet => {
                         for (let i = 0 ; i < featureSet.features.length; i++){
                             fSet = featureSet;
                         }
-                        this.selectPoly(fSet.features);
+                       
                     });
-                    /*await lyr.queryFeatures(qry).then(function(featureSet){
-                        fSet = featureSet;
-                    });*/
-                  
                 }
+                await this.selectPoly(fSet.features);
             }
         }
     }
@@ -1054,9 +1051,11 @@ export class MapService {
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+        const [FeatureLayer, array, geometryEngine, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
             'esri/layers/FeatureLayer',
+            'dojo/_base/array',
+            'esri/geometry/geometryEngine',
             'esri/Graphic',
             'esri/symbols/SimpleFillSymbol',
             'esri/symbols/SimpleLineSymbol',
@@ -1087,13 +1086,15 @@ export class MapService {
                     loadedFeatureLayer = f1;
                 });
 
-                for (const centroidGraphic of centroidGraphics){
+                await array.forEach(centroidGraphics, function(centroidGraphic){
+                    console.log('test centroid array::' + centroidGraphic.type);
                     const qry1 = lyr.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
 
                     loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
                         //const t0 = performance.now();
+                          
                         for (let i = 0 ; i < polyFeatureSet.features.length; i++){
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
                                     MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
@@ -1103,11 +1104,10 @@ export class MapService {
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
-                       
                         MapService.mapView.graphics.addMany(polyGraphics);
                     });
-                }
-                 //MapService.mapView.graphics.addMany(polyGraphics);
+
+                });
             }
         }
     }    
