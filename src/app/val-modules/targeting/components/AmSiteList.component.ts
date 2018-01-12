@@ -56,6 +56,12 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       this.mapService.zoomOnMap([graphic]);
    }
 
+   public onDeleteSite(site: AmSite)
+   {
+      console.log('Removing site: ' + site);      
+      this.amSiteService.remove(site);
+   }
+   
    getAmSites()
    {
 //      this.messageService.add({severity: 'success', summary: 'GetAmSites fired!', detail: 'Via MessageService'});

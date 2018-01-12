@@ -106,7 +106,7 @@ export class GeocoderComponent implements OnInit {
       }
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => this.amSiteService.addSites(amSites))
+        .then(res => this.amSiteService.add(amSites))
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);

@@ -33,55 +33,56 @@ export class AmSiteService
       this.mapService = new MapService();
    }
 
-   public addSites(amSites: AmSite[])
+   public add(amSites: AmSite[])
    {
-      const sites = Array.from(this.amSites);
+      // For each site provided in the parameters
       for (const amSite of amSites)
       {
+         // Add the site to the selected sites array
          this.amSites = [...this.amSites, amSite];
+
+         // Add the site to the sites list array
          this.unselectedAmSites = [...this.unselectedAmSites, amSite];
+
+         // Notifiy Observers
          this.subject.next(amSite);
       }
 
+      // Debug log site arrays to the console
       this.logSites();
    }
-//   public addSites(amSites: AmSite[]) {
-//    for (const amSite of amSites) {
-//      const sites = Array.from(this.amSites);
-//      sites.push(amSite);
-//      this.amSites = sites;
-//      this.subject.next(amSite);
-//    }
-//      this.amSites = sites;
-//      this.subject.next(amSite);
-//    }
-//  }
  
-   // Remove sites from the amSites array and add them to unselectedAmSites
-   public unselectSites(unselectedAmSite: AmSite)
+   public remove (site: AmSite)
    {
-      console.log('unselectSites fired');
-      // for (const amSite of unselectedAmSites)
-      // {
-      //    const i = this.amSites.indexOf(amSite);
+      // Remove the site from the selected sites array
+      let index = this.amSites.indexOf(site);
+      this.amSites =  [...this.amSites.slice(0, index),
+                       ...this.amSites.slice(index + 1)];
 
-      //    this.amSites = [
-      //       ...this.amSites.slice(0, i),
-      //       amSite,
-      //       ...this.amSites.slice(i + 1)
-      //    ];
-      // }
-//      const i = this.unselectedAmSites.indexOf(unselectedAmSites[0]);
+      // Remove the site from the sites list array
+      index = this.unselectedAmSites.indexOf(site);
+      this.unselectedAmSites =  [...this.unselectedAmSites.slice(0, index),
+                                 ...this.unselectedAmSites.slice(index + 1)];
 
-//    for (const amSite of unselectedAmSites)
-//    {
-//      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, unselectedAmSite.ycoord, unselectedAmSite.xcoord);
-//    }
+      // Remove site from the map (TODO: I think this should be handled by an observer)
+      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
 
-      // Reflect selected sites on the map
-      //this.refreshMapSites();
+      // Notifiy Observers
+      this.subject.next(site);
+   }
+    
+   public update (oldSite: AmSite, newSite: AmSite)
+   {
+      let index = this.amSites.indexOf(oldSite);
+      this.amSites = [...this.amSites.slice(0, index),
+//                     Object.assign({}, person, {age}),
+                      newSite,
+                      ...this.amSites.slice(index + 1)];
 
-      // TODO: Indicate a removal to subscribers
+      index = this.unselectedAmSites.indexOf(oldSite);
+      this.unselectedAmSites = [...this.unselectedAmSites.slice(0, index),
+                                newSite,
+                                ...this.unselectedAmSites.slice(index + 1)];
    }
 
    // Site was unselected outside of the service, eg. from a data table

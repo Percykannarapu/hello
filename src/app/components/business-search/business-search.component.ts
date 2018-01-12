@@ -253,7 +253,7 @@ export class BusinessSearchComponent implements OnInit {
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     } else {
-      this.amSiteService.addSites(this.plottedPoints);
+      this.amSiteService.add(this.plottedPoints);
       //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
