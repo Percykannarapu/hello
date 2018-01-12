@@ -27,7 +27,7 @@ export class GeocoderService {
       street: amSite.address,
       city: amSite.city,
       state: amSite.state,
-      postalCode: Number(amSite.zip)
+      postalCode: amSite.zip
     };
 // _gridOptions:Map<string, Array<string>> = new Map([["1", ["test"]], ["2", ["test2"]]])    
     
