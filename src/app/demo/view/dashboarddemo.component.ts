@@ -15,6 +15,7 @@ import { MessageService } from '../../val-modules/common/services/message.servic
 import { Message } from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';
 import { AppService } from '../../services/app.service';
+import { MetricService, MetricOperations } from './../../val-modules/common/services/metric.service';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -66,12 +67,11 @@ export class DashboardDemoComponent implements OnInit {
     @ViewChild('campaineDetailsBox')
     private campaignDetailsBox: ColorBoxComponent;
 
-    constructor(// private carService: CarService,
-        //               private eventService: EventService,
-        private mapService: MapService,
-        private messageService: MessageService,
-        private amSiteService: AmSiteService,
-        private appService: AppService) { }
+    constructor(private mapService: MapService,
+                private messageService: MessageService,
+                private amSiteService: AmSiteService,
+                private appService: AppService,
+                private metricService: MetricService) { }
 
     ngOnInit() {
 
@@ -118,6 +118,86 @@ export class DashboardDemoComponent implements OnInit {
             this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
         });
 
+        // Observe the metricsService
+        this.metricService.observeMetrics().subscribe(metricMessage => {
+         console.log('Dashboard component detected change in metrics');
+
+         switch (metricMessage.operation)
+         {
+            case MetricOperations.ADD:
+               switch (metricMessage.group.toUpperCase())
+               {
+                  case 'LOCATIONS':
+                     this.greenColorBox.set(metricMessage.key, metricMessage.value);
+                  break;
+
+                  case 'CAMPAIGN':
+                  break;
+
+                  case 'AUDIENCE':
+                  break;
+
+                  case 'PERFORMANCE':
+                  break;
+               }
+            break;
+
+            case MetricOperations.REMOVE:
+               switch (metricMessage.group.toUpperCase())
+               {
+                  case 'LOCATIONS':
+                     this.greenColorBox.delete(metricMessage.key);
+                  break;
+
+                  case 'CAMPAIGN':
+                  break;
+
+                  case 'AUDIENCE':
+                  break;
+
+                  case 'PERFORMANCE':
+                  break;
+               }
+            break;
+
+            case MetricOperations.UPDATE:
+               switch (metricMessage.group.toUpperCase())
+               {
+                  case 'LOCATIONS':
+                     this.greenColorBox.set(metricMessage.key, metricMessage.value);
+                  break;
+
+                  case 'CAMPAIGN':
+                  break;
+
+                  case 'AUDIENCE':
+                  break;
+
+                  case 'PERFORMANCE':
+                  break;
+               }
+            break;
+
+            case MetricOperations.COPY:
+               switch (metricMessage.group.toUpperCase())
+               {
+                  case 'LOCATIONS':
+                  break;
+
+                  case 'CAMPAIGN':
+                  break;
+
+                  case 'AUDIENCE':
+                  break;
+
+                  case 'PERFORMANCE':
+                  break;
+               }
+            break;
+         }
+         this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+        });
+     
 
         // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
         //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);

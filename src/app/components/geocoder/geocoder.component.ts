@@ -17,6 +17,7 @@ import { DefaultLayers } from '../../Models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
+import { MetricService } from './../../val-modules/common/services/metric.service';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
@@ -63,7 +64,7 @@ export class GeocoderComponent implements OnInit {
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService, private amSiteService: AmSiteService) { }
+  constructor(private geocoderService: GeocoderService, private mapService: MapService, private amSiteService: AmSiteService, private metricService: MetricService) { }
 
   ngOnInit() {
   }
@@ -78,6 +79,11 @@ export class GeocoderComponent implements OnInit {
       amSite.state = this.state;
       amSite.zip = this.zip.toString();
       this.geocodeAddress(amSite);
+
+      if (this.metricService === null)
+         console.log('METRIC SERVICE IS NULL');
+      this.metricService.add('LOCATIONS', 'Test', 'Yep, Test');
+
     } catch (error) {
       this.handleError(error);
     }

@@ -106,6 +106,7 @@ import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
 import {GfGeoService} from './Models/gf-geo/gf-geo.service';
+import { MetricService } from './val-modules/common/services/metric.service';
 
 import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
@@ -256,7 +257,7 @@ import { RaddataComponent } from './components/raddata/raddata.component';
         MessageService, AppService,
         CarService, CountryService, EventService, NodeService,
         EsriLoaderService, GfGeoService,
-        InMemoryStubService, AmSiteService
+        InMemoryStubService, AmSiteService, MetricService
     ],
     bootstrap: [AppComponent]
 })
