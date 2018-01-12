@@ -42,7 +42,7 @@ export class GeocoderComponent implements OnInit {
   public street: string;
   public city: string;
   public state: string;
-  public zip: number;
+  public zip: string;
   public xcoord: string;
   public ycoord: string;
   public CSVMessage: string;
@@ -216,7 +216,7 @@ export class GeocoderComponent implements OnInit {
     this.street = '19975 Victor Pkwy';
     this.city = 'Livonia';
     this.state = 'MI';
-    this.zip = 48152;
+    this.zip = '48152';
   }
 
   // Business rules for CSV geocoding:

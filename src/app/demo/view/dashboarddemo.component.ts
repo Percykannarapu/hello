@@ -354,6 +354,7 @@ export class DashboardDemoComponent implements OnInit {
                         await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
                         this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
                         this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
+                        console.log('update hhcount::');
                     }
                 }
             }
