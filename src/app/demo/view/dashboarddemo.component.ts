@@ -42,6 +42,10 @@ export class DashboardDemoComponent implements OnInit {
     @ViewChild('greenColorBox')
     private greenColorBox: ColorBoxComponent;
 
+    @ViewChild('campaigeDetailsBox')
+    private campaigeDetailsBox: ColorBoxComponent;
+    
+
     constructor(private mapService: MapService,
                 private messageService: MessageService,
                 private amSiteService: AmSiteService,
@@ -107,6 +111,7 @@ export class DashboardDemoComponent implements OnInit {
                   break;
 
                   case 'CAMPAIGN':
+                    this.campaigeDetailsBox.set(metricMessage.key, metricMessage.value);   
                   break;
 
                   case 'AUDIENCE':
@@ -143,6 +148,7 @@ export class DashboardDemoComponent implements OnInit {
                   break;
 
                   case 'CAMPAIGN':
+                     this.campaigeDetailsBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'AUDIENCE':
@@ -171,6 +177,7 @@ export class DashboardDemoComponent implements OnInit {
             break;
          }
          this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+         this.campaigeDetailsBox.set('Household Count', MapService.hhDetails.toString());
         });
      
 

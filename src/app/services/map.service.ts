@@ -12,6 +12,7 @@ import { Query } from '@angular/core/src/metadata/di';
 
 // import primeng 
 import { SelectItem } from 'primeng/primeng';
+import { MetricService } from '../val-modules/common/services/metric.service';
 
 @Injectable()
 export class MapService {
@@ -36,7 +37,7 @@ export class MapService {
 
     private mapInstance: __esri.Map;
 
-    constructor() {
+    constructor(private metricService: MetricService) {
     }
 
     public async initGroupLayers() : Promise<__esri.Map> {
@@ -1086,9 +1087,8 @@ export class MapService {
                     loadedFeatureLayer = f1;
                 });
 
-                await array.forEach(centroidGraphics, function(centroidGraphic){
-                    console.log('test centroid array::' + centroidGraphic.type);
-                    const qry1 = lyr.createQuery();
+                await array.forEach(centroidGraphics, (centroidGraphic) =>{
+                    const qry1 = loadedFeatureLayer.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
 
@@ -1105,8 +1105,9 @@ export class MapService {
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                         MapService.mapView.graphics.addMany(polyGraphics);
+                        this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                        this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
                     });
-
                 });
             }
         }

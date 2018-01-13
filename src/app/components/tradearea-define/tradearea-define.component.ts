@@ -200,9 +200,6 @@ export class TradeareaDefineComponent implements OnInit {
             if (max != null) {
                 this.kms = max / 0.62137;
                 await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
-                this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
-
             }
         } else if (mergeEachBool) {
             console.log('inside merge Each');
@@ -211,8 +208,6 @@ export class TradeareaDefineComponent implements OnInit {
                 const kmsMereEach = miles1 / 0.62137;
                 console.log('Kms in Merge Each:::' + kmsMereEach);
                 await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
-                this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
             }
             // }
         } else {
@@ -225,8 +220,6 @@ export class TradeareaDefineComponent implements OnInit {
                 for (const point of pointsArray) {
                     console.log('Kms in No Merge:::' + kmsNomerge);
                     await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
-                    this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                    this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
                 }
             }
         }
