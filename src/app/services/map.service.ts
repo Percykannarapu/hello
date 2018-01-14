@@ -1219,7 +1219,7 @@ export class MapService {
                 const query = lyr.createQuery();
                 const currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
-                await lyr.queryFeatures(query).then(function(polyFeatureSet){
+                await lyr.queryFeatures(query).then(polyFeatureSet => {
                        if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.OBJECTID)){
 
                             const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
@@ -1231,6 +1231,8 @@ export class MapService {
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                                    this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                                    this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
                                 }
                             });
                         }else{
@@ -1239,6 +1241,8 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                            this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
 
                         }
                 });
