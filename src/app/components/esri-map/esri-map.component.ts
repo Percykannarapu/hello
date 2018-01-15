@@ -67,18 +67,18 @@ export class EsriMapComponent implements OnInit {
           fLyrList = list;
         });  
 
-       /* for(let lyr of layers){
+        for(let lyr of layers){
           if(lyr.title==='Valassis ZIP' || lyr.title==='Valassis ATZ'){
             this.mapService.selectSinglePolygon(evt);
             break;
           }
-        }*/
+        }
 
-        layers.forEach((lyr)=>{
+       /* layers.forEach((lyr)=>{
           if(lyr.title==='Valassis ZIP' || lyr.title==='Valassis ATZ'){
             this.mapService.selectSinglePolygon(evt);
           }
-        });
+        });*/
       }  
       layers = [];
     });

@@ -1126,6 +1126,11 @@ export class MapService {
                    // loadedFeatureLayer.renderer = f1
                 });
                 
+                MapService.mapView.graphics.removeAll();
+                MapService.hhDetails = 0;
+                MapService.hhIpAddress = 0;
+                this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
 
                 await array.forEach(centroidGraphics, (centroidGraphic) =>{
                     const qry1 = loadedFeatureLayer.createQuery();
