@@ -2,8 +2,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
 
-// import {GrowlModule,Message,ButtonModule} from 'primeng/primeng';
-
 // Map Services
 import { MapService } from '../../services/map.service';
 import { EsriLoaderService } from 'angular-esri-loader';
@@ -14,17 +12,15 @@ import { MessageService } from '../../val-modules/common/services/message.servic
 
 // import primeng 
 import {SelectItem} from 'primeng/primeng';
-// import {ToolbarModule} from 'primeng/primeng';
-// import {ButtonModule} from 'primeng/primeng';
 
 @Component({
-  providers: [MapService],
   selector: 'val-esri-layer-select',
   templateUrl: './esri-layer-select.component.html',
   styleUrls: ['./esri-layer-select.component.css']
 })
 export class EsriLayerSelectComponent implements OnInit {
 
+    
   // MapService Items
   public mapView: __esri.MapView;
   private esriMap: __esri.Map;
@@ -45,28 +41,19 @@ export class EsriLayerSelectComponent implements OnInit {
     }
 
   public ngOnInit() {
+
     try {
       this.analysisLevels = [];
-      // this.analysisLevels.push({label: 'None', value: 'None'});
       this.analysisLevels.push({label: 'ZIP',  value: 'ZIP'});
       this.analysisLevels.push({label: 'ATZ',  value: 'ATZ'});
       this.analysisLevels.push({label: 'PCR',  value: 'PCR'});
       this.analysisLevels.push({label: 'HH',   value: 'HH'});
+      this.analysisLevels.push({label: 'WRAP', value: 'WRAP'});
 
       this.selectedAnalysisLevel = 'ZIP';
       this.selectedAnalysisLevels = [];
 
       this.esriDemographicItems = [
-        /*
-            { label: 'ATZ_Top_Vars (defaults - ATZ Analysis)'   , value: { group: 'ATZ', portalitem: 'https://vlab2.maps.arcgis.com/home/item.html?id=bf8c44d22e6f484285ca33a7efe0b6ec', url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer' , name: 'ATZ_Top_Vars'}},
-            { label: 'ATZ_Digital (defaults - ATZ Analysis)'    , value: { group: 'ATZ', portalitem: 'https://vlab2.maps.arcgis.com/home/item.html?id=9e250767027e4e1e8eb60eddde628e46', url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer'   , name: 'ATZ_Digital'}},
-            { label: 'ATZ_Centroids (defaults - ATZ Analysis)'  , value: { group: 'ATZ', portalitem: 'https://vlab2.maps.arcgis.com/home/item.html?id=7de2d0dfdc404031bbd5e422f28fbbc1', url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer', name: 'ATZ_Centroids'}},
-            { label: 'ZIP_Top_Vars (defaults - ZIP Analysis)'   , value: { group: 'ZIP', portalitem: 'https://vlab2.maps.arcgis.com/home/item.html?id=e35d20b9905c441b9f9bd0532b8e175e', url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer' , name: 'ZIP_Top_Vars'}},
-            { label: 'ZIP_Centroids (defaults - ZIP Analysis)'  , value: { group: 'ZIP', portalitem: 'https://vlab2.maps.arcgis.com/home/item.html?id=defb065089034dd181d8fdd6186e076b', url: 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer', name: 'ZIP_Centroids'}},
-            { label: 'Centroids'                                , value: { group: 'ZIP', portalitem: 'https://vlab2.maps.arcgis.com/home/webmap/viewer.html?webmap=ac55744bdb614a43a451bda8358ebddb', url: '', name: 'Centroids'}},
-        */    
-        //  { label: 'Households-VT'                      , value: { source: 'HH', portalitem: '837f4f8be375464a8971c56a0856198e', url: '', name: 'Households-VT'}},
-        //  { label: 'Households-FL'                      , value: { source: 'HH', portalitem: '5a99095bc95b45a7a830c9e25a389712', url: '', name: 'Households-FL'}},
         // -----------------
         //    ESRI Layers
         // -----------------
@@ -115,7 +102,9 @@ export class EsriLayerSelectComponent implements OnInit {
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ATZ'));
         if (!this.selectedAnalysisLevels.find(x => x === 'PCR'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis PCR'));
-        if (!this.selectedAnalysisLevels.find(x => x === 'HH'))
+        if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
+             this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis WRAP'));
+        if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis Households'));
      } 
      finally {
@@ -128,7 +117,7 @@ export class EsriLayerSelectComponent implements OnInit {
     }
 
    // this event handler is for the Toggle Layers control
-   handleChange(e) {
+   handleLayerChange(e) {
         if (e.checked) {
             this.mapService.setMapLayers(this.esriDemographicItems, this.selectedLayers, this.selectedAnalysisLevels);
         }
