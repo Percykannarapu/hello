@@ -1,14 +1,14 @@
 import { map } from 'rxjs/operators';
-//import { MapService } from './map.service';
 import { SelectButtonModule } from 'primeng/primeng';
 import { element } from 'protractor';
 import { Injectable, OnInit } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
-//import { map } from 'rxjs/operator/map';
 import { forEach } from '@angular/router/src/utils/collection';
 import { Points } from '../Models/Points';
 import { Query } from '@angular/core/src/metadata/di';
+
+//import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 // import primeng 
 import { SelectItem } from 'primeng/primeng';
@@ -23,6 +23,7 @@ export class MapService {
     private static AtzGroupLayer: __esri.GroupLayer;
     private static PcrGroupLayer: __esri.GroupLayer;
     private static HHGroupLayer: __esri.GroupLayer;
+    private static WrapGroupLayer: __esri.GroupLayer;
     private static SitesGroupLayer: __esri.GroupLayer;
     private static CompetitorsGroupLayer: __esri.GroupLayer;
 
@@ -35,8 +36,9 @@ export class MapService {
     public static hhDetails: number = 0;
     public static hhIpAddress: number = 0;
 
+    public sideBarToggle: boolean = false;
     private mapInstance: __esri.Map;
-
+ 
     constructor(private metricService: MetricService) {
     }
 
@@ -46,6 +48,7 @@ export class MapService {
         const [GroupLayer] = await loader.loadModules([
             'esri/layers/GroupLayer'
         ]);
+
         MapService.EsriGroupLayer = new GroupLayer({
             title: 'ESRI',
             listMode: 'show-children',
@@ -66,6 +69,12 @@ export class MapService {
 
         MapService.PcrGroupLayer = new GroupLayer({
             title: 'Valassis PCR',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.WrapGroupLayer = new GroupLayer({
+            title: 'Valassis WRAP',
             listMode: 'show-children',
             visible: true
         });
@@ -280,6 +289,7 @@ export class MapService {
         return { val: sceneView };
     }
 */
+
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
 
         console.log('fired plotMarker() in MapService');
@@ -376,17 +386,6 @@ export class MapService {
         console.log('fired setMapLayers() in MapService');
         const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
 
-/*        
-        const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
-        const ATZ_Digital   = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/digitalATZ/FeatureServer';
-        const ZIP_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Top_Vars/FeatureServer';
-        const ATZ_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
-        const PCR_Top_Vars  = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/arcgis/rest/services/ATZ_Top_Vars/FeatureServer';
-        const ZIP_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ZIP_Centroids/FeatureServer';
-        const ATZ_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
-        const PCR_Centroids = 'https://services7.arcgis.com/U1jwgAVNb50RuY1A/ArcGIS/rest/services/ATZ_Centroids/FeatureServer';
-*/        
-
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
         const [esriConfig, PopupTemplate, GroupLayer, LayerList, Layer, FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, first, all] = await loader.loadModules([
@@ -409,15 +408,23 @@ export class MapService {
         let endPos: number;
 
          const zip_layerids = [
-             '50881b66a19049cbb7369236944663f0', // ZIP Top Vars
-             'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
+           '50881b66a19049cbb7369236944663f0', // ZIP Top Vars
+           'defb065089034dd181d8fdd6186e076b', // ZIP Centroids
+           'dc8d78af534841a79039e9a1619f9b3e'  // ZIP Boundaries
          ];       
          const atz_layerids = [
            'c63b20cc2f664c5ea0887847b3b9dd12', // ATZ_Top_Vars
            '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
-           'b829498218cb413797ca9b1a98ca64a8'  // ATZ_Digital
+           '30fd1c1041784bd3a3ca7a3dc18c5d59', // ATZ_Boundaries
+           '9e250767027e4e1e8eb60eddde628e46', // ATZ_Digital
+           'b829498218cb413797ca9b1a98ca64a8', // DIG_ATZ_Boundaries
+           '736131394a2246b0a85010b6f951e05e'  // ATZ_Digital_Centroids
         ];
         const pcr_layerids = [];
+        const wrap_layerids = [
+           'c686977dac124e53a3438189e87aa90f', // WRAP_Top_Vars
+           'c0c7707dcc0e432a99f5b912578da91f', // WRAP_Boundaries
+          ];
         const hh_layerids = [
             '837f4f8be375464a8971c56a0856198e', // vt layer
             '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
@@ -437,6 +444,7 @@ export class MapService {
         MapService.AtzGroupLayer.visible = false;  
         MapService.PcrGroupLayer.visible = false;  
         MapService.HHGroupLayer.visible = false;  
+        MapService.WrapGroupLayer.visible = false;  
 
     // Esri Layers    
     if (selectedLayers.length !== 0) {
@@ -565,6 +573,36 @@ export class MapService {
                         MapService.mapView.map.layers.add(MapService.PcrGroupLayer);
                     }
                     MapService.PcrGroupLayer.visible = true;  
+
+           } else
+                if (analysisLevel === 'WRAP') {
+                    // Add WRAP layer IDs
+                    const layers = wrap_layerids.map(fromPortal);
+
+                    // Add all WRAP Layers via Promise
+                    all(layers)
+                     .then(results => {
+                     results.forEach(x => {
+                       if (x.type === 'feature') {
+                         // x.minScale = 5000000;
+                         x.mode = FeatureLayer.MODE_AUTO;
+                       } else {
+                         x.maxScale = 5000000;
+                       }
+                       // Add Layer to Group Layer if it does not already exist
+                       if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
+                           console.log ('adding subLayer: ' + x.portalItem.title);
+                           MapService.WrapGroupLayer.add(x);
+                       }
+                       });
+                    })
+                    .catch(error => console.warn(error.message));
+
+                    // Add WRAP Group Layer if it does not already exist
+                    if (!this.findLayerByTitle('Valassis WRAP')) {
+                        MapService.mapView.map.layers.add(MapService.WrapGroupLayer);
+                    }
+                    MapService.WrapGroupLayer.visible = true;
 
                 } else
                     if (analysisLevel === 'HH') {
@@ -1272,6 +1310,7 @@ export class MapService {
         return fLyrList;
     }
 }
+
 
 export interface EsriWrapper<T> {
 

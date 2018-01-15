@@ -1,4 +1,4 @@
-     <p-multiSelect 
+    <p-multiSelect 
         #mapLayerList
         id="layerList"
         [options]="esriDemographicItems" 
@@ -9,11 +9,16 @@
         [showToggleAll]="true" 
         [panelStyle]="{minWidth:'12em'}" 
         (onPanelHide)="checkLayers()">
-     </p-multiSelect>
+    </p-multiSelect>
 
-     <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers" (onChange)="handleChange($event)" onLabel="Layers On" offLabel="Layers Off" 
-                      onIcon="ui-icon-blur-on" offIcon="ui-icon-blur-off"></p-toggleButton>
-     <!--
-     <i class="fa fa-bars"></i>
-     -->
+    <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers" 
+                     (onChange)="handleLayerChange($event)" 
+                      onLabel="Layers On" offLabel="Layers Off" 
+                      onIcon="esri-icon-collection" offIcon="esri-icon-maps">
+    </p-toggleButton>
+     <p-toggleButton id="SideBarToggle" [(ngModel)]="mapService.sideBarToggle" title="Toggle Sidebar" 
+                     onLabel="Show Tools" offLabel="Hide Tools" 
+                     onIcon="esri-icon-browser" offIcon="esri-icon-maximize">
+    </p-toggleButton>
+
      <p-selectButton id="analysisLevels" title="Analysis Levels" [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevels" multiple="multiple" (onChange)="checkLayers()"></p-selectButton>

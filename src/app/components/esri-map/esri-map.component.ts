@@ -1,21 +1,20 @@
+import { SidebarModule } from 'primeng/primeng';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
 import { MapService } from '../../services/map.service';
-//import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-//import { EsriLoaderService } from 'angular-esri-loader';
 
 // Import Core Modules
 import { CONFIG } from '../../core';
 import { MessageService } from '../../val-modules/common/services/message.service';
 
 @Component({
-  providers: [MapService],
+  // providers: [MapService],
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
-
+  //showSidePanel: boolean; 
   @Input() zoom: number;
   @Input() centerLng: number;
   @Input() centerLat: number;
