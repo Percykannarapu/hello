@@ -123,6 +123,7 @@ export class RaddataComponent {
         //hide the modal popup and reset the HHC
         //this.displayRADInputs = false;
         this.radHouseholdCount = null;
+        //this.radDistributionHouseholdCount = null;
 
         //show the spinner while we do our work
         this.displayGpSpinner = true;
@@ -148,7 +149,7 @@ export class RaddataComponent {
         const params = {
             Category: categoryItem.name,
             Product: productItem.name,
-            Distribution_Household_Count: this.radHouseholdCount,
+            Distribution_Household_Count: this.radDistributionHouseholdCount,
             Estimated_CPM: this.radEstimatedCPM,
             Budget: this.radBudget
         };

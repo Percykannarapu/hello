@@ -134,6 +134,7 @@ import {MessageService} from './val-modules/common/services/message.service';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import { AppService } from './services/app.service';
 import { RaddataComponent } from './components/raddata/raddata.component';
+import { TradeareaDefineComponent } from './components/tradearea-define/tradearea-define.component';
 
 @NgModule({
     imports: [
@@ -249,14 +250,14 @@ import { RaddataComponent } from './components/raddata/raddata.component';
         GeoprocessingComponent,
         ColorBoxComponent,
         AmSiteListComponent,
-        RaddataComponent
+        RaddataComponent,
+        TradeareaDefineComponent
     ],
-
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         MessageService, AppService,
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService,
+        EsriLoaderService, GfGeoService, MapService,
         InMemoryStubService, AmSiteService, MetricService
     ],
     bootstrap: [AppComponent]

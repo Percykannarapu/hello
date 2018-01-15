@@ -70,67 +70,11 @@
                <val-amsite-list>Loading AmSiteList...</val-amsite-list>
             </p-tabPanel>
             <p-tabPanel header="Define Trade Areas">
-               <div class="ui-g">
-                  <div class="ui-g-4">
-                     <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
-                  </div>
-                  <div class="ui-g-8">
-                     <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors" (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
-                  </div>
-                  <br>
-                  <br>
-                  <br>  
-                  <div class="ui-g-4">
-                     <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="checked1" [style]="{'width':'75px'}"></p-toggleButton>
-                  </div>                        
-                  <div class="ui-g-8">
-                     <span class="ui-float-label">
-                        <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input"  (ngModelChange)="manageIcons($event,'ta1miles')">
-                        <!--onchange="manageIcons()" -->
-                        <label for="ta1Input">Trade Area 1 (in miles)</label>
-                        <!-- <i *ngIf="editedta1"  class="material-icons" style="font-size:25px;color:rgb(10, 112, 25);">check</i> -->
-                        <i *ngIf="checked1"  class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
-                        <!-- <i class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);">check</i> -->
-                     </span>
-                  </div>
-
-                  <div class="ui-g-4">
-                     <p-toggleButton [(ngModel)]="checked2" onLabel="Show" offLabel="Hide" [style]="{'width':'75px'}"></p-toggleButton>
-                  </div>                        
-                  <div class="ui-g-8">
-                        <span class="md-inputfield">
-                           <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input" (ngModelChange)="manageIcons($event,'ta2miles')">
-                           <label for="ta2Input">Trade Area 2 (in miles)</label>
-                           <i *ngIf="checked2" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
-                        </span>
-                  </div>
-
-                  <div class="ui-g-4">
-                     <p-toggleButton [(ngModel)]="checked3" onLabel="Show" offLabel="Hide" [style]="{'width':'75px'}"></p-toggleButton>
-                  </div>                        
-                  <div class="ui-g-8">
-                     <span class="md-inputfield">
-                        <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input" (ngModelChange)="manageIcons($event,'ta3miles')">
-                        <label for="ta3Input">Trade Area 3 (in miles)</label>
-                        <i *ngIf="checked3" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
-                     </span>
-                  </div>
-                  <br>
-                  <br>  
-                  <br>
-                  <br>  
-                  <div class="ui-g-4">
-                     <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton>
-                  </div>                  
-                        
-               <div class="ui-g-8">
-                  <button (click)="drawBuffer()" pButton label="Apply"></button>
-               </div>
-         </div>            
+               <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>            
          </p-tabPanel>
-         <p-tabPanel header="Upload / Export">
+         <!-- <p-tabPanel header="Upload / Export">
              We can have as many tabs as necessary
-         </p-tabPanel>
+         </p-tabPanel> -->
       </p-tabView>
 
       </val-color-box>
@@ -363,6 +307,7 @@
       </p-sidebar>
    </div>  -->
 
+<!-- TODO:  This needs to be moved
 <div class="ui-g ui-fluid">
     <p-dialog [closable]="true" header="Drawing Buffer" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
       width="300">
@@ -372,5 +317,5 @@
       </div>
       <div class="ui-g-4"></div>
     </p-dialog>
-</div>
+</div> -->
 </div>

@@ -78,7 +78,6 @@ export class EsriMapComponent implements OnInit {
         layers.forEach((lyr)=>{
           if(lyr.title==='Valassis ZIP' || lyr.title==='Valassis ATZ'){
             this.mapService.selectSinglePolygon(evt);
-            console.log('test:: check')
           }
         });
       }  

@@ -1,0 +1,67 @@
+<p>
+  tradearea-define works!
+</p>
+<div class="ui-g">
+    <div class="ui-g-12">
+        <div class="ui-g-1">Defined for:</div>
+        <div class="ui-g-1">
+            <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
+        </div>
+        <div class="ui-g-2">
+            <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"
+                (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
+        </div>
+    </div>
+    <div class="ui-g-12">
+        <div class="ui-g-2">
+        <div class="ui-md-4">
+            <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="checked1" [style]="{'width':'75px'}"></p-toggleButton>
+        </div>
+        <div class="ui-md-4">
+            <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="checked2" [style]="{'width':'75px'}"></p-toggleButton>
+        </div>
+        <div class="ui-md-4">
+            <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="checked3" [style]="{'width':'75px'}"></p-toggleButton>
+        </div> 
+    </div>
+    <div class="ui-g-7">
+        <div class="ui-md-4">
+                <span class="ui-float-label">
+                    <input [(ngModel)]="ta1Miles" name="_ta1miles" pInputText id="ta1Input" (ngModelChange)="manageIcons($event,'ta1miles')">
+                    <!--onchange="manageIcons()" -->
+                    <label for="ta1Input">Trade Area 1 (in miles)</label>
+                    <i *ngIf="editedta1" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
+                </span>
+            </div>
+
+            <div class="ui-md-4 p-t-15">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="ta2Miles" name="_ta2miles" pInputText id="ta2Input" (ngModelChange)="manageIcons($event,'ta2miles')">
+                    <label for="ta2Input">Trade Area 2 (in miles)</label>
+                    <i *ngIf="editedta2" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
+                </span>
+            </div>
+
+            <div class="ui-md-4 p-t-15">
+                <span class="md-inputfield">
+                    <input [(ngModel)]="ta3Miles" name="_ta3miles" pInputText id="ta3Input" (ngModelChange)="manageIcons($event,'ta3miles')">
+                    <label for="ta3Input">Trade Area 3 (in miles)</label>
+                    <i *ngIf="editedta3" class="fa fa-check" style="font-size:25px;color:rgb(10, 112, 25);"></i>
+                </span>
+            </div>
+    </div>
+    </div>
+
+    <div class="ui-g-12">
+        <div class="ui-g-4">
+            <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton></div>
+        <div class="ui-g-4">
+            <button (click)="drawBuffer()" pButton label="Apply"></button>
+        </div>
+    
+    </div>
+
+    <!-- <div class="ui-g-4">
+        <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>   
+    </div> -->    
+</div>

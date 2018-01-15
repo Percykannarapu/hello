@@ -25,12 +25,11 @@ export class AmSiteService
    private subject: Subject<AmSite> = new Subject<AmSite>();
    public  amSites: Array<AmSite> = new Array<AmSite>();
    public  unselectedAmSites: Array<AmSite> = new Array<AmSite>();
-   private mapService: MapService;
 
    constructor(private http: HttpClient,
-               private messageService: MessageService)
+               private messageService: MessageService,
+               private mapService: MapService)
    {
-      this.mapService = new MapService();
    }
 
    public add(amSites: AmSite[])

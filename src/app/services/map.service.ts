@@ -12,6 +12,7 @@ import { Query } from '@angular/core/src/metadata/di';
 
 // import primeng 
 import { SelectItem } from 'primeng/primeng';
+import { MetricService } from '../val-modules/common/services/metric.service';
 
 @Injectable()
 export class MapService {
@@ -36,7 +37,7 @@ export class MapService {
 
     private mapInstance: __esri.Map;
 
-    constructor() {
+    constructor(private metricService: MetricService) {
     }
 
     public async initGroupLayers() : Promise<__esri.Map> {
@@ -1084,11 +1085,12 @@ export class MapService {
 
                 await lyr.load().then((f1: __esri.FeatureLayer)  => {
                     loadedFeatureLayer = f1;
+                   // loadedFeatureLayer.renderer = f1
                 });
+                
 
-                await array.forEach(centroidGraphics, function(centroidGraphic){
-                    console.log('test centroid array::' + centroidGraphic.type);
-                    const qry1 = lyr.createQuery();
+                await array.forEach(centroidGraphics, (centroidGraphic) =>{
+                    const qry1 = loadedFeatureLayer.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
 
@@ -1105,8 +1107,9 @@ export class MapService {
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                         MapService.mapView.graphics.addMany(polyGraphics);
+                        this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                        this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
                     });
-
                 });
             }
         }
@@ -1218,7 +1221,7 @@ export class MapService {
                 const query = lyr.createQuery();
                 const currentClick = query.geometry = evt.mapPoint;
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
-                await lyr.queryFeatures(query).then(function(polyFeatureSet){
+                await lyr.queryFeatures(query).then(polyFeatureSet => {
                        if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.OBJECTID)){
 
                             const graphi: __esri.Graphic = polyFeatureSet.features[0]; 
@@ -1230,6 +1233,8 @@ export class MapService {
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                                    this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                                    this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
                                 }
                             });
                         }else{
@@ -1238,6 +1243,8 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID)); 
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
+                            this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
 
                         }
                 });
