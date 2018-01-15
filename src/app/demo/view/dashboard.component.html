@@ -50,7 +50,7 @@
                    popupWidth="60%"
                          icon="my_location"
                       [model]="metricMapGreen"
-                      #greenColorBox>
+                      #locationsColorBox>
 
          <p-tabView styleClass="ui-tabview-panels">
             <p-tabPanel header="Add Locations">
@@ -142,7 +142,7 @@
                     popupWidth="20%"                      
                           icon="done_all"
                        [model]="metricMapBlue"
-                       #campaineDetailsBox>
+                       #campaignColorBox>
          <p-tabView styleClass="ui-tabview-panels">
                <p-tabPanel header="Sites">
                </p-tabPanel>
@@ -204,12 +204,13 @@
    </div>   
    
    <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Purple Progress To Budget Box Overlay -->     
+      <!-- Home for Target Audience Box Overlay -->     
       <val-color-box  header="Target Audience"
                      boxStyle="colorboxPicker-slate"
                    popupWidth="60%"
                          icon="tune"
-                      [model]="metricMapPurple">
+                      [model]="metricMapPurple"
+                      #audienceColorBox>
          <p-tabView>
             <p-tabPanel header="Header Tab 1">
                 Content 1
@@ -225,31 +226,28 @@
    </div>
 
    <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Teal Messages Box Overlay -->     
+      <!-- Home for Performance ColorBox Overlay -->     
       <val-color-box   header="Performance"
                      boxStyle="colorboxPicker-blue" 
                    popupWidth="60%"
                         icon="send"
-                     [model]="metricMapTeal">
-
-        <!--Commented out for RAD Tool : nallana: 1/9/2018  -->
-         <!-- <p-panel class="colorboxPicker-blue">
-            <p-header>
-               <div>🚨🚧 Under Construction 🚧🚨</div>
-               Some sort of chart that tells somebody something
-            </p-header>
-            <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
-         </p-panel> -->
+                     [model]="metricMapTeal"
+                     #performanceColorBox>
          <p-tabView>
             <p-tabPanel header="RAD Service">
-                <!-- <a (click)="displayRADInputs = true;">RAD Data</a> -->
-                <val-raddata></val-raddata>
+               <val-raddata></val-raddata>
             </p-tabPanel>
             <p-tabPanel header="Header Tab 2">
                Content 2
             </p-tabPanel>
             <p-tabPanel header="Header Tab 3">
-               Content 3
+               <p-panel class="colorboxPicker-blue">
+                  <p-header>
+                     <div>🚨🚧 Under Construction 🚧🚨</div>
+                     Some sort of chart that tells somebody something
+                  </p-header>
+                  <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
+               </p-panel>
             </p-tabPanel>
          </p-tabView>
          </val-color-box>

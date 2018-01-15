@@ -61,12 +61,18 @@ export class DashboardDemoComponent implements OnInit {
     competitorsMap: Map<string, string> = new Map<string, string>();
     sitesMap: Map<string, string> = new Map<string, string>();
 
-    @ViewChild('greenColorBox')
-    private greenColorBox: ColorBoxComponent;
+    @ViewChild('locationsColorBox')
+    private locationsColorBox: ColorBoxComponent;
 
-    @ViewChild('campaineDetailsBox')
-    private campaignDetailsBox: ColorBoxComponent;
+    @ViewChild('campaignColorBox')
+    private campaignColorBox: ColorBoxComponent;
 
+    @ViewChild('audienceColorBox')
+    private audienceColorBox: ColorBoxComponent;
+
+    @ViewChild('performanceColorBox')
+    private performanceColorBox: ColorBoxComponent;
+    
     constructor(private mapService: MapService,
                 private messageService: MessageService,
                 private amSiteService: AmSiteService,
@@ -115,7 +121,7 @@ export class DashboardDemoComponent implements OnInit {
         // observe when new sites are added
         this.amSiteService.observeSites().subscribe(site => {
             console.log('Dashboard component detected new site');
-            this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+            this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
         });
 
         // Observe the metricsService
@@ -128,16 +134,19 @@ export class DashboardDemoComponent implements OnInit {
                switch (metricMessage.group.toUpperCase())
                {
                   case 'LOCATIONS':
-                     this.greenColorBox.set(metricMessage.key, metricMessage.value);
+                     this.locationsColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'CAMPAIGN':
+                     this.campaignColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'AUDIENCE':
+                     this.audienceColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'PERFORMANCE':
+                  this.performanceColorBox.set(metricMessage.key, metricMessage.value);                  
                   break;
                }
             break;
@@ -146,16 +155,19 @@ export class DashboardDemoComponent implements OnInit {
                switch (metricMessage.group.toUpperCase())
                {
                   case 'LOCATIONS':
-                     this.greenColorBox.delete(metricMessage.key);
+                     this.locationsColorBox.delete(metricMessage.key);
                   break;
 
                   case 'CAMPAIGN':
+                     this.campaignColorBox.delete(metricMessage.key);
                   break;
 
                   case 'AUDIENCE':
+                     this.audienceColorBox.delete(metricMessage.key);
                   break;
 
                   case 'PERFORMANCE':
+                     this.performanceColorBox.delete(metricMessage.key);
                   break;
                }
             break;
@@ -164,16 +176,19 @@ export class DashboardDemoComponent implements OnInit {
                switch (metricMessage.group.toUpperCase())
                {
                   case 'LOCATIONS':
-                     this.greenColorBox.set(metricMessage.key, metricMessage.value);
+                     this.locationsColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'CAMPAIGN':
+                     this.campaignColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'AUDIENCE':
+                     this.audienceColorBox.set(metricMessage.key, metricMessage.value);
                   break;
 
                   case 'PERFORMANCE':
+                     this.performanceColorBox.set(metricMessage.key, metricMessage.value);
                   break;
                }
             break;
@@ -195,8 +210,8 @@ export class DashboardDemoComponent implements OnInit {
                }
             break;
          }
-         this.greenColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
-        });
+         this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+      });
      
 
         // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
@@ -407,8 +422,8 @@ export class DashboardDemoComponent implements OnInit {
                 if (max != null) {
                     this.kms = max / 0.62137;
                     await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
-                    this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                    this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
+                    this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
+                    this.campaignColorBox.set('IP Address Count', MapService.hhIpAddress.toString());
 
                 }
             } else if (mergeEachBool) {
@@ -418,8 +433,8 @@ export class DashboardDemoComponent implements OnInit {
                     const kmsMereEach = miles1 / 0.62137;
                     console.log('Kms in Merge Each:::' + kmsMereEach);
                     await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
-                    this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                    this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
+                    this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
+                    this.campaignColorBox.set('IP Address Count', MapService.hhIpAddress.toString());
                 }
                 // }
             } else {
@@ -432,8 +447,8 @@ export class DashboardDemoComponent implements OnInit {
                     for (const point of pointsArray) {
                         console.log('Kms in No Merge:::' + kmsNomerge);
                         await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
-                        this.campaignDetailsBox.set('Household Count', MapService.hhDetails.toString());
-                        this.campaignDetailsBox.set('IP Address Count', MapService.hhIpAddress.toString());
+                        this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
+                        this.campaignColorBox.set('IP Address Count', MapService.hhIpAddress.toString());
                         console.log('update hhcount::');
                     }
                 }
