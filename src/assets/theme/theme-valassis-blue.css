@@ -6990,6 +6990,9 @@ body .ui-tabview {
         border-color: #f0a630; }
   body .ui-tabview .ui-tabview-panel {
     padding: 0.625em 1em; }
+  body .ui-tabview-panels-nopad .ui-tabview-panel {
+     padding:0px;
+  }
   body .ui-tabview.ui-tabview-top > .ui-tabview-nav {
     padding: 0;
     margin: 0;

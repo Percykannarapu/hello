@@ -267,6 +267,9 @@ body {
             }
         }
     }
+    body .ui-tabview-panels-nopad .ui-tabview-panel {
+      padding:0px;
+   }     
 }
 
 @media (max-width: 640px) {
