@@ -1085,7 +1085,9 @@ export class MapService {
 
                 await lyr.load().then((f1: __esri.FeatureLayer)  => {
                     loadedFeatureLayer = f1;
+                   // loadedFeatureLayer.renderer = f1
                 });
+                
 
                 await array.forEach(centroidGraphics, (centroidGraphic) =>{
                     const qry1 = loadedFeatureLayer.createQuery();
