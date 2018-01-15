@@ -50,15 +50,15 @@ enum Products {
 }
 
 interface DropdownItem {
-  id: number,
-  name: String,
-  code: String
+  id: number;
+  name: string;
+  code: string;
 }
 
 interface GpResponse {
-  jobId: string,
-  jobStatus: string,
-  messages: string[]
+  jobId: string;
+  jobStatus: string;
+  messages: string[];
 }
 
 @Component({
@@ -98,15 +98,15 @@ export class GeoprocessingComponent implements OnInit {
   constructor() {
     //Set up the list of available Geoprocessing Tools
     this.gpToolsList = [
-      { label: "Select Geoprocessing Tool", value: null },
-      { label: "RAD Data", value: { id: 1, name: "RAD Data", code: GpTool.RAD } },
-      { label: "Draw Buffer", value: { id: 1, name: "Draw Buffer", code: GpTool.BUFFER } }
-    ]
+      { label: 'Select Geoprocessing Tool', value: null },
+      { label: 'RAD Data', value: { id: 1, name: 'RAD Data', code: GpTool.RAD } },
+      { label: 'Draw Buffer', value: { id: 1, name: 'Draw Buffer', code: GpTool.BUFFER } }
+    ];
 
     let counter: number = 0;
     let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
-    let names = objValues.filter(v => typeof v === "string") as string[];
-    let firstItem: SelectItem = { label: "Select Category", value: null }
+    let names = objValues.filter(v => typeof v === 'string') as string[];
+    let firstItem: SelectItem = { label: 'Select Category', value: null }
     this.radCategoryList.push(firstItem);
     for (let category in RADCategory) {
       const item: SelectItem = { label: names[counter], value: { id: counter + 1, name: names[counter], code: category } }
@@ -116,8 +116,8 @@ export class GeoprocessingComponent implements OnInit {
 
     counter = 0;
     objValues = Object.keys(Products).map(k => Products[k]);
-    names = objValues.filter(v => typeof v === "string") as string[];
-    firstItem = { label: "Select Product", value: null }
+    names = objValues.filter(v => typeof v === 'string') as string[];
+    firstItem = { label: 'Select Product', value: null }
     this.radProductList.push(firstItem);
     for (let product in Products) {
       const item: SelectItem = { label: names[counter], value: { id: counter + 1, name: names[counter], code: product } }
@@ -156,7 +156,7 @@ export class GeoprocessingComponent implements OnInit {
   }
 
   private resetGpSelector() {
-    this.selectedGpTool = "Select Geoprocessing Tool";
+    this.selectedGpTool = 'Select Geoprocessing Tool';
   }
 
   public async executeRAD() {
@@ -168,20 +168,20 @@ export class GeoprocessingComponent implements OnInit {
     //show the spinner while we do our work
     this.displayGpSpinner = true;
 
-    //these are the output variables we will look for from the service call
-    var predictedResponse: number;
-    var averageTicket: number;
-    var estimatedCPM: number;
-    var predictedSalesLift: string;
-    var category2: string;
-    var product2: string;
-    var distributionHouseholdCount2;
-    var budget2: string;
-    var totalEstimatedSpend: string;
-    var budgetVsSpend: string;
-    var predictedROI: string;
+    //these are the output letiables we will look for from the service call
+    let predictedResponse: number;
+    let averageTicket: number;
+    let estimatedCPM: number;
+    let predictedSalesLift: string;
+    let category2: string;
+    let product2: string;
+    let distributionHouseholdCount2;
+    let budget2: string;
+    let totalEstimatedSpend: string;
+    let budgetVsSpend: string;
+    let predictedROI: string;
 
-    console.log("Executing RAD tool");
+    console.log('Executing RAD tool');
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Geoprocessor, JobInfo, ParameterValue] = await loader.loadModules(['esri/tasks/Geoprocessor', 'esri/tasks/support/JobInfo', 'esri/tasks/support/ParameterValue']);
     const categoryItem: DropdownItem = JSON.parse(JSON.stringify(this.selectedRADCategory, null, null));
@@ -196,68 +196,68 @@ export class GeoprocessingComponent implements OnInit {
     const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
     geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
     await geoprocessor.submitJob(params, null).then(async response => {
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Response", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Predicted_Response', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         predictedResponse = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "AVG_Ticket", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'AVG_Ticket', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         averageTicket = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Estimated_CPM2", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Estimated_CPM2', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         estimatedCPM = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Sales_Lift", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Predicted_Sales_Lift', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         predictedSalesLift = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Category2", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Category2', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         category2 = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Product2", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Product2', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         product2 = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Distribution_Household_Count2", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Distribution_Household_Count2', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         distributionHouseholdCount2 = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Budget2", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Budget2', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         budget2 = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Total_Estimated_Spend", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Total_Estimated_Spend', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         totalEstimatedSpend = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "BudgetVsSpend", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'BudgetVsSpend', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         budgetVsSpend = pv.value;
       }, error => {
         this.displayRADError();
       });
-      await geoprocessor.getResultData((<GpResponse>response).jobId, "Predicted_Return_on_Investment", null).then(result => {
-        let pv = result as __esri.ParameterValue;
+      await geoprocessor.getResultData((<GpResponse>response).jobId, 'Predicted_Return_on_Investment', null).then(result => {
+        const pv = result as __esri.ParameterValue;
         predictedROI = pv.value;
       }, error => {
         this.displayRADError();
@@ -265,20 +265,20 @@ export class GeoprocessingComponent implements OnInit {
 
       //configure the growl message that will be displayed
       const growlMessage: Message = {
-        summary: "Results from RAD Service",
-        severity: "info",
-        detail: "Predicted Response: " + predictedResponse + "<br>" +
-          "Average Ticket: " + averageTicket + "<br>" +
-          "Estimated CPM: " + estimatedCPM + "<br>" +
-          "Predicted Sales Lift: " + predictedSalesLift + "<br>" +
-          "Category: " + category2 + "<br>" +
-          "Product: " + product2 + "<br>" +
-          "Distribution Household Count: " + distributionHouseholdCount2 + "<br>" +
-          "Budget: " + budget2 + "<br>" +
-          "Total Estimated Spend: " + totalEstimatedSpend + "<br>" +
-          "Budget vs Spend: " + budgetVsSpend + "<br>" +
-          "Predicted ROI: " + predictedROI + "<br>"
-      }
+        summary: 'Results from RAD Service',
+        severity: 'info',
+        detail: 'Predicted Response: ' + predictedResponse + '<br>' +
+          'Average Ticket: ' + averageTicket + '<br>' +
+          'Estimated CPM: ' + estimatedCPM + '<br>' +
+          'Predicted Sales Lift: ' + predictedSalesLift + '<br>' +
+          'Category: ' + category2 + '<br>' +
+          'Product: ' + product2 + '<br>' +
+          'Distribution Household Count: ' + distributionHouseholdCount2 + '<br>' +
+          'Budget: ' + budget2 + '<br>' +
+          'Total Estimated Spend: ' + totalEstimatedSpend + '<br>' +
+          'Budget vs Spend: ' + budgetVsSpend + '<br>' +
+          'Predicted ROI: ' + predictedROI + '<br>'
+      };
       //hide the spinner and display the results
       this.displayGpSpinner = false;
       this.growlMessages.push(growlMessage);
@@ -291,10 +291,10 @@ export class GeoprocessingComponent implements OnInit {
 
   private displayRADError() {
     const growlMessage: Message = {
-      summary: "Error Executing RAD Service",
-      severity: "error",
-      detail: "Please contact the Valassis helpdesk"
-    }
+      summary: 'Error Executing RAD Service',
+      severity: 'error',
+      detail: 'Please contact the Valassis helpdesk'
+    };
     this.displayGpSpinner = false;
     this.growlMessages.push(growlMessage);
   }
