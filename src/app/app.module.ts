@@ -257,7 +257,7 @@ import { TradeareaDefineComponent } from './components/tradearea-define/tradeare
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         MessageService, AppService,
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService,
+        EsriLoaderService, GfGeoService, MapService,
         InMemoryStubService, AmSiteService, MetricService
     ],
     bootstrap: [AppComponent]
