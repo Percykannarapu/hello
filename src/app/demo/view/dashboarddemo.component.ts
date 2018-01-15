@@ -99,11 +99,11 @@ export class DashboardDemoComponent implements OnInit {
 
         // this.amSiteService.createDb();
 
-        // observe when new sites are added
+  /*      // observe when new sites are added
         this.amSiteService.observeSites().subscribe(site => {
             console.log('Dashboard component detected new site');
-            this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
-        });
+//            this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+        });*/
 
         // Observe the metricsService
         this.metricService.observeMetrics().subscribe(metricMessage => {
@@ -191,8 +191,8 @@ export class DashboardDemoComponent implements OnInit {
                }
             break;
          }
-         this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
-         this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
+         // this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
+         // this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
       });
      
 

@@ -1,3 +1,4 @@
+import { MetricService } from './../../common/services/metric.service';
 import { Injectable, Component } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
@@ -28,9 +29,8 @@ export class AmSiteService
 
    constructor(private http: HttpClient,
                private messageService: MessageService,
-               private mapService: MapService)
-   {
-   }
+               private mapService: MapService,
+               private metricService: MetricService) { }
 
    public add(amSites: AmSite[])
    {
@@ -46,6 +46,9 @@ export class AmSiteService
          // Notifiy Observers
          this.subject.next(amSite);
       }
+
+      // Update the metrics
+      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
 
       // Debug log site arrays to the console
       this.logSites();
@@ -65,6 +68,9 @@ export class AmSiteService
 
       // Remove site from the map (TODO: I think this should be handled by an observer)
       this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
+
+      // Update the metrics
+      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
 
       // Notifiy Observers
       this.subject.next(site);
