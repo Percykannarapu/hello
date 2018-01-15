@@ -14,7 +14,6 @@ import { MessageService } from '../../val-modules/common/services/message.servic
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
-  //showSidePanel: boolean; 
   @Input() zoom: number;
   @Input() centerLng: number;
   @Input() centerLat: number;
@@ -22,13 +21,14 @@ export class EsriMapComponent implements OnInit {
 
   @Output() viewCreated = new EventEmitter();
 
+  // sideBarToggle: boolean = false;
   // for JSAPI 4.x you can use the "any for TS types
   public mapView: any;
 
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  constructor(private mapService: MapService) {}
+  constructor(public mapService: MapService) {}
 
   public async ngOnInit() {
     try {

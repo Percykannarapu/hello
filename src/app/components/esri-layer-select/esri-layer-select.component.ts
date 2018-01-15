@@ -36,7 +36,7 @@ export class EsriLayerSelectComponent implements OnInit {
   public selectedAnalysisLevel: string;
   public selectedAnalysisLevels: string[] = [];
 
-  constructor(private mapService: MapService) {
+  constructor(public mapService: MapService) {
       this.mapView = this.mapService.getMapView();
     }
 
