@@ -1,10 +1,48 @@
-<div class="ui-g">
+<div class="ui-g dashboard">
    <div class="ui-g-12">
        <div class="card">
            <h1>Parked Components Page</h1>
            <p>Use this page for components we don't want to go live yet.</p>
        </div>
 
+       <div class="ui-g-12 ui-md-4">
+         <div class="card overview">
+             <div class="overview-content clearfix">
+                 <span class="overview-title">Sales</span>
+                 <span class="overview-badge">+%90</span>
+                 <span class="overview-detail">$22,650 / week</span>
+             </div>
+             <div class="overview-footer">
+                 <img src="assets/layout/images/dashboard/sales.svg" style="width: 100%" />
+             </div>
+         </div>
+     </div>
+     <div class="ui-g-12 ui-md-4">
+         <div class="card overview">
+             <div class="overview-content clearfix">
+                 <span class="overview-title">Views</span>
+                 <span class="overview-badge">+%60</span>
+                 <span class="overview-detail">6,520 / day</span>
+             </div>
+             <div class="overview-footer">
+                 <img src="assets/layout/images/dashboard/views.svg" style="width: 100%" />
+             </div>
+         </div>
+     </div>
+
+     <div class="ui-g-12 ui-md-4">
+         <div class="card overview">
+             <div class="overview-content clearfix">
+                 <span class="overview-title">Users</span>
+                 <span class="overview-badge">+%45</span>
+                 <span class="overview-detail">5,200 / day</span>
+             </div>
+             <div class="overview-footer">
+                 <img src="assets/layout/images/dashboard/progress.svg" style="width: 100%" />
+             </div>
+         </div>
+     </div>
+         
        <div class="ui-g-12 ui-lg-4 contacts">
          <p-panel header="Contacts">
             <ul>
@@ -191,6 +229,47 @@
             <p-schedule [events]="events" defaultDate="2016-01-12"></p-schedule>
          </p-panel>
       </div>
-          
+   
+      <div class="ui-g-12 ui-md-4 ui-lg-4 ui-fluid contact-form">
+            <div class="ui-g-12 ui-md-6 ui-lg-4 task-list">
+         <p-panel header="Tasks">
+            <ul>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Sales Reports</span>
+                  <i class="material-icons">&#xE8C9;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Pay Invoices</span>
+                  <i class="material-icons">&#xE8A1;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Dinner with Tony</span>
+                  <i class="material-icons">&#xE561;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Client Meeting</span>
+                  <i class="material-icons">&#xE7FB;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">New Theme</span>
+                  <i class="material-icons">&#xE3AE;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Flight Ticket</span>
+                  <i class="material-icons">&#xE01B;</i>
+               </li>
+               <li>
+                  <p-checkbox binary="true"></p-checkbox>
+                  <span class="task-name">Generate Charts</span>
+                  <i class="material-icons">&#xE6C4;</i>
+               </li>
+            </ul>
+         </p-panel>
    </div>
 </div>
