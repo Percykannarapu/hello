@@ -74,6 +74,7 @@ export class GeocoderComponent implements OnInit {
   public async onGeocode() {
     try {
       const amSite = new AmSite();
+      amSite.pk = this.amSiteService.getNewSitePk();
       amSite.address = this.street;
       amSite.city = this.city;
       amSite.state = this.state;
@@ -105,6 +106,7 @@ export class GeocoderComponent implements OnInit {
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
       for (const amSite of amSites) {
+         console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
           .then(res => { graphics.push(res); })
@@ -143,6 +145,7 @@ export class GeocoderComponent implements OnInit {
         continue;
       }
 
+      amSite.pk = this.amSiteService.getNewSitePk();
       amSite.ycoord = geocodingResponse.latitude;
       amSite.xcoord = geocodingResponse.longitude;
       amSite.address = geocodingResponse.addressline;
@@ -181,7 +184,7 @@ export class GeocoderComponent implements OnInit {
     return popupTemplate;
   }
 
-  // create a Grahpic object for the site that will be displayed on the map
+  // create a Graphic object for the site that will be displayed on the map
   private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
@@ -195,7 +198,7 @@ export class GeocoderComponent implements OnInit {
       b: 186
     };
 
-    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate)
+    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate, amSite.pk)
       .then(res => {
         graphic = res;
       });

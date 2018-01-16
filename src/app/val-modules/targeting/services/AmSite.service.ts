@@ -27,18 +27,29 @@ export class AmSiteService
    public  amSites: Array<AmSite> = new Array<AmSite>();
    public  amComps: Array<any> = new Array<any>();
    public  unselectedAmSites: Array<AmSite> = new Array<AmSite>();
-   public  unselectedAmComps: Array<any> = new Array<any>();
+   public  unselectedAmComps: Array<AmSite> = new Array<AmSite>();
+
+   private tempId: number = 0;
 
    constructor(private http: HttpClient,
                private messageService: MessageService,
                private mapService: MapService,
                private metricService: MetricService) { }
 
+   public  getNewSitePk() : number
+   {
+      return this.tempId++;
+   }
+
    public add(amSites: AmSite[])
    {
       // For each site provided in the parameters
       for (const amSite of amSites)
       {
+         // Assign the site a temporary pk
+         if (amSite.pk == null)
+            amSite.pk = this.getNewSitePk();
+
          // Add the site to the selected sites array
          this.amSites = [...this.amSites, amSite];
 
@@ -91,7 +102,10 @@ export class AmSiteService
                                  ...this.unselectedAmSites.slice(index + 1)];
 
       // Remove site from the map (TODO: I think this should be handled by an observer)
-      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
+//      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
+//      this.mapService.clearGraphicsAt(site.ycoord, site.xcoord);
+      this.mapService.clearGraphicsForParent(site.pk);
+
 
       // Update the metrics
       this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
@@ -118,7 +132,12 @@ export class AmSiteService
    // Alert the subscribers of the removal
    public siteWasUnselected (amSite: AmSite)
    {
-      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, amSite.ycoord, amSite.xcoord);
+//      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, amSite.ycoord, amSite.xcoord);
+//      this.mapService.clearGraphicsAt(amSite.ycoord, amSite.xcoord);
+
+      // Clear all map graphics that have an attribute of parentId with a value of amSite.pk
+      this.mapService.clearGraphicsForParent(amSite.pk);
+      
       this.subject.next(amSite);
    }
 
@@ -153,7 +172,7 @@ export class AmSiteService
          b: 186
       };
 
-      await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate)
+      await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate, amSite.pk)
          .then(res => {
             graphic = res;
          });
