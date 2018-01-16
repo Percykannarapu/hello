@@ -256,7 +256,7 @@ export class GeocoderComponent implements OnInit {
         return;
       }
       const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
-      const csvFormattedData:any =[];
+      const csvFormattedData: any = [];
       // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
 
@@ -278,7 +278,7 @@ export class GeocoderComponent implements OnInit {
         amSite.state = csvRecord[headerPosition.state];
         amSite.zip = csvRecord[headerPosition.zip];
 
-        if(headerPosition.lat === undefined && headerPosition.lon === undefined){
+        if (headerPosition.lat === undefined && headerPosition.lon === undefined){
           observables.push(this.geocoderService.geocode(amSite));
         }else{
           amSite.xcoord = csvRecord[headerPosition.lat];
@@ -286,14 +286,8 @@ export class GeocoderComponent implements OnInit {
           csvFormattedData.push({payload: amSite});
         }
 
-        //if (headerPosition.lat === undefined || headerPosition.lon === undefined){
-          //observables.push(this.geocoderService.geocode(amSite));
-        // }else{
-        //   amSite.xcoord = csvRecord[headerPosition.lat];
-        //   amSite.ycoord = csvRecord[headerPosition.lon];
-        //  }
       }
-      if(headerPosition.lat === undefined && headerPosition.lon === undefined){
+      if (headerPosition.lat === undefined && headerPosition.lon === undefined){
         Observable.forkJoin(observables).subscribe(res => {
           this.parseResponse(res, true);
           this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string

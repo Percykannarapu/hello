@@ -25,7 +25,9 @@ export class AmSiteService
 {
    private subject: Subject<AmSite> = new Subject<AmSite>();
    public  amSites: Array<AmSite> = new Array<AmSite>();
+   public  amComps: Array<any> = new Array<any>();
    public  unselectedAmSites: Array<AmSite> = new Array<AmSite>();
+   public  unselectedAmComps: Array<any> = new Array<any>();
 
    constructor(private http: HttpClient,
                private messageService: MessageService,
@@ -49,6 +51,28 @@ export class AmSiteService
 
       // Update the metrics
       this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
+
+      // Debug log site arrays to the console
+      this.logSites();
+   }
+
+    public addCompetitors(amComps: any[])
+   {
+      // For each site provided in the parameters
+      for (const amComp of amComps)
+      {
+         // Add the site to the selected sites array
+         this.amComps = [...this.amComps, amComp];
+
+         // Add the site to the sites list array
+         this.unselectedAmComps = [...this.unselectedAmComps, amComp];
+
+         // Notifiy Observers
+         this.subject.next(amComp);
+      }
+
+      // Update the metrics
+      this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString());
 
       // Debug log site arrays to the console
       this.logSites();

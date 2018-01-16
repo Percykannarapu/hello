@@ -1,7 +1,7 @@
 import { ColorBoxComponent } from '../color-box/color-box.component';
 import { Points } from '../../Models/Points';
 import { MapService } from '../../services/map.service';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild} from '@angular/core';
 
 @Component({
@@ -35,6 +35,7 @@ export class TradeareaDefineComponent implements OnInit {
   public tradeAreaMergeTypes: SelectItem[];
   public selectedMergeTypes: string;
   public displayDBSpinner: boolean = false;
+  public growlMessages: Message[] = new Array();
 
   @ViewChild('campaineDetailsBox')
     private campaignDetailsBox: ColorBoxComponent;
@@ -190,9 +191,14 @@ export class TradeareaDefineComponent implements OnInit {
         if (lyrTitle === 'Sites') {
             color = { a: 0, r: 0, g: 0, b: 255 };
             outlneColor = ([0, 0, 255, 2.50]);
-        } else {
+        } else if (lyrTitle === 'Competitors') {
             color = { a: 0, r: 255, g: 0, b: 0 };
             outlneColor = ([255, 0, 0, 2.50]);
+        }
+        else{
+            this.displayTradeAreaError();
+            //hide the spinner after drawing buffer
+            this.displayDBSpinner = false;
         }
         if (mergeAllBool) {
             console.log('inside merge All');
@@ -341,5 +347,13 @@ public async disableLyr(layer: __esri.Layer) {
 public async removeBuffer() {
   await this.mapService.removeMapLayers();
 }
+private displayTradeAreaError() {
+    const growlMessage: Message = {
+        summary: 'DrawBuffer error',
+        severity: 'error',
+        detail: 'No plotted points on the map'
+    };
+    this.growlMessages.push(growlMessage);
+  }
 
 }

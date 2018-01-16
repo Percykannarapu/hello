@@ -152,12 +152,15 @@ export class BusinessSearchComponent implements OnInit {
 
     if (paramObj['sites'].length === 0) {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Sites cannot be empty' });
+      this.showLoader = false;
     }
     if (paramObj['sics'].length === 0) {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'There should be atleast one selection of SIC"s' });
+      this.showLoader = true;
     }
     if (paramObj['radius'] === undefined || paramObj['radius'] === '') {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Radius cannot be left blank' });
+      this.showLoader = true;
     }
 
     console.log('request to business search', paramObj);
@@ -192,7 +195,17 @@ export class BusinessSearchComponent implements OnInit {
     this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {
       if (obj.checked){
-        this.plottedPoints.push([obj.x, obj.y]);
+      const objname = {
+        pk: obj.sdm_id,
+        name: obj.sdm_name,
+        address: obj.address,
+        city: obj.city,
+        state: obj.state,
+        zip: obj.zip,
+        ycoord: obj.y,
+        xcoord: obj.x
+      };
+        this.plottedPoints.push(objname);
       }
     });
   }
@@ -245,11 +258,11 @@ export class BusinessSearchComponent implements OnInit {
           graphics.push(graphic);
         });
       }
-
+ 
     }
     if (selector === 'Competitors') {
-
-      this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
+      this.amSiteService.addCompetitors(this.plottedPoints);
+      //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     } else {
