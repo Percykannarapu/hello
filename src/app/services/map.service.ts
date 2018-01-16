@@ -409,21 +409,17 @@ export class MapService {
 
          const zip_layerids = [
            '50881b66a19049cbb7369236944663f0', // ZIP Top Vars
-           'defb065089034dd181d8fdd6186e076b', // ZIP Centroids
-           'dc8d78af534841a79039e9a1619f9b3e'  // ZIP Boundaries
+           'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
          ];       
          const atz_layerids = [
            'c63b20cc2f664c5ea0887847b3b9dd12', // ATZ_Top_Vars
            '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
-           '30fd1c1041784bd3a3ca7a3dc18c5d59', // ATZ_Boundaries
-           '1ed942f1962b4d2286f517301702202e', // ATZ_Digital
-           'b829498218cb413797ca9b1a98ca64a8', // DIG_ATZ_Boundaries
+           '1ed942f1962b4d2286f517301702202e', // DIG_ATZ_Top_Vars
            '736131394a2246b0a85010b6f951e05e'  // ATZ_Digital_Centroids
         ];
         const pcr_layerids = [];
         const wrap_layerids = [
-           'c686977dac124e53a3438189e87aa90f', // WRAP_Top_Vars
-           'c0c7707dcc0e432a99f5b912578da91f', // WRAP_Boundaries
+           'c686977dac124e53a3438189e87aa90f'  // WRAP_Top_Vars
           ];
         const hh_layerids = [
             '837f4f8be375464a8971c56a0856198e', // vt layer
