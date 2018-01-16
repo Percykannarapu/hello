@@ -416,7 +416,7 @@ export class MapService {
            'c63b20cc2f664c5ea0887847b3b9dd12', // ATZ_Top_Vars
            '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
            '30fd1c1041784bd3a3ca7a3dc18c5d59', // ATZ_Boundaries
-           '9e250767027e4e1e8eb60eddde628e46', // ATZ_Digital
+           '1ed942f1962b4d2286f517301702202e', // ATZ_Digital
            'b829498218cb413797ca9b1a98ca64a8', // DIG_ATZ_Boundaries
            '736131394a2246b0a85010b6f951e05e'  // ATZ_Digital_Centroids
         ];
