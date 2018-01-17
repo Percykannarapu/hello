@@ -1,5 +1,5 @@
-import { AmProfile } from './AmProfile';
 /** A TARGETING domain class representing the table: SDE.AM_SITES */
+import { AmProfile } from './AmProfile';
 
 export class AmSite
 {
@@ -28,6 +28,12 @@ export class AmSite
 
    constructor() {}
 
+   /**
+    * Produces a map of this classes fields and data types.
+    * Used instead of reflection, which has limitations.
+    *
+    * @returns Map<field, type>
+    */
    public static getFields () : Map<string, string>
    {
       return new Map([
@@ -48,11 +54,28 @@ export class AmSite
          ['xmlLocation',       'string'],
          ['xmlTradearea',      'string'],
          ['createType',        'number'],
-         ['grouping',          'string'],
+         ['grouping',          'string']
+         ]);
+   }
+
+   /**
+    * Produces a map of this classes relationships and data types.
+    * Used instead of reflection, which has limitations.
+    *
+    * @returns Map<field, type>
+    */
+   public static getRelationships () : Map<string, string>
+   {
+      return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
          ['profile',           'AmProfile']
          ]);
    }
 
+   /**
+    * Returns the class as a string.
+    *
+    * @returns A string containing the class data.
+    */
    public toString = () => JSON.stringify(this, null, '   ');
 }
