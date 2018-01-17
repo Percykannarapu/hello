@@ -42,9 +42,9 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Export', icon: 'file_download',
                 items: [
-                    {label: 'Export Geofootprint'},
-                    {label: 'Export Sites', command: () => this.amSiteService.exportCSV(this.amSiteService.createCSV())},
-                    {label: 'Export Competitors'}
+                    {label: 'Export Geofootprint', icon: 'map'},
+                    {label: 'Export Sites', icon: 'store', command: () => this.amSiteService.exportCSV(this.amSiteService.createCSV())},
+                    {label: 'Export Competitors', icon: 'store'}
                 ]
             },
             {

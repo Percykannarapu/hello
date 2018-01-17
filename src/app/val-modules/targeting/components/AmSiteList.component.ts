@@ -84,7 +84,12 @@ export class AmSiteListComponent implements OnInit, OnDestroy
     this.cols = [
       {field: 'pk', header: 'Site #'},
       {field: 'name', header: 'Name'},
-      {field: 'address', header: 'Address'}
+      {field: 'address', header: 'Address'},
+      {field: 'city', header: 'City'},
+      {field: 'state', header: 'State'},
+      {field: 'zip', header: 'Zip'},
+      {field: 'ycoord', header: 'Latitude (Y)'},
+      {field: 'xcoord', header: 'Latitude (X)'}
     ];     
       this.columnOptions = [];
       for (let i = 0; i < this.cols.length; i++) {
