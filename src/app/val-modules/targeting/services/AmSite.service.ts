@@ -71,8 +71,17 @@ export class AmSiteService
 
       // build the first row of the csvData out of the headers
       let headerRow = '';
-      for (const header of headers) {
-            headerRow = headerRow + header + ',';
+      for (let header of headers) {
+            if (header === 'siteId' ) {
+                  header = 'NUMBER';
+            }
+            if ( header === 'xcoord' ) {
+                  header = 'X';
+            }
+            if (header === 'ycoord') {
+                  header = 'Y';
+            }
+            headerRow = headerRow + header.toUpperCase() + ',';
       }
       if (headerRow.substring(headerRow.length - 1) === ',') {
             headerRow = headerRow.substring(0, headerRow.length - 1);
