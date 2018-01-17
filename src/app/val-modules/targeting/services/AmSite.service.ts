@@ -7,8 +7,10 @@ import { Subject } from 'rxjs/Subject';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { MapService } from '../../../services/map.service';
 import { DefaultLayers } from '../../../Models/DefaultLayers';
+import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primeng';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
+import * as $ from 'jquery';
 
 // Import Core Modules
 import { CONFIG } from '../../../core';
@@ -36,6 +38,61 @@ export class AmSiteService
                private mapService: MapService,
                private metricService: MetricService) { }
 
+
+   /**
+    * @description export CSV data to the user
+    */
+   public exportCSV(csvData: string[]) {
+         let csvString = '';
+         for (const row of csvData) {
+            csvString = csvString + row + '\n';
+         }
+
+         // use jquery to create a link, then click that link so the user will download the CSV file
+         const link = $('<a/>', {
+            style: 'display:none',
+            href: 'data:application/octet-stream;base64,' + btoa(csvString),
+            download: 'sites.csv'
+         }).appendTo('body');
+         link[0].click();
+         link.remove();
+   } 
+
+   /**
+    * @description turn the AmSite[] array stored in this service into CSV data
+    * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
+    */
+   public createCSV() : string[] {
+      if (this.amSites.length < 1) {
+            throw new Error('No sites available to export');
+      }
+      const csvData: string[] = new Array<string>();
+      const headers: string[] = ['siteId', 'name', 'address', 'city', 'state', 'zip', 'xcoord', 'ycoord'];
+
+      // build the first row of the csvData out of the headers
+      let headerRow = '';
+      for (const header of headers) {
+            headerRow = headerRow + header + ',';
+      }
+      if (headerRow.substring(headerRow.length - 1) === ',') {
+            headerRow = headerRow.substring(0, headerRow.length - 1);
+      }
+      csvData.push(headerRow);
+
+      // now loop through the AmSite[] array and turn each record into a row of CSV data
+      for (const amSite of this.amSites) {
+            let row: string = '';
+            for (const field of headers) {
+                  row = row + amSite[field] + ',';
+            }
+            if (row.substring(row.length - 1) === ',') {
+                  row = row.substring(0, row.length - 1);
+            }
+            csvData.push(row);
+      }
+      return csvData;
+   }
+               
    public  getNewSitePk() : number
    {
       return this.tempId++;
