@@ -1,4 +1,6 @@
+import { AmProfile } from './AmProfile';
 /** A TARGETING domain class representing the table: SDE.AM_SITES */
+
 export class AmSite
 {
    public pk:               number;                /// Pk
@@ -22,9 +24,35 @@ export class AmSite
 
    // SDE.AM_SITES - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------
-//   public profile:          AmProfile;             /// Crossbow Targeting profile
+   public profile:          AmProfile;             /// Crossbow Targeting profile
 
    constructor() {}
+
+   public static getFields () : Map<string, string>
+   {
+      return new Map([
+         ['pk',                'number'],
+         ['xcoord',            'number'],
+         ['ycoord',            'number'],
+         ['siteType',          'number'],
+         ['siteId',            'string'],
+         ['name',              'string'],
+         ['owner',             'string'],
+         ['franchisee',        'string'],
+         ['address',           'string'],
+         ['crossStreet',       'string'],
+         ['city',              'string'],
+         ['state',             'string'],
+         ['zip',               'string'],
+         ['taSource',          'number'],
+         ['xmlLocation',       'string'],
+         ['xmlTradearea',      'string'],
+         ['createType',        'number'],
+         ['grouping',          'string'],
+         // MANY TO ONE RELATIONSHIP MEMBERS
+         ['profile',           'AmProfile']
+         ]);
+   }
 
    public toString = () => JSON.stringify(this, null, '   ');
 }
