@@ -50,6 +50,12 @@
    [(selection)]="amSiteService.amSites" [rows]="8" [paginator]="true"
    (onRowUnselect)="onRowUnselect($event)"
    (onRowSelect)="onRowSelect($event)">
+   <p-header>
+    <div style="text-align:left">
+        <p-multiSelect [options]="columnOptions" [(ngModel)]="cols"></p-multiSelect>
+    </div>
+    </p-header>
+
    <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
    <p-column field="pk" header="Site #"></p-column>
    <p-column field="name" header="Name"></p-column>

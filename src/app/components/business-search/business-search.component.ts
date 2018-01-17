@@ -47,10 +47,10 @@ export class BusinessSearchComponent implements OnInit {
   showLoader: boolean = false;
 
 
-  constructor(private appService: AppService, private mapService: MapService, 
+  constructor(private appService: AppService, private mapService: MapService,
     private messageService: MessageService, private amSiteService: AmSiteService) {
     //Dropdown data
-    
+
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -78,10 +78,10 @@ export class BusinessSearchComponent implements OnInit {
       this.selectedCategory = this.dropdownList[0].value;
       this.categoryChange();
     });
-    
+
   }
   categoryChange() {
-    console.log(this.selectedCategory );
+    console.log(this.selectedCategory);
     this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
     });
@@ -128,12 +128,12 @@ export class BusinessSearchComponent implements OnInit {
     });*/
 
     //get the coordinates for all sites from the sites layer
-    const sites: __esri.Collection<{x: any; y: any; }> = new Collection();
+    const sites: __esri.Collection<{ x: any; y: any; }> = new Collection();
     MapService.layers.forEach(layer => {
       if (layer.title === DefaultLayers.SITES) {
         (<__esri.FeatureLayer>layer).source.forEach(graphic => {
           sites.add({
-            x: graphic.geometry['x'], 
+            x: graphic.geometry['x'],
             y: graphic.geometry['y']
           });
         });
@@ -186,25 +186,38 @@ export class BusinessSearchComponent implements OnInit {
     this.plottedPoints = [];
     this.searchDatageos.forEach((cat) => {
       cat['checked'] = e;
-      this.plottedPoints.push([cat.x, cat.y]);
+      if (cat.checked) {
+        const objname = {
+          pk: cat.sdm_id,
+          name: cat.firm,
+          address: cat.address,
+          city: cat.city,
+          state: cat.state,
+          zip: cat.zip,
+          ycoord: cat.y,
+          xcoord: cat.x
+        };
+    
+      this.plottedPoints.push(objname);
+      }
     });
   }
 
   //Count the number of checked addressess: US6475 
-  onSelectSD(){
+  onSelectSD() {
     this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {
-      if (obj.checked){
-      const objname = {
-        pk: obj.sdm_id,
-        name: obj.sdm_name,
-        address: obj.address,
-        city: obj.city,
-        state: obj.state,
-        zip: obj.zip,
-        ycoord: obj.y,
-        xcoord: obj.x
-      };
+      if (obj.checked) {
+        const objname = {
+          pk: obj.sdm_id,
+          name: obj.firm,
+          address: obj.address,
+          city: obj.city,
+          state: obj.state,
+          zip: obj.zip,
+          ycoord: obj.y,
+          xcoord: obj.x
+        };
         this.plottedPoints.push(objname);
       }
     });
@@ -230,7 +243,7 @@ export class BusinessSearchComponent implements OnInit {
         g: 0,
         b: 0
       };
-    }else{
+    } else {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Please select Sites/Competitors' });
     }
     const loader = EsriLoaderWrapperService.esriLoader;
@@ -244,13 +257,13 @@ export class BusinessSearchComponent implements OnInit {
         console.log('long: x', business.x + 'lat: y', business.y);
 
         popupTemplate.content = 'Firm: ' + business.firm + '<br>' +
-                                'Address: ' + business.address + '<br>' +
-                                'City: ' + business.city + '<br>' +
-                                'State: ' + business.state + '<br>' +
-                                'Zip: ' + business.zip + '<br>' +
-                                'Wrap Zone: ' + business.wrap_name + '<br>' +
-                                'ATZ: ' + business.atz_name + '<br>' +
-                                'Carrier Route: ' + business.carrier_route_name + '<br>';
+          'Address: ' + business.address + '<br>' +
+          'City: ' + business.city + '<br>' +
+          'State: ' + business.state + '<br>' +
+          'Zip: ' + business.zip + '<br>' +
+          'Wrap Zone: ' + business.wrap_name + '<br>' +
+          'ATZ: ' + business.atz_name + '<br>' +
+          'Carrier Route: ' + business.carrier_route_name + '<br>';
 
         console.log('this.plottedPoints', this.plottedPoints);
         await this.mapService.createGraphic(business.y, business.x, this.color).then(async graphic => {
@@ -258,7 +271,7 @@ export class BusinessSearchComponent implements OnInit {
           graphics.push(graphic);
         });
       }
- 
+
     }
     if (selector === 'Competitors') {
       this.amSiteService.addCompetitors(this.plottedPoints);
