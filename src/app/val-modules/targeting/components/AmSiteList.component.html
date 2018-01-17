@@ -56,21 +56,22 @@
     </div>
     </p-header>
 
-   <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
-   <p-column field="pk" header="Site #"></p-column>
+    <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
+    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header"></p-column>
+   <!-- <p-column field="pk" header="Site #"></p-column>
    <p-column field="name" header="Name"></p-column>
    <p-column field="address" header="Address" [style]="{'width':'15%'}"></p-column>
    <p-column field="city" header="City"></p-column>
    <p-column field="state" header="State" [style]="{'width':'5%'}"></p-column>
    <p-column field="zip" header="Zip" [style]="{'width':'8%'}"></p-column>
    <p-column field="ycoord" header="Latitude (Y)" [style]="{'width':'9%'}"></p-column>
-   <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column>
-   <p-column header="Zoom To" [style]="{'width':'7%'}">
+   <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column> -->
+   <p-column header="Zoom To">
       <ng-template let-h="rowData" pTemplate="body">
          <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
       </ng-template>
    </p-column>
-   <p-column header="Delete" [style]="{'width':'7%'}">
+   <p-column header="Delete" >
       <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
          <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
       </ng-template>
