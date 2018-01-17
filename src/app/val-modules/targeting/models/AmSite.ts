@@ -26,7 +26,10 @@ export class AmSite
    // -----------------------------------------------
    public profile:          AmProfile;             /// Crossbow Targeting profile
 
-   constructor() {}
+   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
+   constructor(data: AmSite | {} = {}) {
+      Object.assign(this, data);
+   }
 
    /**
     * Produces a map of this classes fields and data types.
