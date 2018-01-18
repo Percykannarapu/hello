@@ -475,7 +475,7 @@ export class MapService {
          const dma_layerids = ['9205b77cd8c74773aefad268b6705543']; // DMA_Boundaries
 
          const zip_layerids = [
-           'c17c5cd2b7bb44908e3b88c3db45611e', // ZIP Top Vars
+           '5742f3faba51493ab29f9e78bc5598d4', // ZIP Top Vars
            '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
          ];
          const atz_layerids = [
