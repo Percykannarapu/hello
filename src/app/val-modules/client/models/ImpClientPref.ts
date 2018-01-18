@@ -1,6 +1,5 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS */
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { ImpProjectPref } from './ImpProjectPref';
 
 export class ImpClientPref
 {
@@ -18,10 +17,6 @@ export class ImpClientPref
    // IMPOWER.IMP_CLIENT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------
    public clientIdentifierTypeCode:    ClientIdentifierType;      /// Cbx Client Identifier Types
-
-   // IMPOWER.IMP_CLIENT_PREFS - ONE TO MANY RELATIONSHIP MEMBERS
-   // -----------------------------------------------------------
-   public impProjectPrefs:             Set<ImpProjectPref>;       /// Set of impProjectPrefs related to this ImpClientPref
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpClientPref | {} = {}) {
