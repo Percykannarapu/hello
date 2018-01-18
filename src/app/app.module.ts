@@ -112,6 +112,8 @@ import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
+import {EsriLayerService} from './services/esri-layer.service';
+import {EsriModules} from './services/esri-modules.service';
 
 // ESRI Imports
 import {EsriLoaderService} from 'angular-esri-loader';
@@ -144,7 +146,7 @@ import { TradeareaDefineComponent } from './components/tradearea-define/tradeare
         HttpModule,
         HttpClientModule,
 //        HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService), //  , { dataEncapsulation: false, delay: 600 }),
-//        HttpClientInMemoryWebApiModule.forRoot(AmSiteService),        
+//        HttpClientInMemoryWebApiModule.forRoot(AmSiteService),
         BrowserAnimationsModule,
         AccordionModule,
         AutoCompleteModule,
@@ -258,7 +260,7 @@ import { TradeareaDefineComponent } from './components/tradearea-define/tradeare
         MessageService, AppService,
         CarService, CountryService, EventService, NodeService,
         EsriLoaderService, GfGeoService, MapService,
-        InMemoryStubService, AmSiteService, MetricService
+        InMemoryStubService, AmSiteService, MetricService, EsriModules, EsriLayerService
     ],
     bootstrap: [AppComponent]
 })
