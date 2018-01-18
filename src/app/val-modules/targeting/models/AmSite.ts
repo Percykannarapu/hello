@@ -1,4 +1,8 @@
-/** A TARGETING domain class representing the table: SDE.AM_SITES */
+/** A TARGETING domain class representing the table: SDE.AM_SITES
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.0
+ **/
+
 import { AmProfile } from './AmProfile';
 
 export class AmSite

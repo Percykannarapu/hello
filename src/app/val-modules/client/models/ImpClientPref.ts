@@ -1,18 +1,22 @@
-/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS */
+/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.0
+ **/
+
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 
 export class ImpClientPref
 {
    public clientPrefId:                number;                    /// Primary Key
-   public createUser:                  number;                   
-   public createDate:                  Date;                     
-   public modifyUser:                  number;                   
-   public modifyDate:                  Date;                     
-   public clientIdentifierId:          number;                   
-   public attributeCode:               string;                   
-   public attributeType:               string;                   
-   public attributeValue:              string;                   
-   public isActive:                    number;                   
+   public createUser:                  number;
+   public createDate:                  Date;
+   public modifyUser:                  number;
+   public modifyDate:                  Date;
+   public clientIdentifierId:          number;
+   public attributeCode:               string;
+   public attributeType:               string;
+   public attributeValue:              string;
+   public isActive:                    number;
 
    // IMPOWER.IMP_CLIENT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------
@@ -55,9 +59,7 @@ export class ImpClientPref
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',     'ClientIdentifierType'],
-         // ONE TO MANY RELATIONSHIP MEMBERS
-         ['impProjectPrefs',              'Set<ImpProjectPref>']
+         ['clientIdentifierTypeCode',     'ClientIdentifierType']
          ]);
    }
 
