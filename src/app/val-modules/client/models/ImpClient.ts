@@ -1,45 +1,49 @@
-/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENTS_V */
+/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENTS_V
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.0
+ **/
+
 export class ImpClient
 {
-   public corpClientPartyNumberC:   string; 
-   public corpClientPartyNumber:    number; 
-   public corpClientPartyName:      string; 
-   public corpClientCatCode:        string; 
-   public corpClientPartyStatus:    string; 
-   public corpClientDunsNumber:     number; 
-   public corpClientPartyCrDt:      Date;   
-   public endClientPartyNumber:     string; 
-   public endClientName:            string; 
-   public endClientPartyCatCode:    string; 
-   public endClientPartyStatus:     string; 
-   public endClientPartyDunsNumber: number; 
-   public endClientPartyCrDt:       Date;   
-   public clientId:                 string; 
-   public endClientAccCode:         string; 
-   public endClientAccDesc:         string; 
-   public industryCategoryCode:     string; 
-   public endClientSubAccDesc:      string; 
-   public acctGroupPartyNumber:     string; 
-   public acctGroupPartyName:       string; 
-   public acctGroupPartyStatus:     string; 
-   public acctGroupPartyCatCode:    string; 
-   public acctGroupPartyDunsNumber: number; 
-   public acctGroupPartyCrDt:       Date;   
-   public customerNumber:           string; 
-   public customerName:             string; 
-   public custAcctStatus:           string; 
-   public customerCrDt:             Date;   
-   public thirdPartyPartyNumber:    string; 
-   public thirdPartyPartyName:      string; 
-   public newClientBusYear:         string; 
-   public epicorAcctNumber:         string; 
-   public epicorCustomerName1:      string; 
-   public epicorCustomerName2:      string; 
-   public mscNumber:                string; 
-   public salespersonName:          string; 
-   public custPrimarySalesrep:      string; 
-   public custPrimarySalesrepPosid: string; 
-   public npProductLine:            string; 
+   public corpClientPartyNumberC:   string;
+   public corpClientPartyNumber:    number;
+   public corpClientPartyName:      string;
+   public corpClientCatCode:        string;
+   public corpClientPartyStatus:    string;
+   public corpClientDunsNumber:     number;
+   public corpClientPartyCrDt:      Date;
+   public endClientPartyNumber:     string;
+   public endClientName:            string;
+   public endClientPartyCatCode:    string;
+   public endClientPartyStatus:     string;
+   public endClientPartyDunsNumber: number;
+   public endClientPartyCrDt:       Date;
+   public clientId:                 string;
+   public endClientAccCode:         string;
+   public endClientAccDesc:         string;
+   public industryCategoryCode:     string;
+   public endClientSubAccDesc:      string;
+   public acctGroupPartyNumber:     string;
+   public acctGroupPartyName:       string;
+   public acctGroupPartyStatus:     string;
+   public acctGroupPartyCatCode:    string;
+   public acctGroupPartyDunsNumber: number;
+   public acctGroupPartyCrDt:       Date;
+   public customerNumber:           string;
+   public customerName:             string;
+   public custAcctStatus:           string;
+   public customerCrDt:             Date;
+   public thirdPartyPartyNumber:    string;
+   public thirdPartyPartyName:      string;
+   public newClientBusYear:         string;
+   public epicorAcctNumber:         string;
+   public epicorCustomerName1:      string;
+   public epicorCustomerName2:      string;
+   public mscNumber:                string;
+   public salespersonName:          string;
+   public custPrimarySalesrep:      string;
+   public custPrimarySalesrepPosid: string;
+   public npProductLine:            string;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpClient | {} = {}) {

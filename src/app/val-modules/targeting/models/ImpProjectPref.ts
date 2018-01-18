@@ -1,13 +1,15 @@
-/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS
+/** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECT_PREFS
  **
  ** Generated from VAL_ENTITY_GEN - v2.0
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
+import { ImpClientPref } from '../../client/models/ImpClientPref';
+import { ImpProject } from './ImpProject';
 
-export class ImpClientPref
+export class ImpProjectPref
 {
-   public clientPrefId:                number;                    /// Primary Key
+   public projectPrefId:               number;                    /// Primary Key
    public createUser:                  number;
    public createDate:                  Date;
    public modifyUser:                  number;
@@ -18,12 +20,14 @@ export class ImpClientPref
    public attributeValue:              string;
    public isActive:                    number;
 
-   // IMPOWER.IMP_CLIENT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
-   // -----------------------------------------------------------
+   // IMPOWER.IMP_PROJECT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
+   // ------------------------------------------------------------
    public clientIdentifierTypeCode:    ClientIdentifierType;      /// Cbx Client Identifier Types
+   public clientPrefId:                ImpClientPref;             /// Client Library Prefereneces
+   public projectId:                   ImpProject;                /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientPref | {} = {}) {
+   constructor(data: ImpProjectPref | {} = {}) {
       Object.assign(this, data);
    }
 
@@ -36,7 +40,7 @@ export class ImpClientPref
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['clientPrefId',                 'number'],
+         ['projectPrefId',                'number'],
          ['createUser',                   'number'],
          ['createDate',                   'Date'],
          ['modifyUser',                   'number'],
@@ -59,7 +63,9 @@ export class ImpClientPref
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',     'ClientIdentifierType']
+         ['clientIdentifierTypeCode',     'ClientIdentifierType'],
+         ['clientPrefId',                 'ImpClientPref'],
+         ['projectId',                    'ImpProject']
          ]);
    }
 
