@@ -82,14 +82,14 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       //                              .subscribe(() => this.getGeofootprintGeos());*/
     
     this.cols = [
-      {field: 'pk', header: 'Site #'},
-      {field: 'name', header: 'Name'},
-      {field: 'address', header: 'Address'},
-      {field: 'city', header: 'City'},
-      {field: 'state', header: 'State'},
-      {field: 'zip', header: 'Zip'},
-      {field: 'ycoord', header: 'Latitude (Y)'},
-      {field: 'xcoord', header: 'Latitude (X)'}
+      {field: 'pk', header: 'Site #', size: '30px'},
+      {field: 'name', header: 'Name', size: '60px'},
+      {field: 'address', header: 'Address', size: '80px'},
+      {field: 'city', header: 'City', size: '45px'},
+      {field: 'state', header: 'State', size: '30px'},
+      {field: 'zip', header: 'Zip', size: '50px' },
+      {field: 'ycoord', header: 'Latitude (Y)', size: '60px' },
+      {field: 'xcoord', header: 'Latitude (X)', size: '60px'}
     ];     
       this.columnOptions = [];
       for (let i = 0; i < this.cols.length; i++) {

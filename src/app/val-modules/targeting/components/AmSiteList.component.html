@@ -46,7 +46,7 @@
 
 <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
     [(selection)]="selectedSites" [rows]="8" [paginator]="true"> -->
-<p-dataTable #siteDt [value]="amSiteService.unselectedAmSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
+<p-dataTable #siteDt [value]="amSiteService.unselectedAmSites" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
    [(selection)]="amSiteService.amSites" [rows]="8" [paginator]="true"
    (onRowUnselect)="onRowUnselect($event)"
    (onRowSelect)="onRowSelect($event)">
@@ -56,8 +56,8 @@
     </div>
     </p-header>
 
-    <p-column [style]="{'width':'38px'}" selectionMode="multiple"></p-column>
-    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header"></p-column>
+    <p-column [style]="{'width':'30px'}" selectionMode="multiple"></p-column>
+    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
    <!-- <p-column field="pk" header="Site #"></p-column>
    <p-column field="name" header="Name"></p-column>
    <p-column field="address" header="Address" [style]="{'width':'15%'}"></p-column>
@@ -66,12 +66,12 @@
    <p-column field="zip" header="Zip" [style]="{'width':'8%'}"></p-column>
    <p-column field="ycoord" header="Latitude (Y)" [style]="{'width':'9%'}"></p-column>
    <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column> -->
-   <p-column header="Zoom To">
+   <p-column header="Zoom To" [style]="{'width':'38px'}">
       <ng-template let-h="rowData" pTemplate="body">
          <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
       </ng-template>
    </p-column>
-   <p-column header="Delete" >
+   <p-column header="Delete" [style]="{'width':'35px'}">
       <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
          <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
       </ng-template>
