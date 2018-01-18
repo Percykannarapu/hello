@@ -1,4 +1,8 @@
-/** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECTS */
+/** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.0
+ **/
+
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
 import { Goal } from '../../mediaexpress/models/Goal';
