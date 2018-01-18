@@ -46,7 +46,61 @@
                        [model]="metricMapBlue"
                        #campaignColorBox>
          <p-tabView styleClass="ui-tabview-panels">
-               <p-tabPanel header="Sites">
+               <p-tabPanel header="Discovery">
+                  <div class="ui-g">
+                     <!-- <div class="ui-g-12">
+                        <p-steps [model]="fakeItems" [readonly]="false"></p-steps>
+                     </div> -->
+                     <div class="ui-g-2" style="text-align:right">
+                        Category
+                     </div>
+                     <div class="ui-g-10">
+                        Category Input
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        Product
+                     </div>                        
+                     <div class="ui-g-10">
+                        Product Input
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        Analysis Level
+                     </div>                        
+                     <div class="ui-g-10">
+                        Analysis Level Input
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        Counts
+                     </div>                        
+                     <div class="ui-g-10">
+                        <p-toggleButton onLabel="Winter" offLabel="Summer" ></p-toggleButton> <!-- [(ngModel)]="val" -->
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        CPM
+                     </div>                        
+                     <div class="ui-g-10">
+                        CPM Input
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        Dollar Budget
+                     </div>                        
+                     <div class="ui-g-10">
+                        Dollar Budget Input
+                     </div>
+
+                     <div class="ui-g-2" style="text-align:right">
+                        Circ Budget
+                     </div>                        
+                     <div class="ui-g-10">
+                        Circ Budget Input
+                     </div>
+                  </div>                
+         
                </p-tabPanel>
                <p-tabPanel header="Define Trade Areas">
                   <div class="ui-g">
@@ -83,25 +137,6 @@
                   We can have as many tabs as necessary
                </p-tabPanel>
          </p-tabView>                            
-         <div class="ui-g">
-            <div class="ui-g-12">
-               <p-steps [model]="fakeItems" [readonly]="false"></p-steps>
-            </div>
-            <div class="ui-g-12">
-               <p-tabView>
-                  <p-tabPanel header="Step 1 Activities">
-                     <div>🚨🚧 Under Construction 🚧🚨</div>
-                     <p>This demonstrates that we can have functionality<br> broken up into steps to indicate where the user is<br> in a process.</p>
-                  </p-tabPanel>
-                  <p-tabPanel header="Step 2 Activities">
-                     Content 2 - 🍖 🌮
-                  </p-tabPanel>
-                  <p-tabPanel header="Step 3 Activities">
-                     Content 3 - 🥓
-                  </p-tabPanel>
-               </p-tabView>
-            </div>
-         </div>                
       </val-color-box>
    </div>   
    
