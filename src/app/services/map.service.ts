@@ -280,7 +280,7 @@ export class MapService {
         // -----------------------------------------------------------------------------------
         mapView.then(function(evt) {
         // create a new sketch view model
-        this.MapService.sketchViewModel = new SketchViewModel({
+        MapService.sketchViewModel = new SketchViewModel({
               view: mapView,
               pointSymbol: { // symbol used for points
                 type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -308,7 +308,8 @@ export class MapService {
                 }
               }
         });
-
+        console.log('this.sketchViewModel = ' + this.sketchViewModel)
+        console.log('MapService.sketchViewModel = ' + MapService.sketchViewModel)
         // ************************************************************
         // Get the completed graphic from the event and add it to view.
         // This event fires when user presses
@@ -512,7 +513,7 @@ export class MapService {
          const atz_layerids = [
            '14821e583a5f4ff5b75304c16081b25a', // ATZ_Top_Vars
            '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
-           '2283f3d11f8a4800b594fbbd73ff2190', // DIG_ATZ_Top_Vars 
+           '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars 
            'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
         ];
         const pcr_layerids = [];
