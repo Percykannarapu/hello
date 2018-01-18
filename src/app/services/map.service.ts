@@ -8,8 +8,6 @@ import { forEach } from '@angular/router/src/utils/collection';
 import { Points } from '../Models/Points';
 import { Query } from '@angular/core/src/metadata/di';
 
-//import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-
 // import primeng 
 import { SelectItem } from 'primeng/primeng';
 import { MetricService } from '../val-modules/common/services/metric.service';
@@ -36,9 +34,10 @@ export class MapService {
     public static hhDetails: number = 0;
     public static hhIpAddress: number = 0;
 
+    public static sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
     private mapInstance: __esri.Map;
- 
+
     constructor(private metricService: MetricService) {
     }
 
@@ -136,8 +135,11 @@ export class MapService {
             Compass,
             Expand,
             BasemapGallery,
-            Print
-        ] = await loader.loadModules(['esri/views/MapView',
+            Print,
+            SketchViewModel,
+            Graphic
+        ] = await loader.loadModules([
+            'esri/views/MapView',
             'esri/layers/GroupLayer',
             'esri/widgets/Home',
             'esri/widgets/Search',
@@ -148,7 +150,9 @@ export class MapService {
             'esri/widgets/Compass',
             'esri/widgets/Expand',
             'esri/widgets/BasemapGallery',
-            'esri/widgets/Print'
+            'esri/widgets/Print',
+            'esri/widgets/Sketch/SketchViewModel',
+            'esri/Graphic'
         ]);
         const opts: __esri.MapViewProperties = {
             container: element,
@@ -270,11 +274,101 @@ export class MapService {
 
         // Setup Default Group Layers
         this.initGroupLayers();
-        
+
+        // -----------------------------------------------------------------------------------
+        // SketchViewModel
+        // -----------------------------------------------------------------------------------
+        mapView.then(function(evt) {
+        // create a new sketch view model
+        this.MapService.sketchViewModel = new SketchViewModel({
+              view: mapView,
+              pointSymbol: { // symbol used for points
+                type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+                style: 'square',
+                color: '#8A2BE2',
+                size: '16px',
+                outline: { // autocasts as new SimpleLineSymbol()
+                  color: [255, 255, 255],
+                  width: 3 // points
+                }
+              },
+              polylineSymbol: { // symbol used for polylines
+                type: 'simple-line', // autocasts as new SimpleMarkerSymbol()
+                color: '#8A2BE2',
+                width: '4',
+                style: 'dash'
+              },
+              polygonSymbol: { // symbol used for polygons
+                type: 'simple-fill', // autocasts as new SimpleMarkerSymbol()
+                color: 'rgba(138,43,226, 0.8)',
+                style: 'solid',
+                outline: {
+                  color: 'white',
+                  width: 1
+                }
+              }
+        });
+
+        // ************************************************************
+        // Get the completed graphic from the event and add it to view.
+        // This event fires when user presses
+        //  * "C" key to finish sketching point, polygon or polyline.
+        //  * Double-clicks to finish sketching polyline or polygon.
+        //  * Clicks to finish sketching a point geometry.
+        // ***********************************************************
+        MapService.sketchViewModel.on('draw-complete', function(evt: any) {
+            mapView.graphics.add(evt.graphic);
+            this.setActiveButton();
+          });
+  
+        });
+        // -----------------------------------------------------------------------------------
+        console.log('sketchViewModel = ' + MapService.sketchViewModel);
         MapService.mapView = mapView;
         return { val: mapView };
     }
-/*
+
+    setActiveButton(selectedButton: any) {
+        // focus the view to activate keyboard shortcuts for sketching
+        MapService.mapView.focus();
+        const elements: any = document.getElementsByClassName('active');
+        for (let i = 0; i < elements.length; i++) {
+          elements[i].classList.remove('active');
+        }
+        if (selectedButton) {
+          selectedButton.classList.add('active');
+        }
+      }
+
+    // activate the sketch to create a point
+    drawPointButton() {
+        // set the sketch to create a point geometry
+        MapService.sketchViewModel.create('point');
+        this.setActiveButton(this);
+      }
+
+     // activate the sketch to create a polyline
+     drawLineButton() {
+        // set the sketch to create a polyline geometry
+        MapService.sketchViewModel.create('polyline');
+        this.setActiveButton(this);
+      } 
+
+     // activate the sketch to create a polygon
+    drawPolygonButton() {
+        // set the sketch to create a polygon geometry
+        MapService.sketchViewModel.create('polygon');
+        this.setActiveButton(this);
+      }
+
+     resetBtn() {
+        MapService.mapView.graphics.removeAll();
+        MapService.sketchViewModel.reset();
+        this.setActiveButton(this);
+      }
+  
+
+    /*
     public async createSceneView(element: HTMLDivElement): Promise<EsriWrapper<__esri.SceneView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
@@ -407,15 +501,17 @@ export class MapService {
         let startPos: number;
         let endPos: number;
 
+         const dma_layerids = ['9205b77cd8c74773aefad268b6705543']; // DMA_Boundaries
+        
          const zip_layerids = [
-           '50881b66a19049cbb7369236944663f0', // ZIP Top Vars
-           'defb065089034dd181d8fdd6186e076b'  // ZIP Centroids
+           'c17c5cd2b7bb44908e3b88c3db45611e', // ZIP Top Vars
+           '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
          ];       
          const atz_layerids = [
-           'c63b20cc2f664c5ea0887847b3b9dd12', // ATZ_Top_Vars
-           '7de2d0dfdc404031bbd5e422f28fbbc1', // ATZ_Centroids
-           '1ed942f1962b4d2286f517301702202e', // DIG_ATZ_Top_Vars
-           '736131394a2246b0a85010b6f951e05e'  // ATZ_Digital_Centroids
+           '14821e583a5f4ff5b75304c16081b25a', // ATZ_Top_Vars
+           '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
+           '2283f3d11f8a4800b594fbbd73ff2190', // DIG_ATZ_Top_Vars 
+           'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
         ];
         const pcr_layerids = [];
         const wrap_layerids = [
@@ -632,6 +728,32 @@ export class MapService {
                 } 
         }); // End forEach analysisLevels   
     }
+        // -------------------------------------------------------------------------------
+        // Add DMA Layer if it does not exist
+        // Add all DMA Layers via Promise
+        const layers = dma_layerids.map(fromPortal);
+        
+        all(layers)
+            .then(results => {
+            results.forEach(x => {
+            if (x.type === 'feature') {
+                //x.minScale = 2300000;
+                x.mode = FeatureLayer.MODE_AUTO;
+                x.visible = false;
+             } else {
+                x.maxScale = 2300000;
+            }
+            
+            // Add Layer to Group Layer if it does not already exist
+            if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, x.portalItem.title)) {
+                console.log ('adding subLayer: ' + x.portalItem.title);
+                MapService.EsriGroupLayer.add(x);
+            }
+            });
+        })
+        .catch(error => console.warn(error.message));       
+        
+        // -------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, 'Census')) {
