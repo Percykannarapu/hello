@@ -209,23 +209,28 @@ export class TradeareaDefineComponent implements OnInit {
             }
         } else if (mergeEachBool) {
             console.log('inside merge Each');
+            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
+            
             //  for(let point of pointsArray){
             for (const miles1 of this.milesList) {
                 const kmsMereEach = miles1 / 0.62137;
-                console.log('Kms in Merge Each:::' + kmsMereEach);
-                await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor);
+                console.log('Kms in Merge Each:::' + kmsMereEach + ',  Title: ' + meTitle + miles1 + lyrNme);
+                console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
+                await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
             }
             // }
         } else {
             //var meTitle = 'Trade Area ';
-            console.log('inside draw Circle');
+            console.log('About to draw trade area circles');
             let i: number = 0;
+            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
             for (const miles1 of this.milesList) {
                 i++;
                 const kmsNomerge = miles1 / 0.62137;
                 for (const point of pointsArray) {
-                    console.log('Kms in No Merge:::' + kmsNomerge);
-                    await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor);
+                  console.log('Kms in No Merge:::' + kmsNomerge + ',  Title: ' + meTitle + miles1 + lyrNme);
+                  console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
+                  await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
                 }
             }
         }

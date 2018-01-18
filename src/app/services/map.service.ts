@@ -384,10 +384,12 @@ export class MapService {
     }
 */
 
-    public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate): Promise<EsriWrapper<__esri.MapView>> {
+    public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
 
         console.log('fired plotMarker() in MapService');
-        this.createGraphic(lat, lon, pointColor, popupTemplate).then(graphic => {
+        this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
+            if (parentId != null)
+               graphic.setAttribute('parentId', parentId);
             MapService.mapView.graphics.add(graphic);
         });
 
@@ -767,8 +769,8 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlneColor) : Promise<EsriWrapper<__esri.MapView>> {
-        console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles);
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlneColor, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
+        console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -833,6 +835,11 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
+
+        // If a parentId was provided, set it as an attribute
+        if (parentId != null)
+          g.setAttribute('parentId', parentId);
+
         const graphicList: __esri.Graphic [] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList , title);
@@ -841,7 +848,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor) { /*: Promise<EsriWrapper<__esri.MapView>>*/
+    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) { /*: Promise<EsriWrapper<__esri.MapView>>*/
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
              = await loader.loadModules([
@@ -883,9 +890,19 @@ export class MapService {
             const bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, 'kilometers', true);
            array.forEach(bufferedGeometries, function(geometry){
                 //MapService.mapView.graphics.add(new Graphic(geometry,sym));
-                graphicList.push(new Graphic(geometry, sym));
+
+               // Construct a new graphic and assign the parent
+               let g: __esri.Graphic = new Graphic();
+               g.geometry = geometry;
+               g.symbol =  sym;
+               if (parentId != null)
+                  g.setAttribute('parentId', parentId);
+               graphicList.push(g);
+               console.log('Pushed parentId: ', parentId);
+//             graphicList.push(new Graphic(geometry, sym));
             });
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
+            console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->' + graphicList.length);
             //await this.zoomOnMap(graphicList);
@@ -984,12 +1001,13 @@ export class MapService {
          return;
       }
       else
-         console.log('fired clearFeatureLayer() in MapService');
+         console.log('fired clearFeatureLayerAt() in MapService');
 
       let layerCleared: boolean = false;
 
       // loop through the existing layers to see if we can find one to clear
       MapService.layers.forEach(currentLayer => {
+         console.log('Skipping layer: ' + currentLayer.title);
          if (layerTitle === currentLayer.title)
          {
             console.log('Clearing layer: '  + layerTitle);
@@ -998,6 +1016,7 @@ export class MapService {
 
             for (let i: number = 0; i < src.length; i++ )
             {
+               console.log('Clearing graphic ' + i + ' / ' + src.length);
                const graphic: __esri.Graphic = src.getItemAt(i);
                const point: __esri.Point = (<__esri.Point> graphic.geometry);
                console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
@@ -1014,6 +1033,163 @@ export class MapService {
 
       if (!layerCleared)
          console.log('Did not find layer: ' + layerTitle + ' to clear');
+   }
+
+   public clearAllFeatureLayersAt(lat: number, lon: number)
+   {
+      // If there are no layers, there is nothing to do
+      if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+         console.log('fired clearAllFeatureLayersAt() in MapService, but there were no feature layers to clear');
+         return;
+      }
+      else
+         console.log('fired clearAllFeatureLayersAt() in MapService');
+
+      // loop through the existing layers to see if we can find one to clear
+      MapService.layers.forEach(currentLayer => {
+         console.log('Clearing layer: ' + currentLayer.title);
+         this.clearFeatureLayerAt(currentLayer.title, lat, lon);
+      });
+   }
+
+   public aproximatelyEqual(valueA: number, valueB: number, epsilon: number)
+   {
+      if (epsilon == null) {
+        epsilon = 0.001;
+      }
+      return Math.abs(valueA - valueB) < epsilon;
+    }
+
+   /* Technically this worked as transpiled javascript, but typescript threw errors
+      error TS2339: Property 'centroid' does not exist on type 'Geometry'.
+      Wanted to save a version of this work just in case.
+
+   public clearGraphicsAt(lat: number, lon: number)
+   {
+      // If there are no layers, there is nothing to do
+      if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+         console.log('fired clearGraphicsAt() in MapService, but there were no feature layers to clear');
+         return;
+      }
+      else
+         console.log('fired clearGraphicsAt() in MapService');
+
+      let layerCleared: boolean = false;
+
+      // loop through the existing layers to see if we can find one to clear
+      MapService.layers.forEach(currentLayer => {
+         console.log('Clearing layer: '  + currentLayer.title);
+         const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
+         const src: __esri.Collection<__esri.Graphic> = currLayer.source;
+
+         if (src != null)
+         {
+            for (let i: number = 0; i < src.length; i++ )
+            {
+               console.log('Clearing graphic ' + i + ' / ' + src.length);
+               const graphic: __esri.Graphic = src.getItemAt(i);
+               console.log ('graphic: ' + graphic.toJSON());
+               const point: __esri.Point = (<__esri.Point> graphic.geometry);
+               console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
+               if (point.latitude == lat && point.longitude == lon)
+               {
+                  console.log ('Clearing graphic at lat: ' + lat + ', lon: ' + lon);
+                  src.remove(graphic);
+                  layerCleared = true;
+                  break;
+               }
+               else
+               {
+                  console.log ('NOT clearing graphic at lat: ' + point.latitude + ', lon: ' + point.longitude);
+                  const centroid = graphic.geometry.spatialReference;
+                  console.log('centroid.lat: ' + graphic.geometry.centroid.latitude);
+                  console.log('compare lat:  ' + lat);
+//                  if (Number((graphic.geometry.centroid.latitude).toFixed(6)) == lat && Number((graphic.geometry.centroid.longitude).toFixed(6)) == lon)
+                  if (this.aproximatelyEqual(graphic.geometry.centroid.latitude, lat, 0.001) &&
+                      this.aproximatelyEqual(graphic.geometry.centroid.longitude, lon, 0.001))
+                  {
+                     console.log('Found centroid at lat: ' + graphic.geometry.centroid.latitude + ', lon: ' + graphic.geometry.centroid.longitude);
+                     src.remove(graphic);
+                  }
+                  else
+                     console.log('Did NOT find centroid at lat: ' + graphic.geometry.centroid.latitude + ', lon: ' + graphic.geometry.centroid.longitude);
+               
+                  if (graphic.attributes != null)
+                  {
+                     console.log('graphic.attributes: ' + graphic.attributes);
+                     for (const key of graphic.attributes)
+                     {
+                        console.log('key: ' + key + ', value: ' + graphic.attributes[key]);
+                     }
+                  }
+                  else
+                  {
+                     console.log('Graphic attributes was null');
+                     console.log('... setting a test attribute');
+                     this.setGraphicAttribute(graphic, 'Test', 'Duffman!');
+                     console.log('attribute - test = ' + graphic.getAttribute('Test'));
+                  }
+               }
+            }
+         }
+         else
+            console.log('Layer ' + currLayer.title + ' has no source graphics');
+      });
+   }*/
+
+   public clearGraphicsForParent(parentId: number)
+   {
+      // this.setGraphicAttribute (graphic, 'parentId', parentId);
+      // If there are no layers, there is nothing to do
+      if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+         console.log('fired clearGraphicsForParent() in MapService, but there were no feature layers to clear');
+         return;
+      }
+      else
+         if (parentId == null)
+         {
+            console.log('fired clearGraphicsForParent() in MapService, but no parentId was provided');
+            return;
+         }
+         else
+            console.log('fired clearGraphicsForParent() in MapService');
+
+      // loop through the existing layers to see if we can find one to clear
+      MapService.layers.forEach(currentLayer =>
+      {
+         console.log('Clearing layer: '  + currentLayer.title);
+         const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
+         const src: __esri.Collection<__esri.Graphic> = currLayer.source;
+
+         if (src != null)
+         {
+            for (let i: number = 0; i < src.length; i++ )
+            {
+               console.log('Looking at graphic ' + (i + 1) + ' / ' + src.length);
+               const graphic: __esri.Graphic = src.getItemAt(i);
+               const currParentId: number = graphic.getAttribute('parentId');
+               console.log ('parentId: ' + currParentId);
+
+               // Determine if the current parent matches the search parent
+               if (currParentId == parentId)
+               {
+                  console.log ('Clearing graphic with parentId: ' + parentId);
+                  src.remove(graphic);
+               }
+               else
+               {
+                  console.log ('NOT clearing graphic with parent: ' + currParentId);
+               }
+            }
+         }
+         else
+            console.log('Layer ' + currLayer.title + ' has no source graphics');
+      });
+   }
+
+   public setGraphicAttribute (graphic: __esri.Graphic, name: string, value: any)
+   {
+      graphic.setAttribute(name, value);
    }
 
     public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
@@ -1046,7 +1222,7 @@ export class MapService {
        // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -1091,6 +1267,15 @@ export class MapService {
             graphicProps.popupTemplate = popupTemplate;
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
+
+        console.log ('Graphic parentId: ' + parentId);
+        if (parentId != null)
+        {
+           console.log ('Set parentId: ' + parentId);
+       // this.setGraphicAttribute (graphic, 'parentId', parentId);
+           graphic.setAttribute('parentId', parentId);
+        }
+
         return graphic;
     }
 

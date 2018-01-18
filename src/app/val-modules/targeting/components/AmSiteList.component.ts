@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { MapService } from '../../../services/map.service';
 import { GeocoderComponent } from '../../../components/geocoder/geocoder.component';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
+import { AppService } from '../../../services/app.service';
 
 // Import Models
 import { AmSite } from '../models/AmSite';
@@ -12,6 +13,7 @@ import { AmSite } from '../models/AmSite';
 // Import Services
 import { AmSiteService } from '../services/AmSite.service';
 import {MessageService} from '../../common/services/message.service';
+import { SelectItem } from 'primeng/components/common/selectitem';
 
 @Component({
   selector: 'val-amsite-list',
@@ -29,19 +31,21 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    selectAllGeos: boolean;
 
   // amSites: AmSite[] = [];
+    cols: any[];
 
    selectedSites: AmSite[];   
+   columnOptions: SelectItem[];
   
    constructor(public amSiteService: AmSiteService,
                private messageService: MessageService,
-               private mapService: MapService) { }
+               private mapService: MapService, private appService: AppService) { }
 
    // getAmSitesSynchronous()
    // {
    //    console.log('called getAmSites');
    //    this.amSites = this.amSiteService.getAmSites();
    // }
-
+  
    
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
@@ -54,6 +58,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       amSite.ycoord = row.ycoord;
       const graphic = await this.amSiteService.createGraphic(amSite, null);
       this.mapService.zoomOnMap([graphic]);
+      this.appService.closeOverLayPanel.next(true);
    }
 
    public onDeleteSite(site: AmSite)
@@ -75,6 +80,21 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       //this.getAmSites();
       // this.dbResetSubscription = this.geofootprintGeosService.onDbReset
       //                              .subscribe(() => this.getGeofootprintGeos());*/
+    
+    this.cols = [
+      {field: 'pk', header: 'Site #', size: '30px'},
+      {field: 'name', header: 'Name', size: '60px'},
+      {field: 'address', header: 'Address', size: '80px'},
+      {field: 'city', header: 'City', size: '45px'},
+      {field: 'state', header: 'State', size: '30px'},
+      {field: 'zip', header: 'Zip', size: '50px' },
+      {field: 'ycoord', header: 'Latitude (Y)', size: '60px' },
+      {field: 'xcoord', header: 'Latitude (X)', size: '60px'}
+    ];     
+      this.columnOptions = [];
+      for (let i = 0; i < this.cols.length; i++) {
+        this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
+    }
 
 /*      
       this.http.get('/api/items').subscribe(data => {

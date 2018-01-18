@@ -27,8 +27,11 @@ export class InMemoryStubService implements InMemoryDbService {
                            xmlLocation:    '<siteloc loctype="0"/>',
                            xmlTradearea:   '<tadefs><talist key="1" geotype="-1" include=""/><talist key="2" geotype="-1" include=""/><talist key="3" geotype="-1" include=""/><talist key="4" geotype="-1" include=""/></tadefs>',
                            createType:     1,
-                           grouping:       ''
-                        },
+                           grouping:       '',
+                           profile:        null
+//                           getFields:      null
+//                           testPrintFields: 
+                        }/*,
                         {
                //            id:             1,
                            pk:             11442143,
@@ -182,7 +185,7 @@ export class InMemoryStubService implements InMemoryDbService {
                            xmlTradearea:   '<tadefs><talist key="1" geotype="-1" include=""/><talist key="2" geotype="-1" include=""/><talist key="3" geotype="-1" include=""/><talist key="4" geotype="-1" include=""/></tadefs>',
                            createType:     1,
                            grouping:       ''
-                        },
+                        },*/
                        ];
                
 

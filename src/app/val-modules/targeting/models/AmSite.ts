@@ -1,4 +1,6 @@
 /** A TARGETING domain class representing the table: SDE.AM_SITES */
+import { AmProfile } from './AmProfile';
+
 export class AmSite
 {
    public pk:               number;                /// Pk
@@ -22,9 +24,61 @@ export class AmSite
 
    // SDE.AM_SITES - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------
-//   public profile:          AmProfile;             /// Crossbow Targeting profile
+   public profile:          AmProfile;             /// Crossbow Targeting profile
 
-   constructor() {}
+   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
+   constructor(data: AmSite | {} = {}) {
+      Object.assign(this, data);
+   }
 
+   /**
+    * Produces a map of this classes fields and data types.
+    * Used instead of reflection, which has limitations.
+    *
+    * @returns Map<field, type>
+    */
+   public static getFields () : Map<string, string>
+   {
+      return new Map([
+         ['pk',                'number'],
+         ['xcoord',            'number'],
+         ['ycoord',            'number'],
+         ['siteType',          'number'],
+         ['siteId',            'string'],
+         ['name',              'string'],
+         ['owner',             'string'],
+         ['franchisee',        'string'],
+         ['address',           'string'],
+         ['crossStreet',       'string'],
+         ['city',              'string'],
+         ['state',             'string'],
+         ['zip',               'string'],
+         ['taSource',          'number'],
+         ['xmlLocation',       'string'],
+         ['xmlTradearea',      'string'],
+         ['createType',        'number'],
+         ['grouping',          'string']
+         ]);
+   }
+
+   /**
+    * Produces a map of this classes relationships and data types.
+    * Used instead of reflection, which has limitations.
+    *
+    * @returns Map<field, type>
+    */
+   public static getRelationships () : Map<string, string>
+   {
+      return new Map([
+         // MANY TO ONE RELATIONSHIP MEMBERS
+         ['profile',           'AmProfile']
+         ]);
+   }
+
+   /**
+    * Returns the class as a string.
+    *
+    * @returns A string containing the class data.
+    */
    public toString = () => JSON.stringify(this, null, '   ');
 }

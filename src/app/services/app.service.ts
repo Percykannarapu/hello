@@ -11,7 +11,7 @@ import { MapService } from './map.service';
 @Injectable()
 export class AppService {
     private static mapView: __esri.MapView;
-    updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
+    // updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
     closeOverLayPanel: Subject<any> = new Subject<any>();
     public categoryList = './assets/demo/data/categories.json'; 
     
