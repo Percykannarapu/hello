@@ -10,4 +10,9 @@ export class GeocodingResponse {
     zip10: string;
     fipscountyCode: string;
     matchCode: string;
+    name: string;
+    number: string;
+    standardizedCity: string;
+    standardizedState: string;
+    zip: string;
   }
