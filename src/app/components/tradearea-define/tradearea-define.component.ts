@@ -173,7 +173,7 @@ export class TradeareaDefineComponent implements OnInit {
                     this.disableLyr(layer);
                 }
             }
-
+            
             existingGraphics = (<__esri.FeatureLayer>layer).source;
             if (layer.title === this.selectedValue) {
                 lyrTitle = layer.title;
@@ -181,6 +181,7 @@ export class TradeareaDefineComponent implements OnInit {
                     const points = new Points();
                     points.latitude = current.geometry.latitude;
                     points.longitude = current.geometry.longitude;
+                    points.popup =     current.popupTemplate; 
                     pointsArray.push(points);
                 });
             }

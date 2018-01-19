@@ -908,16 +908,23 @@ export class MapService {
             const graphicList: __esri.Graphic [] = [];
             const bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, 'kilometers', true);
            array.forEach(bufferedGeometries, function(geometry){
-                //MapService.mapView.graphics.add(new Graphic(geometry,sym));
-
-               // Construct a new graphic and assign the parent
-               const g: __esri.Graphic = new Graphic();
-               g.geometry = geometry;
-               g.symbol =  sym;
-               if (parentId != null)
+                for (const point of pointsArray){
+                    if(point.latitude.toFixed(3) === geometry.centroid.latitude.toFixed(3) 
+                            && point.longitude.toFixed(3) === geometry.centroid.longitude.toFixed(3) ) {
+                        const g: __esri.Graphic = new Graphic();
+                        g.popupTemplate = point.popup;
+                        g.geometry = geometry;
+                        g.symbol =  sym;
+                        graphicList.push(g);
+                    }
+                }
+               
+               
+              
+             /*  if (parentId != null)
                   g.setAttribute('parentId', parentId);
                graphicList.push(g);
-               console.log('Pushed parentId: ', parentId);
+               console.log('Pushed parentId: ', parentId);*/
 //             graphicList.push(new Graphic(geometry, sym));
             });
             //await this.createFeatureLayer(graphicList , "testGraphicMerge");
