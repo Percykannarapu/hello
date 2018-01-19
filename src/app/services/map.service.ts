@@ -333,7 +333,12 @@ export class MapService {
       }
     
 
-    // activate the sketch to create a point
+    // Toggle Polygon Selection Mode
+    selectPolyButton() {
+        this.selectPolyMode = !this.selectPolyMode;
+      }
+
+      // activate the sketch to create a point
     drawPointButton() {
         // set the sketch to create a point geometry
         this.sketchViewModel.create('point');
