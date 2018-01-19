@@ -915,6 +915,8 @@ export class MapService {
                         g.popupTemplate = point.popup;
                         g.geometry = geometry;
                         g.symbol =  sym;
+                        if (parentId != null)
+                            g.setAttribute('parentId', parentId);
                         graphicList.push(g);
                     }
                 }
