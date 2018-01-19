@@ -81,7 +81,7 @@ export class EsriMapComponent implements OnInit {
 
   public async mapClick(){ 
     console.log('fired mapclick - (this.mapService.mapFunction) = ' + this.mapService.mapFunction);
-    if (this.mapService.mapFunction = mapFunctions.SelectPoly) {
+    if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
         this.selectPolyClick();
     }  
   }  
