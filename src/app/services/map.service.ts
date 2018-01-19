@@ -35,8 +35,9 @@ export class MapService {
     public static hhDetails: number = 0;
     public static hhIpAddress: number = 0;
 
-    public static sketchViewModel: __esri.SketchViewModel;
+    public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
+    public selectPolyMode: boolean = false;
     private mapInstance: __esri.Map;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
@@ -137,6 +138,7 @@ export class MapService {
             Expand,
             BasemapGallery,
             Print,
+            GraphicsLayer,
             SketchViewModel,
             Graphic
         ] = await loader.loadModules([
@@ -152,6 +154,7 @@ export class MapService {
             'esri/widgets/Expand',
             'esri/widgets/BasemapGallery',
             'esri/widgets/Print',
+            'esri/layers/GraphicsLayer',
             'esri/widgets/Sketch/SketchViewModel',
             'esri/Graphic'
         ]);
@@ -244,41 +247,44 @@ export class MapService {
         // Setup Default Group Layers
         this.initGroupLayers();
 
+        // GraphicsLayer to hold graphics created via sketch view model
+        const tempGraphicsLayer = new GraphicsLayer();
+        console.log('tempGraphicsLayer =' + tempGraphicsLayer); 
+        // create a new sketch view model
+        this.sketchViewModel = new SketchViewModel({
+            view: mapView,
+            //layer: tempGraphicsLayer,
+            pointSymbol: { // symbol used for points
+              type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+              style: 'square',
+              color: '#8A2BE2',
+              size: '16px',
+              outline: { // autocasts as new SimpleLineSymbol()
+                color: [255, 255, 255],
+                width: 3 // points
+              }
+            },
+            polylineSymbol: { // symbol used for polylines
+              type: 'simple-line', // autocasts as new SimpleMarkerSymbol()
+              color: '#8A2BE2',
+              width: '4',
+              style: 'dash'
+            },
+            polygonSymbol: { // symbol used for polygons
+              type: 'simple-fill', // autocasts as new SimpleMarkerSymbol()
+              color: 'rgba(138,43,226, 0.8)',
+              style: 'solid',
+              outline: {
+                color: 'white',
+                width: 1
+              }
+            }
+      });
+
         // -----------------------------------------------------------------------------------
         // SketchViewModel
         // -----------------------------------------------------------------------------------
-        mapView.then(function(evt) {
-        // create a new sketch view model
-        MapService.sketchViewModel = new SketchViewModel({
-              view: mapView,
-              pointSymbol: { // symbol used for points
-                type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-                style: 'square',
-                color: '#8A2BE2',
-                size: '16px',
-                outline: { // autocasts as new SimpleLineSymbol()
-                  color: [255, 255, 255],
-                  width: 3 // points
-                }
-              },
-              polylineSymbol: { // symbol used for polylines
-                type: 'simple-line', // autocasts as new SimpleMarkerSymbol()
-                color: '#8A2BE2',
-                width: '4',
-                style: 'dash'
-              },
-              polygonSymbol: { // symbol used for polygons
-                type: 'simple-fill', // autocasts as new SimpleMarkerSymbol()
-                color: 'rgba(138,43,226, 0.8)',
-                style: 'solid',
-                outline: {
-                  color: 'white',
-                  width: 1
-                }
-              }
-        });
-        console.log('this.sketchViewModel = ' + this.sketchViewModel)
-        console.log('MapService.sketchViewModel = ' + MapService.sketchViewModel)
+        // mapView.then(function(evt) {
         // ************************************************************
         // Get the completed graphic from the event and add it to view.
         // This event fires when user presses
@@ -286,21 +292,37 @@ export class MapService {
         //  * Double-clicks to finish sketching polyline or polygon.
         //  * Clicks to finish sketching a point geometry.
         // ***********************************************************
-        MapService.sketchViewModel.on('draw-complete', function(evt: any) {
-            mapView.graphics.add(evt.graphic);
-            this.setActiveButton();
+        this.sketchViewModel.on('draw-complete', function(evt: any) {
+  
+          // if multipoint geometry is created, then change the symbol
+          // for the graphic
+          if (evt.geometry.type === "multipoint") {
+            evt.graphic.symbol = {
+              type: "simple-marker",
+              style: "square",
+              color: "green",
+              size: "16px",
+              outline: {
+                color: [255, 255, 255],
+                width: 3
+              }
+            };
+          }
+          // add the graphic to the graphics layer
+          // tempGraphicsLayer.add(evt.graphic);
+            MapService.mapView.graphics.add(evt.graphic);
+            //this.setActiveButton();
           });
 
-        });
+        // });
         // -----------------------------------------------------------------------------------
-        console.log('sketchViewModel = ' + MapService.sketchViewModel);
         MapService.mapView = mapView;
         return { val: mapView };
     }
 
     setActiveButton(selectedButton: any) {
         // focus the view to activate keyboard shortcuts for sketching
-        MapService.mapView.focus();
+        //MapService.mapView.focus();
         const elements: any = document.getElementsByClassName('active');
         for (let i = 0; i < elements.length; i++) {
           elements[i].classList.remove('active');
@@ -309,32 +331,33 @@ export class MapService {
           selectedButton.classList.add('active');
         }
       }
+    
 
     // activate the sketch to create a point
     drawPointButton() {
         // set the sketch to create a point geometry
-        MapService.sketchViewModel.create('point');
-        this.setActiveButton(this);
+        this.sketchViewModel.create('point');
+        //this.setActiveButton(this);
       }
 
      // activate the sketch to create a polyline
      drawLineButton() {
         // set the sketch to create a polyline geometry
-        MapService.sketchViewModel.create('polyline');
-        this.setActiveButton(this);
+        this.sketchViewModel.create('polyline');
+        //this.setActiveButton(this);
       }
 
      // activate the sketch to create a polygon
     drawPolygonButton() {
         // set the sketch to create a polygon geometry
-        MapService.sketchViewModel.create('polygon');
-        this.setActiveButton(this);
+        this.sketchViewModel.create('polygon');
+        //this.setActiveButton(this);
       }
 
      resetBtn() {
         MapService.mapView.graphics.removeAll();
-        MapService.sketchViewModel.reset();
-        this.setActiveButton(this);
+        this.sketchViewModel.reset();
+        //this.setActiveButton(this);
       }
 
 
