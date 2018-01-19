@@ -138,24 +138,54 @@ export class TradeareaDefineComponent implements OnInit {
     }
 
     this.milesList = [];
-    if (this.ta1Miles != null && this.checked1) {
-        this.milesList.push(this.ta1Miles);
-        this.editedta1 = true;
-    }
 
-    if (this.ta2Miles != null && this.checked2) {
-        this.milesList.push(this.ta2Miles);
-        this.editedta2 = true;
-    }
+    if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
+        if ((0 < this.ta1Miles) || (0 < this.ta2Miles) || (0 < this.ta3Miles)) {
+            if (this.ta1Miles === this.ta2Miles || this.ta3Miles === this.ta1Miles || this.ta2Miles === this.ta3Miles) {
+                const growlMessage: Message = {
+                    summary: 'Draw Buffer Error',
+                    severity: 'error',
+                    detail: `You must enter a unique value for each trade area you want to apply.`
+                };
+                this.growlMessages.push(growlMessage);
+                //hide the spinner after drawing buffer
+                this.displayDBSpinner = false;
+            }
+            else {
+                if (this.ta1Miles != null && this.checked1) {
+                    this.milesList.push(this.ta1Miles);
+                    this.editedta1 = true;
+                }
 
-    if (this.ta3Miles != null && this.checked3) {
-        this.milesList.push(this.ta3Miles);
-        this.editedta3 = true;
-    }
+                if (this.ta2Miles != null && this.checked2) {
+                    this.milesList.push(this.ta2Miles);
+                    this.editedta2 = true;
+                }
 
-    if (this.ta3Miles == null) { this.ta3Miles = 0; }
-    if (this.ta2Miles == null) { this.ta2Miles = 0; }
-    if (this.ta1Miles == null) { this.ta1Miles = 0; }
+                if (this.ta3Miles != null && this.checked3) {
+                    this.milesList.push(this.ta3Miles);
+                    this.editedta3 = true;
+                }
+
+                if (this.ta3Miles == null) { this.ta3Miles = 0; }
+                if (this.ta2Miles == null) { this.ta2Miles = 0; }
+                if (this.ta1Miles == null) { this.ta1Miles = 0; }
+            }
+        } else {
+            const growlMessage: Message = {
+                summary: 'Draw Buffer Error',
+                severity: 'error',
+                detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.`
+            };
+            this.growlMessages.push(growlMessage);
+            //hide the spinner after drawing buffer
+            this.displayDBSpinner = false;
+        }
+    } else {
+        this.toggleBtnError();
+        //hide the spinner after drawing buffer
+        this.displayDBSpinner = false;
+    }
 
     try {
         this.mapView = this.mapService.getMapView();
@@ -196,9 +226,9 @@ export class TradeareaDefineComponent implements OnInit {
         }
         else{
             if (this.selectedValue === 'Sites'){
-                this.displayTradeAreaError('Sites');
+                this.displayTradeAreaError('Site');
             }else{
-                this.displayTradeAreaError('Competitors');
+                this.displayTradeAreaError('Competitor');
             }
             //hide the spinner after drawing buffer
             this.displayDBSpinner = false;
@@ -364,11 +394,19 @@ public async removeBuffer() {
 }
 private displayTradeAreaError(type) {
     const growlMessage: Message = {
-        summary: 'DrawBuffer error',
+        summary: 'Draw Buffer Error',
         severity: 'error',
-        detail: `No ${type} plotted points on the map`
+        detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s.`
     };
     this.growlMessages.push(growlMessage);
-  }
+}
+private toggleBtnError() {
+    const growlMessage: Message = {
+        summary: 'Draw Buffer Error',
+        severity: 'error',
+        detail: `Please select at least one trade area to apply`
+    };
+    this.growlMessages.push(growlMessage);
+}
 
 }
