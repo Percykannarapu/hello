@@ -196,7 +196,11 @@ export class TradeareaDefineComponent implements OnInit {
             outlneColor = ([255, 0, 0, 2.50]);
         }
         else{
-            this.displayTradeAreaError();
+            if (this.selectedValue === 'Sites'){
+                this.displayTradeAreaError('Sites');
+            }else{
+                this.displayTradeAreaError('Competitors');
+            }
             //hide the spinner after drawing buffer
             this.displayDBSpinner = false;
         }
@@ -344,7 +348,7 @@ public async clearFields(eventVal: string, taType: string) {
 
 public async disableLyr(layer: __esri.Layer) {
   console.log('disable Layer:');
-  MapService.layers.delete(layer);
+  MapService.layers.delete(layer); 
   MapService.layerNames.delete(layer.title);
   this.mapView = this.mapService.getMapView();
   this.mapView.map.remove(layer);
@@ -352,11 +356,11 @@ public async disableLyr(layer: __esri.Layer) {
 public async removeBuffer() {
   await this.mapService.removeMapLayers();
 }
-private displayTradeAreaError() {
+private displayTradeAreaError(type) {
     const growlMessage: Message = {
         summary: 'DrawBuffer error',
         severity: 'error',
-        detail: 'No plotted points on the map'
+        detail: `No ${type} plotted points on the map`
     };
     this.growlMessages.push(growlMessage);
   }

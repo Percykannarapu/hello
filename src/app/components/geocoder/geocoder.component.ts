@@ -82,7 +82,7 @@ export class GeocoderComponent implements OnInit {
       this.geocodeAddress(amSite);
 
       if (this.metricService === null)
-         console.log('METRIC SERVICE IS NULL');
+        console.log('METRIC SERVICE IS NULL');
       this.metricService.add('LOCATIONS', 'Test', 'Yep, Test');
 
     } catch (error) {
@@ -106,7 +106,7 @@ export class GeocoderComponent implements OnInit {
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
       for (const amSite of amSites) {
-         console.log('creating popup for site: ' + amSite.pk);
+        console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(amSite)
           .then(res => this.createGraphic(amSite, res))
           .then(res => { graphics.push(res); })
@@ -122,12 +122,12 @@ export class GeocoderComponent implements OnInit {
   }
 
   // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
-  private parseResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
+  private parseResponse(restResponses: RestResponse[], display?: boolean): AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
     for (const restResponse of restResponses) {
       const geocodingResponse: GeocodingResponse = restResponse.payload;
       const amSite: AmSite = new AmSite();
-      
+
       // geocoding failures get pushed into the failedSites array for manual intervention by the user
       if (this.geocodingFailure(geocodingResponse)) {
         const failedSite: AmSite = new AmSite();
@@ -161,7 +161,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
-  public geocodingFailure(geocodingResponse: GeocodingResponse) : boolean {
+  public geocodingFailure(geocodingResponse: GeocodingResponse): boolean {
     if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
       return true;
     }
@@ -173,19 +173,25 @@ export class GeocoderComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.content = 'Name: ' + amSite.name + '<br>' +
-      'Number: ' + amSite.siteId + '<br>' +
-      'Street: ' + amSite.address + '<br>' +
-      'City: ' + amSite.city + '<br>' +
-      'State: ' + amSite.state + '<br>' +
-      'Zip: ' + amSite.zip + '<br>' +
-      'Latitude: ' + amSite.ycoord + '<br>' +
-      'Longitude: ' + amSite.xcoord + '<br>';
+    popupTemplate.content =
+      `<table>
+    <tbody>
+    <tr><th>Name</th><td>${amSite.name ? amSite.name : ''}</td></tr>
+    <tr><th>Number</th><td>${amSite.siteId ? amSite.siteId : ''}</td></tr>
+    <tr><th>Street</th><td>${amSite.address}</td></tr>
+    <tr><th>City</th><td>${amSite.city}</td></tr>
+    <tr><th>State</th><td>${amSite.state}</td></tr>
+    <tr><th>Zip</th><td>${amSite.zip}</td></tr>
+    <tr><th>Latitude</th><td>${amSite.ycoord}</td></tr>
+    <tr><th>Longitude</th><td>${amSite.xcoord}</td></tr>
+    </tbody>
+    </table>`;
+
     return popupTemplate;
   }
 
   // create a Graphic object for the site that will be displayed on the map
-  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate): Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
@@ -281,33 +287,33 @@ export class GeocoderComponent implements OnInit {
         amSite.state = csvRecord[headerPosition.state];
         amSite.zip = csvRecord[headerPosition.zip];
 
-        if (headerPosition.lat === undefined && headerPosition.lon === undefined){
+        if (headerPosition.lat === undefined && headerPosition.lon === undefined) {
           observables.push(this.geocoderService.geocode(amSite));
-        }else{
+        } else {
           amSite.xcoord = csvRecord[headerPosition.lat];
           amSite.ycoord = csvRecord[headerPosition.lon];
-          csvFormattedData.push({payload: amSite});
+          csvFormattedData.push({ payload: amSite });
         }
 
       }
-      if (headerPosition.lat === undefined && headerPosition.lon === undefined){
+      if (headerPosition.lat === undefined && headerPosition.lon === undefined) {
         Observable.forkJoin(observables).subscribe(res => {
           this.parseResponse(res, true);
           this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
           this.displayGcSpinner = false;
         }, err => this.handleError(err));
-      }else{
+      } else {
         this.parseResponse(csvFormattedData, true);
         this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
         this.displayGcSpinner = false;
-        
+
       }
-      
+
     };
   }
 
   // check the column headers accourding to the business rules above and figure out the positions of all the headers
-  private verifyCSVColumns(columns: string[]) : CsvHeadersPosition {
+  private verifyCSVColumns(columns: string[]): CsvHeadersPosition {
     let addressFlag: boolean = false;
     let cityFlag: boolean = false;
     let stateFlag: boolean = false;
@@ -392,7 +398,7 @@ export class GeocoderComponent implements OnInit {
 
   // determine if two AmSite objects are the same
   // this should be implemented in an equals() method in the model
-  public compareSites(site1: AmSite, site2: AmSite) : boolean {
+  public compareSites(site1: AmSite, site2: AmSite): boolean {
     if (site1.pk === site2.pk) {
       return true;
     }

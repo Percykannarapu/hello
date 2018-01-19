@@ -1018,7 +1018,7 @@ export class MapService {
                const graphic: __esri.Graphic = src.getItemAt(i);
                const point: __esri.Point = (<__esri.Point> graphic.geometry);
                console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
-               if (point.latitude == lat && point.longitude == lon)
+               if (point.latitude === lat && point.longitude === lon)
                {
                   console.log ('found graphic at lat: ' + lat + ', lon: ' + lon);
                   src.remove(graphic);
@@ -1366,7 +1366,7 @@ export class MapService {
 
 
         for (const lyr of fLyrList){
-            if (lyr.title === 'ZIP_centroids' || lyr.title === 'ATZ_Centroids'){
+            if (lyr.title === 'ZIP_Centroids_FL' || lyr.title === 'ATZ_Centroids'){
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
                 await lyr.load().then((f1: __esri.FeatureLayer)  => {
                     loadedFeatureLayer = f1;
@@ -1430,10 +1430,10 @@ export class MapService {
                 MapService.mapView.graphics.removeAll();
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
-                this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
-                this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
 
-                await array.forEach(centroidGraphics, (centroidGraphic) =>{
+                await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
                     qry1.outSpatialReference = MapService.mapView.spatialReference;
@@ -1451,8 +1451,8 @@ export class MapService {
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                         MapService.mapView.graphics.addMany(polyGraphics);
-                        this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
-                        this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
+                        this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                        this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
                     });
                 });
             }
@@ -1577,8 +1577,8 @@ export class MapService {
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                                    this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
-                                    this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
+                                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
                                 }
                             });
                         }else{
@@ -1587,8 +1587,8 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                            this.metricService.add('CAMPAIGN','Household Count',MapService.hhDetails.toString());
-                            this.metricService.add('CAMPAIGN','IP Address Count', MapService.hhIpAddress.toString());
+                            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
 
                         }
                 });
