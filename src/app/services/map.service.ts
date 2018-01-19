@@ -11,7 +11,10 @@ import { Query } from '@angular/core/src/metadata/di';
 // import primeng
 import { SelectItem } from 'primeng/primeng';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import {EsriLayerService} from './esri-layer.service';
+import { EsriLayerService } from './esri-layer.service';
+
+// import mapFunctions enum
+import { mapFunctions } from '../app.component';
 
 @Injectable()
 export class MapService {
@@ -35,9 +38,12 @@ export class MapService {
     public static hhDetails: number = 0;
     public static hhIpAddress: number = 0;
 
+    // set a reference to global enum (defined in app.component)
+    public mapFunction: mapFunctions = mapFunctions.Popups; //  <- returns error;
+
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
-    public selectPolyMode: boolean = false;
+
     private mapInstance: __esri.Map;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
@@ -248,8 +254,8 @@ export class MapService {
         this.initGroupLayers();
 
         // GraphicsLayer to hold graphics created via sketch view model
-        const tempGraphicsLayer = new GraphicsLayer();
-        console.log('tempGraphicsLayer =' + tempGraphicsLayer); 
+        // const tempGraphicsLayer = new GraphicsLayer();
+        // console.log('tempGraphicsLayer =' + tempGraphicsLayer); 
         // create a new sketch view model
         this.sketchViewModel = new SketchViewModel({
             view: mapView,
@@ -335,12 +341,23 @@ export class MapService {
 
     // Toggle Polygon Selection Mode
     selectPolyButton() {
-        this.selectPolyMode = !this.selectPolyMode;
+        this.mapFunction = mapFunctions.SelectPoly;
       }
 
+    // Toggle Popups
+    popupsButton() {
+        this.mapFunction = mapFunctions.Popups;
+      }
+
+    // Toggle Labels
+    labelsButton() {
+        this.mapFunction = mapFunctions.Labels;
+      }
+      
       // activate the sketch to create a point
     drawPointButton() {
         // set the sketch to create a point geometry
+        this.mapFunction = mapFunctions.DrawPoint;
         this.sketchViewModel.create('point');
         //this.setActiveButton(this);
       }
@@ -348,6 +365,7 @@ export class MapService {
      // activate the sketch to create a polyline
      drawLineButton() {
         // set the sketch to create a polyline geometry
+        this.mapFunction = mapFunctions.DrawLine;
         this.sketchViewModel.create('polyline');
         //this.setActiveButton(this);
       }
@@ -355,11 +373,13 @@ export class MapService {
      // activate the sketch to create a polygon
     drawPolygonButton() {
         // set the sketch to create a polygon geometry
+        this.mapFunction = mapFunctions.DrawPoly;
         this.sketchViewModel.create('polygon');
         //this.setActiveButton(this);
       }
 
      resetBtn() {
+        this.mapFunction = mapFunctions.RemoveGraphics;
         MapService.mapView.graphics.removeAll();
         this.sketchViewModel.reset();
         //this.setActiveButton(this);

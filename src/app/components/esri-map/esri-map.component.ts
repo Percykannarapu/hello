@@ -7,8 +7,10 @@ import { MapService } from '../../services/map.service';
 import { CONFIG } from '../../core';
 import { MessageService } from '../../val-modules/common/services/message.service';
 
+// import mapFunctions enum
+import { mapFunctions } from '../../app.component';
+
 @Component({
-  // providers: [MapService],
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
@@ -21,7 +23,6 @@ export class EsriMapComponent implements OnInit {
 
   @Output() viewCreated = new EventEmitter();
 
-  // sideBarToggle: boolean = false;
   // for JSAPI 4.x you can use the "any for TS types
   public mapView: any;
 
@@ -42,9 +43,8 @@ export class EsriMapComponent implements OnInit {
     }
   }
 
-  public async mapClick(){ 
-    console.log('fired mapclick - (this.mapService.selectPolyMode) = ' + this.mapService.selectPolyMode);
-    if (this.mapService.selectPolyMode) {
+  public async selectPolyClick(){ 
+    console.log('fired selectPolyClick');
         const mapView  = this.mapService.getMapView();
       // var graphic ,latitude , longitude;
       // var graphics : __esri.Graphic[] = [];
@@ -77,6 +77,12 @@ export class EsriMapComponent implements OnInit {
           }  
           layers = [];
         });
-    } // if this.mapService.selectPolyMode
   }
+
+  public async mapClick(){ 
+    console.log('fired mapclick - (this.mapService.mapFunction) = ' + this.mapService.mapFunction);
+    if (this.mapService.mapFunction = mapFunctions.SelectPoly) {
+        this.selectPolyClick();
+    }  
+  }  
 }

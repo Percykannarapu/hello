@@ -9,6 +9,16 @@ enum MenuOrientation {
     HORIZONTAL
 }
 
+export enum mapFunctions {
+    SelectPoly = 0,
+    DrawPoint = 1,
+    DrawLine = 2,
+    DrawPoly = 3,
+    RemoveGraphics = 4,
+    Popups = 5,
+    Labels = 6
+  } 
+
 declare var jQuery: any;
 
 @Component({
