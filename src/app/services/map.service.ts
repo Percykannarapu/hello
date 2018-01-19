@@ -1330,7 +1330,7 @@ export class MapService {
             'esri/Color', 'dojo/domReady!'
         ]);
 
-        let fSet: __esri.FeatureSet;
+        const centroidGraphics: __esri.Graphic[] = [];
         let fLyrList: __esri.FeatureLayer[] = [];
         await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
@@ -1349,12 +1349,13 @@ export class MapService {
                     qry.outSpatialReference = MapService.mapView.spatialReference;
                     await lyr.queryFeatures(qry).then(featureSet => {
                         for (let i = 0 ; i < featureSet.features.length; i++){
-                            fSet = featureSet;
+                            if (featureSet.features[i].attributes.GEOMETRY_TYPE === 'Polygon'){
+                               centroidGraphics.push(featureSet.features[i]);
+                            }
                         }
-
                     });
                 }
-                await this.selectPoly(fSet.features);
+                await this.selectPoly(centroidGraphics);
             }
         }
     }
