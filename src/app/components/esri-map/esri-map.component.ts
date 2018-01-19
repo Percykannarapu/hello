@@ -7,8 +7,10 @@ import { MapService } from '../../services/map.service';
 import { CONFIG } from '../../core';
 import { MessageService } from '../../val-modules/common/services/message.service';
 
+// import mapFunctions enum
+import { mapFunctions } from '../../app.component';
+
 @Component({
-  // providers: [MapService],
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
@@ -21,7 +23,6 @@ export class EsriMapComponent implements OnInit {
 
   @Output() viewCreated = new EventEmitter();
 
-  // sideBarToggle: boolean = false;
   // for JSAPI 4.x you can use the "any for TS types
   public mapView: any;
 
@@ -42,45 +43,46 @@ export class EsriMapComponent implements OnInit {
     }
   }
 
-  public async mapClick(){ 
-    console.log('fired mapclick');
-    var mapView  = this.mapService.getMapView();
-   // var graphic ,latitude , longitude;
-   // var graphics : __esri.Graphic[] = [];
+  public async selectPolyClick(){ 
+    console.log('fired selectPolyClick');
+        const mapView  = this.mapService.getMapView();
+      // var graphic ,latitude , longitude;
+      // var graphics : __esri.Graphic[] = [];
 
-    const color = {
-        a: 1,
-        r: 35,
-        g: 93,
-        b: 186
-      };
-    var layers : __esri.Layer[] = [];
-    var i = 0;  
-    await mapView.on('click' , (evt) =>{
-     if(i == 0){
-       i++
-        mapView.map.layers.forEach(function(layer : __esri.Layer){
-          layers.push(layer);
+        const color = {
+            a: 1,
+            r: 35,
+            g: 93,
+            b: 186
+          };
+        let layers: __esri.Layer[] = [];
+        let i: number = 0;  
+        await mapView.on('click' , (evt) => {
+        if (i === 0){
+            i++;
+            mapView.map.layers.forEach(function(layer: __esri.Layer){
+              layers.push(layer);
+            });
+            let fLyrList: __esri.FeatureLayer[] = [];
+            this.mapService.getAllFeatureLayers().then(list => {
+              fLyrList = list;
+            });  
+
+            for (const lyr of layers){
+              if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
+                this.mapService.selectSinglePolygon(evt);
+                break;
+              }
+            }
+          }  
+          layers = [];
         });
-        var fLyrList : __esri.FeatureLayer[] = [];
-        this.mapService.getAllFeatureLayers().then(list =>{
-          fLyrList = list;
-        });  
-
-        for(let lyr of layers){
-          if(lyr.title==='Valassis ZIP' || lyr.title==='Valassis ATZ'){
-            this.mapService.selectSinglePolygon(evt);
-            break;
-          }
-        }
-
-       /* layers.forEach((lyr)=>{
-          if(lyr.title==='Valassis ZIP' || lyr.title==='Valassis ATZ'){
-            this.mapService.selectSinglePolygon(evt);
-          }
-        });*/
-      }  
-      layers = [];
-    });
   }
+
+  public async mapClick(){ 
+    console.log('fired mapclick - (this.mapService.mapFunction) = ' + this.mapService.mapFunction);
+    if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
+        this.selectPolyClick();
+    }  
+  }  
 }
