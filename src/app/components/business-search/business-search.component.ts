@@ -256,14 +256,19 @@ export class BusinessSearchComponent implements OnInit {
         //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
         console.log('long: x', business.x + 'lat: y', business.y);
 
-        popupTemplate.content = 'Firm: ' + business.firm + '<br>' +
-          'Address: ' + business.address + '<br>' +
-          'City: ' + business.city + '<br>' +
-          'State: ' + business.state + '<br>' +
-          'Zip: ' + business.zip + '<br>' +
-          'Wrap Zone: ' + business.wrap_name + '<br>' +
-          'ATZ: ' + business.atz_name + '<br>' +
-          'Carrier Route: ' + business.carrier_route_name + '<br>';
+        popupTemplate.content = 
+          `<table>
+          <tbody>
+          <tr><th>Firm:</th><td>${business.firm ? business.firm : ''}</td></tr>
+          <tr><th>Address:</th><td>${business.address}</td></tr>
+          <tr><th>City:</th><td>${business.city}</td></tr>
+          <tr><th>State:</th><td>${business.state}</td></tr>
+          <tr><th>Zip:</th><td>${business.zip}</td></tr>
+          <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
+          <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
+          <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
+          </tbody>
+          </table>`;
 
         console.log('this.plottedPoints', this.plottedPoints);
         await this.mapService.createGraphic(business.y, business.x, this.color).then(async graphic => {
