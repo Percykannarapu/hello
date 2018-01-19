@@ -106,7 +106,7 @@ import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
 import {GfGeoService} from './Models/gf-geo/gf-geo.service';
-import { MetricService } from './val-modules/common/services/metric.service';
+import {MetricService} from './val-modules/common/services/metric.service';
 
 import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
@@ -134,9 +134,10 @@ import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
 import {MessageService} from './val-modules/common/services/message.service';
 import {MessageComponent} from './val-modules/common/components/message.component';
-import { AppService } from './services/app.service';
-import { RaddataComponent } from './components/raddata/raddata.component';
-import { TradeareaDefineComponent } from './components/tradearea-define/tradearea-define.component';
+import {AppService} from './services/app.service';
+import {RaddataComponent} from './components/raddata/raddata.component';
+import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
+import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 
 @NgModule({
     imports: [
@@ -253,7 +254,8 @@ import { TradeareaDefineComponent } from './components/tradearea-define/tradeare
         ColorBoxComponent,
         AmSiteListComponent,
         RaddataComponent,
-        TradeareaDefineComponent
+        TradeareaDefineComponent,
+        DiscoveryInputComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
