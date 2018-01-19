@@ -156,8 +156,6 @@ export class TradeareaDefineComponent implements OnInit {
     if (this.ta2Miles == null) { this.ta2Miles = 0; }
     if (this.ta1Miles == null) { this.ta1Miles = 0; }
 
-    var latitude: number;
-    var longitude: number;
     try {
         this.mapView = this.mapService.getMapView();
         const pointsArray: Points[] = [];
