@@ -5,7 +5,7 @@ import {HttpClientModule} from '@angular/common/http';
 import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import { LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
+import {LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
 import {AppRoutes} from './app.routes';
 import 'rxjs/add/operator/toPromise';
 
@@ -61,6 +61,7 @@ import {RadioButtonModule} from 'primeng/primeng';
 import {RatingModule} from 'primeng/primeng';
 import {ScheduleModule} from 'primeng/primeng';
 import {SelectButtonModule} from 'primeng/primeng';
+import {SelectItem} from 'primeng/primeng';
 import {SidebarModule} from 'primeng/primeng';
 import {SlideMenuModule} from 'primeng/primeng';
 import {SliderModule} from 'primeng/primeng';

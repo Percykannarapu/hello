@@ -1,53 +1,42 @@
-<div class="ui-g">
-   <!-- <div class="ui-g-12">
-      <p-steps [model]="fakeItems" [readonly]="false"></p-steps>
-   </div> -->
-   <div class="ui-g-2" style="text-align:right">
-      Category
+<div class="ui-g form-group">
+   <div class="ui-g-12">
+       <span class="md-inputfield">
+           <input type="text" pInputText>
+           <label>Category</label>
+       </span>
    </div>
-   <div class="ui-g-10">
-      Category Input
+   <div class="ui-g-12">
+       <p-dropdown [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName" 
+                   placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                   [style]="{'width':'250px'}"></p-dropdown>
    </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      Product
-   </div>                        
-   <div class="ui-g-10">
-      Product Input
+   <div class="ui-g-12">
+       <span class="md-inputfield">
+           <input type="text" pInputText>
+           <label>Analysis Level</label>
+       </span>
    </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      Analysis Level
-   </div>                        
-   <div class="ui-g-10">
-      Analysis Level Input
+   <div class="ui-g-12">
+      <span class="md-inputfield">
+         <p-toggleButton onLabel="Winter" offLabel="Summer" ></p-toggleButton>
+      </span>
    </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      Counts
-   </div>                        
-   <div class="ui-g-10">
-      <p-toggleButton onLabel="Winter" offLabel="Summer" ></p-toggleButton> <!-- [(ngModel)]="val" -->
-   </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      CPM
-   </div>                        
-   <div class="ui-g-10">
-      CPM Input
-   </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      Dollar Budget
-   </div>                        
-   <div class="ui-g-10">
-      Dollar Budget Input
-   </div>
-
-   <div class="ui-g-2" style="text-align:right">
-      Circ Budget
-   </div>                        
-   <div class="ui-g-10">
-      Circ Budget Input
+   <div class="ui-g-12">
+      <span class="md-inputfield">
+          <input type="text" pInputText>
+          <label>CPM</label>
+      </span>
+   </div>  
+   <div class="ui-g-12">
+      <span class="md-inputfield">
+          <input type="text" pInputText>
+          <label> Dollar Budget</label>
+      </span>
+   </div>  
+   <div class="ui-g-12">
+      <span class="md-inputfield">
+          <input type="text" pInputText>
+          <label> Circ Budget</label>
+      </span>
    </div>
 </div>
