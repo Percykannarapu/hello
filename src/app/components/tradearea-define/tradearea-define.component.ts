@@ -60,6 +60,7 @@ export class TradeareaDefineComponent implements OnInit {
     //show the spinner while we do our work
     this.displayDBSpinner = true;
     const lyrNme: string = ' Mile Trade Area';
+    
     let meTitle = 'Site - ';
     if (this.selectedValue === 'Competitors') {
         meTitle = 'Competitor - ';
@@ -219,7 +220,14 @@ export class TradeareaDefineComponent implements OnInit {
                 console.log('Kms in Merge Each:::' + kmsMereEach + ',  Title: ' + meTitle + miles1 + lyrNme);
                 console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
                 await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
+                MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+               // MapService.tradeAreaInfoMap.set('kms', kmsMereEach.toString());
             }
+            MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
+            MapService.tradeAreaInfoMap.set('miles', this.milesList);
+            MapService.tradeAreaInfoMap.set('color', color);
+            MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+            
             // }
         } else {
             //var meTitle = 'Trade Area ';

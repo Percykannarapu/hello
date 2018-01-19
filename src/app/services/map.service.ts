@@ -34,9 +34,10 @@ export class MapService {
     public static layers: Set<__esri.Layer> = new Set<__esri.Layer>();
     public static featureLayerView: __esri.FeatureLayerView;
 
-    public static selectedCentroidObjectIds: number[] = [];
-    public static hhDetails: number = 0;
-    public static hhIpAddress: number = 0;
+    public static selectedCentroidObjectIds: number[] = []; //  --> will keep track of selected centroids on the map
+    public static hhDetails: number = 0;  // --> will keep track of houshold count
+    public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
+    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>();
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups; //  <- returns error;
@@ -910,7 +911,7 @@ export class MapService {
                 //MapService.mapView.graphics.add(new Graphic(geometry,sym));
 
                // Construct a new graphic and assign the parent
-               let g: __esri.Graphic = new Graphic();
+               const g: __esri.Graphic = new Graphic();
                g.geometry = geometry;
                g.symbol =  sym;
                if (parentId != null)

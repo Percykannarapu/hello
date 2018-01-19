@@ -19,6 +19,7 @@ import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
+import { Points } from '../../Models/Points';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
@@ -61,6 +62,7 @@ export class GeocoderComponent implements OnInit {
 
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
+  public pointsArray: Points[] = [];
 
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
@@ -156,9 +158,16 @@ export class GeocoderComponent implements OnInit {
       amSite.state = geocodingResponse.state;
       amSite.zip = geocodingResponse.zip10;
       amSites.push(amSite);
+
+      const points = new Points();
+      points.latitude = geocodingResponse.latitude;
+      points.longitude = geocodingResponse.longitude;
+      this.pointsArray.push(points);
+      console.log('newly added poins on map::' +  this.pointsArray.length);
     }
     if (display) {
       this.addSitesToMap(amSites);
+      this.callTradeArea();
     }
     return amSites;
   }
@@ -453,6 +462,7 @@ export class GeocoderComponent implements OnInit {
 
   private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
+    
     for (const restResponse of restResponses) {
       const geocodingResponseList: GeocodingResponse[] = restResponse.payload;
      // const geocodingResponse = geocodingResponseList[0];
@@ -484,14 +494,37 @@ export class GeocoderComponent implements OnInit {
           amSite.siteId = geocodingResponseList[0].number;
           amSite.name = geocodingResponseList[0].name;
           amSite.pk = Number(geocodingResponseList[0].number);
-          //parseInt(geocodingResponse.number);
-          //;
+
+          const points = new Points();
+          points.latitude = geocodingResponseList[0].latitude;
+          points.longitude = geocodingResponseList[0].longitude;
+          this.pointsArray.push(points);
+          console.log('newly added poins on map::' +  this.pointsArray.length);
+          
           amSites.push(amSite);
      // }
     }
     if (display) {
       this.addSitesToMap(amSites);
+      this.callTradeArea();
     }
     return amSites;
+  }
+
+  callTradeArea(){
+    console.log('callTradeArea fired::');
+    if ( MapService.tradeAreaInfoMap.has('miles')){
+      console.log('callTradeArea has keys::');
+      const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
+      let milesList: number[] = [];
+      milesList = tradeAreaMap.get('miles');
+      for (const miles of milesList){
+          const kmsMereEach = miles / 0.62137;
+          this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+      }
+
+    }
+      
+
   }
 }
