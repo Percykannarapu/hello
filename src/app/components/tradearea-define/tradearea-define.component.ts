@@ -57,6 +57,12 @@ export class TradeareaDefineComponent implements OnInit {
 
   public async drawBuffer() {
     console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
+    if (this.ta1Miles === undefined)
+            this.ta1Miles = 0;
+    if (this.ta2Miles === undefined)
+            this.ta2Miles = 0;
+    if (this.ta3Miles === undefined)  
+            this.ta3Miles  = 0;    
     //show the spinner while we do our work
     this.displayDBSpinner = true;
     const lyrNme: string = ' Mile Trade Area';
@@ -141,7 +147,7 @@ export class TradeareaDefineComponent implements OnInit {
 
     if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
         if ((0 < this.ta1Miles) || (0 < this.ta2Miles) || (0 < this.ta3Miles)) {
-            if (this.ta1Miles === this.ta2Miles || this.ta3Miles === this.ta1Miles || this.ta2Miles === this.ta3Miles) {
+            if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles) {
                 const growlMessage: Message = {
                     summary: 'Draw Buffer Error',
                     severity: 'error',
