@@ -129,6 +129,7 @@ export class GeocoderComponent implements OnInit {
   // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
   private parseResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
+    this.pointsArray = [];
     for (const restResponse of restResponses) {
       const geocodingResponse: GeocodingResponse = restResponse.payload;
       const amSite: AmSite = new AmSite();
@@ -163,7 +164,6 @@ export class GeocoderComponent implements OnInit {
       points.latitude = geocodingResponse.latitude;
       points.longitude = geocodingResponse.longitude;
       this.pointsArray.push(points);
-      console.log('newly added poins on map::' +  this.pointsArray.length);
     }
     if (display) {
       this.addSitesToMap(amSites);
@@ -462,6 +462,7 @@ export class GeocoderComponent implements OnInit {
 
   private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
+    this.pointsArray = [];
     
     for (const restResponse of restResponses) {
       const geocodingResponseList: GeocodingResponse[] = restResponse.payload;
@@ -499,7 +500,6 @@ export class GeocoderComponent implements OnInit {
           points.latitude = geocodingResponseList[0].latitude;
           points.longitude = geocodingResponseList[0].longitude;
           this.pointsArray.push(points);
-          console.log('newly added poins on map::' +  this.pointsArray.length);
           
           amSites.push(amSite);
      // }
@@ -522,9 +522,6 @@ export class GeocoderComponent implements OnInit {
           const kmsMereEach = miles / 0.62137;
           this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
       }
-
     }
-      
-
   }
 }

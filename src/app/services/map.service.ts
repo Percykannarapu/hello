@@ -908,32 +908,19 @@ export class MapService {
             const graphicList: __esri.Graphic [] = [];
             const bufferedGeometries = geometryEngine.geodesicBuffer(pointList, kms, 'kilometers', true);
            array.forEach(bufferedGeometries, function(geometry){
-                for (const point of pointsArray){
-                    if(point.latitude.toFixed(3) === geometry.centroid.latitude.toFixed(3) 
-                            && point.longitude.toFixed(3) === geometry.centroid.longitude.toFixed(3) ) {
-                        const g: __esri.Graphic = new Graphic();
-                        g.popupTemplate = point.popup;
-                        g.geometry = geometry;
-                        g.symbol =  sym;
-                        if (parentId != null)
-                            g.setAttribute('parentId', parentId);
-                        graphicList.push(g);
-                    }
-                }
-               
-               
-              
-             /*  if (parentId != null)
-                  g.setAttribute('parentId', parentId);
-               graphicList.push(g);
-               console.log('Pushed parentId: ', parentId);*/
-//             graphicList.push(new Graphic(geometry, sym));
+                console.log(' number of graphices from geodesicBuffer::' + bufferedGeometries.length);
+                const g: __esri.Graphic = new Graphic();
+                g.geometry = geometry;
+                g.symbol =  sym;
+                if (parentId != null)
+                g.setAttribute('parentId', parentId);
+                graphicList.push(g);
+                console.log('Pushed parentId: ', parentId);
             });
-            //await this.createFeatureLayer(graphicList , "testGraphicMerge");
             console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
+            MapService.mapView.map.layers.reverse();
             console.log('draw buffer--------->' + graphicList.length);
-            //await this.zoomOnMap(graphicList);
             const t0 = performance.now();
             await this.selectCentroid(graphicList);
             const t1 = performance.now();
