@@ -129,7 +129,7 @@ export class GeocoderComponent implements OnInit {
   // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
   private parseResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
-    this.pointsArray = [];
+   // this.pointsArray = [];
     for (const restResponse of restResponses) {
       const geocodingResponse: GeocodingResponse = restResponse.payload;
       const amSite: AmSite = new AmSite();
@@ -462,7 +462,7 @@ export class GeocoderComponent implements OnInit {
 
   private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
     const amSites: AmSite[] = new Array<AmSite>();
-    this.pointsArray = [];
+    //this.pointsArray = [];
     
     for (const restResponse of restResponses) {
       const geocodingResponseList: GeocodingResponse[] = restResponse.payload;

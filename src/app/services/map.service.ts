@@ -912,10 +912,9 @@ export class MapService {
                 const g: __esri.Graphic = new Graphic();
                 g.geometry = geometry;
                 g.symbol =  sym;
-                if (parentId != null)
-                g.setAttribute('parentId', parentId);
+               /* if (parentId != null)
+                     g.setAttribute('parentId', parentId);*/
                 graphicList.push(g);
-                console.log('Pushed parentId: ', parentId);
             });
             console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
@@ -1447,6 +1446,7 @@ export class MapService {
                 });
 
                 MapService.mapView.graphics.removeAll();
+               // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
                 this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
