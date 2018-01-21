@@ -558,6 +558,8 @@ export class MapService {
         MapService.PcrGroupLayer.visible = false;
         MapService.HHGroupLayer.visible = false;
         MapService.WrapGroupLayer.visible = false;
+        MapService.SitesGroupLayer.visible = false;
+        MapService.CompetitorsGroupLayer.visible = false;
 
     // Esri Layers
     if (selectedLayers.length !== 0) {
@@ -912,13 +914,12 @@ export class MapService {
                 const g: __esri.Graphic = new Graphic();
                 g.geometry = geometry;
                 g.symbol =  sym;
-               /* if (parentId != null)
-                     g.setAttribute('parentId', parentId);*/
+                if (parentId != null)
+                     g.setAttribute('parentId', parentId);
                 graphicList.push(g);
             });
             console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
-            MapService.mapView.map.layers.reverse();
             console.log('draw buffer--------->' + graphicList.length);
             const t0 = performance.now();
             await this.selectCentroid(graphicList);
@@ -975,8 +976,31 @@ export class MapService {
             }
         });
 
-        // TODO: Add Content to SitesGroupLayer
-        MapService.mapView.map.add(lyr);
+        if (layerName.startsWith('Site')){
+            const index = MapService.SitesGroupLayer.layers.length;
+            MapService.SitesGroupLayer.add(lyr, index);
+            MapService.SitesGroupLayer.layers.sort();
+            MapService.SitesGroupLayer.layers.reverse();
+            if (!this.findLayerByTitle('Valassis Sites')) {
+                MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
+                MapService.layers.add(MapService.SitesGroupLayer);
+                MapService.SitesGroupLayer.visible = true;
+                console.log('test Sites');
+            }
+        }
+        
+        if (layerName.startsWith('Competito')){
+            const index = MapService.CompetitorsGroupLayer.layers.length;
+            MapService.CompetitorsGroupLayer.add(lyr, index);
+            MapService.CompetitorsGroupLayer.layers.sort();
+            MapService.CompetitorsGroupLayer.layers.reverse();
+            if (!this.findLayerByTitle('Valassis Competitors')) {
+                MapService.mapView.map.layers.add(MapService.CompetitorsGroupLayer);
+                MapService.layers.add(MapService.CompetitorsGroupLayer);
+                MapService.CompetitorsGroupLayer.visible = true;
+                console.log('test Competitors');
+            }
+        }
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
     }

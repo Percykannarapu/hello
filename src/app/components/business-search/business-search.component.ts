@@ -249,11 +249,11 @@ export class BusinessSearchComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    
     //await this.searchDatageos.forEach(async business => {
     for (const business of this.searchDatageos) {
       if (business.checked) {
-        //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(business, null, 4));
+        const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
         console.log('long: x', business.x + 'lat: y', business.y);
 
         popupTemplate.content = 
@@ -270,13 +270,11 @@ export class BusinessSearchComponent implements OnInit {
           </tbody>
           </table>`;
 
-        console.log('this.plottedPoints', this.plottedPoints);
-        await this.mapService.createGraphic(business.y, business.x, this.color).then(async graphic => {
-          graphic.popupTemplate = popupTemplate;
-          graphics.push(graphic);
+        await this.mapService.createGraphic(business.y, business.x, this.color, popupTemplate, null)
+         .then(res => {
+          graphics.push(res);
         });
       }
-
     }
     if (selector === 'Competitors') {
       this.amSiteService.addCompetitors(this.plottedPoints);
