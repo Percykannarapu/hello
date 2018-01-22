@@ -198,30 +198,36 @@ export class TradeareaDefineComponent implements OnInit {
         const pointsArray: Points[] = [];
         let existingGraphics: __esri.Collection<__esri.Graphic>;
         let lyrTitle: string;
-        await MapService.layers.forEach(layer => {
-            if (this.selectedValue === 'Sites') {
-                if (layer.title.startsWith('Site -')) {
-                    this.disableLyr(layer);
+       // let fLyrList: __esri.FeatureLayer[] = [];
+        await this.mapService.getAllFeatureLayers().then(list => {
+            //fLyrList = list;
+            for (const layer of list){
+                console.log('layer names::' + layer.title);
+                if (this.selectedValue === 'Sites') {
+                    if (layer.title.startsWith('Site -')) {
+                        this.disableLyr(MapService.SitesGroupLayer, layer);
+                    }
                 }
-            }
-            if (this.selectedValue === 'Competitors') {
-                if (layer.title.startsWith('Competitor -')) {
-                    this.disableLyr(layer);
+                if (this.selectedValue === 'Competitors') {
+                    if (layer.title.startsWith('Competitor -')) {
+                        this.disableLyr(MapService.CompetitorsGroupLayer, layer);
+                    }
                 }
-            }
-            
-            existingGraphics = (<__esri.FeatureLayer>layer).source;
-            if (layer.title === this.selectedValue) {
-                lyrTitle = layer.title;
-                existingGraphics.forEach(function (current: any) {
-                    const points = new Points();
-                    points.latitude = current.geometry.latitude;
-                    points.longitude = current.geometry.longitude;
-                    points.popup =     current.popupTemplate; 
-                    pointsArray.push(points);
-                });
+
+                existingGraphics = (<__esri.FeatureLayer>layer).source;
+                if (layer.title === this.selectedValue) {
+                    lyrTitle = layer.title;
+                    existingGraphics.forEach(function (current: any) {
+                        const points = new Points();
+                        points.latitude = current.geometry.latitude;
+                        points.longitude = current.geometry.longitude;
+                        points.popup =     current.popupTemplate; 
+                        pointsArray.push(points);
+                    });
+                }
             }
         });
+        
         let color = null;
         let outlneColor = null;
         if (lyrTitle === 'Sites') {
@@ -258,8 +264,8 @@ export class TradeareaDefineComponent implements OnInit {
                 console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
                 await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
                 MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
-               // MapService.tradeAreaInfoMap.set('kms', kmsMereEach.toString());
             }
+            MapService.SitesGroupLayer.layers.reverse();
             MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
             MapService.tradeAreaInfoMap.set('miles', this.milesList);
             MapService.tradeAreaInfoMap.set('color', color);
@@ -389,8 +395,9 @@ public async clearFields(eventVal: string, taType: string) {
     }
 }
 
-public async disableLyr(layer: __esri.Layer) {
+public async disableLyr(groupLayer: __esri.GroupLayer, layer: __esri.Layer) {
   console.log('disable Layer:');
+  groupLayer.remove(layer);
   MapService.layers.delete(layer); 
   MapService.layerNames.delete(layer.title);
   this.mapView = this.mapService.getMapView();

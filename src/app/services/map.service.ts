@@ -21,13 +21,13 @@ export class MapService {
 
     // Group Layers
     private static EsriGroupLayer: __esri.GroupLayer;
-    private static ZipGroupLayer: __esri.GroupLayer;
-    private static AtzGroupLayer: __esri.GroupLayer;
-    private static PcrGroupLayer: __esri.GroupLayer;
-    private static HHGroupLayer: __esri.GroupLayer;
-    private static WrapGroupLayer: __esri.GroupLayer;
-    private static SitesGroupLayer: __esri.GroupLayer;
-    private static CompetitorsGroupLayer: __esri.GroupLayer;
+    public static ZipGroupLayer: __esri.GroupLayer;
+    public static AtzGroupLayer: __esri.GroupLayer;
+    public static PcrGroupLayer: __esri.GroupLayer;
+    public static HHGroupLayer: __esri.GroupLayer;
+    public static WrapGroupLayer: __esri.GroupLayer;
+    public static SitesGroupLayer: __esri.GroupLayer;
+    public static CompetitorsGroupLayer: __esri.GroupLayer;
 
     private static mapView: __esri.MapView;
     public static layerNames: Set<string> = new Set<string>();
@@ -979,26 +979,21 @@ export class MapService {
         if (layerName.startsWith('Site')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.add(lyr, index);
-            MapService.SitesGroupLayer.layers.sort();
-            MapService.SitesGroupLayer.layers.reverse();
+            
             if (!this.findLayerByTitle('Valassis Sites')) {
                 MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
                 MapService.layers.add(MapService.SitesGroupLayer);
                 MapService.SitesGroupLayer.visible = true;
-                console.log('test Sites');
             }
         }
         
         if (layerName.startsWith('Competito')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
-            MapService.CompetitorsGroupLayer.layers.sort();
-            MapService.CompetitorsGroupLayer.layers.reverse();
             if (!this.findLayerByTitle('Valassis Competitors')) {
                 MapService.mapView.map.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.CompetitorsGroupLayer.visible = true;
-                console.log('test Competitors');
             }
         }
         MapService.layers.add(lyr);
