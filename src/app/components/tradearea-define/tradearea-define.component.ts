@@ -192,20 +192,24 @@ export class TradeareaDefineComponent implements OnInit {
             this.toggleBtnError();
         }
 
-        try {
-            this.mapView = this.mapService.getMapView();
-            const pointsArray: Points[] = [];
-            let existingGraphics: __esri.Collection<__esri.Graphic>;
-            let lyrTitle: string;
-            await MapService.layers.forEach(layer => {
+    try {
+        this.mapView = this.mapService.getMapView();
+        const pointsArray: Points[] = [];
+        let existingGraphics: __esri.Collection<__esri.Graphic>;
+        let lyrTitle: string;
+       // let fLyrList: __esri.FeatureLayer[] = [];
+        await this.mapService.getAllFeatureLayers().then(list => {
+            //fLyrList = list;
+            for (const layer of list){
+                console.log('layer names::' + layer.title);
                 if (this.selectedValue === 'Sites') {
                     if (layer.title.startsWith('Site -')) {
-                        this.disableLyr(layer);
+                        this.disableLyr(MapService.SitesGroupLayer, layer);
                     }
                 }
                 if (this.selectedValue === 'Competitors') {
                     if (layer.title.startsWith('Competitor -')) {
-                        this.disableLyr(layer);
+                        this.disableLyr(MapService.CompetitorsGroupLayer, layer);
                     }
                 }
 
@@ -216,69 +220,72 @@ export class TradeareaDefineComponent implements OnInit {
                         const points = new Points();
                         points.latitude = current.geometry.latitude;
                         points.longitude = current.geometry.longitude;
-                        points.popup = current.popupTemplate;
+                        points.popup =     current.popupTemplate; 
                         pointsArray.push(points);
                     });
                 }
-            });
-            let color = null;
-            let outlneColor = null;
-            if (lyrTitle === 'Sites') {
-                color = { a: 0, r: 0, g: 0, b: 255 };
-                outlneColor = ([0, 0, 255, 2.50]);
-            } else if (lyrTitle === 'Competitors') {
-                color = { a: 0, r: 255, g: 0, b: 0 };
-                outlneColor = ([255, 0, 0, 2.50]);
             }
-            else {
-                if (this.selectedValue === 'Sites') {
-                    this.displayTradeAreaError('Site');
-                } else {
-                    this.displayTradeAreaError('Competitor');
-                }
-
+        });
+        
+        let color = null;
+        let outlneColor = null;
+        if (lyrTitle === 'Sites') {
+            color = { a: 0, r: 0, g: 0, b: 255 };
+            outlneColor = ([0, 0, 255, 2.50]);
+        } else if (lyrTitle === 'Competitors') {
+            color = { a: 0, r: 255, g: 0, b: 0 };
+            outlneColor = ([255, 0, 0, 2.50]);
+        }
+        else{
+            if (this.selectedValue === 'Sites'){
+                this.displayTradeAreaError('Site');
+            }else{
+                this.displayTradeAreaError('Competitor');
             }
-            if (mergeAllBool) {
-                console.log('inside merge All');
-                const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
-                if (max != null) {
-                    this.kms = max / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
-                }
-            } else if (mergeEachBool) {
-                console.log('inside merge Each');
-                let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-
-                //  for(let point of pointsArray){
-                for (const miles1 of this.milesList) {
-                    const kmsMereEach = miles1 / 0.62137;
-                    console.log('Kms in Merge Each:::' + kmsMereEach + ',  Title: ' + meTitle + miles1 + lyrNme);
-                    console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
-                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
-                    MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
-                    // MapService.tradeAreaInfoMap.set('kms', kmsMereEach.toString());
-                }
-                MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
-                MapService.tradeAreaInfoMap.set('miles', this.milesList);
-                MapService.tradeAreaInfoMap.set('color', color);
-                MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
-
-                // }
-            } else {
-                //var meTitle = 'Trade Area ';
-                console.log('About to draw trade area circles');
-                let i: number = 0;
-                let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-                for (const miles1 of this.milesList) {
-                    i++;
-                    const kmsNomerge = miles1 / 0.62137;
-                    for (const point of pointsArray) {
-                        console.log('Kms in No Merge:::' + kmsNomerge + ',  Title: ' + meTitle + miles1 + lyrNme);
-                        console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
-                        await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
-                    }
+            //hide the spinner after drawing buffer
+            this.displayDBSpinner = false;
+        }
+        if (mergeAllBool) {
+            console.log('inside merge All');
+            const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
+            if (max != null) {
+                this.kms = max / 0.62137;
+                await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
+            }
+        } else if (mergeEachBool) {
+            console.log('inside merge Each');
+            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
+            
+            //  for(let point of pointsArray){
+            for (const miles1 of this.milesList) {
+                const kmsMereEach = miles1 / 0.62137;
+                console.log('Kms in Merge Each:::' + kmsMereEach + ',  Title: ' + meTitle + miles1 + lyrNme);
+                console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
+                await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
+                MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+            }
+            MapService.SitesGroupLayer.layers.reverse();
+            MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
+            MapService.tradeAreaInfoMap.set('miles', this.milesList);
+            MapService.tradeAreaInfoMap.set('color', color);
+            MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+            
+            // }
+        } else {
+            //var meTitle = 'Trade Area ';
+            console.log('About to draw trade area circles');
+            let i: number = 0;
+            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
+            for (const miles1 of this.milesList) {
+                i++;
+                const kmsNomerge = miles1 / 0.62137;
+                for (const point of pointsArray) {
+                  console.log('Kms in No Merge:::' + kmsNomerge + ',  Title: ' + meTitle + miles1 + lyrNme);
+                  console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
+                  await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
                 }
             }
+        }
             //this.appService.closeOverLayPanel.next(true);
         } catch (ex) {
             console.error(ex);
@@ -387,36 +394,33 @@ export class TradeareaDefineComponent implements OnInit {
         }
     }
 
-    public async disableLyr(layer: __esri.Layer) {
-        console.log('disable Layer:');
-        MapService.layers.delete(layer);
-        MapService.layerNames.delete(layer.title);
-        this.mapView = this.mapService.getMapView();
-        this.mapView.map.remove(layer);
-    }
-    public async removeBuffer() {
-        await this.mapService.removeMapLayers();
-    }
-    private displayTradeAreaError(type) {
-        const growlMessage: Message = {
-            summary: 'Draw Buffer Error',
-            severity: 'error',
-            detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s.`
-        };
-        this.growlMessages.push(growlMessage);
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
-    }
-    private toggleBtnError() {
-        const growlMessage: Message = {
-            summary: 'Draw Buffer Error',
-            severity: 'error',
-            detail: `Please select at least one trade area to apply`
-        };
-        this.growlMessages.push(growlMessage);
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
-    }
+public async disableLyr(groupLayer: __esri.GroupLayer, layer: __esri.Layer) {
+  console.log('disable Layer:');
+  groupLayer.remove(layer);
+  MapService.layers.delete(layer); 
+  MapService.layerNames.delete(layer.title);
+  this.mapView = this.mapService.getMapView();
+  this.mapView.map.remove(layer);
+}
+public async removeBuffer() {
+  await this.mapService.removeMapLayers();
+}
+private displayTradeAreaError(type) {
+    const growlMessage: Message = {
+        summary: 'Draw Buffer Error',
+        severity: 'error',
+        detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s.`
+    };
+    this.growlMessages.push(growlMessage);
+}
+private toggleBtnError() {
+    const growlMessage: Message = {
+        summary: 'Draw Buffer Error',
+        severity: 'error',
+        detail: `Please select at least one trade area to apply`
+    };
+    this.growlMessages.push(growlMessage);
+}
 
     private uniqueValError() {
         const growlMessage: Message = {
