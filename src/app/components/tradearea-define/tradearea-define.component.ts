@@ -202,7 +202,6 @@ export class TradeareaDefineComponent implements OnInit {
         await this.mapService.getAllFeatureLayers().then(list => {
             //fLyrList = list;
             for (const layer of list){
-                console.log('layer names::' + layer.title);
                 if (this.selectedValue === 'Sites') {
                     if (layer.title.startsWith('Site -')) {
                         this.disableLyr(MapService.SitesGroupLayer, layer);
@@ -252,6 +251,12 @@ export class TradeareaDefineComponent implements OnInit {
             if (max != null) {
                 this.kms = max / 0.62137;
                 await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
+                MapService.SitesGroupLayer.layers.reverse();
+                MapService.tradeAreaInfoMap.set('lyrName', meTitle + max + lyrNme);
+                MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
+                MapService.tradeAreaInfoMap.set('milesMax', this.kms);
+                MapService.tradeAreaInfoMap.set('color', color);
+                MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
             }
         } else if (mergeEachBool) {
             console.log('inside merge Each');
@@ -260,8 +265,6 @@ export class TradeareaDefineComponent implements OnInit {
             //  for(let point of pointsArray){
             for (const miles1 of this.milesList) {
                 const kmsMereEach = miles1 / 0.62137;
-                console.log('Kms in Merge Each:::' + kmsMereEach + ',  Title: ' + meTitle + miles1 + lyrNme);
-                console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
                 await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
                 MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
             }
@@ -281,10 +284,14 @@ export class TradeareaDefineComponent implements OnInit {
                 i++;
                 const kmsNomerge = miles1 / 0.62137;
                 for (const point of pointsArray) {
-                  console.log('Kms in No Merge:::' + kmsNomerge + ',  Title: ' + meTitle + miles1 + lyrNme);
-                  console.log('meTitle: ' + meTitle + ', miles1: ' + miles1 + ', lyrNme: ' + lyrNme);
                   await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
+                  MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                 }
+                MapService.SitesGroupLayer.layers.reverse();
+                MapService.tradeAreaInfoMap.set('mergeType', 'NoMerge');
+                MapService.tradeAreaInfoMap.set('miles', this.milesList);
+                MapService.tradeAreaInfoMap.set('color', color);
+                MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
             }
         }
         //hide the spinner after drawing buffer

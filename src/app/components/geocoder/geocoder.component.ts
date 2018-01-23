@@ -511,17 +511,53 @@ export class GeocoderComponent implements OnInit {
     return amSites;
   }
 
-  callTradeArea(){
+   async callTradeArea(){
     console.log('callTradeArea fired::');
     if ( MapService.tradeAreaInfoMap.has('miles')){
       console.log('callTradeArea has keys::');
       const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
       let milesList: number[] = [];
-      milesList = tradeAreaMap.get('miles');
-      for (const miles of milesList){
-          const kmsMereEach = miles / 0.62137;
-          this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+     
+      const lyrName = tradeAreaMap.get('lyrName');
+      if (lyrName.startsWith('Site -')){
+         await  this.removeSubLayer('Site -', MapService.SitesGroupLayer);
+      }
+      if (lyrName.startsWith('Competitor -')){
+           this.removeSubLayer(lyrName, MapService.CompetitorsGroupLayer);
+      }
+      if (tradeAreaMap.get('mergeType') === 'MergeEach'){
+          milesList = tradeAreaMap.get('miles');
+          for (const miles of milesList){
+            const kmsMereEach = miles / 0.62137;
+            this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+          }
+      }
+      if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+          this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+      }
+      if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+          milesList = tradeAreaMap.get('miles');
+          for (const miles of milesList){
+               const kmsNomerge = miles / 0.62137;
+               for (const point of this.pointsArray) {
+                  await this.mapService.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+               }
+          }
       }
     }
+  }
+
+  public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer){
+    this.mapService.getAllFeatureLayers().then(list => {
+        for (const layer of list){
+            if (layer.title.startsWith(deleteLayerName)) {
+                groupLayer.remove(layer);
+                MapService.layers.delete(layer); 
+                MapService.layerNames.delete(layer.title);
+                this.mapService.getMapView().map.remove(layer);
+               // mapView.map.remove(layer);
+            }
+        }
+    });
   }
 }

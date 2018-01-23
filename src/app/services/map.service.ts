@@ -558,8 +558,8 @@ export class MapService {
         MapService.PcrGroupLayer.visible = false;
         MapService.HHGroupLayer.visible = false;
         MapService.WrapGroupLayer.visible = false;
-        MapService.SitesGroupLayer.visible = false;
-        MapService.CompetitorsGroupLayer.visible = false;
+        //MapService.SitesGroupLayer.visible = false;
+        //MapService.CompetitorsGroupLayer.visible = false;
 
     // Esri Layers
     if (selectedLayers.length !== 0) {
