@@ -127,7 +127,7 @@ export class AmSiteService
       }
 
       // Update the metrics
-      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
+      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
       // Debug log site arrays to the console
       this.logSites();
@@ -149,7 +149,7 @@ export class AmSiteService
       }
 
       // Update the metrics
-      this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString());
+      this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
       // Debug log site arrays to the console
       this.logSites();

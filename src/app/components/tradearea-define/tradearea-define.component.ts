@@ -23,6 +23,7 @@ export class TradeareaDefineComponent implements OnInit {
     checked3: boolean = false;
     kms: number;
 
+    msgs: Message[] = [];
     kmsList: number[] = [];
     editedta1: boolean = false;
     editedta2: boolean = false;
@@ -250,7 +251,6 @@ export class TradeareaDefineComponent implements OnInit {
             if (max != null) {
                 this.kms = max / 0.62137;
                 await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
-                MapService.SitesGroupLayer.layers.reverse();
                 MapService.tradeAreaInfoMap.set('lyrName', meTitle + max + lyrNme);
                 MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
                 MapService.tradeAreaInfoMap.set('milesMax', this.kms);
@@ -267,7 +267,7 @@ export class TradeareaDefineComponent implements OnInit {
                 await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
                 MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
             }
-            MapService.SitesGroupLayer.layers.reverse();
+            //MapService.SitesGroupLayer.layers.reverse();
             MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
             MapService.tradeAreaInfoMap.set('miles', this.milesList);
             MapService.tradeAreaInfoMap.set('color', color);
@@ -286,12 +286,12 @@ export class TradeareaDefineComponent implements OnInit {
                   await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
                   MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                 }
-                MapService.SitesGroupLayer.layers.reverse();
-                MapService.tradeAreaInfoMap.set('mergeType', 'NoMerge');
-                MapService.tradeAreaInfoMap.set('miles', this.milesList);
-                MapService.tradeAreaInfoMap.set('color', color);
-                MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+                
             }
+            MapService.tradeAreaInfoMap.set('mergeType', 'NoMerge');
+            MapService.tradeAreaInfoMap.set('miles', this.milesList);
+            MapService.tradeAreaInfoMap.set('color', color);
+            MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
         }
             //this.appService.closeOverLayPanel.next(true);
         } catch (ex) {

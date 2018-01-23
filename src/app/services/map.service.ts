@@ -978,7 +978,7 @@ export class MapService {
 
         if (layerName.startsWith('Site')){
             const index = MapService.SitesGroupLayer.layers.length;
-            MapService.SitesGroupLayer.add(lyr, index);
+            MapService.SitesGroupLayer.layers.unshift(lyr);
             
             if (!this.findLayerByTitle('Valassis Sites')) {
                 MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
@@ -1468,8 +1468,8 @@ export class MapService {
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
@@ -1489,8 +1489,8 @@ export class MapService {
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                         MapService.mapView.graphics.addMany(polyGraphics);
-                        this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                        this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                        this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                     });
                 });
             }
@@ -1615,8 +1615,8 @@ export class MapService {
                                     MapService.selectedCentroidObjectIds.splice(index, 1);
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                                 }
                             });
                         }else{
@@ -1625,8 +1625,8 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
-                            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
                         }
                 });
