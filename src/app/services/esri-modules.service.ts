@@ -7,13 +7,21 @@ export class EsriModules {
     'esri/widgets/LayerList',
     'esri/widgets/Expand',
     'esri/support/Action',
-    'esri/core/Collection'
+    'esri/core/Collection',
+    'esri/renderers/smartMapping/creators/color',
+    'esri/renderers/smartMapping/statistics/histogram',
+    'esri/widgets/ColorSlider',
+    'esri/core/lang',
   ];
 
   public static LayerList;
   public static Expand;
   public static Action;
   public static Collection;
+  public static colorRendererCreator;
+  public static histogram;
+  public static ColorSlider;
+  public static lang;
 
   public deferredLoad: Promise<any>;
   private m_ready: boolean = false;
@@ -26,6 +34,10 @@ export class EsriModules {
     EsriModules.Expand = modules[1];
     EsriModules.Action = modules[2];
     EsriModules.Collection = modules[3];
+    EsriModules.colorRendererCreator = modules[4];
+    EsriModules.histogram = modules[5];
+    EsriModules.ColorSlider = modules[6];
+    EsriModules.lang = modules[7];
 
     this.m_ready = true;
   }
