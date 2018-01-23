@@ -535,7 +535,7 @@ export class GeocoderComponent implements OnInit {
       if (tradeAreaMap.get('mergeType') === 'MergeAll'){
           this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
       }
-      if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+      if (tradeAreaMap.get('mergeType') === 'NoMerge'){
           milesList = tradeAreaMap.get('miles');
           for (const miles of milesList){
                const kmsNomerge = miles / 0.62137;
