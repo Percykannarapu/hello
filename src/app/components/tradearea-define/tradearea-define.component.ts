@@ -2,160 +2,172 @@ import { ColorBoxComponent } from '../color-box/color-box.component';
 import { Points } from '../../Models/Points';
 import { MapService } from '../../services/map.service';
 import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
-import { Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 @Component({
-  selector: 'val-tradearea-define',
-  templateUrl: './tradearea-define.component.html',
-  styleUrls: ['./tradearea-define.component.css']
+    selector: 'val-tradearea-define',
+    templateUrl: './tradearea-define.component.html',
+    styleUrls: ['./tradearea-define.component.css']
 })
 export class TradeareaDefineComponent implements OnInit {
 
-  mapView: __esri.MapView;
-  
-  ta1Miles: number;
-  ta2Miles: number;
-  ta3Miles: number;
-  milesList: number[];
-  selectedValue: String = 'Sites';
-  checked2: boolean = false;
-  checked1: boolean = false;
-  checked3: boolean = false;
-  kms: number;
+    mapView: __esri.MapView;
 
-  kmsList: number[] = [];
-  editedta1: boolean = false;
-  editedta2: boolean = false;
-  editedta3: boolean = false;
+    ta1Miles: number;
+    ta2Miles: number;
+    ta3Miles: number;
+    milesList: number[];
+    selectedValue: String = 'Sites';
+    checked2: boolean = false;
+    checked1: boolean = false;
+    checked3: boolean = false;
+    kms: number;
 
-  competitorsMap: Map<string, string> = new Map<string, string>();
-  sitesMap: Map<string, string> = new Map<string, string>();
+    kmsList: number[] = [];
+    editedta1: boolean = false;
+    editedta2: boolean = false;
+    editedta3: boolean = false;
+
+    competitorsMap: Map<string, string> = new Map<string, string>();
+    sitesMap: Map<string, string> = new Map<string, string>();
 
 
-  public tradeAreaMergeTypes: SelectItem[];
-  public selectedMergeTypes: string;
-  public displayDBSpinner: boolean = false;
-  public growlMessages: Message[] = new Array();
+    public tradeAreaMergeTypes: SelectItem[];
+    public selectedMergeTypes: string;
+    public displayDBSpinner: boolean = false;
+    public growlMessages: Message[] = new Array();
 
-  @ViewChild('campaineDetailsBox')
+    @ViewChild('campaineDetailsBox')
     private campaignDetailsBox: ColorBoxComponent;
 
-  constructor(
-    private mapService: MapService,
-  ) { }
+    constructor(
+        private mapService: MapService,
+    ) { }
 
-  ngOnInit() {
+    ngOnInit() {
 
-    this.tradeAreaMergeTypes = [];
-    this.tradeAreaMergeTypes.push({ label: 'No Merge', value: 'No Merge' });
-    this.tradeAreaMergeTypes.push({ label: 'Merge Each', value: 'Merge Each' });
-    this.tradeAreaMergeTypes.push({ label: 'Merge All', value: 'Merge All' });
-    this.selectedMergeTypes = 'Merge Each';
+        this.tradeAreaMergeTypes = [];
+        this.tradeAreaMergeTypes.push({ label: 'No Merge', value: 'No Merge' });
+        this.tradeAreaMergeTypes.push({ label: 'Merge Each', value: 'Merge Each' });
+        this.tradeAreaMergeTypes.push({ label: 'Merge All', value: 'Merge All' });
+        this.selectedMergeTypes = 'Merge Each';
 
-  }
+    }
 
 
-  public async drawBuffer() {
-    console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
-    if (this.ta1Miles === undefined)
+    public async drawBuffer() {
+        console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
+        if (this.ta1Miles === undefined)
             this.ta1Miles = 0;
-    if (this.ta2Miles === undefined)
+        if (this.ta2Miles === undefined)
             this.ta2Miles = 0;
-    if (this.ta3Miles === undefined)  
-            this.ta3Miles  = 0;    
-    //show the spinner while we do our work
-    this.displayDBSpinner = true;
-    const lyrNme: string = ' Mile Trade Area';
-    
-    let meTitle = 'Site - ';
-    if (this.selectedValue === 'Competitors') {
-        meTitle = 'Competitor - ';
-        if (this.checked1) {
-            this.competitorsMap.set('editedta1', String(this.editedta1));
-            this.competitorsMap.set('checked1', String(this.checked1));
-            this.competitorsMap.set('ta1Miles', String(this.ta1Miles));
+        if (this.ta3Miles === undefined)
+            this.ta3Miles = 0;
+        //show the spinner while we do our work
+        this.displayDBSpinner = true;
+        const lyrNme: string = ' Mile Trade Area';
+
+        let meTitle = 'Site - ';
+        if (this.selectedValue === 'Competitors') {
+            meTitle = 'Competitor - ';
+            if (this.checked1) {
+                this.competitorsMap.set('editedta1', String(this.editedta1));
+                this.competitorsMap.set('checked1', String(this.checked1));
+                this.competitorsMap.set('ta1Miles', String(this.ta1Miles));
+            } else {
+                this.competitorsMap.delete('editedta1');
+                this.competitorsMap.delete('checked1');
+                this.competitorsMap.delete('ta1Miles');
+            }
+
+            if (this.checked2) {
+                this.competitorsMap.set('editedta2', String(this.editedta2));
+                this.competitorsMap.set('checked2', String(this.checked2));
+                this.competitorsMap.set('ta2Miles', String(this.ta2Miles));
+            } else {
+                this.competitorsMap.delete('editedta2');
+                this.competitorsMap.delete('checked2');
+                this.competitorsMap.delete('ta2Miles');
+            }
+            if (this.checked3) {
+                this.competitorsMap.set('editedta3', String(this.editedta3));
+                this.competitorsMap.set('checked3', String(this.checked3));
+                this.competitorsMap.set('ta3Miles', String(this.ta3Miles));
+            } else {
+                this.competitorsMap.delete('editedta3');
+                this.competitorsMap.delete('checked3');
+                this.competitorsMap.delete('ta3Miles');
+            }
+        }
+        if (this.selectedValue === 'Sites') {
+            if (this.checked1 && this.ta1Miles != null) {
+                this.sitesMap.set('editedta1', String(this.editedta1));
+                this.sitesMap.set('checked1', String(this.checked1));
+                this.sitesMap.set('ta1Miles', String(this.ta1Miles));
+            } else {
+                this.sitesMap.delete('editedta1');
+                this.sitesMap.delete('checked1');
+                this.sitesMap.delete('ta1Miles');
+            }
+            if (this.checked2 && this.ta2Miles != null) {
+                this.sitesMap.set('editedta2', String(this.editedta2));
+                this.sitesMap.set('checked2', String(this.checked2));
+                this.sitesMap.set('ta2Miles', String(this.ta2Miles));
+            } else {
+                this.sitesMap.delete('editedta2');
+                this.sitesMap.delete('checked2');
+                this.sitesMap.delete('ta2Miles');
+            }
+            if (this.checked3 && this.ta3Miles != null) {
+                this.sitesMap.set('editedta3', String(this.editedta3));
+                this.sitesMap.set('checked3', String(this.checked3));
+                this.sitesMap.set('ta3Miles', String(this.ta3Miles));
+            } else {
+                this.sitesMap.delete('editedta3');
+                this.sitesMap.delete('checked3');
+                this.sitesMap.delete('ta3Miles');
+            }
+        }
+        let mergeEachBool: boolean = false;
+        let mergeAllBool: boolean = false;
+
+        if (this.selectedValue === 'Sites') {
+            this.sitesMap.set('siteMerge', this.selectedMergeTypes);
         } else {
-            this.competitorsMap.delete('editedta1');
-            this.competitorsMap.delete('checked1');
-            this.competitorsMap.delete('ta1Miles');
+            this.competitorsMap.set('compMerge', this.selectedMergeTypes);
+        }
+        if (this.selectedMergeTypes.match('Merge Each')) {
+            mergeEachBool = true;
+        }
+        if (this.selectedMergeTypes.match('Merge All')) {
+            mergeAllBool = true;
         }
 
-        if (this.checked2) {
-            this.competitorsMap.set('editedta2', String(this.editedta2));
-            this.competitorsMap.set('checked2', String(this.checked2));
-            this.competitorsMap.set('ta2Miles', String(this.ta2Miles));
-        } else {
-            this.competitorsMap.delete('editedta2');
-            this.competitorsMap.delete('checked2');
-            this.competitorsMap.delete('ta2Miles');
-        }
-        if (this.checked3) {
-            this.competitorsMap.set('editedta3', String(this.editedta3));
-            this.competitorsMap.set('checked3', String(this.checked3));
-            this.competitorsMap.set('ta3Miles', String(this.ta3Miles));
-        } else {
-            this.competitorsMap.delete('editedta3');
-            this.competitorsMap.delete('checked3');
-            this.competitorsMap.delete('ta3Miles');
-        }
-    }
-    if (this.selectedValue === 'Sites') {
-        if (this.checked1 && this.ta1Miles != null) {
-            this.sitesMap.set('editedta1', String(this.editedta1));
-            this.sitesMap.set('checked1', String(this.checked1));
-            this.sitesMap.set('ta1Miles', String(this.ta1Miles));
-        } else {
-            this.sitesMap.delete('editedta1');
-            this.sitesMap.delete('checked1');
-            this.sitesMap.delete('ta1Miles');
-        }
-        if (this.checked2 && this.ta2Miles != null) {
-            this.sitesMap.set('editedta2', String(this.editedta2));
-            this.sitesMap.set('checked2', String(this.checked2));
-            this.sitesMap.set('ta2Miles', String(this.ta2Miles));
-        } else {
-            this.sitesMap.delete('editedta2');
-            this.sitesMap.delete('checked2');
-            this.sitesMap.delete('ta2Miles');
-        }
-        if (this.checked3 && this.ta3Miles != null) {
-            this.sitesMap.set('editedta3', String(this.editedta3));
-            this.sitesMap.set('checked3', String(this.checked3));
-            this.sitesMap.set('ta3Miles', String(this.ta3Miles));
-        } else {
-            this.sitesMap.delete('editedta3');
-            this.sitesMap.delete('checked3');
-            this.sitesMap.delete('ta3Miles');
-        }
-    }
-    let mergeEachBool: boolean = false;
-    let mergeAllBool: boolean = false;
+        this.milesList = [];
 
-    if (this.selectedValue === 'Sites') {
-        this.sitesMap.set('siteMerge', this.selectedMergeTypes);
-    } else {
-        this.competitorsMap.set('compMerge', this.selectedMergeTypes);
-    }
-    if (this.selectedMergeTypes.match('Merge Each')) {
-        mergeEachBool = true;
-    }
-    if (this.selectedMergeTypes.match('Merge All')) {
-        mergeAllBool = true;
-    }
-
-    this.milesList = [];
-
-    if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
-        if ((0 < this.ta1Miles) || (0 < this.ta2Miles) || (0 < this.ta3Miles)) {
-            if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles) {
+        if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
+            let isValid = false;
+            ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
+                if (this[model] < 0 || this[model] > 50) {
+                    isValid = true;
+                }
+            });
+            if (isValid) {
+                //message
                 const growlMessage: Message = {
                     summary: 'Draw Buffer Error',
                     severity: 'error',
-                    detail: `You must enter a unique value for each trade area you want to apply.`
+                    detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.`
                 };
                 this.growlMessages.push(growlMessage);
                 //hide the spinner after drawing buffer
                 this.displayDBSpinner = false;
+
+            } else if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles) {
+                this.uniqueValError();
+            }
+            else if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
+                this.uniqueValError();
             }
             else {
                 if (this.ta1Miles != null && this.checked1) {
@@ -172,26 +184,13 @@ export class TradeareaDefineComponent implements OnInit {
                     this.milesList.push(this.ta3Miles);
                     this.editedta3 = true;
                 }
-
                 if (this.ta3Miles == null) { this.ta3Miles = 0; }
                 if (this.ta2Miles == null) { this.ta2Miles = 0; }
                 if (this.ta1Miles == null) { this.ta1Miles = 0; }
             }
         } else {
-            const growlMessage: Message = {
-                summary: 'Draw Buffer Error',
-                severity: 'error',
-                detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.`
-            };
-            this.growlMessages.push(growlMessage);
-            //hide the spinner after drawing buffer
-            this.displayDBSpinner = false;
+            this.toggleBtnError();
         }
-    } else {
-        this.toggleBtnError();
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
-    }
 
     try {
         this.mapView = this.mapService.getMapView();
@@ -294,113 +293,113 @@ export class TradeareaDefineComponent implements OnInit {
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
             }
         }
+            //this.appService.closeOverLayPanel.next(true);
+        } catch (ex) {
+            console.error(ex);
+        }
         //hide the spinner after drawing buffer
         this.displayDBSpinner = false;
-        //this.appService.closeOverLayPanel.next(true);
-    } catch (ex) {
-        console.error(ex);
     }
-}
 
-public async manageIcons(eventVal: string, taType: string) {
-    console.log('manageIcons fired:: ');
-    if (taType === 'ta1miles') {
-        if (this.editedta1 && !this.ta1Miles) {
-            this.editedta1 = false;
-            this.checked1 = false;
-        } else if (!this.editedta1 && this.ta1Miles) {
-            this.editedta1 = false;
-            this.checked1 = true;
-        } else if (!this.editedta1 && !this.ta1Miles) {
-            this.checked1 = false;
-            this.editedta1 = false;
+    public async manageIcons(eventVal: string, taType: string) {
+        console.log('manageIcons fired:: ');
+        if (taType === 'ta1miles') {
+            if (this.editedta1 && !this.ta1Miles) {
+                this.editedta1 = false;
+                this.checked1 = false;
+            } else if (!this.editedta1 && this.ta1Miles) {
+                this.editedta1 = false;
+                this.checked1 = true;
+            } else if (!this.editedta1 && !this.ta1Miles) {
+                this.checked1 = false;
+                this.editedta1 = false;
+            }
+        }
+        if (taType === 'ta2miles') {
+            if (this.editedta2 && !this.ta2Miles) {
+                this.editedta2 = false;
+                this.checked2 = false;
+            } else if (!this.editedta2 && this.ta2Miles) {
+                this.editedta2 = false;
+                this.checked2 = true;
+            } else if (!this.editedta2 && !this.ta2Miles) {
+                this.checked2 = false;
+                this.editedta2 = false;
+            }
+        }
+        if (taType === 'ta3miles') {
+            if (this.editedta3 && !this.ta3Miles) {
+                this.editedta3 = false;
+                this.checked3 = false;
+            } else if (!this.editedta3 && this.ta3Miles) {
+                this.editedta3 = false;
+                this.checked3 = true;
+            } else if (!this.editedta3 && !this.ta3Miles) {
+                this.checked3 = false;
+                this.editedta3 = false;
+            }
         }
     }
-    if (taType === 'ta2miles') {
-        if (this.editedta2 && !this.ta2Miles) {
-            this.editedta2 = false;
-            this.checked2 = false;
-        } else if (!this.editedta2 && this.ta2Miles) {
-            this.editedta2 = false;
-            this.checked2 = true;
-        } else if (!this.editedta2 && !this.ta2Miles) {
-            this.checked2 = false;
-            this.editedta2 = false;
-        }
-    }
-    if (taType === 'ta3miles') {
-        if (this.editedta3 && !this.ta3Miles) {
-            this.editedta3 = false;
-            this.checked3 = false;
-        } else if (!this.editedta3 && this.ta3Miles) {
-            this.editedta3 = false;
-            this.checked3 = true;
-        } else if (!this.editedta3 && !this.ta3Miles) {
-            this.checked3 = false;
-            this.editedta3 = false;
-        }
-    }
-}
 
-public async clearFields(eventVal: string, taType: string) {
-    console.log('clearFields fired:: ');
+    public async clearFields(eventVal: string, taType: string) {
+        console.log('clearFields fired:: ');
 
-    this.editedta1 = false;
-    this.checked1 = false;
-    this.ta1Miles = null;
+        this.editedta1 = false;
+        this.checked1 = false;
+        this.ta1Miles = null;
 
-    this.editedta2 = false;
-    this.checked2 = false;
-    this.ta2Miles = null;
+        this.editedta2 = false;
+        this.checked2 = false;
+        this.ta2Miles = null;
 
-    this.editedta3 = false;
-    this.checked3 = false;
-    this.ta3Miles = null;
-    if (this.selectedValue === 'Competitors') {
-        if (this.competitorsMap.get('ta3Miles') != null) {
-            this.ta3Miles = Number(this.competitorsMap.get('ta3Miles'));
-            this.checked3 = true;
-            this.editedta3 = true;
+        this.editedta3 = false;
+        this.checked3 = false;
+        this.ta3Miles = null;
+        if (this.selectedValue === 'Competitors') {
+            if (this.competitorsMap.get('ta3Miles') != null) {
+                this.ta3Miles = Number(this.competitorsMap.get('ta3Miles'));
+                this.checked3 = true;
+                this.editedta3 = true;
+            }
+            if (this.competitorsMap.get('ta2Miles') != null) {
+                this.ta2Miles = Number(this.competitorsMap.get('ta2Miles'));
+                this.checked2 = true;
+                this.editedta2 = true;
+            }
+            if (this.competitorsMap.get('ta1Miles') != null) {
+                this.ta1Miles = Number(this.competitorsMap.get('ta1Miles'));
+                this.checked1 = true;
+                this.editedta1 = true;
+            }
+            if (this.competitorsMap.size !== 0) {
+                this.selectedMergeTypes = this.competitorsMap.get('compMerge');
+            } else {
+                this.selectedMergeTypes = 'Merge Each';
+            }
         }
-        if (this.competitorsMap.get('ta2Miles') != null) {
-            this.ta2Miles = Number(this.competitorsMap.get('ta2Miles'));
-            this.checked2 = true;
-            this.editedta2 = true;
-        }
-        if (this.competitorsMap.get('ta1Miles') != null) {
-            this.ta1Miles = Number(this.competitorsMap.get('ta1Miles'));
-            this.checked1 = true;
-            this.editedta1 = true;
-        }
-        if (this.competitorsMap.size !== 0){
-            this.selectedMergeTypes = this.competitorsMap.get('compMerge');
-        } else{
-            this.selectedMergeTypes = 'Merge Each';
+        if (this.selectedValue === 'Sites') {
+            if (this.sitesMap.get('ta3Miles') != null) {
+                this.ta3Miles = Number(this.sitesMap.get('ta3Miles'));
+                this.checked3 = true;
+                this.editedta3 = true;
+            }
+            if (this.sitesMap.get('ta2Miles') != null) {
+                this.ta2Miles = Number(this.sitesMap.get('ta2Miles'));
+                this.checked2 = true;
+                this.editedta2 = true;
+            }
+            if (this.sitesMap.get('ta1Miles') != null) {
+                this.ta1Miles = Number(this.sitesMap.get('ta1Miles'));
+                this.checked1 = true;
+                this.editedta1 = true;
+            }
+            if (this.sitesMap.size !== 0) {
+                this.selectedMergeTypes = this.sitesMap.get('siteMerge');
+            } else {
+                this.selectedMergeTypes = 'Merge Each';
+            }
         }
     }
-    if (this.selectedValue === 'Sites') {
-        if (this.sitesMap.get('ta3Miles') != null) {
-            this.ta3Miles = Number(this.sitesMap.get('ta3Miles'));
-            this.checked3 = true;
-            this.editedta3 = true;
-        }
-        if (this.sitesMap.get('ta2Miles') != null) {
-            this.ta2Miles = Number(this.sitesMap.get('ta2Miles'));
-            this.checked2 = true;
-            this.editedta2 = true;
-        }
-        if (this.sitesMap.get('ta1Miles') != null) {
-            this.ta1Miles = Number(this.sitesMap.get('ta1Miles'));
-            this.checked1 = true;
-            this.editedta1 = true;
-        }
-        if (this.sitesMap.size !== 0){
-            this.selectedMergeTypes = this.sitesMap.get('siteMerge');
-        } else {
-            this.selectedMergeTypes = 'Merge Each';
-        }
-    }
-}
 
 public async disableLyr(groupLayer: __esri.GroupLayer, layer: __esri.Layer) {
   console.log('disable Layer:');
@@ -430,4 +429,14 @@ private toggleBtnError() {
     this.growlMessages.push(growlMessage);
 }
 
+    private uniqueValError() {
+        const growlMessage: Message = {
+            summary: 'Draw Buffer Error',
+            severity: 'error',
+            detail: `You must enter a unique value for each trade area you want to apply.`
+        };
+        this.growlMessages.push(growlMessage);
+        //hide the spinner after drawing buffer
+        this.displayDBSpinner = false;
+    }
 }
