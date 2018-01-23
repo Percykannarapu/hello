@@ -978,7 +978,7 @@ export class MapService {
 
         if (layerName.startsWith('Site')){
             const index = MapService.SitesGroupLayer.layers.length;
-            MapService.SitesGroupLayer.add(lyr, index);
+            MapService.SitesGroupLayer.layers.unshift(lyr);
             
             if (!this.findLayerByTitle('Valassis Sites')) {
                 MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
