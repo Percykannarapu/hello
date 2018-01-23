@@ -2,10 +2,11 @@ import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule} from '@angular/http';
 import {HttpClientModule} from '@angular/common/http';
-import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
+//import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
+import {AppConfig} from './app.config';
 import {AppRoutes} from './app.routes';
 import 'rxjs/add/operator/toPromise';
 
@@ -102,7 +103,7 @@ import {PocComponent} from './demo/view/poc.component';
 import {ParkedComponent} from './demo/view/parked.component';
 
 // Mock Service Imports
-import {InMemoryStubService} from './api/in-memory-stub.service';
+//import {InMemoryStubService} from './api/in-memory-stub.service';
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
@@ -139,6 +140,7 @@ import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
+import {RestDataService} from './val-modules/common/services/restdata.service';
 
 @NgModule({
     imports: [
@@ -260,10 +262,11 @@ import {DiscoveryInputComponent} from './components/discovery-input/discovery-in
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
-        MessageService, AppService,
+        MessageService, AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService, MapService,
-        InMemoryStubService, AmSiteService, MetricService, EsriModules, EsriLayerService
+        EsriLoaderService, GfGeoService, MapService, RestDataService,
+        // InMemoryStubService,
+        AmSiteService, MetricService, EsriModules, EsriLayerService
     ],
     bootstrap: [AppComponent]
 })

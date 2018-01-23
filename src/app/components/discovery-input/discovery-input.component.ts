@@ -1,5 +1,8 @@
+import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
+
 import { Observable } from 'rxjs/Observable';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+//import {HttpClientModule} from '@angular/common/http';  // replaces previous Http service
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
 import {Component, OnInit} from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
@@ -10,12 +13,11 @@ interface Product {
    productCode: string;
 }
 
-const radDataUrl = 'https://servicesdev.valassislab.com/services/v1/targeting/base/impradlookup/search?q=impRadLookup';
-
  @Component({
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
-  styleUrls: ['./discovery-input.component.css']
+  styleUrls: ['./discovery-input.component.css'],
+  providers: [ImpRadLookupService]
 })
 export class DiscoveryInputComponent implements OnInit
 {
@@ -25,14 +27,16 @@ export class DiscoveryInputComponent implements OnInit
    selectedProduct: Product;
 
    radData: ImpRadLookup[];
+   radDataItems: SelectItem[];
+   selectedRadLookup: ImpRadLookup;
 
-   constructor(public http: HttpClient)
+   constructor(public impRadLookupService: ImpRadLookupService)
    {
       this.products = [
          {productName: 'Display Advertising',         productCode: 'DISPLAY'},
          {productName: 'Email',                       productCode: 'EMAIL'},
          {productName: 'Insert - Newspaper',          productCode: 'INS_NEWS'},
-         {productName: 'Insert - Shared Mail',        productCode: 'INS_SHARED'},
+         {productName: 'Insert - Shared Mail',        productCode: 'SM Insert'}, // 'INS_SHARED'},
          {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'RPDM'},
          {productName: 'Variable Data Postcard',      productCode: 'VDP'},
          {productName: 'VDP + Email',                 productCode: 'VDP_EMAIL'},
@@ -43,22 +47,39 @@ export class DiscoveryInputComponent implements OnInit
       this.productItems = new Array(this.products.length);
       for (let i: number = 0; i < this.products.length; i++)
          this.productItems[i] = {label: this.products[i].productName, value: {id: i, name: this.products[i].productName, code: this.products[i].productCode} };
+      console.log('DiscoveryInputComponent constructed');
    }
 
    ngOnInit() {
-      console.log('Firing off a call to impRadLookup');
-      this.http.get(radDataUrl).subscribe(data => {
-         console.log(data);
-       });
+      this.impRadLookupService.fetchData().subscribe(data => {
+         console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
+         console.log('DiscoveryInputComponent - impRadLookupService.impRadLookups.length: ' + this.impRadLookupService.impRadLookups.length);
+
+         this.radDataItems = new Array(this.impRadLookupService.impRadLookups.length);
+         for (let i: number = 0; i < this.impRadLookupService.impRadLookups.length; i++)
+//            if (this.productItems[i].value == this.selectedProduct.productCode)
+               this.productItems[i] = {label: this.impRadLookupService.impRadLookups[i].category, value: {id: i, name: this.impRadLookupService.impRadLookups[i].category, code: this.impRadLookupService.impRadLookups[i].radId} };            
+      }) ;
+      /*
+      this.impRadLookupService
+      .get<ImpRadLookup[]>()
+      .subscribe((data: ImpRadLookup[]) => this.radData = data,
+       error => () => {
+         console.error('An error occurred', error);
+       },
+       () => {
+         console.log('impRadLookupService success');
+       });*/
    }
 
 
-   getRadLookupData() : Observable<ImpRadLookup[]> {
-      return this.http.get(radDataUrl)
-        .do(data => console.log(data)) // view results in the console
-  //      .map(res => res.json())
-        .catch(this.handleError);
-    }
+//    getRadLookupData() : Observable<ImpRadLookup[]> {
+//       console.log('getRadLookupData fired');
+//       return this.http.get(radDataUrl)
+//         .do(data => console.log(data)) // view results in the console
+//   //      .map(res => res.json())
+//         .catch(this.handleError);
+//     }
   
   /*
     getGeos(): Observable <any> {
