@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
 //import {HttpClientModule} from '@angular/common/http';  // replaces previous Http service
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Pipe, PipeTransform} from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 
@@ -17,7 +17,7 @@ interface Category {
    name: string;
 }
 
- @Component({
+@Component({
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
   styleUrls: ['./discovery-input.component.css'],
@@ -39,6 +39,10 @@ export class DiscoveryInputComponent implements OnInit
    selectedAnalysisLevel: string;
    
    summer: boolean = true;
+   dollarBudget: number;
+   circBudget: number;
+
+   cur1: number;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -81,10 +85,10 @@ export class DiscoveryInputComponent implements OnInit
 
       this.analysisLevels = [
          {label: 'Atz', value: 'ATZ'},
-         {label: 'Zip', value: 'ZIP'},
-         {label: 'Pcr', value: 'PCR'}
+         {label: 'Zip', value: 'ZIP'}
+//       {label: 'Pcr', value: 'PCR'}
       ];
-      this.selectedAnalysisLevel = this.analysisLevels[1].value;
+      this.selectedAnalysisLevel = this.analysisLevels[0].value;
 
       console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       console.log('DiscoveryInputComponent constructed');
@@ -136,5 +140,11 @@ export class DiscoveryInputComponent implements OnInit
          this.radDisabled = true;
          this.selectedRadLookup = null;
       }
+   }
+
+   public onChangeRound(event: any)
+   {
+      this.cur1 =  Number(parseFloat(event).toFixed(2)); // parseFloat(this.cur1).toFixed(2); //  Math.round(this.cur1 * 100) / 100;
+      console.log('onChangeRound: ' + event + ' = ' + this.cur1);
    }
 }
