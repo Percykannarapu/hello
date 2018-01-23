@@ -259,16 +259,19 @@ export class BusinessSearchComponent implements OnInit {
         popupTemplate.content = 
           `<table>
           <tbody>
-          <tr><th>Firm:</th><td>${business.firm ? business.firm : ''}</td></tr>
-          <tr><th>Address:</th><td>${business.address}</td></tr>
+          <tr><th>Name:</th><td>${business.firm ? business.firm : ''}</td></tr>
+          <tr><th>Number:</th><td>${business.abino ? business.abino : ''}</td></tr>
+          <tr><th>Street:</th><td>${business.address}</td></tr>
           <tr><th>City:</th><td>${business.city}</td></tr>
           <tr><th>State:</th><td>${business.state}</td></tr>
           <tr><th>Zip:</th><td>${business.zip}</td></tr>
-          <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
-          <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
-          <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
+          <tr><th>Latitude</th><td>${business.y}</td></tr>
+          <tr><th>Longitude</th><td>${business.x}</td></tr>
           </tbody>
           </table>`;
+          // <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
+          // <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
+          // <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
 
         await this.mapService.createGraphic(business.y, business.x, this.color, popupTemplate, null)
          .then(res => {
