@@ -1,4 +1,3 @@
-import { Observable } from 'rxjs/Rx';
 import { RestDataService } from './../../common/services/restdata.service';
 import { HttpClient, HttpHeaders, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
