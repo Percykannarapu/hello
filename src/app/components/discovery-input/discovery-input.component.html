@@ -12,15 +12,10 @@
                   [disabled]="radDisabled" [style]="{'width':'250px'}"></p-dropdown>
    </div>
    <div class="ui-g-12">
-       <span class="md-inputfield">
-           <input type="text" pInputText>
-           <label>Analysis Level</label>
-       </span>
-   </div>
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-         <p-toggleButton onLabel="Winter" offLabel="Summer" ></p-toggleButton>
-      </span>
+      <p-selectButton [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel"></p-selectButton>
+      <span style="padding-left:21px">
+      <p-toggleButton [(ngModel)]="winter" onLabel="Winter" offLabel="Summer"></p-toggleButton>
+   </span>
    </div>
    <div class="ui-g-12">
       <span class="md-inputfield">

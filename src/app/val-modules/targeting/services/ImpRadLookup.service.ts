@@ -7,8 +7,8 @@ import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 import { Response } from '@angular/http/src/static_response';
 // import {List} from 'immutable';
-import 'rxjs/add/operator/Catch';
-import 'rxjs/add/observable/Throw';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/observable/throw';
 
 import { ImpRadLookup } from '../models/ImpRadLookup';
 
