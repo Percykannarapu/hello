@@ -23,6 +23,7 @@ export class TradeareaDefineComponent implements OnInit {
     checked3: boolean = false;
     kms: number;
 
+    msgs: Message[] = [];
     kmsList: number[] = [];
     editedta1: boolean = false;
     editedta2: boolean = false;
