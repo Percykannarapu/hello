@@ -29,6 +29,9 @@ export class DiscoveryInputComponent implements OnInit
    radDisabled: boolean = true;
    
    analysisLevels: SelectItem[];
+   selectedAnalysisLevel: string;
+   
+   winter: boolean = true;
 
    constructor(public impRadLookupService: ImpRadLookupService)
    {
@@ -42,6 +45,14 @@ export class DiscoveryInputComponent implements OnInit
          {productName: 'VDP + Email',                 productCode: 'SM Postcard'},
          {productName: 'Red Plum Wrap',               productCode: 'SM Wrap'}
       ];
+
+      this.analysisLevels = [
+         {label: 'Atz', value: 'ATZ'},
+         {label: 'Zip', value: 'ZIP'},
+         {label: 'Pcr', value: 'PCR'}
+      ];
+      this.selectedAnalysisLevel = this.analysisLevels[1].value;
+      console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       console.log('DiscoveryInputComponent constructed');
    }
 
