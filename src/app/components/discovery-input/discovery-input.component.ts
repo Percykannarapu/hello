@@ -22,31 +22,26 @@ interface Product {
 export class DiscoveryInputComponent implements OnInit
 {
    products: Product[];
-   productItems: SelectItem[];
-
    selectedProduct: Product;
 
    radData: ImpRadLookup[];
-   radDataItems: SelectItem[];
    selectedRadLookup: ImpRadLookup;
+   radDisabled: boolean = true;
+   
+   analysisLevels: SelectItem[];
 
    constructor(public impRadLookupService: ImpRadLookupService)
    {
       this.products = [
-         {productName: 'Display Advertising',         productCode: 'DISPLAY'},
-         {productName: 'Email',                       productCode: 'EMAIL'},
-         {productName: 'Insert - Newspaper',          productCode: 'INS_NEWS'},
-         {productName: 'Insert - Shared Mail',        productCode: 'SM Insert'}, // 'INS_SHARED'},
-         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'RPDM'},
+         {productName: 'Display Advertising',         productCode: 'SM Insert'},
+         {productName: 'Email',                       productCode: 'SM Insert'},
+         {productName: 'Insert - Newspaper',          productCode: 'NP Insert'},
+         {productName: 'Insert - Shared Mail',        productCode: 'SM Insert'},
+         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'SM Insert'},
          {productName: 'Variable Data Postcard',      productCode: 'VDP'},
-         {productName: 'VDP + Email',                 productCode: 'VDP_EMAIL'},
-         {productName: 'Red Plum Wrap',               productCode: 'WRAP'}
+         {productName: 'VDP + Email',                 productCode: 'SM Postcard'},
+         {productName: 'Red Plum Wrap',               productCode: 'SM Wrap'}
       ];
-
-      // Build the SelectItem API label-value pairs array
-      this.productItems = new Array(this.products.length);
-      for (let i: number = 0; i < this.products.length; i++)
-         this.productItems[i] = {label: this.products[i].productName, value: {id: i, name: this.products[i].productName, code: this.products[i].productCode} };
       console.log('DiscoveryInputComponent constructed');
    }
 
@@ -54,48 +49,41 @@ export class DiscoveryInputComponent implements OnInit
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
          console.log('DiscoveryInputComponent - impRadLookupService.impRadLookups.length: ' + this.impRadLookupService.impRadLookups.length);
-
-         this.radDataItems = new Array(this.impRadLookupService.impRadLookups.length);
-         for (let i: number = 0; i < this.impRadLookupService.impRadLookups.length; i++)
-//            if (this.productItems[i].value == this.selectedProduct.productCode)
-               this.productItems[i] = {label: this.impRadLookupService.impRadLookups[i].category, value: {id: i, name: this.impRadLookupService.impRadLookups[i].category, code: this.impRadLookupService.impRadLookups[i].radId} };            
-      }) ;
-      /*
-      this.impRadLookupService
-      .get<ImpRadLookup[]>()
-      .subscribe((data: ImpRadLookup[]) => this.radData = data,
-       error => () => {
-         console.error('An error occurred', error);
-       },
-       () => {
-         console.log('impRadLookupService success');
-       });*/
+         }) ;
    }
 
-
-//    getRadLookupData() : Observable<ImpRadLookup[]> {
-//       console.log('getRadLookupData fired');
-//       return this.http.get(radDataUrl)
-//         .do(data => console.log(data)) // view results in the console
-//   //      .map(res => res.json())
-//         .catch(this.handleError);
-//     }
-  
-  /*
-    getGeos(): Observable <any> {
-      console.log('GfGeoService.getGeos fired');
-      return this.http.get(geofootprintGeosUrl)
-                      .subscribe*/
-  /*                    .map(response => response.json().contents)
-                      .catch((err: Response|any) => {
-                                                      return Observable.throw(err.statusText);
-                                                    });*/
-  // }
-  
-    private handleError (error: any) {
-      // In a real world app, we might send the error to remote logging infrastructure
-      // and reformat for user consumption
-      console.error(error); // log to console instead
+   // UTILITY METHODS
+   private handleError (error: any) {
+      console.error(error);
       return Observable.throw(error);
-    }   
+   }   
+
+   public filterRadLookups(productCode: string)
+   {
+      console.log('filterRadLookups by ' + productCode);
+
+      this.radData = new Array();
+      for (let i: number = 0; i < this.impRadLookupService.impRadLookups.length; i++)
+      {
+         console.log (this.impRadLookupService.impRadLookups[i].product + ' vs ' + this.selectedProduct.productCode);
+         if (this.impRadLookupService.impRadLookups[i].product == this.selectedProduct.productCode)
+            this.radData.push(this.impRadLookupService.impRadLookups[i]);
+      }
+   }
+
+   // UI CONTROL EVENTS
+   public onChangeProduct(event: SelectItem)
+   {       
+      console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');      
+      if (event.value != null)
+      {
+         this.radDisabled = false;
+         this.filterRadLookups(event.value.productCode);
+      }
+      else
+      {
+         this.radDisabled = true;
+         this.selectedRadLookup = null;
+      }
+   }
 }

@@ -1,13 +1,15 @@
 <div class="ui-g form-group">
    <div class="ui-g-4">
-      <p-dropdown [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName" 
+      <p-dropdown #productSelector
+                   [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName" 
                    placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                   (onChange)="onChangeProduct($event)"
                    [style]="{'width':'250px'}"></p-dropdown>
    </div>
    <div class="ui-g-8">
-      <p-dropdown [options]="impRadLookupService.impRadLookups" [(ngModel)]="selectedRadLookup" optionLabel="category" 
+      <p-dropdown [options]="radData" [(ngModel)]="selectedRadLookup" optionLabel="category" 
                   placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
-                  [style]="{'width':'250px'}"></p-dropdown>
+                  [disabled]="radDisabled" [style]="{'width':'250px'}"></p-dropdown>
    </div>
    <div class="ui-g-12">
        <span class="md-inputfield">
