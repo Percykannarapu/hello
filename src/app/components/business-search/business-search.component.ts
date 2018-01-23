@@ -156,11 +156,11 @@ export class BusinessSearchComponent implements OnInit {
     }
     if (paramObj['sics'].length === 0) {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'There should be atleast one selection of SIC"s' });
-      this.showLoader = true;
+      this.showLoader = false;
     }
     if (paramObj['radius'] === undefined || paramObj['radius'] === '') {
       this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Radius cannot be left blank' });
-      this.showLoader = true;
+      this.showLoader = false;
     }
 
     console.log('request to business search', paramObj);
@@ -284,12 +284,13 @@ export class BusinessSearchComponent implements OnInit {
       //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
-    } else {
+      this.appService.closeOverLayPanel.next(true);
+    } else if (selector === 'Sites'){
       this.amSiteService.add(this.plottedPoints);
       //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+      this.appService.closeOverLayPanel.next(true);
     }
-    this.appService.closeOverLayPanel.next(true);
   }
 }
