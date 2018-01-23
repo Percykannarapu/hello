@@ -46,6 +46,7 @@ export class MapService {
     public sideBarToggle: boolean = false;
 
     private mapInstance: __esri.Map;
+    public displayDBSpinner: boolean = false;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
     }
@@ -856,7 +857,8 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-
+    //hide the spinner after drawing buffer
+    this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
           g.setAttribute('parentId', parentId);
@@ -1468,8 +1470,8 @@ export class MapService {
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
 
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
