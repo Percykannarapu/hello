@@ -530,14 +530,14 @@ export class MapService {
            '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
          ];
          const atz_layerids = [
-           '14821e583a5f4ff5b75304c16081b25a', // ATZ_Top_Vars
+           'd3bf2b2a2a0a46f5bf10e8c6270767da', // ATZ_Top_Vars
            '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
            '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars 
            'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
         ];
         const pcr_layerids = [];
         const wrap_layerids = [
-           'c686977dac124e53a3438189e87aa90f'  // WRAP_Top_Vars
+           '09e5cdab538b43a4a6bd9a0d54b682a7'  // WRAP_Top_Vars
           ];
         const hh_layerids = [
             '837f4f8be375464a8971c56a0856198e', // vt layer
@@ -972,7 +972,7 @@ export class MapService {
             }
         });
 
-        if (layerName.startsWith('Site')){
+        if (layerName.startsWith('Site') || layerName.startsWith('Zip')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
@@ -983,7 +983,7 @@ export class MapService {
             }
         }
         
-        if (layerName.startsWith('Competito')){
+        if (layerName.startsWith('Competitor')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
             if (!this.findLayerByTitle('Valassis Competitors')) {
@@ -992,6 +992,7 @@ export class MapService {
                 MapService.CompetitorsGroupLayer.visible = true;
             }
         }
+
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
     }
@@ -1460,7 +1461,7 @@ export class MapService {
                    // loadedFeatureLayer.renderer = f1
                 });
 
-                MapService.mapView.graphics.removeAll();
+                await  this.removeSubLayer('Zip - polygon', MapService.SitesGroupLayer);                
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
@@ -1484,7 +1485,8 @@ export class MapService {
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
-                        MapService.mapView.graphics.addMany(polyGraphics);
+                        //MapService.mapView.graphics.addMany(polyGraphics);
+                        this.updateFeatureLayer(polyGraphics, 'Zip - polygon selection');
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                     });
@@ -1649,6 +1651,20 @@ export class MapService {
         });
         return fLyrList;
     }
+
+    public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer){
+        this.getAllFeatureLayers().then(list => {
+            for (const layer of list){
+                if (layer.title.startsWith(deleteLayerName)) {
+                    groupLayer.remove(layer);
+                    MapService.layers.delete(layer); 
+                    MapService.layerNames.delete(layer.title);
+                    this.getMapView().map.remove(layer);
+                   // mapView.map.remove(layer);
+                }
+            }
+        });
+      }
 }
 
 
