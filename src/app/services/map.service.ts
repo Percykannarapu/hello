@@ -869,7 +869,7 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) { /*: Promise<EsriWrapper<__esri.MapView>>*/
+    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) : Promise<__esri.Graphic[]> { /*: Promise<EsriWrapper<__esri.MapView>>*/
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
              = await loader.loadModules([
@@ -918,16 +918,10 @@ export class MapService {
                      g.setAttribute('parentId', parentId);
                 graphicList.push(g);
             });
-            console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->' + graphicList.length);
-            const t0 = performance.now();
-            await this.selectCentroid(graphicList);
-            const t1 = performance.now();
-            console.log('Call to select polygon took: ' + (t1 - t0) + ' :milliseconds.');
-            console.log('completed select buffer::');
-
-       // return { val: MapService.mapView };
+            //await this.selectCentroid(graphicList);
+          return graphicList;
     }
 
     public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
