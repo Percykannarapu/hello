@@ -972,7 +972,7 @@ export class MapService {
             }
         });
 
-        if (layerName.startsWith('Site')){
+        if (layerName.startsWith('Site') || layerName.startsWith('Zip')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
@@ -983,7 +983,7 @@ export class MapService {
             }
         }
         
-        if (layerName.startsWith('Competito')){
+        if (layerName.startsWith('Competitor')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
             if (!this.findLayerByTitle('Valassis Competitors')) {
@@ -992,6 +992,7 @@ export class MapService {
                 MapService.CompetitorsGroupLayer.visible = true;
             }
         }
+
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
     }
@@ -1484,7 +1485,8 @@ export class MapService {
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
-                        MapService.mapView.graphics.addMany(polyGraphics);
+                        //MapService.mapView.graphics.addMany(polyGraphics);
+                        this.updateFeatureLayer(polyGraphics, 'Zip - polygon selection');
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                     });
