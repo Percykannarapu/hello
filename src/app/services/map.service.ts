@@ -37,6 +37,8 @@ export class MapService {
     public static selectedCentroidObjectIds: number[] = []; //  --> will keep track of selected centroids on the map
     public static hhDetails: number = 0;  // --> will keep track of houshold count
     public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
+    public static medianHHIncome: String = '0';
+    public static hhChildren: number = 0;
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>();
 
     // set a reference to global enum (defined in app.component)
@@ -46,6 +48,7 @@ export class MapService {
     public sideBarToggle: boolean = false;
 
     private mapInstance: __esri.Map;
+    public displayDBSpinner: boolean = false;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
     }
@@ -856,7 +859,8 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-
+    //hide the spinner after drawing buffer
+    this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
           g.setAttribute('parentId', parentId);
@@ -1462,8 +1466,12 @@ export class MapService {
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                MapService.medianHHIncome = '0';
+                MapService.hhChildren = 0;
+                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
@@ -1477,6 +1485,8 @@ export class MapService {
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
                                     MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+                                    MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.CL2I0O;
+                                    MapService.hhChildren = polyFeatureSet.features[i].attributes.CL0C00;
                                     polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID));
                                     MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
                                }
@@ -1485,6 +1495,9 @@ export class MapService {
                         MapService.mapView.graphics.addMany(polyGraphics);
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '$'));
+                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+
                     });
                 });
             }
@@ -1619,8 +1632,13 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
+                            //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
                             this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                            //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+
 
                         }
                 });
