@@ -22,9 +22,9 @@ export class ImpProjectPref
 
    // IMPOWER.IMP_PROJECT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
    // ------------------------------------------------------------
-   public clientIdentifierTypeCode:    ClientIdentifierType;      /// Cbx Client Identifier Types
-   public clientPrefId:                ImpClientPref;             /// Client Library Prefereneces
-   public projectId:                   ImpProject;                /// Captures Project information from the UI
+   public clientIdentifierType:        ClientIdentifierType;      /// Cbx Client Identifier Types
+   public impClientPref:               ImpClientPref;             /// Client Library Preferences
+   public impProject:                  ImpProject;                /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpProjectPref | {} = {}) {
@@ -63,9 +63,9 @@ export class ImpProjectPref
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',     'ClientIdentifierType'],
-         ['clientPrefId',                 'ImpClientPref'],
-         ['projectId',                    'ImpProject']
+         ['clientIdentifierType',         'ClientIdentifierType'],
+         ['impClientPref',                'ImpClientPref'],
+         ['impProject',                   'ImpProject']
          ]);
    }
 
