@@ -268,7 +268,6 @@ export class TradeareaDefineComponent implements OnInit {
             } else if (mergeEachBool) {
                 console.log('inside merge Each');
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-
                 //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
@@ -280,38 +279,21 @@ export class TradeareaDefineComponent implements OnInit {
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
                 MapService.tradeAreaInfoMap.set('color', color);
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
-        } else if (mergeEachBool) {
-            console.log('inside merge Each');
-            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-            let graphicList: __esri.Graphic[];
-            const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
-            
-            for (const miles1 of this.milesList) {
-                const kmsMereEach = miles1 / 0.62137;
-                await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
-                      .then(res => {
-                        graphicList = res;
-                      });
-                if (max == miles1){
-                    this.mapService.selectCentroid(graphicList);
-                }         
-                MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
-            }
-            MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
-            MapService.tradeAreaInfoMap.set('miles', this.milesList);
-            MapService.tradeAreaInfoMap.set('color', color);
-            MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
-        } else {
-            //var meTitle = 'Trade Area ';
-            console.log('About to draw trade area circles');
-            let i: number = 0;
-            let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-            for (const miles1 of this.milesList) {
-                i++;
-                const kmsNomerge = miles1 / 0.62137;
-                for (const point of pointsArray) {
-                  await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
-                  MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+
+                // }
+            } else {
+                //var meTitle = 'Trade Area ';
+                console.log('About to draw trade area circles');
+                let i: number = 0;
+                let siteId: number = 0;  // This is temporary until we connect trade areas to sites
+                for (const miles1 of this.milesList) {
+                    i++;
+                    const kmsNomerge = miles1 / 0.62137;
+                    for (const point of pointsArray) {
+                        await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
+                        MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+                    }
+
                 }
                 MapService.tradeAreaInfoMap.set('mergeType', 'NoMerge');
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
