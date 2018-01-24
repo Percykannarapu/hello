@@ -268,20 +268,24 @@ export class TradeareaDefineComponent implements OnInit {
             } else if (mergeEachBool) {
                 console.log('inside merge Each');
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-
-                //  for(let point of pointsArray){
+                let graphicList: __esri.Graphic[];
+                const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
+                
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
+                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
+                          .then(res => {
+                            graphicList = res;
+                          });
+                    if (max == miles1){
+                        this.mapService.selectCentroid(graphicList);
+                    }         
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                 }
-                //MapService.SitesGroupLayer.layers.reverse();
                 MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
                 MapService.tradeAreaInfoMap.set('color', color);
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
-
-                // }
             } else {
                 //var meTitle = 'Trade Area ';
                 console.log('About to draw trade area circles');
