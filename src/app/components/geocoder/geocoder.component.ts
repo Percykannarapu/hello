@@ -527,9 +527,18 @@ export class GeocoderComponent implements OnInit {
       }
       if (tradeAreaMap.get('mergeType') === 'MergeEach'){
           milesList = tradeAreaMap.get('miles');
+          //let graphicList: __esri.Graphic[];
+          const max = Math.max(...milesList);
           for (const miles of milesList){
             const kmsMereEach = miles / 0.62137;
-            this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+            this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+            .then(res => {
+              //graphicList = res;
+              if (max == miles){
+                this.mapService.selectCentroid(res);
+              }  
+            });
+             
           }
       }
       if (tradeAreaMap.get('mergeType') === 'MergeAll'){

@@ -1461,7 +1461,7 @@ export class MapService {
                    // loadedFeatureLayer.renderer = f1
                 });
 
-                MapService.mapView.graphics.removeAll();
+                await  this.removeSubLayer('Zip - polygon', MapService.SitesGroupLayer);                
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
@@ -1651,6 +1651,20 @@ export class MapService {
         });
         return fLyrList;
     }
+
+    public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer){
+        this.getAllFeatureLayers().then(list => {
+            for (const layer of list){
+                if (layer.title.startsWith(deleteLayerName)) {
+                    groupLayer.remove(layer);
+                    MapService.layers.delete(layer); 
+                    MapService.layerNames.delete(layer.title);
+                    this.getMapView().map.remove(layer);
+                   // mapView.map.remove(layer);
+                }
+            }
+        });
+      }
 }
 
 
