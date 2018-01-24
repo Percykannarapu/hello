@@ -48,7 +48,6 @@ export class MapService {
     public sideBarToggle: boolean = false;
 
     private mapInstance: __esri.Map;
-    public displayDBSpinner: boolean = false;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
     }
@@ -859,8 +858,6 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-    //hide the spinner after drawing buffer
-    this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
           g.setAttribute('parentId', parentId);
@@ -1512,7 +1509,6 @@ export class MapService {
      // to select based on featureLayerView
 /*    public async selectPoly(centroidGraphics: __esri.Graphic[]){
         console.log('fired selectPoly');
-
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Query, geometryEngine, FeatureLayer, Point, Extent, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
          = await loader.loadModules([
@@ -1644,7 +1640,6 @@ export class MapService {
                             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                             //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
                             //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
-
 
                         }
                 });

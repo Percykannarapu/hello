@@ -195,7 +195,6 @@ export class DashboardDemoComponent implements OnInit {
          // this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
       });
      
-
         // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
         //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);
         //    this.geofootprintGeos = geofootprintGeos;
