@@ -177,7 +177,7 @@ export class AmSiteService
       // Update the metrics
       this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
 
-      //update trade area
+      //update trade area and Metrics
       const point = new Points();
       point.latitude = site.ycoord;
       point.longitude = site.xcoord;
