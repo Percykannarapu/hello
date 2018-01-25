@@ -13,6 +13,7 @@ import { SelectItem } from 'primeng/primeng';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriLayerService } from './esri-layer.service';
 
+
 // import mapFunctions enum
 import { mapFunctions } from '../app.component';
 
@@ -37,7 +38,8 @@ export class MapService {
     public static selectedCentroidObjectIds: number[] = []; //  --> will keep track of selected centroids on the map
     public static hhDetails: number = 0;  // --> will keep track of houshold count
     public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
-    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>();
+    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
+    public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map 
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups; //  <- returns error;
@@ -113,7 +115,7 @@ export class MapService {
     public async getMap() : Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
-        };
+        }
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, GroupLayer, Basemap] = await loader.loadModules([
             'esri/Map',
@@ -304,12 +306,12 @@ export class MapService {
   
           // if multipoint geometry is created, then change the symbol
           // for the graphic
-          if (evt.geometry.type === "multipoint") {
+          if (evt.geometry.type === 'multipoint') {
             evt.graphic.symbol = {
-              type: "simple-marker",
-              style: "square",
-              color: "green",
-              size: "16px",
+              type: 'simple-marker',
+              style: 'square',
+              color: 'green',
+              size:  '16px',
               outline: {
                 color: [255, 255, 255],
                 width: 3
@@ -498,7 +500,7 @@ export class MapService {
       }
 
 
-    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]): Promise<EsriWrapper<__esri.MapView>> {
+    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired setMapLayers() in MapService');
         const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
 
@@ -1664,7 +1666,59 @@ export class MapService {
                 }
             }
         });
-      }
+    }
+
+    async callTradeArea(){
+        console.log('callTradeArea fired::');
+        if ( MapService.tradeAreaInfoMap.has('miles')){
+          console.log('callTradeArea has keys::');
+          const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
+          let milesList: number[] = [];
+         
+          const lyrName = tradeAreaMap.get('lyrName');
+          if (lyrName.startsWith('Site -')){
+            await this.removeSubLayer('Site -', MapService.SitesGroupLayer);
+          }
+          if (lyrName.startsWith('Competitor -')){
+            await this.removeSubLayer(lyrName, MapService.CompetitorsGroupLayer);
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeEach'){
+              milesList = tradeAreaMap.get('miles');
+              //let graphicList: __esri.Graphic[];
+              const max = Math.max(...milesList);
+              for (const miles of milesList){
+                const kmsMereEach = miles / 0.62137;
+                await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                .then(res => {
+                  //graphicList = res;
+                  if (max == miles){
+                    this.selectCentroid(res);
+                  }  
+                });
+              }
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+               await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                  .then(res => {
+                      this.selectCentroid(res);
+                  });
+            }
+          if (tradeAreaMap.get('mergeType') === 'NoMerge'){
+              milesList = tradeAreaMap.get('miles');
+              for (const miles of milesList){
+                   const kmsNomerge = miles / 0.62137;
+                   for (const point of MapService.pointsArray) {
+                      await this.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+                   }
+              }
+          }
+       }
+    }
+
+    public removePoint(point: Points){
+        
+    }
+
 }
 
 

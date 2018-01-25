@@ -258,7 +258,10 @@ export class TradeareaDefineComponent implements OnInit {
                 const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
                 if (max != null) {
                     this.kms = max / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
+                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor)
+                    .then(res => {
+                        this.mapService.selectCentroid(res);
+                    });
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + max + lyrNme);
                     MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
                     MapService.tradeAreaInfoMap.set('milesMax', this.kms);
