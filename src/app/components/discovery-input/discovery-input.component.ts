@@ -1,10 +1,11 @@
+import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
 
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
 //import {HttpClientModule} from '@angular/common/http';  // replaces previous Http service
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Pipe, PipeTransform, HostBinding} from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 
@@ -36,14 +37,20 @@ export class DiscoveryInputComponent implements OnInit
    selectedCategory: Category;
    
    analysisLevels: SelectItem[];
-   selectedAnalysisLevel: string;
+   selectedAnalysisLevel: SelectItem;
+
+   seasons: SelectItem[];
+   selectedSeason: String;
    
    summer: boolean = true;
+
+   @HostBinding('class.red') isRed = false;
+
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impRadLookupService: ImpRadLookupService)
+   constructor(public impRadLookupService: ImpRadLookupService, private appState: AppState)
    {
       this.products = [
          {productName: 'Display Advertising',         productCode: 'SM Insert'},
@@ -80,17 +87,29 @@ export class DiscoveryInputComponent implements OnInit
          ];
 
       this.analysisLevels = [
-         {label: 'Atz', value: 'ATZ'},
-         {label: 'Zip', value: 'ZIP'},
-         {label: 'Pcr', value: 'PCR'}
+         {label: 'ATZ', value: 'ATZ'},
+         {label: 'ZIP', value: 'ZIP'},
+         {label: 'PCR', value: 'PCR'}
       ];
-      this.selectedAnalysisLevel = this.analysisLevels[1].value;
 
+      this.seasons = [
+         {label: 'Summer', value: 'SUMMER'},
+         {label: 'Winter', value: 'WINTER'}
+      ];
+      
       console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       console.log('DiscoveryInputComponent constructed');
    }
 
-   ngOnInit() {
+   ngOnInit()
+   {
+      // Set default values
+      this.selectedAnalysisLevel = this.analysisLevels[0];
+      this.selectedSeason = this.seasons[1].value;
+
+      this.appState.isRed
+          .subscribe(redState => this.isRed = redState);
+
       /*  Currently disabled in favor of hard coded categories until we identify the true source
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
@@ -137,4 +156,15 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedRadLookup = null;
       }
    }
+
+/*   public onChangeRound(event: any)
+   {
+      this.cur1 =  Number(parseFloat(event).toFixed(2)); // parseFloat(this.cur1).toFixed(2); //  Math.round(this.cur1 * 100) / 100;
+      console.log('onChangeRound: ' + event + ' = ' + this.cur1);
+   }*/
+
+   toggleRed() {
+      console.log('appState.toggleRed() - ' + this.isRed);
+      this.appState.toggleRed();
+    }
 }

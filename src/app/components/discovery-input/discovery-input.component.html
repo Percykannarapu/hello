@@ -12,16 +12,28 @@
                   [disabled]="radDisabled" [style]="{'width':'250px'}"></p-dropdown>
    </div> -->
    <div class="ui-g-12">
-      <p-dropdown [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name" 
+      <p-dropdown #categorySelector
+                  [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name" 
                   placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
                   [style]="{'width':'250px'}"></p-dropdown>
    </div>
+
    <div class="ui-g-12">
-      <p-selectButton [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel"></p-selectButton>
-      <span style="padding-left:21px">
-      <p-toggleButton [(ngModel)]="summer" onLabel="Summer" offLabel="Winter"></p-toggleButton>
-   </span>
+      <p-dropdown #analysisLevelSelector
+                  [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel" optionLabel="label" 
+                  placeholder="Select an Analysis Level" 
+                  [style]="{'width':'250px'}"></p-dropdown>
    </div>
+   
+   <div class="ui-g-12">
+      <div class="ui-placeholder">
+         <label>Counts</label>
+      </div>
+      <div>
+         <p-selectButton id="seasonsSelect" [options]="seasons" [(ngModel)]="selectedSeason" placeholder="Counts"></p-selectButton>
+      </div>
+   </div>
+
    <div class="ui-g-12">
       <span class="md-inputfield">
           <input type="text" pInputText>
@@ -40,4 +52,9 @@
           <label> Circ Budget</label>
       </span>
    </div>
+
+   <!-- <div class="ui-g-12">
+      <h1>Hello Data Store!</h1>
+      <button (click)="toggleRed()">Toggle Red</button>   
+   </div> -->
 </div>
