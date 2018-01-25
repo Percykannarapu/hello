@@ -185,6 +185,7 @@ export class GeocoderComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    popupTemplate.title = `Sites`,
     popupTemplate.content =
       `<table>
     <tbody>

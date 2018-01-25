@@ -255,7 +255,7 @@ export class BusinessSearchComponent implements OnInit {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
         console.log('long: x', business.x + 'lat: y', business.y);
-
+        popupTemplate.title = `${selector}`,
         popupTemplate.content = 
           `<table>
           <tbody>
