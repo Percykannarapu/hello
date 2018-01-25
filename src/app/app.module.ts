@@ -8,6 +8,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
 import {AppConfig} from './app.config';
 import {AppRoutes} from './app.routes';
+import {AppState} from './app.state';
+
 import 'rxjs/add/operator/toPromise';
 
 import {AccordionModule} from 'primeng/primeng';
@@ -266,7 +268,8 @@ import {RestDataService} from './val-modules/common/services/restdata.service';
         CarService, CountryService, EventService, NodeService,
         EsriLoaderService, GfGeoService, MapService, RestDataService,
         // InMemoryStubService,
-        AmSiteService, MetricService, EsriModules, EsriLayerService
+        AmSiteService, MetricService, EsriModules, EsriLayerService,
+        AppState
     ],
     bootstrap: [AppComponent]
 })
