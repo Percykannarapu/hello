@@ -62,7 +62,7 @@ export class GeocoderComponent implements OnInit {
 
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
-  public pointsArray: Points[] = [];
+  //public pointsArray: Points[] = []; // moved to mapservices
 
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
@@ -163,11 +163,11 @@ export class GeocoderComponent implements OnInit {
       const points = new Points();
       points.latitude = geocodingResponse.latitude;
       points.longitude = geocodingResponse.longitude;
-      this.pointsArray.push(points);
+      MapService.pointsArray.push(points);
     }
     if (display) {
       this.addSitesToMap(amSites);
-      this.callTradeArea();
+      this.mapService.callTradeArea();
     }
     return amSites;
   }
@@ -499,65 +499,15 @@ export class GeocoderComponent implements OnInit {
           const points = new Points();
           points.latitude = geocodingResponseList[0].latitude;
           points.longitude = geocodingResponseList[0].longitude;
-          this.pointsArray.push(points);
+          MapService.pointsArray.push(points);
           
           amSites.push(amSite);
      // }
     }
     if (display) {
       this.addSitesToMap(amSites);
-      this.callTradeArea();
+      this.mapService.callTradeArea();
     }
     return amSites;
-  }
-
-   async callTradeArea(){
-    console.log('callTradeArea fired::');
-    if ( MapService.tradeAreaInfoMap.has('miles')){
-      console.log('callTradeArea has keys::');
-      const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
-      let milesList: number[] = [];
-     
-      const lyrName = tradeAreaMap.get('lyrName');
-      if (lyrName.startsWith('Site -')){
-         await  this.removeSubLayer('Site -', MapService.SitesGroupLayer);
-      }
-      if (lyrName.startsWith('Competitor -')){
-           this.removeSubLayer(lyrName, MapService.CompetitorsGroupLayer);
-      }
-      if (tradeAreaMap.get('mergeType') === 'MergeEach'){
-          milesList = tradeAreaMap.get('miles');
-          for (const miles of milesList){
-            const kmsMereEach = miles / 0.62137;
-            this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
-          }
-      }
-      if (tradeAreaMap.get('mergeType') === 'MergeAll'){
-          this.mapService.bufferMergeEach(this.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
-      }
-      if (tradeAreaMap.get('mergeType') === 'NoMerge'){
-          milesList = tradeAreaMap.get('miles');
-          for (const miles of milesList){
-               const kmsNomerge = miles / 0.62137;
-               for (const point of this.pointsArray) {
-                  await this.mapService.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
-               }
-          }
-      }
-    }
-  }
-
-  public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer){
-    this.mapService.getAllFeatureLayers().then(list => {
-        for (const layer of list){
-            if (layer.title.startsWith(deleteLayerName)) {
-                groupLayer.remove(layer);
-                MapService.layers.delete(layer); 
-                MapService.layerNames.delete(layer.title);
-                this.mapService.getMapView().map.remove(layer);
-               // mapView.map.remove(layer);
-            }
-        }
-    });
   }
 }

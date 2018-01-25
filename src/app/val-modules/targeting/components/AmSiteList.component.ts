@@ -65,6 +65,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    {
       console.log('Removing site: ' + site);      
       this.amSiteService.remove(site);
+     // MapService.pointsArray.
    }
    
    getAmSites()
