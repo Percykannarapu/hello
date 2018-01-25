@@ -11,6 +11,7 @@ import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primen
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
+import { Points } from '../../../Models/Points';
 
 // Import Core Modules
 import { CONFIG } from '../../../core';
@@ -176,6 +177,13 @@ export class AmSiteService
       // Update the metrics
       this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
 
+      //update trade area and Metrics
+      const point = new Points();
+      point.latitude = site.ycoord;
+      point.longitude = site.xcoord;
+      const i = MapService.pointsArray.indexOf(point);
+      const removedpoint = MapService.pointsArray.splice(i, 1);       
+      this.mapService.callTradeArea();
       // Notifiy Observers
       this.subject.next(site);
    }

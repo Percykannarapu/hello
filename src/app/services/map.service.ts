@@ -13,6 +13,7 @@ import { SelectItem } from 'primeng/primeng';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriLayerService } from './esri-layer.service';
 
+
 // import mapFunctions enum
 import { mapFunctions } from '../app.component';
 
@@ -37,7 +38,10 @@ export class MapService {
     public static selectedCentroidObjectIds: number[] = []; //  --> will keep track of selected centroids on the map
     public static hhDetails: number = 0;  // --> will keep track of houshold count
     public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
-    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>();
+    public static medianHHIncome: String = '0';
+    public static hhChildren: number = 0;
+    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
+    public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map 
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups; //  <- returns error;
@@ -113,7 +117,7 @@ export class MapService {
     public async getMap() : Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
-        };
+        }
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, GroupLayer, Basemap] = await loader.loadModules([
             'esri/Map',
@@ -304,12 +308,12 @@ export class MapService {
   
           // if multipoint geometry is created, then change the symbol
           // for the graphic
-          if (evt.geometry.type === "multipoint") {
+          if (evt.geometry.type === 'multipoint') {
             evt.graphic.symbol = {
-              type: "simple-marker",
-              style: "square",
-              color: "green",
-              size: "16px",
+              type: 'simple-marker',
+              style: 'square',
+              color: 'green',
+              size:  '16px',
               outline: {
                 color: [255, 255, 255],
                 width: 3
@@ -498,7 +502,7 @@ export class MapService {
       }
 
 
-    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]): Promise<EsriWrapper<__esri.MapView>> {
+    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired setMapLayers() in MapService');
         const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
 
@@ -1465,8 +1469,12 @@ export class MapService {
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
+                MapService.medianHHIncome = '0';
+                MapService.hhChildren = 0;
                 this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
                 this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
@@ -1480,6 +1488,8 @@ export class MapService {
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
                                     MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+                                    MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.CL2I0O;
+                                    MapService.hhChildren = polyFeatureSet.features[i].attributes.CL0C00;
                                     polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID));
                                     MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
                                }
@@ -1489,6 +1499,8 @@ export class MapService {
                         this.updateFeatureLayer(polyGraphics, 'Zip - polygon selection');
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '$'));
+                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
                     });
                 });
             }
@@ -1623,8 +1635,12 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
+                            //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
                             this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                            //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
                         }
                 });
@@ -1664,7 +1680,59 @@ export class MapService {
                 }
             }
         });
-      }
+    }
+
+    async callTradeArea(){
+        console.log('callTradeArea fired::');
+        if ( MapService.tradeAreaInfoMap.has('miles')){
+          console.log('callTradeArea has keys::');
+          const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
+          let milesList: number[] = [];
+         
+          const lyrName = tradeAreaMap.get('lyrName');
+          if (lyrName.startsWith('Site -')){
+            await this.removeSubLayer('Site -', MapService.SitesGroupLayer);
+          }
+          if (lyrName.startsWith('Competitor -')){
+            await this.removeSubLayer(lyrName, MapService.CompetitorsGroupLayer);
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeEach'){
+              milesList = tradeAreaMap.get('miles');
+              //let graphicList: __esri.Graphic[];
+              const max = Math.max(...milesList);
+              for (const miles of milesList){
+                const kmsMereEach = miles / 0.62137;
+                await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                .then(res => {
+                  //graphicList = res;
+                  if (max == miles){
+                    this.selectCentroid(res);
+                  }  
+                });
+              }
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+               await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                  .then(res => {
+                      this.selectCentroid(res);
+                  });
+            }
+          if (tradeAreaMap.get('mergeType') === 'NoMerge'){
+              milesList = tradeAreaMap.get('miles');
+              for (const miles of milesList){
+                   const kmsNomerge = miles / 0.62137;
+                   for (const point of MapService.pointsArray) {
+                      await this.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+                   }
+              }
+          }
+       }
+    }
+
+    public removePoint(point: Points){
+        
+    }
+
 }
 
 

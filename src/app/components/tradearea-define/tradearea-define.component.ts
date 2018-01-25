@@ -33,7 +33,6 @@ export class TradeareaDefineComponent implements OnInit {
     competitorsMap: Map<string, string> = new Map<string, string>();
     sitesMap: Map<string, string> = new Map<string, string>();
 
-
     public tradeAreaMergeTypes: SelectItem[];
     public selectedMergeTypes: string;
     public displayDBSpinner: boolean = false;
@@ -56,7 +55,6 @@ export class TradeareaDefineComponent implements OnInit {
 
     }
 
-
     public async drawBuffer() {
         console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
         if (this.ta1Miles === undefined)
@@ -65,8 +63,7 @@ export class TradeareaDefineComponent implements OnInit {
             this.ta2Miles = 0;
         if (this.ta3Miles === undefined)
             this.ta3Miles = 0;
-        //show the spinner while we do our work
-        this.displayDBSpinner = true;
+        
         const lyrNme: string = ' Mile Trade Area';
 
         let meTitle = 'Site - ';
@@ -146,7 +143,7 @@ export class TradeareaDefineComponent implements OnInit {
         }
 
         this.milesList = [];
-
+        //this.messageService.clear();
         if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
             let isValid = false;
             ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
@@ -156,24 +153,17 @@ export class TradeareaDefineComponent implements OnInit {
             });
             if (isValid) {
                 //message
-                this.messageService.clear();
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.` });
-
-                //hide the spinner after drawing buffer
-                this.displayDBSpinner = false;
+                
             }
             
             else if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles) {
-                this.messageService.clear();
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                //hide the spinner after drawing buffer
-                this.displayDBSpinner = false;
+
             }
             else if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
-                this.messageService.clear();
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                //hide the spinner after drawing buffer
-                this.displayDBSpinner = false;
+
             }
             else {
                 if (this.ta1Miles != null && this.checked1) {
@@ -195,10 +185,8 @@ export class TradeareaDefineComponent implements OnInit {
                 if (this.ta1Miles == null) { this.ta1Miles = 0; }
             }
         } else {
-            this.messageService.clear();
             this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `Please select at least one trade area to apply` });
-            //hide the spinner after drawing buffer
-            this.displayDBSpinner = false;
+            
         }
 
         try {
@@ -250,8 +238,8 @@ export class TradeareaDefineComponent implements OnInit {
                 } else {
                     this.displayTradeAreaError('Competitor');
                 }
-                //hide the spinner after drawing buffer
-                this.displayDBSpinner = false;
+                // hide the spinner after drawing buffer
+                // this.displayDBSpinner = false;
             }
             if (mergeAllBool) {
                 console.log('inside merge All');
@@ -268,24 +256,20 @@ export class TradeareaDefineComponent implements OnInit {
             } else if (mergeEachBool) {
                 console.log('inside merge Each');
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-                let graphicList: __esri.Graphic[];
-                const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
-                
+
+                //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
-                          .then(res => {
-                            graphicList = res;
-                          });
-                    if (max == miles1){
-                        this.mapService.selectCentroid(graphicList);
-                    }         
+                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                 }
+                //MapService.SitesGroupLayer.layers.reverse();
                 MapService.tradeAreaInfoMap.set('mergeType', 'MergeEach');
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
                 MapService.tradeAreaInfoMap.set('color', color);
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+
+                // }
             } else {
                 //var meTitle = 'Trade Area ';
                 console.log('About to draw trade area circles');
@@ -309,14 +293,18 @@ export class TradeareaDefineComponent implements OnInit {
         } catch (ex) {
             console.error(ex);
         }
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
+        
     }
 
-    public async DBSpinner(){
-        //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
+    public onApplyBtnClick() {
+        //Show the DBSpinner on Apply
+        this.displayDBSpinner = true;
+        this.drawBuffer().then(() => {
+            //Hide after 
+            this.displayDBSpinner = false;
+        });
     }
+    
     public async manageIcons(eventVal: string, taType: string) {
         console.log('manageIcons fired:: ');
         if (taType === 'ta1miles') {
@@ -328,6 +316,9 @@ export class TradeareaDefineComponent implements OnInit {
                 this.checked1 = true;
             } else if (!this.editedta1 && !this.ta1Miles) {
                 this.checked1 = false;
+                this.editedta1 = false;
+            }
+            else if (this.editedta1) {
                 this.editedta1 = false;
             }
         }
@@ -342,6 +333,9 @@ export class TradeareaDefineComponent implements OnInit {
                 this.checked2 = false;
                 this.editedta2 = false;
             }
+            else if (this.editedta2) {
+                this.editedta2 = false;
+            }
         }
         if (taType === 'ta3miles') {
             if (this.editedta3 && !this.ta3Miles) {
@@ -352,6 +346,9 @@ export class TradeareaDefineComponent implements OnInit {
                 this.checked3 = true;
             } else if (!this.editedta3 && !this.ta3Miles) {
                 this.checked3 = false;
+                this.editedta3 = false;
+            }
+            else if (this.editedta3) {
                 this.editedta3 = false;
             }
         }
@@ -429,7 +426,7 @@ export class TradeareaDefineComponent implements OnInit {
         await this.mapService.removeMapLayers();
     }
     private displayTradeAreaError(type) {
-        this.messageService.clear();
+        
         this.messageService.add({ severity: 'error', summary: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s`});
     }
 }
