@@ -3,27 +3,26 @@
  ** Generated from VAL_ENTITY_GEN - v2.0
  **/
 
+import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
-import { ImpGeofootprintSite } from './ImpGeofootprintSite';
 import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintTradeArea
 {
-   public gtaId:                    number;                        /// Primary key, uniquely identifying a trade areas row
-   public taNumber:                 number;                        /// Trade area number
-   public taName:                   string;                        /// Trade area name
-   public taRadiu:                  number;                        /// Trade area radius
-   public taMinHhc:                 number;                        /// Trade area minimum hhc
-   public taUseMinHhcInd:           number;                        /// Use minimum hhc indicator
-   public taType:                   string;                        /// Trade area type (RADIUS, GEO_LIST, ...)
-   public taOverrideInd:            number;                        /// Trade area override indicator
-   public taNameWebDisplay:         string;
+   public gtaId:                        number;                        /// Primary key, uniquely identifying a trade areas row
+   public taNumber:                     number;                        /// Trade area number
+   public taName:                       string;                        /// Trade area name
+   public taRadiu:                      number;                        /// Trade area radius
+   public taMinHhc:                     number;                        /// Trade area minimum hhc
+   public taUseMinHhcInd:               number;                        /// Use minimum hhc indicator
+   public taType:                       string;                        /// Trade area type (RADIUS, GEO_LIST, ...)
+   public taOverrideInd:                number;                        /// Trade area override indicator
 
    // IMPOWER.IMP_GEOFOOTPRINT_TRADE_AREAS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------------------
-   public cgmId:                    ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-   public gsId:                     ImpGeofootprintSite;           /// Geofootprint Sites table
-   public projectId:                ImpProject;                    /// Captures Project information from the UI
+   public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
+   public impGeofootprintMaster:        ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
+   public impProject:                   ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpGeofootprintTradeArea | {} = {}) {
@@ -39,15 +38,14 @@ export class ImpGeofootprintTradeArea
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['gtaId',                     'number'],
-         ['taNumber',                  'number'],
-         ['taName',                    'string'],
-         ['taRadiu',                   'number'],
-         ['taMinHhc',                  'number'],
-         ['taUseMinHhcInd',            'number'],
-         ['taType',                    'string'],
-         ['taOverrideInd',             'number'],
-         ['taNameWebDisplay',          'string']
+         ['gtaId',                         'number'],
+         ['taNumber',                      'number'],
+         ['taName',                        'string'],
+         ['taRadiu',                       'number'],
+         ['taMinHhc',                      'number'],
+         ['taUseMinHhcInd',                'number'],
+         ['taType',                        'string'],
+         ['taOverrideInd',                 'number']
          ]);
    }
 
@@ -61,9 +59,9 @@ export class ImpGeofootprintTradeArea
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['cgmId',                     'ImpGeofootprintMaster'],
-         ['gsId',                      'ImpGeofootprintSite'],
-         ['projectId',                 'ImpProject']
+         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
+         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
+         ['impProject',                    'ImpProject']
          ]);
    }
 

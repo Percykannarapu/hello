@@ -1,29 +1,33 @@
-/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS
+/** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS
  **
  ** Generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
+import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
+import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
+import { ImpProject } from './ImpProject';
 
-export class ImpClientPref
+export class ImpGeofootprintLocAttrib
 {
-   public clientPrefId:                number;                    /// Primary Key
+   public locAttributeId:              number;                        /// Primary Key
    public createUser:                  number;
    public createDate:                  Date;
    public modifyUser:                  number;
    public modifyDate:                  Date;
-   public clientIdentifierId:          number;
    public attributeCode:               string;
    public attributeType:               string;
    public attributeValue:              string;
+   public formatMask:                  string;
    public isActive:                    number;
 
-   // IMPOWER.IMP_CLIENT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
-   // -----------------------------------------------------------
-   public clientIdentifierType:        ClientIdentifierType;      /// Cbx Client Identifier Types
+   // IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS - MANY TO ONE RELATIONSHIP MEMBERS
+   // -----------------------------------------------------------------------
+   public impGeofootprintLocation:     ImpGeofootprintLocation;       /// Geofootprint Locations table
+   public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
+   public impProject:                  ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientPref | {} = {}) {
+   constructor(data: ImpGeofootprintLocAttrib | {} = {}) {
       Object.assign(this, data);
    }
 
@@ -36,15 +40,15 @@ export class ImpClientPref
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['clientPrefId',                 'number'],
+         ['locAttributeId',               'number'],
          ['createUser',                   'number'],
          ['createDate',                   'Date'],
          ['modifyUser',                   'number'],
          ['modifyDate',                   'Date'],
-         ['clientIdentifierId',           'number'],
          ['attributeCode',                'string'],
          ['attributeType',                'string'],
          ['attributeValue',               'string'],
+         ['formatMask',                   'string'],
          ['isActive',                     'number']
          ]);
    }
@@ -59,7 +63,9 @@ export class ImpClientPref
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',     'ClientIdentifierType']
+         ['impGeofootprintLocation',      'ImpGeofootprintLocation'],
+         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
+         ['impProject',                   'ImpProject']
          ]);
    }
 

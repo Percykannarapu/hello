@@ -1,21 +1,21 @@
-/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_SITES
+/** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOCATIONS
  **
  ** Generated from VAL_ENTITY_GEN - v2.0
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { ImpClientSiteType } from './ImpClientSiteType';
+import { ImpClientLocationType } from './ImpClientLocationType';
 
-export class ImpClientSite
+export class ImpClientLocation
 {
-   public clientSiteId:                 number;                      /// Primary Key
+   public clientLocationId:             number;                       /// Primary Key
    public createUser:                   number;
    public createDate:                   Date;
    public modifyUser:                   number;
    public modifyDate:                   Date;
    public clientIdentifierId:           number;
-   public siteNumber:                   number;
-   public siteName:                     string;
+   public locationNumber:               number;
+   public locationName:                 string;
    public groupName:                    string;
    public addressKey:                   string;
    public addressStyle:                 string;
@@ -23,6 +23,10 @@ export class ImpClientSite
    public latitude:                     number;
    public longitude:                    number;
    public country:                      string;
+   public origAddress1:                 string;
+   public origCity:                     string;
+   public origState:                    string;
+   public origPostalCode:               string;
    public address1:                     string;
    public address2:                     string;
    public address3:                     string;
@@ -48,15 +52,18 @@ export class ImpClientSite
    public addressEffectiveDate:         Date;
    public addressExpirationDate:        Date;
    public addressErrorCode:             string;
+   public geocoderMatchCode:            string;
+   public geocoderLocationCode:         string;
+   public recordStatusCode:             string;
    public isActive:                     number;
 
-   // IMPOWER.IMP_CLIENT_SITES - MANY TO ONE RELATIONSHIP MEMBERS
-   // -----------------------------------------------------------
-   public clientIdentifierTypeCode:     ClientIdentifierType;        /// Cbx Client Identifier Types
-   public clientSiteTypeCode:           ImpClientSiteType;           /// Client Library - Client Site Types (CLIENT, COMPETITOR etc.)
+   // IMPOWER.IMP_CLIENT_LOCATIONS - MANY TO ONE RELATIONSHIP MEMBERS
+   // ---------------------------------------------------------------
+   public clientIdentifierType:         ClientIdentifierType;         /// Cbx Client Identifier Types
+   public impClientLocationType:        ImpClientLocationType;        /// Client Library - Client Location Types (CLIENT, COMPETITOR etc.)
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientSite | {} = {}) {
+   constructor(data: ImpClientLocation | {} = {}) {
       Object.assign(this, data);
    }
 
@@ -69,14 +76,14 @@ export class ImpClientSite
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['clientSiteId',                  'number'],
+         ['clientLocationId',              'number'],
          ['createUser',                    'number'],
          ['createDate',                    'Date'],
          ['modifyUser',                    'number'],
          ['modifyDate',                    'Date'],
          ['clientIdentifierId',            'number'],
-         ['siteNumber',                    'number'],
-         ['siteName',                      'string'],
+         ['locationNumber',                'number'],
+         ['locationName',                  'string'],
          ['groupName',                     'string'],
          ['addressKey',                    'string'],
          ['addressStyle',                  'string'],
@@ -84,6 +91,10 @@ export class ImpClientSite
          ['latitude',                      'number'],
          ['longitude',                     'number'],
          ['country',                       'string'],
+         ['origAddress1',                  'string'],
+         ['origCity',                      'string'],
+         ['origState',                     'string'],
+         ['origPostalCode',                'string'],
          ['address1',                      'string'],
          ['address2',                      'string'],
          ['address3',                      'string'],
@@ -109,6 +120,9 @@ export class ImpClientSite
          ['addressEffectiveDate',          'Date'],
          ['addressExpirationDate',         'Date'],
          ['addressErrorCode',              'string'],
+         ['geocoderMatchCode',             'string'],
+         ['geocoderLocationCode',          'string'],
+         ['recordStatusCode',              'string'],
          ['isActive',                      'number']
          ]);
    }
@@ -124,7 +138,7 @@ export class ImpClientSite
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
          ['clientIdentifierTypeCode',      'ClientIdentifierType'],
-         ['clientSiteTypeCode',            'ImpClientSiteType']
+         ['clientLocationTypeCode',        'ImpClientLocationType']
          ]);
    }
 

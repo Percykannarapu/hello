@@ -532,7 +532,7 @@ export class MapService {
            '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
          ];
          const atz_layerids = [
-           '14821e583a5f4ff5b75304c16081b25a', // ATZ_Top_Vars
+           'd3bf2b2a2a0a46f5bf10e8c6270767da', // ATZ_Top_Vars
            '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
            '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars 
            'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
