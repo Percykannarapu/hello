@@ -56,6 +56,7 @@ export class TradeareaDefineComponent implements OnInit {
     }
 
     public async drawBuffer() {
+        this.messageService.clear();
         console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
         if (this.ta1Miles === undefined)
             this.ta1Miles = 0;
@@ -143,7 +144,7 @@ export class TradeareaDefineComponent implements OnInit {
         }
 
         this.milesList = [];
-        //this.messageService.clear();
+        this.messageService.clear();
         if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
             let isValid = false;
             ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
@@ -301,12 +302,15 @@ export class TradeareaDefineComponent implements OnInit {
         this.displayDBSpinner = true;
         let promises: Promise<void>[];
         promises = [];
+        
         promises.push(this.drawBuffer());
+
         Promise.all(promises)
             .then(() => {
                 //Show the DBSpinner on Apply
                 this.displayDBSpinner = false;
             });
+
 
     }
 
@@ -431,7 +435,7 @@ export class TradeareaDefineComponent implements OnInit {
         await this.mapService.removeMapLayers();
     }
     private displayTradeAreaError(type) {
-        this.messageService.add({ severity: 'error', summary: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s` });
+        this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s`});
         this.removeCheck();
 
     }
