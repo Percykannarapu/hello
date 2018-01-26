@@ -251,7 +251,10 @@ export class TradeareaDefineComponent implements OnInit {
                 const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
                 if (max != null) {
                     this.kms = max / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor);
+                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor)
+                        .then(res => {  
+                            this.mapService.selectCentroid(res);
+                        });        
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + max + lyrNme);
                     MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
                     MapService.tradeAreaInfoMap.set('milesMax', this.kms);
@@ -261,12 +264,19 @@ export class TradeareaDefineComponent implements OnInit {
             } else if (mergeEachBool) {
                 console.log('inside merge Each');
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
-
+                let graphicList: __esri.Graphic[];
+                const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);    
 
                 //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId);
+                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
+                        .then(res => {  
+                            graphicList = res;
+                        });   
+                    if (max == miles1){    
+                        this.mapService.selectCentroid(graphicList);
+                    }   
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                 }
                 //MapService.SitesGroupLayer.layers.reverse();
