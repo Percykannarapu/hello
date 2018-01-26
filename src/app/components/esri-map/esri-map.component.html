@@ -11,7 +11,7 @@
       <button class="action-button esri-icon-map-pin"       id="pointButton"    type="button" title="Draw point" (click)="this.mapService.drawPointButton()"></button>
       <button class="action-button esri-icon-polyline"      id="polylineButton" type="button" title="Draw polyline" (click)="this.mapService.drawLineButton()"></button>
       <button class="action-button esri-icon-polygon"       id="polygonButton"  type="button" title="Draw polygon" (click)="this.mapService.drawPolygonButton()"></button>
-      <button class="action-button esri-icon-trash"         id="resetBtn"       type="button" title="Clear graphics" (click)="this.mapService.resetBtn()"></button>
+      <button class="action-button esri-icon-trash"         id="resetBtn"       type="button" title="Clear graphics" (click)="this.mapService.removeGraphics()"></button>
    </div>
    </div>
    <div #mapViewNode (click)="mapClick()"></div> 
