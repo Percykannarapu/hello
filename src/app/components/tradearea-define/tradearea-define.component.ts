@@ -157,6 +157,11 @@ export class TradeareaDefineComponent implements OnInit {
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.` });
                 this.removeCheck();
             }
+            else if (this.ta1Miles == 0 && this.checked1 || this.ta2Miles == 0 && this.checked2 || this.ta3Miles == 0 && this.checked3){
+                //message
+                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.` });
+                this.removeCheck();
+            }
             else {
                 if (this.ta1Miles != null && this.checked1) {
                     this.milesList.push(this.ta1Miles);
