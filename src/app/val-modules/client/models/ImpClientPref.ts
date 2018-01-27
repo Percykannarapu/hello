@@ -20,7 +20,7 @@ export class ImpClientPref
 
    // IMPOWER.IMP_CLIENT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------
-   public clientIdentifierTypeCode:    ClientIdentifierType;      /// Cbx Client Identifier Types
+   public clientIdentifierType:        ClientIdentifierType;      /// Cbx Client Identifier Types
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpClientPref | {} = {}) {

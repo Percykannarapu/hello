@@ -1,16 +1,21 @@
+import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
 
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
 //import {HttpClientModule} from '@angular/common/http';  // replaces previous Http service
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Pipe, PipeTransform, HostBinding} from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 
 interface Product {
    productName: string;
    productCode: string;
+}
+
+interface Category {
+   name: string;
 }
 
  @Component({
@@ -27,13 +32,25 @@ export class DiscoveryInputComponent implements OnInit
    radData: ImpRadLookup[];
    selectedRadLookup: ImpRadLookup;
    radDisabled: boolean = true;
+
+   categories: Category[];
+   selectedCategory: Category;
    
    analysisLevels: SelectItem[];
-   selectedAnalysisLevel: string;
-   
-   winter: boolean = true;
+   selectedAnalysisLevel: SelectItem;
 
-   constructor(public impRadLookupService: ImpRadLookupService)
+   seasons: SelectItem[];
+   selectedSeason: String;
+   
+   summer: boolean = true;
+
+   @HostBinding('class.red') isRed = false;
+
+
+   // -----------------------------------------------------------
+   // LIFECYCLE METHODS
+   // -----------------------------------------------------------
+   constructor(public impRadLookupService: ImpRadLookupService, private appState: AppState)
    {
       this.products = [
          {productName: 'Display Advertising',         productCode: 'SM Insert'},
@@ -46,30 +63,70 @@ export class DiscoveryInputComponent implements OnInit
          {productName: 'Red Plum Wrap',               productCode: 'SM Wrap'}
       ];
 
+      this.categories = [
+         {name: 'Auto Service/Parts'},
+         {name: 'Discount Stores'},
+         {name: 'Education'},
+         {name: 'Financial Services'},
+         {name: 'Full Service Restaurants'},
+         {name: 'Hardware_Home Improvement Ctrs'},
+         {name: 'Health and Beauty'},
+         {name: 'Healthcare'},
+         {name: 'Healthcare_Optical'},
+         {name: 'Home Furnishing_Mattress'},
+         {name: 'Home Services'},
+         {name: 'Non-profit'},
+         {name: 'Professional'},
+         {name: 'QSR Pizza'},
+         {name: 'Quick Service Restaurants'},
+         {name: 'Reminder'},
+         {name: 'Research'},
+         {name: 'Ritual'},
+         {name: 'Specialty Stores'},
+         {name: 'Telecommunications'}
+         ];
+
       this.analysisLevels = [
-         {label: 'Atz', value: 'ATZ'},
-         {label: 'Zip', value: 'ZIP'},
-         {label: 'Pcr', value: 'PCR'}
+         {label: 'ATZ', value: 'ATZ'},
+         {label: 'ZIP', value: 'ZIP'},
+         {label: 'PCR', value: 'PCR'}
       ];
-      this.selectedAnalysisLevel = this.analysisLevels[1].value;
+
+      this.seasons = [
+         {label: 'Summer', value: 'SUMMER'},
+         {label: 'Winter', value: 'WINTER'}
+      ];
+      
       console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       console.log('DiscoveryInputComponent constructed');
    }
 
-   ngOnInit() {
+   ngOnInit()
+   {
+      // Set default values
+      this.selectedAnalysisLevel = this.analysisLevels[0];
+      this.selectedSeason = this.seasons[1].value;
+
+      this.appState.isRed
+          .subscribe(redState => this.isRed = redState);
+
+      /*  Currently disabled in favor of hard coded categories until we identify the true source
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
          console.log('DiscoveryInputComponent - impRadLookupService.impRadLookups.length: ' + this.impRadLookupService.impRadLookups.length);
-         }) ;
+         }) ; */
    }
 
+   // -----------------------------------------------------------
    // UTILITY METHODS
+   // -----------------------------------------------------------
    private handleError (error: any) {
       console.error(error);
       return Observable.throw(error);
    }   
 
-   public filterRadLookups(productCode: string)
+   // Used to make categories dependent on the value in products
+   public filterCategories(productCode: string)
    {
       console.log('filterRadLookups by ' + productCode);
 
@@ -82,14 +139,16 @@ export class DiscoveryInputComponent implements OnInit
       }
    }
 
+   // -----------------------------------------------------------
    // UI CONTROL EVENTS
+   // -----------------------------------------------------------
    public onChangeProduct(event: SelectItem)
    {       
       console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');      
       if (event.value != null)
       {
          this.radDisabled = false;
-         this.filterRadLookups(event.value.productCode);
+         //this.filterCategories(event.value.productCode);
       }
       else
       {
@@ -97,4 +156,15 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedRadLookup = null;
       }
    }
+
+/*   public onChangeRound(event: any)
+   {
+      this.cur1 =  Number(parseFloat(event).toFixed(2)); // parseFloat(this.cur1).toFixed(2); //  Math.round(this.cur1 * 100) / 100;
+      console.log('onChangeRound: ' + event + ' = ' + this.cur1);
+   }*/
+
+   toggleRed() {
+      console.log('appState.toggleRed() - ' + this.isRed);
+      this.appState.toggleRed();
+    }
 }

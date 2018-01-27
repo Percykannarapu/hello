@@ -9,9 +9,10 @@ import { Points } from '../Models/Points';
 import { Query } from '@angular/core/src/metadata/di';
 
 // import primeng
-import { SelectItem } from 'primeng/primeng' as primeng;
+import { SelectItem } from 'primeng/primeng';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriLayerService } from './esri-layer.service';
+
 
 // import mapFunctions enum
 import { mapFunctions } from '../app.component';
@@ -37,7 +38,10 @@ export class MapService {
     public static selectedCentroidObjectIds: number[] = []; //  --> will keep track of selected centroids on the map
     public static hhDetails: number = 0;  // --> will keep track of houshold count
     public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
-    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>();
+    public static medianHHIncome: String = '0';
+    public static hhChildren: number = 0;
+    public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
+    public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map 
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups; 
@@ -46,6 +50,7 @@ export class MapService {
     public sideBarToggle: boolean = false;
 
     private mapInstance: __esri.Map;
+    public displayDBSpinner: boolean = false;
 
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
     }
@@ -113,7 +118,7 @@ export class MapService {
     public async getMap() : Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
-        };
+        }
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, GroupLayer, Basemap] = await loader.loadModules([
             'esri/Map',
@@ -129,6 +134,22 @@ export class MapService {
 
         }
         return this.mapInstance;
+    }
+
+    // Execute each time the "Measure Length" is clicked
+    public async measureThis() {
+        // load required modules for this method
+        const loader = EsriLoaderWrapperService.esriLoader;       
+        const [geometryEngine] = await loader.loadModules([
+            'esri/geometry/geometryEngine'
+        ]);
+
+        const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+        const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+        const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+        MapService.mapView.popup.content = MapService.mapView.popup.selectedFeature.attributes.name +
+        "<div style='background-color:DarkGray;color:white'>" + distanceStr +
+        " miles.</div>";
     }
 
     // create the MapView
@@ -149,7 +170,8 @@ export class MapService {
             Print,
             GraphicsLayer,
             SketchViewModel,
-            Graphic
+            Graphic,
+            geometryEngine
         ] = await loader.loadModules([
             'esri/views/MapView',
             'esri/layers/GroupLayer',
@@ -165,7 +187,8 @@ export class MapService {
             'esri/widgets/Print',
             'esri/layers/GraphicsLayer',
             'esri/widgets/Sketch/SketchViewModel',
-            'esri/Graphic'
+            'esri/Graphic',
+            'esri/geometry/geometryEngine'
         ]);
         const opts: __esri.MapViewProperties = {
             container: element,
@@ -292,10 +315,24 @@ export class MapService {
 
         // Event handler that fires each time an action is clicked.
         mapView.popup.on('trigger-action', function(event) {
+            // MapService.mapView.popup.content = '{*}';
+
             // Execute the measureThis() function if the measure-this action is clicked
             if (event.action.id === 'measure-this') {
-            this.measureThis();
-            }
+                // this.measureThis();
+                const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+                const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+                const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+
+                MapService.mapView.popup.content = //MapService.mapView.popup.selectedFeature.attributes.name +
+                "<div style='background-color:DarkBlue;color:white'><b>" + distanceStr +
+                " miles.</b></div>"; 
+            } 
+            
+            // Execute the selectThis() function if the select-this action is clicked
+            if (event.action.id === 'select-this') {
+                // this.selectThis();
+            } 
         });
   
         // -----------------------------------------------------------------------------------
@@ -311,13 +348,14 @@ export class MapService {
         // ***********************************************************
         this.sketchViewModel.on('draw-complete', function(evt: any) {
   
-          // if multipoint geometry is created, then change the symbol for the graphic
-          if (evt.geometry.type === "multipoint") {
+          // if multipoint geometry is created, then change the symbol
+          // for the graphic
+          if (evt.geometry.type === 'multipoint') {
             evt.graphic.symbol = {
-              type: "simple-marker",
-              style: "square",
-              color: "green",
-              size: "16px",
+              type: 'simple-marker',
+              style: 'square',
+              color: 'green',
+              size:  '16px',
               outline: {
                 color: [255, 255, 255],
                 width: 3
@@ -412,22 +450,6 @@ export class MapService {
     }
 */
 
-    // Execute each time the "Measure Length" is clicked
-    public async measureThis() {
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;       
-        const [geometryEngine] = await loader.loadModules([
-            'esri/geometry/geometryEngine'
-        ]);
-
-        const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
-        const distance: number = geometryEngine.geodesicLength(geom, 'miles');
-        const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
-        MapService.mapView.popup.content = MapService.mapView.popup.selectedFeature.attributes.name +
-        "<div style='background-color:DarkGray;color:white'>" + distanceStr +
-        " miles.</div>";
-    }
-
     // plotMarker
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
 
@@ -521,8 +543,7 @@ export class MapService {
         });
     }
 
-    // setMapLayers
-    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]): Promise<EsriWrapper<__esri.MapView>> {
+    public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired setMapLayers() in MapService');
         const Census        = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
 
@@ -544,6 +565,7 @@ export class MapService {
         ]);
 
         let popupTitle: string[];
+        let PopupTitle: string;
         let startPos: number;
         let endPos: number;
 
@@ -554,14 +576,14 @@ export class MapService {
            '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
          ];
          const atz_layerids = [
-           '14821e583a5f4ff5b75304c16081b25a', // ATZ_Top_Vars
+           'd3bf2b2a2a0a46f5bf10e8c6270767da', // ATZ_Top_Vars
            '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
            '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars 
            'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
         ];
         const pcr_layerids = [];
         const wrap_layerids = [
-           'c686977dac124e53a3438189e87aa90f'  // WRAP_Top_Vars
+           '09e5cdab538b43a4a6bd9a0d54b682a7'  // WRAP_Top_Vars
           ];
         const hh_layerids = [
             '837f4f8be375464a8971c56a0856198e', // vt layer
@@ -578,10 +600,17 @@ export class MapService {
         const measureThisAction = {
            title: 'Measure Length',
            id: 'measure-this',
-           image: 'assets/images/Measure_Distance16.png'
+           className: 'esri-icon-share'
          };
 
-        // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
+        // Add this action to the popup so it is always available in this view
+        const selectThisAction = {
+            title: 'Select Polygon',
+            id: 'select-this',
+            className: 'esri-icon-plus-circled'
+          };
+
+          // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.EsriGroupLayer.visible = false;
         MapService.EsriGroupLayer.removeAll();
 
@@ -611,14 +640,14 @@ export class MapService {
             if (element.url.indexOf('MapServer') !== -1) {
                 if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
                     MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ['*'], 
-                                                                 popupTemplate: { title: popupTitle, content: '{*}' }, actions: [measureThisAction], opacity: 0.65 }));
+                                                                 popupTemplate: { title: popupTitle, content: '{*}' }, actions: [selectThisAction, measureThisAction], opacity: 0.65 }));
                     console.log('added MapLayer:' + element.name);
                 }
             } else
                 if (element.url.indexOf('FeatureServer') !== -1) {
                     if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
                         MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ['*'], 
-                                                                         popupTemplate: { title: popupTitle, content: '{*}' },  actions: [measureThisAction], opacity: 0.65 }));
+                                                                         popupTemplate: { title: popupTitle, content: '{*}' },  actions: [selectThisAction, measureThisAction], opacity: 0.65 }));
                         console.log('added FeatureLayer:' + element.name);
                     }
                 }
@@ -643,12 +672,15 @@ export class MapService {
             all(layers)
                  .then(results => {
                  results.forEach(x => {
-                   if (x.type === 'feature') {
+                    PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                    if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
-                   }else {
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                   } else {
                     x.maxScale = 5000000;
-                   }
+                    x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
                        console.log ('adding subLayer: ' + x.portalItem.title);
@@ -673,11 +705,14 @@ export class MapService {
                 all(layers)
                  .then(results => {
                  results.forEach(x => {
+                    PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                    if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
                    } else {
                      x.maxScale = 5000000;
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.AtzGroupLayer, x.portalItem.title)) {
@@ -702,12 +737,15 @@ export class MapService {
                     all(layers)
                      .then(results => {
                      results.forEach(x => {
-                       if (x.type === 'feature') {
+                        PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                        if (x.type === 'feature') {
                          x.minScale = 5000000;
                          x.mode = FeatureLayer.MODE_AUTO;
-                       } else {
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
                          x.maxScale = 5000000;
-                       }
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        }
                        // Add Layer to Group Layer if it does not already exist
                        if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
                            console.log ('adding subLayer: ' + x.portalItem.title);
@@ -732,12 +770,15 @@ export class MapService {
                     all(layers)
                      .then(results => {
                      results.forEach(x => {
-                       if (x.type === 'feature') {
+                        PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                        if (x.type === 'feature') {
                          // x.minScale = 5000000;
                          x.mode = FeatureLayer.MODE_AUTO;
-                       } else {
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
                          x.maxScale = 5000000;
-                       }
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        }
                        // Add Layer to Group Layer if it does not already exist
                        if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
                            console.log ('adding subLayer: ' + x.portalItem.title);
@@ -762,12 +803,15 @@ export class MapService {
                         all(layers)
                          .then(results => {
                          results.forEach(x => {
-                           if (x.type === 'feature') {
+                            PopupTitle = x.portalItem.title;
+                            if (x.type === 'feature') {
                                x.minScale = 2300000;
                                x.mode = FeatureLayer.MODE_AUTO;
-                           } else {
+                               x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                            } else {
                              x.maxScale = 2300000;
-                           }
+                             x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                            }
                            // Add Layer to Group Layer if it does not already exist
                            if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
                                console.log ('adding subLayer: ' + x.portalItem.title);
@@ -793,12 +837,15 @@ export class MapService {
         all(layers)
             .then(results => {
             results.forEach(x => {
-            if (x.type === 'feature') {
+                PopupTitle = x.portalItem.title + ':  {DMA_CODE} - {DMA_NAME}';
+                if (x.type === 'feature') {
                 //x.minScale = 2300000;
                 x.mode = FeatureLayer.MODE_AUTO;
                 x.visible = false;
-             } else {
+                x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+            } else {
                 x.maxScale = 2300000;
+                x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
             }
 
             // Add Layer to Group Layer if it does not already exist
@@ -890,7 +937,8 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-
+    //hide the spinner after drawing buffer
+    this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
           g.setAttribute('parentId', parentId);
@@ -953,16 +1001,10 @@ export class MapService {
                      g.setAttribute('parentId', parentId);
                 graphicList.push(g);
             });
-            console.log('Updating feature layer: ' + title);
             await this.updateFeatureLayer(graphicList , title);
             console.log('draw buffer--------->' + graphicList.length);
-            const t0 = performance.now();
-            await this.selectCentroid(graphicList);
-            const t1 = performance.now();
-            console.log('Call to select polygon took: ' + (t1 - t0) + ' :milliseconds.');
-            console.log('completed select buffer::');
-
-       // return { val: MapService.mapView };
+            //await this.selectCentroid(graphicList);
+          return graphicList;
     }
 
     public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
@@ -1011,7 +1053,7 @@ export class MapService {
             }
         });
 
-        if (layerName.startsWith('Site')){
+        if (layerName.startsWith('Site') || layerName.startsWith('Zip')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
@@ -1022,7 +1064,7 @@ export class MapService {
             }
         }
         
-        if (layerName.startsWith('Competito')){
+        if (layerName.startsWith('Competitor')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
             if (!this.findLayerByTitle('Valassis Competitors')) {
@@ -1031,6 +1073,7 @@ export class MapService {
                 MapService.CompetitorsGroupLayer.visible = true;
             }
         }
+
         MapService.layers.add(lyr);
         MapService.layerNames.add(lyr.title);
     }
@@ -1499,12 +1542,16 @@ export class MapService {
                    // loadedFeatureLayer.renderer = f1
                 });
 
-                MapService.mapView.graphics.removeAll();
+                await  this.removeSubLayer('Zip - polygon', MapService.SitesGroupLayer);                
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                MapService.medianHHIncome = '0';
+                MapService.hhChildren = 0;
+                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
@@ -1518,14 +1565,19 @@ export class MapService {
                                if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID) ){
                                     MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+                                    MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.CL2I0O;
+                                    MapService.hhChildren = polyFeatureSet.features[i].attributes.CL0C00;
                                     polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID));
                                     MapService.selectedCentroidObjectIds.push( polyFeatureSet.features[i].attributes.OBJECTID) ;
                                }
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
-                        MapService.mapView.graphics.addMany(polyGraphics);
+                        //MapService.mapView.graphics.addMany(polyGraphics);
+                        this.updateFeatureLayer(polyGraphics, 'Zip - polygon selection');
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '$'));
+                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
                     });
                 });
             }
@@ -1660,8 +1712,12 @@ export class MapService {
                             MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
+                            //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
+                            //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
                             this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                            //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
                         }
                 });
@@ -1688,6 +1744,72 @@ export class MapService {
         });
         return fLyrList;
     }
+
+    public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer){
+        this.getAllFeatureLayers().then(list => {
+            for (const layer of list){
+                if (layer.title.startsWith(deleteLayerName)) {
+                    groupLayer.remove(layer);
+                    MapService.layers.delete(layer); 
+                    MapService.layerNames.delete(layer.title);
+                    this.getMapView().map.remove(layer);
+                   // mapView.map.remove(layer);
+                }
+            }
+        });
+    }
+
+    async callTradeArea(){
+        console.log('callTradeArea fired::');
+        if ( MapService.tradeAreaInfoMap.has('miles')){
+          console.log('callTradeArea has keys::');
+          const tradeAreaMap: Map<string, any> = MapService.tradeAreaInfoMap;
+          let milesList: number[] = [];
+         
+          const lyrName = tradeAreaMap.get('lyrName');
+          if (lyrName.startsWith('Site -')){
+            await this.removeSubLayer('Site -', MapService.SitesGroupLayer);
+          }
+          if (lyrName.startsWith('Competitor -')){
+            await this.removeSubLayer(lyrName, MapService.CompetitorsGroupLayer);
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeEach'){
+              milesList = tradeAreaMap.get('miles');
+              //let graphicList: __esri.Graphic[];
+              const max = Math.max(...milesList);
+              for (const miles of milesList){
+                const kmsMereEach = miles / 0.62137;
+                await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                .then(res => {
+                  //graphicList = res;
+                  if (max === miles){
+                    this.selectCentroid(res);
+                  }  
+                });
+              }
+          }
+          if (tradeAreaMap.get('mergeType') === 'MergeAll'){
+               await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                  .then(res => {
+                      this.selectCentroid(res);
+                  });
+            }
+          if (tradeAreaMap.get('mergeType') === 'NoMerge'){
+              milesList = tradeAreaMap.get('miles');
+              for (const miles of milesList){
+                   const kmsNomerge = miles / 0.62137;
+                   for (const point of MapService.pointsArray) {
+                      await this.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+                   }
+              }
+          }
+       }
+    }
+
+    public removePoint(point: Points){
+        
+    }
+
 }
 
 

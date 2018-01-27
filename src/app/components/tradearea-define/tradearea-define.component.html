@@ -1,5 +1,6 @@
 <div class="ui-g">
     <div class="ui-g-12">
+        
         <div class="ui-g-1">Defined for:</div>
         <div class="ui-g-1">
             <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
@@ -53,7 +54,7 @@
         <div class="ui-g-4">
             <p-selectButton id="mergeType" title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="selectedMergeTypes"></p-selectButton></div>
         <div class="ui-g-4">
-            <button (click)="drawBuffer()" pButton label="Apply"></button>
+            <button (click)="onApplyBtnClick()" pButton label="Apply"></button>
         </div>
     
     </div>
@@ -73,4 +74,4 @@
         <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>   
     </div> -->    
 </div>
-<p-growl [(value)]="growlMessages"></p-growl>
+<p-growl [(value)]="growlMessages" sticky="sticky" ></p-growl>

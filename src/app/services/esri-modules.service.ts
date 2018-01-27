@@ -14,14 +14,14 @@ export class EsriModules {
     'esri/core/lang',
   ];
 
-  public static LayerList;
-  public static Expand;
-  public static Action;
-  public static Collection;
-  public static colorRendererCreator;
-  public static histogram;
-  public static ColorSlider;
-  public static lang;
+  public static LayerList: typeof __esri.LayerList;
+  public static Expand: typeof __esri.Expand;
+  public static Action: typeof __esri.Action;
+  public static Collection: __esri.Constructor<__esri.Collection>;
+  public static colorRendererCreator: typeof __esri.color;
+  public static histogram: typeof __esri.histogram;
+  public static ColorSlider: typeof __esri.ColorSlider;
+  public static lang: typeof __esri.lang;
 
   public deferredLoad: Promise<any>;
   private m_ready: boolean = false;
@@ -45,8 +45,8 @@ export class EsriModules {
   public ready() : boolean {
     if (!this.m_ready) {
       this.deferredLoad = EsriLoaderWrapperService.esriLoader
-        .loadModules(EsriModules.names)
-        .then(m => this.cacheModules(m));
+                            .loadModules(EsriModules.names);
+      this.deferredLoad.then(m => this.cacheModules(m));
     }
     return this.m_ready;
   }

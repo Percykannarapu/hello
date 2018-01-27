@@ -77,8 +77,8 @@ export class DashboardDemoComponent implements OnInit {
         ]);
 
         this.metricMapPurple = new Map([
-            ['Median Household Income', '$50,678'],
-            ['Households with Children', '67%'],
+            ['Median Household Income', MapService.medianHHIncome.toString()],
+            ['Households with Children', MapService.hhChildren.toString()],
             ['Valassis Apio Index', '121'],
             ['Sporting Good TAP Index', '108'],
             ['Average Sales per HH', '115']
@@ -195,7 +195,6 @@ export class DashboardDemoComponent implements OnInit {
          // this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
       });
      
-
         // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
         //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);
         //    this.geofootprintGeos = geofootprintGeos;

@@ -9,20 +9,20 @@ import { ImpProductAllocation } from './ImpProductAllocation';
 
 export class ImpPpToWrapPage
 {
-   public pptwpId:                 number;                    /// Pptwp Id
-   public createUser:              number;                    /// Fk Create User
-   public createDate:              Date;                      /// Create Date
-   public modifyUser:              number;                    /// Fk Modify User
-   public modifyDate:              Date;                      /// Modify Date
-   public priority:                number;                    /// Priority
-   public rateOverride:            number;                    /// Rate Override
-   public anneRateOverride:        number;                    /// Anne Rate Override
+   public pptwpId:                  number;                    /// Pptwp Id
+   public createUser:               number;                    /// Fk Create User
+   public createDate:               Date;                      /// Create Date
+   public modifyUser:               number;                    /// Fk Modify User
+   public modifyDate:               Date;                      /// Modify Date
+   public priority:                 number;                    /// Priority
+   public rateOverride:             number;                    /// Rate Override
+   public anneRateOverride:         number;                    /// Anne Rate Override
 
    // IMPOWER.IMP_PP_TO_WRAP_PAGES - MANY TO ONE RELATIONSHIP MEMBERS
    // ---------------------------------------------------------------
-   public sfdcProductCode:         SfdcProduct;              
-   public wrapPagePositionCode:    WrapPagePosition;          /// WRAP Page Positions
-   public productAllocationId:     ImpProductAllocation;      /// Product allocations for an Advertiser_Info_Id
+   public sfdcProduct:              SfdcProduct;              
+   public wrapPagePosition:         WrapPagePosition;          /// WRAP Page Positions
+   public impProductAllocation:     ImpProductAllocation;      /// Product allocations for an Advertiser_Info_Id
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpPpToWrapPage | {} = {}) {
@@ -38,14 +38,14 @@ export class ImpPpToWrapPage
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['pptwpId',                  'number'],
-         ['createUser',               'number'],
-         ['createDate',               'Date'],
-         ['modifyUser',               'number'],
-         ['modifyDate',               'Date'],
-         ['priority',                 'number'],
-         ['rateOverride',             'number'],
-         ['anneRateOverride',         'number']
+         ['pptwpId',                   'number'],
+         ['createUser',                'number'],
+         ['createDate',                'Date'],
+         ['modifyUser',                'number'],
+         ['modifyDate',                'Date'],
+         ['priority',                  'number'],
+         ['rateOverride',              'number'],
+         ['anneRateOverride',          'number']
          ]);
    }
 
@@ -59,9 +59,9 @@ export class ImpPpToWrapPage
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['sfdcProductCode',          'SfdcProduct'],
-         ['wrapPagePositionCode',     'WrapPagePosition'],
-         ['productAllocationId',      'ImpProductAllocation']
+         ['sfdcProduct',               'SfdcProduct'],
+         ['wrapPagePosition',          'WrapPagePosition'],
+         ['impProductAllocation',      'ImpProductAllocation']
          ]);
    }
 
