@@ -47,8 +47,9 @@ export class EsriLayerSelectComponent implements OnInit {
       this.analysisLevels.push({label: 'ZIP',  value: 'ZIP'});
       this.analysisLevels.push({label: 'ATZ',  value: 'ATZ'});
       this.analysisLevels.push({label: 'PCR',  value: 'PCR'});
-      this.analysisLevels.push({label: 'HH',   value: 'HH'});
       this.analysisLevels.push({label: 'WRAP', value: 'WRAP'});
+      this.analysisLevels.push({label: 'HH',   value: 'HH'});
+      this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
       this.selectedAnalysisLevel = 'ZIP';
       this.selectedAnalysisLevels = [];
@@ -96,6 +97,10 @@ export class EsriLayerSelectComponent implements OnInit {
    checkLayers() {
      // remove groupLayers when analysis levels are not selected.
      try {   
+        if (!this.selectedAnalysisLevels.find(x => x === 'DMA'))
+             this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis DMA'));
+        if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
+             this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ZIP'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ZIP'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ATZ'))

@@ -21,12 +21,13 @@ import { mapFunctions } from '../app.component';
 export class MapService {
 
     // Group Layers
-    private static EsriGroupLayer: __esri.GroupLayer;
+    public static EsriGroupLayer: __esri.GroupLayer;
     public static ZipGroupLayer: __esri.GroupLayer;
     public static AtzGroupLayer: __esri.GroupLayer;
     public static PcrGroupLayer: __esri.GroupLayer;
     public static HHGroupLayer: __esri.GroupLayer;
     public static WrapGroupLayer: __esri.GroupLayer;
+    public static DmaGroupLayer: __esri.GroupLayer;
     public static SitesGroupLayer: __esri.GroupLayer;
     public static CompetitorsGroupLayer: __esri.GroupLayer;
 
@@ -71,6 +72,12 @@ export class MapService {
 
         MapService.ZipGroupLayer = new GroupLayer({
             title: 'Valassis ZIP',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.DmaGroupLayer = new GroupLayer({
+            title: 'Valassis DMA',
             listMode: 'show-children',
             visible: true
         });
@@ -616,13 +623,15 @@ export class MapService {
         MapService.EsriGroupLayer.visible = false;
         MapService.EsriGroupLayer.removeAll();
 
+        MapService.DmaGroupLayer.visible = false;
         MapService.ZipGroupLayer.visible = false;
         MapService.AtzGroupLayer.visible = false;
         MapService.PcrGroupLayer.visible = false;
         MapService.HHGroupLayer.visible = false;
         MapService.WrapGroupLayer.visible = false;
-        //MapService.SitesGroupLayer.visible = false;
-        //MapService.CompetitorsGroupLayer.visible = false;
+
+     // MapService.SitesGroupLayer.visible = false;
+     // MapService.CompetitorsGroupLayer.visible = false;
 
         // Esri Layers
         if (selectedLayers.length !== 0) {
@@ -666,6 +675,39 @@ export class MapService {
             // Loop through each of the selected analysisLevels
             analysisLevels.forEach((analysisLevel, index) => {
 
+            if (analysisLevel === 'DMA') {
+                // Add DMA layer IDs
+                const layers = dma_layerids.map(fromPortal);
+    
+                // Add all DMA Layers via Promise
+                all(layers)
+                        .then(results => {
+                        results.forEach(x => {
+                        PopupTitle = x.portalItem.title + ': {DMA_CODE} - {DMA_NAME}';
+                        if (x.type === 'feature') {
+                            //x.minScale = 5000000;
+                            x.mode = FeatureLayer.MODE_AUTO;
+                            x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
+                        //x.maxScale = 5000000;
+                        x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                    }
+                        // Add Layer to Group Layer if it does not already exist
+                        if (!this.findSubLayerByTitle(MapService.DmaGroupLayer, x.portalItem.title)) {
+                            console.log ('adding subLayer: ' + x.portalItem.title);
+                            MapService.DmaGroupLayer.add(x);
+                        }
+                    });
+                })
+                .catch(error => console.warn(error.message));
+    
+                    // Add DMA Group Layer if it does not already exist
+                    if (!this.findLayerByTitle('Valassis DMA')) {
+                        MapService.mapView.map.layers.add(MapService.DmaGroupLayer);
+                        MapService.layers.add(MapService.DmaGroupLayer);
+                    }
+                    MapService.DmaGroupLayer.visible = true;
+        } else
             if (analysisLevel === 'ZIP') {
             // Add ZIP layer IDs
             const layers = zip_layerids.map(fromPortal);
@@ -831,6 +873,7 @@ export class MapService {
                 }
             }); // End forEach analysisLevels
         }
+        /*
         // -------------------------------------------------------------------------------
         // Add DMA Layer if it does not exist
         // Add all DMA Layers via Promise
@@ -839,7 +882,7 @@ export class MapService {
         all(layers)
             .then(results => {
             results.forEach(x => {
-                PopupTitle = x.portalItem.title + ':  {DMA_CODE} - {DMA_NAME}';
+                PopupTitle = x.portalItem.title + ': {DMA_CODE} - {DMA_NAME}';
                 if (x.type === 'feature') {
                 //x.minScale = 2300000;
                 x.mode = FeatureLayer.MODE_AUTO;
@@ -858,8 +901,9 @@ export class MapService {
             });
         })
         .catch(error => console.warn(error.message));
-
+        */
         // -------------------------------------------------------------------------------
+        /*
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, 'Census')) {
@@ -869,6 +913,7 @@ export class MapService {
             MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
         }
         MapService.EsriGroupLayer.visible = true;
+        */
         // -------------------------------------------------------------------------------
         return { val: MapService.mapView };
     }
