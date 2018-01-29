@@ -162,6 +162,14 @@ export class TradeareaDefineComponent implements OnInit {
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.` });
                 this.removeCheck();
             }
+            else if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
+                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
+                this.removeCheck();
+            }
+            else if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles && this.checked1 && this.checked2 && this.checked3) {
+                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
+                this.removeCheck();
+            }
             else {
                 if (this.ta1Miles != null && this.checked1) {
                     this.milesList.push(this.ta1Miles);
@@ -180,15 +188,7 @@ export class TradeareaDefineComponent implements OnInit {
                 if (this.ta3Miles == null) { this.ta3Miles = 0; }
                 if (this.ta2Miles == null) { this.ta2Miles = 0; }
                 if (this.ta1Miles == null) { this.ta1Miles = 0; }
-            }
-            if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles && this.checked1 && this.checked2 && this.checked3) {
-                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                this.removeCheck();
-            }
-            if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
-                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                this.removeCheck();
-            }
+            } 
         } else {
             this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `Please select at least one trade area to apply` });
             this.removeCheck();
@@ -450,6 +450,7 @@ export class TradeareaDefineComponent implements OnInit {
         await this.mapService.removeMapLayers();
     }
     private displayTradeAreaError(type) {
+        this.messageService.clear();
         this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s`});
         this.removeCheck();
 
