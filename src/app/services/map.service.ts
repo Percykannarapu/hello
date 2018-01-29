@@ -322,11 +322,13 @@ export class MapService {
                 // this.measureThis();
                 const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
                 const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+                const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
                 const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+                const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
 
                 MapService.mapView.popup.content = //MapService.mapView.popup.selectedFeature.attributes.name +
-                "<div style='background-color:DarkBlue;color:white'><b>" + distanceStr +
-                " miles.</b></div>"; 
+                "<div style='background-color:DarkBlue;color:white'><b>" + 
+                "Length: " + distanceStr + " miles.<br>Area: " + areaStr + " square-miles.</b></div>"; 
             } 
             
             // Execute the selectThis() function if the select-this action is clicked
