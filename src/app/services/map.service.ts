@@ -1100,21 +1100,21 @@ export class MapService {
             }
         });
 
-        if (layerName.startsWith('Site') || layerName.startsWith('Zip')){
+        if (layerName.includes('Site') || layerName.startsWith('Zip')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
-            if (!this.findLayerByTitle('Valassis Sites')) {
+            if (!this.findLayerByTitle('Sites')) {
                 MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
                 MapService.layers.add(MapService.SitesGroupLayer);
                 MapService.SitesGroupLayer.visible = true;
             }
         }
         
-        if (layerName.startsWith('Competitor')){
+        if (layerName.includes('Competitor')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
-            if (!this.findLayerByTitle('Valassis Competitors')) {
+            if (!this.findLayerByTitle('Competitors')) {
                 MapService.mapView.map.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.CompetitorsGroupLayer.visible = true;

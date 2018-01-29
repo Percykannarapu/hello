@@ -215,7 +215,7 @@ export class TradeareaDefineComponent implements OnInit {
                     }
 
                     existingGraphics = (<__esri.FeatureLayer>layer).source;
-                    if (layer.title === this.selectedValue) {
+                    if (layer.title.includes(this.selectedValue.toString())) {
                         lyrTitle = layer.title;
                         existingGraphics.forEach(function (current: any) {
                             const points = new Points();
@@ -230,10 +230,10 @@ export class TradeareaDefineComponent implements OnInit {
 
             let color = null;
             let outlneColor = null;
-            if (lyrTitle === 'Sites') {
+            if (lyrTitle.includes('Sites')) {
                 color = { a: 0, r: 0, g: 0, b: 255 };
                 outlneColor = ([0, 0, 255, 2.50]);
-            } else if (lyrTitle === 'Competitors') {
+            } else if (lyrTitle.includes('Competitors')) {
                 color = { a: 0, r: 255, g: 0, b: 0 };
                 outlneColor = ([255, 0, 0, 2.50]);
             }
@@ -329,6 +329,10 @@ export class TradeareaDefineComponent implements OnInit {
 
     }
 
+    /*
+    Manage icons is fired when ever we change the values on the trade area text fields
+    Turn the flags on and off
+    */
     public async manageIcons(eventVal: string, taType: string) {
         console.log('manageIcons fired:: ');
         if (taType === 'ta1miles') {
@@ -425,7 +429,7 @@ export class TradeareaDefineComponent implements OnInit {
                 this.checked2 = true;
                 this.editedta2 = true;
             }
-            if (this.sitesMap.get('ta1Miles') != null) {
+            if (this.sitesMap.get('ta1Miles') != null) { // || this.sitesMap.get('ta1Miles') !== '0'
                 this.ta1Miles = Number(this.sitesMap.get('ta1Miles'));
                 this.checked1 = true;
                 this.editedta1 = true;
