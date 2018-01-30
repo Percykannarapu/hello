@@ -1,4 +1,4 @@
 export enum DefaultLayers {
-    SITES = 'Sites',
-    COMPETITORS = 'Competitors'
+    SITES = 'Project Sites',
+    COMPETITORS = 'Project Competitors'
 }

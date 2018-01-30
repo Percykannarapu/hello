@@ -185,6 +185,7 @@ export class GeocoderComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    popupTemplate.title = `Site`,
     popupTemplate.content =
       `<table>
     <tbody>
@@ -308,8 +309,14 @@ export class GeocoderComponent implements OnInit {
               amSiteList.push(actLocs);
               observables.push(this.geocoderService.multiplesitesGeocode(amSiteList));
             }else{
-              amSite.xcoord = csvRecord[headerPosition.lat];
-              amSite.ycoord = csvRecord[headerPosition.lon];
+              amSite.name = csvRecord[headerPosition.name];
+              amSite.address = csvRecord[headerPosition.street];
+              amSite.zip = csvRecord[headerPosition.zip];
+              amSite.state = csvRecord[headerPosition.state];
+              amSite.city = csvRecord[headerPosition.city];
+              //amSite.number = csvRecord[headerPosition.number];
+              amSite.ycoord = csvRecord[headerPosition.lat];
+              amSite.xcoord = csvRecord[headerPosition.lon];
               csvFormattedData.push({payload: amSite});
             }
     
@@ -331,7 +338,7 @@ export class GeocoderComponent implements OnInit {
               });
             }else{
             console.log('csvFormattedData length:::' + csvFormattedData.length);  
-            this.parseResponse(csvFormattedData, true);
+            this.parseCsvResponse(csvFormattedData, true);
             this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
             this.displayGcSpinner = false;
             
@@ -465,11 +472,12 @@ export class GeocoderComponent implements OnInit {
     //this.pointsArray = [];
     
     for (const restResponse of restResponses) {
-      const geocodingResponseList: GeocodingResponse[] = restResponse.payload;
+      const geocodingResponseList: any = restResponse.payload;
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
            const amSite: AmSite = new AmSite();
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
+        if (geocodingResponseList.ycoord === undefined && geocodingResponseList.xcoord === undefined){         
           if (this.geocodingFailure(geocodingResponseList[0])) {
             const failedSite: AmSite = new AmSite();
             failedSite.ycoord = geocodingResponseList[0].latitude;
@@ -496,10 +504,28 @@ export class GeocoderComponent implements OnInit {
           amSite.name = geocodingResponseList[0].name;
           amSite.pk = Number(geocodingResponseList[0].number);
 
+          
           const points = new Points();
           points.latitude = geocodingResponseList[0].latitude;
           points.longitude = geocodingResponseList[0].longitude;
           MapService.pointsArray.push(points);
+        }
+        else{
+          amSite.ycoord = geocodingResponseList.ycoord;
+          amSite.xcoord = geocodingResponseList.xcoord;
+          amSite.address = geocodingResponseList.address;
+          amSite.city = geocodingResponseList.city;
+          amSite.state = geocodingResponseList.state;
+          amSite.zip = geocodingResponseList.zip;
+          //amSite.siteId = geocodingResponseList.number;
+          amSite.name = geocodingResponseList.name;
+          //amSite.pk = Number(geocodingResponseList.number);
+
+          const points = new Points();
+          points.latitude = geocodingResponseList.ycoord;
+          points.longitude = geocodingResponseList.xcoord;
+          MapService.pointsArray.push(points);
+        }
           
           amSites.push(amSite);
      // }

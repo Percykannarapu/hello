@@ -21,12 +21,13 @@ import { mapFunctions } from '../app.component';
 export class MapService {
 
     // Group Layers
-    private static EsriGroupLayer: __esri.GroupLayer;
+    public static EsriGroupLayer: __esri.GroupLayer;
     public static ZipGroupLayer: __esri.GroupLayer;
     public static AtzGroupLayer: __esri.GroupLayer;
     public static PcrGroupLayer: __esri.GroupLayer;
     public static HHGroupLayer: __esri.GroupLayer;
     public static WrapGroupLayer: __esri.GroupLayer;
+    public static DmaGroupLayer: __esri.GroupLayer;
     public static SitesGroupLayer: __esri.GroupLayer;
     public static CompetitorsGroupLayer: __esri.GroupLayer;
 
@@ -44,7 +45,7 @@ export class MapService {
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map 
 
     // set a reference to global enum (defined in app.component)
-    public mapFunction: mapFunctions = mapFunctions.Popups; //  <- returns error;
+    public mapFunction: mapFunctions = mapFunctions.Popups; 
 
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
@@ -55,6 +56,7 @@ export class MapService {
     constructor(private metricService: MetricService, private layerService: EsriLayerService) {
     }
 
+    // Initialize Group Layers
     public async initGroupLayers() : Promise<__esri.Map> {
         console.log('fired initGroupLayers()');
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -70,6 +72,12 @@ export class MapService {
 
         MapService.ZipGroupLayer = new GroupLayer({
             title: 'Valassis ZIP',
+            listMode: 'show-children',
+            visible: true
+        });
+
+        MapService.DmaGroupLayer = new GroupLayer({
+            title: 'Valassis DMA',
             listMode: 'show-children',
             visible: true
         });
@@ -99,13 +107,13 @@ export class MapService {
         });
 
         MapService.SitesGroupLayer = new GroupLayer({
-            title: 'Valassis Sites',
+            title: 'Sites',
             listMode: 'show-children',
             visible: true
         });
 
         MapService.CompetitorsGroupLayer = new GroupLayer({
-            title: 'Valassis Competitors',
+            title: 'Competitors',
             listMode: 'show-children',
             visible: true
         });
@@ -113,7 +121,7 @@ export class MapService {
         return this.mapInstance;
     }
 
-
+    // get Map
     public async getMap() : Promise<__esri.Map> {
         if (!!this.mapInstance) {
             return this.mapInstance;
@@ -135,6 +143,23 @@ export class MapService {
         return this.mapInstance;
     }
 
+    // Execute each time the "Measure Length" is clicked
+    public async measureThis() {
+        // load required modules for this method
+        const loader = EsriLoaderWrapperService.esriLoader;       
+        const [geometryEngine] = await loader.loadModules([
+            'esri/geometry/geometryEngine'
+        ]);
+
+        const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+        const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+        const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+        MapService.mapView.popup.content = MapService.mapView.popup.selectedFeature.attributes.name +
+        "<div style='background-color:DarkGray;color:white'>" + distanceStr +
+        " miles.</div>";
+    }
+
+    // create the MapView
     public async createMapView(element: HTMLDivElement) : Promise<EsriWrapper<__esri.MapView>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const theMap = await this.getMap();
@@ -152,7 +177,8 @@ export class MapService {
             Print,
             GraphicsLayer,
             SketchViewModel,
-            Graphic
+            Graphic,
+            geometryEngine
         ] = await loader.loadModules([
             'esri/views/MapView',
             'esri/layers/GroupLayer',
@@ -168,7 +194,8 @@ export class MapService {
             'esri/widgets/Print',
             'esri/layers/GraphicsLayer',
             'esri/widgets/Sketch/SketchViewModel',
-            'esri/Graphic'
+            'esri/Graphic',
+            'esri/geometry/geometryEngine'
         ]);
         const opts: __esri.MapViewProperties = {
             container: element,
@@ -291,8 +318,32 @@ export class MapService {
                 width: 1
               }
             }
-      });
+        });
 
+        // Event handler that fires each time an action is clicked.
+        mapView.popup.on('trigger-action', function(event) {
+            // MapService.mapView.popup.content = '{*}';
+
+            // Execute the measureThis() function if the measure-this action is clicked
+            if (event.action.id === 'measure-this') {
+                // this.measureThis();
+                const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+                const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+                const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
+                const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+                const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
+
+                MapService.mapView.popup.content = //MapService.mapView.popup.selectedFeature.attributes.name +
+                "<div style='background-color:DarkBlue;color:white'><b>" + 
+                "Length: " + distanceStr + " miles.<br>Area: " + areaStr + " square-miles.</b></div>"; 
+            } 
+            
+            // Execute the selectThis() function if the select-this action is clicked
+            if (event.action.id === 'select-this') {
+                // this.selectThis();
+            } 
+        });
+  
         // -----------------------------------------------------------------------------------
         // SketchViewModel
         // -----------------------------------------------------------------------------------
@@ -322,7 +373,7 @@ export class MapService {
           }
           // add the graphic to the graphics layer
           // tempGraphicsLayer.add(evt.graphic);
-            MapService.mapView.graphics.add(evt.graphic);
+             MapService.mapView.graphics.add(evt.graphic);
             //this.setActiveButton();
           });
 
@@ -332,7 +383,8 @@ export class MapService {
         return { val: mapView };
     }
 
-    setActiveButton(selectedButton: any) {
+    // set active button
+    public setActiveButton(selectedButton: any) {
         // focus the view to activate keyboard shortcuts for sketching
         //MapService.mapView.focus();
         const elements: any = document.getElementsByClassName('active');
@@ -342,55 +394,54 @@ export class MapService {
         if (selectedButton) {
           selectedButton.classList.add('active');
         }
-      }
+    }
     
-
     // Toggle Polygon Selection Mode
-    selectPolyButton() {
+    public selectPolyButton() {
         this.mapFunction = mapFunctions.SelectPoly;
-      }
+    }
 
     // Toggle Popups
-    popupsButton() {
+    public popupsButton() {
         this.mapFunction = mapFunctions.Popups;
-      }
+    }
 
     // Toggle Labels
-    labelsButton() {
+    public labelsButton() {
         this.mapFunction = mapFunctions.Labels;
-      }
+    }
       
-      // activate the sketch to create a point
-    drawPointButton() {
+    // activate the sketch to create a point   
+    public drawPointButton() {
         // set the sketch to create a point geometry
         this.mapFunction = mapFunctions.DrawPoint;
         this.sketchViewModel.create('point');
         //this.setActiveButton(this);
-      }
+    }
 
-     // activate the sketch to create a polyline
-     drawLineButton() {
+    // activate the sketch to create a polyline
+    public drawLineButton() {
         // set the sketch to create a polyline geometry
         this.mapFunction = mapFunctions.DrawLine;
         this.sketchViewModel.create('polyline');
         //this.setActiveButton(this);
-      }
+    }
 
-     // activate the sketch to create a polygon
-    drawPolygonButton() {
+    // activate the sketch to create a polygon
+    public drawPolygonButton() {
         // set the sketch to create a polygon geometry
         this.mapFunction = mapFunctions.DrawPoly;
         this.sketchViewModel.create('polygon');
         //this.setActiveButton(this);
-      }
+    }
 
-     resetBtn() {
+    // remove all graphics  
+    public removeGraphics() {
         this.mapFunction = mapFunctions.RemoveGraphics;
         MapService.mapView.graphics.removeAll();
         this.sketchViewModel.reset();
         //this.setActiveButton(this);
-      }
-
+    }
 
     /*
     public async createSceneView(element: HTMLDivElement): Promise<EsriWrapper<__esri.SceneView>> {
@@ -408,6 +459,7 @@ export class MapService {
     }
 */
 
+    // plotMarker
     public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
 
         console.log('fired plotMarker() in MapService');
@@ -420,11 +472,13 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
+    // Get MapView
     public getMapView() : __esri.MapView {
         // to return Mapview
         return MapService.mapView;
     }
 
+    // Get FeaturLayer
     public getFeaturLayer() : __esri.FeatureLayer{
 
         var featurelyr: __esri.FeatureLayer[] = [];
@@ -436,12 +490,11 @@ export class MapService {
         return null;
     }
 
+    // Hide MapLayers
     public async hideMapLayers() : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired hideMapLayers() in MapService');
-
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;
-
         // Toggle all layers
         MapService.mapView.map.layers.forEach(function(layer, i) {
             if (layer.visible === true) {
@@ -471,7 +524,6 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-
     // Physically Remove MapLayer (or GroupLayer)
     public async removeLayer(layer: __esri.Layer) : Promise<EsriWrapper<__esri.MapView>> {
         // console.log('fired removeLayer() in MapService');
@@ -480,27 +532,25 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-
-      // Returns a layer instance from the map based on its title property
-      public findLayerByTitle(title: string)  : __esri.Layer {
+    // Returns a layer instance from the map based on its title property
+    public findLayerByTitle(title: string)  : __esri.Layer {
         return MapService.mapView.map.layers.find(function(layer) {
             if (layer.title === title) {
                 console.log ('findLayerByTitle Found: ' + title);
             }
             return layer.title === title;
         });
-      }
+    }
 
-      // Returns a sublayer instance from the map based on its title property
-      public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string)  : __esri.Layer {
+     // Returns a sublayer instance from the map based on its title property
+    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string)  : __esri.Layer {
         return GroupLayer.layers.find(function(layer) {
             if (layer.title === title) {
                 console.log ('findSubLayerByTitle found: ' + layer.title );
                 return layer.title === title;
             }
         });
-      }
-
+    }
 
     public async setMapLayers(allLayers: any[], selectedLayers: any[], analysisLevels: string[]) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('fired setMapLayers() in MapService');
@@ -524,6 +574,7 @@ export class MapService {
         ]);
 
         let popupTitle: string[];
+        let PopupTitle: string;
         let startPos: number;
         let endPos: number;
 
@@ -554,21 +605,37 @@ export class MapService {
             }
           });
 
-        // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
+        // Add this action to the popup so it is always available in this view
+        const measureThisAction = {
+           title: 'Measure Length',
+           id: 'measure-this',
+           className: 'esri-icon-share'
+         };
+
+        // Add this action to the popup so it is always available in this view
+        const selectThisAction = {
+            title: 'Select Polygon',
+            id: 'select-this',
+            className: 'esri-icon-plus-circled'
+          };
+
+          // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.EsriGroupLayer.visible = false;
         MapService.EsriGroupLayer.removeAll();
 
+        MapService.DmaGroupLayer.visible = false;
         MapService.ZipGroupLayer.visible = false;
         MapService.AtzGroupLayer.visible = false;
         MapService.PcrGroupLayer.visible = false;
         MapService.HHGroupLayer.visible = false;
         MapService.WrapGroupLayer.visible = false;
-        //MapService.SitesGroupLayer.visible = false;
-        //MapService.CompetitorsGroupLayer.visible = false;
 
-    // Esri Layers
-    if (selectedLayers.length !== 0) {
-        selectedLayers.forEach((element, index) => {
+     // MapService.SitesGroupLayer.visible = false;
+     // MapService.CompetitorsGroupLayer.visible = false;
+
+        // Esri Layers
+        if (selectedLayers.length !== 0) {
+            selectedLayers.forEach((element, index) => {
             console.log (element.name + ': ' + element.url);
             // dynamically set the popup title to the layer being loaded
             startPos = element.url.indexOf('/rest/services/');
@@ -583,13 +650,15 @@ export class MapService {
             // Load other optional selected layers
             if (element.url.indexOf('MapServer') !== -1) {
                 if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
-                    MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ['*'], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                    MapService.EsriGroupLayer.add(new MapLayer({ url: element.url, outfields: ['*'], 
+                                                                 popupTemplate: { title: popupTitle, content: '{*}' }, actions: [selectThisAction, measureThisAction], opacity: 0.65 }));
                     console.log('added MapLayer:' + element.name);
                 }
             } else
                 if (element.url.indexOf('FeatureServer') !== -1) {
                     if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, element.name)) {
-                        MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ['*'], popupTemplate: { title: popupTitle, content: '{*}' }, opacity: 0.65 }));
+                        MapService.EsriGroupLayer.add(new FeatureLayer({ url: element.url, outfields: ['*'], 
+                                                                         popupTemplate: { title: popupTitle, content: '{*}' },  actions: [selectThisAction, measureThisAction], opacity: 0.65 }));
                         console.log('added FeatureLayer:' + element.name);
                     }
                 }
@@ -598,28 +667,64 @@ export class MapService {
                 MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
             }
             MapService.EsriGroupLayer.visible = true;
-        });
-    }
+            });
+        }
 
-    // Analysis Levels
-    if (analysisLevels.length !== 0) {
-        // Loop through each of the selected analysisLevels
-        analysisLevels.forEach((analysisLevel, index) => {
+        // Analysis Levels
+        if (analysisLevels.length !== 0) {
+            // Loop through each of the selected analysisLevels
+            analysisLevels.forEach((analysisLevel, index) => {
 
-        if (analysisLevel === 'ZIP') {
-             // Add ZIP layer IDs
-             const layers = zip_layerids.map(fromPortal);
+            if (analysisLevel === 'DMA') {
+                // Add DMA layer IDs
+                const layers = dma_layerids.map(fromPortal);
+    
+                // Add all DMA Layers via Promise
+                all(layers)
+                        .then(results => {
+                        results.forEach(x => {
+                        PopupTitle = x.portalItem.title + ': {DMA_CODE} - {DMA_NAME}';
+                        if (x.type === 'feature') {
+                            //x.minScale = 5000000;
+                            x.mode = FeatureLayer.MODE_AUTO;
+                            x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
+                        //x.maxScale = 5000000;
+                        x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                    }
+                        // Add Layer to Group Layer if it does not already exist
+                        if (!this.findSubLayerByTitle(MapService.DmaGroupLayer, x.portalItem.title)) {
+                            console.log ('adding subLayer: ' + x.portalItem.title);
+                            MapService.DmaGroupLayer.add(x);
+                        }
+                    });
+                })
+                .catch(error => console.warn(error.message));
+    
+                    // Add DMA Group Layer if it does not already exist
+                    if (!this.findLayerByTitle('Valassis DMA')) {
+                        MapService.mapView.map.layers.add(MapService.DmaGroupLayer);
+                        MapService.layers.add(MapService.DmaGroupLayer);
+                    }
+                    MapService.DmaGroupLayer.visible = true;
+        } else
+            if (analysisLevel === 'ZIP') {
+            // Add ZIP layer IDs
+            const layers = zip_layerids.map(fromPortal);
 
-             // Add all ZIP Layers via Promise
-             all(layers)
+            // Add all ZIP Layers via Promise
+            all(layers)
                  .then(results => {
                  results.forEach(x => {
-                   if (x.type === 'feature') {
+                    PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                    if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
-                   }else {
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                   } else {
                     x.maxScale = 5000000;
-                   }
+                    x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
                        console.log ('adding subLayer: ' + x.portalItem.title);
@@ -644,11 +749,14 @@ export class MapService {
                 all(layers)
                  .then(results => {
                  results.forEach(x => {
+                    PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                    if (x.type === 'feature') {
                      x.minScale = 5000000;
                      x.mode = FeatureLayer.MODE_AUTO;
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
                    } else {
                      x.maxScale = 5000000;
+                     x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
                    }
                    // Add Layer to Group Layer if it does not already exist
                    if (!this.findSubLayerByTitle(MapService.AtzGroupLayer, x.portalItem.title)) {
@@ -673,12 +781,15 @@ export class MapService {
                     all(layers)
                      .then(results => {
                      results.forEach(x => {
-                       if (x.type === 'feature') {
+                        PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                        if (x.type === 'feature') {
                          x.minScale = 5000000;
                          x.mode = FeatureLayer.MODE_AUTO;
-                       } else {
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
                          x.maxScale = 5000000;
-                       }
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        }
                        // Add Layer to Group Layer if it does not already exist
                        if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
                            console.log ('adding subLayer: ' + x.portalItem.title);
@@ -703,12 +814,15 @@ export class MapService {
                     all(layers)
                      .then(results => {
                      results.forEach(x => {
-                       if (x.type === 'feature') {
+                        PopupTitle = x.portalItem.title + ' - {GEOCODE}';
+                        if (x.type === 'feature') {
                          // x.minScale = 5000000;
                          x.mode = FeatureLayer.MODE_AUTO;
-                       } else {
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        } else {
                          x.maxScale = 5000000;
-                       }
+                         x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                        }
                        // Add Layer to Group Layer if it does not already exist
                        if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
                            console.log ('adding subLayer: ' + x.portalItem.title);
@@ -733,12 +847,15 @@ export class MapService {
                         all(layers)
                          .then(results => {
                          results.forEach(x => {
-                           if (x.type === 'feature') {
+                            PopupTitle = x.portalItem.title;
+                            if (x.type === 'feature') {
                                x.minScale = 2300000;
                                x.mode = FeatureLayer.MODE_AUTO;
-                           } else {
+                               x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                            } else {
                              x.maxScale = 2300000;
-                           }
+                             x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+                            }
                            // Add Layer to Group Layer if it does not already exist
                            if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
                                console.log ('adding subLayer: ' + x.portalItem.title);
@@ -754,8 +871,9 @@ export class MapService {
                         }
                         MapService.HHGroupLayer.visible = true;
                 }
-        }); // End forEach analysisLevels
-    }
+            }); // End forEach analysisLevels
+        }
+        /*
         // -------------------------------------------------------------------------------
         // Add DMA Layer if it does not exist
         // Add all DMA Layers via Promise
@@ -764,12 +882,15 @@ export class MapService {
         all(layers)
             .then(results => {
             results.forEach(x => {
-            if (x.type === 'feature') {
+                PopupTitle = x.portalItem.title + ': {DMA_CODE} - {DMA_NAME}';
+                if (x.type === 'feature') {
                 //x.minScale = 2300000;
                 x.mode = FeatureLayer.MODE_AUTO;
                 x.visible = false;
-             } else {
+                x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
+            } else {
                 x.maxScale = 2300000;
+                x.popupTemplate = new PopupTemplate ({ title: PopupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction], opacity: 0.65 });
             }
 
             // Add Layer to Group Layer if it does not already exist
@@ -780,8 +901,9 @@ export class MapService {
             });
         })
         .catch(error => console.warn(error.message));
-
+        */
         // -------------------------------------------------------------------------------
+        /*
         // -------------------------------------------------------------------------------
         // Add Census Layer if it does not exist
         if (!this.findSubLayerByTitle(MapService.EsriGroupLayer, 'Census')) {
@@ -791,6 +913,7 @@ export class MapService {
             MapService.mapView.map.layers.add(MapService.EsriGroupLayer);
         }
         MapService.EsriGroupLayer.visible = true;
+        */
         // -------------------------------------------------------------------------------
         return { val: MapService.mapView };
     }
@@ -875,7 +998,8 @@ export class MapService {
         return { val: MapService.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) : Promise<__esri.Graphic[]> { /*: Promise<EsriWrapper<__esri.MapView>>*/
+    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) { 
+        /*: Promise<EsriWrapper<__esri.MapView>>*/
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
              = await loader.loadModules([
@@ -976,21 +1100,21 @@ export class MapService {
             }
         });
 
-        if (layerName.startsWith('Site') || layerName.startsWith('Zip')){
+        if (layerName.includes('Site') || layerName.startsWith('Zip')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
-            if (!this.findLayerByTitle('Valassis Sites')) {
+            if (!this.findLayerByTitle('Sites')) {
                 MapService.mapView.map.layers.add(MapService.SitesGroupLayer);
                 MapService.layers.add(MapService.SitesGroupLayer);
                 MapService.SitesGroupLayer.visible = true;
             }
         }
         
-        if (layerName.startsWith('Competitor')){
+        if (layerName.includes('Competitor')){
             const index = MapService.CompetitorsGroupLayer.layers.length;
             MapService.CompetitorsGroupLayer.add(lyr, index);
-            if (!this.findLayerByTitle('Valassis Competitors')) {
+            if (!this.findLayerByTitle('Competitors')) {
                 MapService.mapView.map.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.layers.add(MapService.CompetitorsGroupLayer);
                 MapService.CompetitorsGroupLayer.visible = true;
@@ -1705,7 +1829,7 @@ export class MapService {
                 await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                 .then(res => {
                   //graphicList = res;
-                  if (max == miles){
+                  if (max === miles){
                     this.selectCentroid(res);
                   }  
                 });

@@ -3,10 +3,10 @@
         
         <div class="ui-g-1">Defined for:</div>
         <div class="ui-g-1">
-            <p-radioButton name="groupname" value="Sites" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
+            <p-radioButton name="groupname" value="Site" label="Sites" [(ngModel)]="selectedValue" inputId="sites" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
         </div>
         <div class="ui-g-2">
-            <p-radioButton name="groupname" value="Competitors" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"
+            <p-radioButton name="groupname" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="competitors"
                 (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
         </div>
     </div>
@@ -74,4 +74,4 @@
         <button (click)="drawBuffer()" pButton type="button" icon="fa-check" class="ui-button-success"></button>   
     </div> -->    
 </div>
-<p-growl [(value)]="growlMessages"></p-growl>
+<p-growl [(value)]="growlMessages" sticky="sticky" ></p-growl>

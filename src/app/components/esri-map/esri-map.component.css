@@ -37,6 +37,7 @@
 .action-button:focus {
       background: #0079c1;
       color: #e4e4e4;
+      cursor: pointer;
     }
 
 .active {
