@@ -143,6 +143,7 @@ import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {RestDataService} from './val-modules/common/services/restdata.service';
+import { UploadLocationsComponent } from './components/upload-locations/upload-locations.component';
 
 @NgModule({
     imports: [
@@ -260,7 +261,8 @@ import {RestDataService} from './val-modules/common/services/restdata.service';
         AmSiteListComponent,
         RaddataComponent,
         TradeareaDefineComponent,
-        DiscoveryInputComponent
+        DiscoveryInputComponent,
+        UploadLocationsComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
