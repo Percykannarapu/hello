@@ -1,11 +1,12 @@
 import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
+import { ImpRadLookupStore } from './../../val-modules/targeting/services/ImpRadLookup.store';
 
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
-//import {HttpClientModule} from '@angular/common/http';  // replaces previous Http service
+
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
-import {Component, OnInit, Pipe, PipeTransform, HostBinding} from '@angular/core';
+import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 
@@ -22,16 +23,20 @@ interface Category {
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
   styleUrls: ['./discovery-input.component.css'],
-  providers: [ImpRadLookupService]
+  providers: [ImpRadLookupService, ImpRadLookupStore]
 })
 export class DiscoveryInputComponent implements OnInit
 {
+   @Input() debugMode: boolean = false;
+   
    products: Product[];
    selectedProduct: Product;
-
+   
    radData: ImpRadLookup[];
    selectedRadLookup: ImpRadLookup;
    radDisabled: boolean = true;
+
+   storeRadData: ImpRadLookup[];
 
    categories: Category[];
    selectedCategory: Category;
@@ -43,9 +48,6 @@ export class DiscoveryInputComponent implements OnInit
    selectedSeason: String;
    
    summer: boolean = true;
-
-   @HostBinding('class.red') isRed = false;
-
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -105,10 +107,15 @@ export class DiscoveryInputComponent implements OnInit
    {
       // Set default values
       this.selectedAnalysisLevel = this.analysisLevels[0];
-      this.selectedSeason = this.seasons[1].value;
 
-      this.appState.isRed
-          .subscribe(redState => this.isRed = redState);
+      // If the current date + 28 days is summer
+      if (this.isSummer())
+         this.selectedSeason = this.seasons[0].value;
+      else
+         this.selectedSeason = this.seasons[1].value;
+
+      // Subscribe to the data store
+      this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
 
       /*  Currently disabled in favor of hard coded categories until we identify the true source
       this.impRadLookupService.fetchData().subscribe(data => {
@@ -131,12 +138,25 @@ export class DiscoveryInputComponent implements OnInit
       console.log('filterRadLookups by ' + productCode);
 
       this.radData = new Array();
-      for (let i: number = 0; i < this.impRadLookupService.impRadLookups.length; i++)
+      for (let i: number = 0; i < this.impRadLookupService.get(true).length; i++)
       {
-         console.log (this.impRadLookupService.impRadLookups[i].product + ' vs ' + this.selectedProduct.productCode);
-         if (this.impRadLookupService.impRadLookups[i].product == this.selectedProduct.productCode)
-            this.radData.push(this.impRadLookupService.impRadLookups[i]);
+         console.log (this.impRadLookupService.storeObservable[i].product + ' vs ' + this.selectedProduct.productCode);
+         if (this.impRadLookupService.storeObservable[i].product == this.selectedProduct.productCode)
+            this.radData.push(this.impRadLookupService.storeObservable[i]);
       }
+   }
+
+   public isSummer(startDate: Date = null, plusDays: number = 28) : boolean
+   {
+      const today: Date = new Date(startDate);
+      today.setDate(today.getDate() + plusDays);
+//    console.log('today + ' + plusDays + ' = ' + today + ', month: ' + today.getMonth());
+      
+      // May(4) - September (8) is Summer
+      if (today.getMonth() >= 4 && today.getMonth() <= 8)
+         return true;
+      else
+         return false;
    }
 
    // -----------------------------------------------------------
@@ -157,14 +177,66 @@ export class DiscoveryInputComponent implements OnInit
       }
    }
 
-/*   public onChangeRound(event: any)
+/* public onChangeRound(event: any)
    {
       this.cur1 =  Number(parseFloat(event).toFixed(2)); // parseFloat(this.cur1).toFixed(2); //  Math.round(this.cur1 * 100) / 100;
       console.log('onChangeRound: ' + event + ' = ' + this.cur1);
    }*/
 
-   toggleRed() {
-      console.log('appState.toggleRed() - ' + this.isRed);
-      this.appState.toggleRed();
-    }
+   fetchRadData() {
+      console.log('discovery-input-component calling imsRadLookupStore.get');
+      this.impRadLookupService.get();
+   }
+
+   addRadData() {
+      console.log('discovery-input-component calling imsRadLookupStore.add');
+
+      const impRadLookup: ImpRadLookup = new ImpRadLookup();
+      impRadLookup.radId = 99;
+      impRadLookup.category = 'Shark Week DvDs';
+
+      this.impRadLookupService.add([impRadLookup]);
+   }
+
+   removeRadData() {
+      console.log('discovery-input-component calling imsRadLookupStore.remove');
+
+      const impRadLookup: ImpRadLookup = new ImpRadLookup();
+      impRadLookup.radId = 99;
+      impRadLookup.category = 'Shark Week DvDs';
+
+      this.impRadLookupService.remove(impRadLookup);
+   }
+
+   removeRadDataAt() {
+      console.log('discovery-input-component calling imsRadLookupStore.remove');
+
+      this.impRadLookupService.removeAt(0);
+   }
+
+   debugLogStore() {
+      this.impRadLookupService.debugLogStore();
+   }
+
+   // -----------------------------------------------------------
+   // UNIT TEST METHODS (MOVE SOMEWHERE ELSE)
+   // -----------------------------------------------------------
+   testIsSummer(aDate: Date = new Date(), numDays: number = 28)
+   {
+      const newDate: Date = new Date(aDate);
+      newDate.setDate(aDate.getDate() + 28);
+      console.log(aDate + ' plus ' + numDays + ' days ' + newDate + ', isSummer = ' + this.isSummer(aDate, numDays));      
+   }
+
+   unitTestIsSummer()
+   {
+      console.log('DATE IS SUMMER TESTS');
+      console.log('--------------------');
+      this.testIsSummer();
+      this.testIsSummer(new Date('01 Jan 2018'));
+      this.testIsSummer(new Date('01 May 2018'));
+      this.testIsSummer(new Date('01 Sep 2018'));
+      this.testIsSummer(new Date('01 Oct 2018'));
+      this.testIsSummer(new Date('01 Apr 2018'));
+   }
 }

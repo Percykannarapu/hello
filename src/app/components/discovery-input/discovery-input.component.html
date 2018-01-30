@@ -52,9 +52,22 @@
           <label> Circ Budget</label>
       </span>
    </div>
+   
+   <div *ngIf="debugMode" class="ui-g-12">
+      <h1>Data Store Test</h1>
+      <button (click)="fetchRadData()">Fetch RadData</button>
+      <button (click)="addRadData()">Add New (99)</button>
+      <button (click)="removeRadDataAt()">Delete First</button>
+      <button (click)="removeRadData()">Delete 99</button>
+      <button (click)="debugLogStore()">DebugLog</button>
+   </div>
 
-   <!-- <div class="ui-g-12">
-      <h1>Hello Data Store!</h1>
-      <button (click)="toggleRed()">Toggle Red</button>   
-   </div> -->
+   <div *ngIf="debugMode" class="ui-g-12">
+      <p-dataTable [value]="storeRadData" selectionMode="single" [(selection)]="selectedRadLookup">
+         <p-column field="radId" header="RadId"></p-column>
+         <p-column field="category" header="Category"></p-column>
+         <p-column field="product" header="Product"></p-column>
+     </p-dataTable>
+   </div>     
+
 </div>
