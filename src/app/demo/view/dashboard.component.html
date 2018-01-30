@@ -3,6 +3,22 @@
       <p-messages [(value)]="msgs"></p-messages>
    </div>
 
+   <div class="ui-g-12 ui-md-6 ui-lg-3">
+      <!-- Home for Blue Household Count Box Overlay -->
+      <val-color-box header="Campaign Details"
+                     boxStyle="colorboxPicker-teal"
+                  popupWidth="20%"                      
+                        icon="done_all"
+                     [model]="metricMapBlue"
+                     #campaignColorBox>
+         <p-tabView styleClass="ui-tabview-panels">
+            <p-tabPanel header="Discovery">
+               <val-discovery-input></val-discovery-input>
+            </p-tabPanel>
+         </p-tabView>                            
+      </val-color-box>
+   </div>   
+
    <!-- COLORBOX COMPONENTS -->
    <div class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Green Sites Box Overlay -->
@@ -43,21 +59,6 @@
 
       </val-color-box>
    </div>
-   <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Blue Household Count Box Overlay -->
-      <val-color-box header="Campaign Details"
-                     boxStyle="colorboxPicker-teal"
-                  popupWidth="20%"                      
-                        icon="done_all"
-                     [model]="metricMapBlue"
-                     #campaignColorBox>
-         <p-tabView styleClass="ui-tabview-panels">
-            <p-tabPanel header="Discovery">
-               <val-discovery-input></val-discovery-input>
-            </p-tabPanel>
-         </p-tabView>                            
-      </val-color-box>
-   </div>   
    
    <div class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Target Audience Box Overlay -->     

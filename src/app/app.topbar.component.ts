@@ -23,7 +23,7 @@ import {AppComponent} from './app.component';
                 </a>
 
                 <ul class="topbar-items animated fadeInDown" [ngClass]="{'topbar-items-visible': app.topbarMenuActive}">
-                    <li #profile class="profile-item" *ngIf="app.profileMode==='top'||app.isHorizontal()"
+<!--                    <li #profile class="profile-item" *ngIf="app.profileMode==='top'||app.isHorizontal()"
                         [ngClass]="{'active-top-menu':app.activeTopbarItem === profile}">
 
                         <a href="#" (click)="app.onTopbarItemClick($event,profile)">
@@ -51,7 +51,7 @@ import {AppComponent} from './app.component';
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li #settings [ngClass]="{'active-top-menu':app.activeTopbarItem === settings}">
                         <a href="#" (click)="app.onTopbarItemClick($event,settings)">
                             <i class="topbar-icon material-icons">settings</i>
@@ -84,7 +84,7 @@ import {AppComponent} from './app.component';
                             </li>
                         </ul>
                     </li>
-                    <li #messages [ngClass]="{'active-top-menu':app.activeTopbarItem === messages}">
+<!--                    <li #messages [ngClass]="{'active-top-menu':app.activeTopbarItem === messages}">
                         <a href="#" (click)="app.onTopbarItemClick($event,messages)">
                             <i class="topbar-icon material-icons animated swing">message</i>
                             <span class="topbar-badge animated rubberBand">5</span>
@@ -155,7 +155,7 @@ import {AppComponent} from './app.component';
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <!-- Search bar upper right -->
 <!--                <li #search class="search-item" [ngClass]="{'active-top-menu':app.activeTopbarItem === search}"
                         (click)="app.onTopbarItemClick($event,search)">
