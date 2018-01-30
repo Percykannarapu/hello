@@ -14,11 +14,14 @@
                       #locationsColorBox>
 
          <p-tabView styleClass="ui-tabview-panels-nopad">
-            <p-tabPanel header="Upload">
+            <!-- <p-tabPanel header="Upload">
                 <val-upload-locations>Loading ...</val-upload-locations>            
-            </p-tabPanel>
+            </p-tabPanel> -->
             <p-tabPanel header="Add Locations">
                <p-accordion>
+                    <p-accordionTab header="Upload">
+                            <val-upload-locations>Loading ...</val-upload-locations>
+                         </p-accordionTab>
                      <p-accordionTab header="Manually Add">
                         <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
                      </p-accordionTab>
