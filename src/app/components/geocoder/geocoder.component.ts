@@ -37,7 +37,7 @@ interface CsvHeadersPosition {
 
 
 @Component({
-  providers: [GeocoderService, MapService],
+  //providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
   styleUrls: ['./geocoder.component.css']
@@ -258,7 +258,7 @@ export class GeocoderComponent implements OnInit {
   // 10. If a column with NUMBER, #, NBR, ID, is found, load it into the site number field
   // 11. The geocoded stores becomes a layer that can be turned on and off. Its attribute table can be turned on and off. Prerequisite: US6231 Layer List in IMPower application
   // 12. If the geocoder returned an invalid match code for some rows in the CSV file, an error is displayed somewhere. Very primitive UI please, as error handling is in US6348 Geocoding error handling in imPower application
-  async geocodeCSV(event) {
+   geocodeCSV(event) {
     
     const input = event.target;
     const reader = new FileReader();
