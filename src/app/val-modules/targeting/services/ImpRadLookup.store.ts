@@ -15,6 +15,11 @@ import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
 
+type callbackType = (impRadLookups: ImpRadLookup[]) => boolean;
+type callbackElementType = (impRadLookups: ImpRadLookup) => boolean;
+type callbackMutationType = (impRadLookups: ImpRadLookup[]) => ImpRadLookup[];
+type callbackSuccessType = (boolean) => boolean;
+
 @Injectable()
 export class ImpRadLookupStore
 {
@@ -54,25 +59,67 @@ export class ImpRadLookupStore
    }
 
    // 
-   public get(forceRefresh?: boolean)
+   public get(forceRefresh?: boolean, preOperation?: callbackType, postOperation?: callbackMutationType)
    {
+      if (preOperation)
+         preOperation(this._dataStore);
+
       if (forceRefresh || this._dataStore.length === 0)
          this.fetch();
-   
+
+      if (postOperation)
+         postOperation(this._dataStore);
+
       return this._dataStore;
    }
 
-   public add(impRadLookups: ImpRadLookup[])
+   public add(impRadLookups: ImpRadLookup[], preOperation?: callbackElementType, postOperation?: callbackSuccessType)
    {
-      // For each element in the array parameter
-      for (const impRadLookup of impRadLookups)
-      {
-         // Add new element to the data store
-         this._dataStore = [...this._dataStore, impRadLookup];
-      }
+      let success: boolean = true;
+      let localCache: ImpRadLookup[];
+      let numSuccesses: number = 0;
 
+      if (preOperation)
+      {
+         // Create a copy of the current datastore
+         localCache = this._dataStore.slice(0);
+
+         // For each element in the array parameter
+         for (const impRadLookup of impRadLookups)
+            // Add new element to the data store if there isn't a preOperation or it returns true
+            if (!preOperation || (preOperation && preOperation(impRadLookup)))
+            {
+               console.log('add - preOp returned true, pushing id: ' + impRadLookup.radId);
+               localCache.push(impRadLookup);
+               numSuccesses++;
+            }
+            else
+            {
+               // Indicate row wasn't added, but it's the applications job to maintain the list of failures
+               success = false;
+               console.log('add - preOp returned false, not adding id: ' + impRadLookup.radId);
+            }
+      }
+      else
+         // Add every new element to the data store, because there is no preOperation to invalidate them
+         for (const impRadLookup of impRadLookups)
+            this._dataStore.push(impRadLookup);
+
+      // postOperation determines if a success = false, is still a success.  ie. some of the rows were added, but not all and thats ok
+      if (postOperation)
+         success = postOperation(success);
+      else
+         // If there is no postOperation, let the good rows go through and only fail if all rows failed
+         if (numSuccesses > 0)
+            success = true;
+
+      // If postOperation has determined that the add as a whole was a success and we have used a preOperation
+      if (success && preOperation)
+         this._dataStore = localCache;
+         
       // Register data store change and notify observers
-      this._storeSubject.next(this._dataStore);
+      if (success)
+         this._storeSubject.next(this._dataStore);
    }
 
    public removeAt (index: number)
@@ -110,8 +157,8 @@ export class ImpRadLookupStore
    {
       const index = this._dataStore.indexOf(oldImpRadLookup);
       this._dataStore = [...this._dataStore.slice(0, index),
-                          newImpRadLookup,
-                          ...this._dataStore.slice(index + 1)];
+                         newImpRadLookup,
+                         ...this._dataStore.slice(index + 1)];
 
       // Register data store change and notify observers
       this._storeSubject.next([newImpRadLookup]);
