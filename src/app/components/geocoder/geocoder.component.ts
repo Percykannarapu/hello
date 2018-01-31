@@ -286,6 +286,8 @@ export class GeocoderComponent implements OnInit {
           const siteList: any[] = [];
           const site = {};
           const csvRecord = csvRecords[i].split(',');
+        if ( csvRecord.length === this.headers.length){
+
           for (let j = 0; j < this.headers.length; j++){
               site[this.headers[j]] = csvRecord[j];
           }
@@ -308,8 +310,8 @@ export class GeocoderComponent implements OnInit {
                });
                csvFormattedData =  restResponseList;
           }
-         
-        }
+        } 
+      }
       if (headerPosition.lat === undefined && headerPosition.lon === undefined){
           Observable.forkJoin(observables).subscribe(res => {
             console.log('forkJoin:::' + res.length);
