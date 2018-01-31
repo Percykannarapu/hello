@@ -36,7 +36,7 @@ export class UploadLocationsComponent implements OnInit {
   private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
-  public selector: String;
+  public selector: String = 'Site';
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 

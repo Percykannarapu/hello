@@ -20,6 +20,7 @@ import { AmSiteService } from '../../val-modules/targeting/services/AmSite.servi
 export class BusinessSearchComponent implements OnInit {
 
   @Input() disableShowBusiness;
+  @Input() disableFromUpload;
   @Output()
   showSideBar: EventEmitter<any> = new EventEmitter<any>();
 

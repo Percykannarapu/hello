@@ -4,6 +4,7 @@ import { MapService } from '../../services/map.service';
 import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { CONFIG } from '../../core/config';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -148,7 +149,7 @@ export class TradeareaDefineComponent implements OnInit {
         if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
             let isValid = false;
             ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
-                if (this[model] < 0 || this[model] > 50) {
+                if (this[model] < 0 || this[model] > CONFIG.maxBufferRadius) {
                     isValid = true;
                 }
             });
@@ -203,12 +204,12 @@ export class TradeareaDefineComponent implements OnInit {
             await this.mapService.getAllFeatureLayers().then(list => {
                 //fLyrList = list;
                 for (const layer of list) {
-                    if (this.selectedValue === 'Sites') {
+                    if (this.selectedValue.includes ('Site')) {
                         if (layer.title.startsWith('Site -')) {
                             this.disableLyr(MapService.SitesGroupLayer, layer);
                         }
                     }
-                    if (this.selectedValue === 'Competitors') {
+                    if (this.selectedValue.includes('Competitor')) {
                         if (layer.title.startsWith('Competitor -')) {
                             this.disableLyr(MapService.CompetitorsGroupLayer, layer);
                         }
@@ -238,7 +239,7 @@ export class TradeareaDefineComponent implements OnInit {
                 outlneColor = ([255, 0, 0, 2.50]);
             }
             else {
-                if (this.selectedValue === 'Sites') {
+                if (this.selectedValue.includes('Site')) {
                     this.displayTradeAreaError('Site');
                 } else {
                     this.displayTradeAreaError('Competitor');
