@@ -19,7 +19,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    metric: string = null;
    metricValue: string;
 
-   popupWidthStr: string = '{\'width\':\'40%\'}';
+   popupWidthStr: string = '"{\'width\':\'20%\'}"';
 
    constructor(private appService: AppService) {
      this.appService.closeOverLayPanel.subscribe((value) => {

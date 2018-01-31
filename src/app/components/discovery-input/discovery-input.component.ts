@@ -185,17 +185,68 @@ export class DiscoveryInputComponent implements OnInit
 
    fetchRadData() {
       console.log('discovery-input-component calling imsRadLookupStore.get');
-      this.impRadLookupService.get();
+      this.impRadLookupService.get(true);
    }
 
    addRadData() {
-      console.log('discovery-input-component calling imsRadLookupStore.add');
+      console.log('discovery-input-component calling imsRadLookupStore.addRadData');
 
       const impRadLookup: ImpRadLookup = new ImpRadLookup();
       impRadLookup.radId = 99;
       impRadLookup.category = 'Shark Week DvDs';
 
-      this.impRadLookupService.add([impRadLookup]);
+      this.impRadLookupService.add([impRadLookup], this.addPreOp);
+
+   //   add(impRadLookups: ImpRadLookup[], preOperation?: callbackElementType, postOperation?: callbackSuccessType)
+   }
+
+
+   addRadDataOneBad() {
+      console.log('discovery-input-component calling imsRadLookupStore.addRadDataOneBad');
+
+      const impRadLookup: ImpRadLookup = new ImpRadLookup();
+      impRadLookup.radId = 99;
+      impRadLookup.category = 'Shark Week DvDs';
+
+      const impRadLookup2: ImpRadLookup = new ImpRadLookup();
+      impRadLookup.radId = 142;
+      impRadLookup.category = 'Save the Sharks button';
+      
+      const impRadLookups: ImpRadLookup[] = [new ImpRadLookup({radId: 99, category: 'Shark Week DvDs', product: null}),
+                                             new ImpRadLookup({radId: 120, category: 'Kung Fu Shrimp Backpack'}), 
+                                             new ImpRadLookup({radId: 142, category: 'Save the Sharks button'})];
+
+      this.impRadLookupService.add(impRadLookups, this.addPreOp2);
+
+   //   add(impRadLookups: ImpRadLookup[], preOperation?: callbackElementType, postOperation?: callbackSuccessType)
+   }
+   
+   addPreOp (impRadLookup: ImpRadLookup) : boolean
+   {
+      console.log('Fired addPreOp on ', impRadLookup);
+      return true;
+   }
+
+   addPreOp2 (impRadLookup: ImpRadLookup) : boolean
+   {
+      console.log('Fired addPreOp2 on ', impRadLookup);
+      console.log('addPreOp2 returning: ', (impRadLookup.radId === 99) ? false : true);
+
+      if (impRadLookup.radId === 99)
+         console.log('addPreOp2 returning: false');
+      else
+         console.log('addPreOp2 returning: true');
+
+      if (impRadLookup.radId === 99)
+         return false;
+      else
+         return true;
+      // return (impRadLookup.radId === 99) ? false : true;
+   }
+
+   clearRadData() {
+      console.log('discovery-input-component calling imsRadLookupStore.clearAll');
+      this.impRadLookupService.clearAll();
    }
 
    removeRadData() {
@@ -216,7 +267,7 @@ export class DiscoveryInputComponent implements OnInit
 
    debugLogStore() {
       this.impRadLookupService.debugLogStore();
-   }
+   }   
 
    // -----------------------------------------------------------
    // UNIT TEST METHODS (MOVE SOMEWHERE ELSE)
