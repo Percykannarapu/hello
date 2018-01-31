@@ -143,7 +143,7 @@ export class MapService {
         return this.mapInstance;
     }
 
-    // Execute each time the "Measure Length" is clicked
+    // Execute each time the "Measure Length" action is clicked
     public async measureThis() {
         // load required modules for this method
         const loader = EsriLoaderWrapperService.esriLoader;       
@@ -153,10 +153,64 @@ export class MapService {
 
         const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
         const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+        const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
         const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
-        MapService.mapView.popup.content = MapService.mapView.popup.selectedFeature.attributes.name +
-        "<div style='background-color:DarkGray;color:white'>" + distanceStr +
-        " miles.</div>";
+        const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
+
+        MapService.mapView.popup.content = //MapService.mapView.popup.selectedFeature.attributes.name +
+        "<div style='background-color:DarkBlue;color:white'><b>" + 
+        "Length: " + distanceStr + " miles.<br>Area: " + areaStr + " square-miles.</b></div>"; 
+    }
+
+    // Execute each time the "Buffer" action is clicked
+    public async bufferThis() {
+        // load required modules for this method
+        const loader = EsriLoaderWrapperService.esriLoader;       
+        const [geometryEngine] = await loader.loadModules([
+            'esri/geometry/geometryEngine'
+        ]);
+
+        const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+    }
+
+    // Select polygon using either a MapPoint (click) or passed Geometery (popup-action)
+    public async selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
+        console.log('fired selectPolyClick');
+        const color = {
+                a: 1,
+                r: 35,
+                g: 93,
+                b: 186
+              };
+        let layers: __esri.Layer[] = [];
+        let i: number = 0;  
+        if (i === 0){
+                i++;
+                MapService.mapView.map.layers.forEach(function(layer: __esri.Layer) {
+                  layers.push(layer);
+                });
+                let fLyrList: __esri.FeatureLayer[] = [];
+                this.getAllFeatureLayers().then(list => {
+                  fLyrList = list;
+                });  
+    
+                for (const lyr of layers){
+                  if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
+                    this.selectSinglePolygon(null,geom,objectID);
+                    break;
+                  }
+                }
+        }  
+        layers = [];
+    }
+
+    // Execute each time the "select-this" action is clicked
+    public async selectThis() {
+        console.log('fired popup action select-this()');
+        const objectID: number = MapService.mapView.popup.selectedFeature.attributes.OBJECTID;
+        const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
+        console.log ('-- objectID = ' + objectID);
+        this.selectPolyClick(null,geom,objectID);
     }
 
     // create the MapView
@@ -320,28 +374,24 @@ export class MapService {
             }
         });
 
-        // Event handler that fires each time an action is clicked.
-        mapView.popup.on('trigger-action', function(event) {
-            // MapService.mapView.popup.content = '{*}';
+        // Event handler that fires each time a popup action is clicked.
+        mapView.popup.on('trigger-action', (event) =>  {
 
             // Execute the measureThis() function if the measure-this action is clicked
             if (event.action.id === 'measure-this') {
-                // this.measureThis();
-                const geom: __esri.Geometry = MapService.mapView.popup.selectedFeature.geometry;
-                const distance: number = geometryEngine.geodesicLength(geom, 'miles');
-                const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
-                const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
-                const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
-
-                MapService.mapView.popup.content = //MapService.mapView.popup.selectedFeature.attributes.name +
-                "<div style='background-color:DarkBlue;color:white'><b>" + 
-                "Length: " + distanceStr + " miles.<br>Area: " + areaStr + " square-miles.</b></div>"; 
+                this.measureThis();
             } 
             
             // Execute the selectThis() function if the select-this action is clicked
             if (event.action.id === 'select-this') {
-                // this.selectThis();
+                this.selectThis();
             } 
+
+            // Execute the measureThis() function if the measure-this action is clicked
+            if (event.action.id === 'buffer-this') {
+                this.bufferThis();
+            } 
+
         });
   
         // -----------------------------------------------------------------------------------
@@ -617,6 +667,13 @@ export class MapService {
             title: 'Select Polygon',
             id: 'select-this',
             className: 'esri-icon-plus-circled'
+          };
+
+        // Add this action to the popup so it is always available in this view
+        const bufferThisAction = {
+            title: 'buffer',
+            id: 'buffer-this',
+            className: 'esri-icon-radio-checked'
           };
 
           // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
@@ -984,8 +1041,8 @@ export class MapService {
             geometry: circle,
             symbol: sym
         });
-    //hide the spinner after drawing buffer
-    this.displayDBSpinner = false;
+        //hide the spinner after drawing buffer
+        this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
           g.setAttribute('parentId', parentId);
@@ -1700,7 +1757,7 @@ export class MapService {
         }
     } */
 
-    public async selectSinglePolygon(evt:__esri.MapViewClickEvent){
+    public async selectSinglePolygon(evt:__esri.MapViewClickEvent, geom?: __esri.Geometry, objID?: number){
         console.log('fired selectSinglePolygon');
 
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -1735,14 +1792,20 @@ export class MapService {
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
                 const query = lyr.createQuery();
-                const currentClick = query.geometry = evt.mapPoint;
+                if (geom) {
+                    console.log ('selectSinglePoly() - geom:' + objID);
+                    const currentClick = query.geometry = geom;    
+                } else {
+                    console.log ('selectSinlgePoly() - Mapclick' + evt);
+                    const currentClick = query.geometry = evt.mapPoint;
+                }
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(polyFeatureSet => {
                        if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.OBJECTID)){
 
                             const graphi: __esri.Graphic = polyFeatureSet.features[0];
                             MapService.mapView.graphics.forEach((graphic) => {
-                                if (graphi.attributes.OBJECTID ===  graphic.attributes){
+                                if (graphi.attributes.OBJECTID === graphic.attributes){
                                     console.log('deselect to mapview');
                                     MapService.mapView.graphics.remove(graphic);
                                     const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
@@ -1755,8 +1818,14 @@ export class MapService {
                             });
                         }else{
                             console.log('select to mapview');
-                            MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
-                            MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
+                            if (objID != null) {
+                                MapService.selectedCentroidObjectIds.push(objID);
+                                MapService.mapView.graphics.add(new Graphic(geom, symbol, objID));
+                            }    
+                            else {
+                               MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.OBJECTID);
+                               MapService.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.OBJECTID));
+                            }
                             MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.HHLD_W;
                             MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
                             //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
