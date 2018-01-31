@@ -18,19 +18,32 @@ import { CONFIG } from '../../../core';
 import { MessageService } from '../../common/services/message.service';
 
 // Import Models
-import { AmSite } from '../models/AmSite';
+//import { AmSite } from '../models/AmSite';
 import { InMemoryStubService } from '../../../api/in-memory-stub.service';
+import { GeocodingResponse } from '../../../Models/GeocodingResponse';
+import { GeocodingAttributes } from '../../../Models/GeocodingAttributes';
+import { SelectItem } from 'primeng/components/common/selectitem';
 
 const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
 
 @Injectable()
 export class AmSiteService 
 {
-   private subject: Subject<AmSite> = new Subject<AmSite>();
-   public  amSites: Array<AmSite> = new Array<AmSite>();
+  //\ public  newSitesList: any[] = [];   
+   public  cols: any[] = [];
+   public  columnOptions: SelectItem[] = [];
+   private subject: Subject<any> = new Subject<any>();
    public  amComps: Array<any> = new Array<any>();
-   public  unselectedAmSites: Array<AmSite> = new Array<AmSite>();
-   public  unselectedAmComps: Array<AmSite> = new Array<AmSite>();
+   public  unselectedAmComps: Array<GeocodingResponse> = new Array<GeocodingResponse>();
+
+   public  sitesList: Array<GeocodingResponse> = new Array<GeocodingResponse>();
+   public  unselectedSitesList:  any[] = [];   
+
+   //TODO need to remove
+   
+
+   
+   
 
    private tempId: number = 0;
 
@@ -64,7 +77,7 @@ export class AmSiteService
     * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
     */
    public createCSV() : string[] {
-      if (this.amSites.length < 1) {
+      if (this.sitesList.length < 1) {
             throw new Error('No sites available to export');
       }
       const csvData: string[] = new Array<string>();
@@ -90,10 +103,10 @@ export class AmSiteService
       csvData.push(headerRow);
 
       // now loop through the AmSite[] array and turn each record into a row of CSV data
-      for (const amSite of this.amSites) {
+      for (const site of this.sitesList) {
             let row: string = '';
             for (const field of headers) {
-                  row = row + amSite[field] + ',';
+                  row = row + site[field] + ',';
             }
             if (row.substring(row.length - 1) === ',') {
                   row = row.substring(0, row.length - 1);
@@ -108,27 +121,35 @@ export class AmSiteService
       return this.tempId++;
    }
 
-   public add(amSites: AmSite[])
+   public add(sitesList: GeocodingResponse[])
    {
       // For each site provided in the parameters
-      for (const amSite of amSites)
+      for (const site of sitesList)
       {
          // Assign the site a temporary pk
-         if (amSite.pk == null)
-            amSite.pk = this.getNewSitePk();
+         if (site.number == null)
+             site.number = this.getNewSitePk().toString();
 
          // Add the site to the selected sites array
-         this.amSites = [...this.amSites, amSite];
+         this.sitesList = [...this.sitesList, site];
 
-         // Add the site to the sites list array
-         this.unselectedAmSites = [...this.unselectedAmSites, amSite];
-
+       
+         //for (let i = 0 ; i < sitesList.length; i++){
+            console.log('sitesList.length::' + sitesList.length);
+             const temp = {};   
+             site.geocodingAttributesList.forEach(item => {
+                 const keyValue = Object.values(item);
+                 temp[keyValue[0].toString()] = keyValue[1];   
+                    
+           });
+           this.unselectedSitesList = [...this.unselectedSitesList, temp];
+       
          // Notifiy Observers
-         this.subject.next(amSite);
+         this.subject.next(site);
       }
 
       // Update the metrics
-      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+      this.metricService.add('LOCATIONS', '# of Sites', this.sitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
       // Debug log site arrays to the console
       this.logSites();
@@ -156,31 +177,31 @@ export class AmSiteService
       this.logSites();
    }
  
-   public remove (site: AmSite)
+   public remove (site: GeocodingResponse)
    {
       // Remove the site from the selected sites array
-      let index = this.amSites.indexOf(site);
-      this.amSites =  [...this.amSites.slice(0, index),
-                       ...this.amSites.slice(index + 1)];
+      let index = this.sitesList.indexOf(site);
+      this.sitesList =  [...this.sitesList.slice(0, index),
+                       ...this.sitesList.slice(index + 1)];
 
       // Remove the site from the sites list array
-      index = this.unselectedAmSites.indexOf(site);
-      this.unselectedAmSites =  [...this.unselectedAmSites.slice(0, index),
-                                 ...this.unselectedAmSites.slice(index + 1)];
+      index = this.unselectedSitesList.indexOf(site);
+      this.unselectedSitesList =  [...this.unselectedSitesList.slice(0, index),
+                                 ...this.unselectedSitesList.slice(index + 1)];
 
       // Remove site from the map (TODO: I think this should be handled by an observer)
 //      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
 //      this.mapService.clearGraphicsAt(site.ycoord, site.xcoord);
-      this.mapService.clearGraphicsForParent(site.pk);
+      this.mapService.clearGraphicsForParent(Number(site.number));
 
 
       // Update the metrics
-      this.metricService.add('LOCATIONS', '# of Sites', this.amSites.length.toString());
+      this.metricService.add('LOCATIONS', '# of Sites', this.sitesList.length.toString());
 
       //update trade area and Metrics
       const point = new Points();
-      point.latitude = site.ycoord;
-      point.longitude = site.xcoord;
+      point.latitude = site.latitude;
+      point.longitude = site.longitude;
       const i = MapService.pointsArray.indexOf(point);
       const removedpoint = MapService.pointsArray.splice(i, 1);       
       this.mapService.callTradeArea();
@@ -188,38 +209,38 @@ export class AmSiteService
       this.subject.next(site);
    }
     
-   public update (oldSite: AmSite, newSite: AmSite)
+   public update (oldSite: GeocodingResponse, newSite: GeocodingResponse)
    {
-      let index = this.amSites.indexOf(oldSite);
-      this.amSites = [...this.amSites.slice(0, index),
+      let index = this.sitesList.indexOf(oldSite);
+      this.sitesList = [...this.sitesList.slice(0, index),
 //                     Object.assign({}, person, {age}),
                       newSite,
-                      ...this.amSites.slice(index + 1)];
+                      ...this.sitesList.slice(index + 1)];
 
-      index = this.unselectedAmSites.indexOf(oldSite);
-      this.unselectedAmSites = [...this.unselectedAmSites.slice(0, index),
+      index = this.unselectedSitesList.indexOf(oldSite);
+      this.unselectedSitesList = [...this.unselectedSitesList.slice(0, index),
                                 newSite,
-                                ...this.unselectedAmSites.slice(index + 1)];
+                                ...this.unselectedSitesList.slice(index + 1)];
    }
 
    // Site was unselected outside of the service, eg. from a data table
    // Alert the subscribers of the removal
-   public siteWasUnselected (amSite: AmSite)
+   public siteWasUnselected (site: GeocodingResponse)
    {
 //      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, amSite.ycoord, amSite.xcoord);
 //      this.mapService.clearGraphicsAt(amSite.ycoord, amSite.xcoord);
 
       // Clear all map graphics that have an attribute of parentId with a value of amSite.pk
-      this.mapService.clearGraphicsForParent(amSite.pk);
+      this.mapService.clearGraphicsForParent(Number(site.number));
       
-      this.subject.next(amSite);
+      this.subject.next(site);
    }
 
    // Site was selected outside of the service, eg. from a data table
    // Alert the subscribers of the addition
-   public siteWasSelected (amSite: AmSite)
+   public siteWasSelected (site: GeocodingResponse)
    {
-      this.subject.next(amSite);
+      this.subject.next(site);
    }   
    
    public refreshMapSites()
@@ -229,11 +250,11 @@ export class AmSiteService
       
       // Reflect selected sites on the map
       this.addSelectedSitesToMap();
-      console.log('refreshMapSites - cleared and set ' + this.amSites.length + ' sites.');
+      console.log('refreshMapSites - cleared and set ' + this.sitesList.length + ' sites.');
    }
 
    // Create a Graphic object for the site that can be displayed on the map
-   public async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+   public async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       let graphic: __esri.Graphic = new Graphic();
@@ -246,7 +267,7 @@ export class AmSiteService
          b: 186
       };
 
-      await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate, amSite.pk)
+      await this.mapService.createGraphic(site.latitude, site.longitude, color, popupTemplate, Number(site.number))
          .then(res => {
             graphic = res;
          });
@@ -254,20 +275,21 @@ export class AmSiteService
    }
 
    // Create a PopupTemplate for the site that will be displayed on the map
-   private async createSitePopup(amSite: AmSite) : Promise<__esri.PopupTemplate>
+   private async createSitePopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate>
    {
-      const loader = EsriLoaderWrapperService.esriLoader;
-      const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
-      const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-      popupTemplate.content = 'Name: ' + amSite.name + '<br>' +
-      'Number: ' + amSite.siteId + '<br>' +
-      'Street: ' + amSite.address + '<br>' +
-      'City: ' + amSite.city + '<br>' +
-      'State: ' + amSite.state + '<br>' +
-      'Zip: ' + amSite.zip + '<br>' +
-      'Latitude: ' + amSite.ycoord + '<br>' +
-      'Longitude: ' + amSite.xcoord + '<br>';
-      return popupTemplate;
+    const loader = EsriLoaderWrapperService.esriLoader;
+    const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
+    const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
+    const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
+    popupTemplate.title = `Sites`;
+    let template  =  `<table> <tbody>`;
+        for (const popupAttribute of  popupAttributesList){
+            template = template + `<tr><th>${popupAttribute.attributeName}</th><td>${popupAttribute.attributeValue}</td></tr>`;
+        }
+        template = template + `</tbody> </table>`;
+        popupTemplate.content = template;
+
+    return popupTemplate;
    }
 
    // draw the site graphics on the Sites layer
@@ -283,9 +305,9 @@ export class AmSiteService
          const loader = EsriLoaderWrapperService.esriLoader;
          const [Graphic] = await loader.loadModules(['esri/Graphic']);
          const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-         for (const amSite of this.amSites) {
-            await this.createSitePopup(amSite)
-               .then(res => this.createGraphic(amSite, res))
+         for (const site of this.sitesList) {
+            await this.createSitePopup(site)
+               .then(res => this.createGraphic(site, res))
                .then(res => { graphics.push(res); })
                .catch(err => this.handleError(err));
       }
@@ -300,7 +322,7 @@ export class AmSiteService
       }
    }
 
-   public observeSites() : Observable<AmSite> {
+   public observeSites() : Observable<GeocodingResponse> {
       return this.subject.asObservable();
    }
 
@@ -310,12 +332,12 @@ export class AmSiteService
 //      this.messageService.add({severity: 'success', summary: 'AmSiteService: ' + message, detail: 'Via MessageService'});
    }  
 
-   public getAmSites() : Observable<AmSite[]> {
+   public getAmSites() : Observable<GeocodingResponse[]> {
       console.log('getAmSites fired (Observable)');
-      return of(this.amSites);
+      return of(this.sitesList);
    }
     
-   public XXXgetAmSites() : AmSite[]
+   public XXXgetAmSites() : GeocodingResponse[]
    {
       console.log('getAmSites fired');
 
@@ -329,7 +351,7 @@ export class AmSiteService
 //      .catch()
 //      .finally(() => this.logEnd());
 
-      return this.amSites;
+      return null;
       // this.http.get('/api/items').subscribe(data => {
       //    // Read the result field from the JSON response.
       //    this.results = data['results'];
@@ -348,12 +370,12 @@ export class AmSiteService
    public logSites()
    {
       console.log('--# SELECTED AMSITES');
-      for (const amSite of this.amSites)
-         console.log('  ' + amSite);
+      for (const site of this.sitesList)
+         console.log('  ' + site);
 
       console.log('--# UNSELECTED AMSITES');
-      for (const amSite of this.unselectedAmSites)
-         console.log('  ' + amSite);
+      for (const site of this.unselectedSitesList)
+         console.log('  ' + site);
    }
 
 /*  
@@ -406,5 +428,14 @@ export class AmSiteService
    //    console.log('returning: ' + <T>(body && body.data));
       return <T>(body || {});
    //    return <T>(body && body.data || {});    
+   }
+
+   public createGrid(sitesList: GeocodingResponse[]) {
+        Object.keys(this.unselectedSitesList[0]).forEach(item => {
+            this.cols.push({field: item, header: item.toUpperCase(), size: '150px'});
+        });
+        for (let i = 0; i < this.cols.length; i++) {
+            this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
+        }
    }
 }

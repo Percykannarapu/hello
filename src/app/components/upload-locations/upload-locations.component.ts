@@ -25,8 +25,8 @@ interface CsvHeadersPosition {
 @Component({
   selector: 'val-upload-locations',
   templateUrl: './upload-locations.component.html',
-  styleUrls: ['./upload-locations.component.css'],
-  providers: [GeocoderService, MapService]
+  styleUrls: ['./upload-locations.component.css']
+ // providers: [GeocoderService, MapService]
 })
 export class UploadLocationsComponent implements OnInit {
 
@@ -36,7 +36,7 @@ export class UploadLocationsComponent implements OnInit {
   private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
-  public selector: String;
+  public selector: String = 'Site';
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 
@@ -46,7 +46,7 @@ export class UploadLocationsComponent implements OnInit {
   ngOnInit() {
   }
 
-  async geocodeCSV(event) {
+   geocodeCSV1(event) {
     
     const input = event.target;
     const reader = new FileReader();

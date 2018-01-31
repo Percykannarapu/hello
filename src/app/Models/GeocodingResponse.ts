@@ -1,3 +1,8 @@
+//import { GeocodingAttributes } from "./GeoCodingAttributes";
+import { GeocodingAttributes } from './GeocodingAttributes';
+
+
+
 export class GeocodingResponse {
     firmname: string;
     addressline: string;
@@ -15,4 +20,7 @@ export class GeocodingResponse {
     standardizedCity: string;
     standardizedState: string;
     zip: string;
+    attributes?: any;
+
+    public   geocodingAttributesList: GeocodingAttributes[]; 
   }

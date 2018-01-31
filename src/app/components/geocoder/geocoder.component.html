@@ -52,7 +52,7 @@
         <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
             <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
             <p-column field="pk" [hidden]="true"></p-column>
-            <p-column field="address" header="Street" [editable]="true"></p-column>
+            <p-column field="addressline" header="Street" [editable]="true"></p-column>
             <p-column field="city" header="City" [editable]="true"></p-column>
             <p-column field="state" header="State" [editable]="true"></p-column>
             <p-column field="zip" header="Zip" [editable]="true"></p-column>
@@ -132,9 +132,9 @@
         <div class="ui-g-12">
             <p>Detected {{failedSites.length}} geocoding failures</p>
             <p-dataTable [value]="failedSites">
-                <p-column field="pk" header="Site#"></p-column>
+                <p-column field="number" header="Site#"></p-column>
                 <p-column field="name" header="name"></p-column>
-                <p-column field="address" header="Address"></p-column>
+                <p-column field="addressline" header="Address"></p-column>
                 <p-column field="city" header="city"></p-column>
                 <p-column field="zip" header="zip"></p-column>
             </p-dataTable>

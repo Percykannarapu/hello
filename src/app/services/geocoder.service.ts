@@ -89,7 +89,7 @@ private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate,
   //   b: 186
   // };
   let color;
-  if(selector === 'Site'){
+  if (selector === 'Site'){
     color = {
       a: 1,
       r: 35,
@@ -130,7 +130,7 @@ private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate,
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            this.amSiteService.add(amSites);
+            //this.amSiteService.add(amSites);
           }else{
             this.amSiteService.addCompetitors(amSites);
           }

@@ -144,6 +144,7 @@ import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import { UploadLocationsComponent } from './components/upload-locations/upload-locations.component';
+import { GeocoderService } from './services/geocoder.service';
 
 @NgModule({
     imports: [
@@ -271,7 +272,7 @@ import { UploadLocationsComponent } from './components/upload-locations/upload-l
         EsriLoaderService, GfGeoService, MapService, RestDataService,
         // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
-        AppState
+        AppState, GeocoderService
     ],
     bootstrap: [AppComponent]
 })

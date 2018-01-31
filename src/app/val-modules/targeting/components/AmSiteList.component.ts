@@ -7,13 +7,11 @@ import { GeocoderComponent } from '../../../components/geocoder/geocoder.compone
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { AppService } from '../../../services/app.service';
 
-// Import Models
-import { AmSite } from '../models/AmSite';
-
 // Import Services
 import { AmSiteService } from '../services/AmSite.service';
 import {MessageService} from '../../common/services/message.service';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import { GeocodingResponse } from '../../../Models/GeocodingResponse';
 
 @Component({
   selector: 'val-amsite-list',
@@ -31,10 +29,10 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    selectAllGeos: boolean;
 
   // amSites: AmSite[] = [];
-    cols: any[];
+    //cols: any[];
 
-   selectedSites: AmSite[];   
-   columnOptions: SelectItem[];
+   selectedSites: GeocodingResponse[];   
+   //columnOptions: SelectItem[];
   
    constructor(public amSiteService: AmSiteService,
                private messageService: MessageService,
@@ -49,19 +47,19 @@ export class AmSiteListComponent implements OnInit, OnDestroy
    
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
-      const amSite: AmSite = new AmSite();
-      amSite.address = row.address;
-      amSite.city = row.city;
-      amSite.state = row.state;
-      amSite.zip = row.zip;
-      amSite.xcoord = row.xcoord;
-      amSite.ycoord = row.ycoord;
-      const graphic = await this.amSiteService.createGraphic(amSite, null);
+      const site: GeocodingResponse = new GeocodingResponse();
+      site.state = row.address;
+      site.city = row.city;
+      site.state = row.state;
+      site.zip = row.zip;
+      site.latitude = row.latitude;
+      site.longitude = row.longitude;
+      const graphic = await this.amSiteService.createGraphic(site, null);
       this.mapService.zoomOnMap([graphic]);
       this.appService.closeOverLayPanel.next(true);
    }
 
-   public onDeleteSite(site: AmSite)
+   public onDeleteSite(site: GeocodingResponse)
    {
       console.log('Removing site: ' + site);      
       this.amSiteService.remove(site);
@@ -82,20 +80,21 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       // this.dbResetSubscription = this.geofootprintGeosService.onDbReset
       //                              .subscribe(() => this.getGeofootprintGeos());*/
     
-    this.cols = [
-      {field: 'pk', header: 'Site #' , size: '30px'},
+    /*this.amSiteService.cols = [
+      {field: 'number', header: 'Site #' , size: '30px'},
       {field: 'name', header: 'Name', size: '30px'},
-      {field: 'address', header: 'Address', size: '80px'},
+      {field: 'addressline', header: 'Address', size: '80px'},
       {field: 'city', header: 'City', size: '45px'},
       {field: 'state', header: 'State', size: '30px'},
       {field: 'zip', header: 'Zip', size: '50px'},
-      {field: 'ycoord', header: 'Latitude (Y)', size: '60px' },
-      {field: 'xcoord', header: 'Latitude (X)', size: '60px'}
+      {field: 'latitude', header: 'Latitude (Y)', size: '60px' },
+      {field: 'longitude', header: 'Longitude (X)', size: '60px'},
+      {field: 'matchCode', header: 'MatchCode', size: '30px'}
     ];     
-      this.columnOptions = [];
-      for (let i = 0; i < this.cols.length; i++) {
-        this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
-    }
+      this.amSiteService.columnOptions = [];
+      for (let i = 0; i < this.amSiteService.cols.length; i++) {
+        this.amSiteService.columnOptions.push({label: this.amSiteService.cols[i].header, value: this.amSiteService.cols[i]});
+      }*/
 
 /*      
       this.http.get('/api/items').subscribe(data => {
@@ -139,8 +138,8 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       this.amSiteService.logSites();
    }
    
-   printSite(amSite: AmSite) {
-      console.log(amSite);
+   printSite(site: GeocodingResponse) {
+      console.log(site);
    }
 
    // Toggle Modal Dialog Methods
