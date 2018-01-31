@@ -1100,7 +1100,7 @@ export class MapService {
             }
         });
 
-        if (layerName.includes('Site') || layerName.startsWith('Zip')){
+        if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')){
             const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
             
@@ -1581,6 +1581,11 @@ export class MapService {
 
         for (const lyr of fLyrList){
             if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
+                let layername = null;
+                if (lyr.title === 'ZIP_Top_Vars')
+                    layername = 'Selected Geography - ZIP';
+                 else
+                     layername = 'Selected Geography - ATZ';   
                 const polyGraphics: __esri.Graphic[] = [];
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
@@ -1589,7 +1594,7 @@ export class MapService {
                    // loadedFeatureLayer.renderer = f1
                 });
 
-                await  this.removeSubLayer('Zip - polygon', MapService.SitesGroupLayer);                
+                await  this.removeSubLayer(layername, MapService.SitesGroupLayer);                
                // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
@@ -1620,7 +1625,7 @@ export class MapService {
                               //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
                         //MapService.mapView.graphics.addMany(polyGraphics);
-                        this.updateFeatureLayer(polyGraphics, 'Zip - polygon selection');
+                        this.updateFeatureLayer(polyGraphics, layername);
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '$'));

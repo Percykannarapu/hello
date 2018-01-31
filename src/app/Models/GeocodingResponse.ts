@@ -1,4 +1,6 @@
-import { GeocodingAttributes } from './GeoCodingAttributes';
+//import { GeocodingAttributes } from "./GeoCodingAttributes";
+import { GeocodingAttributes } from './GeocodingAttributes';
+
 
 
 export class GeocodingResponse {

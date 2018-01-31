@@ -21,7 +21,7 @@ import { MessageService } from '../../common/services/message.service';
 //import { AmSite } from '../models/AmSite';
 import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 import { GeocodingResponse } from '../../../Models/GeocodingResponse';
-import { GeocodingAttributes } from '../../../Models/GeoCodingAttributes';
+import { GeocodingAttributes } from '../../../Models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
 
 const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;

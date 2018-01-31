@@ -20,7 +20,7 @@ import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
 import { Points } from '../../Models/Points';
-import { GeocodingAttributes } from '../../Models/GeoCodingAttributes';
+import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
