@@ -20,6 +20,7 @@ import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
 import { Points } from '../../Models/Points';
+import { GeocodingAttributes } from '../../Models/GeoCodingAttributes';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
@@ -54,12 +55,12 @@ export class GeocoderComponent implements OnInit {
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
   public displayGcSpinner: boolean = false;
-  public failedSites: AmSite[] = [];
+  public failedSites: GeocodingResponse[] = [];
   public displayFailureWindow: boolean = false;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
-
+  public headers: any;
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   //public pointsArray: Points[] = []; // moved to mapservices
@@ -78,13 +79,13 @@ export class GeocoderComponent implements OnInit {
   // create an AmSite, then invoke the geocoder
   public async onGeocode() {
     try {
-      const amSite = new AmSite();
-      amSite.pk = this.amSiteService.getNewSitePk();
-      amSite.address = this.street;
-      amSite.city = this.city;
-      amSite.state = this.state;
-      amSite.zip = this.zip.toString();
-      this.geocodeAddress(amSite);
+      const site = new GeocodingResponse();
+      site.number = this.amSiteService.getNewSitePk().toString();
+      site.addressline = this.street;
+      site.city = this.city;
+      site.state = this.state;
+      site.zip = this.zip.toString();
+      this.geocodeAddress(site);
 
       if (this.metricService === null)
         console.log('METRIC SERVICE IS NULL');
@@ -95,31 +96,34 @@ export class GeocoderComponent implements OnInit {
     }
   }
 
-  // geocode an AmSite by invoking the geocoding service
-  public async geocodeAddress(amSite: AmSite, display: boolean = true) {
-    const observable = this.geocoderService.geocode(amSite);
+  // geocode an GeocodingResponse by invoking the geocoding service
+  public async geocodeAddress(site: GeocodingResponse, display: boolean = true) {
+    const siteList: any[] = [];
+    siteList.push(site);
+    const observable = this.geocoderService.multiplesitesGeocode(siteList);
     observable.subscribe((res) => {
-      this.parseResponse([res], display);
+      this.parseCsvResponse([res], display);
       this.disableshowBusiness = false;
     }, err => this.handleError(err), null);
   }
 
   // add all of the geocoded sites in the amSites array to the map
-  private async addSitesToMap(amSites: AmSite[]) {
+  private async addSitesToMap(sitesList: GeocodingResponse[]) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-      for (const amSite of amSites) {
-        console.log('creating popup for site: ' + amSite.pk);
-        await this.createPopup(amSite)
-          .then(res => this.createGraphic(amSite, res))
+      for (const site of sitesList) {
+        //console.log('creating popup for site: ' + amSite.pk);
+        await this.createPopup(site)
+          .then(res => this.createGraphic(site, res))
           .then(res => { graphics.push(res); })
           .catch(err => this.handleError(err));
-      }
+      } 
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => this.amSiteService.add(amSites))
+        .then(res => this.amSiteService.add(sitesList))
+        .then(res => this.amSiteService.createGrid(sitesList))
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
@@ -136,14 +140,14 @@ export class GeocoderComponent implements OnInit {
 
       // geocoding failures get pushed into the failedSites array for manual intervention by the user
       if (this.geocodingFailure(geocodingResponse)) {
-        const failedSite: AmSite = new AmSite();
-        failedSite.ycoord = geocodingResponse.latitude;
-        failedSite.xcoord = geocodingResponse.longitude;
-        failedSite.address = geocodingResponse.addressline;
+        const failedSite: GeocodingResponse = new GeocodingResponse();
+        failedSite.latitude = geocodingResponse.latitude;
+        failedSite.longitude = geocodingResponse.longitude;
+        failedSite.addressline = geocodingResponse.addressline;
         failedSite.city = geocodingResponse.city;
         failedSite.state = geocodingResponse.state;
         failedSite.zip = geocodingResponse.zip10;
-        failedSite.pk = GeocoderComponent.failedSiteCounter;
+        failedSite.number = GeocoderComponent.failedSiteCounter.toString();
         const failedSites = Array.from(this.failedSites);
         failedSites.push(failedSite);
         this.failedSites = failedSites;
@@ -166,7 +170,7 @@ export class GeocoderComponent implements OnInit {
       MapService.pointsArray.push(points);
     }
     if (display) {
-      this.addSitesToMap(amSites);
+      //this.addSitesToMap(amSites);
       this.mapService.callTradeArea();
     }
     return amSites;
@@ -181,30 +185,24 @@ export class GeocoderComponent implements OnInit {
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
-  private async createPopup(amSite: AmSite) : Promise<__esri.PopupTemplate> {
+  private async createPopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.title = `Site`,
-    popupTemplate.content =
-      `<table>
-    <tbody>
-    <tr><th>Name</th><td>${amSite.name ? amSite.name : ''}</td></tr>
-    <tr><th>Number</th><td>${amSite.siteId ? amSite.siteId : ''}</td></tr>
-    <tr><th>Street</th><td>${amSite.address}</td></tr>
-    <tr><th>City</th><td>${amSite.city}</td></tr>
-    <tr><th>State</th><td>${amSite.state}</td></tr>
-    <tr><th>Zip</th><td>${amSite.zip}</td></tr>
-    <tr><th>Latitude</th><td>${amSite.ycoord}</td></tr>
-    <tr><th>Longitude</th><td>${amSite.xcoord}</td></tr>
-    </tbody>
-    </table>`;
+    const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
+    popupTemplate.title = `Sites`;
+    let template  =  `<table> <tbody>`;
+        for (const popupAttribute of  popupAttributesList){
+            template = template + `<tr><th>${popupAttribute.attributeName.toUpperCase()}</th><td>${popupAttribute.attributeValue}</td></tr>`;
+        }
+        template = template + `</tbody> </table>`;
+        popupTemplate.content = template;
 
     return popupTemplate;
   }
 
   // create a Graphic object for the site that will be displayed on the map
-  private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+  private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
@@ -217,7 +215,7 @@ export class GeocoderComponent implements OnInit {
       b: 186
     };
 
-    await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate, amSite.pk)
+    await this.mapService.createGraphic(site.latitude, site.longitude, color, popupTemplate, Number(site.number))
       .then(res => {
         graphic = res;
       });
@@ -262,139 +260,131 @@ export class GeocoderComponent implements OnInit {
   // 12. If the geocoder returned an invalid match code for some rows in the CSV file, an error is displayed somewhere. Very primitive UI please, as error handling is in US6348 Geocoding error handling in imPower application
   async geocodeCSV(event) {
     
-        const input = event.target;
-        const reader = new FileReader();
-        reader.readAsText(input.files[0]);
-        reader.onload = (data) => {
-          this.displayGcSpinner = true;
-          const csvData = reader.result;
-          const csvRecords = csvData.split(/\r\n|\n/);
-          const headers = csvRecords[0].split(',');
-          let headerPosition: CsvHeadersPosition = {};
-          try {
-            headerPosition = this.verifyCSVColumns(headers);
-          }catch (error) {
-            this.handleError(error);
-            return;
-          }
-          const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
-          const csvFormattedData: any = [];
-          
-          // make sure to start loop at 1 to skip headers
-          for (let i = 1; i < csvRecords.length; i++) {
-    
-            // this is a check to see if the record we are currently on is blank
-            // if it's an empty record skip over it
-            if (!csvRecords[i] || 0 === csvRecords[i].length) {
-              continue;
-            }
-    
-            const data: string[] = csvRecords[i].split(',');
-            const csvRecord = [];
-            for (let j = 0; j < headers.length; j++) {
-              csvRecord.push(data[j]);
-            }
-            const amSite: AmSite = new AmSite();
-          
-    
-            if (headerPosition.lat === undefined && headerPosition.lon === undefined){
-              const amSiteList: AccountLocations[] = [];
-              const actLocs = new AccountLocations();
-              actLocs.name = csvRecord[headerPosition.name];
-              actLocs.street = csvRecord[headerPosition.street];
-              actLocs.zip = csvRecord[headerPosition.zip];
-              actLocs.state = csvRecord[headerPosition.state];
-              actLocs.city = csvRecord[headerPosition.city];
-              actLocs.number = csvRecord[headerPosition.number];
-              amSiteList.push(actLocs);
-              observables.push(this.geocoderService.multiplesitesGeocode(amSiteList));
-            }else{
-              amSite.name = csvRecord[headerPosition.name];
-              amSite.address = csvRecord[headerPosition.street];
-              amSite.zip = csvRecord[headerPosition.zip];
-              amSite.state = csvRecord[headerPosition.state];
-              amSite.city = csvRecord[headerPosition.city];
-              //amSite.number = csvRecord[headerPosition.number];
-              amSite.ycoord = csvRecord[headerPosition.lat];
-              amSite.xcoord = csvRecord[headerPosition.lon];
-              csvFormattedData.push({payload: amSite});
-            }
-    
-            //if (headerPosition.lat === undefined || headerPosition.lon === undefined){
-              //observables.push(this.geocoderService.geocode(amSite));
-            // }else{
-            //   amSite.xcoord = csvRecord[headerPosition.lat];
-            //   amSite.ycoord = csvRecord[headerPosition.lon];
-            //  }
+    const input = event.target;
+    const reader = new FileReader();
+    reader.readAsText(input.files[0]);
+    reader.onload = (data) => {
+      
+      this.displayGcSpinner = true;
+      const csvData = reader.result;
+      const csvRecords = csvData.split(/\r\n|\n/);
+      this.headers = csvRecords[0].split(',');
+      let headerPosition: any = {};
+      try {
+        headerPosition = this.verifyCSVColumns(this.headers);
+        console.log('header details after edit:' + this.headers);
+      }catch (error) {
+        this.handleError(error);
+        return;
+      }
+      const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
+      let csvFormattedData: any = [];
+      const restResponseList: RestResponse[] = [];
+      
+      // make sure to start loop at 1 to skip headers
+      for (let i = 1; i < csvRecords.length; i++) {
+          const siteList: any[] = [];
+          const site = {};
+          const csvRecord = csvRecords[i].split(',');
+          for (let j = 0; j < this.headers.length; j++){
+              site[this.headers[j]] = csvRecord[j];
           }
           if (headerPosition.lat === undefined && headerPosition.lon === undefined){
-              Observable.forkJoin(observables).subscribe(res => {
-                console.log('forkJoin:::' + res.length);
-              //  for (const restResponse of res){
-                  this.parseCsvResponse(res, true);
-                  this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
-                  this.displayGcSpinner = false;
-               // }
-              });
-            }else{
-            console.log('csvFormattedData length:::' + csvFormattedData.length);  
-            this.parseCsvResponse(csvFormattedData, true);
-            this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
-            this.displayGcSpinner = false;
-            
+              site['status'] = 'success';
+              siteList.push(site);
+              observables.push(this.geocoderService.multiplesitesGeocode(siteList));
           }
-        };
+          else{
+               siteList.push(site);
+               
+               siteList.forEach(siteData => {
+                  site['status'] = 'provided';  
+                  const restResp: RestResponse = {
+                    payload:    siteList,
+                    exception:  null,
+                    returnCode: 200
+                  };
+                  restResponseList.push(restResp);
+               });
+               csvFormattedData =  restResponseList;
+          }
+         
+        }
+      if (headerPosition.lat === undefined && headerPosition.lon === undefined){
+          Observable.forkJoin(observables).subscribe(res => {
+            console.log('forkJoin:::' + res.length);
+              this.parseCsvResponse(res, true);
+              this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
+              this.displayGcSpinner = false;
+          });
+        }else{
+        console.log('csvFormattedData length:::' + csvFormattedData.length);  
+        this.parseCsvResponse(csvFormattedData, true);
+        this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
+        this.displayGcSpinner = false;
       }
+    };
+  }
 
-  // check the column headers accourding to the business rules above and figure out the positions of all the headers
-  private verifyCSVColumns(columns: string[]) : CsvHeadersPosition {
-    let addressFlag: boolean = false;
-    let cityFlag: boolean = false;
-    let stateFlag: boolean = false;
-    let zipFlag: boolean = false;
-    let latFlag: boolean = false;
-    let lonFlag: boolean = false;
-    let nameFlag: boolean = false;
-    let numberFlag: boolean = false;
-    let count: number = 0;
-    const headerPosition: CsvHeadersPosition = {};
-    this.disableshowBusiness = false; //enable the search business button
-    for (let column of columns) {
+ // check the column headers accourding to the business rules above and figure out the positions of all the headers
+ private verifyCSVColumns(columns: string[]) : any {
+  let addressFlag: boolean = false;
+  let cityFlag: boolean = false;
+  let stateFlag: boolean = false;
+  let zipFlag: boolean = false;
+  let latFlag: boolean = false;
+  let lonFlag: boolean = false;
+  let nameFlag: boolean = false;
+  let numberFlag: boolean = false;
+  let count: number = 0;
+  const headerPosition: any = {};
+  this.disableshowBusiness = false; //enable the search business button
+  for (let j = 0; j < columns.length; j++){
+      let column = columns[j];
       column = column.toUpperCase();
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
+        this.headers[j] = 'street';
       }
       if (column === 'CITY') {
         cityFlag = true;
         headerPosition.city = count;
+        this.headers[j] = 'city';
       }
       if (column === 'STATE' || column === 'ST') {
         stateFlag = true;
         headerPosition.state = count;
+        this.headers[j] = 'state';
       }
       if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
         zipFlag = true;
         headerPosition.zip = count;
+        this.headers[j] = 'zip';
       }
       if (column === 'Y') {
         latFlag = true;
         headerPosition.lat = count;
+        this.headers[j] = 'latitude';
       }
       if (column === 'X') {
         lonFlag = true;
         headerPosition.lon = count;
+        this.headers[j] = 'longitude';
       }
       if (column === 'NAME' || column === 'FIRM'){
         nameFlag = true;
         headerPosition.name = count;
+        this.headers[j] = 'name';
       }
-      if (column === 'NUMBER' || column === 'NBR' || column === 'ID' || column === 'NUM' || column === '#'){
+      if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
         numberFlag = true;
         headerPosition.number = count;
+        this.headers[j] = 'number';
       }
       count++;
-    }
+  }
+  
     if (!addressFlag) {
       const validationError: string = 'Either the City and State must be entered or a Postal Code';
       if (!zipFlag) {
@@ -411,26 +401,27 @@ export class GeocoderComponent implements OnInit {
     this.displayFailureWindow = true;
   }
 
-  // resubmit a geocoding request for an AmSite that failed to geocode previously
+  // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
   public async onResubmit(row) {
-    const site: AmSite = new AmSite();
-    site.address = row.address;
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
     site.city = row.city;
     site.state = row.state;
     site.zip = row.zip;
-    site.pk = row.pk;
+    site.number = row.pk;
     this.onRemove(row);
     this.geocodeAddress(site, true);
   }
 
-  // remove an AmSite from the list of sites that failed to geocode
+  // remove an GeocodingResponse from the list of sites that failed to geocode
   public async onRemove(row) {
-    const site: AmSite = new AmSite();
-    site.address = row.address;
+    console.log('on remove');
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
     site.city = row.city;
     site.state = row.state;
     site.zip = row.zip;
-    site.pk = row.pk;
+    site.number = row.number;
     for (let i = 0; i < this.failedSites.length; i++) {
       if (this.compareSites(site, this.failedSites[i])) {
         const failedSites = Array.from(this.failedSites);
@@ -442,8 +433,8 @@ export class GeocoderComponent implements OnInit {
 
   // determine if two AmSite objects are the same
   // this should be implemented in an equals() method in the model
-  public compareSites(site1: AmSite, site2: AmSite) : boolean {
-    if (site1.pk === site2.pk) {
+  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
+    if (site1.number === site2.number) {
       return true;
     }
     /*
@@ -467,73 +458,66 @@ export class GeocoderComponent implements OnInit {
     return false;
   }
 
-  private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
-    const amSites: AmSite[] = new Array<AmSite>();
-    //this.pointsArray = [];
-    
+  private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : GeocodingResponse[] {
+    const geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
-      const geocodingResponseList: any = restResponse.payload;
+      const locationResponseList: any[] = restResponse.payload;
+      const geocodingResponse: GeocodingResponse = new GeocodingResponse(); 
+      const geocodingAttrList: GeocodingAttributes[] = [];
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
-           const amSite: AmSite = new AmSite();
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
-        if (geocodingResponseList.ycoord === undefined && geocodingResponseList.xcoord === undefined){         
-          if (this.geocodingFailure(geocodingResponseList[0])) {
-            const failedSite: AmSite = new AmSite();
-            failedSite.ycoord = geocodingResponseList[0].latitude;
-            failedSite.xcoord = geocodingResponseList[0].longitude;
-            failedSite.address = geocodingResponseList[0].addressline;
-            failedSite.city = geocodingResponseList[0].city;
-            failedSite.state = geocodingResponseList[0].state;
-            failedSite.zip = geocodingResponseList[0].zip10;
-            failedSite.pk = GeocoderComponent.failedSiteCounter;
-            const failedSites = Array.from(this.failedSites);
-            failedSites.push(failedSite);
-            this.failedSites = failedSites;
-            GeocoderComponent.failedSiteCounter++;
-            continue;
+          if (locationResponseList[0].locationQualityCode !== undefined && locationResponseList[0].matchCode !== undefined) {
+              if (this.geocodingFailure(locationResponseList[0])) {
+                const failedSite: GeocodingResponse = new GeocodingResponse();
+                failedSite.latitude = locationResponseList[0].latitude;
+                failedSite.longitude = locationResponseList[0].longitude;
+                failedSite.addressline = locationResponseList[0].addressline;
+                failedSite.city = locationResponseList[0].city;
+                failedSite.state = locationResponseList[0].state;
+                failedSite.zip = locationResponseList[0].zip;
+                failedSite.number = GeocoderComponent.failedSiteCounter.toString();
+                const failedSites = Array.from(this.failedSites);
+                failedSites.push(failedSite);
+                this.failedSites = failedSites;
+                GeocoderComponent.failedSiteCounter++;
+                continue;
+              }
           }
-
-          amSite.ycoord = geocodingResponseList[0].latitude;
-          amSite.xcoord = geocodingResponseList[0].longitude;
-          amSite.address = geocodingResponseList[0].addressline;
-          amSite.city = geocodingResponseList[0].city;
-          amSite.state = geocodingResponseList[0].state;
-          amSite.zip = geocodingResponseList[0].zip;
-          amSite.siteId = geocodingResponseList[0].number;
-          amSite.name = geocodingResponseList[0].name;
-          amSite.pk = Number(geocodingResponseList[0].number);
-
-          
-          const points = new Points();
-          points.latitude = geocodingResponseList[0].latitude;
-          points.longitude = geocodingResponseList[0].longitude;
-          MapService.pointsArray.push(points);
-        }
-        else{
-          amSite.ycoord = geocodingResponseList.ycoord;
-          amSite.xcoord = geocodingResponseList.xcoord;
-          amSite.address = geocodingResponseList.address;
-          amSite.city = geocodingResponseList.city;
-          amSite.state = geocodingResponseList.state;
-          amSite.zip = geocodingResponseList.zip;
-          //amSite.siteId = geocodingResponseList.number;
-          amSite.name = geocodingResponseList.name;
-          //amSite.pk = Number(geocodingResponseList.number);
+          geocodingResponse.latitude    =      locationResponseList[0].latitude;
+          geocodingResponse.longitude   =      locationResponseList[0].longitude;
+          geocodingResponse.addressline =      locationResponseList[0].addressline;
+          geocodingResponse.city        =      locationResponseList[0].city;
+          geocodingResponse.state       =      locationResponseList[0].state;
+          geocodingResponse.zip         =      locationResponseList[0].zip;
+          geocodingResponse.number      =      locationResponseList[0].number;
+          geocodingResponse.name        =      locationResponseList[0].name;
+          geocodingResponse.number      =      locationResponseList[0].number;
+          geocodingResponse.matchCode   =      locationResponseList[0].matchCode; 
+         
+          let geocodingAttr = null;
+           for (const [k, v] of Object.entries(locationResponseList[0])){
+                  geocodingAttr = new GeocodingAttributes();
+                  geocodingAttr.attributeName = k;
+                  geocodingAttr.attributeValue = v;
+                  geocodingAttrList.push(geocodingAttr);
+           }
+           geocodingResponse.geocodingAttributesList = geocodingAttrList;
 
           const points = new Points();
-          points.latitude = geocodingResponseList.ycoord;
-          points.longitude = geocodingResponseList.xcoord;
+          points.latitude =  locationResponseList[0].latitude;
+          points.longitude = locationResponseList[0].longitude;
           MapService.pointsArray.push(points);
-        }
           
-          amSites.push(amSite);
+          geocodingResponseList.push(geocodingResponse);
+          //impGeoFootprintLocationList.push(amSite);
      // }
     }
     if (display) {
-      this.addSitesToMap(amSites);
+     // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
+      this.addSitesToMap(geocodingResponseList);
       this.mapService.callTradeArea();
     }
-    return amSites;
+    return geocodingResponseList;
   }
 }
