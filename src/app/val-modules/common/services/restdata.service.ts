@@ -1,3 +1,4 @@
+import { RestResponse } from './../../../Models/RestResponse';
 import { AppConfig } from './../../../app.config';
 import 'rxjs/add/operator/map';
 
@@ -10,42 +11,46 @@ export class RestDataService
 {
    private baseUrl: string;
 
-   constructor(private http: HttpClient, private appConfig: AppConfig)
-   {
+   constructor(private http: HttpClient, private appConfig: AppConfig) {
+      // Assign the base url from configuration
       this.baseUrl = appConfig.valServiceBase;
       console.log('RestDataService - baseUrl: ' + this.baseUrl);      
    }
 
-   public get<T>(url: string) : Observable<T> 
+   // -----------------------------------------------------------------------------------
+   // HTTP METHODS
+   // -----------------------------------------------------------------------------------
+   public get(url: string) : Observable<RestResponse> 
    {
       console.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
-      return this.http.get<T>(this.baseUrl + url);
+      return this.http.get<RestResponse>(this.baseUrl + url);
    }
 
-   public getById<T>(url: string, id: number) : Observable<T> {
-      console.log('RestDataService - getById - returning observable for: ' + this.baseUrl + url + id);
-      return this.http.get<T>(this.baseUrl + url + id);
-   }
-
-   public add<T>(url: string, itemName: string) : Observable<T>
+   public patch(url: string, payload: any) : Observable<RestResponse>
    {
-      const toAdd = JSON.stringify({ ItemName: itemName });
-
-      return this.http.post<T>(this.baseUrl + url, toAdd);
+      return this.http.patch<RestResponse>(this.baseUrl + url, JSON.stringify(payload));
    }
-
-   public update<T>(url: string, id: number, itemToUpdate: any) : Observable<T>
+   
+   public post(url: string, payload: any) : Observable<RestResponse>
    {
-      return this.http
-         .put<T>(this.baseUrl + url + id, JSON.stringify(itemToUpdate));
+      return this.http.post<RestResponse>(this.baseUrl + url, JSON.stringify(payload));
    }
 
-   public delete<T>(url: string, id: number) : Observable<T>
+   public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
    {
-      return this.http.delete<T>(this.baseUrl + url + id);
+      return this.http.put<RestResponse>(this.baseUrl + url + id, JSON.stringify(itemToUpdate));
    }
+
+   public delete(url: string, id: number) : Observable<RestResponse>
+   {
+      return this.http.delete<RestResponse>(this.baseUrl + url + id);
+   }
+
+   public jsonp(url: string, callbackParam: string) : Observable<any>
+   {
+      return this.http.jsonp(url, callbackParam);
+   }   
 }
-
 
 @Injectable()
 export class RestDataInterceptor implements HttpInterceptor

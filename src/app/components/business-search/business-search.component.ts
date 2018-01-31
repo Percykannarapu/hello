@@ -20,6 +20,7 @@ import { AmSiteService } from '../../val-modules/targeting/services/AmSite.servi
 export class BusinessSearchComponent implements OnInit {
 
   @Input() disableShowBusiness;
+  @Input() disableFromUpload;
   @Output()
   showSideBar: EventEmitter<any> = new EventEmitter<any>();
 
@@ -227,7 +228,7 @@ export class BusinessSearchComponent implements OnInit {
   async onAddToProject(selector) {
     console.log('selector: ', selector);
     //Giving color to the point on the map
-    if (selector === 'Sites') {
+    if (selector === 'Site') {
       this.color = {
         a: 1,
         r: 35,
@@ -236,7 +237,7 @@ export class BusinessSearchComponent implements OnInit {
       };
       //Close the sidebar after we select the points to be mapped
       //this.showSideBar.emit(false);
-    } else if (selector === 'Competitors') {
+    } else if (selector === 'Competitor') {
       this.color = {
         a: 1,
         r: 255,
@@ -269,6 +270,7 @@ export class BusinessSearchComponent implements OnInit {
           <tr><th>Longitude</th><td>${business.x}</td></tr>
           </tbody>
           </table>`;
+          
           // <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
           // <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
           // <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
@@ -279,13 +281,13 @@ export class BusinessSearchComponent implements OnInit {
         });
       }
     }
-    if (selector === 'Competitors') {
+    if (selector === 'Competitor') {
       this.amSiteService.addCompetitors(this.plottedPoints);
       //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
       this.appService.closeOverLayPanel.next(true);
-    } else if (selector === 'Sites'){
+    } else if (selector === 'Site'){
       this.amSiteService.add(this.plottedPoints);
       //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');

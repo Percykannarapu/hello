@@ -4,6 +4,7 @@ import { MapService } from '../../services/map.service';
 import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { CONFIG } from '../../core/config';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -148,7 +149,7 @@ export class TradeareaDefineComponent implements OnInit {
         if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
             let isValid = false;
             ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
-                if (this[model] < 0 || this[model] > 50) {
+                if (this[model] < 0 || this[model] > CONFIG.maxBufferRadius) {
                     isValid = true;
                 }
             });
@@ -160,6 +161,14 @@ export class TradeareaDefineComponent implements OnInit {
             else if (this.ta1Miles == 0 && this.checked1 || this.ta2Miles == 0 && this.checked2 || this.ta3Miles == 0 && this.checked3){
                 //message
                 this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a numeric value > 0 and <= 50 for trade areas you want to apply.` });
+                this.removeCheck();
+            }
+            else if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
+                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
+                this.removeCheck();
+            }
+            else if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles && this.checked1 && this.checked2 && this.checked3) {
+                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
                 this.removeCheck();
             }
             else {
@@ -180,15 +189,7 @@ export class TradeareaDefineComponent implements OnInit {
                 if (this.ta3Miles == null) { this.ta3Miles = 0; }
                 if (this.ta2Miles == null) { this.ta2Miles = 0; }
                 if (this.ta1Miles == null) { this.ta1Miles = 0; }
-            }
-            if (this.ta1Miles === this.ta2Miles && this.ta3Miles === this.ta1Miles && this.ta2Miles === this.ta3Miles && this.checked1 && this.checked2 && this.checked3) {
-                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                this.removeCheck();
-            }
-            if ((this.ta1Miles === this.ta2Miles && this.checked1 && this.checked2) || (this.ta2Miles === this.ta3Miles && this.checked2 && this.checked3) || (this.ta3Miles === this.ta1Miles && this.checked3 && this.checked1)) {
-                this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must enter a unique value for each trade area you want to apply.` });
-                this.removeCheck();
-            }
+            } 
         } else {
             this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `Please select at least one trade area to apply` });
             this.removeCheck();
@@ -203,19 +204,19 @@ export class TradeareaDefineComponent implements OnInit {
             await this.mapService.getAllFeatureLayers().then(list => {
                 //fLyrList = list;
                 for (const layer of list) {
-                    if (this.selectedValue === 'Sites') {
+                    if (this.selectedValue.includes ('Site')) {
                         if (layer.title.startsWith('Site -')) {
                             this.disableLyr(MapService.SitesGroupLayer, layer);
                         }
                     }
-                    if (this.selectedValue === 'Competitors') {
+                    if (this.selectedValue.includes('Competitor')) {
                         if (layer.title.startsWith('Competitor -')) {
                             this.disableLyr(MapService.CompetitorsGroupLayer, layer);
                         }
                     }
 
                     existingGraphics = (<__esri.FeatureLayer>layer).source;
-                    if (layer.title === this.selectedValue) {
+                    if (layer.title.includes(this.selectedValue.toString())) {
                         lyrTitle = layer.title;
                         existingGraphics.forEach(function (current: any) {
                             const points = new Points();
@@ -230,15 +231,15 @@ export class TradeareaDefineComponent implements OnInit {
 
             let color = null;
             let outlneColor = null;
-            if (lyrTitle === 'Sites') {
+            if (lyrTitle.includes('Sites')) {
                 color = { a: 0, r: 0, g: 0, b: 255 };
                 outlneColor = ([0, 0, 255, 2.50]);
-            } else if (lyrTitle === 'Competitors') {
+            } else if (lyrTitle.includes('Competitors')) {
                 color = { a: 0, r: 255, g: 0, b: 0 };
                 outlneColor = ([255, 0, 0, 2.50]);
             }
             else {
-                if (this.selectedValue === 'Sites') {
+                if (this.selectedValue.includes('Site')) {
                     this.displayTradeAreaError('Site');
                 } else {
                     this.displayTradeAreaError('Competitor');
@@ -329,6 +330,10 @@ export class TradeareaDefineComponent implements OnInit {
 
     }
 
+    /*
+    Manage icons is fired when ever we change the values on the trade area text fields
+    Turn the flags on and off
+    */
     public async manageIcons(eventVal: string, taType: string) {
         console.log('manageIcons fired:: ');
         if (taType === 'ta1miles') {
@@ -425,7 +430,7 @@ export class TradeareaDefineComponent implements OnInit {
                 this.checked2 = true;
                 this.editedta2 = true;
             }
-            if (this.sitesMap.get('ta1Miles') != null) {
+            if (this.sitesMap.get('ta1Miles') != null) { // || this.sitesMap.get('ta1Miles') !== '0'
                 this.ta1Miles = Number(this.sitesMap.get('ta1Miles'));
                 this.checked1 = true;
                 this.editedta1 = true;
@@ -450,6 +455,7 @@ export class TradeareaDefineComponent implements OnInit {
         await this.mapService.removeMapLayers();
     }
     private displayTradeAreaError(type) {
+        this.messageService.clear();
         this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s`});
         this.removeCheck();
 

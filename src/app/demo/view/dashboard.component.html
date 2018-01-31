@@ -16,11 +16,14 @@
          <p-tabView styleClass="ui-tabview-panels-nopad">
             <p-tabPanel header="Add Locations">
                <p-accordion>
+                    <p-accordionTab header="Upload">
+                            <val-upload-locations #uploadLocations>Loading...</val-upload-locations>
+                        </p-accordionTab>
                      <p-accordionTab header="Manually Add">
                         <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
                      </p-accordionTab>
                      <p-accordionTab header="Business Search">
-                        <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
+                        <val-business-search [disableFromUpload]="uploadLocations.disableshowBusiness" [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
                      </p-accordionTab>
                      <p-accordionTab header="Copy">
                          Copy from another profile
@@ -37,6 +40,7 @@
 
       </val-color-box>
    </div>
+
    <div class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Blue Household Count Box Overlay -->
       <val-color-box header="Campaign Details"

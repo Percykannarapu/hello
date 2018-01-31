@@ -71,8 +71,8 @@
             <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
           </span>
         </div>
-        <div class="ui-g-12">
-          <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()" [disabled]="disableShowBusiness"></button>
+        <div class="ui-g-12">{{disableShowBusiness}}--{{disableFromUpload}}
+          <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()" [disabled]="disableShowBusiness && disableFromUpload"></button>
         </div>
       </form>
       <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
@@ -127,10 +127,10 @@
       <label>Select as:</label>
     </div>
     <div class="ui-g-3">
-      <p-radioButton name="add_to_group" value="Sites" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
+      <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
     </div>
     <div class="ui-g-4">
-      <p-radioButton name="add_to_group" value="Competitors" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
+      <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
     </div>
     <div class="ui-g-12">
       <button type="button" style="float:right" label="Add to Project" icon="ui-icon-send" pButton (click)="onAddToProject(selector)"></button>
