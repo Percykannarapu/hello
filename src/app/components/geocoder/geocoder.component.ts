@@ -290,7 +290,7 @@ export class GeocoderComponent implements OnInit {
               site[this.headers[j]] = csvRecord[j];
           }
           if (headerPosition.lat === undefined && headerPosition.lon === undefined){
-              site['status'] = 'success';
+              site['status'] = 'SUCCESS';
               siteList.push(site);
               observables.push(this.geocoderService.multiplesitesGeocode(siteList));
           }
@@ -298,7 +298,7 @@ export class GeocoderComponent implements OnInit {
                siteList.push(site);
                
                siteList.forEach(siteData => {
-                  site['status'] = 'provided';  
+                  site['status'] = 'PROVIDED';  
                   const restResp: RestResponse = {
                     payload:    siteList,
                     exception:  null,
@@ -467,9 +467,9 @@ export class GeocoderComponent implements OnInit {
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
-          if (locationResponseList[0].locationQualityCode !== undefined && locationResponseList[0].matchCode !== undefined) {
-              if (this.geocodingFailure(locationResponseList[0])) {
+              if (locationResponseList[0].status !== 'PROVIDED' && this.geocodingFailure(locationResponseList[0])) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
+                locationResponseList[0].status = 'ERROR';
                 failedSite.latitude = locationResponseList[0].latitude;
                 failedSite.longitude = locationResponseList[0].longitude;
                 failedSite.addressline = locationResponseList[0].addressline;
@@ -483,7 +483,6 @@ export class GeocoderComponent implements OnInit {
                 GeocoderComponent.failedSiteCounter++;
                 continue;
               }
-          }
           geocodingResponse.latitude    =      locationResponseList[0].latitude;
           geocodingResponse.longitude   =      locationResponseList[0].longitude;
           geocodingResponse.addressline =      locationResponseList[0].addressline;
