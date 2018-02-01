@@ -38,6 +38,7 @@ export class AmSiteService
 
    public  sitesList: Array<GeocodingResponse> = new Array<GeocodingResponse>();
    public  unselectedSitesList:  any[] = [];   
+   
 
    //TODO need to remove
    
@@ -91,12 +92,15 @@ export class AmSiteService
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
       + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
 
-      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Street,City,State,ZIP,X,Y,ICON,RADIUS1,'
+      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,Orginal Zip,Longitude,Latitude,ICON,RADIUS1,'
       + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
       + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
-      + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
+      + 'Block Group,Unit,ZIP,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
       + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
+
+      //TODO notes Rad1,2,3 comback and Map it from tradeareainfo from Mapservice class
+      //TODO TRADE_DESC1,TRADE_DESC2,TRADE_DESC3 need to find the value based on above value
       
       console.log('headerRow:::' + displayHeaderRow);
       csvData.push(displayHeaderRow);
@@ -110,10 +114,19 @@ export class AmSiteService
             for ( header of headerList) {
                   if (header === 'GROUP'){
                         row = row + 'Advertisers,';
-                        //continue;
+                        continue;
+                  }
+                  if (site[header] === undefined){
+                        row = row + ' ,';
+                        continue;
+                  }
+                  if (header.includes('TRAVELTIME') ){
+                        row = row + '0,';
+                        continue;
                   }
                   else{
-                        row = row + site.header.toLowerCase() + ',';     
+                        row = row + site[header] + ',';   
+
                   }
             }
             if (row.substring(row.length - 1) === ',') {

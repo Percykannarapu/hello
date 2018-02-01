@@ -332,7 +332,7 @@ export class GeocoderComponent implements OnInit {
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
       }
-      if (column === 'NAME' || column === 'FIRM'){
+      if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
         nameFlag = true;
         headerPosition.name = count;
         this.headers[j] = 'name';
