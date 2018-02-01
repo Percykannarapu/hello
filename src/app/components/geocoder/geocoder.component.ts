@@ -79,9 +79,9 @@ export class GeocoderComponent implements OnInit {
   // create an AmSite, then invoke the geocoder
   public async onGeocode() {
     try {
-      const site = new GeocodingResponse();
+      const site: any = new GeocodingResponse();
       site.number = this.amSiteService.getNewSitePk().toString();
-      site.addressline = this.street;
+      site.street = this.street;
       site.city = this.city;
       site.state = this.state;
       site.zip = this.zip.toString();
@@ -285,7 +285,8 @@ export class GeocoderComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          const csvRecord = csvRecords[i].split(',');
+          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if ( csvRecord.length === this.headers.length){
 
           for (let j = 0; j < this.headers.length; j++){
@@ -310,7 +311,10 @@ export class GeocoderComponent implements OnInit {
                });
                csvFormattedData =  restResponseList;
           }
-        } 
+        }else{
+          // TO assign to failed list if headers length < datarecord length
+        }
+
       }
       if (headerPosition.lat === undefined && headerPosition.lon === undefined){
           Observable.forkJoin(observables).subscribe(res => {
