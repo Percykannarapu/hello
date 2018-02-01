@@ -83,6 +83,7 @@ export class EsriMapComponent implements OnInit {
     console.log('fired mapclick - (this.mapService.mapFunction) = ' + this.mapService.mapFunction);
     if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
         this.selectPolyClick();
+        //this.mapService.selectPolyClick();
     }  
   }  
 }
