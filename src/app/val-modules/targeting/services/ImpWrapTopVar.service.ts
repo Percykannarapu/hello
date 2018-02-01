@@ -14,7 +14,6 @@ import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const dataUrl = 'v1/targeting/base/impwraptopvar/search?q=impWrapTopVar';
 

@@ -1,4 +1,4 @@
-/** A TARGETING domain data service representing the table: IMPOWER.IMP_PROJECTS
+/** A TARGETING domain data service representing the table: IMPOWER.IMP_CL_ZIP_GEO_XREF
  **
  ** This class contains code operates against data in its data store.
  ** See the contents of val-modules/common/services/datastore.service.ts to see built in
@@ -6,19 +6,19 @@
  **
  ** NOTE: This class is generated only once and may be updated by developers.
  **
- ** ImpProject.service.ts generated from VAL_ENTITY_GEN - v2.0
+ ** ImpClZipGeoXref.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpProject } from '../models/ImpProject';
+import { ImpClZipGeoXref } from '../models/ImpClZipGeoXref';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
-const dataUrl = 'v1/targeting/base/impproject/search?q=impProject';
+const dataUrl = 'v1/targeting/base/impclzipgeoxref/search?q=impClZipGeoXref';
 
 @Injectable()
-export class ImpProjectService extends DataStore<ImpProject>
+export class ImpClZipGeoXrefService extends DataStore<ImpClZipGeoXref>
 {
    constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
 
