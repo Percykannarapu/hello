@@ -57,7 +57,7 @@
         </p-header>
     
         <p-column selectionMode="multiple" [style]="{'width':'38px'}"></p-column>
-        <p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
+       
        <!-- <p-column field="pk" header="Site #"></p-column>
        <p-column field="name" header="Name"></p-column>
        <p-column field="address" header="Address" [style]="{'width':'15%'}"></p-column>
@@ -76,6 +76,7 @@
              <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
           </ng-template>
        </p-column>
+       <p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
        <ng-template pTemplate="emptymessage">
           No locations added.  Use the "Add Locations" tab above.
        </ng-template>

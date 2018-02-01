@@ -51,11 +51,12 @@
     <div *ngIf="failedSites.length > 0" class="ui-g-8">
         <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
             <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
-            <p-column field="pk" [hidden]="true"></p-column>
+            <p-column field="number" [hidden]="true"></p-column>
             <p-column field="addressline" header="Street" [editable]="true"></p-column>
             <p-column field="city" header="City" [editable]="true"></p-column>
             <p-column field="state" header="State" [editable]="true"></p-column>
-            <p-column field="zip" header="Zip" [editable]="true"></p-column>
+            <p-column field="zip" header="ZIP" [editable]="true"></p-column>
+            <p-column field="status" header="Status" [editable]="true"></p-column>
             <p-column header="Resubmit">
                 <ng-template let-h="rowData" pTemplate="body">
                     <button (click)="onResubmit(h)" icon="ui-icon-refresh"  pButton style="margin: auto; display: block"></button>
@@ -136,7 +137,7 @@
                 <p-column field="name" header="name"></p-column>
                 <p-column field="addressline" header="Address"></p-column>
                 <p-column field="city" header="city"></p-column>
-                <p-column field="zip" header="zip"></p-column>
+                <p-column field="zip" header="ZIP"></p-column>
             </p-dataTable>
         </div>
     </p-dialog>

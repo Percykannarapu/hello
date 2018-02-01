@@ -476,12 +476,13 @@ export class GeocoderComponent implements OnInit {
               if (locationResponseList[0].status !== 'PROVIDED' && this.geocodingFailure(locationResponseList[0])) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 locationResponseList[0].status = 'ERROR';
+                failedSite.status = 'ERROR';
                 failedSite.latitude = locationResponseList[0].latitude;
                 failedSite.longitude = locationResponseList[0].longitude;
-                failedSite.addressline = locationResponseList[0].addressline;
-                failedSite.city = locationResponseList[0].city;
-                failedSite.state = locationResponseList[0].state;
-                failedSite.zip = locationResponseList[0].zip;
+                failedSite.addressline = locationResponseList[0].standardizedAddress;
+                failedSite.city = locationResponseList[0].standardizedCity;
+                failedSite.state = locationResponseList[0].standardizedState;
+                failedSite.zip = locationResponseList[0].ZIP10;
                 failedSite.number = GeocoderComponent.failedSiteCounter.toString();
                 const failedSites = Array.from(this.failedSites);
                 failedSites.push(failedSite);

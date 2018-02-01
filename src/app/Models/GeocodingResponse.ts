@@ -21,6 +21,7 @@ export class GeocodingResponse {
     standardizedState: string;
     zip: string;
     attributes?: any;
+    status: string;
 
     public   geocodingAttributesList: GeocodingAttributes[]; 
   }
