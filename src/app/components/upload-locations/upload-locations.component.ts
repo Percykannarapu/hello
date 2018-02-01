@@ -9,6 +9,7 @@ import { Points } from '../../Models/Points';
 import { MapService } from '../../services/map.service';
 import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { GeocoderComponent } from '../geocoder/geocoder.component';
 
 
 interface CsvHeadersPosition {
@@ -40,7 +41,7 @@ export class UploadLocationsComponent implements OnInit {
   public selector: String = 'Site';
   public headers: any;
 
-  @ViewChild('fileUpload') private fileUploadEl: ElementRef;
+  @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
 
   constructor(private geocoderService: GeocoderService, 
               private messageService: MessageService, private mapService: MapService) { }
@@ -119,7 +120,7 @@ export class UploadLocationsComponent implements OnInit {
   // check the column headers accourding to the business rules above and figure out the positions of all the headers
   private verifyCSVColumns(columns: string[]) : any {
   
-    let addressFlag: boolean = false;
+  let addressFlag: boolean = false;
   let cityFlag: boolean = false;
   let stateFlag: boolean = false;
   let zipFlag: boolean = false;
@@ -136,42 +137,42 @@ export class UploadLocationsComponent implements OnInit {
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
-        this.headers[j] = 'street';
+        this.headers[j] = 'Street';
       }
       if (column === 'CITY') {
         cityFlag = true;
         headerPosition.city = count;
-        this.headers[j] = 'city';
+        this.headers[j] = 'City';
       }
       if (column === 'STATE' || column === 'ST') {
         stateFlag = true;
         headerPosition.state = count;
-        this.headers[j] = 'state';
+        this.headers[j] = 'State';
       }
       if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
         zipFlag = true;
         headerPosition.zip = count;
-        this.headers[j] = 'zip';
+        this.headers[j] = 'Zip';
       }
       if (column === 'Y') {
         latFlag = true;
         headerPosition.lat = count;
-        this.headers[j] = 'latitude';
+        this.headers[j] = 'Latitude';
       }
       if (column === 'X') {
         lonFlag = true;
         headerPosition.lon = count;
-        this.headers[j] = 'longitude';
+        this.headers[j] = 'Longitude';
       }
       if (column === 'NAME' || column === 'FIRM'){
         nameFlag = true;
         headerPosition.name = count;
-        this.headers[j] = 'name';
+        this.headers[j] = 'Name';
       }
       if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
         numberFlag = true;
         headerPosition.number = count;
-        this.headers[j] = 'number';
+        this.headers[j] = 'Number';
       }
       count++;
   }
@@ -188,8 +189,8 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
-  public geocodingFailure(geocodingResponse: GeocodingResponse) : boolean {
-    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+  public geocodingFailure(geocodingResponse: any) : boolean {
+    if (geocodingResponse['Match Quality'].toString() === 'E' || geocodingResponse['Match Code'].toString() === 'E') {
       return true;
     }
     return false;
@@ -205,15 +206,17 @@ export class UploadLocationsComponent implements OnInit {
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
-              if (locationResponseList[0].status !== 'PROVIDED' && this.geocodingFailure(locationResponseList[0])) {
+              const locRespListMap: Map<string, any> = locationResponseList[0];
+              if (locRespListMap['status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 locationResponseList[0].status = 'ERROR';
-                failedSite.latitude = locationResponseList[0].latitude;
-                failedSite.longitude = locationResponseList[0].longitude;
-                failedSite.addressline = locationResponseList[0].addressline;
-                failedSite.city = locationResponseList[0].city;
-                failedSite.state = locationResponseList[0].state;
-                failedSite.zip = locationResponseList[0].zip;
+                failedSite.status = 'ERROR';
+                failedSite.latitude = locRespListMap['Latitude'];
+                failedSite.longitude = locRespListMap['Longitude'];
+                failedSite.addressline = locRespListMap['Address'];
+                failedSite.city = locRespListMap['City'];
+                failedSite.state = locRespListMap['State'];
+                failedSite.zip = locRespListMap['ZIP'];
                 failedSite.number = UploadLocationsComponent.failedSiteCounter.toString();
                 const failedSites = Array.from(this.failedSites);
                 failedSites.push(failedSite);
@@ -221,16 +224,15 @@ export class UploadLocationsComponent implements OnInit {
                 UploadLocationsComponent.failedSiteCounter++;
                 continue;
               }
-          geocodingResponse.latitude    =      locationResponseList[0].latitude;
-          geocodingResponse.longitude   =      locationResponseList[0].longitude;
-          geocodingResponse.addressline =      locationResponseList[0].addressline;
-          geocodingResponse.city        =      locationResponseList[0].city;
-          geocodingResponse.state       =      locationResponseList[0].state;
-          geocodingResponse.zip         =      locationResponseList[0].zip;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.name        =      locationResponseList[0].name;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.matchCode   =      locationResponseList[0].matchCode; 
+          geocodingResponse.latitude    =      locRespListMap['Latitude'];
+          geocodingResponse.longitude   =      locRespListMap['Longitude'];
+          geocodingResponse.addressline =      locRespListMap['Address'];
+          geocodingResponse.city        =      locRespListMap['City'];
+          geocodingResponse.state       =      locRespListMap['State'];
+          geocodingResponse.zip         =      locRespListMap['Zip'];
+          geocodingResponse.number      =      locRespListMap['Number'];
+          geocodingResponse.name        =      locRespListMap['Name'];
+          geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
          
           let geocodingAttr = null;
            for (const [k, v] of Object.entries(locationResponseList[0])){
@@ -254,6 +256,8 @@ export class UploadLocationsComponent implements OnInit {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
+    //Hide the spinner on error
+    this.displayGcSpinner = false;
     }
     return geocodingResponseList;
   }

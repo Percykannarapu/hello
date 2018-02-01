@@ -113,7 +113,7 @@ return graphic;
           .then(res => { graphics.push(res); });
           //.catch(err => {this.handleError(err));
       } 
-      await this.updateLayer(graphics)
+      await this.updateLayer(graphics, selector)
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
@@ -129,8 +129,14 @@ return graphic;
   }
 
 // draw the site graphics on the Sites layer
-private async updateLayer(graphics: __esri.Graphic[]) {
+private async updateLayer(graphics: __esri.Graphic[], selector) {
+  if (selector === 'Site'){
+    console.log('Adding sites from Upload:::');
   this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+}else if (selector === 'Competitor'){
+    console.log('Adding competitors from Upload:::');
+    await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+}
 }
 
 //   private async handleError(error: Error) {

@@ -45,9 +45,8 @@ export class BusinessSearchComponent implements OnInit {
   sites: any;
   businessCategories: any;
 
-  public plottedPoints: any = [];
+  public plottedPoints: any;
   showLoader: boolean = false;
-  private geocodingResponse: GeocodingResponse;
 
 
   constructor(private appService: AppService, private mapService: MapService,
@@ -209,6 +208,7 @@ export class BusinessSearchComponent implements OnInit {
   //Count the number of checked addressess: US6475 
   onSelectSD() {
     this.plottedPoints = new GeocodingResponse();
+    const geocodingResponse: GeocodingResponse = new GeocodingResponse(); 
     this.searchDatageos.forEach((obj) => {
       if (obj.checked) {
         const objname = {
@@ -222,6 +222,7 @@ export class BusinessSearchComponent implements OnInit {
           xcoord: obj.x
         };
         this.plottedPoints.push(objname);
+        //geocodingResponseList.push(this.plottedPoints);
       }
     });
   }

@@ -11,14 +11,25 @@
         <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
       </div>
     </div>
-    <div class="ui-g-9"> 
-        <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
-            style="width: 100%;">
-            <div style="padding-top: 6px;">
-                <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCSV($event)" accept=".csv" /> Geocode CSV File
-            </div>
-        </label>
+    <div class="ui-g-9">
+      <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+        style="width: 100%;">
+        <div style="padding-top: 6px;">
+          <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCSV($event)" accept=".csv"
+          /> Geocode CSV File
+        </div>
+      </label>
     </div>
   </div>
-
+  <!-- Modal window for GP spinner -->
+  <div class="ui-g ui-fluid">
+    <p-dialog [closable]="true" header="Geocoding Operation Running" [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
+      width="300">
+      <div class="ui-g-3"></div>
+      <div class="ui-g-5">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+      <div class="ui-g-4"></div>
+    </p-dialog>
+  </div>
 </div>
