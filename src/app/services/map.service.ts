@@ -1810,17 +1810,31 @@ export class MapService {
 
                             const graphi: __esri.Graphic = polyFeatureSet.features[0];
                             MapService.mapView.graphics.forEach((graphic) => {
-                                if (graphi.attributes.OBJECTID === graphic.attributes){
-                                    console.log('deselect to mapview');
-                                    MapService.mapView.graphics.remove(graphic);
-                                    const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
-                                    MapService.selectedCentroidObjectIds.splice(index, 1);
+                                   if (objID === graphic.attributes){
+                                        console.log('deselect objID in mapview');
+                                        MapService.mapView.graphics.remove(graphic);
+                                    } else {
+                                        if (graphi.attributes.OBJECTID === graphic.attributes){
+                                            console.log('deselect to mapview');
+                                            MapService.mapView.graphics.remove(graphic);
+                                        }
+                                    }
+                                    //const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
+                                    //MapService.selectedCentroidObjectIds.splice(index, 1);
+
+                                    if (objID !== null) {
+                                        const index = MapService.selectedCentroidObjectIds.indexOf(objID);
+                                        MapService.selectedCentroidObjectIds.splice(index, 1);
+                                    } else {
+                                        const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
+                                        MapService.selectedCentroidObjectIds.splice(index, 1);
+                                    }
                                     MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.HHLD_W;
                                     MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.NUM_IP_ADDRS;
                                     this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                                     this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                                 }
-                            });
+                            );
                         }else{
                             console.log('select to mapview');
                             if (objID != null) {
