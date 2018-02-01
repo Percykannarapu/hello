@@ -71,7 +71,7 @@
             <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
           </span>
         </div>
-        <div class="ui-g-12">{{disableShowBusiness}}--{{disableFromUpload}}
+        <div class="ui-g-12">
           <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()" [disabled]="disableShowBusiness && disableFromUpload"></button>
         </div>
       </form>

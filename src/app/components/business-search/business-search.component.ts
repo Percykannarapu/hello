@@ -10,6 +10,7 @@ import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.ser
 import { DefaultLayers } from '../../Models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
+import { GeocodingResponse } from '../../Models/GeocodingResponse';
 
 @Component({
   providers: [MapService, MessageService],
@@ -46,6 +47,7 @@ export class BusinessSearchComponent implements OnInit {
 
   public plottedPoints: any = [];
   showLoader: boolean = false;
+  private geocodingResponse: GeocodingResponse;
 
 
   constructor(private appService: AppService, private mapService: MapService,
@@ -206,7 +208,7 @@ export class BusinessSearchComponent implements OnInit {
 
   //Count the number of checked addressess: US6475 
   onSelectSD() {
-    this.plottedPoints = [];
+    this.plottedPoints = new GeocodingResponse();
     this.searchDatageos.forEach((obj) => {
       if (obj.checked) {
         const objname = {

@@ -15,6 +15,7 @@ import { MapService } from './map.service';
 //import { MessageService } from 'primeng/components/common/messageservice';
 import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
 import { DefaultLayers } from '../Models/DefaultLayers';
+import { GeocodingAttributes } from '../Models/GeocodingAttributes';
 
 @Injectable()
 export class GeocoderService {
@@ -53,41 +54,28 @@ export class GeocoderService {
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
-  private async createPopup(amSite: AmSite) : Promise<__esri.PopupTemplate> {
+  private async createPopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-    popupTemplate.title = `Site`,
-    popupTemplate.content =
-      `<table>
-    <tbody>
-    <tr><th>Name</th><td>${amSite.name ? amSite.name : ''}</td></tr>
-    <tr><th>Number</th><td>${amSite.siteId ? amSite.siteId : ''}</td></tr>
-    <tr><th>Street</th><td>${amSite.address}</td></tr>
-    <tr><th>City</th><td>${amSite.city}</td></tr>
-    <tr><th>State</th><td>${amSite.state}</td></tr>
-    <tr><th>Zip</th><td>${amSite.zip}</td></tr>
-    <tr><th>Latitude</th><td>${amSite.ycoord}</td></tr>
-    <tr><th>Longitude</th><td>${amSite.xcoord}</td></tr>
-    </tbody>
-    </table>`;
+    const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
+    popupTemplate.title = `Sites`;
+    let template  =  `<table> <tbody>`;
+        for (const popupAttribute of  popupAttributesList){
+            template = template + `<tr><th>${popupAttribute.attributeName.toUpperCase()}</th><td>${popupAttribute.attributeValue}</td></tr>`;
+        }
+        template = template + `</tbody> </table>`;
+        popupTemplate.content = template;
 
     return popupTemplate;
   }
 
 // create a Graphic object for the site that will be displayed on the map
-private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate, selector) : Promise<__esri.Graphic> {
+private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate, selector) : Promise<__esri.Graphic> {
   const loader = EsriLoaderWrapperService.esriLoader;
-  const [Graphic] = await loader.loadModules(['esri/Graphic']);
-  let graphic: __esri.Graphic = new Graphic();
+    const [Graphic] = await loader.loadModules(['esri/Graphic']);
+    let graphic: __esri.Graphic = new Graphic();
 
-  // give our site a blue color
-  // const color = {
-  //   a: 1,
-  //   r: 35,
-  //   g: 93,
-  //   b: 186
-  // };
   let color;
   if (selector === 'Site'){
     color = {
@@ -105,40 +93,38 @@ private async createGraphic(amSite: AmSite, popupTemplate: __esri.PopupTemplate,
     };
   }
   
-
-  await this.mapService.createGraphic(amSite.ycoord, amSite.xcoord, color, popupTemplate, amSite.pk)
-    .then(res => {
-      graphic = res;
-    });
-  return graphic;
+  await this.mapService.createGraphic(site.latitude, site.longitude, color, popupTemplate, Number(site.number))
+  .then(res => {
+    graphic = res;
+  });
+return graphic;
 }
 
   // add all of the geocoded sites in the amSites array to the map
-  public async addSitesToMap(amSites: AmSite[], selector) {
+  public async addSitesToMap(sitesList: GeocodingResponse[], selector) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-      for (const amSite of amSites) {
-        console.log('creating popup for site: ' + amSite.pk);
-        await this.createPopup(amSite)
-          .then(res => this.createGraphic(amSite, res, selector))
+      for (const site of sitesList) {
+        //console.log('creating popup for site: ' + amSite.pk);
+        await this.createPopup(site)
+          .then(res => this.createGraphic(site, res, selector))
           .then(res => { graphics.push(res); });
-          //.catch(err => this.handleError(err));
-      }
+          //.catch(err => {this.handleError(err));
+      } 
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            //this.amSiteService.add(amSites);
+            this.amSiteService.add(sitesList);
           }else{
-            this.amSiteService.addCompetitors(amSites);
-          }
-          
-        });
-        // .catch(err => this.handleError(err));
+            this.amSiteService.addCompetitors(sitesList);
+          }})
+        .then(res => this.amSiteService.createGrid(sitesList));
+        //.catch(err => this.handleError(err));
     } catch (error) {
-      // this.handleError(error);
+      //this.handleError(error);
     }
   }
 

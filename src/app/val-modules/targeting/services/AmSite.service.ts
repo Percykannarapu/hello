@@ -34,7 +34,7 @@ export class AmSiteService
    public  columnOptions: SelectItem[] = [];
    private subject: Subject<any> = new Subject<any>();
    public  amComps: Array<any> = new Array<any>();
-   public  unselectedAmComps: Array<GeocodingResponse> = new Array<GeocodingResponse>();
+   public  unselectedAmComps:  any[] = []; 
 
    public  sitesList: Array<GeocodingResponse> = new Array<GeocodingResponse>();
    public  unselectedSitesList:  any[] = [];   
@@ -155,7 +155,7 @@ export class AmSiteService
       this.logSites();
    }
 
-    public addCompetitors(amComps: any[])
+    public addCompetitors(amComps: GeocodingResponse[])
    {
       // For each site provided in the parameters
       for (const amComp of amComps)
@@ -163,6 +163,14 @@ export class AmSiteService
          // Add the site to the selected sites array
          this.amComps = [...this.amComps, amComp];
 
+      //    //for (let i = 0 ; i < sitesList.length; i++){
+      //       console.log('sitesList.length::' + amComps.length);
+      //        const temp = {};   
+      //        amComp.geocodingAttributesList.forEach(item => {
+      //            const keyValue = Object.values(item);
+      //            temp[keyValue[0].toString()] = keyValue[1];   
+                    
+      //    });
          // Add the site to the sites list array
          this.unselectedAmComps = [...this.unselectedAmComps, amComp];
 
