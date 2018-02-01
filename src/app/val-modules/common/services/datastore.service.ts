@@ -1,4 +1,4 @@
-import { RestResponse } from './../../../Models/RestResponse';
+import { RestResponse } from './../../../models/RestResponse';
 import { RestDataService } from './../../common/services/restdata.service';
 import { HttpClient} from '@angular/common/http';
 import { Injectable } from '@angular/core';

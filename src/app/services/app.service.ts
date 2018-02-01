@@ -4,7 +4,7 @@ import { Injectable, EventEmitter } from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
-import { RestResponse } from '../Models/RestResponse';
+import { RestResponse } from '../models/RestResponse';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { MapService } from './map.service';
 

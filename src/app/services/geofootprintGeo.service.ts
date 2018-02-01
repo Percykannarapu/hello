@@ -11,7 +11,7 @@ import { CONFIG } from '../core';
 import { MessageService } from '../val-modules/common/services/message.service';
 
 // Import Models
-import { GeofootprintGeo } from '../Models/geofootprintGeo.model';
+import { GeofootprintGeo } from '../models/geofootprintGeo.model';
 
 const geofootprintGeosUrl = '../api/geofootprintGeos'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
 

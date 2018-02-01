@@ -1,13 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { RestResponse } from '../../Models/RestResponse';
+import { RestResponse } from '../../models/RestResponse';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AccountLocations } from '../../Models/AccountLocations';
+import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { Observable } from 'rxjs/Rx';
-import { Points } from '../../Models/Points';
+import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
-import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { MessageService } from 'primeng/components/common/messageservice';
 
 

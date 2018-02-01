@@ -1,26 +1,26 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { AccountLocation } from '../../Models/AccountLocation';
-import { AccountLocations } from '../../Models/AccountLocations';
+import { AccountLocation } from '../../models/AccountLocation';
+import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message, DataTableModule } from 'primeng/primeng';
-import { GeofootprintMaster } from '../../Models/GeofootprintMaster';
-import { GeofootprintSite } from '../../Models/GeofootprintSite';
-import { GeofootprintTaName } from '../../Models/GeofootprintTaName';
-import { GeofootprintTradeArea } from '../../Models/GeofootprintTradeArea';
-import { GeofootprintVar } from '../../Models/GeofootprintVar';
-import { GeofootprintGeo } from '../../Models/geofootprintGeo.model';
+import { GeofootprintMaster } from '../../models/GeofootprintMaster';
+import { GeofootprintSite } from '../../models/GeofootprintSite';
+import { GeofootprintTaName } from '../../models/GeofootprintTaName';
+import { GeofootprintTradeArea } from '../../models/GeofootprintTradeArea';
+import { GeofootprintVar } from '../../models/GeofootprintVar';
+import { GeofootprintGeo } from '../../models/geofootprintGeo.model';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { RestResponse } from '../../Models/RestResponse';
-import { DefaultLayers } from '../../Models/DefaultLayers';
+import { RestResponse } from '../../models/RestResponse';
+import { DefaultLayers } from '../../models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
-import { Points } from '../../Models/Points';
-import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
+import { Points } from '../../models/Points';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {

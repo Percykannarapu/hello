@@ -5,9 +5,9 @@ import { Subscription } from 'rxjs/Subscription';
 // import { CONFIG, MessageService } from '../../core';
 
 // Import Custom Components
-import { GeofootprintGeo } from './../../Models/geofootprintGeo.model';
+import { GeofootprintGeo } from './../../models/geofootprintGeo.model';
 // import { GeofootprintGeoService } from './../../Models/geofootprintGeo.service';
-import { GfGeoService } from './../../Models/gf-geo/gf-geo.service';
+import { GfGeoService } from './../../models/gf-geo/gf-geo.service';
 
 @Component({
   selector: 'val-geofootprint-geo-list',

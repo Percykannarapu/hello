@@ -5,7 +5,7 @@ import { Injectable, OnInit } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { forEach } from '@angular/router/src/utils/collection';
-import { Points } from '../Models/Points';
+import { Points } from '../models/Points';
 import { Query } from '@angular/core/src/metadata/di';
 
 // import primeng

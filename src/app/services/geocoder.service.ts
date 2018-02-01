@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RestResponse } from '../Models/RestResponse';
-import { AccountLocation } from '../Models/AccountLocation';
-import { GeocodingResponse } from '../Models/GeocodingResponse';
-import { GeofootprintMaster } from '../Models/GeofootprintMaster';
+import { RestResponse } from '../models/RestResponse';
+import { AccountLocation } from '../models/AccountLocation';
+import { GeocodingResponse } from '../models/GeocodingResponse';
+import { GeofootprintMaster } from '../models/GeofootprintMaster';
 import { EsriLoaderWrapperService } from '../services/esri-loader-wrapper.service';
 
 import 'rxjs/add/operator/map';
 import { AmSite } from '../val-modules/targeting/models/AmSite';
 import { RequestOptionsArgs } from '@angular/http/src/interfaces';
 import { Response } from '@angular/http/src/static_response';
-import { AccountLocations } from '../Models/AccountLocations';
+import { AccountLocations } from '../models/AccountLocations';
 import { MapService } from './map.service';
 //import { MessageService } from 'primeng/components/common/messageservice';
 import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
-import { DefaultLayers } from '../Models/DefaultLayers';
-import { GeocodingAttributes } from '../Models/GeocodingAttributes';
+import { DefaultLayers } from '../models/DefaultLayers';
+import { GeocodingAttributes } from '../models/GeocodingAttributes';
 
 @Injectable()
 export class GeocoderService {
