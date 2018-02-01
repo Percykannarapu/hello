@@ -116,12 +116,13 @@ export class AmSiteService
                         row = row + 'Advertisers,';
                         continue;
                   }
-                  if (site[header] === undefined){
-                        row = row + ' ,';
+                  //if (['TRAVELTIME1', 'TRAVELTIME2', 'TRAVELTIME3'].indexOf(header) >= 0 ){
+                  if (header.includes('TRAVELTIME')){      
+                        row = row + '0,';
                         continue;
                   }
-                  if (header.includes('TRAVELTIME') ){
-                        row = row + '0,';
+                  if (site[header] === undefined){
+                        row = row + ' ,';
                         continue;
                   }
                   else{
