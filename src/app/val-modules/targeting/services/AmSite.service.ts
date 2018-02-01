@@ -34,7 +34,7 @@ export class AmSiteService
    public  columnOptions: SelectItem[] = [];
    private subject: Subject<any> = new Subject<any>();
    public  amComps: Array<any> = new Array<any>();
-   public  unselectedAmComps:  any[] = []; 
+   public  unselectedAmComps: Array<GeocodingResponse> = new Array<GeocodingResponse>();
 
    public  sitesList: Array<GeocodingResponse> = new Array<GeocodingResponse>();
    public  unselectedSitesList:  any[] = [];   
@@ -84,29 +84,37 @@ export class AmSiteService
       const headers: string[] = ['siteId', 'name', 'address', 'city', 'state', 'zip', 'xcoord', 'ycoord'];
 
       // build the first row of the csvData out of the headers
-      let headerRow = '';
-      for (let header of headers) {
-            if (header === 'siteId' ) {
-                  header = 'NUMBER';
-            }
-            if ( header === 'xcoord' ) {
-                  header = 'X';
-            }
-            if (header === 'ycoord') {
-                  header = 'Y';
-            }
-            headerRow = headerRow + header.toUpperCase() + ',';
-      }
-      if (headerRow.substring(headerRow.length - 1) === ',') {
-            headerRow = headerRow.substring(0, headerRow.length - 1);
-      }
-      csvData.push(headerRow);
+      const displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
+      + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
+      + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
+      + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
+      + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
+      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
+
+      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Street,City,State,ZIP,X,Y,ICON,RADIUS1,'
+      + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
+      + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
+      + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
+      + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
+      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
+      
+      console.log('headerRow:::' + displayHeaderRow);
+      csvData.push(displayHeaderRow);
+
+      const headerList: any[] = mappingHeaderRow.split(',');
 
       // now loop through the AmSite[] array and turn each record into a row of CSV data
-      for (const site of this.sitesList) {
+      for (const site of this.unselectedSitesList) {
             let row: string = '';
-            for (const field of headers) {
-                  row = row + site[field] + ',';
+            let header: string = '';
+            for ( header of headerList) {
+                  if (header === 'GROUP'){
+                        row = row + 'Advertisers,';
+                        //continue;
+                  }
+                  else{
+                        row = row + site.header.toLowerCase() + ',';     
+                  }
             }
             if (row.substring(row.length - 1) === ',') {
                   row = row.substring(0, row.length - 1);
@@ -155,7 +163,7 @@ export class AmSiteService
       this.logSites();
    }
 
-    public addCompetitors(amComps: GeocodingResponse[])
+    public addCompetitors(amComps: any[])
    {
       // For each site provided in the parameters
       for (const amComp of amComps)
@@ -163,14 +171,6 @@ export class AmSiteService
          // Add the site to the selected sites array
          this.amComps = [...this.amComps, amComp];
 
-      //    //for (let i = 0 ; i < sitesList.length; i++){
-      //       console.log('sitesList.length::' + amComps.length);
-      //        const temp = {};   
-      //        amComp.geocodingAttributesList.forEach(item => {
-      //            const keyValue = Object.values(item);
-      //            temp[keyValue[0].toString()] = keyValue[1];   
-                    
-      //    });
          // Add the site to the sites list array
          this.unselectedAmComps = [...this.unselectedAmComps, amComp];
 
@@ -440,7 +440,7 @@ export class AmSiteService
 
    public createGrid(sitesList: GeocodingResponse[]) {
         Object.keys(this.unselectedSitesList[0]).forEach(item => {
-            this.cols.push({field: item, header: item.toUpperCase(), size: '150px'});
+            this.cols.push({field: item, header: item, size: '150px'});
         });
         for (let i = 0; i < this.cols.length; i++) {
             this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
