@@ -102,6 +102,7 @@ import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
+import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
 
 // Mock Service Imports
@@ -142,9 +143,12 @@ import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
+import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
+
+// Data Service Imports
 import {RestDataService} from './val-modules/common/services/restdata.service';
-import { UploadLocationsComponent } from './components/upload-locations/upload-locations.component';
-import { GeocoderService } from './services/geocoder.service';
+import {GeocoderService} from './services/geocoder.service';
+import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 @NgModule({
     imports: [
@@ -246,6 +250,7 @@ import { GeocoderService } from './services/geocoder.service';
         OverlaysDemoComponent,
         MenusDemoComponent,
         PocComponent,
+        PocMapComponent,
         ParkedComponent,
         MessageComponent,
         MessagesDemoComponent,
@@ -270,9 +275,8 @@ import { GeocoderService } from './services/geocoder.service';
         MessageService, AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
         EsriLoaderService, GfGeoService, MapService, RestDataService,
-        // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
-        AppState, GeocoderService
+        AppState, GeocoderService, ImpGeofootprintGeoService
     ],
     bootstrap: [AppComponent]
 })

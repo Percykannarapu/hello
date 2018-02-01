@@ -3,7 +3,7 @@
   <!-- story-filter-text (changed)="filterChanged($event)"></story-filter-text -->
   <!-- Button Example <button type="button" pButton (click)="selectAllCars()" icon="fa-check"></button> -->
 
-  <p-dataTable [value]="geofootprintGeos" sortField="geocode" [rows]="17" [paginator]="true">
+  <p-dataTable [value]="impGeofootprintGeos" sortField="geocode" [rows]="17" [paginator]="true">
       <p-header>Trade Area Geographies</p-header>
       <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['fk_site']}}</ng-template>      
       <p-column field="fk_site" header="Site"></p-column>

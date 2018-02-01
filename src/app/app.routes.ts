@@ -15,6 +15,7 @@ import {FileDemoComponent} from './demo/view/filedemo.component';
 import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
 import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
+import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
 
 export const routes: Routes = [
@@ -33,6 +34,7 @@ export const routes: Routes = [
     {path: 'utils', component: UtilsDemoComponent},
     {path: 'documentation', component: DocumentationComponent},
     {path: 'poc', component: PocComponent},
+    {path: 'poc map', component: PocMapComponent},
     {path: 'parked', component: ParkedComponent}
    ];
 
