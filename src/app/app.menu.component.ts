@@ -82,6 +82,7 @@ export class AppMenuComponent implements OnInit {
                         label: 'Developer Pages', icon: 'list',
                         items: [
                            {label: 'PoC Page', icon: 'build', routerLink: ['poc']},
+                           {label: 'PoC Map Page', icon: 'build', routerLink: ['poc map']},
                            {label: 'Parked Components', icon: 'build', routerLink: ['parked']},
                         ]
                      },
