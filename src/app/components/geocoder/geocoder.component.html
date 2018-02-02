@@ -2,21 +2,21 @@
 
 <div class="ui-g" style="width: 100%;">
     <div class="ui-g-4">
-        <p-panel header="Enter site manually or upload CSV">
+        <!-- <p-panel header="Enter site manually or upload CSV"> -->
             <div class="ui-g">
                 <!-- Added US6554 Additional sections for manually add selection -->
-                <div class="ui-g-12">
-                    <div class="ui-g-3 p-t-15">
+                <!-- <div class="ui-g-12"> -->
+                    <div class="ui-g-2">
                         <label>Add as:</label>
                     </div>
-                    <div class="ui-g-4 p-t-15">
-                        <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
+                    <div class="ui-g-3">
+                        <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sitesMA" (ngModelChange)="clearFields($event,'Sites')"></p-radioButton>
                     </div>
-                    <div class="ui-g-5 p-t-15">
-                        <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
+                    <div class="ui-g-5">
+                        <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitorsMA" (ngModelChange)="clearFields($event,'Competitors')"></p-radioButton>
                     </div>
-                </div>
-                <div class="ui-g-12 p-t-15">
+                <!-- </div> -->
+                <div class="ui-g-12">
                     <span class="md-inputfield">
                         <input [(ngModel)]="number" name="_number" pInputText id="numberInput" style="width: 100%;">
                         <label for="numberInput">Number</label>
@@ -49,7 +49,7 @@
                 <div class="ui-g-12 p-t-15">
                     <span class="md-inputfield">
                         <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput" style="width: 100%;">
-                        <label for="zipInput">ZIP</label>
+                        <label for="zipInput">ZIP Code</label>
                     </span>
                 </div>
                 <div class="ui-g-6">
@@ -76,7 +76,7 @@
                     <button (click)="onViewFailures()" type="button" label="View Geocoding Failures" icon="ui-icon-warning" pButton style="width: 100%;"></button>
                 </div>-->
             </div>
-        </p-panel>
+        <!-- </p-panel> -->
     </div>
     <div *ngIf="failedSites.length > 0" class="ui-g-8">
         <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">

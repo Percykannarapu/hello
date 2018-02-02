@@ -134,7 +134,7 @@ export class TradeareaDefineComponent implements OnInit {
         let mergeEachBool: boolean = false;
         let mergeAllBool: boolean = false;
 
-        if (this.selectedValue === 'Sites') {
+        if (this.selectedValue === 'Site') {
             this.sitesMap.set('siteMerge', this.selectedMergeTypes);
         } else {
             this.competitorsMap.set('compMerge', this.selectedMergeTypes);
@@ -236,10 +236,10 @@ export class TradeareaDefineComponent implements OnInit {
 
             let color = null;
             let outlneColor = null;
-            if (lyrTitle.includes('Sites')) {
+            if (lyrTitle.includes('Site')) {
                 color = { a: 0, r: 0, g: 0, b: 255 };
                 outlneColor = ([0, 0, 255, 2.50]);
-            } else if (lyrTitle.includes('Competitors')) {
+            } else if (lyrTitle.includes('Competitor')) {
                 color = { a: 0, r: 255, g: 0, b: 0 };
                 outlneColor = ([255, 0, 0, 2.50]);
             }
@@ -402,7 +402,7 @@ export class TradeareaDefineComponent implements OnInit {
         this.editedta3 = false;
         this.checked3 = false;
         this.ta3Miles = null;
-        if (this.selectedValue === 'Competitors') {
+        if (this.selectedValue === 'Competitor') {
             if (this.competitorsMap.get('ta3Miles') != null) {
                 this.ta3Miles = Number(this.competitorsMap.get('ta3Miles'));
                 this.checked3 = true;
@@ -424,7 +424,7 @@ export class TradeareaDefineComponent implements OnInit {
                 this.selectedMergeTypes = 'Merge Each';
             }
         }
-        if (this.selectedValue === 'Sites') {
+        if (this.selectedValue === 'Site') {
             if (this.sitesMap.get('ta3Miles') != null) {
                 this.ta3Miles = Number(this.sitesMap.get('ta3Miles'));
                 this.checked3 = true;

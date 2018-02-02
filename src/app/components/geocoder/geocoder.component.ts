@@ -59,7 +59,7 @@ export class GeocoderComponent implements OnInit {
   public displayGcSpinner: boolean = false;
   public failedSites: GeocodingResponse[] = [];
   public displayFailureWindow: boolean = false;
-  public selector: string;
+  public selector: String = 'Sites';
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -508,7 +508,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-      this.addSitesToMap(geocodingResponseList, this.selector);
+     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;
