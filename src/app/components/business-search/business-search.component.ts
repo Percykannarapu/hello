@@ -15,7 +15,7 @@ import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 
 
 @Component({
-  providers: [MapService, MessageService],
+  providers: [MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -228,7 +228,7 @@ export class BusinessSearchComponent implements OnInit {
     });
   }
 
-  //Count the number of checked addressess: US6475 
+  //Count the number of checked addressess: US6475
   onSelectSD() {
     this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {

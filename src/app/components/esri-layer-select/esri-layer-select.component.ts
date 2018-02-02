@@ -4,13 +4,12 @@ import { Input, Output, EventEmitter } from '@angular/core';
 
 // Map Services
 import { MapService } from '../../services/map.service';
-import { EsriLoaderService } from 'angular-esri-loader';
 
 // Import Core Modules
 import { CONFIG } from '../../core';
 import { MessageService } from '../../val-modules/common/services/message.service';
 
-// import primeng 
+// import primeng
 import {SelectItem} from 'primeng/primeng';
 
 @Component({
@@ -20,7 +19,7 @@ import {SelectItem} from 'primeng/primeng';
 })
 export class EsriLayerSelectComponent implements OnInit {
 
-    
+
   // MapService Items
   public mapView: __esri.MapView;
   private esriMap: __esri.Map;
@@ -96,7 +95,7 @@ export class EsriLayerSelectComponent implements OnInit {
    // set layers on panel hide, checking to see if layers are enabled
    checkLayers() {
      // remove groupLayers when analysis levels are not selected.
-     try {   
+     try {
         if (!this.selectedAnalysisLevels.find(x => x === 'DMA'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis DMA'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
@@ -111,7 +110,7 @@ export class EsriLayerSelectComponent implements OnInit {
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis WRAP'));
         if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis Households'));
-     } 
+     }
      finally {
           // catch(error => console.warn(error.message));
      }

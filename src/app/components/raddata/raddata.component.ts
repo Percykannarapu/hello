@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, Directive } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { EsriLoaderService } from 'angular-esri-loader';
+// import { EsriLoaderService } from 'angular-esri-loader';
 import { Http } from '@angular/http';
 import { InputTextModule, Dropdown, GrowlModule, Message, ProgressSpinnerModule, ProgressBarModule } from 'primeng/primeng';
 import { error } from 'selenium-webdriver';
@@ -10,7 +10,7 @@ enum GpTool {
     RAD,
     BUFFER
   }
-  
+
 
 enum RADCategory {
     QSRPIZZA = 'QSR Pizza',
@@ -94,7 +94,7 @@ export class RaddataComponent {
     public displayGpSpinner: boolean = false;
 
     constructor() {
-    
+
         let counter: number = 0;
         let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
         let names = objValues.filter(v => typeof v === 'string') as string[];
@@ -105,7 +105,7 @@ export class RaddataComponent {
           this.radCategoryList.push(item);
           counter++;
         }
-    
+
         counter = 0;
         objValues = Object.keys(Products).map(k => Products[k]);
         names = objValues.filter(v => typeof v === 'string') as string[];

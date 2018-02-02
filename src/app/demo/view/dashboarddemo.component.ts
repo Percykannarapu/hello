@@ -18,8 +18,8 @@ import { AppService } from '../../services/app.service';
 import { MetricService, MetricOperations } from './../../val-modules/common/services/metric.service';
 
 @Component({
-    templateUrl: './dashboard.component.html',
-    providers: [MapService, AppService] //
+    templateUrl: './dashboard.component.html'
+    //providers: [MapService, AppService] //
 })
 export class DashboardDemoComponent implements OnInit {
     msgs: Message[] = [];
@@ -53,7 +53,7 @@ export class DashboardDemoComponent implements OnInit {
 
     @ViewChild('performanceColorBox')
     private performanceColorBox: ColorBoxComponent;
-    
+
     constructor(private mapService: MapService,
                 private messageService: MessageService,
                 private amSiteService: AmSiteService,
@@ -127,7 +127,7 @@ export class DashboardDemoComponent implements OnInit {
                   break;
 
                   case 'PERFORMANCE':
-                  this.performanceColorBox.set(metricMessage.key, metricMessage.value);                  
+                  this.performanceColorBox.set(metricMessage.key, metricMessage.value);
                   break;
                }
             break;
@@ -194,7 +194,7 @@ export class DashboardDemoComponent implements OnInit {
          // this.locationsColorBox.set('# of Sites', this.amSiteService.amSites.length.toString());
          // this.campaignColorBox.set('Household Count', MapService.hhDetails.toString());
       });
-     
+
         // this.amSiteService.getAmSites().subscribe(geofootprintGeos => {
         //    console.log('geofootprintGeos.length: ' + geofootprintGeos.length);
         //    this.geofootprintGeos = geofootprintGeos;

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, Directive } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { EsriLoaderService } from 'angular-esri-loader';
+// import { EsriLoaderService } from 'angular-esri-loader';
 import { Http } from '@angular/http';
 import { InputTextModule, Dropdown, GrowlModule, Message, ProgressSpinnerModule, ProgressBarModule } from 'primeng/primeng';
 import { error } from 'selenium-webdriver';
