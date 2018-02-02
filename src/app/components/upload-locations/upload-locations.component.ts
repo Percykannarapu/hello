@@ -1,13 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { RestResponse } from '../../models/RestResponse';
+import { RestResponse } from '../../Models/RestResponse';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AccountLocations } from '../../models/AccountLocations';
+import { AccountLocations } from '../../Models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponse } from '../../models/GeocodingResponse';
+import { GeocodingResponse } from '../../Models/GeocodingResponse';
 import { Observable } from 'rxjs/Rx';
-import { Points } from '../../models/Points';
+import { Points } from '../../Models/Points';
 import { MapService } from '../../services/map.service';
-import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocoderComponent } from '../geocoder/geocoder.component';
 
@@ -142,42 +142,42 @@ export class UploadLocationsComponent implements OnInit {
         if (column === 'STREET' || column === 'ADDRESS') {
           addressFlag = true;
           headerPosition.street = count;
-          this.headers[j] = 'street';
+          this.headers[j] = 'Address';
         }
         if (column === 'CITY') {
           cityFlag = true;
           headerPosition.city = count;
-          this.headers[j] = 'city';
+          this.headers[j] = 'City';
         }
         if (column === 'STATE' || column === 'ST') {
           stateFlag = true;
           headerPosition.state = count;
-          this.headers[j] = 'state';
+          this.headers[j] = 'State';
         }
         if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
           zipFlag = true;
           headerPosition.zip = count;
-          this.headers[j] = 'zip';
+          this.headers[j] = 'ZIP';
         }
-        if (column === 'Y') {
+        if (column === 'Y' || column === 'latitude') {
           latFlag = true;
           headerPosition.lat = count;
-          this.headers[j] = 'latitude';
+          this.headers[j] = 'Latitude';
         }
-        if (column === 'X') {
+        if (column === 'X' || column === 'longitude') {
           lonFlag = true;
           headerPosition.lon = count;
-          this.headers[j] = 'longitude';
+          this.headers[j] = 'Longitude';
         }
         if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
           nameFlag = true;
           headerPosition.name = count;
-          this.headers[j] = 'name';
+          this.headers[j] = 'Name';
         }
         if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
           numberFlag = true;
           headerPosition.number = count;
-          this.headers[j] = 'number';
+          this.headers[j] = 'Number';
         }
         count++;
     }

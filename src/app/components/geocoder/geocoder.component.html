@@ -4,7 +4,7 @@
     <div class="ui-g-4">
         <p-panel header="Enter site manually or upload CSV">
             <div class="ui-g">
-<!-- Added US6554 Additional sections for manually add selection -->
+                <!-- Added US6554 Additional sections for manually add selection -->
                 <div class="ui-g-12">
                     <div class="ui-g-3 p-t-15">
                         <label>Add as:</label>
@@ -52,21 +52,23 @@
                         <label for="zipInput">ZIP</label>
                     </span>
                 </div>
-                <!-- <div class="ui-g-6">
+                <div class="ui-g-6">
                     <button (click)="clearFields()" type="button" label="Clear" icon="ui-icon-close" pButton style="width: 100%;"></button>
-                </div> -->
+                </div>
                 <div class="ui-g-6">
                     <button (click)="onGeocode(selector);" type="button" label="Submit" icon="ui-icon-send" pButton style="width: 100%;"></button>
-                        </div>
+                </div>
                 <div class="ui-g-6">
                     <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton style="width: 100%;"></button>
                 </div>
+
                 <!-- Commented out for US6554: nallana -->
-                <div class="ui-g-12"> 
+                <div class="ui-g-12">
                     <label for="fileUpload" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
                         style="width: 100%;">
                         <div style="padding-top: 6px;">
-                            <input #fileUpload id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" /> Geocode CSV File
+                            <input #fileUpload id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv"
+                            /> Geocode CSV File
                         </div>
                     </label>
                 </div>

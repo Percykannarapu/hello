@@ -143,6 +143,12 @@ export class GeocoderComponent implements OnInit {
 
   public clearFields(){
     //
+    this.street = '';
+    this.city = '';
+    this.state = '';
+    this.zip = '';
+    this.name = '';
+    this.number = null;
   }
 
 
