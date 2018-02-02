@@ -346,12 +346,12 @@ export class GeocoderComponent implements OnInit {
         headerPosition.zip = count;
         this.headers[j] = 'zip';
       }
-      if (column === 'Y') {
+      if (column === 'Y' || column === 'latitude') {
         latFlag = true;
         headerPosition.lat = count;
         this.headers[j] = 'latitude';
       }
-      if (column === 'X') {
+      if (column === 'X' || column === 'longitude') {
         lonFlag = true;
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
