@@ -30,7 +30,7 @@
                       </span>
                    </div>
                    <div class="ui-g-3">
-                      <label style="text-align: center;" pTooltip="Selected {{amSiteService.sitesList.length}} / {{amSiteService.unselectedSitesList.length}} sites" tooltipPosition="top">Site List</label>
+                      <label style="text-align: center;" pTooltip="Selected {{amSiteService.sitesList.length}} / {{amSiteService.sitesList.length}} sites" tooltipPosition="top">Site List</label>
                    </div>
                    <div class="ui-g-3" style="float:right">
                       <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All" 
@@ -45,18 +45,17 @@
        </div>
     
     <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
-        [(selection)]="selectedSites" [rows]="8" [paginator]="true"> -->
-    <p-dataTable #siteDt [value]="amSiteService.unselectedSitesList" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
-       [(selection)]="amSiteService.sitesList" [rows]="8" [paginator]="true"
-       (onRowUnselect)="onRowUnselect($event)"
-       (onRowSelect)="onRowSelect($event)">
+        [(selection)]="selectedSites" [rows]="8" [paginator]="true"> (onRowSelect)="onRowSelect($event)"  (onRowUnselect)="onRowUnselect($event)"-->
+    <p-dataTable #siteDt [value]="amSiteService.sitesList" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
+       [(selection)]="amSiteService.unselectedSitesList" [rows]="8" [paginator]="true" showToggleAll="true"
+       [editable]="true">
        <p-header> 
         <div style="text-align:left">
             <p-multiSelect [options]="amSiteService.columnOptions" [(ngModel)]="amSiteService.cols"></p-multiSelect>
         </div>
         </p-header>
     
-        <p-column selectionMode="multiple" [style]="{'width':'38px'}"></p-column>
+        <p-column selectionMode="multiple" [style]="{'width':'40px'}"></p-column>
        
        <!-- <p-column field="pk" header="Site #"></p-column>
        <p-column field="name" header="Name"></p-column>
@@ -66,17 +65,33 @@
        <p-column field="zip" header="Zip" [style]="{'width':'8%'}"></p-column>
        <p-column field="ycoord" header="Latitude (Y)" [style]="{'width':'9%'}"></p-column>
        <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column> -->
-       <p-column header="Zoom To" [style]="{'width':'38px'}">
+       <p-column header="Zoom To" [style]="{'width':'60px'}">
           <ng-template let-h="rowData" pTemplate="body">
              <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
           </ng-template>
        </p-column>
-       <p-column header="Delete" [style]="{'width':'38px'}" >
+       <p-column header="Delete" [style]="{'width':'60px'}" >
           <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
              <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
           </ng-template>
        </p-column>
-       <p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
+       <p-column header="Edit" [style]="{'width':'60px'}" [editable]="true">
+            <ng-template let-site="rowData"  pTemplate="body"  >
+                    <button type="button"  icon="ui-icon-edit"></button>   
+            </ng-template>
+       </p-column >
+       <ul>
+            <li *ngFor="let col of amSiteService.cols">
+             <p-column  [field]="col.field" [header]="col.header" [editable]="true" [style]="{'width': col.size}"></p-column>
+            </li>
+       </ul>
+       <!--p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [editable]="true"  [style]="{'width': col.size}">
+            <ng-template let-col let-color="rowData" pTemplate="editor">
+                    
+                  </ng-template>
+       </p-column-->
+
+       
        <ng-template pTemplate="emptymessage">
           No locations added.  Use the "Add Locations" tab above.
        </ng-template>

@@ -302,6 +302,11 @@ export class GeocoderComponent implements OnInit {
   for (let j = 0; j < columns.length; j++){
       let column = columns[j];
       column = column.toUpperCase();
+      if (columns[0].includes('NAME')){
+        nameFlag = true;
+        headerPosition.name = count;
+        this.headers[j] = 'name';
+      }
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
@@ -332,7 +337,7 @@ export class GeocoderComponent implements OnInit {
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
       }
-      if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
+      if (column === 'NAME' || column === 'FIRM'  ){
         nameFlag = true;
         headerPosition.name = count;
         this.headers[j] = 'name';
@@ -463,6 +468,9 @@ export class GeocoderComponent implements OnInit {
                   geocodingAttrList.push(geocodingAttr);
            }
            geocodingResponse.geocodingAttributesList = geocodingAttrList;
+           
+         //  this.amSiteService.sitesList = [...this.amSiteService.sitesList, geocodingResponse];
+         //  this.amSiteService.unselectedSitesList = [...this.amSiteService.unselectedSitesList, geocodingResponse];
 
           const points = new Points();
           points.latitude =  locationResponseList[0].latitude;

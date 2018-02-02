@@ -36,7 +36,7 @@ export class AmSiteService
    public  amComps: Array<any> = new Array<any>();
    public  unselectedAmComps: Array<GeocodingResponse> = new Array<GeocodingResponse>();
 
-   public  sitesList: Array<GeocodingResponse> = new Array<GeocodingResponse>();
+   public  sitesList: any[] = [];   
    public  unselectedSitesList:  any[] = [];   
    
 
@@ -82,7 +82,6 @@ export class AmSiteService
             throw new Error('No sites available to export');
       }
       const csvData: string[] = new Array<string>();
-      const headers: string[] = ['siteId', 'name', 'address', 'city', 'state', 'zip', 'xcoord', 'ycoord'];
 
       // build the first row of the csvData out of the headers
       const displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
@@ -92,8 +91,8 @@ export class AmSiteService
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
       + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
 
-      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,Orginal Zip,Longitude,Latitude,ICON,RADIUS1,'
-      + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
+      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,Orginal Zip,Longitude,Latitude,ICON,TA1,'
+      + 'TA2,TA3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TA1,TA2,TA3,'
       + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
       + 'Block Group,Unit,ZIP,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
@@ -108,7 +107,7 @@ export class AmSiteService
       const headerList: any[] = mappingHeaderRow.split(',');
 
       // now loop through the AmSite[] array and turn each record into a row of CSV data
-      for (const site of this.unselectedSitesList) {
+      for (const site of this.sitesList) {
             let row: string = '';
             let header: string = '';
             for ( header of headerList) {
@@ -121,13 +120,21 @@ export class AmSiteService
                         row = row + '0,';
                         continue;
                   }
+                  if (['TA1', 'TA2', 'TA3'].indexOf(header) >= 0){
+                        if (MapService.tradeAreaInfoMap.get(header) !== undefined)
+                              row = row + MapService.tradeAreaInfoMap.get(header).toString() + ',';
+                        else 
+                              row = row + '0,';
+                        
+                        continue;
+                  }
+                  
                   if (site[header] === undefined){
                         row = row + ' ,';
                         continue;
                   }
                   else{
                         row = row + site[header] + ',';   
-
                   }
             }
             if (row.substring(row.length - 1) === ',') {
@@ -153,7 +160,7 @@ export class AmSiteService
              site.number = this.getNewSitePk().toString();
 
          // Add the site to the selected sites array
-         this.sitesList = [...this.sitesList, site];
+         //this.sitesList = [...this.sitesList, site];
 
        
          //for (let i = 0 ; i < sitesList.length; i++){
@@ -165,6 +172,7 @@ export class AmSiteService
                     
            });
            this.unselectedSitesList = [...this.unselectedSitesList, temp];
+           this.sitesList = [...this.sitesList, temp];
        
          // Notifiy Observers
          this.subject.next(site);
@@ -322,25 +330,24 @@ export class AmSiteService
    // Add all of the selected sites to the map
    private async addSelectedSitesToMap()
    {
-      try 
-      {         
-         const loader = EsriLoaderWrapperService.esriLoader;
-         const [Graphic] = await loader.loadModules(['esri/Graphic']);
-         const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-         for (const site of this.sitesList) {
-            await this.createSitePopup(site)
-               .then(res => this.createGraphic(site, res))
-               .then(res => { graphics.push(res); })
-               .catch(err => this.handleError(err));
-      }
-      await this.updateLayer(graphics)
-         .then(res => { this.mapService.zoomOnMap(graphics); })
-//         .then(res => this.amSiteService.addSites(amSites))
-         .catch(err => this.handleError(err));
-      }
-      catch (error)
-      {
-         this.handleError(error);
+      try {
+            const loader = EsriLoaderWrapperService.esriLoader;
+            const [Graphic] = await loader.loadModules(['esri/Graphic']);
+            const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+            for (const site of this.sitesList) {
+              //console.log('creating popup for site: ' + amSite.pk);
+              await this.createSitePopup(site)
+                .then(res => this.createGraphic(site, res))
+                .then(res => { graphics.push(res); })
+                .catch(err => this.handleError(err));
+            } 
+            await this.updateLayer(graphics)
+              .then(res => { this.mapService.zoomOnMap(graphics); })
+              .then(res => this.add(this.sitesList))
+              .then(res => this.createGrid(this.sitesList))
+              .catch(err => this.handleError(err));
+          } catch (error) {
+            this.handleError(error);
       }
    }
 
@@ -453,7 +460,7 @@ export class AmSiteService
    }
 
    public createGrid(sitesList: GeocodingResponse[]) {
-        Object.keys(this.unselectedSitesList[0]).forEach(item => {
+        Object.keys(this.sitesList[0]).forEach(item => {
             this.cols.push({field: item, header: item, size: '150px'});
         });
         for (let i = 0; i < this.cols.length; i++) {

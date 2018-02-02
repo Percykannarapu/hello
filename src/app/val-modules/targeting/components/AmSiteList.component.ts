@@ -133,6 +133,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       console.log('Selected Site');
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
+      console.log('grid length::' + this.amSiteService.sitesList.length);
       this.amSiteService.refreshMapSites();
       this.amSiteService.siteWasSelected (event.data);
       this.amSiteService.logSites();
