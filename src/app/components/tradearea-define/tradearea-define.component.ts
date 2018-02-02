@@ -71,7 +71,7 @@ export class TradeareaDefineComponent implements OnInit {
         const lyrNme: string = ' Mile Trade Area';
 
         let meTitle = 'Site - ';
-        if (this.selectedValue === 'Competitors') {
+        if (this.selectedValue === 'Competitor') {
             meTitle = 'Competitor - ';
             if (this.checked1) {
                 this.competitorsMap.set('editedta1', String(this.editedta1));
@@ -102,7 +102,7 @@ export class TradeareaDefineComponent implements OnInit {
                 this.competitorsMap.delete('ta3Miles');
             }
         }
-        if (this.selectedValue === 'Sites') {
+        if (this.selectedValue === 'Site') {
             if (this.checked1 && this.ta1Miles != null) {
                 this.sitesMap.set('editedta1', String(this.editedta1));
                 this.sitesMap.set('checked1', String(this.checked1));
