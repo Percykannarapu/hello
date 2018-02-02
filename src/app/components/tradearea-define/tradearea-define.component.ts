@@ -20,7 +20,7 @@ export class TradeareaDefineComponent implements OnInit {
     ta2Miles: number;
     ta3Miles: number;
     milesList: number[];
-    selectedValue: String = 'Sites';
+    selectedValue: String = 'Site';
     checked2: boolean = false;
     checked1: boolean = false;
     checked3: boolean = false;
@@ -58,6 +58,8 @@ export class TradeareaDefineComponent implements OnInit {
 
     public async drawBuffer() {
         this.messageService.clear();
+        MapService.tradeAreaInfoMap.clear();
+        //MapService.tradeAreaInfoMap.set('siteType', 'Advertisers');
         console.log('ta1miles::' + this.ta1Miles + 'ta2miles::' + this.ta2Miles + 'ta3Miles:: ' + this.ta3Miles);
         if (this.ta1Miles === undefined)
             this.ta1Miles = 0;
@@ -69,7 +71,7 @@ export class TradeareaDefineComponent implements OnInit {
         const lyrNme: string = ' Mile Trade Area';
 
         let meTitle = 'Site - ';
-        if (this.selectedValue === 'Competitors') {
+        if (this.selectedValue === 'Competitor') {
             meTitle = 'Competitor - ';
             if (this.checked1) {
                 this.competitorsMap.set('editedta1', String(this.editedta1));
@@ -100,7 +102,7 @@ export class TradeareaDefineComponent implements OnInit {
                 this.competitorsMap.delete('ta3Miles');
             }
         }
-        if (this.selectedValue === 'Sites') {
+        if (this.selectedValue === 'Site') {
             if (this.checked1 && this.ta1Miles != null) {
                 this.sitesMap.set('editedta1', String(this.editedta1));
                 this.sitesMap.set('checked1', String(this.checked1));
@@ -174,16 +176,19 @@ export class TradeareaDefineComponent implements OnInit {
             else {
                 if (this.ta1Miles != null && this.checked1) {
                     this.milesList.push(this.ta1Miles);
+                    MapService.tradeAreaInfoMap.set('TA1', this.ta1Miles);
                     this.editedta1 = true;
                 }
 
                 if (this.ta2Miles != null && this.checked2) {
                     this.milesList.push(this.ta2Miles);
+                    MapService.tradeAreaInfoMap.set('TA2', this.ta2Miles);
                     this.editedta2 = true;
                 }
 
                 if (this.ta3Miles != null && this.checked3) {
                     this.milesList.push(this.ta3Miles);
+                    MapService.tradeAreaInfoMap.set('TA3', this.ta3Miles);
                     this.editedta3 = true;
                 }
                 if (this.ta3Miles == null) { this.ta3Miles = 0; }
