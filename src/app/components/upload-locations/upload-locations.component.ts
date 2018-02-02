@@ -11,7 +11,6 @@ import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocoderComponent } from '../geocoder/geocoder.component';
 
-
 interface CsvHeadersPosition {
   street?: number;
   city?: number;
@@ -48,6 +47,19 @@ export class UploadLocationsComponent implements OnInit {
 
   ngOnInit() {
   }
+
+
+  // geocode an GeocodingResponse by invoking the geocoding service
+  public async geocodeAddress(site: GeocodingResponse, display: boolean = true) {
+    const siteList: any[] = [];
+    siteList.push(site);
+    const observable = this.geocoderService.multiplesitesGeocode(siteList);
+    observable.subscribe((res) => {
+      this.parseCsvResponse([res], display);
+      this.disableshowBusiness = false;
+    }, err => this.handleError(err), null);
+  }
+
 
   uploadCSV(event) {
     
@@ -139,25 +151,30 @@ export class UploadLocationsComponent implements OnInit {
     for (let j = 0; j < columns.length; j++){
         let column = columns[j];
         column = column.toUpperCase();
+        if (columns[0].includes('NAME')){
+          nameFlag = true;
+          headerPosition.name = count;
+          this.headers[j] = 'name';
+        }
         if (column === 'STREET' || column === 'ADDRESS') {
           addressFlag = true;
           headerPosition.street = count;
-          this.headers[j] = 'Address';
+          this.headers[j] = 'street';
         }
         if (column === 'CITY') {
           cityFlag = true;
           headerPosition.city = count;
-          this.headers[j] = 'City';
+          this.headers[j] = 'city';
         }
         if (column === 'STATE' || column === 'ST') {
           stateFlag = true;
           headerPosition.state = count;
-          this.headers[j] = 'State';
+          this.headers[j] = 'state';
         }
         if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
           zipFlag = true;
           headerPosition.zip = count;
-          this.headers[j] = 'ZIP';
+          this.headers[j] = 'zip';
         }
         if (column === 'Y' || column === 'latitude') {
           latFlag = true;
@@ -172,12 +189,12 @@ export class UploadLocationsComponent implements OnInit {
         if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
           nameFlag = true;
           headerPosition.name = count;
-          this.headers[j] = 'Name';
+          this.headers[j] = 'name';
         }
         if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
           numberFlag = true;
           headerPosition.number = count;
-          this.headers[j] = 'Number';
+          this.headers[j] = 'number';
         }
         count++;
     }
@@ -192,6 +209,45 @@ export class UploadLocationsComponent implements OnInit {
       }
       return headerPosition;
     }
+
+    // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
+  public async onResubmit(row) {
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.number = row.pk;
+    this.onRemove(row);
+    this.geocodeAddress(site, true);
+  }
+
+  // remove an GeocodingResponse from the list of sites that failed to geocode
+  public async onRemove(row) {
+    console.log('on remove');
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.number = row.number;
+    for (let i = 0; i < this.failedSites.length; i++) {
+      if (this.compareSites(site, this.failedSites[i])) {
+        const failedSites = Array.from(this.failedSites);
+        failedSites.splice(i, 1);
+        this.failedSites = failedSites;
+      }
+    }
+  }
+
+  // determine if two AmSite objects are the same
+  // this should be implemented in an equals() method in the model
+  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
+    if (site1.number === site2.number) {
+      return true;
+    } 
+    return false;
+  }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
   public geocodingFailure(geocodingResponse: any) : boolean {
