@@ -7,11 +7,12 @@ import { SelectItem } from 'primeng/components/common/api';
 import { Message } from 'primeng/components/common/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { DefaultLayers } from '../../Models/DefaultLayers';
+import { DefaultLayers } from '../../models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
-import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+
 
 @Component({
   providers: [MapService, MessageService],

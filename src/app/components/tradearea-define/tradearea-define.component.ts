@@ -1,5 +1,5 @@
 import { ColorBoxComponent } from '../color-box/color-box.component';
-import { Points } from '../../Models/Points';
+import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
 import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild } from '@angular/core';

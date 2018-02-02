@@ -110,7 +110,7 @@ import {ParkedComponent} from './demo/view/parked.component';
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
-import {GfGeoService} from './Models/gf-geo/gf-geo.service';
+import {GfGeoService} from './models/gf-geo/gf-geo.service';
 import {MetricService} from './val-modules/common/services/metric.service';
 
 import {CarService} from './demo/service/carservice';

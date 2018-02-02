@@ -6,6 +6,9 @@ import { Subscription, ISubscription } from 'rxjs/Subscription';
 // import { CONFIG, MessageService } from '../../core';
 
 // Import Custom Components
+import { GeofootprintGeo } from './../../models/geofootprintGeo.model';
+// import { GeofootprintGeoService } from './../../Models/geofootprintGeo.service';
+import { GfGeoService } from './../../models/gf-geo/gf-geo.service';
 import { AppState } from '../../app.state';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 

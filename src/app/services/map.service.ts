@@ -5,7 +5,7 @@ import { Injectable, OnInit } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { forEach } from '@angular/router/src/utils/collection';
-import { Points } from '../Models/Points';
+import { Points } from '../models/Points';
 import { Query } from '@angular/core/src/metadata/di';
 
 // import primeng
@@ -645,13 +645,13 @@ export class MapService {
 
         const zip_layerids = [
             '5742f3faba51493ab29f9e78bc5598d4', // ZIP Top Vars
-            '0c6aaec5babb4900ba6cdc5253d64293'  // ZIP_Centroids_FL
+            '38b352fed65640beb0c246b82a24c881'  // ZIP_Centroids_FL
         ];
         const atz_layerids = [
             'd3bf2b2a2a0a46f5bf10e8c6270767da', // ATZ_Top_Vars
-            '3febf907f1a5441f898a475546a8b1e2', // ATZ_Centroids 
+            '6053fb9b971245a6a61c3c20a2495732', // ATZ_Centroids
             '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars 
-            'c4dd486769284105bbd1c1c6a0c0cb07'  // DIG_ATZ_Centroids
+            '2acb6088bfbb4be1abd502ea3b20ecf6'  // DIG_ATZ_Centroids
         ];
         const pcr_layerids = [];
         const wrap_layerids = [

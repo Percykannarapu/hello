@@ -6,12 +6,12 @@ import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { MapService } from '../../../services/map.service';
-import { DefaultLayers } from '../../../Models/DefaultLayers';
+import { DefaultLayers } from '../../../models/DefaultLayers';
 import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primeng';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
-import { Points } from '../../../Models/Points';
+import { Points } from '../../../models/Points';
 
 // Import Core Modules
 import { CONFIG } from '../../../core';
@@ -20,8 +20,8 @@ import { MessageService } from '../../common/services/message.service';
 // Import Models
 //import { AmSite } from '../models/AmSite';
 import { InMemoryStubService } from '../../../api/in-memory-stub.service';
-import { GeocodingResponse } from '../../../Models/GeocodingResponse';
-import { GeocodingAttributes } from '../../../Models/GeocodingAttributes';
+import { GeocodingResponse } from '../../../models/GeocodingResponse';
+import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
 
 const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
