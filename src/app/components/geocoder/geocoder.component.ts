@@ -171,19 +171,20 @@ export class GeocoderComponent implements OnInit {
 
     let color;
     // give our site a blue color
-    if (selector === 'Site'){
-      color = {
-        a: 1,
-        r: 35,
-        g: 93,
-        b: 186
-      };
-    }else{
+    if (selector === 'Competitor'){
       color = {
         a: 1,
         r: 255,
         g: 0,
         b: 0
+      };
+    }else{
+      color = {
+        a: 1,
+        r: 35,
+        g: 93,
+        b: 186
+        
       };
     }
 
