@@ -21,6 +21,28 @@
       </label>
     </div>
   </div>
+  <div *ngIf="failedSites.length > 0" class="ui-g-8">
+    <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
+        <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
+        <p-column field="number" [hidden]="true"></p-column>
+        <p-column field="addressline" header="Street" [editable]="true"></p-column>
+        <p-column field="city" header="City" [editable]="true"></p-column>
+        <p-column field="state" header="State" [editable]="true"></p-column>
+        <p-column field="zip" header="ZIP" [editable]="true"></p-column>
+        <p-column field="status" header="Status" [editable]="true"></p-column>
+        <p-column header="Resubmit">
+            <ng-template let-h="rowData" pTemplate="body">
+                <button (click)="onResubmit(h)" icon="ui-icon-refresh"  pButton style="margin: auto; display: block"></button>
+            </ng-template>
+        </p-column>
+        <p-column header="Remove">
+                <ng-template let-h="rowData" pTemplate="body">
+                    <button (click)="onRemove(h)" icon="ui-icon-delete"  pButton style="margin: auto; display: block"></button>
+                </ng-template>
+            </p-column>
+    </p-dataTable>
+</div>
+
   <!-- Modal window for GP spinner -->
   <div class="ui-g ui-fluid">
     <p-dialog [closable]="true" header="Geocoding Operation Running" [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"

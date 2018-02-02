@@ -76,7 +76,10 @@ export class UploadLocationsComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          const csvRecord = csvRecords[i].split(',');
+          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
+        if ( csvRecord.length === this.headers.length){
+
           for (let j = 0; j < this.headers.length; j++){
               site[this.headers[j]] = csvRecord[j];
           }
@@ -99,8 +102,11 @@ export class UploadLocationsComponent implements OnInit {
                });
                csvFormattedData =  restResponseList;
           }
-         
+        }else{
+          // TO assign to failed list if headers length < datarecord length
         }
+
+      }
       if (headerPosition.lat === undefined && headerPosition.lon === undefined){
           Observable.forkJoin(observables).subscribe(res => {
             console.log('forkJoin:::' + res.length);
@@ -117,76 +123,75 @@ export class UploadLocationsComponent implements OnInit {
     };
   }
 
-  // check the column headers accourding to the business rules above and figure out the positions of all the headers
+
   private verifyCSVColumns(columns: string[]) : any {
-  
-  let addressFlag: boolean = false;
-  let cityFlag: boolean = false;
-  let stateFlag: boolean = false;
-  let zipFlag: boolean = false;
-  let latFlag: boolean = false;
-  let lonFlag: boolean = false;
-  let nameFlag: boolean = false;
-  let numberFlag: boolean = false;
-  let count: number = 0;
-  const headerPosition: any = {};
-  this.disableshowBusiness = false; //enable the search business button
-  for (let j = 0; j < columns.length; j++){
-      let column = columns[j];
-      column = column.toUpperCase();
-      if (column === 'STREET' || column === 'ADDRESS') {
-        addressFlag = true;
-        headerPosition.street = count;
-        this.headers[j] = 'Street';
-      }
-      if (column === 'CITY') {
-        cityFlag = true;
-        headerPosition.city = count;
-        this.headers[j] = 'City';
-      }
-      if (column === 'STATE' || column === 'ST') {
-        stateFlag = true;
-        headerPosition.state = count;
-        this.headers[j] = 'State';
-      }
-      if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
-        zipFlag = true;
-        headerPosition.zip = count;
-        this.headers[j] = 'Zip';
-      }
-      if (column === 'Y') {
-        latFlag = true;
-        headerPosition.lat = count;
-        this.headers[j] = 'Latitude';
-      }
-      if (column === 'X') {
-        lonFlag = true;
-        headerPosition.lon = count;
-        this.headers[j] = 'Longitude';
-      }
-      if (column === 'NAME' || column === 'FIRM'){
-        nameFlag = true;
-        headerPosition.name = count;
-        this.headers[j] = 'Name';
-      }
-      if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
-        numberFlag = true;
-        headerPosition.number = count;
-        this.headers[j] = 'Number';
-      }
-      count++;
-  }
-  
-    if (!addressFlag) {
-      const validationError: string = 'Either the City and State must be entered or a Postal Code';
-      if (!zipFlag) {
-        if (!cityFlag && !stateFlag) {
-          throw new Error(validationError);
+    let addressFlag: boolean = false;
+    let cityFlag: boolean = false;
+    let stateFlag: boolean = false;
+    let zipFlag: boolean = false;
+    let latFlag: boolean = false;
+    let lonFlag: boolean = false;
+    let nameFlag: boolean = false;
+    let numberFlag: boolean = false;
+    let count: number = 0;
+    const headerPosition: any = {};
+    this.disableshowBusiness = false; //enable the search business button
+    for (let j = 0; j < columns.length; j++){
+        let column = columns[j];
+        column = column.toUpperCase();
+        if (column === 'STREET' || column === 'ADDRESS') {
+          addressFlag = true;
+          headerPosition.street = count;
+          this.headers[j] = 'street';
+        }
+        if (column === 'CITY') {
+          cityFlag = true;
+          headerPosition.city = count;
+          this.headers[j] = 'city';
+        }
+        if (column === 'STATE' || column === 'ST') {
+          stateFlag = true;
+          headerPosition.state = count;
+          this.headers[j] = 'state';
+        }
+        if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
+          zipFlag = true;
+          headerPosition.zip = count;
+          this.headers[j] = 'zip';
+        }
+        if (column === 'Y') {
+          latFlag = true;
+          headerPosition.lat = count;
+          this.headers[j] = 'latitude';
+        }
+        if (column === 'X') {
+          lonFlag = true;
+          headerPosition.lon = count;
+          this.headers[j] = 'longitude';
+        }
+        if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
+          nameFlag = true;
+          headerPosition.name = count;
+          this.headers[j] = 'name';
+        }
+        if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
+          numberFlag = true;
+          headerPosition.number = count;
+          this.headers[j] = 'number';
+        }
+        count++;
+    }
+    
+      if (!addressFlag) {
+        const validationError: string = 'Either the City and State must be entered or a Postal Code';
+        if (!zipFlag) {
+          if (!cityFlag && !stateFlag) {
+            throw new Error(validationError);
+          }
         }
       }
+      return headerPosition;
     }
-    return headerPosition;
-  }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
   public geocodingFailure(geocodingResponse: any) : boolean {
@@ -196,7 +201,6 @@ export class UploadLocationsComponent implements OnInit {
     return false;
   }
 
-  //parse a csv file with statuses and metric service added to the top overlay tabs
   private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : GeocodingResponse[] {
     const geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
@@ -229,7 +233,7 @@ export class UploadLocationsComponent implements OnInit {
           geocodingResponse.addressline =      locRespListMap['Address'];
           geocodingResponse.city        =      locRespListMap['City'];
           geocodingResponse.state       =      locRespListMap['State'];
-          geocodingResponse.zip         =      locRespListMap['Zip'];
+          geocodingResponse.zip         =      locRespListMap['ZIP'];
           geocodingResponse.number      =      locRespListMap['Number'];
           geocodingResponse.name        =      locRespListMap['Name'];
           geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
