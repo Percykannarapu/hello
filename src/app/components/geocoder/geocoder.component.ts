@@ -51,12 +51,15 @@ export class GeocoderComponent implements OnInit {
   public zip: string;
   public xcoord: string;
   public ycoord: string;
+  public name: string;
+  public number: number;
   public CSVMessage: string;
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
   public displayGcSpinner: boolean = false;
   public failedSites: GeocodingResponse[] = [];
   public displayFailureWindow: boolean = false;
+  public selector: string;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -77,7 +80,7 @@ export class GeocoderComponent implements OnInit {
 
   // collect the information entered by the user on the geocorder form and 
   // create an AmSite, then invoke the geocoder
-  public async onGeocode() {
+  public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
       site.number = this.amSiteService.getNewSitePk().toString();
@@ -108,7 +111,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // add all of the geocoded sites in the amSites array to the map
-  private async addSitesToMap(sitesList: GeocodingResponse[]) {
+  private async addSitesToMap(sitesList: GeocodingResponse[], selector) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
@@ -116,7 +119,7 @@ export class GeocoderComponent implements OnInit {
       for (const site of sitesList) {
         //console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(site)
-          .then(res => this.createGraphic(site, res))
+          .then(res => this.createGraphic(site, res, selector))
           .then(res => { graphics.push(res); })
           .catch(err => this.handleError(err));
       } 
@@ -138,6 +141,11 @@ export class GeocoderComponent implements OnInit {
     return false;
   }
 
+  public clearFields(){
+    //
+  }
+
+
   // create a PopupTemplate for the site that will be displayed on the map
   private async createPopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
@@ -156,18 +164,28 @@ export class GeocoderComponent implements OnInit {
   }
 
   // create a Graphic object for the site that will be displayed on the map
-  private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+  private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate, selector) : Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
 
+    let color;
     // give our site a blue color
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-    };
+    if (selector === 'Site'){
+      color = {
+        a: 1,
+        r: 35,
+        g: 93,
+        b: 186
+      };
+    }else{
+      color = {
+        a: 1,
+        r: 255,
+        g: 0,
+        b: 0
+      };
+    }
 
     await this.mapService.createGraphic(site.latitude, site.longitude, color, popupTemplate, Number(site.number))
       .then(res => {
@@ -483,7 +501,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-      this.addSitesToMap(geocodingResponseList);
+      this.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;

@@ -4,45 +4,72 @@
     <div class="ui-g-4">
         <p-panel header="Enter site manually or upload CSV">
             <div class="ui-g">
+<!-- Added US6554 Additional sections for manually add selection -->
                 <div class="ui-g-12">
+                    <div class="ui-g-3 p-t-15">
+                        <label>Add as:</label>
+                    </div>
+                    <div class="ui-g-4 p-t-15">
+                        <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
+                    </div>
+                    <div class="ui-g-5 p-t-15">
+                        <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
+                    </div>
+                </div>
+                <div class="ui-g-12 p-t-15">
+                    <span class="md-inputfield">
+                        <input [(ngModel)]="number" name="_number" pInputText id="numberInput" style="width: 100%;">
+                        <label for="numberInput">Number</label>
+                    </span>
+                </div>
+                <div class="ui-g-12 p-t-15">
+                    <span class="md-inputfield">
+                        <input [(ngModel)]="name" name="_name" pInputText id="nameInput" style="width: 100%;">
+                        <label for="nameInput">Name</label>
+                    </span>
+                </div>
+                <div class="ui-g-12 p-t-15">
                     <span class="md-inputfield">
                         <input [(ngModel)]="street" name="_street" pInputText id="streetInput" style="width: 100%;">
                         <label for="streetInput">Street</label>
                     </span>
                 </div>
-                <div class="ui-g-12">
+                <div class="ui-g-12 p-t-15">
                     <span class="md-inputfield">
                         <input [(ngModel)]="city" name="_city" pInputText id="cityInput" style="width: 100%;">
                         <label for="cityInput">City</label>
                     </span>
                 </div>
-                <div class="ui-g-12">
+                <div class="ui-g-12 p-t-15">
                     <span class="md-inputfield">
                         <input [(ngModel)]="state" name="_state" pInputText id="stateInput" style="width: 100%;">
                         <label for="stateInput">State</label>
                     </span>
                 </div>
-                <div class="ui-g-12">
+                <div class="ui-g-12 p-t-15">
                     <span class="md-inputfield">
                         <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput" style="width: 100%;">
-                        <label for="stateInput">ZIP</label>
+                        <label for="zipInput">ZIP</label>
                     </span>
                 </div>
+                <!-- <div class="ui-g-6">
+                    <button (click)="clearFields()" type="button" label="Clear" icon="ui-icon-close" pButton style="width: 100%;"></button>
+                </div> -->
+                <div class="ui-g-6">
+                    <button (click)="onGeocode(selector);" type="button" label="Submit" icon="ui-icon-send" pButton style="width: 100%;"></button>
+                        </div>
                 <div class="ui-g-6">
                     <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton style="width: 100%;"></button>
                 </div>
-                <div class="ui-g-6">
-                    <button (click)="onGeocode();" type="button" label="Submit" icon="ui-icon-send" pButton style="width: 100%;"></button>
-                </div>
                 <!-- Commented out for US6554: nallana -->
-                <!-- <div class="ui-g-12"> 
+                <div class="ui-g-12"> 
                     <label for="fileUpload" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
                         style="width: 100%;">
                         <div style="padding-top: 6px;">
                             <input #fileUpload id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" /> Geocode CSV File
                         </div>
                     </label>
-                </div> -->
+                </div>
                 <!--<div *ngIf="failedSites.length > 0" class="ui-g-12">
                     <button (click)="onViewFailures()" type="button" label="View Geocoding Failures" icon="ui-icon-warning" pButton style="width: 100%;"></button>
                 </div>-->
@@ -60,14 +87,14 @@
             <p-column field="status" header="Status" [editable]="true"></p-column>
             <p-column header="Resubmit">
                 <ng-template let-h="rowData" pTemplate="body">
-                    <button (click)="onResubmit(h)" icon="ui-icon-refresh"  pButton style="margin: auto; display: block"></button>
+                    <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
                 </ng-template>
             </p-column>
             <p-column header="Remove">
-                    <ng-template let-h="rowData" pTemplate="body">
-                        <button (click)="onRemove(h)" icon="ui-icon-delete"  pButton style="margin: auto; display: block"></button>
-                    </ng-template>
-                </p-column>
+                <ng-template let-h="rowData" pTemplate="body">
+                    <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
+                </ng-template>
+            </p-column>
         </p-dataTable>
     </div>
 </div>
