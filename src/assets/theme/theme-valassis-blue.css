@@ -7337,7 +7337,7 @@ body .ui-paginator {
       -webkit-transition: background-color 0.3s;
       transition: background-color 0.3s; }
       body .ui-paginator .ui-paginator-pages a:not(.ui-state-active):hover {
-        background-color: #4a8aba; }
+        background-color: #C4E0F5; }
       body .ui-paginator .ui-paginator-pages a.ui-state-active {
         background-color: #EF9300;
         color: #ffffff; }
@@ -7375,8 +7375,8 @@ body .ui-datatable .ui-datatable-thead > tr {
       vertical-align: middle;
       color: #757575; }
     body .ui-datatable .ui-datatable-thead > tr th.ui-state-active, body .ui-datatable .ui-datatable-thead > tr th.ui-state-highlight {
-      background-color: #EF9300;
-      color: #ffffff;
+      background-color: #FFD28A;
+      color: #000000;
       border-top-color: #EF9300; }
       body .ui-datatable .ui-datatable-thead > tr th.ui-state-active .fa, body .ui-datatable .ui-datatable-thead > tr th.ui-state-highlight .fa {
         color: #ffffff; }
@@ -7393,12 +7393,12 @@ body .ui-datatable tfoot th {
 body .ui-datatable .ui-datatable-data tr.ui-datatable-even {
   background-color: #f4f4f4; }
   body .ui-datatable .ui-datatable-data tr.ui-datatable-even.ui-state-highlight {
-    background-color: #EF9300;
-    color: #ffffff; }
+    background-color: #F0BE6E;
+    color: #000000; }
 body .ui-datatable .ui-datatable-data tr {
   border: 1px solid #cacaca; }
   body .ui-datatable .ui-datatable-data tr td {
-    padding: .625em .875em; }
+    padding: .225em .475em; }
     body .ui-datatable .ui-datatable-data tr td .ui-row-toggler {
       display: inherit; }
     body .ui-datatable .ui-datatable-data tr td.ui-state-highlight .ui-inputtext {
@@ -7416,9 +7416,9 @@ body .ui-datatable .ui-datatable-data tr {
     body .ui-datatable .ui-datatable-data tr td.ui-selection-column .ui-chkbox-box, body .ui-datatable .ui-datatable-data tr td.ui-selection-column .ui-radiobutton-box {
       box-sizing: content-box; }
   body .ui-datatable .ui-datatable-data tr.ui-state-highlight {
-    background-color: #EF9300;
+    background-color: #FFD28A;
     border-color: ┬á #EF9300;
-    color: #ffffff; }
+    color: #000000; }
   body .ui-datatable .ui-datatable-data tr .ui-cell-editor-input input {
     color: #ffffff; }
 body .ui-datatable .ui-datatable-data tr.ui-state-error {
