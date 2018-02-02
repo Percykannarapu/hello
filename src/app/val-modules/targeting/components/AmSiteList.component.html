@@ -47,7 +47,7 @@
     <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
         [(selection)]="selectedSites" [rows]="8" [paginator]="true"> (onRowSelect)="onRowSelect($event)"  (onRowUnselect)="onRowUnselect($event)"-->
     <p-dataTable #siteDt [value]="amSiteService.sitesList" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
-       [(selection)]="amSiteService.unselectedSitesList" [rows]="8" [paginator]="true" showToggleAll="true"
+       [(selection)]="amSiteService.sitesList" [rows]="8" [paginator]="true" showToggleAll="true"
        [editable]="true">
        <p-header> 
         <div style="text-align:left">
@@ -75,7 +75,7 @@
              <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
           </ng-template>
        </p-column>
-       <p-column header="Edit" [style]="{'width':'60px'}" [editable]="true">
+       <!-- <p-column header="Edit" [style]="{'width':'60px'}" [editable]="true">
             <ng-template let-site="rowData"  pTemplate="body"  >
                     <button type="button"  icon="ui-icon-edit"></button>   
             </ng-template>
@@ -84,12 +84,10 @@
             <li *ngFor="let col of amSiteService.cols">
              <p-column  [field]="col.field" [header]="col.header" [editable]="true" [style]="{'width': col.size}"></p-column>
             </li>
-       </ul>
-       <!--p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [editable]="true"  [style]="{'width': col.size}">
-            <ng-template let-col let-color="rowData" pTemplate="editor">
-                    
-                  </ng-template>
-       </p-column-->
+       </ul> -->
+       <p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [editable]="true"  [style]="{'width': col.size}">
+           
+       </p-column>
 
        
        <ng-template pTemplate="emptymessage">
