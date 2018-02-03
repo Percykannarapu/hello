@@ -1,4 +1,4 @@
-import { RestResponse } from './../../../Models/RestResponse';
+import { RestResponse } from './../../../models/RestResponse';
 import { AppConfig } from './../../../app.config';
 import 'rxjs/add/operator/map';
 

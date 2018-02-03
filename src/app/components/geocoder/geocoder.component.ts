@@ -1,26 +1,26 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { AccountLocation } from '../../Models/AccountLocation';
-import { AccountLocations } from '../../Models/AccountLocations';
+import { AccountLocation } from '../../models/AccountLocation';
+import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { MapService } from '../../services/map.service';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { InputTextModule, ButtonModule, SharedModule, FileUploadModule, GrowlModule, Message, DataTableModule } from 'primeng/primeng';
-import { GeofootprintMaster } from '../../Models/GeofootprintMaster';
-import { GeofootprintSite } from '../../Models/GeofootprintSite';
-import { GeofootprintTaName } from '../../Models/GeofootprintTaName';
-import { GeofootprintTradeArea } from '../../Models/GeofootprintTradeArea';
-import { GeofootprintVar } from '../../Models/GeofootprintVar';
-import { GeofootprintGeo } from '../../Models/geofootprintGeo.model';
+import { GeofootprintMaster } from '../../models/GeofootprintMaster';
+import { GeofootprintSite } from '../../models/GeofootprintSite';
+import { GeofootprintTaName } from '../../models/GeofootprintTaName';
+import { GeofootprintTradeArea } from '../../models/GeofootprintTradeArea';
+import { GeofootprintVar } from '../../models/GeofootprintVar';
+import { GeofootprintGeo } from '../../models/geofootprintGeo.model';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { RestResponse } from '../../Models/RestResponse';
-import { DefaultLayers } from '../../Models/DefaultLayers';
+import { RestResponse } from '../../models/RestResponse';
+import { DefaultLayers } from '../../models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
-import { Points } from '../../Models/Points';
-import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
+import { Points } from '../../models/Points';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
@@ -51,12 +51,15 @@ export class GeocoderComponent implements OnInit {
   public zip: string;
   public xcoord: string;
   public ycoord: string;
+  public name: string;
+  public number: number;
   public CSVMessage: string;
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
   public displayGcSpinner: boolean = false;
   public failedSites: GeocodingResponse[] = [];
   public displayFailureWindow: boolean = false;
+  public selector: String = 'Sites';
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -77,7 +80,7 @@ export class GeocoderComponent implements OnInit {
 
   // collect the information entered by the user on the geocorder form and 
   // create an AmSite, then invoke the geocoder
-  public async onGeocode() {
+  public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
       site.number = this.amSiteService.getNewSitePk().toString();
@@ -108,7 +111,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // add all of the geocoded sites in the amSites array to the map
-  private async addSitesToMap(sitesList: GeocodingResponse[]) {
+  private async addSitesToMap(sitesList: GeocodingResponse[], selector) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
@@ -116,7 +119,7 @@ export class GeocoderComponent implements OnInit {
       for (const site of sitesList) {
         //console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(site)
-          .then(res => this.createGraphic(site, res))
+          .then(res => this.createGraphic(site, res, selector))
           .then(res => { graphics.push(res); })
           .catch(err => this.handleError(err));
       } 
@@ -130,59 +133,24 @@ export class GeocoderComponent implements OnInit {
     }
   }
 
-  // parse the RestResponse from the Geocoder and create an AmSite from it, optionally dispay the site as well
-  private parseResponse(restResponses: RestResponse[], display?: boolean) : AmSite[] {
-    const amSites: AmSite[] = new Array<AmSite>();
-   // this.pointsArray = [];
-    for (const restResponse of restResponses) {
-      const geocodingResponse: GeocodingResponse = restResponse.payload;
-      const amSite: AmSite = new AmSite();
-
-      // geocoding failures get pushed into the failedSites array for manual intervention by the user
-      if (this.geocodingFailure(geocodingResponse)) {
-        const failedSite: GeocodingResponse = new GeocodingResponse();
-        failedSite.latitude = geocodingResponse.latitude;
-        failedSite.longitude = geocodingResponse.longitude;
-        failedSite.addressline = geocodingResponse.addressline;
-        failedSite.city = geocodingResponse.city;
-        failedSite.state = geocodingResponse.state;
-        failedSite.zip = geocodingResponse.zip10;
-        failedSite.number = GeocoderComponent.failedSiteCounter.toString();
-        const failedSites = Array.from(this.failedSites);
-        failedSites.push(failedSite);
-        this.failedSites = failedSites;
-        GeocoderComponent.failedSiteCounter++;
-        continue;
-      }
-
-      amSite.pk = this.amSiteService.getNewSitePk();
-      amSite.ycoord = geocodingResponse.latitude;
-      amSite.xcoord = geocodingResponse.longitude;
-      amSite.address = geocodingResponse.addressline;
-      amSite.city = geocodingResponse.city;
-      amSite.state = geocodingResponse.state;
-      amSite.zip = geocodingResponse.zip10;
-      amSites.push(amSite);
-
-      const points = new Points();
-      points.latitude = geocodingResponse.latitude;
-      points.longitude = geocodingResponse.longitude;
-      MapService.pointsArray.push(points);
-    }
-    if (display) {
-      //this.addSitesToMap(amSites);
-      this.mapService.callTradeArea();
-    }
-    return amSites;
-  }
-
   // determine if the response from the geocoder was a failure or not based on the codes we get back
-  public geocodingFailure(geocodingResponse: GeocodingResponse) : boolean {
-    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+  public geocodingFailure(geocodingResponse: any) : boolean {
+    if (geocodingResponse['Match Quality'].toString() === 'E' || geocodingResponse['Match Code'].toString().substr(0, 1) === 'E') {
       return true;
     }
     return false;
   }
+
+  public clearFields(){
+    //
+    this.street = '';
+    this.city = '';
+    this.state = '';
+    this.zip = '';
+    this.name = '';
+    this.number = null;
+  }
+
 
   // create a PopupTemplate for the site that will be displayed on the map
   private async createPopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate> {
@@ -202,18 +170,29 @@ export class GeocoderComponent implements OnInit {
   }
 
   // create a Graphic object for the site that will be displayed on the map
-  private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate) : Promise<__esri.Graphic> {
+  private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.PopupTemplate, selector) : Promise<__esri.Graphic> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [Graphic] = await loader.loadModules(['esri/Graphic']);
     let graphic: __esri.Graphic = new Graphic();
 
+    let color;
     // give our site a blue color
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-    };
+    if (selector === 'Competitor'){
+      color = {
+        a: 1,
+        r: 255,
+        g: 0,
+        b: 0
+      };
+    }else{
+      color = {
+        a: 1,
+        r: 35,
+        g: 93,
+        b: 186
+        
+      };
+    }
 
     await this.mapService.createGraphic(site.latitude, site.longitude, color, popupTemplate, Number(site.number))
       .then(res => {
@@ -348,6 +327,11 @@ export class GeocoderComponent implements OnInit {
   for (let j = 0; j < columns.length; j++){
       let column = columns[j];
       column = column.toUpperCase();
+      if (columns[0].includes('NAME')){
+        nameFlag = true;
+        headerPosition.name = count;
+        this.headers[j] = 'name';
+      }
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
@@ -368,17 +352,17 @@ export class GeocoderComponent implements OnInit {
         headerPosition.zip = count;
         this.headers[j] = 'zip';
       }
-      if (column === 'Y') {
+      if (column === 'Y' || column === 'latitude') {
         latFlag = true;
         headerPosition.lat = count;
         this.headers[j] = 'latitude';
       }
-      if (column === 'X') {
+      if (column === 'X' || column === 'longitude') {
         lonFlag = true;
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
       }
-      if (column === 'NAME' || column === 'FIRM'){
+      if (column === 'NAME' || column === 'FIRM'  ){
         nameFlag = true;
         headerPosition.name = count;
         this.headers[j] = 'name';
@@ -473,16 +457,17 @@ export class GeocoderComponent implements OnInit {
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
-              if (locationResponseList[0].status !== 'PROVIDED' && this.geocodingFailure(locationResponseList[0])) {
+              const locRespListMap: Map<string, any> = locationResponseList[0];
+              if (locRespListMap['status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 locationResponseList[0].status = 'ERROR';
                 failedSite.status = 'ERROR';
-                failedSite.latitude = locationResponseList[0].latitude;
-                failedSite.longitude = locationResponseList[0].longitude;
-                failedSite.addressline = locationResponseList[0].standardizedAddress;
-                failedSite.city = locationResponseList[0].standardizedCity;
-                failedSite.state = locationResponseList[0].standardizedState;
-                failedSite.zip = locationResponseList[0].ZIP10;
+                failedSite.latitude = locRespListMap['Latitude'];
+                failedSite.longitude = locRespListMap['Longitude'];
+                failedSite.addressline = locRespListMap['Address'];
+                failedSite.city = locRespListMap['City'];
+                failedSite.state = locRespListMap['State'];
+                failedSite.zip = locRespListMap['ZIP'];
                 failedSite.number = GeocoderComponent.failedSiteCounter.toString();
                 const failedSites = Array.from(this.failedSites);
                 failedSites.push(failedSite);
@@ -490,16 +475,15 @@ export class GeocoderComponent implements OnInit {
                 GeocoderComponent.failedSiteCounter++;
                 continue;
               }
-          geocodingResponse.latitude    =      locationResponseList[0].latitude;
-          geocodingResponse.longitude   =      locationResponseList[0].longitude;
-          geocodingResponse.addressline =      locationResponseList[0].addressline;
-          geocodingResponse.city        =      locationResponseList[0].city;
-          geocodingResponse.state       =      locationResponseList[0].state;
-          geocodingResponse.zip         =      locationResponseList[0].zip;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.name        =      locationResponseList[0].name;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.matchCode   =      locationResponseList[0].matchCode; 
+          geocodingResponse.latitude    =      locRespListMap['Latitude'];
+          geocodingResponse.longitude   =      locRespListMap['Longitude'];
+          geocodingResponse.addressline =      locRespListMap['Address'];
+          geocodingResponse.city        =      locRespListMap['City'];
+          geocodingResponse.state       =      locRespListMap['State'];
+          geocodingResponse.zip         =      locRespListMap['ZIP'];
+          geocodingResponse.number      =      locRespListMap['Number'];
+          geocodingResponse.name        =      locRespListMap['Name'];
+          geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
          
           let geocodingAttr = null;
            for (const [k, v] of Object.entries(locationResponseList[0])){
@@ -509,6 +493,9 @@ export class GeocoderComponent implements OnInit {
                   geocodingAttrList.push(geocodingAttr);
            }
            geocodingResponse.geocodingAttributesList = geocodingAttrList;
+           
+         //  this.amSiteService.sitesList = [...this.amSiteService.sitesList, geocodingResponse];
+         //  this.amSiteService.unselectedSitesList = [...this.amSiteService.unselectedSitesList, geocodingResponse];
 
           const points = new Points();
           points.latitude =  locationResponseList[0].latitude;
@@ -521,7 +508,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-      this.addSitesToMap(geocodingResponseList);
+     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;

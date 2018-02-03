@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {EsriModules} from './esri-modules.service';
+import {EsriModules} from '../esri-modules/core/esri-modules.service';
 
 @Injectable()
 export class EsriLayerService {
@@ -14,23 +14,19 @@ export class EsriLayerService {
   public initLayerList(mapView: __esri.MapView) : void {
     this.mapView = mapView;
     console.log('Loading Esri Modules for Layer Service');
-    if (this.modules.ready()) {
-      this.initImpl();
-    } else {
-      this.modules.deferredLoad.then(() => this.initImpl());
-    }
+    this.modules.onReady(() => { this.initImpl(); });
   }
 
   private initImpl() : void {
     console.log('Creating Layer List');
-    const layerList: __esri.LayerList = new EsriModules.LayerList({
+    const layerList: __esri.LayerList = new EsriModules.widgets.LayerList({
       view: this.mapView,
       container: document.createElement('div'),
       listItemCreatedFunction: this.onListItemCreated
     });
     layerList.on('trigger-action', (e) => this.onActionClicked(e));
 
-    const layerListExpand = new EsriModules.Expand({
+    const layerListExpand = new EsriModules.widgets.Expand({
       view: this.mapView,
       content: layerList.container,
       expandIconClass: 'esri-icon-layer-list',
@@ -115,7 +111,7 @@ export class EsriLayerService {
 
             if (!this.colorSlider) {
               sliderParams.container = 'slider';
-              this.colorSlider = new EsriModules.ColorSlider(sliderParams);
+              this.colorSlider = new EsriModules.widgets.ColorSlider(sliderParams);
               // when the user slides the handle(s), update the renderer
               // with the updated color visual variable object
               this.colorSlider.on('data-change', () => {

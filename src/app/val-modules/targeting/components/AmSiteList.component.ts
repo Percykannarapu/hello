@@ -11,7 +11,7 @@ import { AppService } from '../../../services/app.service';
 import { AmSiteService } from '../services/AmSite.service';
 import {MessageService} from '../../common/services/message.service';
 import { SelectItem } from 'primeng/components/common/selectitem';
-import { GeocodingResponse } from '../../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../../models/GeocodingResponse';
 
 @Component({
   selector: 'val-amsite-list',
@@ -133,6 +133,7 @@ export class AmSiteListComponent implements OnInit, OnDestroy
       console.log('Selected Site');
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
+      console.log('grid length::' + this.amSiteService.sitesList.length);
       this.amSiteService.refreshMapSites();
       this.amSiteService.siteWasSelected (event.data);
       this.amSiteService.logSites();

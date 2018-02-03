@@ -1,15 +1,15 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { RestResponse } from '../../Models/RestResponse';
+import { RestResponse } from '../../models/RestResponse';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AccountLocations } from '../../Models/AccountLocations';
+import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { Observable } from 'rxjs/Rx';
-import { Points } from '../../Models/Points';
+import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
-import { GeocodingAttributes } from '../../Models/GeocodingAttributes';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { MessageService } from 'primeng/components/common/messageservice';
-
+import { GeocoderComponent } from '../geocoder/geocoder.component';
 
 interface CsvHeadersPosition {
   street?: number;
@@ -40,13 +40,26 @@ export class UploadLocationsComponent implements OnInit {
   public selector: String = 'Site';
   public headers: any;
 
-  @ViewChild('fileUpload') private fileUploadEl: ElementRef;
+  @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
 
   constructor(private geocoderService: GeocoderService, 
               private messageService: MessageService, private mapService: MapService) { }
 
   ngOnInit() {
   }
+
+
+  // geocode an GeocodingResponse by invoking the geocoding service
+  public async geocodeAddress(site: GeocodingResponse, display: boolean = true) {
+    const siteList: any[] = [];
+    siteList.push(site);
+    const observable = this.geocoderService.multiplesitesGeocode(siteList);
+    observable.subscribe((res) => {
+      this.parseCsvResponse([res], display);
+      this.disableshowBusiness = false;
+    }, err => this.handleError(err), null);
+  }
+
 
   uploadCSV(event) {
     
@@ -75,7 +88,10 @@ export class UploadLocationsComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          const csvRecord = csvRecords[i].split(',');
+          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
+        if ( csvRecord.length === this.headers.length){
+
           for (let j = 0; j < this.headers.length; j++){
               site[this.headers[j]] = csvRecord[j];
           }
@@ -98,8 +114,11 @@ export class UploadLocationsComponent implements OnInit {
                });
                csvFormattedData =  restResponseList;
           }
-         
+        }else{
+          // TO assign to failed list if headers length < datarecord length
         }
+
+      }
       if (headerPosition.lat === undefined && headerPosition.lon === undefined){
           Observable.forkJoin(observables).subscribe(res => {
             console.log('forkJoin:::' + res.length);
@@ -116,86 +135,128 @@ export class UploadLocationsComponent implements OnInit {
     };
   }
 
-  // check the column headers accourding to the business rules above and figure out the positions of all the headers
+
   private verifyCSVColumns(columns: string[]) : any {
-  
     let addressFlag: boolean = false;
-  let cityFlag: boolean = false;
-  let stateFlag: boolean = false;
-  let zipFlag: boolean = false;
-  let latFlag: boolean = false;
-  let lonFlag: boolean = false;
-  let nameFlag: boolean = false;
-  let numberFlag: boolean = false;
-  let count: number = 0;
-  const headerPosition: any = {};
-  this.disableshowBusiness = false; //enable the search business button
-  for (let j = 0; j < columns.length; j++){
-      let column = columns[j];
-      column = column.toUpperCase();
-      if (column === 'STREET' || column === 'ADDRESS') {
-        addressFlag = true;
-        headerPosition.street = count;
-        this.headers[j] = 'street';
-      }
-      if (column === 'CITY') {
-        cityFlag = true;
-        headerPosition.city = count;
-        this.headers[j] = 'city';
-      }
-      if (column === 'STATE' || column === 'ST') {
-        stateFlag = true;
-        headerPosition.state = count;
-        this.headers[j] = 'state';
-      }
-      if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
-        zipFlag = true;
-        headerPosition.zip = count;
-        this.headers[j] = 'zip';
-      }
-      if (column === 'Y') {
-        latFlag = true;
-        headerPosition.lat = count;
-        this.headers[j] = 'latitude';
-      }
-      if (column === 'X') {
-        lonFlag = true;
-        headerPosition.lon = count;
-        this.headers[j] = 'longitude';
-      }
-      if (column === 'NAME' || column === 'FIRM'){
-        nameFlag = true;
-        headerPosition.name = count;
-        this.headers[j] = 'name';
-      }
-      if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
-        numberFlag = true;
-        headerPosition.number = count;
-        this.headers[j] = 'number';
-      }
-      count++;
-  }
-  
-    if (!addressFlag) {
-      const validationError: string = 'Either the City and State must be entered or a Postal Code';
-      if (!zipFlag) {
-        if (!cityFlag && !stateFlag) {
-          throw new Error(validationError);
+    let cityFlag: boolean = false;
+    let stateFlag: boolean = false;
+    let zipFlag: boolean = false;
+    let latFlag: boolean = false;
+    let lonFlag: boolean = false;
+    let nameFlag: boolean = false;
+    let numberFlag: boolean = false;
+    let count: number = 0;
+    const headerPosition: any = {};
+    this.disableshowBusiness = false; //enable the search business button
+    for (let j = 0; j < columns.length; j++){
+        let column = columns[j];
+        column = column.toUpperCase();
+        if (columns[0].includes('NAME')){
+          nameFlag = true;
+          headerPosition.name = count;
+          this.headers[j] = 'name';
+        }
+        if (column === 'STREET' || column === 'ADDRESS') {
+          addressFlag = true;
+          headerPosition.street = count;
+          this.headers[j] = 'street';
+        }
+        if (column === 'CITY') {
+          cityFlag = true;
+          headerPosition.city = count;
+          this.headers[j] = 'city';
+        }
+        if (column === 'STATE' || column === 'ST') {
+          stateFlag = true;
+          headerPosition.state = count;
+          this.headers[j] = 'state';
+        }
+        if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
+          zipFlag = true;
+          headerPosition.zip = count;
+          this.headers[j] = 'zip';
+        }
+        if (column === 'Y' || column === 'latitude') {
+          latFlag = true;
+          headerPosition.lat = count;
+          this.headers[j] = 'Latitude';
+        }
+        if (column === 'X' || column === 'longitude') {
+          lonFlag = true;
+          headerPosition.lon = count;
+          this.headers[j] = 'Longitude';
+        }
+        if (column === 'NAME' || column === 'FIRM' || column === 'BRAND NAME' ){
+          nameFlag = true;
+          headerPosition.name = count;
+          this.headers[j] = 'name';
+        }
+        if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
+          numberFlag = true;
+          headerPosition.number = count;
+          this.headers[j] = 'number';
+        }
+        count++;
+    }
+    
+      if (!addressFlag) {
+        const validationError: string = 'Either the City and State must be entered or a Postal Code';
+        if (!zipFlag) {
+          if (!cityFlag && !stateFlag) {
+            throw new Error(validationError);
+          }
         }
       }
+      return headerPosition;
     }
-    return headerPosition;
+
+    // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
+  public async onResubmit(row) {
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.number = row.pk;
+    this.onRemove(row);
+    this.geocodeAddress(site, true);
+  }
+
+  // remove an GeocodingResponse from the list of sites that failed to geocode
+  public async onRemove(row) {
+    console.log('on remove');
+    const site: GeocodingResponse = new GeocodingResponse();
+    site.addressline = row.address;
+    site.city = row.city;
+    site.state = row.state;
+    site.zip = row.zip;
+    site.number = row.number;
+    for (let i = 0; i < this.failedSites.length; i++) {
+      if (this.compareSites(site, this.failedSites[i])) {
+        const failedSites = Array.from(this.failedSites);
+        failedSites.splice(i, 1);
+        this.failedSites = failedSites;
+      }
+    }
+  }
+
+  // determine if two AmSite objects are the same
+  // this should be implemented in an equals() method in the model
+  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
+    if (site1.number === site2.number) {
+      return true;
+    } 
+    return false;
   }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
-  public geocodingFailure(geocodingResponse: GeocodingResponse) : boolean {
-    if (geocodingResponse.locationQualityCode === 'E' || geocodingResponse.matchCode.substr(0, 1) === 'E') {
+  public geocodingFailure(geocodingResponse: any) : boolean {
+    if (geocodingResponse['Match Quality'].toString() === 'E' || geocodingResponse['Match Code'].toString() === 'E') {
       return true;
     }
     return false;
   }
 
-  //parse a csv file with statuses and metric service added to the top overlay tabs
   private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : GeocodingResponse[] {
     const geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
@@ -205,15 +266,17 @@ export class UploadLocationsComponent implements OnInit {
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
             // geocoding failures get pushed into the failedSites array for manual intervention by the user
-              if (locationResponseList[0].status !== 'PROVIDED' && this.geocodingFailure(locationResponseList[0])) {
+              const locRespListMap: Map<string, any> = locationResponseList[0];
+              if (locRespListMap['status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 locationResponseList[0].status = 'ERROR';
-                failedSite.latitude = locationResponseList[0].latitude;
-                failedSite.longitude = locationResponseList[0].longitude;
-                failedSite.addressline = locationResponseList[0].addressline;
-                failedSite.city = locationResponseList[0].city;
-                failedSite.state = locationResponseList[0].state;
-                failedSite.zip = locationResponseList[0].zip;
+                failedSite.status = 'ERROR';
+                failedSite.latitude = locRespListMap['Latitude'];
+                failedSite.longitude = locRespListMap['Longitude'];
+                failedSite.addressline = locRespListMap['Address'];
+                failedSite.city = locRespListMap['City'];
+                failedSite.state = locRespListMap['State'];
+                failedSite.zip = locRespListMap['ZIP'];
                 failedSite.number = UploadLocationsComponent.failedSiteCounter.toString();
                 const failedSites = Array.from(this.failedSites);
                 failedSites.push(failedSite);
@@ -221,16 +284,15 @@ export class UploadLocationsComponent implements OnInit {
                 UploadLocationsComponent.failedSiteCounter++;
                 continue;
               }
-          geocodingResponse.latitude    =      locationResponseList[0].latitude;
-          geocodingResponse.longitude   =      locationResponseList[0].longitude;
-          geocodingResponse.addressline =      locationResponseList[0].addressline;
-          geocodingResponse.city        =      locationResponseList[0].city;
-          geocodingResponse.state       =      locationResponseList[0].state;
-          geocodingResponse.zip         =      locationResponseList[0].zip;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.name        =      locationResponseList[0].name;
-          geocodingResponse.number      =      locationResponseList[0].number;
-          geocodingResponse.matchCode   =      locationResponseList[0].matchCode; 
+          geocodingResponse.latitude    =      locRespListMap['Latitude'];
+          geocodingResponse.longitude   =      locRespListMap['Longitude'];
+          geocodingResponse.addressline =      locRespListMap['Address'];
+          geocodingResponse.city        =      locRespListMap['City'];
+          geocodingResponse.state       =      locRespListMap['State'];
+          geocodingResponse.zip         =      locRespListMap['ZIP'];
+          geocodingResponse.number      =      locRespListMap['Number'];
+          geocodingResponse.name        =      locRespListMap['Name'];
+          geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
          
           let geocodingAttr = null;
            for (const [k, v] of Object.entries(locationResponseList[0])){
@@ -254,6 +316,8 @@ export class UploadLocationsComponent implements OnInit {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
+    //Hide the spinner on error
+    this.displayGcSpinner = false;
     }
     return geocodingResponseList;
   }

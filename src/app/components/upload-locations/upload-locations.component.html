@@ -1,24 +1,57 @@
 <div class="ui-g">
   <div class="ui-g-6">
-    <div class="ui-g-12">
-      <div class="ui-g-3">
+    <div>
+      <div class="ui-g-2">
         <label>Add as:</label>
       </div>
-      <div class="ui-g-4">
+      <div class="ui-g-2">
         <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
       </div>
       <div class="ui-g-5">
         <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
       </div>
     </div>
-    <div class="ui-g-9"> 
-        <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
-            style="width: 100%;">
-            <div style="padding-top: 6px;">
-                <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCSV($event)" accept=".csv" /> Geocode CSV File
-            </div>
-        </label>
-    </div>
+    <div class="ui-g-5">
+      <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+        style="width: 100%;">
+        <div style="padding-top: 6px;">
+          <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCSV($event)" accept=".csv"
+          /> Select File
+        </div>
+      </label>
+    <!-- </div> -->
   </div>
+  <div *ngIf="failedSites.length > 0" class="ui-g-8">
+    <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
+        <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
+        <p-column field="number" [hidden]="true"></p-column>
+        <p-column field="addressline" header="Street" [editable]="true"></p-column>
+        <p-column field="city" header="City" [editable]="true"></p-column>
+        <p-column field="state" header="State" [editable]="true"></p-column>
+        <p-column field="zip" header="ZIP" [editable]="true"></p-column>
+        <p-column field="status" header="Status" [editable]="true"></p-column>
+        <p-column header="Resubmit">
+            <ng-template let-h="rowData" pTemplate="body">
+                <button (click)="onResubmit(h)" icon="ui-icon-refresh"  pButton style="margin: auto; display: block"></button>
+            </ng-template>
+        </p-column>
+        <p-column header="Remove">
+                <ng-template let-h="rowData" pTemplate="body">
+                    <button (click)="onRemove(h)" icon="ui-icon-delete"  pButton style="margin: auto; display: block"></button>
+                </ng-template>
+            </p-column>
+    </p-dataTable>
+</div>
 
+  <!-- Modal window for GP spinner -->
+  <div class="ui-g ui-fluid">
+    <p-dialog [closable]="true" header="Geocoding Operation Running" [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
+      width="300">
+      <div class="ui-g-3"></div>
+      <div class="ui-g-5">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+      <div class="ui-g-4"></div>
+    </p-dialog>
+  </div>
 </div>

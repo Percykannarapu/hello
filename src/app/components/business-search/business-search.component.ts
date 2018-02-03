@@ -7,13 +7,15 @@ import { SelectItem } from 'primeng/components/common/api';
 import { Message } from 'primeng/components/common/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { DefaultLayers } from '../../Models/DefaultLayers';
+import { DefaultLayers } from '../../models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
-import { GeocodingResponse } from '../../Models/GeocodingResponse';
+import { GeocodingResponse } from '../../models/GeocodingResponse';
+import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+
 
 @Component({
-  providers: [MapService, MessageService],
+  providers: [MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -45,9 +47,8 @@ export class BusinessSearchComponent implements OnInit {
   sites: any;
   businessCategories: any;
 
-  public plottedPoints: any = [];
+  public plottedPoints: any;
   showLoader: boolean = false;
-  private geocodingResponse: GeocodingResponse;
 
 
   constructor(private appService: AppService, private mapService: MapService,
@@ -184,6 +185,27 @@ export class BusinessSearchComponent implements OnInit {
 
   }
 
+  private parseCsvResponse(restResponses: any[]): GeocodingResponse[] {
+    const geocodingResponseList: GeocodingResponse[] = [];
+    const geocodingResponse: GeocodingResponse[] = restResponses;
+    for (const restResponse of geocodingResponse) {
+
+      const geocodingAttrList: GeocodingAttributes[] = [];
+
+      let geocodingAttr = null;
+      for (const [k, v] of Object.entries(restResponse)) {
+        geocodingAttr = new GeocodingAttributes();
+        geocodingAttr.attributeName = k;
+        geocodingAttr.attributeValue = v;
+        geocodingAttrList.push(geocodingAttr);
+      }
+      restResponse.geocodingAttributesList = geocodingAttrList;
+
+    }
+
+    return geocodingResponse;
+  }
+
   // For Enabling selectall functionality for the business found
   onSelectAll(e) {
     this.plottedPoints = [];
@@ -191,37 +213,38 @@ export class BusinessSearchComponent implements OnInit {
       cat['checked'] = e;
       if (cat.checked) {
         const objname = {
-          pk: cat.sdm_id,
+          fipscountyCode: cat.sdm_id,
           name: cat.firm,
-          address: cat.address,
+          addressline: cat.address,
           city: cat.city,
           state: cat.state,
           zip: cat.zip,
-          ycoord: cat.y,
-          xcoord: cat.x
+          latitude: cat.y,
+          longitude: cat.x
         };
-    
-      this.plottedPoints.push(objname);
+
+        this.plottedPoints.push(objname);
       }
     });
   }
 
-  //Count the number of checked addressess: US6475 
+  //Count the number of checked addressess: US6475
   onSelectSD() {
-    this.plottedPoints = new GeocodingResponse();
+    this.plottedPoints = [];
     this.searchDatageos.forEach((obj) => {
       if (obj.checked) {
         const objname = {
-          pk: obj.sdm_id,
+          fipscountyCode: obj.sdm_id,
           name: obj.firm,
-          address: obj.address,
+          addressline: obj.address,
           city: obj.city,
           state: obj.state,
           zip: obj.zip,
-          ycoord: obj.y,
-          xcoord: obj.x
+          latitude: obj.y,
+          longitude: obj.x
         };
         this.plottedPoints.push(objname);
+        //geocodingResponseList.push(this.plottedPoints);
       }
     });
   }
@@ -252,14 +275,14 @@ export class BusinessSearchComponent implements OnInit {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-    
+
     //await this.searchDatageos.forEach(async business => {
     for (const business of this.searchDatageos) {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
         console.log('long: x', business.x + 'lat: y', business.y);
         popupTemplate.title = `${selector}`,
-        popupTemplate.content = 
+          popupTemplate.content =
           `<table>
           <tbody>
           <tr><th>Name:</th><td>${business.firm ? business.firm : ''}</td></tr>
@@ -272,15 +295,15 @@ export class BusinessSearchComponent implements OnInit {
           <tr><th>Longitude</th><td>${business.x}</td></tr>
           </tbody>
           </table>`;
-          
-          // <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
-          // <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
-          // <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
+
+        // <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
+        // <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
+        // <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
 
         await this.mapService.createGraphic(business.y, business.x, this.color, popupTemplate, null)
-         .then(res => {
-          graphics.push(res);
-        });
+          .then(res => {
+            graphics.push(res);
+          });
       }
     }
     if (selector === 'Competitor') {
@@ -289,8 +312,8 @@ export class BusinessSearchComponent implements OnInit {
       console.log('Adding competitors from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
       this.appService.closeOverLayPanel.next(true);
-    } else if (selector === 'Site'){
-      this.amSiteService.add(this.plottedPoints);
+    } else if (selector === 'Site') {
+      this.amSiteService.add(this.parseCsvResponse(this.plottedPoints));
       //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
       await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);

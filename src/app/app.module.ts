@@ -110,7 +110,7 @@ import {ParkedComponent} from './demo/view/parked.component';
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
-import {GfGeoService} from './Models/gf-geo/gf-geo.service';
+import {GfGeoService} from './models/gf-geo/gf-geo.service';
 import {MetricService} from './val-modules/common/services/metric.service';
 
 import {CarService} from './demo/service/carservice';
@@ -118,10 +118,10 @@ import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
 import {EsriLayerService} from './services/esri-layer.service';
-import {EsriModules} from './services/esri-modules.service';
+import {EsriModules, IEsriLoaderToken} from './esri-modules/core/esri-modules.service';
 
 // ESRI Imports
-import {EsriLoaderService} from 'angular-esri-loader';
+//import {EsriLoaderService} from 'angular-esri-loader';
 import {EsriMapComponent} from './components/esri-map/esri-map.component';
 
 // Custom Model Imports
@@ -137,7 +137,6 @@ import {MapService} from './services/map.service';
 import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
 import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
-import {MessageService} from './val-modules/common/services/message.service';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
@@ -149,6 +148,9 @@ import {UploadLocationsComponent} from './components/upload-locations/upload-loc
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
+import {EsriMapService} from './esri-modules/core/esri-map.service';
+import {EsriIdentityService} from './services/esri-identity.service';
+import {MessageService} from './val-modules/common/services/message.service';
 
 @NgModule({
     imports: [
@@ -274,9 +276,13 @@ import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeo
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         MessageService, AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
-        EsriLoaderService, GfGeoService, MapService, RestDataService,
+        // EsriLoaderService,
+        GfGeoService, MapService, RestDataService,
+        // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
-        AppState, GeocoderService, ImpGeofootprintGeoService
+        AppState, GeocoderService, ImpGeofootprintGeoService,
+        EsriMapService, EsriIdentityService,
+        {provide: IEsriLoaderToken, useClass: AppConfig}
     ],
     bootstrap: [AppComponent]
 })

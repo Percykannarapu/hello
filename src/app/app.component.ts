@@ -1,6 +1,7 @@
-import {Component, AfterViewInit, ElementRef, Renderer, ViewChild, OnDestroy} from '@angular/core';
-import { EsriLoaderWrapperService } from './services/esri-loader-wrapper.service';
+import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from '@angular/core';
+// import { EsriLoaderWrapperService } from './services/esri-loader-wrapper.service';
 import { EsriIdentityService } from './services/esri-identity.service';
+import { AppConfig } from './app.config';
 
 enum MenuOrientation {
     STATIC,
@@ -17,17 +18,17 @@ export enum mapFunctions {
     RemoveGraphics = 4,
     Popups = 5,
     Labels = 6
-  } 
+  }
 
 declare var jQuery: any;
 
 @Component({
-    providers: [EsriLoaderWrapperService, EsriIdentityService],
+    //providers: [EsriLoaderWrapperService, EsriIdentityService],
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit, OnDestroy {
+export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
     layoutCompact = true;
 
@@ -69,14 +70,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
-    constructor(public renderer: Renderer
-              , private esriLoaderWrapperService: EsriLoaderWrapperService
-              , private esriIdentityService: EsriIdentityService) { }
+    constructor(private esriIdentityService: EsriIdentityService, private config: AppConfig) { }
 
 
     ngOnInit() {
-        this.esriLoaderWrapperService.loadApi();
-        this.esriIdentityService.authenticate();
+        this.esriIdentityService.authenticate(this.config.localPortalAuthParams);
     }
 
     ngOnDestroy() {
