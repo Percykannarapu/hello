@@ -23,7 +23,7 @@
     <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
         [(selection)]="selectedSites" [rows]="8" [paginator]="true"> (onRowSelect)="onRowSelect($event)"  (onRowUnselect)="onRowUnselect($event)"-->
     <p-dataTable #siteDt [value]="amSiteService.sitesList" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
-       [(selection)]="amSiteService.sitesList" [rows]="8" [paginator]="true" showToggleAll="true"
+       [(selection)]="amSiteService.unselectedSitesList" [rows]="8" [paginator]="true" showToggleAll="true"
        [editable]="true">
        <p-header> 
          <div class="ui-g" style="flex-wrap: nowrap !important;">

@@ -23,6 +23,7 @@ import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import { encode } from 'punycode';
 
 const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
 
@@ -60,7 +61,7 @@ export class AmSiteService
    public exportCSV(csvData: string[]) {
          let csvString = '';
          for (const row of csvData) {
-            csvString = csvString + row + '\n';
+            csvString = csvString + encode(row) + '\n';
          }
 
          // use jquery to create a link, then click that link so the user will download the CSV file
