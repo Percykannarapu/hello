@@ -162,9 +162,9 @@ export class AmSiteService
                               row = row + 'RADIUS3,';
                               continue;
                         }
-                        else{
+                        
                               row = row + ' ,';
-                        }
+                              continue;
                   }
                   if (site[header] === undefined){
                         row = row + ' ,';
