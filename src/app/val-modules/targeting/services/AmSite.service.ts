@@ -84,33 +84,36 @@ export class AmSiteService
       const csvData: string[] = new Array<string>();
 
       // build the first row of the csvData out of the headers
-      const displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
+      let displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
       + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
       + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
       + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
-      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
+      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Orginal Address,Orginal City,Orginal State,Orginal Zip';
 
-      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,Orginal Zip,Longitude,Latitude,ICON,TA1,'
-      + 'TA2,TA3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TA1,TA2,TA3,'
+      const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,ZIP,Longitude,Latitude,ICON,TA1,'
+      + 'TA2,TA3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TA1_DESC1,TA2_DESC2,TA3_DESC3,'
       + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
-      + 'Block Group,Unit,ZIP,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
+      + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
-      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Orginal Zip,Corporate Notes,Region,Brand Name,Radius1';
+      + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Orginal Address,Orginal City,Orginal State,Orginal Zip';
 
-      //TODO notes Rad1,2,3 comback and Map it from tradeareainfo from Mapservice class
-      //TODO TRADE_DESC1,TRADE_DESC2,TRADE_DESC3 need to find the value based on above value
-      
       console.log('headerRow:::' + displayHeaderRow);
-      csvData.push(displayHeaderRow);
+      //csvData.push(displayHeaderRow);
 
       const headerList: any[] = mappingHeaderRow.split(',');
-
-      // now loop through the AmSite[] array and turn each record into a row of CSV data
+      
+      let recNumber: number = 0;
       for (const site of this.sitesList) {
+            recNumber++;
             let row: string = '';
             let header: string = '';
-            for ( header of headerList) {
+            let ta1 = null;
+            let ta2 = null;
+            let ta3 = null;
+            let zip4 = null;
+            for (header of headerList) {
+            //  if (siteMap.has(header)){
                   if (header === 'GROUP'){
                         row = row + 'Advertisers,';
                         continue;
@@ -120,25 +123,85 @@ export class AmSiteService
                         row = row + '0,';
                         continue;
                   }
+                  if (header === 'ZIP' || header === 'ZIP4'){
+                        if(header === 'ZIP'){
+                              const zip = site[header].split('-');
+                              row = row + zip[0] + ',';   
+                              zip4 = zip[1];
+                              continue;
+                        }
+                        if(header === 'ZIP4'){
+                              row = row + zip4 + ',';   
+                              continue;
+                        }
+                  }
                   if (['TA1', 'TA2', 'TA3'].indexOf(header) >= 0){
-                        if (MapService.tradeAreaInfoMap.get(header) !== undefined)
+                        if (MapService.tradeAreaInfoMap.get(header) !== undefined){
                               row = row + MapService.tradeAreaInfoMap.get(header).toString() + ',';
+                              if (header === 'TA1')
+                                    ta1 = MapService.tradeAreaInfoMap.get(header).toString();
+                              if (header === 'TA2')
+                                    ta2 = MapService.tradeAreaInfoMap.get(header).toString();   
+                              if (header === 'TA2')
+                                    ta3 = MapService.tradeAreaInfoMap.get(header).toString();            
+                        }
                         else 
                               row = row + '0,';
-                        
                         continue;
                   }
-                  
+                  if (['TA1_DESC1', 'TA2_DESC2', 'TA3_DESC3'].indexOf(header) >= 0){
+                        if (header === 'TA1_DESC1' && ta1 !== null){
+                              row = row + 'RADIUS1,';
+                              continue;
+                        }
+                        if (header === 'TA2_DESC2' && ta2 !== null){
+                              row = row + 'RADIUS2,';
+                              continue;
+                        }
+                        if (header === 'TA3_DESC3' && ta3 !== null){
+                              row = row + 'RADIUS3,';
+                              continue;
+                        }
+                        else{
+                              row = row + ' ,';
+                        }
+                  }
                   if (site[header] === undefined){
                         row = row + ' ,';
                         continue;
                   }
+                  if (headerList.indexOf(header) < 0){
+                        console.log('header name:::' + header);
+                  }
                   else{
                         row = row + site[header] + ',';   
                   }
+
+           //   }
+                  
             }
+            Object.keys(site).forEach(item => {
+                 
+                  if (headerList.indexOf(item) < 0){
+                       // console.log('item name:::' + item);
+                        row = row + site[item] + ',';   
+                        if (recNumber == 1) {
+                              displayHeaderRow =   displayHeaderRow + ',' + item ;
+                        }
+                  }
+
+            });
+
+           
+
+          //  if (mappingHeaderRow.includes())
+
             if (row.substring(row.length - 1) === ',') {
                   row = row.substring(0, row.length - 1);
+            }
+            if(recNumber == 1){
+                  console.log('deader data:::' + displayHeaderRow);
+                  csvData.push(displayHeaderRow);
             }
             csvData.push(row);
       }
@@ -460,11 +523,13 @@ export class AmSiteService
    }
 
    public createGrid(sitesList: GeocodingResponse[]) {
-        Object.keys(this.sitesList[0]).forEach(item => {
-            this.cols.push({field: item, header: item, size: '150px'});
-        });
-        for (let i = 0; i < this.cols.length; i++) {
-            this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
-        }
+         if (this.cols.length <= 0){
+            Object.keys(this.sitesList[0]).forEach(item => {
+                  this.cols.push({field: item, header: item, size: '150px'});
+              });
+              for (let i = 0; i < this.cols.length; i++) {
+                  this.columnOptions.push({label: this.cols[i].header, value: this.cols[i]});
+              }
+         }
    }
 }
