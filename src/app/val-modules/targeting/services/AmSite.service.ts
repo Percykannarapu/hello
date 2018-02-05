@@ -98,7 +98,7 @@ export class AmSiteService
       + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
       + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Orginal Address,Orginal City,Orginal State,Orginal Zip';
 
-      console.log('headerRow:::' + displayHeaderRow);
+      //console.log('headerRow:::' + displayHeaderRow);
       //csvData.push(displayHeaderRow);
 
       const headerList: any[] = mappingHeaderRow.split(',');
@@ -170,15 +170,9 @@ export class AmSiteService
                         row = row + ' ,';
                         continue;
                   }
-                  if (headerList.indexOf(header) < 0){
-                        console.log('header name:::' + header);
-                  }
                   else{
                         row = row + site[header] + ',';   
                   }
-
-           //   }
-                  
             }
             Object.keys(site).forEach(item => {
                  
@@ -189,18 +183,12 @@ export class AmSiteService
                               displayHeaderRow =   displayHeaderRow + ',' + item ;
                         }
                   }
-
             });
-
-           
-
-          //  if (mappingHeaderRow.includes())
 
             if (row.substring(row.length - 1) === ',') {
                   row = row.substring(0, row.length - 1);
             }
             if(recNumber == 1){
-                  console.log('deader data:::' + displayHeaderRow);
                   csvData.push(displayHeaderRow);
             }
             csvData.push(row);
