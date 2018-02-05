@@ -3,53 +3,26 @@
   <!-- story-filter-text (changed)="filterChanged($event)"></story-filter-text -->
   <!-- Button Example <button type="button" pButton (click)="selectAllCars()" icon="fa-check"></button> -->
    <H1>IF RED, I'M USING COMPONENT CSS</H1>
-   <p-dataTable [value]="impGeofootprintGeos" sortField="geocode" [rows]="17" [paginator]="true" resizableColumns="true" columnResizeMode="expand"
-   selectionMode ="multiple" responsive="true">
+   <button (click)="addAnotherLocation()">Add another location</button>
+   <p-dataTable [value]="impGeofootprintGeos" [(selection)]="selectedImpGeofootprintGeos" selectionMode ="multiple"
+      [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
+      resizableColumns="true" columnResizeMode="expand" responsive="true"
+      (onRowSelect)="toggleGeocode($event)">
       <p-header>Geographies</p-header>
       <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['site']}}</ng-template>      
- <!-- <p-column *ngFor="let col of gridColumns" [field]="col.value.field" [header]="col.value.header" [style]="col.value.style"></p-column> -->
- <!-- [style]="{'width': col.value.width}" [style.width]="col.value.width" -->
+      <p-column selectionMode="multiple" [style]="{'width':'35px'}" (click)="toggleGeocode($event)"></p-column>
       <p-column *ngFor="let col of gridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}">
          <ng-template *ngIf="col.value.field=='geocode'" pTemplate="header">            
-            <p-checkbox label="Geocode" [(ngModel)]="selectAllGeos" binary="true" (click)="setAllGeocodesIsSelected(selectAllGeos)"></p-checkbox>
+            <p-checkbox label="Geocode" [(ngModel)]="selectAllGeos" binary="true"></p-checkbox> <!-- (click)="setAllGeocodesIsSelected(selectAllGeos)" -->
          </ng-template>
          <ng-template *ngIf="col.value.field=='geocode'" let-geocode="rowData" pTemplate="body">
             <div class="ui-g-1">
                <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px; padding: 0px; width: 25px; height: 25px; display: block"></button>
             </div>
             <div class="ui-g-11">
-               <p-checkbox [(ngModel)]="geocode['isSelected']" binary="true" value="{{geocode['geocode']}}" label="{{geocode['geocode']}}" (click)="printGeocode(geocode)"></p-checkbox>
+               <p-checkbox [(ngModel)]="geocode['isSelected']" binary="true" value="{{geocode['geocode']}}" label="{{geocode['geocode']}}" (click)="toggleGeocode(geocode)"></p-checkbox>
             </div>
          </ng-template>        
      </p-column>
    </p-dataTable>
-
-<!--    <p-dataTable #siteDt [value]="impGeofootprintGeos" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
-       [(selection)]="amSiteService.sitesList" [rows]="8" [paginator]="true"
-       (onRowUnselect)="onRowUnselect($event)"
-       (onRowSelect)="onRowSelect($event)">
-       <p-header> 
-        <div style="text-align:left">
-            <p-multiSelect [options]="gridColumns" [(ngModel)]="amSiteService.cols"></p-multiSelect>
-        </div>
-        </p-header>
-    
-        <p-column selectionMode="multiple" [style]="{'width':'38px'}"></p-column>
-       
-       <p-column header="Zoom To" [style]="{'width':'38px'}">
-          <ng-template let-h="rowData" pTemplate="body">
-             <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
-          </ng-template>
-       </p-column>
-       <p-column header="Delete" [style]="{'width':'38px'}" >
-          <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
-             <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
-          </ng-template>
-       </p-column>
-       <p-column *ngFor="let col of amSiteService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
-       <ng-template pTemplate="emptymessage">
-          No locations added.  Use the "Add Locations" tab above.
-       </ng-template>
-    </p-dataTable> -->
-
 </article>

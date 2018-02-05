@@ -147,6 +147,7 @@ import {UploadLocationsComponent} from './components/upload-locations/upload-loc
 // Data Service Imports
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
+import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
@@ -280,7 +281,8 @@ import {MessageService} from './val-modules/common/services/message.service';
         GfGeoService, MapService, RestDataService,
         // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
-        AppState, GeocoderService, ImpGeofootprintGeoService,
+        AppState, GeocoderService,
+        ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService,
         {provide: IEsriLoaderToken, useClass: AppConfig}
     ],
