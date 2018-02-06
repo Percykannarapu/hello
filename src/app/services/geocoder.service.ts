@@ -113,7 +113,7 @@ return graphic;
         await this.createPopup(site)
           .then(res => this.createGraphic(site, res, selector))
           .then(res => { graphics.push(res); })
-          .catch(err => {this.handleError(err));
+          .catch(err => {this.handleError(err); });
       } 
       await this.updateLayer(graphics, selector)
         .then(res => { this.mapService.zoomOnMap(graphics); })
