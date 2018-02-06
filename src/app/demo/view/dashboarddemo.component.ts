@@ -10,7 +10,7 @@ import { MapService } from '../../services/map.service';
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
 import { AmProfile } from '../../val-modules/targeting/models/AmProfile';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
-import { AmSiteListComponent } from '../../val-modules/targeting/components/AmSiteList.component';
+//import { AmSiteListComponent } from '../../val-modules/targeting/components/AmSiteList.component';
 import { MessageService } from '../../val-modules/common/services/message.service';
 import { Message } from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';

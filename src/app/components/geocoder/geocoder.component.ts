@@ -17,10 +17,11 @@ import { RestResponse } from '../../models/RestResponse';
 import { DefaultLayers } from '../../models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
-import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
+//import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
 import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 
 
 // this interface holds information on what position the columns in a CSV file are in
@@ -74,7 +75,7 @@ export class GeocoderComponent implements OnInit {
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService, private amSiteService: AmSiteService, private metricService: MetricService) { }
+  constructor(private geocoderService: GeocoderService, private mapService: MapService, private geocodingRespService: GeocodingResponseService, private metricService: MetricService) { }
 
   ngOnInit() {
   }
@@ -84,7 +85,7 @@ export class GeocoderComponent implements OnInit {
   public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
-      site.number = this.amSiteService.getNewSitePk().toString();
+      site.number = this.geocodingRespService.getNewSitePk().toString();
       site.street = this.street;
       site.city = this.city;
       site.state = this.state;
@@ -126,8 +127,8 @@ export class GeocoderComponent implements OnInit {
       } 
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => this.amSiteService.add(sitesList))
-        .then(res => this.amSiteService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.add(sitesList))
+        .then(res => this.geocodingRespService.createGrid(sitesList))
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
@@ -517,7 +518,7 @@ export class GeocoderComponent implements OnInit {
 
           
           if (geocodingResponse.number == null){
-            geocodingResponse.number = this.amSiteService.getNewSitePk().toString();
+            geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
             locRespListMap['Number'] = geocodingResponse.number;
           }
 
@@ -545,7 +546,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
+     this.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;
