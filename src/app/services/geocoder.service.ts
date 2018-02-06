@@ -16,6 +16,7 @@ import { MapService } from './map.service';
 import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
 import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
+import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
 
 @Injectable()
 export class GeocoderService {
@@ -26,7 +27,7 @@ export class GeocoderService {
   private GeocodingResponse;
   public Msgs: Message[] = [];
 
-  constructor(public http: HttpClient, private mapService: MapService,
+  constructor(public geocodingRespService: GeocodingResponseService, public http: HttpClient, private mapService: MapService,
                private amSiteService: AmSiteService) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
@@ -118,11 +119,11 @@ return graphic;
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            this.amSiteService.add(sitesList);
+            this.geocodingRespService.add(sitesList);
           }else{
-            this.amSiteService.addCompetitors(sitesList);
+            this.geocodingRespService.addCompetitors(sitesList);
           }})
-        .then(res => this.amSiteService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.createGrid(sitesList))
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
