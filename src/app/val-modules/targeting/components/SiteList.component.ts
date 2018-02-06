@@ -55,12 +55,12 @@ export class SiteListComponent implements OnInit, OnDestroy
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
       const site: GeocodingResponse = new GeocodingResponse();
-      site.state = row.address;
-      site.city = row.city;
-      site.state = row.state;
-      site.zip = row.zip;
-      site.latitude = row.latitude;
-      site.longitude = row.longitude;
+      site.addressline = row.Address;
+      site.city = row.City;
+      site.state = row.State;
+      site.zip = row.ZIP;
+      site.latitude = row.Latitude;
+      site.longitude = row.Longitude;
       const graphic = await this.geocodingRespService.createGraphic(site, null);
       this.mapService.zoomOnMap([graphic]);
       this.appService.closeOverLayPanel.next(true);
