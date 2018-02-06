@@ -57,7 +57,7 @@ export class GeocoderComponent implements OnInit {
   public geocodingErrors: Message[] = [];
   public mapView: __esri.MapView;
   public displayGcSpinner: boolean = false;
-  public failedSites: GeocodingResponse[] = [];
+  public failedSites: any[] = [];
   public displayFailureWindow: boolean = false;
   public selector: String = 'Sites';
 
@@ -264,7 +264,8 @@ export class GeocoderComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          //csvRecord = csvRecord.replace('"','');
           //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if ( csvRecord.length === this.headers.length){
 
@@ -392,15 +393,38 @@ export class GeocoderComponent implements OnInit {
   }
 
   // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
-  public async onResubmit(row) {
-    const site: GeocodingResponse = new GeocodingResponse();
-    site.addressline = row.address;
-    site.city = row.city;
-    site.state = row.state;
-    site.zip = row.zip;
-    site.number = row.pk;
+  public  onResubmit(row) {
+    //const site: GeocodingResponse = new GeocodingResponse();
+    const siteList: any[] = [];
+    const site1 = {};
+    const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
+    site1['name']     = row['Name'];
+    site1['number']   = row['Number'];
+
+    site1['street']   = row['Original Address'];
+    site1['city']     = row['Original City'];
+    site1['state']   = row['Original State'];
+    site1['zip']     = row['Original ZIP'];
+   
+    Object.keys(row).forEach( site =>{
+      if (['Number','Name','Address','City','State','ZIP',
+          'Geocode Status','Latitude','Longitude','Match Code',
+          'Match Quality','Original Address','Original City',
+          'Original State','Original ZIP'].indexOf(site) < 0){
+
+          site1[site] = row[site];
+            //console.log('row:::' + row + ':::Siteval:::'+site)
+      }
+    });
+    site1['status']  = 'SUCCESS';
+    siteList.push(site1);
+
     this.onRemove(row);
-    this.geocodeAddress(site, true);
+    observables.push(this.geocoderService.multiplesitesGeocode(siteList));
+
+    Observable.forkJoin(observables).subscribe(res => {
+        this.parseCsvResponse(res, true);
+    });
   }
 
   // remove an GeocodingResponse from the list of sites that failed to geocode
@@ -460,18 +484,10 @@ export class GeocoderComponent implements OnInit {
               const locRespListMap: Map<string, any> = locationResponseList[0];
               if (locRespListMap['status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
-                locationResponseList[0].status = 'ERROR';
-                failedSite.status = 'ERROR';
-                failedSite.latitude = locRespListMap['Latitude'];
-                failedSite.longitude = locRespListMap['Longitude'];
-                failedSite.addressline = locRespListMap['Address'];
-                failedSite.city = locRespListMap['City'];
-                failedSite.state = locRespListMap['State'];
-                failedSite.zip = locRespListMap['ZIP'];
-                failedSite.number = GeocoderComponent.failedSiteCounter.toString();
-                const failedSites = Array.from(this.failedSites);
-                failedSites.push(failedSite);
-                this.failedSites = failedSites;
+                //locationResponseList[0].status = 'ERROR';
+                locRespListMap['status'] = 'ERROR';
+              
+                this.failedSites.push(locRespListMap);
                 GeocoderComponent.failedSiteCounter++;
                 continue;
               }
@@ -484,6 +500,13 @@ export class GeocoderComponent implements OnInit {
           geocodingResponse.number      =      locRespListMap['Number'];
           geocodingResponse.name        =      locRespListMap['Name'];
           geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
+
+          
+          if (geocodingResponse.number == null){
+            geocodingResponse.number = this.amSiteService.getNewSitePk().toString();
+            locRespListMap['Number'] = geocodingResponse.number;
+          }
+
          
           let geocodingAttr = null;
            for (const [k, v] of Object.entries(locationResponseList[0])){
