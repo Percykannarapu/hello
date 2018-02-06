@@ -1,4 +1,3 @@
-import { ImpGeofootprintGeo } from './../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription, ISubscription } from 'rxjs/Subscription';
 
