@@ -30,7 +30,7 @@ export class EsriMapComponent implements OnInit {
     const el = document.getElementsByClassName('esri-attribution__powered-by');
     if (el && el.length > 0 && el[0]) {
       const existingAttribution: string = el[0].innerHTML;
-      el[0].innerHTML = (new Date()).toDateString() + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + existingAttribution + '<br/>   Portions © 2006-2018 TomTom and Valassis DirectMail, Inc.';
+      el[0].innerHTML = (new Date()).toDateString() + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + existingAttribution ;
     }
   }
 
