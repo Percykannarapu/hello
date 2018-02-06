@@ -3,6 +3,7 @@ import {trigger, state, style, transition, animate} from '@angular/animations';
 import {MenuItem} from 'primeng/primeng';
 import {AppComponent} from './app.component';
 import { AmSiteService } from './val-modules/targeting/services/AmSite.service';
+import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 
 @Component({
     selector: 'app-menu',
@@ -16,7 +17,7 @@ export class AppMenuComponent implements OnInit {
 
     model: any[];
 
-    constructor(public app: AppComponent, public amSiteService: AmSiteService) {}
+    constructor(public app: AppComponent, public amSiteService: AmSiteService, public geocodingRespService: GeocodingResponseService) {}
 
     ngOnInit() {
         this.model = [
@@ -43,7 +44,7 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map'},
-                    {label: 'Export Sites', icon: 'store', command: () => this.amSiteService.exportCSV(this.amSiteService.createCSV())},
+                    {label: 'Export Sites', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV())},
                     {label: 'Export Competitors', icon: 'store'}
                 ]
             },

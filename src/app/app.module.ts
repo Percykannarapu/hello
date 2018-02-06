@@ -136,7 +136,7 @@ import {EsriLayerSelectComponent} from './components/esri-layer-select/esri-laye
 import {MapService} from './services/map.service';
 import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
 import {ColorBoxComponent} from './components/color-box/color-box.component';
-import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
+//import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
@@ -152,6 +152,8 @@ import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeo
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
 import {MessageService} from './val-modules/common/services/message.service';
+import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
+import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 
 @NgModule({
     imports: [
@@ -267,7 +269,7 @@ import {MessageService} from './val-modules/common/services/message.service';
         EsriLayerSelectComponent,
         GeoprocessingComponent,
         ColorBoxComponent,
-        AmSiteListComponent,
+        SiteListComponent,
         RaddataComponent,
         TradeareaDefineComponent,
         DiscoveryInputComponent,
@@ -281,7 +283,7 @@ import {MessageService} from './val-modules/common/services/message.service';
         GfGeoService, MapService, RestDataService,
         // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
-        AppState, GeocoderService,
+        AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService,
         {provide: IEsriLoaderToken, useClass: AppConfig}

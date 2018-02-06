@@ -125,13 +125,13 @@ export class AmSiteService
                         continue;
                   }
                   if (header === 'ZIP' || header === 'ZIP4'){
-                        if(header === 'ZIP'){
+                        if (header === 'ZIP'){
                               const zip = site[header].split('-');
                               row = row + zip[0] + ',';   
                               zip4 = zip[1];
                               continue;
                         }
-                        if(header === 'ZIP4'){
+                        if (header === 'ZIP4'){
                               row = row + zip4 + ',';   
                               continue;
                         }
@@ -189,7 +189,7 @@ export class AmSiteService
             if (row.substring(row.length - 1) === ',') {
                   row = row.substring(0, row.length - 1);
             }
-            if(recNumber == 1){
+            if (recNumber == 1){
                   csvData.push(displayHeaderRow);
             }
             csvData.push(row);

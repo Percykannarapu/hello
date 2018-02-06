@@ -17,10 +17,12 @@ import { RestResponse } from '../../models/RestResponse';
 import { DefaultLayers } from '../../models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
-import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
+//import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
 import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+
 
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
@@ -59,7 +61,7 @@ export class GeocoderComponent implements OnInit {
   public displayGcSpinner: boolean = false;
   public failedSites: any[] = [];
   public displayFailureWindow: boolean = false;
-  public selector: String = 'Sites';
+  public selector1: String = 'Site';
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -73,7 +75,7 @@ export class GeocoderComponent implements OnInit {
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService, private amSiteService: AmSiteService, private metricService: MetricService) { }
+  constructor(private geocoderService: GeocoderService, private mapService: MapService, private geocodingRespService: GeocodingResponseService, private metricService: MetricService) { }
 
   ngOnInit() {
   }
@@ -83,7 +85,7 @@ export class GeocoderComponent implements OnInit {
   public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
-      site.number = this.amSiteService.getNewSitePk().toString();
+      site.number = this.geocodingRespService.getNewSitePk().toString();
       site.street = this.street;
       site.city = this.city;
       site.state = this.state;
@@ -125,8 +127,8 @@ export class GeocoderComponent implements OnInit {
       } 
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => this.amSiteService.add(sitesList))
-        .then(res => this.amSiteService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.add(sitesList))
+        .then(res => this.geocodingRespService.createGrid(sitesList))
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
@@ -264,7 +266,7 @@ export class GeocoderComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
           //csvRecord = csvRecord.replace('"','');
           //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if ( csvRecord.length === this.headers.length){
@@ -278,6 +280,8 @@ export class GeocoderComponent implements OnInit {
               observables.push(this.geocoderService.multiplesitesGeocode(siteList));
           }
           else{
+               
+               
                siteList.push(site);
                
                siteList.forEach(siteData => {
@@ -353,12 +357,12 @@ export class GeocoderComponent implements OnInit {
         headerPosition.zip = count;
         this.headers[j] = 'zip';
       }
-      if (column === 'Y' || column === 'latitude') {
+      if (column === 'Y' || column === 'LATITUDE') {
         latFlag = true;
         headerPosition.lat = count;
         this.headers[j] = 'latitude';
       }
-      if (column === 'X' || column === 'longitude') {
+      if (column === 'X' || column === 'LONGITUDE') {
         lonFlag = true;
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
@@ -384,6 +388,17 @@ export class GeocoderComponent implements OnInit {
         }
       }
     }
+    if (!nameFlag){
+       const validationError: string = 'Name column not defined in the upload file';
+       const growlMessage: Message = {
+        summary: 'Failed to geocode File',
+        severity: 'error',
+        detail: `Name column not defined in the upload file` 
+      };
+      this.geocodingErrors.push(growlMessage);
+      this.displayGcSpinner = false;
+       throw new Error(validationError);
+    }
     return headerPosition;
   }
 
@@ -406,11 +421,11 @@ export class GeocoderComponent implements OnInit {
     site1['state']   = row['Original State'];
     site1['zip']     = row['Original ZIP'];
    
-    Object.keys(row).forEach( site =>{
-      if (['Number','Name','Address','City','State','ZIP',
-          'Geocode Status','Latitude','Longitude','Match Code',
-          'Match Quality','Original Address','Original City',
-          'Original State','Original ZIP'].indexOf(site) < 0){
+    Object.keys(row).forEach( site => {
+      if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
+          'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
+          'Match Quality', 'Original Address', 'Original City',
+          'Original State', 'Original ZIP'].indexOf(site) < 0){
 
           site1[site] = row[site];
             //console.log('row:::' + row + ':::Siteval:::'+site)
@@ -503,7 +518,7 @@ export class GeocoderComponent implements OnInit {
 
           
           if (geocodingResponse.number == null){
-            geocodingResponse.number = this.amSiteService.getNewSitePk().toString();
+            geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
             locRespListMap['Number'] = geocodingResponse.number;
           }
 
@@ -531,7 +546,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
+     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;
