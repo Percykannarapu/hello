@@ -5,7 +5,7 @@ import { AccountLocation } from '../models/AccountLocation';
 import { GeocodingResponse } from '../models/GeocodingResponse';
 import { GeofootprintMaster } from '../models/GeofootprintMaster';
 import { EsriLoaderWrapperService } from '../services/esri-loader-wrapper.service';
-
+import { GrowlModule, Message} from 'primeng/primeng';
 import 'rxjs/add/operator/map';
 import { AmSite } from '../val-modules/targeting/models/AmSite';
 import { RequestOptionsArgs } from '@angular/http/src/interfaces';
@@ -16,6 +16,7 @@ import { MapService } from './map.service';
 import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
 import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
+import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
 
 @Injectable()
 export class GeocoderService {
@@ -24,8 +25,9 @@ export class GeocoderService {
   private xcoord: number;
   private ycoord: number;
   private GeocodingResponse;
+  public Msgs: Message[] = [];
 
-  constructor(public http: HttpClient, private mapService: MapService,
+  constructor(public geocodingRespService: GeocodingResponseService, public http: HttpClient, private mapService: MapService,
                private amSiteService: AmSiteService) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
@@ -59,7 +61,7 @@ export class GeocoderService {
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
-    popupTemplate.title = `Sites`;
+    popupTemplate.title = `Site`;
     let template  =  `<table> <tbody>`;
         for (const popupAttribute of  popupAttributesList){
             template = template + `<tr><th>${popupAttribute.attributeName.toUpperCase()}</th><td>${popupAttribute.attributeValue}</td></tr>`;
@@ -110,21 +112,21 @@ return graphic;
         //console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(site)
           .then(res => this.createGraphic(site, res, selector))
-          .then(res => { graphics.push(res); });
-          //.catch(err => {this.handleError(err));
+          .then(res => { graphics.push(res); })
+          .catch(err => {this.handleError(err); });
       } 
       await this.updateLayer(graphics, selector)
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            this.amSiteService.add(sitesList);
+            this.geocodingRespService.add(sitesList);
           }else{
-            this.amSiteService.addCompetitors(sitesList);
+            this.geocodingRespService.addCompetitors(sitesList);
           }})
-        .then(res => this.amSiteService.createGrid(sitesList));
-        //.catch(err => this.handleError(err));
+        .then(res => this.geocodingRespService.createGrid(sitesList))
+        .catch(err => this.handleError(err));
     } catch (error) {
-      //this.handleError(error);
+      this.handleError(error);
     }
   }
 
@@ -137,6 +139,16 @@ private async updateLayer(graphics: __esri.Graphic[], selector) {
     console.log('Adding competitors from Upload:::');
     await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
 }
+}
+private async handleError(error: Error) {
+  const growlMessage: Message = {
+    summary: 'Failed to geocode your address',
+    severity: 'error',
+    detail: error.message
+  };
+  this.Msgs.push(growlMessage);
+  
+  return;
 }
 
 //   private async handleError(error: Error) {

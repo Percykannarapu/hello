@@ -22,7 +22,19 @@
     
     <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
         [(selection)]="selectedSites" [rows]="8" [paginator]="true"> (onRowSelect)="onRowSelect($event)"  (onRowUnselect)="onRowUnselect($event)"-->
-    <p-dataTable #siteDt [value]="geocodingRespService.sitesList" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
+        <div class="ui-g-12">
+        <div class="ui-g-1">
+            <label>Manage for:</label>
+        </div>
+        <div class="ui-g-1">
+            <p-radioButton name="am_Group" value="Site" label="Sites" [(ngModel)]="selectedValue" inputId="Sites" (ngModelChange)="onGroupChange()"></p-radioButton>
+        </div>
+        <div class="ui-g-4">
+            <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="Competitors" (ngModelChange)="onGroupChange()"></p-radioButton>
+        </div>
+    </div>
+    <div class="ui-g-12">
+        <p-dataTable #siteDt [value]="gridData" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
        [(selection)]="geocodingRespService.unselectedSitesList" [rows]="8" [paginator]="true" showToggleAll="true"
        [editable]="true">
        <p-header> 
@@ -69,12 +81,12 @@
        <p-column field="zip" header="Zip" [style]="{'width':'8%'}"></p-column>
        <p-column field="ycoord" header="Latitude (Y)" [style]="{'width':'9%'}"></p-column>
        <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column> -->
-       <p-column header="Zoom To" [style]="{'width':'60px'}">
+       <p-column header="Zoom To" [style]="{'width':'40px'}">
           <ng-template let-h="rowData" pTemplate="body">
              <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
           </ng-template>
        </p-column>
-       <p-column header="Delete" [style]="{'width':'60px'}" >
+       <p-column header="Delete" [style]="{'width':'40px'}" >
           <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
              <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
           </ng-template>
@@ -98,3 +110,4 @@
           No locations added.  Use the "Add Locations" tab above.
        </ng-template>
     </p-dataTable>
+</div>

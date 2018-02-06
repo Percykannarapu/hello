@@ -28,6 +28,8 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    anInt: number = 1;
    selectAllGeos: boolean;
+   gridData: any;
+   selectedValue: String = 'Site';
 
   // amSites: AmSite[] = [];
     //cols: any[];
@@ -45,6 +47,10 @@ export class SiteListComponent implements OnInit, OnDestroy
    //    this.amSites = this.amSiteService.getAmSites();
    // }
   
+   onGroupChange(){
+    this.gridData = this.selectedValue === 'Site' ? this.geocodingRespService.sitesList : this.geocodingRespService.amComps;
+    this.geocodingRespService.createGrid(this.gridData);
+ }
    
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
@@ -75,6 +81,12 @@ export class SiteListComponent implements OnInit, OnDestroy
 //          .subscribe(amSites => this.amSites = amSites);
    }    
 
+  //  ngOnChanges(changes: SimpleChanges) {
+  //   if (this.geocodingRespService.sitesList.length > 0){
+  //    this.onGroupChange();
+  //   }
+  // }
+  
    ngOnInit()
    {
       //this.getAmSites();
