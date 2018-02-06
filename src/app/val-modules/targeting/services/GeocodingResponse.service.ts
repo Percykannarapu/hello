@@ -24,6 +24,7 @@ import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { encode } from 'punycode';
+import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 
 @Injectable()
 export class GeocodingResponseService {
@@ -393,6 +394,15 @@ export class GeocodingResponseService {
       }
    }
 
+   public locationGenerateEntity(sitesList: GeocodingResponse[]){
+       console.log('test data:::' + sitesList.length);
+       const impGeofootprintLocAttrib: any = new ImpGeofootprintLocAttrib();
+         Object.keys(sitesList).forEach(item => {
+        
+        console.log('item value:::' + item);
+     });
+    }
+
    public observeSites() : Observable<GeocodingResponse> {
         return this.subject.asObservable();
     }
@@ -439,5 +449,7 @@ export class GeocodingResponseService {
             }
         }
     }
+
+    
 
 }
