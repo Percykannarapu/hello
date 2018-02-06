@@ -22,6 +22,7 @@ import { MetricService } from './../../val-modules/common/services/metric.servic
 import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 
+
 // this interface holds information on what position the columns in a CSV file are in
 interface CsvHeadersPosition {
   street?: number;
@@ -264,7 +265,7 @@ export class GeocoderComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
           //csvRecord = csvRecord.replace('"','');
           //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if ( csvRecord.length === this.headers.length){
@@ -278,6 +279,8 @@ export class GeocoderComponent implements OnInit {
               observables.push(this.geocoderService.multiplesitesGeocode(siteList));
           }
           else{
+               
+               
                siteList.push(site);
                
                siteList.forEach(siteData => {
@@ -353,12 +356,12 @@ export class GeocoderComponent implements OnInit {
         headerPosition.zip = count;
         this.headers[j] = 'zip';
       }
-      if (column === 'Y' || column === 'latitude') {
+      if (column === 'Y' || column === 'LATITUDE') {
         latFlag = true;
         headerPosition.lat = count;
         this.headers[j] = 'latitude';
       }
-      if (column === 'X' || column === 'longitude') {
+      if (column === 'X' || column === 'LONGITUDE') {
         lonFlag = true;
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
@@ -384,6 +387,17 @@ export class GeocoderComponent implements OnInit {
         }
       }
     }
+    if (!nameFlag){
+       const validationError: string = 'Name column not defined in the upload file';
+       const growlMessage: Message = {
+        summary: 'Failed to geocode File',
+        severity: 'error',
+        detail: `Name column not defined in the upload file` 
+      };
+      this.geocodingErrors.push(growlMessage);
+      this.displayGcSpinner = false;
+       throw new Error(validationError);
+    }
     return headerPosition;
   }
 
@@ -406,11 +420,11 @@ export class GeocoderComponent implements OnInit {
     site1['state']   = row['Original State'];
     site1['zip']     = row['Original ZIP'];
    
-    Object.keys(row).forEach( site =>{
-      if (['Number','Name','Address','City','State','ZIP',
-          'Geocode Status','Latitude','Longitude','Match Code',
-          'Match Quality','Original Address','Original City',
-          'Original State','Original ZIP'].indexOf(site) < 0){
+    Object.keys(row).forEach( site => {
+      if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
+          'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
+          'Match Quality', 'Original Address', 'Original City',
+          'Original State', 'Original ZIP'].indexOf(site) < 0){
 
           site1[site] = row[site];
             //console.log('row:::' + row + ':::Siteval:::'+site)
