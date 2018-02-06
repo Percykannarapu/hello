@@ -1,3 +1,4 @@
+import { ImpGeofootprintGeo } from './../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription, ISubscription } from 'rxjs/Subscription';
 
@@ -29,11 +30,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeos: ImpGeofootprintGeo[];
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
-   public  gridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
-                                        {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
-                                        {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
-                                        {label: 'distance', value: {field: 'distance', header: 'Distance', width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''}
-                                       ];
+   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'location',     width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
+                                           {label: 'homeGeocode',  value: {field: 'homeGeocode',  header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
+                                           {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
+                                           {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
+                                          ];
+
+   public  geoGridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
+                                           {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
+                                           {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
+                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''}
+                                          ];
 
    public  selectAllGeos: boolean;
 
@@ -57,6 +64,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // For now, sub out some data
       this.stubLocations();
       this.stubGeos();
+
+      console.log('filtered geos: ', this.filterGeosBySite(202193));
    }
 
    ngOnDestroy()
@@ -135,6 +144,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             this.setClosestLocation(geo, idx++);
       else
          console.log('assignSite - no geos to process');
+   }
+
+   /**
+    * Returns a sub-set of the ImpGeofootprintGeos belonging to the
+    * provided parent location, via glId.
+    *
+    * @param locationId The glId of the parent location to filter on
+    */
+   filterGeosBySite(locationId: number) : ImpGeofootprintGeo[]
+   {
+      return this.impGeofootprintGeos.filter(
+         geo => geo.impGeofootprintLocation.glId === locationId);
    }
 
    // -----------------------------------------------------------
