@@ -29,7 +29,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeos: ImpGeofootprintGeo[];
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
-   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'location',     width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
+   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
                                            {label: 'homeGeocode',  value: {field: 'homeGeocode',  header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
                                            {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
                                            {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
@@ -181,7 +181,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public addAnotherLocation()
    {
-      this.impGeofootprintLocationService.add([new ImpGeofootprintLocation({glId: 202193, locationName: 'Potbelly Livonia', xcoord: -83.33519700, ycoord: 42.36897800})]);
+      this.impGeofootprintLocationService.add([new ImpGeofootprintLocation({glId: 202195, locationName: 'Potbelly Livonia', xcoord: -83.33519700, ycoord: 42.36897800})]);
    }
 
    private stubGeos()
