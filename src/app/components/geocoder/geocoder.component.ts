@@ -547,7 +547,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
+     this.addSitesToMap(geocodingResponseList, this.selector1);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;
