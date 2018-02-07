@@ -19,8 +19,11 @@
           /> Select File
         </div>
       </label>
+
+      <a target="_self" href="./assets/sample/sample.csv" [download]= "'Sample.csv'">Sample download template</a>
     <!-- </div> -->
   </div>
+  <a></a>
   <div *ngIf="failedSites.length > 0" class="ui-g-8">
     <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
         <p-header>Detected {{failedSites.length}} geocoding failures</p-header>

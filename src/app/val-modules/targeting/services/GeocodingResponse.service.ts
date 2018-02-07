@@ -33,6 +33,7 @@ export class GeocodingResponseService {
     public cols: any[] = [];
     public columnOptions: SelectItem[] = [];
     private subject: Subject<any> = new Subject<any>();
+    public pointsPlotted: Subject<any> = new Subject<any>();
     public amComps: any[] = [];
     public unselectedAmComps: any[] = [];
 
