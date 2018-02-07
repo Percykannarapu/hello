@@ -119,7 +119,8 @@ return graphic;
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            this.geocodingRespService.add(sitesList);
+            this.geocodingRespService.add(sitesList);        
+          this.geocodingRespService.pointsPlotted.next();
           }else{
             this.geocodingRespService.addCompetitors(sitesList);
           }})
