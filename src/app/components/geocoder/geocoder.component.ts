@@ -128,7 +128,8 @@ export class GeocoderComponent implements OnInit {
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => this.geocodingRespService.add(sitesList))
-        .then(res => this.geocodingRespService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.locToEntityMapping(sitesList))
+        .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
@@ -546,7 +547,7 @@ export class GeocoderComponent implements OnInit {
     }
     if (display) {
      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-     this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
+     this.addSitesToMap(geocodingResponseList, this.selector1);
       this.mapService.callTradeArea();
     }
     return geocodingResponseList;

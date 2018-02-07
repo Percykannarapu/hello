@@ -39,7 +39,10 @@ export class SiteListComponent implements OnInit, OnDestroy
   
    constructor(public geocodingRespService: GeocodingResponseService,
                private messageService: MessageService,
-               private mapService: MapService, private appService: AppService) { }
+               private mapService: MapService, private appService: AppService) { 
+
+                this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange());
+               }
 
    // getAmSitesSynchronous()
    // {
@@ -49,7 +52,7 @@ export class SiteListComponent implements OnInit, OnDestroy
   
    onGroupChange(){
     this.gridData = this.selectedValue === 'Site' ? this.geocodingRespService.sitesList : this.geocodingRespService.amComps;
-    this.geocodingRespService.createGrid(this.gridData);
+    this.geocodingRespService.createGrid();
  }
    
    // zoom to a site when the user clicks the zoom button on the sites grid
@@ -80,12 +83,6 @@ export class SiteListComponent implements OnInit, OnDestroy
 //      this.amSiteService.getAmSites()
 //          .subscribe(amSites => this.amSites = amSites);
    }    
-
-  //  ngOnChanges(changes: SimpleChanges) {
-  //   if (this.geocodingRespService.sitesList.length > 0){
-  //    this.onGroupChange();
-  //   }
-  // }
   
    ngOnInit()
    {

@@ -17,9 +17,11 @@ import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
 import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
+import {LoginComponent} from './components/login/login.component';
+import { AuthService } from './services/auth.service';
 
 export const routes: Routes = [
-    {path: '', component: DashboardDemoComponent},
+    {path: '', component: DashboardDemoComponent, canActivate: [AuthService]},
     {path: 'sample', component: SampleDemoComponent},
     {path: 'forms', component: FormsDemoComponent},
     {path: 'data', component: DataDemoComponent},
@@ -35,7 +37,8 @@ export const routes: Routes = [
     {path: 'documentation', component: DocumentationComponent},
     {path: 'poc', component: PocComponent},
     {path: 'poc map', component: PocMapComponent},
-    {path: 'parked', component: ParkedComponent}
+    {path: 'parked', component: ParkedComponent},
+    {path: 'login', component: LoginComponent}
    ];
 
 export const AppRoutes: ModuleWithProviders = RouterModule.forRoot(routes);

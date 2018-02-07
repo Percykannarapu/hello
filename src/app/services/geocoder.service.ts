@@ -119,11 +119,12 @@ return graphic;
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           if (selector === 'Site'){
-            this.geocodingRespService.add(sitesList);
+            this.geocodingRespService.add(sitesList);        
+          this.geocodingRespService.pointsPlotted.next();
           }else{
             this.geocodingRespService.addCompetitors(sitesList);
           }})
-        .then(res => this.geocodingRespService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);

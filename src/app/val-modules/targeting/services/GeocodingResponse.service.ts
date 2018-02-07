@@ -25,6 +25,7 @@ import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { encode } from 'punycode';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 
 @Injectable()
 export class GeocodingResponseService {
@@ -32,6 +33,7 @@ export class GeocodingResponseService {
     public cols: any[] = [];
     public columnOptions: SelectItem[] = [];
     private subject: Subject<any> = new Subject<any>();
+    public pointsPlotted: Subject<any> = new Subject<any>();
     public amComps: any[] = [];
     public unselectedAmComps: any[] = [];
 
@@ -39,6 +41,8 @@ export class GeocodingResponseService {
     public unselectedSitesList: any[] = [];
 
     private tempId: number = 0;
+    public impGeoLocAttrList: any[] = [];
+    public gridData: any[] = [];
 
     constructor(private http: HttpClient,
         private messageService: MessageService,
@@ -386,7 +390,7 @@ export class GeocodingResponseService {
             await this.updateLayer(graphics)
                 .then(res => { this.mapService.zoomOnMap(graphics); })
                 .then(res => this.add(this.sitesList))
-                .then(res => this.createGrid(this.sitesList))
+                .then(res => this.createGrid())
                 .catch(err => this.handleError(err));
         } catch (error) {
             this.handleError(error);
@@ -427,7 +431,8 @@ export class GeocodingResponseService {
         return Promise.reject(error.message || error);
     }
 
-    public createGrid(sitesList: GeocodingResponse[]) {
+    //TODO: need to remove this Method
+    /*public createGrid(sitesList: GeocodingResponse[]) {
         if (this.cols.length <= 0) {
             Object.keys(this.sitesList[0]).forEach(item => {
                 this.cols.push({ field: item, header: item, size: '70px' });
@@ -436,6 +441,61 @@ export class GeocodingResponseService {
                 this.columnOptions.push({ label: this.cols[i].header, value: this.cols[i] });
             }
         }
+    }*/
+    
+    public createGrid() {
+        console.log('grid size::' + this.gridData);
+        console.log('grid size::' + this.sitesList);
+       
+        this.impGeoLocAttrList.forEach(attrList => {
+            if (this.cols.length <= 0) {
+                attrList.forEach(locAttr => { 
+                    this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '70px' });
+                });
+
+                for (let i = 0; i < this.cols.length; i++) {
+                    this.columnOptions.push({ label: this.cols[i].header, value: this.cols[i] });
+                }
+            }
+        });
+    }
+
+    public locToEntityMapping(sitesList: GeocodingResponse[]){
+       // this.gridData = sitesList;
+        
+        sitesList.forEach(site => { 
+            const gridMap = {};
+            
+            const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
+            const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
+            impGeofootprintLoc.glId         = Number(site.number);
+            impGeofootprintLoc.locationName = site.name;
+            impGeofootprintLoc.locAddres = site.addressline;
+            impGeofootprintLoc.locCity   = site.city;
+            impGeofootprintLoc.locState  = site.state;
+            impGeofootprintLoc.locZip    = site.zip;
+            impGeofootprintLoc.recordStatusCode = site.status;
+            impGeofootprintLoc.xcoord    = site.longitude;
+            impGeofootprintLoc.ycoord    = site.latitude;
+            impGeofootprintLoc.geocoderMatchCode = site.matchCode;
+            //impGeofootprintLoc.qua = site.locationQualityCode;
+           // impGeofootprintLoc.origAddress1 = site
+           site.geocodingAttributesList.forEach(geocodingAttr => {
+            const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
+                impGeofootprintLocAttr.attributeCode  = geocodingAttr.attributeName;
+                impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
+                gridMap[impGeofootprintLocAttr.attributeCode] = impGeofootprintLocAttr.attributeValue;
+                impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
+                impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
+           });
+           this.impGeoLocAttrList.push(impGeofootprintLocAttribList);
+           this.gridData.push(gridMap);
+          // console.log('size of impGeofootprintLocAttribList:: ' + impGeofootprintLocAttribList.length);
+        });
+       // this.gridData = this.sitesList;
+
+        return this.gridData;
+        
     }
 
     
