@@ -49,7 +49,7 @@ export class SiteListComponent implements OnInit, OnDestroy
   
    onGroupChange(){
     this.gridData = this.selectedValue === 'Site' ? this.geocodingRespService.sitesList : this.geocodingRespService.amComps;
-    this.geocodingRespService.createGrid(this.gridData);
+    this.geocodingRespService.createGrid();
  }
    
    // zoom to a site when the user clicks the zoom button on the sites grid

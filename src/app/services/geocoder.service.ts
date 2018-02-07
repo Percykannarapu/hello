@@ -123,7 +123,7 @@ return graphic;
           }else{
             this.geocodingRespService.addCompetitors(sitesList);
           }})
-        .then(res => this.geocodingRespService.createGrid(sitesList))
+        .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
