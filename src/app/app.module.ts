@@ -149,6 +149,8 @@ import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { LoginComponent } from './components/login/login.component';
+import { AuthService } from './services/auth.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
 import {MessageService} from './val-modules/common/services/message.service';
@@ -273,7 +275,8 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
         RaddataComponent,
         TradeareaDefineComponent,
         DiscoveryInputComponent,
-        UploadLocationsComponent
+        UploadLocationsComponent,
+        LoginComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -286,7 +289,7 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService,
-        {provide: IEsriLoaderToken, useClass: AppConfig}
+        {provide: IEsriLoaderToken, useClass: AppConfig}, AuthService
     ],
     bootstrap: [AppComponent]
 })
