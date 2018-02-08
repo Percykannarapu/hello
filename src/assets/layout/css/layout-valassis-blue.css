@@ -2210,3 +2210,11 @@ card.colorboxPicker.spinner {
 .no_top_space {
   padding-top: 0 !important;
   margin-top: 0; }
+
+.val-text-right {
+   text-align: right;
+}
+
+.val-table-select-row-checkbox ui-selection-column {
+   padding: 0px 0px 0px 114px;
+}
