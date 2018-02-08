@@ -127,7 +127,12 @@ export class GeocoderComponent implements OnInit {
       } 
       await this.updateLayer(graphics)
         .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => this.geocodingRespService.add(sitesList))
+        .then(res => {if (selector === 'Site'){
+          this.geocodingRespService.add(sitesList);
+        }else{
+          this.geocodingRespService.addCompetitors(sitesList);
+        } 
+      })
         .then(res => this.geocodingRespService.locToEntityMapping(sitesList))
         .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));

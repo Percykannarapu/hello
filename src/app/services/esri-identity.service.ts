@@ -37,9 +37,7 @@ export class EsriIdentityService {
       .set('client', 'referer')
       .set('referer', params.referer);
     this.http.post<TokenResponse>(url, body, {headers: headers}).subscribe(data => {
-      console.log('Got token: ' + data.token);
       identityManager.registerToken({expires: data.expires, server: params.tokenServerUrl, ssl: data.ssl, token: data.token});
     });
-    console.log('posted');
   }
 }

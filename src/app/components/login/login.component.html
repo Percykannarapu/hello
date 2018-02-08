@@ -1,24 +1,24 @@
 <div class="ui-g">
     <div class="card ui-g-4 ui-g-offset-4">
         <div class="ui-g-12" style="background-color: #4177a1; color: #ffffff">
-            <div class="ui-g-10 ui-g-offset-3">
-                <h1 style="font-size: 250%">Impower Login</h1>
+            <div class="ui-g-10 ui-xl-offset-3 ui-lg-offset-2">
+                <h1 style="font-size: 250%">imPower Login</h1>
             </div>
         </div>
         <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate>
             <div class="ui-g-12">
                 <div class="ui-g-10 ui-g-offset-2">
-                    <div class="ui-g-2">
+                    <div class="ui-g-2 ui-lg-3">
                         Username
                     </div>
                     <div class="ui-g-6">
-                        <input name="username" ngModel style="width: 100%;">
+                        <input name="username" ngModel  autofocus style="width: 100%;">
                     </div>
                 </div>
             </div>
             <div class="ui-g-12">
                 <div class="ui-g-10 ui-g-offset-2">
-                    <div class="ui-g-2">
+                    <div class="ui-g-2 ui-lg-3">
                         Password
                     </div>
                     <div class="ui-g-6">
@@ -27,8 +27,8 @@
                 </div>
             </div>
             <div class="ui-g-12">
-                <div class="ui-g-7 ui-g-offset-2">
-                    <button type="submit" label="Submit" icon="ui-icon-send" pButton style="width: 100%"></button>
+                <div class="ui-g-7 ui-lg-8 ui-g-offset-2">
+                    <button type="submit" label="Sign In" icon="ui-icon-person" pButton style="width: 100%"></button>
                 </div>
             </div>
         </form>
