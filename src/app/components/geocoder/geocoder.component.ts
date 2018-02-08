@@ -85,10 +85,15 @@ export class GeocoderComponent implements OnInit {
   public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
-      site.number = this.geocodingRespService.getNewSitePk().toString();
+      if (this.number === null){
+        site.number = this.geocodingRespService.getNewSitePk().toString();
+      }else {
+        site.number = this.number;
+      }
       site.street = this.street;
       site.city = this.city;
       site.state = this.state;
+      site.name = this.name;
       site.zip = this.zip.toString();
       this.geocodeAddress(site);
 

@@ -1,3 +1,4 @@
+import { MapService } from './../../services/map.service';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription, ISubscription } from 'rxjs/Subscription';
 
@@ -63,6 +64,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public  mapService: MapService,
                private appState: AppState) { }
 
    ngOnInit()
