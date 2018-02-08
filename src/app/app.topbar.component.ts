@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AppComponent} from './app.component';
 import {UserService} from './services/user.service';
 @Component({
-    selector: 'app-topbar',
+    selector: 'val-app-topbar',
     template: `
         <div class="topbar clearfix">
             <div class="topbar-left">
@@ -13,7 +13,7 @@ import {UserService} from './services/user.service';
                 <p *ngIf="username">Welcome, {{username}}</p>
             </div>
 
-            <!-- 
+            <!-- US6650: nallana
             Removing the demo content
             We need to keep this content for enhancements, 
             if we want to use the additional functionality 

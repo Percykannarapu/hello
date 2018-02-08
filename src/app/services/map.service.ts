@@ -251,10 +251,15 @@ export class MapService {
         this.esriMapService.addWidget(bgExpand, 'bottom-right');
         this.esriMapService.addWidget(legendExpand, 'top-left');
         this.esriMapService.addWidget(home, 'top-left');
-        this.esriMapService.addWidget(locate, 'top-left');
-        this.esriMapService.addWidget(scaleBar, 'bottom-left');
-        this.esriMapService.addWidget(printExpand, 'top-right');
+        /*US6650: nallana
+        --Removing the demo content
+        --We need to keep this content for enhancements, 
+        --if we want to use the additional functionality 
+        */
+        //this.esriMapService.addWidget(locate, 'top-left');
+        //this.esriMapService.addWidget(printExpand, 'top-right');
 
+        this.esriMapService.addWidget(scaleBar, 'bottom-left');
         // Setup Default Group Layers
         this.initGroupLayers();
 
