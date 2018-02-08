@@ -10,7 +10,7 @@ import {UserService} from './services/user.service';
             </div>
 
             <div class="topbar-right" style="color: white; float: right">
-                <h2 *ngIf="username">User: {{username}}</h2>
+                <p *ngIf="username">Welcome, {{username}}</p>
             </div>
 
             <!-- 
