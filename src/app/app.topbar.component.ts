@@ -10,8 +10,14 @@ import {UserService} from './services/user.service';
             </div>
 
             <div class="topbar-right" style="color: white; float: right">
-                <h2 *ngIf=username>User: {{username}}</h2>
+                <h2 *ngIf="username">User: {{username}}</h2>
             </div>
+
+            <!-- 
+            Removing the demo content
+            We need to keep this content for enhancements, 
+            if we want to use the additional functionality 
+            -->
 
             <!--<div class="topbar-right">
                 <a id="menu-button" href="#" (click)="app.onMenuButtonClick($event)">
