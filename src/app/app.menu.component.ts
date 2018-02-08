@@ -49,6 +49,12 @@ export class AppMenuComponent implements OnInit {
                 ]
             },
             /*{
+
+            
+            Removing the demo content
+            We need to keep this content for enhancements, 
+            if we want to use the additional functionality : US6650 nallana
+
                 label: 'Customization', icon: 'settings_application',
                 items: [
                     {label: 'Compact Size', icon: 'fiber_manual_record', command: () => this.app.layoutCompact = true},
