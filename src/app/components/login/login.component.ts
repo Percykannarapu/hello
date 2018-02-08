@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { UserService } from '../../services/user.service';
+import { User } from '../../models/User';
 
 @Component({
   selector: 'val-login',
@@ -15,7 +17,7 @@ export class LoginComponent implements OnInit {
   public displayLoginSpinner: boolean = false;
   public growlMessages: string[] = new Array<string>();
 
-  constructor(private router: Router, private authService: AuthService, private messageService: MessageService) { }
+  constructor(private router: Router, private authService: AuthService, private messageService: MessageService, private userService: UserService) { }
 
   ngOnInit() {
   }
@@ -33,6 +35,7 @@ export class LoginComponent implements OnInit {
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
         this.displayLoginSpinner = false;
+        this.createUser(loginForm.value.username);
         this.router.navigate(['/']);
       }
       else {
@@ -41,6 +44,18 @@ export class LoginComponent implements OnInit {
       }
     });
     
+  }
+
+  private createUser(username: string) {
+    const user: User = new User();
+    user.clientName = null;
+    user.creationDate = null;
+    user.deactivationDate = null;
+    user.email = null;
+    user.userId = null;
+    user.username = username;
+    user.userRoles = null;
+    this.userService.setUser(user);
   }
 
 }

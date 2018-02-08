@@ -1,12 +1,16 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AppComponent} from './app.component';
-
+import {UserService} from './services/user.service';
 @Component({
     selector: 'app-topbar',
     template: `
         <div class="topbar clearfix">
             <div class="topbar-left">
                 <div class="logo"></div>
+            </div>
+
+            <div class="topbar-right" style="color: white; float: right">
+                <h2 *ngIf=username>User: {{username}}</h2>
             </div>
 
             <!--<div class="topbar-right">
@@ -170,8 +174,15 @@ import {AppComponent} from './app.component';
         </div>
     `
 })
-export class AppTopbarComponent {
+export class AppTopbarComponent implements OnInit{
 
-    constructor(public app: AppComponent) {}
+    constructor(public app: AppComponent, private userService: UserService) {}
 
+    public username: string;
+
+    ngOnInit() {
+        this.userService.userObservable.subscribe(user => {
+            this.username = user.username;
+        });
+    }
 }

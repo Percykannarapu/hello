@@ -119,6 +119,7 @@ import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
 import {EsriLayerService} from './services/esri-layer.service';
 import {EsriModules, IEsriLoaderToken} from './esri-modules/core/esri-modules.service';
+import {UserService} from './services/user.service';
 
 // ESRI Imports
 //import {EsriLoaderService} from 'angular-esri-loader';
@@ -289,7 +290,8 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService,
-        {provide: IEsriLoaderToken, useClass: AppConfig}, AuthService
+        {provide: IEsriLoaderToken, useClass: AppConfig}, AuthService,
+        UserService
     ],
     bootstrap: [AppComponent]
 })
