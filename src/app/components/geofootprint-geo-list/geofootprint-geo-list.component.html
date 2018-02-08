@@ -1,19 +1,19 @@
   <!-- a href="" [routerLink]="['/characters', 'new']"><button class="story-button mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Add</button></a -->
   <!-- story-filter-text (changed)="filterChanged($event)"></story-filter-text -->
   <!-- Button Example <button type="button" pButton (click)="selectAllCars()" icon="fa-check"></button> -->
-   <H1>Number of locations: {{impGeofootprintLocations.length}} </H1>
-   <button (click)="addAnotherLocation()">Add another location</button>
+   <!-- <button (click)="addAnotherLocation()">Add another location</button> -->
    <!-- [(selection)]="selectedImpGeofootprintLocations" selectionMode ="multiple"
    [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
    resizableColumns="true" columnResizeMode="expand" responsive="true"
    (onRowSelect)="toggleGeocode($event)" -->
+   <button (click)="mapService.getGeocodes()">Get Geocodes (Temporary)</button>
 
    <p-dataTable #locGrid [value]="impGeofootprintLocations" expandableRows="true"
       [(selection)]="selectedImpGeofootprintLocations" selectionMode ="multiple"
       [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
       resizableColumns="true" columnResizeMode="expand" responsive="true"
       (onRowSelect)="toggleGeocode($event)">
-      <p-header>Locations</p-header>
+      <p-header pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}">Locations / Geographies</p-header>
       <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['location']}}</ng-template> -->
       <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
       <p-column selectionMode="multiple" [style]="{'width':'35px'}" (click)="toggleGeocode($event)"></p-column>
@@ -26,7 +26,7 @@
                
                <p-dataTable [value]="filterGeosBySite(site.glId)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
                               resizableColumns="true" columnResizeMode="expand" responsive="true"
-                              [paginator]="true" [rows]="5" [headerCheckboxToggleAllPages]="true">
+                              [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
                   <!-- <p-header>Geographies</p-header> -->
                   <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['site']}}</ng-template> -->
                   

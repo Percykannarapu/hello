@@ -1,3 +1,6 @@
+import { ImpGeofootprintGeoService } from './../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { GeocoderComponent } from './../components/geocoder/geocoder.component';
+import { ImpGeofootprintGeo } from './../val-modules/targeting/models/ImpGeofootprintGeo';
 import { Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
@@ -45,6 +48,7 @@ export class MapService {
     constructor(private metricService: MetricService,
                 private layerService: EsriLayerService,
                 private esriMapService: EsriMapService,
+                private impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private config: AppConfig) {
       this.esriMapService.onReady(() => {
         this.mapView = this.esriMapService.mapView;
@@ -1474,6 +1478,93 @@ export class MapService {
             }
         }
     }
+
+    public async getGeocodes() {
+      console.log('getGeocodes fired');
+
+      const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+
+      const loader = EsriLoaderWrapperService.esriLoader;
+      const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+          = await loader.loadModules([
+              'esri/layers/FeatureLayer',
+              'esri/Graphic',
+              'esri/symbols/SimpleFillSymbol',
+              'esri/symbols/SimpleLineSymbol',
+              'esri/symbols/SimpleMarkerSymbol',
+              'esri/Color', 'dojo/domReady!'
+          ]);
+
+      const centroidGraphics: __esri.Graphic[] = [];
+      let fLyrList: __esri.FeatureLayer[] = [];
+      await this.getAllFeatureLayers().then(list => {
+          fLyrList = list;
+      });
+
+
+      for (const lyr of fLyrList) {
+         if (lyr.title === 'ZIP_Centroids_FL' || lyr.title === 'ATZ_Centroids') {
+            let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
+            await lyr.load().then((f1: __esri.FeatureLayer) => {
+                  loadedFeatureLayer = f1;
+         });
+
+         const qry = lyr.createQuery();
+//       qry.geometry = graphic.geometry;
+         qry.outSpatialReference = this.mapView.spatialReference;
+         await lyr.queryFeatures(qry).then(featureSet => {
+               for (let i = 0; i < featureSet.features.length; i++)
+               {
+                  console.log('featureSet.features[' + i + ']', featureSet.features[i].toJSON());
+                  impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE}));
+//                  if (featureSet.features[i].attributes.GEOMETRY_TYPE === 'Polygon') {
+//                     centroidGraphics.push(featureSet.features[i]);
+//                  }
+               }
+            });
+
+            if (MapService.selectedCentroidObjectIds && MapService.selectedCentroidObjectIds.length > 0) {
+               for (let i = 0; i < MapService.selectedCentroidObjectIds.length; i++)
+               {
+                  console.log('selectedCentroidObjectIds[' + i + ']', MapService.selectedCentroidObjectIds);
+               }
+            }
+
+            this.impGeofootprintGeoService.clearAll();
+            this.impGeofootprintGeoService.add(impGeofootprintGeos);
+           // console.log(MapService.SitesGroupLayer);
+
+         // if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID)) {
+         //       MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
+         //       MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
+         //       MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.CL2I0O;
+         //       MapService.hhChildren = polyFeatureSet.features[i].attributes.CL0C00;
+         //       polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID));
+         //       MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[i].attributes.OBJECTID);
+         // }
+
+            //   for (const graphic of graphicList) {
+            //       const qry = lyr.createQuery();
+            //       qry.geometry = graphic.geometry;
+            //       qry.outSpatialReference = this.mapView.spatialReference;
+            //       await lyr.queryFeatures(qry).then(featureSet => {
+            //           for (let i = 0; i < featureSet.features.length; i++) {
+            //               if (featureSet.features[i].attributes.GEOMETRY_TYPE === 'Polygon') {
+            //                   centroidGraphics.push(featureSet.features[i]);
+            //               }
+            //           }
+            //       });
+            //   }
+            //   await this.selectPoly(centroidGraphics);
+          }
+      }
+
+      // console.log('### LIST OF GEOS ###');
+      // for (const geo of impGeofootprintGeos)
+      // {
+      //    console.log('geo: ', geo);
+      // }
+  }
 
     public async selectPoly(centroidGraphics: __esri.Graphic[]) {
         console.log('fired selectPoly');
