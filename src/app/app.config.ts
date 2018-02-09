@@ -6,22 +6,34 @@ import { IAuthenticationParams } from './services/esri-identity.service';
 export class AppConfig implements IEsriLoaderConfig
 {
    esriConfig = {
-     url: 'https://js.arcgis.com/4.5/'
-     // dojoConfig: {
-     //   has: {
-     //     'esri-featurelayer-webgl': 1
-     //   }
-     // }
+     url: 'https://js.arcgis.com/4.6/',
+     // Set the hostname to the on-premise portal
+     portalUrl:  'https://vallomimpor1vm.val.vlss.local/arcgis/',
+     // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
+     dojoConfig: {
+        has: {
+          'esri-featurelayer-webgl': 1
+        }
+      }
    };
    localPortalAuthParams: IAuthenticationParams = {
-     generatorUrl: 'https://valvcshad001vm.val.vlss.local/portal/sharing/rest/generateToken',
-     tokenServerUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services',
+     // for valvcshad001vm
+     // generatorUrl: 'https://valvcshad001vm.val.vlss.local/portal/sharing/rest/generateToken',
+     // tokenServerUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services',
+     // userName: 'admin',
+     // password: 'admin123',
+     generatorUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis/sharing/rest/generateToken',
+     tokenServerUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services',
      userName: 'admin',
-     password: 'admin123',
+     password: 'password',
+     
      referer: 'http://vallomjbs002vm:8080'
    };
+
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
 
+   /*
+   // AGOL
    public layerIds = {
      dma: ['9205b77cd8c74773aefad268b6705543'], // DMA_Boundaries
      zip: [
@@ -43,4 +55,33 @@ export class AppConfig implements IEsriLoaderConfig
       '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
     ],
    };
+*/   
+   // QA Server: vallomimpor1vm.val.vlss.local
+   public layerIds = {
+    dma: [
+      'c71cda854feb4e52928d026de9e95741', // DMA_Boundaries
+      '80b6a37efae44e1394a9fec1f80e708b'  // Counties
+    ],  
+    zip: [
+      '4e755a948e66463c8269eae8a12dff20', // ZIP Top Vars
+      'c66ab1bb6d3d448e9bb585242b7749e0'  // ZIP_Centroids
+    ],
+    atz: [
+      '496cbef99ce743f59e1637b52a95e5be', // ATZ_Top_Vars
+      '6e4d588e4fbd4e7eb400ca2585a49eea', // ATZ_Centroids
+      'bf9f5d871a044c2095dd3bf437825bc6', // DIG_ATZ_Top_Vars
+      '309b009ddf0d4cf58bc686d2d5cb7da4'  // DIG_ATZ_Centroids
+    ],
+     pcr: [
+      '8fee65ffdb784c67b76c356e9c26605f'
+    ],
+     wrap: [
+      'cde7f5d605bf48c4a74b0cd1a47ceccb'  // WRAP_Top_Vars
+    ],
+     hh: [
+     '837f4f8be375464a8971c56a0856198e', // vt layer
+     '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
+    ],
+  };
+
 }

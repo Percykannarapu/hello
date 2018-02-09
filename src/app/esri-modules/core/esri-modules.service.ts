@@ -21,8 +21,11 @@ export class EsriModules {
     'esri/renderers/smartMapping/statistics/histogram',
     'esri/core/lang',
     'esri/geometry/geometryEngine',
+    'esri/layers/Layer',
     'esri/layers/GroupLayer',
-    'esri/core/watchUtils'
+    'esri/layers/FeatureLayer',
+    'esri/core/watchUtils',
+    'esri/PopupTemplate'
   ];
 
   public static Map: typeof __esri.Map;
@@ -34,8 +37,11 @@ export class EsriModules {
   public static histogram: typeof __esri.histogram;
   public static lang: typeof __esri.lang;
   public static geometryEngine: typeof __esri.geometryEngine;
+  public static Layer: typeof __esri.Layer;
   public static GroupLayer: typeof __esri.GroupLayer;
+  public static FeatureLayer: typeof __esri.FeatureLayer;
   public static watchUtils: typeof __esri.watchUtils;
+  public static PopupTemplate: typeof __esri.PopupTemplate;
 
   public static widgets: EsriWidgets;
 
@@ -69,8 +75,11 @@ export class EsriModules {
       EsriModules.histogram,
       EsriModules.lang,
       EsriModules.geometryEngine,
+      EsriModules.Layer,
       EsriModules.GroupLayer,
-      EsriModules.watchUtils] = modules;
+      EsriModules.FeatureLayer,
+      EsriModules.watchUtils,
+      EsriModules.PopupTemplate] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);

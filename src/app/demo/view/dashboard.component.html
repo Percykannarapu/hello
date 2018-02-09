@@ -110,6 +110,7 @@
 
    <div class="ui-g-12 ui-md-6 ui-lg-12">          
       <!-- ESRI Map -->
+      <div #MapOuterDiv style="resize: both;overflow: auto;">
       <p-panel id="mapPanel" header="Map" [toggleable]="true">
          <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="left" >
             <div class="ug-g-12">
@@ -154,7 +155,7 @@
             </p-toolbar>
             <app-esri-map>Loading Map...</app-esri-map>
          </div>
-      </p-panel>
+      </p-panel></div>
    </div>
 
 <!-- TODO:  This needs to be moved
