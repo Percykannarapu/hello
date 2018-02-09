@@ -26,7 +26,9 @@ export class AppConfig implements IEsriLoaderConfig
     tokenServerUrl: 'https://www.arcgis.com',
     userName: 'amcirillo_vlab2',
     password: 'Password1',
-    referer: 'https://vallomjbs002vm:8443'
+    referer: window.location.origin
+    //referer: 'http://localhost:4200'
+    //referer: 'https://vallomjbs002vm:8443'
   };
 
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
