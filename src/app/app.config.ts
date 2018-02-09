@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { IEsriLoaderConfig } from './esri-modules/core/esri-modules.service';
-import { IAuthenticationParams } from './services/esri-identity.service';
+import { EsriLoaderConfig } from './esri-modules/core/esri-modules.service';
+import { AuthenticationParams } from './services/esri-identity.service';
 
 @Injectable()
-export class AppConfig implements IEsriLoaderConfig
+export class AppConfig implements EsriLoaderConfig
 {
    esriConfig = {
      url: 'https://js.arcgis.com/4.5/'
@@ -13,7 +13,7 @@ export class AppConfig implements IEsriLoaderConfig
      //   }
      // }
    };
-   localPortalAuthParams: IAuthenticationParams = {
+   localPortalAuthParams: AuthenticationParams = {
      generatorUrl: 'https://valvcshad001vm.val.vlss.local/portal/sharing/rest/generateToken',
      tokenServerUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services',
      userName: 'admin',
@@ -21,7 +21,7 @@ export class AppConfig implements IEsriLoaderConfig
      referer: 'http://vallomjbs002vm:8080'
    };
 
-   AgolAuthParams: IAuthenticationParams = {
+   AgolAuthParams: AuthenticationParams = {
     generatorUrl: 'https://www.arcgis.com/sharing/generateToken',
     tokenServerUrl: 'https://www.arcgis.com',
     userName: 'amcirillo_vlab2',

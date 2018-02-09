@@ -1,7 +1,7 @@
 import { ImpGeofootprintGeoService } from './../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { GeocoderComponent } from './../components/geocoder/geocoder.component';
 import { ImpGeofootprintGeo } from './../val-modules/targeting/models/ImpGeofootprintGeo';
-import { Injectable } from '@angular/core';
+import {ElementRef, Injectable} from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
 import { MetricService } from '../val-modules/common/services/metric.service';
@@ -250,15 +250,16 @@ export class MapService {
 
         // Add widgets to the viewUI
         this.esriMapService.addWidget(search, 'top-right');
-        this.layerService.initLayerList(this.mapView);
+        // TODO: hard coded id is temporary
+        this.layerService.initLayerList('colorSlider');
         this.esriMapService.addWidget(legend, 'top-left');
         this.esriMapService.addWidget(bgExpand, 'bottom-right');
         this.esriMapService.addWidget(legendExpand, 'top-left');
         this.esriMapService.addWidget(home, 'top-left');
         /*US6650: nallana
         --Removing the demo content
-        --We need to keep this content for enhancements, 
-        --if we want to use the additional functionality 
+        --We need to keep this content for enhancements,
+        --if we want to use the additional functionality
         */
         //this.esriMapService.addWidget(locate, 'top-left');
         //this.esriMapService.addWidget(printExpand, 'top-right');
