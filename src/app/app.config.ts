@@ -20,6 +20,17 @@ export class AppConfig implements IEsriLoaderConfig
      password: 'admin123',
      referer: 'http://vallomjbs002vm:8080'
    };
+
+   AgolAuthParams: IAuthenticationParams = {
+    generatorUrl: 'https://www.arcgis.com/sharing/generateToken',
+    tokenServerUrl: 'https://www.arcgis.com',
+    userName: 'amcirillo_vlab2',
+    password: 'Password1',
+    referer: window.location.origin
+    //referer: 'http://localhost:4200'
+    //referer: 'https://vallomjbs002vm:8443'
+  };
+
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
 
    public layerIds = {
