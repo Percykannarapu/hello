@@ -1253,7 +1253,8 @@ body {
     -ms-transform: rotate(180deg);
     transform: rotate(180deg); }
 .layout-container .layout-main {
-  padding: 96px 16px 16px 16px;
+  /* padding: 96px 16px 16px 16px; */
+  padding: 0px;
   -moz-transition: margin-left 0.3s;
   -o-transition: margin-left 0.3s;
   -webkit-transition: margin-left 0.3s;
@@ -2211,10 +2212,19 @@ card.colorboxPicker.spinner {
   padding-top: 0 !important;
   margin-top: 0; }
 
+.no_vertical_space {
+   padding-top: 0 !important;
+   padding-bottom: 0 !important;
+   margin-top: 0; }
+
 .val-text-right {
    text-align: right;
 }
 
 .val-table-select-row-checkbox ui-selection-column {
    padding: 0px 0px 0px 114px;
+}
+
+.val-flush-to-edges .ui-panel-content.ui-widget-content {
+   padding: 0px;
 }

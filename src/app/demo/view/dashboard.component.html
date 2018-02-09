@@ -1,5 +1,5 @@
-<div class="ui-g dashboard">
-   <div class="ui-g-12 no_top_space">
+<div class="ui-g dashboard no_vertical_space">
+   <div class="ui-g-12 no_vertical_space">
       <p-messages [(value)]="msgs"></p-messages>
    </div>
 
@@ -109,15 +109,15 @@
    </div>
    <!-- COLORBOX COMPONENTS END -->
 
-   <div class="ui-g-12 ui-md-6 ui-lg-12">          
+   <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space">          
       <!-- ESRI Map -->
-      <p-panel id="mapPanel" header="Map" [toggleable]="true">
-         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="left" >
+      <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
+         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
             <div class="ug-g-12">
                <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
             </div>
          </p-sidebar>            
-         <div id="outerMapDiv">
+         <div id="outerMapDiv" class="val-flush-to-edges">
             <p-toolbar>
                <!-- div class="ui-toolbar-group-left" -->
                   <!-- <i style="margin-left: 20px"></i> -->
@@ -156,9 +156,10 @@
             <app-esri-map>Loading Map...</app-esri-map>
          </div>
       </p-panel>
+      <p-panel id="geosPanel" header="Geographies" [toggleable]="true" class="val-flush-to-edges">
+         <val-geofootprint-geo-list></val-geofootprint-geo-list>         
+      </p-panel>
    </div>
-
-   <val-geofootprint-geo-list></val-geofootprint-geo-list>
 
    <div>
       <br><br><br>

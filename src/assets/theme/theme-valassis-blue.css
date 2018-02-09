@@ -6832,7 +6832,7 @@ body .ui-panel {
   body .ui-panel .ui-panel-titlebar {
     border: 0 none;
     border-bottom: 1px solid #4177a1;
-    padding: 0.625em 1em;
+    padding: 0.2em 1em;
     -moz-border-radius-topleft: 2px;
     -webkit-border-top-left-radius: 2px;
     border-top-left-radius: 2px;
@@ -6865,16 +6865,16 @@ body .ui-panel {
   body .ui-panel .ui-panel-content {
     height: 100%;
     box-sizing: border-box;
-    padding: 0.625em 1em; }
+    padding: 0.625em 0.625em; }
   body .ui-panel .ui-panel-footer {
-    padding: 0.625em 1em;
+    padding: 0.625em 0.625em;
     border: 0 none;
     border-top: 1px solid #bdbdbd;
     margin: 0; }
 body .ui-fieldset {
-  padding: 0.625em 1em; }
+  padding: 0.625em 0.625em; }
   body .ui-fieldset .ui-fieldset-legend {
-    padding: 0.625em 1em;
+    padding: 0.625em 0.625em;
     padding-left: .125em;
     padding-right: .5em;
     color: #4177a1; }
