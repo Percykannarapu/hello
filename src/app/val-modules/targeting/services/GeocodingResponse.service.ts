@@ -514,6 +514,9 @@ export class GeocodingResponseService {
            this.impGeoLocAttrList.push(impGeofootprintLocAttribList);
            this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
            this.unselectedimpGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
+           MapService.impGeofootprintLocList.push(impGeofootprintLoc);
+           //.push(impGeofootprintLoc);
+           //this.impGeofootprintLocList;
         });
          // Update the metrics
          this.metricService.add('LOCATIONS', '# of Sites', this.impGeoLocAttrList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));

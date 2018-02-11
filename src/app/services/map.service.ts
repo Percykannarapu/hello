@@ -10,6 +10,7 @@ import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppConfig } from '../app.config';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Injectable()
 export class MapService {
@@ -35,6 +36,7 @@ export class MapService {
     public static hhChildren: number = 0;
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
+    public static impGeofootprintLocList: ImpGeofootprintLocation[] = [];
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
@@ -981,10 +983,12 @@ export class MapService {
 
         const pointList: __esri.Point[] = [];
 
-        for (const point of pointsArray) {
+        console.log('impGeofootprintLocList length:::' + MapService.impGeofootprintLocList.length);
+
+        for (const point of MapService.impGeofootprintLocList) {
             const p = new Point({
-                x: point.longitude,
-                y: point.latitude,
+                x: point.xcoord,
+                y: point.ycoord,
                 spatialReference: 4326
             });
             pointList.push(p);
@@ -1910,7 +1914,7 @@ export class MapService {
                     await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                         .then(res => {
                             //graphicList = res;
-                            if (max === miles) {
+                            if (max == miles) {
                                 this.selectCentroid(res);
                             }
                         });

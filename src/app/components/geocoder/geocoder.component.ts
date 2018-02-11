@@ -489,7 +489,7 @@ export class GeocoderComponent implements OnInit {
     return false;
   }
 
-  private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : GeocodingResponse[] {
+  private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
     const geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
@@ -550,7 +550,7 @@ export class GeocoderComponent implements OnInit {
      // }
     }
     if (display) {
-     this.addSitesToMap(geocodingResponseList, this.selector1);
+     await this.addSitesToMap(geocodingResponseList, this.selector1);
      this.mapService.callTradeArea();
     }
     return geocodingResponseList;
