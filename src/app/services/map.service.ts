@@ -1362,10 +1362,27 @@ export class MapService {
 
         // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
-           
-            await this.getHomeGeocode(graphicProps, popupTemplate).then( res => {
-                popupTemplate = res;
+
+            let lyr: __esri.FeatureLayer;
+            await this.getAllFeatureLayers().then(list => {
+                console.log( 'length of layers::' + list.length);
+                if (list.length > 0 ){
+                    for (const layer of list) {
+                        //    console.log('layer name:::::::::' + layer.title);
+                            if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
+                                lyr = layer;
+                               
+                            }
+                        }
+                }
+                
             });
+            if (lyr !== undefined){
+                await this.getHomeGeocode(graphicProps, popupTemplate, lyr).then( res => {
+                    popupTemplate = res;
+                });
+            }
+           
             graphicProps.popupTemplate = popupTemplate;
         }
         /*let graphic: __esri.Graphic = new Graphic();
@@ -1920,7 +1937,7 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
-    async getHomeGeocode(graphicProps: __esri.GraphicProperties, popupTemplate: __esri.PopupTemplate) : Promise<__esri.PopupTemplate>{
+    async getHomeGeocode(graphicProps: __esri.GraphicProperties, popupTemplate: __esri.PopupTemplate, lyr: __esri.FeatureLayer) : Promise<__esri.PopupTemplate>{
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
@@ -1928,25 +1945,17 @@ export class MapService {
          const graphic: __esri.Graphic = new Graphic(graphicProps);       
          console.log('getHomeGeocode fired');    
 
-         let lyyr: __esri.FeatureLayer;
-        await this.getAllFeatureLayers().then(list => {
-            for (const layer of list) {
-                console.log('layer name:::::::::' + layer.title);
-                if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
-                    lyyr = layer;
-                   
-                }
-            }
-        });
-        const qry = lyyr.createQuery();
+         
+        const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
         const popUp: __esri.PopupTemplate = new PopupTemplate();
-         await lyyr.queryFeatures(qry).then(polyFeatureSet => {
+         await lyr.queryFeatures(qry).then(polyFeatureSet => {
                 const homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
                 let popupTemp = null;
                 popupTemp = popupTemplate.content;
                 const homeGeocodepopup = '<tbody><tr><th>HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
                 popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
+                popUp.title = popupTemplate.title;
                 popUp.content = popupTemp;
         });
         return popUp;
