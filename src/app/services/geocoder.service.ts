@@ -13,7 +13,7 @@ import { Response } from '@angular/http/src/static_response';
 import { AccountLocations } from '../models/AccountLocations';
 import { MapService } from './map.service';
 //import { MessageService } from 'primeng/components/common/messageservice';
-import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
+//import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
 import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
@@ -27,8 +27,8 @@ export class GeocoderService {
   private GeocodingResponse;
   public Msgs: Message[] = [];
 
-  constructor(public geocodingRespService: GeocodingResponseService, public http: HttpClient, private mapService: MapService,
-               private amSiteService: AmSiteService) { //private messageService: MessageService,
+  constructor(public geocodingRespService: GeocodingResponseService, public http: HttpClient, private mapService: MapService
+              ) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
 
@@ -102,7 +102,7 @@ private async createGraphic(site: GeocodingResponse, popupTemplate: __esri.Popup
 return graphic;
 }
 
-  // add all of the geocoded sites in the amSites array to the map
+  // add all of the geocoded sites in the  array to the map
   public async addSitesToMap(sitesList: GeocodingResponse[], selector) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;

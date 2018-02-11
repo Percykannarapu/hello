@@ -8,7 +8,6 @@ import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.
 import { AppService } from '../../../services/app.service';
 
 // Import Services
-//import { AmSiteService } from '../services/AmSite.service';
 import {MessageService} from '../../common/services/message.service';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
@@ -31,11 +30,27 @@ export class SiteListComponent implements OnInit, OnDestroy
    gridData: any;
    selectedValue: String = 'Site';
 
-  // amSites: AmSite[] = [];
     //cols: any[];
 
    selectedSites: GeocodingResponse[];   
    //columnOptions: SelectItem[];
+
+   public cols: any[] = [{ field: 'glId',                 header: 'Number', size: '70px'},
+                         { field: 'locationName',         header: 'Name', size: '70px'},
+                         { field: 'locAddres',            header: 'Address', size: '70px'},
+                         { field: 'locCity',              header: 'City', size: '70px'},
+                         { field: 'locState',             header: 'State', size: '70px'},
+                         { field: 'locZip',               header: 'ZIP', size: '70px'},
+                         { field: 'recordStatusCode',     header: 'Geocode Status', size: '70px'},
+                         { field: 'ycoord',               header: 'Latitude', size: '70px'},
+                         { field: 'xcoord',               header: 'Longitude', size: '70px'},
+                         { field: 'geocoderMatchCode',    header: 'Match Code', size: '70px'},
+                         { field: 'geocoderLocationCode', header: 'Match Quality', size: '70px'},
+                         { field: 'origAddress1',         header: 'Original Address', size: '70px'},
+                         { field: 'origCity',             header: 'Original City', size: '70px'},
+                         { field: 'origState',            header: 'Original State', size: '70px'},
+                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'}
+                        ];
   
    constructor(public geocodingRespService: GeocodingResponseService,
                private messageService: MessageService,
@@ -44,14 +59,10 @@ export class SiteListComponent implements OnInit, OnDestroy
                 this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange());
                }
 
-   // getAmSitesSynchronous()
-   // {
-   //    console.log('called getAmSites');
-   //    this.amSites = this.amSiteService.getAmSites();
-   // }
+   
   
    onGroupChange(){
-    this.gridData = this.selectedValue === 'Site' ? this.geocodingRespService.sitesList : this.geocodingRespService.amComps;
+    this.gridData = this.selectedValue === 'Site' ? this.geocodingRespService.displayData() : this.geocodingRespService.amComps;
     this.geocodingRespService.createGrid();
  }
    
@@ -163,4 +174,20 @@ export class SiteListComponent implements OnInit, OnDestroy
    {
       this.displaySearchDialog = true;
    }  
+
+   filterLocAttr(id: number){
+     const gridtemp: any[] = [];
+     this.geocodingRespService.impGeoLocAttrList.forEach(locAttrList => {
+         const gridMap: any = {};   
+         locAttrList.forEach(locAttr => {
+           if (locAttr.locAttributeId === id) 
+               gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+         });
+         if (gridMap['Number'] >= 0 )
+            gridtemp.push(gridMap);
+     });
+     return gridtemp;
+
+   }
+   
 }

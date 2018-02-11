@@ -1355,13 +1355,23 @@ export class MapService {
         const graphicProps: __esri.GraphicProperties = {
             geometry: point,
             symbol: symbol
-
         };
+
+        // call getgeohome to get inhome geo 
+
 
         // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
+           
+            await this.getHomeGeocode(graphicProps, popupTemplate).then( res => {
+                popupTemplate = res;
+            });
             graphicProps.popupTemplate = popupTemplate;
         }
+        /*let graphic: __esri.Graphic = new Graphic();
+        await this.getHomeGeocode(graphicProps).then( res => {
+            graphic = res;
+        });*/
         const graphic: __esri.Graphic = new Graphic(graphicProps);
 
         console.log('Graphic parentId: ' + parentId);
@@ -1910,6 +1920,37 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
+    async getHomeGeocode(graphicProps: __esri.GraphicProperties, popupTemplate: __esri.PopupTemplate) : Promise<__esri.PopupTemplate>{
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [FeatureLayer, Graphic, PopupTemplate]
+            = await loader.loadModules([
+                'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
+         const graphic: __esri.Graphic = new Graphic(graphicProps);       
+         console.log('getHomeGeocode fired');    
+
+         let lyyr: __esri.FeatureLayer;
+        await this.getAllFeatureLayers().then(list => {
+            for (const layer of list) {
+                console.log('layer name:::::::::' + layer.title);
+                if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
+                    lyyr = layer;
+                   
+                }
+            }
+        });
+        const qry = lyyr.createQuery();
+        qry.geometry = graphic.geometry;
+        const popUp: __esri.PopupTemplate = new PopupTemplate();
+         await lyyr.queryFeatures(qry).then(polyFeatureSet => {
+                const homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
+                let popupTemp = null;
+                popupTemp = popupTemplate.content;
+                const homeGeocodepopup = '<tbody><tr><th>HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
+                popUp.content = popupTemp;
+        });
+        return popUp;
+      }
 }
 
 
