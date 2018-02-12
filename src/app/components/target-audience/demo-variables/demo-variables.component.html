@@ -4,7 +4,7 @@
     <div class="ui-g-8">
       <p-dropdown [options]="allTopVars$ | async"
                   optionLabel="label"
-                  [(ngModel)]="selectedTopVar"
+                  [ngModel]="selectedTopVar$ | async"
                   (ngModelChange)="onTopVarChange($event)"
                   placeholder="Please select an option"
                   [autoWidth]="false"
@@ -13,15 +13,16 @@
     <div class="ui-g-4"><label>Theme</label></div>
     <div class="ui-g-8">
       <p-dropdown [options]="allThemes"
-                  [(ngModel)]="selectedTheme"
+                  [ngModel]="selectedTheme$ | async"
                   (ngModelChange)="onThemeChange($event)"
                   [autoWidth]="false"
                   [style]="{'width':'200px'}"></p-dropdown>
     </div>
     <div class="ui-g-4"><label>Opacity</label></div>
     <div class="ui-g-8">
-      <label>{{currentOpacity}}</label>
-      <p-slider [(ngModel)]="currentOpacity" (onChange)="onOpacityChange()"></p-slider>
+      <p class="sliderLabel">{{currentOpacity$ | async}}</p>
+      <p-slider [ngModel]="currentOpacity$ | async"
+                (ngModelChange)="onOpacityChange($event)"></p-slider>
     </div>
   </div>
   <div class="ui-g-4">

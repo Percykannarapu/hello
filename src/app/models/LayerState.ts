@@ -1,5 +1,7 @@
-import {EsriModules} from '../esri-modules/core/esri-modules.service';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
+import { DemographicVariable } from '../services/top-var.service';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -14,60 +16,68 @@ export class LayerState {
   private showNewRenderer: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   private originalRenderer: __esri.Renderer;
-  private newRenderer: __esri.Renderer;
   private originalOpacity: number;
+
+  private newRenderer: __esri.Renderer;
   private newOpacity: number;
+  private newBaseMap: __esri.Basemap;
+  private newTopVar: DemographicVariable;
+  private newTheme: SmartMappingTheme;
+
   private colorSlider: __esri.ColorSlider;
 
-  constructor(private layer: __esri.FeatureLayer, private baseMap: __esri.Basemap, private demoFieldName: string, private theme: SmartMappingTheme, private sliderId: string){
+  constructor(private layer: __esri.FeatureLayer, private baseMap$: Observable<__esri.Basemap>,
+              private selectedTopVar$: Observable<DemographicVariable>, private selectedTheme$: Observable<SmartMappingTheme>,
+              private newOpacity$: Observable<number>, private colorSliderId: string){
     // assumption is that this layer is in a pristine state, i.e. the renderer is still the default
     this.originalRenderer = this.layer.renderer;
     this.originalOpacity = this.layer.opacity;
-    this.newOpacity = 0.65;
-
-    this.newRendererReady.subscribe((isReady) => {
-      if (isReady) {
-        this.onRendererReady();
-      }
-    });
-    this.showNewRenderer.subscribe(v => this.onShowNewRenderer(v));
+    this.initSubscriptions();
   }
 
   toggleSmartView() : void {
     this.showNewRenderer.next(!this.showNewRenderer.getValue());
   }
 
-  setNewDemoField(newFieldName: string) : void {
-    this.demoFieldName = newFieldName;
+  private initSubscriptions() : void {
+    this.newRendererReady.subscribe((isReady) => {
+      if (isReady) {
+        this.onRendererReady();
+      }
+    });
+    this.showNewRenderer.subscribe(v => this.onShowNewRenderer(v));
+
+    this.baseMap$.subscribe(m => {
+      this.newBaseMap = m;
+      this.regenerateRenderer();
+    });
+    this.selectedTopVar$.subscribe(v => {
+      this.newTopVar = v;
+      this.regenerateRenderer();
+    });
+    this.selectedTheme$.subscribe(t => {
+      this.newTheme = t;
+      this.regenerateRenderer();
+    });
+    this.newOpacity$.subscribe(o => {
+      this.newOpacity = o;
+      this.layer.opacity = o / 100;
+    });
+  }
+
+  private regenerateRenderer() : void {
     this.newRendererReady.next(false);
     this.generateRenderer();
   }
 
-  setNewTheme(newTheme: SmartMappingTheme) : void {
-    this.theme = newTheme;
-    this.newRendererReady.next(false);
-    this.generateRenderer();
-  }
-
-  setNewOpacity(newOpacity: number) : void {
-    this.newOpacity = newOpacity;
-    this.layer.opacity = newOpacity;
-  }
-
-  setNewBaseMap(newBaseMap: __esri.Basemap) : void {
-    this.baseMap = newBaseMap;
-    this.newRendererReady.next(false);
-    this.generateRenderer();
-  }
-
-  private onRendererReady() {
+  private onRendererReady() : void {
     if (this.showNewRenderer.getValue()) {
       this.layer.renderer = this.newRenderer;
-      this.layer.opacity = this.newOpacity;
+      this.layer.opacity = this.newOpacity / 100;
     }
   }
 
-  private onShowNewRenderer(show: boolean) {
+  private onShowNewRenderer(show: boolean) : void {
     if (!show) {
       this.layer.renderer = this.originalRenderer;
       this.layer.opacity = this.originalOpacity;
@@ -76,18 +86,18 @@ export class LayerState {
         this.generateRenderer();
       } else {
         this.layer.renderer = this.newRenderer;
-        this.layer.opacity = this.newOpacity;
+        this.layer.opacity = this.newOpacity / 100;
       }
     }
   }
 
   private generateRenderer() : void {
-    if (this.demoFieldName == null || this.theme == null) return;
+    if (this.newTopVar == null) return;
     const colorParams = {
       layer: this.layer,
-      basemap: this.baseMap,
-      field: this.demoFieldName,
-      theme: this.theme
+      basemap: this.newBaseMap,
+      field: this.newTopVar.fieldName,
+      theme: this.newTheme
     };
     EsriModules.colorRendererCreator.createContinuousRenderer(colorParams)
       .then( (response) => {
@@ -104,9 +114,9 @@ export class LayerState {
       });
   }
 
-  private createHistogram(result: __esri.ContinuousRendererResult, params: __esri.histogramHistogramParams) {
+  private createHistogram(result: __esri.ContinuousRendererResult, params: __esri.histogramHistogramParams) : void {
     EsriModules.histogram(params).then(histogram => {
-      const isH2L = (this.theme === SmartMappingTheme.HighToLow);
+      const isH2L = (this.newTheme === SmartMappingTheme.HighToLow);
       const sliderParams: __esri.ColorSliderProperties = {
         numHandles: (isH2L ? 2 : 3),
         syncedHandles: (!isH2L),
@@ -125,8 +135,8 @@ export class LayerState {
     });
   }
 
-  private createNewColorSlider(params: __esri.ColorSliderProperties) {
-    params.container = this.sliderId;
+  private createNewColorSlider(params: __esri.ColorSliderProperties) : void {
+    params.container = this.colorSliderId;
     this.colorSlider = new EsriModules.widgets.ColorSlider(params);
     // when the user slides the handle(s), update the renderer
     // with the updated color visual variable object

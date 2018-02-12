@@ -11,11 +11,11 @@ import { SelectItem } from 'primeng/primeng';
   styleUrls: ['./demo-variables.component.css']
 })
 export class DemoVariablesComponent implements OnInit {
-  public selectedTopVar: DemographicVariable;
+  public selectedTopVar$: Observable<DemographicVariable>;
   public allTopVars$: Observable<DemographicVariable[]>;
   public allThemes: SelectItem[] = [];
-  public selectedTheme: string = SmartMappingTheme.HighToLow;
-  public currentOpacity: number = 65;
+  public selectedTheme$: Observable<SmartMappingTheme>;
+  public currentOpacity$: Observable<number>;
 
   constructor(private topVars: TopVarService, private layerService: EsriLayerService) {
     // this is how you convert an enum into a list of drop-down values
@@ -31,21 +31,20 @@ export class DemoVariablesComponent implements OnInit {
 
   ngOnInit() {
     this.allTopVars$ = this.topVars.allTopVars$;
-    // set up this sub in case someone else changes the value out from under me
-    this.topVars.selectedTopVar$.subscribe(tv => {
-      this.selectedTopVar = tv;
-    });
+    this.selectedTopVar$ = this.topVars.selectedTopVar$;
+    this.selectedTheme$ = this.layerService.currentSmartTheme$;
+    this.currentOpacity$ = this.layerService.currentThemeOpacity$;
   }
 
-  onTopVarChange(data: DemographicVariable) {
-    this.topVars.selectTopVar(data);
+  onTopVarChange(newValue: DemographicVariable) {
+    this.topVars.selectTopVar(newValue);
   }
 
-  onThemeChange(value: string) {
-    this.layerService.changeSmartTheme(<SmartMappingTheme>value);
+  onThemeChange(newValue: SmartMappingTheme) {
+    this.layerService.changeSmartTheme(newValue);
   }
 
-  onOpacityChange() {
-    this.layerService.changeOpacity(this.currentOpacity / 100);
+  onOpacityChange(newValue: number) {
+    this.layerService.changeOpacity(newValue);
   }
 }
