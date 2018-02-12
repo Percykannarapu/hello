@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { IEsriLoaderConfig } from './esri-modules/core/esri-modules.service';
-import { IAuthenticationParams } from './services/esri-identity.service';
+import { EsriLoaderConfig } from './esri-modules/core/esri-modules.service';
+import { AuthenticationParams } from './services/esri-identity.service';
 
 @Injectable()
-export class AppConfig implements IEsriLoaderConfig
+export class AppConfig implements EsriLoaderConfig
 {
    esriConfig = {
      url: 'https://js.arcgis.com/4.6/',
@@ -16,7 +16,7 @@ export class AppConfig implements IEsriLoaderConfig
         }
       }
    };
-   localPortalAuthParams: IAuthenticationParams = {
+   localPortalAuthParams: AuthenticationParams = {
      // for valvcshad001vm
      // generatorUrl: 'https://valvcshad001vm.val.vlss.local/portal/sharing/rest/generateToken',
      // tokenServerUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services',
@@ -29,6 +29,16 @@ export class AppConfig implements IEsriLoaderConfig
      
      referer: 'http://vallomjbs002vm:8080'
    };
+
+   AgolAuthParams: AuthenticationParams = {
+    generatorUrl: 'https://www.arcgis.com/sharing/generateToken',
+    tokenServerUrl: 'https://www.arcgis.com',
+    userName: 'amcirillo_vlab2',
+    password: 'Password1',
+    referer: window.location.origin
+    //referer: 'http://localhost:4200'
+    //referer: 'https://vallomjbs002vm:8443'
+  };
 
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
 
@@ -79,8 +89,8 @@ export class AppConfig implements IEsriLoaderConfig
       'cde7f5d605bf48c4a74b0cd1a47ceccb'  // WRAP_Top_Vars
     ],
      hh: [
-     '837f4f8be375464a8971c56a0856198e', // vt layer
-     '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
+     //'837f4f8be375464a8971c56a0856198e', // vt layer
+     //'5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
     ],
   };
 

@@ -1,3 +1,4 @@
+import { MapService } from './../../services/map.service';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription, ISubscription } from 'rxjs/Subscription';
 
@@ -29,17 +30,32 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeos: ImpGeofootprintGeo[];
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
-   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
-                                           {label: 'homeGeocode',  value: {field: 'homeGeocode',  header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
-                                           {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
-                                           {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
+   public myStyles = {
+      'background-color': 'lime',
+      'text-align': 'right'
+      };
+   
+   public rAlign = 'right';
+
+   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}},
+                                           {label: 'homeGeocode',  value: {field: 'homeGeocode',  header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}},
+                                           {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}},
+                                           {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}},
                                           ];
 
-   public  geoGridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '30%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
-                                           {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '20%', style: '{\'width\':\'20%\'}'}, styleClass: ''},
-                                           {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''},
-                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '15%', style: '{\'width\':\'10%\'}'}, styleClass: ''}
+    public  geoGridColumns: SelectItem[] = [/*{label: 'ggId',     value: {field: 'ggId',     header: 'ggId', width: '5%', styleClass: ''}, styleClass: ''},*/
+                                           /*{label: 'controls', value: {field: 'controls', header: '', width: '5%', styleClass: ''}, styleClass: ''},*/
+                                           {label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '29%', styleClass: ''}},
+                                           {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '30%', styleClass: ''}},
+                                           {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '20%', styleClass: 'val-text-right'}},
+                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right'}}
                                           ];
+
+   // public  geoGridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '60%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
+   //                                         {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '25%', style: '{\'width\':\'25%\'}'}, styleClass: ''},
+   //                                         {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '5%', style: '{\'width\':\'5%\'}'}, styleClass: ''},
+   //                                         {label: 'distance', value: {field: 'distance', header: 'Distance', width: '5%', style: '{\'width\':\'5%\'}'}, styleClass: ''}
+   //                                        ];
 
    public  selectAllGeos: boolean;
 
@@ -48,6 +64,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public  mapService: MapService,
                private appState: AppState) { }
 
    ngOnInit()

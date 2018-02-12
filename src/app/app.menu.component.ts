@@ -48,7 +48,13 @@ export class AppMenuComponent implements OnInit {
                     {label: 'Export Competitors', icon: 'store'}
                 ]
             },
-            {
+            /*{
+
+            
+            Removing the demo content
+            We need to keep this content for enhancements, 
+            if we want to use the additional functionality : US6650 nallana
+
                 label: 'Customization', icon: 'settings_application',
                 items: [
                     {label: 'Compact Size', icon: 'fiber_manual_record', command: () => this.app.layoutCompact = true},
@@ -57,11 +63,11 @@ export class AppMenuComponent implements OnInit {
                     {label: 'Overlay Menu', icon: 'exit_to_app',  command: () => this.app.changeToOverlayMenu()},
                     {label: 'Slim Menu', icon: 'more_vert',  command: () => this.app.changeToSlimMenu()},
                     {label: 'Horizontal Menu', icon: 'border_horizontal',  command: () => this.app.changeToHorizontalMenu()},
-/*                  {label: 'Light Menu', icon: 'label_outline',  command: () => this.app.darkMenu = false},
+                /*  {label: 'Light Menu', icon: 'label_outline',  command: () => this.app.darkMenu = false},
                     {label: 'Dark Menu', icon: 'label',  command: () => this.app.darkMenu = true},
                     {label: 'Inline Profile', icon: 'contacts',  command: () => this.app.profileMode = 'inline'},
                     {label: 'Top Profile', icon: 'person_pin',  command: () => this.app.profileMode = 'top'},*/
-                    {
+                    /*{
                      label: 'Themes', icon: 'palette',
                      items: [
                         {label: 'Valassis - Blue', icon: 'brush', command: (event) => {this.changeTheme('valassis-blue'); }},
@@ -103,7 +109,7 @@ export class AppMenuComponent implements OnInit {
                         ]
                     }
                 ]
-            }/*,
+            },
             {
                 label: 'Components', icon: 'list', badge: '2', badgeStyleClass: 'teal-badge',
                 items: [

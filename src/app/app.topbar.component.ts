@@ -1,15 +1,25 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AppComponent} from './app.component';
-
+import {UserService} from './services/user.service';
 @Component({
-    selector: 'app-topbar',
+    selector: 'val-app-topbar',
     template: `
         <div class="topbar clearfix">
             <div class="topbar-left">
                 <div class="logo"></div>
             </div>
 
-            <div class="topbar-right">
+            <div class="topbar-right" style="color: white; float: right">
+                <p *ngIf="username">Welcome, {{username}}</p>
+            </div>
+
+            <!-- US6650: nallana
+            Removing the demo content
+            We need to keep this content for enhancements, 
+            if we want to use the additional functionality 
+            -->
+
+            <!--<div class="topbar-right">
                 <a id="menu-button" href="#" (click)="app.onMenuButtonClick($event)">
                     <i></i>
                 </a>
@@ -20,9 +30,9 @@ import {AppComponent} from './app.component';
 
                 <a id="topbar-menu-button" href="#" (click)="app.onTopbarMenuButtonClick($event)">
                     <i class="material-icons">menu</i>
-                </a>
+                </a> -->
 
-                <ul class="topbar-items animated fadeInDown" [ngClass]="{'topbar-items-visible': app.topbarMenuActive}">
+<!--                <ul class="topbar-items animated fadeInDown" [ngClass]="{'topbar-items-visible': app.topbarMenuActive}"> -->
 <!--                    <li #profile class="profile-item" *ngIf="app.profileMode==='top'||app.isHorizontal()"
                         [ngClass]="{'active-top-menu':app.activeTopbarItem === profile}">
 
@@ -52,7 +62,7 @@ import {AppComponent} from './app.component';
                             </li>
                         </ul>
                     </li> -->
-                    <li #settings [ngClass]="{'active-top-menu':app.activeTopbarItem === settings}">
+                    <!-- <li #settings [ngClass]="{'active-top-menu':app.activeTopbarItem === settings}">
                         <a href="#" (click)="app.onTopbarItemClick($event,settings)">
                             <i class="topbar-icon material-icons">settings</i>
                             <span class="topbar-item-name">Settings</span>
@@ -83,7 +93,7 @@ import {AppComponent} from './app.component';
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
 <!--                    <li #messages [ngClass]="{'active-top-menu':app.activeTopbarItem === messages}">
                         <a href="#" (click)="app.onTopbarItemClick($event,messages)">
                             <i class="topbar-icon material-icons animated swing">message</i>
@@ -164,14 +174,21 @@ import {AppComponent} from './app.component';
                             <label>Search</label>
                             <i class="topbar-icon material-icons">search</i>
                         </span>
-                    </li>-->
+                    </li>
                 </ul>
-            </div>
+            </div>-->
         </div>
     `
 })
-export class AppTopbarComponent {
+export class AppTopbarComponent implements OnInit{
 
-    constructor(public app: AppComponent) {}
+    constructor(public app: AppComponent, private userService: UserService) {}
 
+    public username: string;
+
+    ngOnInit() {
+        this.userService.userObservable.subscribe(user => {
+            this.username = user.username;
+        });
+    }
 }

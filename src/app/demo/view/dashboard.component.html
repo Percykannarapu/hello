@@ -1,5 +1,5 @@
-<div class="ui-g dashboard">
-   <div class="ui-g-12 no_top_space">
+<div class="ui-g dashboard no_vertical_space">
+   <div class="ui-g-12 no_vertical_space">
       <p-messages [(value)]="msgs"></p-messages>
    </div>
 
@@ -7,7 +7,7 @@
    <div class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Green Sites Box Overlay -->
       <val-color-box   header="Locations"
-                     boxStyle="colorboxPicker-green" 
+                     boxStyle="colorboxPicker-green"
                    popupWidth="60%"
                          icon="my_location"
                       [model]="metricMapGreen"
@@ -25,16 +25,17 @@
                      <p-accordionTab header="Business Search">
                         <val-business-search [disableFromUpload]="uploadLocations.disableshowBusiness" [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
                      </p-accordionTab>
-                     <p-accordionTab header="Copy">
+                     <!-- Removing the demo content: US6650 nallana-->
+                     <!-- <p-accordionTab header="Copy">
                          Copy from another profile
-                     </p-accordionTab>
-                 </p-accordion>               
+                     </p-accordionTab> -->
+                 </p-accordion>
             </p-tabPanel>
             <p-tabPanel header="Manage Locations">
                <val-amsite-list>Loading AmSiteList...</val-amsite-list>
             </p-tabPanel>
             <p-tabPanel header="Define Trade Areas">
-               <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>            
+               <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>
          </p-tabPanel>
       </p-tabView>
 
@@ -45,7 +46,7 @@
       <!-- Home for Blue Household Count Box Overlay -->
       <val-color-box header="Campaign Details"
                      boxStyle="colorboxPicker-teal"
-                  popupWidth="80%"                      
+                  popupWidth="80%"
                         icon="done_all"
                      [model]="metricMapBlue"
                      #campaignColorBox>
@@ -53,12 +54,12 @@
             <p-tabPanel header="Discovery">
                <val-discovery-input></val-discovery-input>
             </p-tabPanel>
-         </p-tabView>                            
+         </p-tabView>
       </val-color-box>
-   </div>   
-   
+   </div>
+
    <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Target Audience Box Overlay -->     
+      <!-- Home for Target Audience Box Overlay -->
       <val-color-box  header="Target Audience"
                      boxStyle="colorboxPicker-slate"
                    popupWidth="60%"
@@ -66,23 +67,17 @@
                       [model]="metricMapPurple"
                       #audienceColorBox>
          <p-tabView>
-            <p-tabPanel header="Header Tab 1">
-                Content 1
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 2">
-                Content 2
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 3">
-                Content 3    
+            <p-tabPanel header="Demographic Variables">
+                <val-demo-variables></val-demo-variables>
             </p-tabPanel>
          </p-tabView>
       </val-color-box>
    </div>
 
    <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Performance ColorBox Overlay -->     
+      <!-- Home for Performance ColorBox Overlay -->
       <val-color-box   header="Performance"
-                     boxStyle="colorboxPicker-blue" 
+                     boxStyle="colorboxPicker-blue"
                    popupWidth="60%"
                         icon="send"
                      [model]="metricMapTeal"
@@ -108,16 +103,15 @@
    </div>
    <!-- COLORBOX COMPONENTS END -->
 
-   <div class="ui-g-12 ui-md-6 ui-lg-12">          
+   <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space">
       <!-- ESRI Map -->
-      <div #MapOuterDiv style="resize: both;overflow: auto;">
-      <p-panel id="mapPanel" header="Map" [toggleable]="true">
-         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg" position="left" >
+      <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
+         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
             <div class="ug-g-12">
                <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
             </div>
-         </p-sidebar>            
-         <div id="outerMapDiv">
+         </p-sidebar>
+         <div id="outerMapDiv" class="val-flush-to-edges">
             <p-toolbar>
                <!-- div class="ui-toolbar-group-left" -->
                   <!-- <i style="margin-left: 20px"></i> -->
@@ -130,16 +124,16 @@
                   <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
                   <!-- <i class="fa fa-bars"></i> -->
                </div>
-               <!-- 
+               <!--
                <div class="ui-toolbar-group-left">
                   <i class="fa-fontAwesome fa fa-bars" style="padding-left:6px; padding-top:6px;"></i>
                </div>
                 -->
-                
+
                   <!-- <div class="ui-toolbar-group-left">
                   <val-geoprocessing></val-geoprocessing>
                </div> -->
-               <!-- 
+               <!--
                <div class="ui-toolbar-group-left">
                   <p-splitButton label="Targeting Toolbox" icon="fa-check" [model]="fakeItems"></p-splitButton>
                </div>
@@ -155,7 +149,14 @@
             </p-toolbar>
             <app-esri-map>Loading Map...</app-esri-map>
          </div>
-      </p-panel></div>
+      </p-panel>
+      <p-panel id="geosPanel" header="Geographies" [toggleable]="true" class="val-flush-to-edges">
+         <val-geofootprint-geo-list></val-geofootprint-geo-list>
+      </p-panel>
+   </div>
+
+   <div>
+      <br><br><br>
    </div>
 
 <!-- TODO:  This needs to be moved

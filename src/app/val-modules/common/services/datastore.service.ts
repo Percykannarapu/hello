@@ -15,7 +15,6 @@ type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an
 type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
 type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
 
-@Injectable()
 export class DataStore<T>
 {
    private transientId: number = 0;
@@ -27,7 +26,7 @@ export class DataStore<T>
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
 
-   constructor(private rest: RestDataService, public dataUrl: string) { }  
+   constructor(private rest: RestDataService, public dataUrl: string) { }
 
    // ---------------------------------------------
    // Utility / Non-Essential Methods
@@ -44,13 +43,13 @@ export class DataStore<T>
              console.log(data);
        else
           for (let i = 0; i < this._storeSubject.getValue().length; i++)
-             console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]); 
+             console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
     }
-    
+
    // ---------------------------------------------
    // Private Data Store Methods
    // ---------------------------------------------
-   
+
    /**
     * Private method accessed publicly through get, which will fetch
     * data into the store from this.dataUrl.
@@ -72,9 +71,9 @@ export class DataStore<T>
          console.log('fetched ' + this._storeSubject.getValue().length + ' rows.');
          this.debugLogStore();
       },
-      (error: any) => { 
+      (error: any) => {
          console.log ('DataStore.fetch - ERROR:', error);
-         // TODO: Should we re-raise or throw some other event? 
+         // TODO: Should we re-raise or throw some other event?
          return Observable.throw(error);
       });
    }
@@ -117,7 +116,7 @@ export class DataStore<T>
     *
     * @param dataArray     - An array of data elements to add to the data store
     * @param preOperation  - A callback delegate that will fire for each element just before it is added
-    * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist 
+    * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist
     */
    public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
    {
@@ -162,7 +161,7 @@ export class DataStore<T>
       // If postOperation has determined that the add as a whole was a success and we have used a preOperation
       if (success && preOperation)
          this._dataStore = localCache;
-         
+
       // Register data store change and notify observers
       if (success)
          this._storeSubject.next(this._dataStore);
@@ -174,8 +173,8 @@ export class DataStore<T>
 
       if (this._dataStore.length === 0)
          return;
-      
-      // Remove the element from the array at the index      
+
+      // Remove the element from the array at the index
       if (this._dataStore.length > 1)
       {
          if (index >= 0)
@@ -184,7 +183,7 @@ export class DataStore<T>
          else
             this._dataStore = [...this._dataStore.slice(0, this._dataStore.length + index),
                                ...this._dataStore.slice(this._dataStore.length + index + 1)];
-      }   
+      }
       else
          this._dataStore = this._dataStore.slice(0, 0);
 
@@ -230,11 +229,11 @@ export class DataStore<T>
       this._dataStore = [...this._dataStore.slice(0, index),
                          newData,
                          ...this._dataStore.slice(index + 1)];
-      
+
       // Register data store change and notify observers
       this._storeSubject.next([newData]);
    }
-   
+
    public clearAll()
    {
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change

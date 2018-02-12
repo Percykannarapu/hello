@@ -3,8 +3,8 @@
 
 .esriMapContainer {
     height: 500px;
-/*    resize: both;
-    overflow: auto; */
+    resize: both;
+    overflow: auto; 
 }
 
 .esri-view {

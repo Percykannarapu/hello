@@ -1,5 +1,9 @@
-<!--
-    <p-multiSelect 
+    <!-- US6650: nallana
+            Removing the demo content
+            We need to keep this content for enhancements, 
+            if we want to use the additional functionality 
+    -->
+    <!-- <p-multiSelect 
         #mapLayerList
         id="layerList"
         [options]="esriDemographicItems" 
@@ -10,8 +14,8 @@
         [showToggleAll]="true" 
         [panelStyle]="{minWidth:'12em'}" 
         (onPanelHide)="checkLayers()">
-    </p-multiSelect>
--->
+    </p-multiSelect> -->
+
     <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers" 
                      (onChange)="handleLayerChange($event)" 
                       onLabel="Layers On" offLabel="Layers Off" 

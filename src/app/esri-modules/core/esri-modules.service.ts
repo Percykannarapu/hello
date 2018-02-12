@@ -4,10 +4,11 @@ import {EsriWidgets} from './esri-widgets';
 import {ILoadScriptOptions} from 'esri-loader/src/esri-loader';
 import {EsriLoaderWrapperService} from '../../services/esri-loader-wrapper.service';
 
-export interface IEsriLoaderConfig {
+export interface EsriLoaderConfig {
   esriConfig: ILoadScriptOptions;
 }
-export const IEsriLoaderToken = new InjectionToken<IEsriLoaderConfig>('esri-config-options');
+//
+export const EsriLoaderToken = new InjectionToken<EsriLoaderConfig>('esri-config-options');
 
 @Injectable()
 export class EsriModules {
@@ -25,14 +26,15 @@ export class EsriModules {
     'esri/layers/GroupLayer',
     'esri/layers/FeatureLayer',
     'esri/core/watchUtils',
-    'esri/PopupTemplate'
+    'esri/PopupTemplate',
+    'esri/layers/MapImageLayer'
   ];
 
   public static Map: typeof __esri.Map;
   public static BaseMap: typeof __esri.Basemap;
   public static MapView: typeof __esri.MapView;
   public static Action: typeof __esri.Action;
-  public static Collection: __esri.Constructor<__esri.Collection>;
+  public static Collection: __esri.Collection;
   public static colorRendererCreator: typeof __esri.color;
   public static histogram: typeof __esri.histogram;
   public static lang: typeof __esri.lang;
@@ -42,6 +44,7 @@ export class EsriModules {
   public static FeatureLayer: typeof __esri.FeatureLayer;
   public static watchUtils: typeof __esri.watchUtils;
   public static PopupTemplate: typeof __esri.PopupTemplate;
+  public static MapImageLayer: typeof __esri.MapImageLayer;
 
   public static widgets: EsriWidgets;
 
@@ -50,7 +53,7 @@ export class EsriModules {
   private deferredLoad: Promise<any>;
   public isReady = false;
 
-  constructor(@Inject(IEsriLoaderToken) config: IEsriLoaderConfig) {
+  constructor(@Inject(EsriLoaderToken) config: EsriLoaderConfig) {
     console.log('Constructing esri-modules');
     this.esriConfig = config.esriConfig;
     // todo: remove when this wrapper is no longer needed
@@ -79,7 +82,8 @@ export class EsriModules {
       EsriModules.GroupLayer,
       EsriModules.FeatureLayer,
       EsriModules.watchUtils,
-      EsriModules.PopupTemplate] = modules;
+      EsriModules.PopupTemplate,
+      EsriModules.MapImageLayer] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);

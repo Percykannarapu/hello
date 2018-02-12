@@ -118,7 +118,8 @@ import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
 import {EsriLayerService} from './services/esri-layer.service';
-import {EsriModules, IEsriLoaderToken} from './esri-modules/core/esri-modules.service';
+import {EsriModules, EsriLoaderToken} from './esri-modules/core/esri-modules.service';
+import {UserService} from './services/user.service';
 
 // ESRI Imports
 //import {EsriLoaderService} from 'angular-esri-loader';
@@ -149,9 +150,13 @@ import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { LoginComponent } from './components/login/login.component';
+import { AuthService } from './services/auth.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
 import {MessageService} from './val-modules/common/services/message.service';
+import { TopVarService } from './services/top-var.service';
+import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 
@@ -273,20 +278,23 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
         RaddataComponent,
         TradeareaDefineComponent,
         DiscoveryInputComponent,
-        UploadLocationsComponent
+        UploadLocationsComponent,
+        DemoVariablesComponent,
+        LoginComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         MessageService, AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
-        // EsriLoaderService,
         GfGeoService, MapService, RestDataService,
         // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService,
-        {provide: IEsriLoaderToken, useClass: AppConfig}
+        {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
+        TopVarService,
+        UserService
     ],
     bootstrap: [AppComponent]
 })
