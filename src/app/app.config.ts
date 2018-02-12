@@ -6,15 +6,15 @@ import { AuthenticationParams } from './services/esri-identity.service';
 export class AppConfig implements EsriLoaderConfig
 {
    esriConfig = {
-     url: 'https://js.arcgis.com/4.6/',
+     url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal
      portalUrl:  'https://vallomimpor1vm.val.vlss.local/arcgis/',
      // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-     dojoConfig: {
+     /*dojoConfig: {
         has: {
           'esri-featurelayer-webgl': 1
         }
-      }
+      }*/
    };
    localPortalAuthParams: AuthenticationParams = {
      // for valvcshad001vm
