@@ -8,7 +8,7 @@ interface TokenResponse {
   ssl: boolean;
 }
 
-export interface IAuthenticationParams {
+export interface AuthenticationParams {
   generatorUrl: string;
   tokenServerUrl: string;
   userName: string;
@@ -21,13 +21,12 @@ export class EsriIdentityService {
 
   constructor(private http: HttpClient, private modules: EsriModules) { }
 
-  public authenticate(params: IAuthenticationParams) {
+  public authenticate(params: AuthenticationParams) {
     this.modules.loadModules(['esri/identity/IdentityManager'])
       .then(m => this.authImpl(m[0], params));
   }
 
-  private authImpl(identityManager: __esri.IdentityManager, params: IAuthenticationParams) {
-    const url: string = params.generatorUrl;
+  private authImpl(identityManager: __esri.IdentityManager, params: AuthenticationParams) {
     const headers = new HttpHeaders()
       .set('content-type', 'application/x-www-form-urlencoded');
     const body = new HttpParams()
@@ -36,7 +35,7 @@ export class EsriIdentityService {
       .set('f', 'json')
       .set('client', 'referer')
       .set('referer', params.referer);
-    this.http.post<TokenResponse>(url, body, {headers: headers}).subscribe(data => {
+    this.http.post<TokenResponse>(params.generatorUrl, body, {headers: headers}).subscribe(data => {
       identityManager.registerToken({expires: data.expires, server: params.tokenServerUrl, ssl: data.ssl, token: data.token});
     });
   }

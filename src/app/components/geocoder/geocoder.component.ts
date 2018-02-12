@@ -17,7 +17,6 @@ import { RestResponse } from '../../models/RestResponse';
 import { DefaultLayers } from '../../models/DefaultLayers';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Rx';
-//import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { MetricService } from './../../val-modules/common/services/metric.service';
 import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
@@ -69,6 +68,7 @@ export class GeocoderComponent implements OnInit {
   public profileId: number;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   //public pointsArray: Points[] = []; // moved to mapservices
+  public graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
 
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
@@ -117,27 +117,21 @@ export class GeocoderComponent implements OnInit {
     }, err => this.handleError(err), null);
   }
 
-  // add all of the geocoded sites in the amSites array to the map
+  // add all of the geocoded sites in the  array to the map
   private async addSitesToMap(sitesList: GeocodingResponse[], selector) {
     try {
       const loader = EsriLoaderWrapperService.esriLoader;
       const [Graphic] = await loader.loadModules(['esri/Graphic']);
-      const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
       for (const site of sitesList) {
         //console.log('creating popup for site: ' + amSite.pk);
+        const newGraphics: __esri.Graphic[] = new Array<__esri.Graphic>();
         await this.createPopup(site)
           .then(res => this.createGraphic(site, res, selector))
-          .then(res => { graphics.push(res); })
+          .then(res => {this.graphics.push(res); newGraphics.push(res); })
           .catch(err => this.handleError(err));
       } 
-      await this.updateLayer(graphics)
-        .then(res => { this.mapService.zoomOnMap(graphics); })
-        .then(res => {if (selector === 'Site'){
-          this.geocodingRespService.add(sitesList);
-        }else{
-          this.geocodingRespService.addCompetitors(sitesList);
-        } 
-      })
+      await this.updateLayer(this.graphics)
+        .then(res => { this.mapService.zoomOnMap(this.graphics); })
         .then(res => this.geocodingRespService.locToEntityMapping(sitesList))
         .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
@@ -264,7 +258,7 @@ export class GeocoderComponent implements OnInit {
       let headerPosition: any = {};
       try {
         headerPosition = this.verifyCSVColumns(this.headers);
-        console.log('header details after edit:' + this.headers);
+        
       }catch (error) {
         this.handleError(error);
         return;
@@ -277,8 +271,8 @@ export class GeocoderComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
           const site = {};
-          const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
-          //csvRecord = csvRecord.replace('"','');
+          let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '');
+          csvRecord = csvRecord.replace('"', '').split(',');
           //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if ( csvRecord.length === this.headers.length){
 
@@ -291,10 +285,7 @@ export class GeocoderComponent implements OnInit {
               observables.push(this.geocoderService.multiplesitesGeocode(siteList));
           }
           else{
-               
-               
                siteList.push(site);
-               
                siteList.forEach(siteData => {
                   site['status'] = 'PROVIDED';  
                   const restResp: RestResponse = {
@@ -498,7 +489,7 @@ export class GeocoderComponent implements OnInit {
     return false;
   }
 
-  private parseCsvResponse(restResponses: RestResponse[], display?: boolean) : GeocodingResponse[] {
+  private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
     const geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
@@ -526,6 +517,13 @@ export class GeocoderComponent implements OnInit {
           geocodingResponse.number      =      locRespListMap['Number'];
           geocodingResponse.name        =      locRespListMap['Name'];
           geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
+          geocodingResponse.orgAddr     =      locRespListMap['Original Address']; 
+          geocodingResponse.orgCity     =      locRespListMap['Original City']; 
+          geocodingResponse.orgState    =      locRespListMap['Original State']; 
+          geocodingResponse.status      =      locRespListMap['Geocode Status'];  
+          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
+          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
+         // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
 
           
           if (geocodingResponse.number == null){
@@ -543,23 +541,20 @@ export class GeocoderComponent implements OnInit {
            }
            geocodingResponse.geocodingAttributesList = geocodingAttrList;
            
-         //  this.amSiteService.sitesList = [...this.amSiteService.sitesList, geocodingResponse];
-         //  this.amSiteService.unselectedSitesList = [...this.amSiteService.unselectedSitesList, geocodingResponse];
-
           const points = new Points();
           points.latitude =  locationResponseList[0].latitude;
           points.longitude = locationResponseList[0].longitude;
           MapService.pointsArray.push(points);
           
           geocodingResponseList.push(geocodingResponse);
-          //impGeoFootprintLocationList.push(amSite);
      // }
     }
     if (display) {
-     // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-     this.addSitesToMap(geocodingResponseList, this.selector1);
-      this.mapService.callTradeArea();
+     await this.addSitesToMap(geocodingResponseList, this.selector1);
+     this.mapService.callTradeArea();
     }
     return geocodingResponseList;
   }
+
+  
 }

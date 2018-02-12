@@ -1,13 +1,18 @@
 import {ElementRef, EventEmitter, Injectable} from '@angular/core';
 import {EsriModules} from './esri-modules.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class EsriMapService {
   private isLoaded = new EventEmitter();
   private isReady = false;
 
+  private baseMap: BehaviorSubject<__esri.Basemap> = new BehaviorSubject<__esri.Basemap>(null);
+
   public map: __esri.Map;
   public mapView: __esri.MapView;
+  public baseMap$: Observable<__esri.Basemap> = this.baseMap.asObservable();
 
   constructor(private modules: EsriModules) {}
 
@@ -28,6 +33,9 @@ export class EsriMapService {
     // create the MapView
     console.log('Creating map view with props:: ', newMapViewProps);
     this.mapView = new EsriModules.MapView(newMapViewProps);
+    EsriModules.watchUtils.watch(this.map, 'basemap', () => {
+      this.baseMap.next(this.map.basemap);
+    });
     this.isReady = true;
     this.isLoaded.emit();
   }

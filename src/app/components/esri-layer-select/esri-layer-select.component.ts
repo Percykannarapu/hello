@@ -27,8 +27,8 @@ export class EsriLayerSelectComponent implements OnInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  public esriDemographicItems: SelectItem[];
-  public selectedLayers: SelectItem[] = [];
+//  public esriDemographicItems: SelectItem[];
+//  public selectedLayers: SelectItem[] = [];
   public layerToggle: boolean = false;
 
   public analysisLevels: SelectItem[];
@@ -51,8 +51,8 @@ export class EsriLayerSelectComponent implements OnInit {
       this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
       this.selectedAnalysisLevel = 'ZIP';
-      this.selectedAnalysisLevels = [];
-
+      //this.selectedAnalysisLevels = [];
+/*
       this.esriDemographicItems = [
         // -----------------
         //    ESRI Layers
@@ -84,6 +84,7 @@ export class EsriLayerSelectComponent implements OnInit {
             { label: 'USA Tapestry'                       , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Tapestry/MapServer', name: 'USA Tapestry'}},
             { label: 'USA Unemployment Rate'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Unemployment_Rate/MapServer', name: 'USA Unemployment Rate'}}
         ];
+*/    
 
     }
     // tslint:disable-next-line:one-line
@@ -108,7 +109,7 @@ export class EsriLayerSelectComponent implements OnInit {
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis PCR'));
         if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis WRAP'));
-        if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
+        if (!this.selectedAnalysisLevels.find(x => x === 'HH'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis Households'));
      }
      finally {
@@ -116,14 +117,14 @@ export class EsriLayerSelectComponent implements OnInit {
      }
 
     if (this.layerToggle) {
-            this.mapService.setMapLayers(this.esriDemographicItems, this.selectedLayers, this.selectedAnalysisLevels);
+            this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
         }
     }
 
    // this event handler is for the Toggle Layers control
    handleLayerChange(e) {
         if (e.checked) {
-            this.mapService.setMapLayers(this.esriDemographicItems, this.selectedLayers, this.selectedAnalysisLevels);
+            this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
         }
         else {
             this.mapService.hideMapLayers();

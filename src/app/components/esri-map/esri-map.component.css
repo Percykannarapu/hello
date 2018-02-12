@@ -1,10 +1,10 @@
 /* import the required JSAPI css */
-@import 'https://js.arcgis.com/4.5/esri/css/main.css';
+@import 'https://js.arcgis.com/4.6/esri/css/main.css';
 
 .esriMapContainer {
     height: 500px;
     resize: both;
-    overflow: auto;
+    overflow: auto; 
 }
 
 .esri-view {
