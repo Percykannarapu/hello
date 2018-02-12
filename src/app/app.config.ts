@@ -41,6 +41,7 @@ export class AppConfig implements EsriLoaderConfig
   };
 
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
+   public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
    /*
    // AGOL

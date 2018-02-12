@@ -224,7 +224,7 @@ export class MapService {
         // Create an instance of the BasemapGallery widget
         const print = new EsriModules.widgets.Print({
             view: this.mapView,
-            printServiceUrl: 'https://valvcshad001vm.val.vlss.local/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task',
+            printServiceUrl: this.config.valPrintServiceURL,
             container: document.createElement('div')
         });
         // Create an Expand instance and set the content
