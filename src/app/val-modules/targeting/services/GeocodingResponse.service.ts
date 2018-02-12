@@ -265,35 +265,33 @@ export class GeocodingResponseService {
         this.logSites();
     }
 
-    public remove(site: GeocodingResponse) {
+    public remove(loc: ImpGeofootprintLocation) {
         // Remove the site from the selected sites array
-        let index = this.sitesList.indexOf(site);
-        this.sitesList = [...this.sitesList.slice(0, index),
-        ...this.sitesList.slice(index + 1)];
-
+        let index = MapService.impGeofootprintLocList.indexOf(loc);
+        MapService.impGeofootprintLocList = [...MapService.impGeofootprintLocList.slice(0, index),
+        ...MapService.impGeofootprintLocList.slice(index + 1)];
+         
+        //this.impGeofootprintLocList = []
+        this.impGeofootprintLocList = MapService.impGeofootprintLocList;
+        this.unselectedimpGeofootprintLocList =  MapService.impGeofootprintLocList;
         // Remove the site from the sites list array
-        index = this.unselectedSitesList.indexOf(site);
-        this.unselectedSitesList = [...this.unselectedSitesList.slice(0, index),
-        ...this.unselectedSitesList.slice(index + 1)];
+        // index = this.unselectedSitesList.indexOf(site);
+        // this.unselectedSitesList = [...this.unselectedSitesList.slice(0, index),
+        // ...this.unselectedSitesList.slice(index + 1)];
 
         // Remove site from the map (TODO: I think this should be handled by an observer)
         //      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
         //      this.mapService.clearGraphicsAt(site.ycoord, site.xcoord);
-        this.mapService.clearGraphicsForParent(Number(site.number));
+          this.mapService.clearGraphicsForParent(Number(loc.glId));
 
 
-        // Update the metrics
-        this.metricService.add('LOCATIONS', '# of Sites', this.sitesList.length.toString());
+         // Update the metrics
+         this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintLocList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-        //update trade area and Metrics
-        const point = new Points();
-        point.latitude = site.latitude;
-        point.longitude = site.longitude;
-        const i = MapService.pointsArray.indexOf(point);
-        const removedpoint = MapService.pointsArray.splice(i, 1);
+        
         this.mapService.callTradeArea();
         // Notifiy Observers
-        this.subject.next(site);
+        this.subject.next(loc);
     }
 
     public update(oldSite: GeocodingResponse, newSite: GeocodingResponse) {
@@ -513,7 +511,7 @@ export class GeocodingResponseService {
            });
            this.impGeoLocAttrList.push(impGeofootprintLocAttribList);
            this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-           this.unselectedimpGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
+           this.unselectedimpGeofootprintLocList = [...this.unselectedimpGeofootprintLocList, impGeofootprintLoc];
            MapService.impGeofootprintLocList.push(impGeofootprintLoc);
            //.push(impGeofootprintLoc);
            //this.impGeofootprintLocList;

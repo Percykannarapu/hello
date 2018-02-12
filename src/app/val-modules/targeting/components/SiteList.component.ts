@@ -12,6 +12,7 @@ import {MessageService} from '../../common/services/message.service';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingResponseService } from '../services/GeocodingResponse.service';
+import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 
 @Component({
   selector: 'val-amsite-list',
@@ -69,21 +70,21 @@ export class SiteListComponent implements OnInit, OnDestroy
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
       const site: GeocodingResponse = new GeocodingResponse();
-      site.addressline = row.Address;
-      site.city = row.City;
-      site.state = row.State;
-      site.zip = row.ZIP;
-      site.latitude = row.Latitude;
-      site.longitude = row.Longitude;
+      site.addressline = row.locAddres;
+      site.city = row.locCity;
+      site.state = row.locState;
+      site.zip = row.locZip;
+      site.latitude = row.ycoord;
+      site.longitude = row.xcoord;
       const graphic = await this.geocodingRespService.createGraphic(site, null);
       this.mapService.zoomOnMap([graphic]);
       this.appService.closeOverLayPanel.next(true);
    }
 
-   public onDeleteSite(site: GeocodingResponse)
+   public onDeleteSite(loc: ImpGeofootprintLocation)
    {
-      console.log('Removing site: ' + site);      
-      this.geocodingRespService.remove(site);
+      console.log('Removing site: ' + loc);      
+      this.geocodingRespService.remove(loc);
      // MapService.pointsArray.
    }
    

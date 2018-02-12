@@ -223,17 +223,17 @@ export class TradeareaDefineComponent implements OnInit {
                   /*
                   *This code is commented as a part of US6635 points array will no longer be used 
                   */  
-                  /*  existingGraphics = (<__esri.FeatureLayer>layer).source;
+                  existingGraphics = (<__esri.FeatureLayer>layer).source;
                     if (layer.title.includes(this.selectedValue.toString())) {
                         lyrTitle = layer.title;
-                        existingGraphics.forEach(function (current: any) {
+                       /*   existingGraphics.forEach(function (current: any) {
                             const points = new Points();
                             points.latitude = current.geometry.latitude;
                             points.longitude = current.geometry.longitude;
                             points.popup = current.popupTemplate;
                             pointsArray.push(points);
-                        });
-                    } */
+                        });*/
+                    } 
                 }
             });
 
