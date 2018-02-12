@@ -23,11 +23,10 @@ export class AppConfig implements EsriLoaderConfig
      // userName: 'admin',
      // password: 'admin123',
      generatorUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis/sharing/rest/generateToken',
-     tokenServerUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services',
+     tokenServerUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis/sharing/rest/portals',
      userName: 'admin',
      password: 'password',
-     
-     referer: 'http://vallomjbs002vm:8080'
+     referer: window.location.origin
    };
 
    AgolAuthParams: AuthenticationParams = {
