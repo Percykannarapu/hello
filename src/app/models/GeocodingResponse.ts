@@ -22,6 +22,9 @@ export class GeocodingResponse {
     zip: string;
     attributes?: any;
     status: string;
+    orgAddr: string;
+    orgCity: string;
+    orgState: string;
 
     public   geocodingAttributesList: GeocodingAttributes[]; 
   }

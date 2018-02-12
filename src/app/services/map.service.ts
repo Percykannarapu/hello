@@ -10,6 +10,7 @@ import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppConfig } from '../app.config';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Injectable()
 export class MapService {
@@ -35,6 +36,7 @@ export class MapService {
     public static hhChildren: number = 0;
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
+    public static impGeofootprintLocList: ImpGeofootprintLocation[] = [];
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
@@ -948,7 +950,7 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) {
+    public async bufferMergeEach( pointColor, kms: number, title: string, outlneColor, parentId?: number) {
         /*: Promise<EsriWrapper<__esri.MapView>>*/
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -978,10 +980,12 @@ export class MapService {
 
         const pointList: __esri.Point[] = [];
 
-        for (const point of pointsArray) {
+        console.log('impGeofootprintLocList length:::' + MapService.impGeofootprintLocList.length);
+
+        for (const point of MapService.impGeofootprintLocList) {
             const p = new Point({
-                x: point.longitude,
-                y: point.latitude,
+                x: point.xcoord,
+                y: point.ycoord,
                 spatialReference: 4326
             });
             pointList.push(p);
@@ -1353,13 +1357,40 @@ export class MapService {
         const graphicProps: __esri.GraphicProperties = {
             geometry: point,
             symbol: symbol
-
         };
+
+        // call getgeohome to get inhome geo 
+
 
         // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
+
+            let lyr: __esri.FeatureLayer;
+            await this.getAllFeatureLayers().then(list => {
+                console.log( 'length of layers::' + list.length);
+                if (list.length > 0 ){
+                    for (const layer of list) {
+                        //    console.log('layer name:::::::::' + layer.title);
+                            if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
+                                lyr = layer;
+                               
+                            }
+                        }
+                }
+                
+            });
+            if (lyr !== undefined){
+                await this.getHomeGeocode(graphicProps, popupTemplate, lyr).then( res => {
+                    popupTemplate = res;
+                });
+            }
+           
             graphicProps.popupTemplate = popupTemplate;
         }
+        /*let graphic: __esri.Graphic = new Graphic();
+        await this.getHomeGeocode(graphicProps).then( res => {
+            graphic = res;
+        });*/
         const graphic: __esri.Graphic = new Graphic(graphicProps);
 
         console.log('Graphic parentId: ' + parentId);
@@ -1878,17 +1909,17 @@ export class MapService {
                 const max = Math.max(...milesList);
                 for (const miles of milesList) {
                     const kmsMereEach = miles / 0.62137;
-                    await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                    await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                         .then(res => {
                             //graphicList = res;
-                            if (max === miles) {
+                            if (max == miles) {
                                 this.selectCentroid(res);
                             }
                         });
                 }
             }
             if (tradeAreaMap.get('mergeType') === 'MergeAll') {
-                await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                await this.bufferMergeEach(tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                     .then(res => {
                         this.selectCentroid(res);
                     });
@@ -1908,6 +1939,29 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
+    async getHomeGeocode(graphicProps: __esri.GraphicProperties, popupTemplate: __esri.PopupTemplate, lyr: __esri.FeatureLayer) : Promise<__esri.PopupTemplate>{
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [FeatureLayer, Graphic, PopupTemplate]
+            = await loader.loadModules([
+                'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
+         const graphic: __esri.Graphic = new Graphic(graphicProps);       
+         console.log('getHomeGeocode fired');    
+
+         
+        const qry = lyr.createQuery();
+        qry.geometry = graphic.geometry;
+        const popUp: __esri.PopupTemplate = new PopupTemplate();
+         await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                const homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
+                let popupTemp = null;
+                popupTemp = popupTemplate.content;
+                const homeGeocodepopup = '<tbody><tr><th>HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
+                popUp.title = popupTemplate.title;
+                popUp.content = popupTemp;
+        });
+        return popUp;
+      }
 }
 
 
