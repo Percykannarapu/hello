@@ -953,7 +953,7 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async bufferMergeEach(pointsArray: Points[], pointColor, kms: number, title: string, outlneColor, parentId?: number) {
+    public async bufferMergeEach( pointColor, kms: number, title: string, outlneColor, parentId?: number) {
         /*: Promise<EsriWrapper<__esri.MapView>>*/
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -1911,7 +1911,7 @@ export class MapService {
                 const max = Math.max(...milesList);
                 for (const miles of milesList) {
                     const kmsMereEach = miles / 0.62137;
-                    await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                    await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                         .then(res => {
                             //graphicList = res;
                             if (max == miles) {
@@ -1921,7 +1921,7 @@ export class MapService {
                 }
             }
             if (tradeAreaMap.get('mergeType') === 'MergeAll') {
-                await this.bufferMergeEach(MapService.pointsArray, tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                await this.bufferMergeEach(tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                     .then(res => {
                         this.selectCentroid(res);
                     });

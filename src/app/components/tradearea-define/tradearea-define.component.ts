@@ -220,7 +220,10 @@ export class TradeareaDefineComponent implements OnInit {
                         }
                     }
 
-                    existingGraphics = (<__esri.FeatureLayer>layer).source;
+                  /*
+                  *This code is commented as a part of US6635 points array will no longer be used 
+                  */  
+                  /*  existingGraphics = (<__esri.FeatureLayer>layer).source;
                     if (layer.title.includes(this.selectedValue.toString())) {
                         lyrTitle = layer.title;
                         existingGraphics.forEach(function (current: any) {
@@ -230,7 +233,7 @@ export class TradeareaDefineComponent implements OnInit {
                             points.popup = current.popupTemplate;
                             pointsArray.push(points);
                         });
-                    }
+                    } */
                 }
             });
 
@@ -257,7 +260,7 @@ export class TradeareaDefineComponent implements OnInit {
                 const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
                 if (max != null) {
                     this.kms = max / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, this.kms, meTitle + max + lyrNme, outlneColor)
+                    await this.mapService.bufferMergeEach( color, this.kms, meTitle + max + lyrNme, outlneColor)
                         .then(res => {
                             this.mapService.selectCentroid(res);
                         });
@@ -276,7 +279,7 @@ export class TradeareaDefineComponent implements OnInit {
                 //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
-                    await this.mapService.bufferMergeEach(pointsArray, color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
+                    await this.mapService.bufferMergeEach(color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
                         .then(res => {
                             graphicList = res;
                         });
@@ -300,8 +303,8 @@ export class TradeareaDefineComponent implements OnInit {
                 for (const miles1 of this.milesList) {
                     i++;
                     const kmsNomerge = miles1 / 0.62137;
-                    for (const point of pointsArray) {
-                        await this.mapService.drawCircle(point.latitude, point.longitude, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
+                    for (const point of MapService.impGeofootprintLocList) {
+                        await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
                         MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                     }
 
