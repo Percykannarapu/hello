@@ -46,7 +46,7 @@ export class GeocoderService {
   }
 
   multiplesitesGeocode(siteList: any[]){
-    console.log('fired multiplGeocode in GeocoderService2:: ' + JSON.stringify(siteList, null, 2));   
+   // console.log('fired multiplGeocode in GeocoderService2:: ' + JSON.stringify(siteList, null, 2));   
     return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/geocoder/multiplesites', siteList);
   }
   

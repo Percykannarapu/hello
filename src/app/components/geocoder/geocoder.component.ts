@@ -398,21 +398,21 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
       }
-      if (column === 'NAME' || column === 'FIRM'  ){
-        nameFlag = true;
-        headerPosition.name = count;
-        this.headers[j] = 'name';
+      if (!nameFlag ){
+        if (column.includes('NAME') || column.includes('FIRM')  ){
+          nameFlag = true;
+          headerPosition.name = count;
+          this.headers[j] = 'name';
+        }
       }
-     /* if (columns[0].includes('NAME')){
-        nameFlag = true;
-        headerPosition.name = count;
-        this.headers[j] = 'name';
-      }*/
-      if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
-        numberFlag = true;
-        headerPosition.number = count;
-        this.headers[j] = 'number';
+      if (!numberFlag){
+        if (column.includes('NUMBER') || column.includes('NBR') || column.includes('ID') || column.includes('NUM') || column.includes('#')){
+          numberFlag = true;
+          headerPosition.number = count;
+          this.headers[j] = 'number';
+        }
       }
+      
       count++;
   }
   
@@ -435,6 +435,18 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       this.displayGcSpinner = false;
        throw new Error(validationError);
     }
+
+    if (!numberFlag){
+      const validationError: string = 'Number column not defined in the upload file';
+      const growlMessage: Message = {
+       summary: 'Failed to geocode File',
+       severity: 'error',
+       detail: `Number column not defined in the upload file` 
+     };
+     this.geocodingErrors.push(growlMessage);
+     this.displayGcSpinner = false;
+      throw new Error(validationError);
+   }
     return headerPosition;
   }
 
