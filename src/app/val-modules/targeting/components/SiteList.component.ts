@@ -112,7 +112,6 @@ export class SiteListComponent implements OnInit, OnDestroy
   
    ngOnInit()
    {
-      console.log('sites componenet init loaded');
       this.locSubscription = this.impGeofootprintLocationService.storeObservable.subscribe(locData => this.onChangeLocation(locData));
       this.locAttrSubscription = this.impGeofootprintLocAttrService.storeObservable.subscribe(locAttrData => this.onChangeLocAttr(locAttrData));
    }
@@ -128,7 +127,6 @@ export class SiteListComponent implements OnInit, OnDestroy
    onChangeLocAttr(impGeofootprintLocAttr: ImpGeofootprintLocAttrib[]){
      const locAttrList: ImpGeofootprintLocAttrib[] = Array.from(impGeofootprintLocAttr);
      this.impGeofootprintLocAttribList = locAttrList;
-     console.log('onChangeLocAttr attribute values:::' , this.impGeofootprintLocAttribList);
    }
 
 
@@ -203,8 +201,8 @@ export class SiteListComponent implements OnInit, OnDestroy
      const returnList: ImpGeofootprintLocAttrib[] = this.impGeofootprintLocAttribList.filter(
         attr => attr.impGeofootprintLocation.glId == locationId);
 
-        const gridtemp: any[] = [];
-        const gridMap: any = {};   
+        const gridtemp: Map<String, String>[] = [];
+        const gridMap: Map<String, String> = new Map<String, String>();   
       for (const locAttr of  returnList){
            gridMap[locAttr.attributeCode] = locAttr.attributeValue;
       }  

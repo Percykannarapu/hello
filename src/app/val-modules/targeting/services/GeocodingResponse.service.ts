@@ -116,6 +116,7 @@ export class GeocodingResponseService {
             for (header of headerList) {
                 //  if (siteMap.has(header)){
                 if (header === 'GROUP') {
+                    // we need to get this Group based on radio button
                     row = row + 'Advertisers,';
                     continue;
                 }
@@ -126,10 +127,12 @@ export class GeocodingResponseService {
                 }
                 if (header === 'ZIP' || header === 'ZIP4') {
                     if (header === 'ZIP') {
-                        const zip = site[header].split('-');
-                        row = row + zip[0] + ',';
-                        zip4 = zip[1];
-                        continue;
+                        if (site[header] !== undefined){
+                            const zip = site[header].split('-');
+                            row = row + zip[0] + ',';
+                            zip4 = zip[1];
+                            continue;
+                        }
                     }
                     if (header === 'ZIP4') {
                         row = row + zip4 + ',';
@@ -461,7 +464,7 @@ export class GeocodingResponseService {
         for (const impgeoLoc of  this.impGeofootprintLocList){
             const gridMap: any = {};   
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
-                attr => attr.impGeofootprintLocation.glId == impgeoLoc.glId);
+                attr => attr.impGeofootprintLocation.glId === impgeoLoc.glId);
 
                 for (const locAttr of  returnList){
                     gridMap[locAttr.attributeCode] = locAttr.attributeValue;
