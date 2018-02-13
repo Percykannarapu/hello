@@ -3,15 +3,21 @@
  ** Generated from VAL_ENTITY_GEN - v2.0
  **/
 
+import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ImpClientLocation } from '../../client/models/ImpClientLocation';
+import { ImpClientLocationType } from '../../client/models/ImpClientLocationType';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintLocation
 {
    public glId:                        number;                        /// Primary key, uniquely identifying a locations row
-   public locationName:                string;                        /// Name of the location
+   public clientIdentifierId:          number;
    public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
+   public locationNumber:              number;
+   public locationName:                string;                        /// Name of the location
+   public marketName:                  string;
+   public groupName:                   string;
    public xcoord:                      number;                        /// X Location coordinate
    public ycoord:                      number;                        /// Y Location coordinate
    public homeGeocode:                 string;                        /// Identifies the location home geography
@@ -34,7 +40,9 @@ export class ImpGeofootprintLocation
 
    // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - MANY TO ONE RELATIONSHIP MEMBERS
    // ---------------------------------------------------------------------
+   public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
    public impClientLocation:           ImpClientLocation;             /// Client Library Repository of Client Locations
+   public impClientLocationType:       ImpClientLocationType;         /// Client Library - Client Location Types (CLIENT, COMPETITOR etc.)
    public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
    public impProject:                  ImpProject;                    /// Captures Project information from the UI
 
@@ -53,8 +61,12 @@ export class ImpGeofootprintLocation
    {
       return new Map([
          ['glId',                         'number'],
-         ['locationName',                 'string'],
+         ['clientIdentifierId',           'number'],
          ['locationIdDisplay',            'string'],
+         ['locationNumber',               'number'],
+         ['locationName',                 'string'],
+         ['marketName',                   'string'],
+         ['groupName',                    'string'],
          ['xcoord',                       'number'],
          ['ycoord',                       'number'],
          ['homeGeocode',                  'string'],
@@ -87,7 +99,9 @@ export class ImpGeofootprintLocation
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
+         ['clientIdentifierType',         'ClientIdentifierType'],
          ['impClientLocation',            'ImpClientLocation'],
+         ['impClientLocationType',        'ImpClientLocationType'],
          ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
          ['impProject',                   'ImpProject']
          ]);
