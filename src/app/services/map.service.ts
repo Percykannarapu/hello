@@ -1353,7 +1353,7 @@ export class MapService {
         // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
 
-            let lyr: __esri.FeatureLayer;
+            /*let lyr: __esri.FeatureLayer;
             const fLyrList: __esri.FeatureLayer[] = [];
             await this.getAllFeatureLayers().then(list => {
                 console.log( 'length of layers::' + list.length);
@@ -1370,14 +1370,12 @@ export class MapService {
             if (lyr !== undefined){
                  for (const llyr of fLyrList){
                       await this.getHomeGeocode(graphicProps, popupTemplate, llyr).then( res => {
-                         popupTemplate = res;
+                          
+                         popupTemplate = new __esri.PopupTemplate(res.get('popUp'));
+                        // home_geo key
                      });
                 }
-                //   await this.getHomeGeocode(graphicProps, popupTemplate, lyr).then( res => {
-                //       popupTemplate = res;
-                //   });
-            }
-
+            }*/
             graphicProps.popupTemplate = popupTemplate;
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
@@ -1984,40 +1982,35 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
-    async getHomeGeocode(graphicProps: __esri.GraphicProperties, popupTemplate: __esri.PopupTemplate, lyr: __esri.FeatureLayer) : Promise<__esri.PopupTemplate>{
+    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
                 //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-         const graphic: __esri.Graphic = new Graphic(graphicProps);
-         console.log('getHomeGeocode fired');
+         const graphic: __esri.Graphic = gra;       
+         console.log('getHomeGeocode fired');    
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
-        const popUp: __esri.PopupTemplate = new PopupTemplate();
-         await lyr.queryFeatures(qry).then(polyFeatureSet => {
+      //  const popUp: __esri.PopupTemplate = new PopupTemplate();
+        const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
+        await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
                 if ( polyFeatureSet.features.length > 0)
                      homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
-                let popupTemp = null;
-                popupTemp = popupTemplate.content;
-                let homeGeocodepopup = '<tbody>';
                 if (lyr.title === 'ZIP_Top_Vars'){
-                    homeGeocodepopup = '<tbody><tr><th>ZIP HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                    homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
                 if (lyr.title === 'ATZ_Top_Vars'){
-                    homeGeocodepopup = '<tbody><tr><th>ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                    homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
                 if (lyr.title === 'DIG_ATZ_Top_Vars'){
-                    homeGeocodepopup = '<tbody><tr><th>DIG ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                    homeGeocodeMap.set('home_geo' , homeGeocode); 
                 }
-
-                popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
-                popUp.title = popupTemplate.title;
-                popUp.content = popupTemp;
+                                
         });
-        return popUp;
+        return homeGeocodeMap;
       }
 }
 

@@ -499,6 +499,7 @@ export class GeocodingResponseService {
             impGeofootprintLoc.origCity     = site.orgCity;
             impGeofootprintLoc.origState    = site.orgState;
             impGeofootprintLoc.origPostalCode = site.zip10;
+            impGeofootprintLoc.marketName   =  site.marketName;
 
             //impGeofootprintLoc.qua = site.locationQualityCode;
            // impGeofootprintLoc.origAddress1 = site

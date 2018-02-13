@@ -364,11 +364,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   for (let j = 0; j < columns.length; j++){
       let column = columns[j];
       column = column.toUpperCase();
-      if (columns[0].includes('NAME')){
-        nameFlag = true;
-        headerPosition.name = count;
-        this.headers[j] = 'name';
-      }
+      
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
@@ -404,6 +400,11 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
         headerPosition.name = count;
         this.headers[j] = 'name';
       }
+     /* if (columns[0].includes('NAME')){
+        nameFlag = true;
+        headerPosition.name = count;
+        this.headers[j] = 'name';
+      }*/
       if (column.includes('NUMBER') || column.includes('NBR') || column === 'ID' || column === 'NUM' || column.includes('#')){
         numberFlag = true;
         headerPosition.number = count;
@@ -573,10 +574,67 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
      // }
     }
     if (display) {
+     await this.calculateHomeGeo(geocodingResponseList);
      await this.addSitesToMap(geocodingResponseList, this.selector1);
      this.mapService.callTradeArea();
     }
     return geocodingResponseList;
+  }
+
+  async calculateHomeGeo(siteList: GeocodingResponse[] ){
+
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+      
+    };
+
+    const fLyrList: __esri.FeatureLayer[] = [];
+    await this.mapService.getAllFeatureLayers().then(list => {
+        if (list.length > 0 ){
+            for (const layer of list) {
+                    if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
+                        fLyrList.push(layer);
+                    }
+                }
+        }
+    });
+
+
+    for (const site of siteList  ){
+
+      for (const llyr of fLyrList){
+          let home_geo = null; 
+          const geoAttr: GeocodingAttributes = new GeocodingAttributes();
+          let graphic: __esri.Graphic;
+           await this.mapService.createGraphic(site.latitude, site.longitude, color).then( res => {
+              graphic = res;
+           });
+           await this.mapService.getHomeGeocode(llyr, graphic).then( res => {
+                 home_geo =  res.get('home_geo');
+                 if (llyr.title === 'ZIP_Top_Vars'){
+                  geoAttr.attributeName = 'Home ZIP';
+                  geoAttr.attributeValue = home_geo;
+                  site.geocodingAttributesList.push(geoAttr);
+                 }
+                 if (llyr.title === 'ATZ_Top_Vars'){
+                  geoAttr.attributeName = 'Home ATZ';
+                  geoAttr.attributeValue = home_geo;
+                  site.geocodingAttributesList.push(geoAttr);
+                 }
+                 if (llyr.title === 'DIG_ATZ_Top_Vars'){
+                  geoAttr.attributeName = 'Home DIGITAL ATZ';
+                  geoAttr.attributeValue = home_geo;
+                  site.geocodingAttributesList.push(geoAttr);
+                 }
+          });
+      }
+
+    }
+      
+
   }
 
   
