@@ -155,6 +155,9 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
         .then(res => this.geocodingRespService.locToEntityMapping(sitesList))
         .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
+
+        this.displayGcSpinner = false;
+        
     } catch (error) {
       this.handleError(error);
     }
@@ -337,7 +340,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
             console.log('forkJoin:::' + res.length);
               this.parseCsvResponse(res, true);
               this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
-              this.displayGcSpinner = false;
+              //this.displayGcSpinner = false;
           });
         }else{
         console.log('csvFormattedData length:::' + csvFormattedData.length);  
