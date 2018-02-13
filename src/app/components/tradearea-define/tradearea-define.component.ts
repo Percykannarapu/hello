@@ -5,6 +5,7 @@ import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { CONFIG } from '../../core/config';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -43,7 +44,9 @@ export class TradeareaDefineComponent implements OnInit {
     private campaignDetailsBox: ColorBoxComponent;
 
     constructor(
-        private mapService: MapService, private messageService: MessageService
+        private mapService: MapService, 
+        private messageService: MessageService, 
+        private impGeofootprintLocationService: ImpGeofootprintLocationService
     ) { }
 
     ngOnInit() {
@@ -303,7 +306,7 @@ export class TradeareaDefineComponent implements OnInit {
                 for (const miles1 of this.milesList) {
                     i++;
                     const kmsNomerge = miles1 / 0.62137;
-                    for (const point of MapService.impGeofootprintLocList) {
+                    for (const point of this.impGeofootprintLocationService.get()) {
                         await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
                         MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                     }

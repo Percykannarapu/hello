@@ -27,6 +27,7 @@ import { encode } from 'punycode';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 
 @Injectable()
 export class GeocodingResponseService {
@@ -43,15 +44,15 @@ export class GeocodingResponseService {
 
     private tempId: number = 0;
     public impGeoLocAttrList: any[] = [];
-    public impGeofootprintLocList: any[] = [];
-    public unselectedimpGeofootprintLocList: any[] = [];
+    public impGeofootprintLocList: ImpGeofootprintLocation[] = [];
     
 
     constructor(private http: HttpClient,
         private messageService: MessageService,
         private mapService: MapService,
         private metricService: MetricService,
-        private impGeofootprintLocationService: ImpGeofootprintLocationService) { }
+        private impGeofootprintLocationService: ImpGeofootprintLocationService,
+        private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService) { }
 
     /**
 * @description export CSV data to the user
@@ -267,28 +268,17 @@ export class GeocodingResponseService {
 
     public remove(loc: ImpGeofootprintLocation) {
         // Remove the site from the selected sites array
-        let index = MapService.impGeofootprintLocList.indexOf(loc);
+        this.impGeofootprintLocationService.remove(loc);
+      /*  const index = MapService.impGeofootprintLocList.indexOf(loc);
         MapService.impGeofootprintLocList = [...MapService.impGeofootprintLocList.slice(0, index),
         ...MapService.impGeofootprintLocList.slice(index + 1)];
          
-        //this.impGeofootprintLocList = []
         this.impGeofootprintLocList = MapService.impGeofootprintLocList;
-        this.unselectedimpGeofootprintLocList =  MapService.impGeofootprintLocList;
-        // Remove the site from the sites list array
-        // index = this.unselectedSitesList.indexOf(site);
-        // this.unselectedSitesList = [...this.unselectedSitesList.slice(0, index),
-        // ...this.unselectedSitesList.slice(index + 1)];
-
-        // Remove site from the map (TODO: I think this should be handled by an observer)
-        //      this.mapService.clearFeatureLayerAt(DefaultLayers.SITES, site.ycoord, site.xcoord);
-        //      this.mapService.clearGraphicsAt(site.ycoord, site.xcoord);
+        this.unselectedimpGeofootprintLocList =  MapService.impGeofootprintLocList;*/
+    
           this.mapService.clearGraphicsForParent(Number(loc.glId));
-
-
          // Update the metrics
-         this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintLocList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-
-        
+         this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintLocationService.get().length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         this.mapService.callTradeArea();
         // Notifiy Observers
         this.subject.next(loc);
@@ -452,8 +442,10 @@ export class GeocodingResponseService {
             if (this.cols.length <= 0) {
                 attrList.forEach(locAttr => { 
                      if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP', 'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
-                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP'].indexOf(locAttr.attributeCode) < 0)
-                            this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '90px' });       
+                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP'].indexOf(locAttr.attributeCode) < 0){
+                           // console.log('locAttr.attributeCode::::', locAttr.attributeCode); 
+                            this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '90px' });      
+                         }
                 });
                 for (let i = 0; i < this.cols.length; i++) {
                     this.columnOptions.push({ label: this.cols[i].header, value: this.cols[i] });
@@ -464,24 +456,30 @@ export class GeocodingResponseService {
 
     public displayData(){
         const gridtemp: any[] = [];
-        this.impGeoLocAttrList.forEach(attrList => {
-          const gridMap = {};
-          attrList.forEach(locAttr => { 
-            gridMap[locAttr.attributeCode] = locAttr.attributeValue;
-          });
-          gridtemp.push(gridMap);
-        });
+        this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
+        this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
+        for (const impgeoLoc of  this.impGeofootprintLocList){
+            const gridMap: any = {};   
+            const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
+                attr => attr.impGeofootprintLocation.glId == impgeoLoc.glId);
+
+                for (const locAttr of  returnList){
+                    gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+               } 
+               gridtemp.push(gridMap);
+        } 
          return gridtemp;
        }
     
 
     public locToEntityMapping(sitesList: GeocodingResponse[]){
        // this.gridData = sitesList;
-       
+       this.impGeofootprintLocList = [];
        const gridtemp: any[] = [];
+       const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
         sitesList.forEach(site => { 
             
-            const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
+          
             const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
             impGeofootprintLoc.glId         = Number(site.number);
             impGeofootprintLoc.locationName = site.name;
@@ -501,22 +499,25 @@ export class GeocodingResponseService {
 
             //impGeofootprintLoc.qua = site.locationQualityCode;
            // impGeofootprintLoc.origAddress1 = site
+           let i: number = 0;
+           const impLocAttrTempList: ImpGeofootprintLocAttrib[] = [];
            site.geocodingAttributesList.forEach(geocodingAttr => {
+               
             const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
                 impGeofootprintLocAttr.attributeCode  = geocodingAttr.attributeName;
                 impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
-                impGeofootprintLocAttr.locAttributeId = impGeofootprintLoc.glId ;
+                impGeofootprintLocAttr.locAttributeId = i++;
                 impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
                 impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
+                impLocAttrTempList.push(impGeofootprintLocAttr);
            });
-           this.impGeoLocAttrList.push(impGeofootprintLocAttribList);
+           this.impGeoLocAttrList.push(impLocAttrTempList);
            this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-           this.unselectedimpGeofootprintLocList = [...this.unselectedimpGeofootprintLocList, impGeofootprintLoc];
-           MapService.impGeofootprintLocList.push(impGeofootprintLoc);
-           //.push(impGeofootprintLoc);
-           //this.impGeofootprintLocList;
         });
+        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+
          // Update the metrics
-         this.metricService.add('LOCATIONS', '# of Sites', this.impGeoLocAttrList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+         this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintLocationService.get().length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     }
 }

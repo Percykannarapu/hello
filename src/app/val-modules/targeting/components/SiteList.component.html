@@ -33,10 +33,16 @@
             <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="Competitors" (ngModelChange)="onGroupChange()"></p-radioButton>
         </div>
     </div>
+
+
+    <!-- <p-dataTable #siteDt  [value]="impGeofootprintLocList" [(selection)]="selectedImpGeofootprintLocList" expandableRows="true" 
+        resizableColumns="true"   selectionMode="multiple" [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
+        columnResizeMode="expand" responsive="true" [editable]="true"> -->
+
     <div class="ui-g-12" >
-        <p-dataTable #siteDt  [value]="geocodingRespService.impGeofootprintLocList" expandableRows="true" resizableColumns="true" [responsive]="false" [globalFilter]="gb" selectionMode="multiple"
-       [(selection)]="geocodingRespService.unselectedimpGeofootprintLocList" [rows]="8" [paginator]="true" showToggleAll="true"  columnResizeMode="expand" responsive="true"
-       [editable]="true">
+       <p-dataTable #siteDt  [value]="impGeofootprintLocList" expandableRows="true" 
+        resizableColumns="true"    [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
+        columnResizeMode="expand" responsive="true" [editable]="true">
        <p-header> 
          <div class="ui-g" style="flex-wrap: nowrap !important;">
             <div class="ui-g-12 ui-g-nopad">
@@ -104,14 +110,18 @@
             </ng-template>  [field]="col.field"
        </p-column >-->
            
-      <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [editable]="true"  [style]="{'width': col.size}">
+      <p-column *ngFor="let col of cols" 
+            [field]="col.field" 
+            [header]="col.header" 
+            [editable]="true"  
+            [style]="{'width': col.size}">
            
        </p-column>  
 
        <ng-template let-site pTemplate="rowexpansion">
         <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
             <div class="ui-grid-row">
-                    <p-dataTable [value]="filterLocAttr(site.glId)" dataKey="ggId"
+                    <p-dataTable [value]="filterAttrByLoc(site.glId)" dataKey="locAttributeId"
                     resizableColumns="true" columnResizeMode="expand" responsive="true"
                     [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
 

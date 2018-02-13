@@ -12,6 +12,7 @@ import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Injectable()
 export class MapService {
@@ -37,7 +38,7 @@ export class MapService {
     public static hhChildren: number = 0;
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
-    public static impGeofootprintLocList: ImpGeofootprintLocation[] = [];
+   // public static impGeofootprintLocList: ImpGeofootprintLocation[] = [];
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
@@ -52,7 +53,8 @@ export class MapService {
                 private layerService: EsriLayerService,
                 private esriMapService: EsriMapService,
                 private impGeofootprintGeoService: ImpGeofootprintGeoService,
-                private config: AppConfig) {
+                private config: AppConfig,
+                private impGeofootprintLocationService: ImpGeofootprintLocationService) {
       this.esriMapService.onReady(() => {
         this.mapView = this.esriMapService.mapView;
         this.map = this.esriMapService.map;
@@ -981,9 +983,11 @@ export class MapService {
 
         const pointList: __esri.Point[] = [];
 
-        console.log('impGeofootprintLocList length:::' + MapService.impGeofootprintLocList.length);
 
-        for (const point of MapService.impGeofootprintLocList) {
+
+        console.log('impGeofootprintLocList length:::' + this.impGeofootprintLocationService.get().length);
+
+        for (const point of this.impGeofootprintLocationService.get()) {
             const p = new Point({
                 x: point.xcoord,
                 y: point.ycoord,
@@ -1382,31 +1386,32 @@ export class MapService {
         if (popupTemplate != null) {
 
             let lyr: __esri.FeatureLayer;
+            const fLyrList: __esri.FeatureLayer[] = [];
             await this.getAllFeatureLayers().then(list => {
                 console.log( 'length of layers::' + list.length);
                 if (list.length > 0 ){
                     for (const layer of list) {
                         //    console.log('layer name:::::::::' + layer.title);
-                            if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars') {
+                            if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
                                 lyr = layer;
-                               
+                                fLyrList.push(layer);
                             }
                         }
                 }
-                
             });
             if (lyr !== undefined){
-                await this.getHomeGeocode(graphicProps, popupTemplate, lyr).then( res => {
-                    popupTemplate = res;
-                });
+                 for (const llyr of fLyrList){
+                      await this.getHomeGeocode(graphicProps, popupTemplate, llyr).then( res => {
+                         popupTemplate = res;
+                     });
+                }
+                //   await this.getHomeGeocode(graphicProps, popupTemplate, lyr).then( res => {
+                //       popupTemplate = res;
+                //   });
             }
            
             graphicProps.popupTemplate = popupTemplate;
         }
-        /*let graphic: __esri.Graphic = new Graphic();
-        await this.getHomeGeocode(graphicProps).then( res => {
-            graphic = res;
-        });*/
         const graphic: __esri.Graphic = new Graphic(graphicProps);
 
         console.log('Graphic parentId: ' + parentId);
@@ -2016,18 +2021,30 @@ export class MapService {
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
+                //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
          const graphic: __esri.Graphic = new Graphic(graphicProps);       
          console.log('getHomeGeocode fired');    
 
-         
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
         const popUp: __esri.PopupTemplate = new PopupTemplate();
          await lyr.queryFeatures(qry).then(polyFeatureSet => {
-                const homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
+            let homeGeocode = null;
+                if ( polyFeatureSet.features.length > 0)
+                     homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
                 let popupTemp = null;
                 popupTemp = popupTemplate.content;
-                const homeGeocodepopup = '<tbody><tr><th>HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                let homeGeocodepopup = '<tbody>';
+                if (lyr.title === 'ZIP_Top_Vars'){
+                    homeGeocodepopup = '<tbody><tr><th>ZIP HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
+                }
+                if (lyr.title === 'ATZ_Top_Vars'){
+                    homeGeocodepopup = '<tbody><tr><th>ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';  
+                }
+                if (lyr.title === 'DIG_ATZ_Top_Vars'){
+                    homeGeocodepopup = '<tbody><tr><th>DIG ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';  
+                }
+                                
                 popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
                 popUp.title = popupTemplate.title;
                 popUp.content = popupTemp;

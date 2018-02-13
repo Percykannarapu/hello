@@ -159,6 +159,7 @@ import { TopVarService } from './services/top-var.service';
 import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
+import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 @NgModule({
     imports: [
@@ -291,7 +292,7 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
-        EsriMapService, EsriIdentityService,
+        EsriMapService, EsriIdentityService,ImpGeofootprintLocAttribService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService,
         UserService

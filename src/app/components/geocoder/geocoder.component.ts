@@ -524,7 +524,6 @@ export class GeocoderComponent implements OnInit {
           geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
           geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
          // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
-
           
           if (geocodingResponse.number == null){
             geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
@@ -540,13 +539,7 @@ export class GeocoderComponent implements OnInit {
                   geocodingAttrList.push(geocodingAttr);
            }
            geocodingResponse.geocodingAttributesList = geocodingAttrList;
-           
-          const points = new Points();
-          points.latitude =  locationResponseList[0].latitude;
-          points.longitude = locationResponseList[0].longitude;
-          MapService.pointsArray.push(points);
-          
-          geocodingResponseList.push(geocodingResponse);
+           geocodingResponseList.push(geocodingResponse);
      // }
     }
     if (display) {
