@@ -57,7 +57,11 @@ export class EsriLayerService {
   private onListItemCreated(event: any) : void {
     const listItem: __esri.ListItem = event.item;
     const currentLayer: __esri.FeatureLayer = listItem.layer as __esri.FeatureLayer;
-    if (currentLayer && currentLayer.portalItem && currentLayer.portalItem.id === this.config.layerIds.zip.topVars) {
+    if (currentLayer && currentLayer.portalItem &&
+      (currentLayer.portalItem.id === this.config.layerIds.atz.topVars ||
+        currentLayer.portalItem.id === this.config.layerIds.atz.digitalTopVars ||
+        currentLayer.portalItem.id === this.config.layerIds.zip.topVars ||
+        currentLayer.portalItem.id === this.config.layerIds.wrap.topVars)) {
       const action: __esri.Action = new EsriModules.Action({
         title: 'Show Demo Var Shading',
         className: 'esri-icon-layers',
