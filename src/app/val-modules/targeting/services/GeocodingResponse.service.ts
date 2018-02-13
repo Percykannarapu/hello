@@ -445,7 +445,7 @@ export class GeocodingResponseService {
             if (this.cols.length <= 0) {
                 attrList.forEach(locAttr => { 
                      if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP', 'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
-                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP'].indexOf(locAttr.attributeCode) < 0){
+                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Market'].indexOf(locAttr.attributeCode) < 0){
                            // console.log('locAttr.attributeCode::::', locAttr.attributeCode); 
                             this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '90px' });      
                          }

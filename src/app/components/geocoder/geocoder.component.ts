@@ -458,7 +458,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
           'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
           'Match Quality', 'Original Address', 'Original City',
-          'Original State', 'Original ZIP'].indexOf(site) < 0){
+          'Original State', 'Original ZIP', 'Market'].indexOf(site) < 0){
 
           site1[site] = row[site];
             //console.log('row:::' + row + ':::Siteval:::'+site)
@@ -554,6 +554,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           geocodingResponse.status      =      locRespListMap['Geocode Status'];  
           geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
           geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
+          geocodingResponse.marketName  =   locRespListMap['Market']; 
          // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
           
           if (geocodingResponse.number == null){

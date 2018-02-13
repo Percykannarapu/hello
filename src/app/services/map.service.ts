@@ -1348,34 +1348,7 @@ export class MapService {
         };
 
         // call getgeohome to get inhome geo
-
-
-        // if we got a popup template add that to the graphic as well
         if (popupTemplate != null) {
-
-            /*let lyr: __esri.FeatureLayer;
-            const fLyrList: __esri.FeatureLayer[] = [];
-            await this.getAllFeatureLayers().then(list => {
-                console.log( 'length of layers::' + list.length);
-                if (list.length > 0 ){
-                    for (const layer of list) {
-                        //    console.log('layer name:::::::::' + layer.title);
-                            if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-                                lyr = layer;
-                                fLyrList.push(layer);
-                            }
-                        }
-                }
-            });
-            if (lyr !== undefined){
-                 for (const llyr of fLyrList){
-                      await this.getHomeGeocode(graphicProps, popupTemplate, llyr).then( res => {
-                          
-                         popupTemplate = new __esri.PopupTemplate(res.get('popUp'));
-                        // home_geo key
-                     });
-                }
-            }*/
             graphicProps.popupTemplate = popupTemplate;
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);

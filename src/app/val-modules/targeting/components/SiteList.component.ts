@@ -60,7 +60,8 @@ export class SiteListComponent implements OnInit, OnDestroy
                          { field: 'origAddress1',         header: 'Original Address', size: '70px'},
                          { field: 'origCity',             header: 'Original City', size: '70px'},
                          { field: 'origState',            header: 'Original State', size: '70px'},
-                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'}
+                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'},
+                         { field: 'marketName',           header: 'Market', size: '70px'}
                         ];
   
    constructor(public geocodingRespService: GeocodingResponseService,
