@@ -168,13 +168,18 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     return false;
   }
 
-  public clearFields(){
+  public clearFieldsOnChange(){
     //
     const radioClicked = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box');
     const buttonCls = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-icon');
     radioClicked.classList.remove('ui-state-active');
     buttonCls.classList.remove('fa');
     buttonCls.classList.remove('fa-circle');
+    this.clearFields();
+  }
+
+  public clearFields(){
+    //
     this.street = '';
     this.city = '';
     this.state = '';
