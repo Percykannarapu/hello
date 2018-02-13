@@ -61,7 +61,10 @@ export class LayerState {
     });
     this.newOpacity$.subscribe(o => {
       this.newOpacity = o;
-      this.layer.opacity = o / 100;
+      if (this.showNewRenderer.getValue()) {
+        console.log('Setting layer opacity 1');
+        this.layer.opacity = o / 100;
+      }
     });
   }
 
@@ -73,19 +76,26 @@ export class LayerState {
   private onRendererReady() : void {
     if (this.showNewRenderer.getValue()) {
       this.layer.renderer = this.newRenderer;
+      console.log('Setting layer opacity 2');
       this.layer.opacity = this.newOpacity / 100;
     }
   }
 
   private onShowNewRenderer(show: boolean) : void {
     if (!show) {
+      console.log('Turning off smart renderer.');
       this.layer.renderer = this.originalRenderer;
+      console.log('Setting layer opacity 3');
       this.layer.opacity = this.originalOpacity;
     } else {
+      console.log('Turning on smart renderer.');
       if (this.newRenderer == null) {
+        console.log('New Renderer has not been generated.');
         this.generateRenderer();
       } else {
+        console.log('New Renderer already exists');
         this.layer.renderer = this.newRenderer;
+        console.log('Setting layer opacity 4');
         this.layer.opacity = this.newOpacity / 100;
       }
     }
@@ -93,6 +103,7 @@ export class LayerState {
 
   private generateRenderer() : void {
     if (this.newTopVar == null) return;
+    console.log('Generating new renderer');
     const colorParams = {
       layer: this.layer,
       basemap: this.newBaseMap,

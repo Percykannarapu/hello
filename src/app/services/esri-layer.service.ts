@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { DemographicVariable, TopVarService } from './top-var.service';
+import { TopVarService } from './top-var.service';
 import { LayerState, SmartMappingTheme } from '../models/LayerState';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
@@ -57,7 +57,7 @@ export class EsriLayerService {
   private onListItemCreated(event: any) : void {
     const listItem: __esri.ListItem = event.item;
     const currentLayer: __esri.FeatureLayer = listItem.layer as __esri.FeatureLayer;
-    if (currentLayer && currentLayer.portalItem && currentLayer.portalItem.id === this.config.layerIds.zip[0]) {
+    if (currentLayer && currentLayer.portalItem && currentLayer.portalItem.id === this.config.layerIds.zip.topVars) {
       const action: __esri.Action = new EsriModules.Action({
         title: 'Show Demo Var Shading',
         className: 'esri-icon-layers',
@@ -70,12 +70,11 @@ export class EsriLayerService {
   private onActionClicked(event: any) : void {
     const id: string = event.action.id;
     const currentLayer: __esri.FeatureLayer = event.item.layer;
-    console.log(event);
     if (id === 'show-shading') {
       console.log(`clicked action '${id}'`);
       if (!this.featureLayers.has(currentLayer.title)) {
         const state = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.baseMap$,
-                                    this.topVars.selectedTopVar$, this.currentSmartTheme$,
+                                    this.topVars.getSelectedTopVar(), this.currentSmartTheme$,
                                     this.currentThemeOpacity$, this.sliderElementId);
         this.featureLayers.set(currentLayer.title, state);
       }

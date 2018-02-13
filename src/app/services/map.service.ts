@@ -134,18 +134,19 @@ export class MapService {
     }
 
     // Execute each time the "Buffer" action is clicked
-    public async bufferThis() {
+    public bufferThis() {
+      // TODO: This method does nothing, do we need it?
         // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [geometryEngine] = await loader.loadModules([
-            'esri/geometry/geometryEngine'
-        ]);
+        // const loader = EsriLoaderWrapperService.esriLoader;
+        // const [geometryEngine] = await loader.loadModules([
+        //     'esri/geometry/geometryEngine'
+        // ]);
 
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
     }
 
     // Select polygon using either a MapPoint (click) or passed Geometery (popup-action)
-    public async selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
+    public selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
         console.log('fired selectPolyClick');
         const color = {
                 a: 1,
@@ -176,7 +177,7 @@ export class MapService {
     }
 
     // Execute each time the "select-this" action is clicked
-    public async selectThis() {
+    public selectThis() {
         console.log('fired popup action select-this()');
         const objectID: number = this.mapView.popup.selectedFeature.attributes.OBJECTID;
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
@@ -441,7 +442,7 @@ export class MapService {
 */
 
     // plotMarker
-    public async plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
+    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
 
         console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
@@ -460,10 +461,8 @@ export class MapService {
     }
 
     // Hide MapLayers
-    public async hideMapLayers() : Promise<EsriWrapper<__esri.MapView>> {
+    public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
         // Toggle all layers
         this.mapView.map.layers.forEach(function (layer, i) {
             if (layer.visible === true) {
@@ -475,27 +474,16 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public async removeMapLayers() : Promise<EsriWrapper<__esri.MapView>> {
+    public removeMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired removeMapLayers() in MapService');
 
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
-        /*
-        const [FeatureLayer, GraphicsLayer, MapLayer, geometryEngine] = await loader.loadModules([
-            'esri/layers/FeatureLayer',
-            'esri/layers/GraphicsLayer',
-            'esri/layers/MapImageLayer',
-            'esri/geometry/geometryEngine',
-            'dojo/domReady!'
-        ]);
-        */
         // remove all layers
         this.mapView.map.layers.removeAll();
         return { val: this.mapView };
     }
 
     // Physically Remove MapLayer (or GroupLayer)
-    public async removeLayer(layer: __esri.Layer) : Promise<EsriWrapper<__esri.MapView>> {
+    public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         this.mapView.map.remove(layer);
@@ -522,27 +510,9 @@ export class MapService {
         });
     }
 
-    public async setMapLayers(/*allLayers: any[], selectedLayers: any[],*/ analysisLevels: string[]) : Promise<EsriWrapper<__esri.MapView>> {
+    public setMapLayers(/*allLayers: any[], selectedLayers: any[],*/ analysisLevels: string[]) : EsriWrapper<__esri.MapView> {
         console.log('fired setMapLayers() in MapService');
         // const Census = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer';
-
-        // load required modules for this method
-        const loader = EsriLoaderWrapperService.esriLoader;
-        //const [esriConfig, PopupTemplate, GroupLayer, LayerList, Layer, FeatureLayer, GraphicsLayer, MapLayer, geometryEngine, first, all] = await loader.loadModules([
-        const [PopupTemplate, Layer] = await loader.loadModules([
-            //'esri/config',
-            'esri/PopupTemplate',
-            //'esri/layers/GroupLayer',
-            //'esri/widgets/LayerList',
-            'esri/layers/Layer',
-            //'esri/layers/FeatureLayer',
-            //'esri/layers/GraphicsLayer',
-            //'esri/layers/MapImageLayer',
-            //'esri/geometry/geometryEngine',
-            //'dojo/promise/first',
-            //'dojo/promise/all',
-            //'dojo/domReady!'
-        ]);
         //let popupTitle: string[];
         let PopupTitle: string;
         let layerVisible: boolean = true;
@@ -550,7 +520,8 @@ export class MapService {
         //let endPos: number;
 
         //const itemId = url => url.slice(url.indexOf('id=') + 3, url.length);
-        const fromPortal = id => Layer.fromPortalItem({
+
+        const fromPortal = id => EsriModules.Layer.fromPortalItem(<any>{
             portalItem: {
                 portal: this.config.esriConfig.portalUrl,
                 id: id
@@ -640,7 +611,7 @@ export class MapService {
 
                 if (analysisLevel === 'DMA') {
                     // Add DMA layer IDs
-                    const layers = this.config.layerIds.dma.map(fromPortal);
+                    const layers: any[] = Object.values(this.config.layerIds.dma).map(fromPortal);
 
                     // Add all DMA Layers via Promise
                     Promise.all(layers)
@@ -650,16 +621,16 @@ export class MapService {
                                 if (x.portalItem.title.indexOf('Centroid') > 0) {
                                     layerVisible = false;
                                     console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                } else {    
+                                } else {
                                     layerVisible = true;
-                                } 
+                                }
                                 if (x.type === 'feature') {
                                     //x.minScale = 5000000;
                                     //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                    x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                    x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                 } else {
                                     //x.maxScale = 5000000;
-                                    x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                    x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                 }
                                 // Add Layer to Group Layer if it does not already exist
                                 if (!this.findSubLayerByTitle(MapService.DmaGroupLayer, x.portalItem.title)) {
@@ -678,7 +649,7 @@ export class MapService {
                 } else
                     if (analysisLevel === 'ZIP') {
                         // Add ZIP layer IDs
-                        const layers = this.config.layerIds.zip.map(fromPortal);
+                        const layers: any[] = Object.values(this.config.layerIds.zip).map(fromPortal);
 
                         // Add all ZIP Layers via Promise
                         Promise.all(layers)
@@ -688,16 +659,16 @@ export class MapService {
                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                         layerVisible = false;
                                         console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                    } else {    
+                                    } else {
                                         layerVisible = true;
-                                    } 
+                                    }
                                         if (x.type === 'feature') {
                                         x.minScale = 5000000;
                                         //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                        x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                        x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                     } else {
                                         x.maxScale = 5000000;
-                                        x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                        x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                     }
                                     // Add Layer to Group Layer if it does not already exist
                                     if (!this.findSubLayerByTitle(MapService.ZipGroupLayer, x.portalItem.title)) {
@@ -717,7 +688,7 @@ export class MapService {
                     } else
                         if (analysisLevel === 'ATZ') {
                             // Add atz layer IDs
-                            const layers = this.config.layerIds.atz.map(fromPortal);
+                            const layers: any[] = Object.values(this.config.layerIds.atz).map(fromPortal);
 
                             // Add all ATZ Layers via Promise
                             Promise.all(layers)
@@ -727,16 +698,16 @@ export class MapService {
                                         if (x.portalItem.title.indexOf('Centroid') > 0) {
                                             layerVisible = false;
                                             console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                        } else {    
+                                        } else {
                                             layerVisible = true;
-                                        } 
+                                        }
                                                 if (x.type === 'feature') {
                                             x.minScale = 5000000;
                                             //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                            x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                         } else {
                                             x.maxScale = 5000000;
-                                            x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                         }
                                         // Add Layer to Group Layer if it does not already exist
                                         if (!this.findSubLayerByTitle(MapService.AtzGroupLayer, x.portalItem.title)) {
@@ -755,7 +726,7 @@ export class MapService {
                         } else
                             if (analysisLevel === 'PCR') {
                                 // Add PCR layer IDs
-                                const layers = this.config.layerIds.pcr.map(fromPortal);
+                                const layers: any[] = Object.values(this.config.layerIds.pcr).map(fromPortal);
 
                                 // Add all PCR Layers via Promise
                                 Promise.all(layers)
@@ -765,16 +736,16 @@ export class MapService {
                                             if (x.portalItem.title.indexOf('Centroid') > 0) {
                                                 layerVisible = false;
                                                 console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                            } else {    
+                                            } else {
                                                 layerVisible = true;
-                                            } 
+                                            }
                                                         if (x.type === 'feature') {
                                                 x.minScale = 5000000;
                                                 //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                                x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                             } else {
                                                 x.maxScale = 5000000;
-                                                x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                             }
                                             // Add Layer to Group Layer if it does not already exist
                                             if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
@@ -794,7 +765,7 @@ export class MapService {
                             } else
                                 if (analysisLevel === 'WRAP') {
                                     // Add WRAP layer IDs
-                                    const layers = this.config.layerIds.wrap.map(fromPortal);
+                                    const layers: any[] = Object.values(this.config.layerIds.wrap).map(fromPortal);
 
                                     // Add all WRAP Layers via Promise
                                     Promise.all(layers)
@@ -804,16 +775,16 @@ export class MapService {
                                                 if (x.portalItem.title.indexOf('Centroid') > 0) {
                                                     layerVisible = false;
                                                     console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                                } else {    
+                                                } else {
                                                     layerVisible = true;
-                                                } 
+                                                }
                                                                 if (x.type === 'feature') {
                                                     // x.minScale = 5000000;
                                                     //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                                    x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                    x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                 } else {
                                                     x.maxScale = 5000000;
-                                                    x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                    x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                 }
                                                 // Add Layer to Group Layer if it does not already exist
                                                 if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
@@ -833,7 +804,7 @@ export class MapService {
                                 } else
                                     if (analysisLevel === 'HH') {
                                         // Add HH layer IDs
-                                        const layers = this.config.layerIds.hh.map(fromPortal);
+                                        const layers: any[] = Object.values(this.config.layerIds.hh).map(fromPortal);
 
                                         // Add all HH Layers via Promise
                                         Promise.all(layers)
@@ -843,16 +814,16 @@ export class MapService {
                                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                                         layerVisible = false;
                                                         console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                                    } else {    
+                                                    } else {
                                                         layerVisible = true;
-                                                    } 
+                                                    }
                                                                         if (x.type === 'feature') {
                                                         x.minScale = 2300000;
                                                         //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                                        x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                        x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                     } else {
                                                         x.maxScale = 2300000;
-                                                        x.popupTemplate = new PopupTemplate({ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                        x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                     }
                                                     // Add Layer to Group Layer if it does not already exist
                                                     if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
@@ -1013,19 +984,16 @@ export class MapService {
         return graphicList;
     }
 
-    public async createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+    public createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
         console.log('fired createFeatureLayer() in MapService');
         if (MapService.layerNames.has(layerName)) {
             console.log('layer name already exists');
             throw new Error('Layer name already exists, please use a different name');
         }
         MapService.layerNames.add(layerName);
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, Renderer, Polygon] = await loader.loadModules(['esri/layers/FeatureLayer',
-            'esri/renderers/Renderer', 'esri/geometry/Polygon']);
         const featureRenderer = { type: 'simple' };
 
-        const lyr = new FeatureLayer({
+        const lyr = new EsriModules.FeatureLayer(<any>{
             fields: [
                 {
                     name: 'ObjectID',
@@ -1071,7 +1039,7 @@ export class MapService {
                   supportsSqlExpression: true,
                   supportsStandardizedQueriesOnly: true,
                   supportsStatistics: true
-               }                
+               }
             }
         });
 
@@ -1309,7 +1277,7 @@ export class MapService {
         graphic.setAttribute(name, value);
     }
 
-    public async updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
+    public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
         console.log('fired updateFeatureList() in MapService');
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
@@ -1333,7 +1301,7 @@ export class MapService {
         });
         if (!layerUpdated) {
             console.log('FeatureLayer requested for update does not exist, creating');
-            await this.createFeatureLayer(graphics, layerTitle);
+            this.createFeatureLayer(graphics, layerTitle);
             return;
         }
         // await this.zoomOnMap(graphics);
@@ -1379,7 +1347,7 @@ export class MapService {
             symbol: symbol
         };
 
-        // call getgeohome to get inhome geo 
+        // call getgeohome to get inhome geo
 
 
         // if we got a popup template add that to the graphic as well
@@ -1409,7 +1377,7 @@ export class MapService {
                 //       popupTemplate = res;
                 //   });
             }
-           
+
             graphicProps.popupTemplate = popupTemplate;
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
@@ -1607,7 +1575,7 @@ export class MapService {
             console.log('featureSet.features[' + i + ']', featureSet.features[i].toJSON());
 
             // Compare geocode lat/long to list of sites lat/long and find shortest distance
-            //   That will tell me the distance, and I'll have to record the lat long or index of the site to associate with a imp_location object                  
+            //   That will tell me the distance, and I'll have to record the lat long or index of the site to associate with a imp_location object
             impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE, impGeofootprintLocation: new ImpGeofootprintLocation()}));
          }
       });
@@ -1620,12 +1588,12 @@ export class MapService {
          for (let i = 0; i < fs.features.length; i++)
          {
             console.log('featureSet.features[' + i + '].geocode = ', fs.features[i].attributes.GEOCODE);
-         
+
             for (let s = 0; s < sitesLayer.source.length; s++) {
                console.log('comparing against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s));
                const dist = EsriModules.geometryEngine.distance(fs.features[i].geometry, sitesLayer.source.getItemAt(s).geometry, 'miles'); // distance(geometry1, geometry2, distanceUnit)
                console.log('distance: ' + dist);
-               
+
                // const nearestPoint: __esri.NearestPointResult = EsriModules.geometryEngine.nearestCoordinate(
                //    fs.features[i].geometry
                //    , new __esri.Point({longitude: null, latitude: sitesLayer.source.getItemAt(i).geometry.get('latitude')}));
@@ -1989,7 +1957,7 @@ export class MapService {
                     await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                         .then(res => {
                             //graphicList = res;
-                            if (max == miles) {
+                            if (max === miles) {
                                 this.selectCentroid(res);
                             }
                         });
@@ -2022,8 +1990,8 @@ export class MapService {
             = await loader.loadModules([
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
                 //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-         const graphic: __esri.Graphic = new Graphic(graphicProps);       
-         console.log('getHomeGeocode fired');    
+         const graphic: __esri.Graphic = new Graphic(graphicProps);
+         console.log('getHomeGeocode fired');
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
@@ -2039,12 +2007,12 @@ export class MapService {
                     homeGeocodepopup = '<tbody><tr><th>ZIP HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
                 }
                 if (lyr.title === 'ATZ_Top_Vars'){
-                    homeGeocodepopup = '<tbody><tr><th>ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';  
+                    homeGeocodepopup = '<tbody><tr><th>ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
                 }
                 if (lyr.title === 'DIG_ATZ_Top_Vars'){
-                    homeGeocodepopup = '<tbody><tr><th>DIG ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';  
+                    homeGeocodepopup = '<tbody><tr><th>DIG ATZ HOME GEOCODE</th><td>' + homeGeocode + '</td></tr>';
                 }
-                                
+
                 popupTemp = popupTemp.replace(/<tbody>/g, homeGeocodepopup);
                 popUp.title = popupTemplate.title;
                 popUp.content = popupTemp;

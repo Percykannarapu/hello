@@ -109,13 +109,19 @@ export class TopVarService {
   private allTopVars: BehaviorSubject<DemographicVariable[]> = new BehaviorSubject<DemographicVariable[]>([]);
   private selectedTopVar: BehaviorSubject<DemographicVariable> = new BehaviorSubject<DemographicVariable>(null);
 
-  public allTopVars$: Observable<DemographicVariable[]> = this.allTopVars.asObservable();
-  public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
+  constructor() {}
 
-  constructor() {
-    // TODO: when the top vars can be pulled dynamically from a rest service, replace this with an HTTP call
-    // (or possibly a call to a val-module service)
-    this.allTopVars.next(data);
+  public getAllTopVars() : Observable<DemographicVariable[]> {
+    if (this.allTopVars.getValue().length === 0) {
+      // TODO: when the top vars can be pulled dynamically from a rest service, replace this with an HTTP call
+      // (or possibly a call to a val-module service)
+      this.allTopVars.next(data);
+    }
+    return this.allTopVars.asObservable();
+  }
+
+  public getSelectedTopVar() : Observable<DemographicVariable> {
+    return this.selectedTopVar.asObservable();
   }
 
   public selectTopVar(newTopVar: DemographicVariable) : void {
