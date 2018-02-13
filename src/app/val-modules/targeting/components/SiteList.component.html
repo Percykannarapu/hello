@@ -40,7 +40,7 @@
         columnResizeMode="expand" responsive="true" [editable]="true"> -->
 
     <div class="ui-g-12" >
-       <p-dataTable #siteDt  [value]="impGeofootprintLocList" expandableRows="true" 
+       <p-dataTable #siteDt  [value]="impGeofootprintLocList" expandableRows="true" [(selection)]="selectedImpGeofootprintLocList"
         resizableColumns="true"    [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
         columnResizeMode="expand" responsive="true" [editable]="true">
        <p-header> 
@@ -81,19 +81,8 @@
          </div>
      
         </p-header>
-
         <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
-    
         <p-column selectionMode="multiple" [style]="{'width':'40px'}"></p-column>
-       
-       <!-- <p-column field="pk" header="Site #"></p-column>
-       <p-column field="name" header="Name"></p-column>
-       <p-column field="address" header="Address" [style]="{'width':'15%'}"></p-column>
-       <p-column field="city" header="City"></p-column>
-       <p-column field="state" header="State" [style]="{'width':'5%'}"></p-column>
-       <p-column field="zip" header="Zip" [style]="{'width':'8%'}"></p-column>
-       <p-column field="ycoord" header="Latitude (Y)" [style]="{'width':'9%'}"></p-column>
-       <p-column field="xcoord" header="Longitude (X)" [style]="{'width':'9%'}"></p-column> -->
        <p-column header="Zoom To" [style]="{'width':'40px'}">
           <ng-template let-h="rowData" pTemplate="body">
              <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
@@ -104,11 +93,11 @@
              <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
           </ng-template>
        </p-column>
-       <!-- <p-column header="Edit" [style]="{'width':'60px'}" [editable]="true">
-            <ng-template let-site="rowData"  pTemplate="body"  >
-                    <button type="button"  icon="ui-icon-edit"></button>   
-            </ng-template>  [field]="col.field"
-       </p-column >-->
+       <p-column header="Edit" [style]="{'width':'60px'}" >
+            <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
+                    <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>   
+            </ng-template>  
+        </p-column>
            
       <p-column *ngFor="let col of cols" 
             [field]="col.field" 
@@ -123,9 +112,9 @@
             <div class="ui-grid-row">
                     <p-dataTable [value]="filterAttrByLoc(site.glId)" dataKey="locAttributeId"
                     resizableColumns="true" columnResizeMode="expand" responsive="true"
-                    [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
+                    [paginator]="true" [rows]="25" >
 
-                    <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column>
+                    <!-- <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column> -->
 
                         <p-column *ngFor="let col of geocodingRespService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}">
                         </p-column>

@@ -101,6 +101,10 @@ export class SiteListComponent implements OnInit, OnDestroy
       this.geocodingRespService.remove(loc);
      // MapService.pointsArray.
    }
+
+   public onEditSite(row: any){
+      console.log('test row on edit::::', row);
+   }
    
    getAmSites()
    {

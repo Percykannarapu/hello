@@ -936,7 +936,7 @@
   content: ""; }
 
 .fa-circle:before {
-  content: ""; }
+  content: normal; }
 
 .fa-mail-reply:before,
 .fa-reply:before {
