@@ -52,6 +52,7 @@ export class SiteListComponent implements OnInit, OnDestroy
                          { field: 'locCity',              header: 'City', size: '70px'},
                          { field: 'locState',             header: 'State', size: '70px'},
                          { field: 'locZip',               header: 'ZIP', size: '70px'},
+                         { field: 'marketName',           header: 'Market', size: '70px'},
                          { field: 'recordStatusCode',     header: 'Geocode Status', size: '70px'},
                          { field: 'ycoord',               header: 'Latitude', size: '70px'},
                          { field: 'xcoord',               header: 'Longitude', size: '70px'},
@@ -60,8 +61,7 @@ export class SiteListComponent implements OnInit, OnDestroy
                          { field: 'origAddress1',         header: 'Original Address', size: '70px'},
                          { field: 'origCity',             header: 'Original City', size: '70px'},
                          { field: 'origState',            header: 'Original State', size: '70px'},
-                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'},
-                         { field: 'marketName',           header: 'Market', size: '70px'}
+                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'}
                         ];
   
    constructor(public geocodingRespService: GeocodingResponseService,
