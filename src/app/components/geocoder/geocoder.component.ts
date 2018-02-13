@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { AccountLocation } from '../../models/AccountLocation';
 import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
@@ -43,7 +43,7 @@ interface CsvHeadersPosition {
   templateUrl: './geocoder.component.html',
   styleUrls: ['./geocoder.component.css']
 })
-export class GeocoderComponent implements OnInit {
+export class GeocoderComponent implements OnInit, AfterViewInit {
 
   private static failedSiteCounter: number = 1;
   public street: string;
@@ -75,9 +75,29 @@ export class GeocoderComponent implements OnInit {
 
   @ViewChild('fileUpload') private fileUploadEl: ElementRef;
 
+  // get the radio button element
+  @ViewChild('siteRef') private siteRefEl: ElementRef;
+
   constructor(private geocoderService: GeocoderService, private mapService: MapService, private geocodingRespService: GeocodingResponseService, private metricService: MetricService) { }
 
   ngOnInit() {
+  }
+
+  ngAfterViewInit() {
+    //Called after ngAfterContentInit when the component's view has been initialized. Applies to components only.
+    //Add 'implements AfterViewInit' to the class.
+    //Set the radio buttons to default Sites. Override the styling components to see the radiobutton
+    if (this.siteRefEl){
+      console.log(this.siteRefEl);
+      console.log(this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box'));
+      const radioClicked = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box');
+      const buttonCls = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-icon');
+      radioClicked.classList.add('ui-state-active');
+      buttonCls.classList.add('fa');
+      buttonCls.classList.add('fa-circle');
+      
+    }
+
   }
 
   // collect the information entered by the user on the geocorder form and 
@@ -85,7 +105,7 @@ export class GeocoderComponent implements OnInit {
   public async onGeocode(selector) {
     try {
       const site: any = new GeocodingResponse();
-      if (this.number === null){
+      if (!this.number){
         site.number = this.geocodingRespService.getNewSitePk().toString();
       }else {
         site.number = this.number;
@@ -150,6 +170,11 @@ export class GeocoderComponent implements OnInit {
 
   public clearFields(){
     //
+    const radioClicked = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box');
+    const buttonCls = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-icon');
+    radioClicked.classList.remove('ui-state-active');
+    buttonCls.classList.remove('fa');
+    buttonCls.classList.remove('fa-circle');
     this.street = '';
     this.city = '';
     this.state = '';
