@@ -148,7 +148,7 @@ export class GeocoderService {
     await this.mapService.getAllFeatureLayers().then(list => {
       if (list.length > 0) {
         for (const layer of list) {
-          if (layer.portalItem.id === this.config.layerIds.zip.topVars || 
+          if (layer.portalItem != null && layer.portalItem.id === this.config.layerIds.zip.topVars || 
               layer.portalItem.id === this.config.layerIds.atz.topVars || 
               layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
             fLyrList.push(layer);

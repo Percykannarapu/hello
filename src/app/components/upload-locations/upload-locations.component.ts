@@ -78,6 +78,7 @@ export class UploadLocationsComponent implements OnInit {
       let headerPosition: any = {};
       try {
         headerPosition = this.verifyCSVColumns(this.headers);
+        
         console.log('header details after edit:' + this.headers);
       } catch (error) {
         this.handleError(error);
@@ -91,7 +92,8 @@ export class UploadLocationsComponent implements OnInit {
       for (let i = 1; i < csvRecords.length; i++) {
         const siteList: any[] = [];
         const site = {};
-        const csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').split(',');
+        let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '');
+        csvRecord = csvRecord.replace('"', '').split(',');
         //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if (csvRecord.length === this.headers.length) {
 
@@ -126,12 +128,14 @@ export class UploadLocationsComponent implements OnInit {
           console.log('forkJoin:::' + res.length);
           this.parseCsvResponse(res, true);
           this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
-
+          //this.displayGcSpinner = false;
+          
         });
       } else {
         console.log('csvFormattedData length:::' + csvFormattedData.length);
         this.parseCsvResponse(csvFormattedData, true);
         this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
+        //this.displayGcSpinner = false;
       }
     };
   }
@@ -331,7 +335,7 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponse.marketName = locRespListMap['Market'];
       // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
 
-      if (geocodingResponse.number == null) {
+      if (geocodingResponse.number == null || geocodingResponse.number == '') {
         geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
         locRespListMap['Number'] = geocodingResponse.number;
       }

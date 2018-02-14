@@ -203,7 +203,7 @@ export class GeocodingResponseService {
         return csvData;
     }
 
-    public getNewSitePk(): number {
+    public getNewSitePk() : number {
         return this.tempId++;
     }
 
@@ -519,17 +519,22 @@ export class GeocodingResponseService {
                 impLocAttrTempList.push(impGeofootprintLocAttr);
             });
             this.impGeoLocAttrList.push(impLocAttrTempList);
+            if (selector === 'Site'){
             this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
+        } else{
+            this.impGeofootprintCompList = [...this.impGeofootprintCompList, impGeofootprintLoc];
+        }
         });
-        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
-        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-
         if (selector === 'Site') {
+            this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
             this.siteCount = this.siteCount + (this.impGeofootprintLocList.length);
             // Update the metrics
             this.metricService.add('LOCATIONS', '# of Sites', this.siteCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         } else {
-            this.compCount = this.compCount + (this.impGeofootprintLocList.length);
+            this.impGeofootprintLocationService.add(this.impGeofootprintCompList);
+            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+            this.compCount = this.compCount + (this.impGeofootprintCompList.length);
             // Update the metrics
             this.metricService.add('LOCATIONS', '# of Competitors', this.compCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         }

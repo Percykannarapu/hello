@@ -40,7 +40,7 @@
         columnResizeMode="expand" responsive="true" [editable]="true"> -->
 
 <div class="ui-g-12">
-    <p-dataTable *ngIf="selectedValue === 'Competitor'" [value]="impGeofootprintLocList" expandableRows="true" [(selection)]="selectedImpGeofootprintLocList"
+    <p-dataTable *ngIf="selectedValue === 'Competitor'" [value]="impGeofootprintCompList" expandableRows="true" [(selection)]="selectedImpGeofootprintCompList"
         resizableColumns="true" [rows]="8" [paginator]="true" showToggleAll="true" [headerCheckboxToggleAllPages]="true" columnResizeMode="expand"
         responsive="true" [editable]="true">
         <p-header>
@@ -57,7 +57,7 @@
                     </div>
 
                     <div class="ui-g-7">
-                        <label style="text-align: center;" pTooltip="Selected {{geocodingRespService.impGeofootprintLocList.length}} / {{geocodingRespService.impGeofootprintLocList.length}} sites"
+                        <label style="text-align: center;" pTooltip="Selected {{geocodingRespService.impGeofootprintCompList.length}} / {{geocodingRespService.impGeofootprintCompList.length}} sites"
                             tooltipPosition="top">Site List</label>
                     </div>
                     <div class="ui-g-2" style="float:right; color: white;">
