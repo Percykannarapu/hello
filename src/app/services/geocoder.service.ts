@@ -17,7 +17,6 @@ import { MapService } from './map.service';
 import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
-import { AppConfig } from '../app.config';
 
 @Injectable()
 export class GeocoderService {
@@ -28,13 +27,10 @@ export class GeocoderService {
   private GeocodingResponse;
   public Msgs: Message[] = [];
   public graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-  public displaySpinnerMessage: string = 'Geocoding inprocess';
 
   constructor(public geocodingRespService: GeocodingResponseService, 
               public http: HttpClient, 
-              private mapService: MapService,
-              private config: AppConfig
-  ) { //private messageService: MessageService,
+              private mapService: MapService) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
 
@@ -132,66 +128,6 @@ export class GeocoderService {
     } catch (error) {
       this.handleError(error);
     }
-  }
-  //Calculate home geos for the response list
-  async calculateHomeGeo(siteList: GeocodingResponse[]) {
-
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-
-    };
-
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.mapService.getAllFeatureLayers().then(list => {
-      if (list.length > 0) {
-        for (const layer of list) {
-          if (layer.portalItem != null && layer.portalItem.id === this.config.layerIds.zip.topVars || 
-              layer.portalItem.id === this.config.layerIds.atz.topVars || 
-              layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
-            fLyrList.push(layer);
-          }
-        }
-      }
-    });
-
-
-    for (const site of siteList) {
-
-      for (const llyr of fLyrList) {
-        this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
-
-        let home_geo = null;
-        const geoAttr: GeocodingAttributes = new GeocodingAttributes();
-        let graphic: __esri.Graphic;
-        await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
-          graphic = res;
-        });
-        await this.mapService.getHomeGeocode(llyr, graphic).then(res => {
-          home_geo = res.get('home_geo');
-          if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
-            geoAttr.attributeName = 'Home ZIP';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-          if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
-            geoAttr.attributeName = 'Home ATZ';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-          if (llyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
-            geoAttr.attributeName = 'Home DIGITAL ATZ';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-        });
-      }
-
-    }
-
-
   }
 
   // draw the site graphics on the Sites layer

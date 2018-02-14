@@ -12,6 +12,7 @@ import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocoderComponent } from '../geocoder/geocoder.component';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+import { AppConfig } from '../../app.config';
 
 interface CsvHeadersPosition {
   street?: number;
@@ -42,11 +43,15 @@ export class UploadLocationsComponent implements OnInit {
   public selector: String = 'Site';
   public headers: any;
   public growlMessages: Message[] = new Array();
+  public displaySpinnerMessage: string = 'Geocoding inprocess';
 
   @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
 
   constructor(private geocoderService: GeocoderService,
-    private messageService: MessageService, private mapService: MapService, private geocodingRespService: GeocodingResponseService) { }
+    private messageService: MessageService,
+    private mapService: MapService,
+    private geocodingRespService: GeocodingResponseService,
+    private config: AppConfig) { }
 
   ngOnInit() {
   }
@@ -78,7 +83,7 @@ export class UploadLocationsComponent implements OnInit {
       let headerPosition: any = {};
       try {
         headerPosition = this.verifyCSVColumns(this.headers);
-        
+
         console.log('header details after edit:' + this.headers);
       } catch (error) {
         this.handleError(error);
@@ -129,7 +134,7 @@ export class UploadLocationsComponent implements OnInit {
           this.parseCsvResponse(res, true);
           this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
           //this.displayGcSpinner = false;
-          
+
         });
       } else {
         console.log('csvFormattedData length:::' + csvFormattedData.length);
@@ -141,7 +146,7 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   // check the column headers accourding to the business rules above and figure out the positions of all the headers
-  private verifyCSVColumns(columns: string[]) : any {
+  private verifyCSVColumns(columns: string[]): any {
     let addressFlag: boolean = false;
     let cityFlag: boolean = false;
     let stateFlag: boolean = false;
@@ -210,7 +215,7 @@ export class UploadLocationsComponent implements OnInit {
         //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
         //Hide the spinner on error
         this.displayGcSpinner = false;
-        throw new Error(validationError); 
+        throw new Error(validationError);
       }
     }
     if (!nameFlag) {
@@ -354,8 +359,9 @@ export class UploadLocationsComponent implements OnInit {
     }
     if (display) {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-
-      await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+      if (this.selector === 'Site'){
+        await this.calculateHomeGeo(geocodingResponseList);
+      }
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.mapService.callTradeArea();
       //Hide the spinner on error
@@ -363,6 +369,66 @@ export class UploadLocationsComponent implements OnInit {
     }
     return geocodingResponseList;
   }
+  //Calculate home geos for the response list
+  async calculateHomeGeo(siteList: GeocodingResponse[]) {
+
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+
+    };
+
+    const fLyrList: __esri.FeatureLayer[] = [];
+    await this.mapService.getAllFeatureLayers().then(list => {
+      if (list.length > 0) {
+        for (const layer of list) {
+          if (layer.portalItem != null && layer.portalItem.id === this.config.layerIds.zip.topVars ||
+            layer.portalItem.id === this.config.layerIds.atz.topVars ||
+            layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+            fLyrList.push(layer);
+          }
+        }
+      }
+    });
+
+
+    for (const site of siteList) {
+
+      for (const llyr of fLyrList) {
+        this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
+
+        let home_geo = null;
+        const geoAttr: GeocodingAttributes = new GeocodingAttributes();
+        let graphic: __esri.Graphic;
+        await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
+          graphic = res;
+        });
+        await this.mapService.getHomeGeocode(llyr, graphic).then(res => {
+          home_geo = res.get('home_geo');
+          if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
+            geoAttr.attributeName = 'Home ZIP';
+            geoAttr.attributeValue = home_geo;
+            site.geocodingAttributesList.push(geoAttr);
+          }
+          if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
+            geoAttr.attributeName = 'Home ATZ';
+            geoAttr.attributeValue = home_geo;
+            site.geocodingAttributesList.push(geoAttr);
+          }
+          if (llyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+            geoAttr.attributeName = 'Home DIGITAL ATZ';
+            geoAttr.attributeValue = home_geo;
+            site.geocodingAttributesList.push(geoAttr);
+          }
+        });
+      }
+
+    }
+
+  }
+
   private async handleError(error: Error) {
     this.messageService.add({ severity: 'error', summary: 'Geocoding Error', detail: `${error}` });
     //Hide the spinner on error
