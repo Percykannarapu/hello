@@ -8,6 +8,7 @@ import { Observable } from 'rxjs/Rx';
 import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocoderComponent } from '../geocoder/geocoder.component';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
@@ -40,6 +41,7 @@ export class UploadLocationsComponent implements OnInit {
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: String = 'Site';
   public headers: any;
+  public growlMessages: Message[] = new Array();
 
   @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
 
