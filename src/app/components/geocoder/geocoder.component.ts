@@ -69,6 +69,8 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   //public pointsArray: Points[] = []; // moved to mapservices
   public graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
+  public displaySpinnerMessage: string = 'Geocoding inprocess';
+
 
   // get the map from the service and add the new graphic
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
@@ -622,6 +624,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     for (const site of siteList  ){
 
       for (const llyr of fLyrList){
+          this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
           let home_geo = null; 
           const geoAttr: GeocodingAttributes = new GeocodingAttributes();
           let graphic: __esri.Graphic;
