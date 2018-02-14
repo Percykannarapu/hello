@@ -6,7 +6,8 @@
    [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
    resizableColumns="true" columnResizeMode="expand" responsive="true"
    (onRowSelect)="toggleGeocode($event)" -->
-   <button (click)="mapService.getGeocodes()">Get Geocodes (Temporary)</button>
+   <button (click)="mapService.getGeocodes()">Get Geocodes (Temporary!)</button>
+   <button (click)="testFind()">Test Find</button>
 
    <p-dataTable #locGrid [value]="impGeofootprintLocations" expandableRows="true"
       [(selection)]="selectedImpGeofootprintLocations" selectionMode ="multiple"

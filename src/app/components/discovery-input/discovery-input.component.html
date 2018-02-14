@@ -1,58 +1,91 @@
 <div class="ui-g form-group">
-   <div class="ui-g-12">
-      <p-dropdown #productSelector
-                   [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName" 
-                   placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-                   (onChange)="onChangeProduct($event)"
-                   [style]="{'width':'250px'}"></p-dropdown>
-   </div>
-   <!-- <div class="ui-g-8">
-      <p-dropdown [options]="radData" [(ngModel)]="selectedRadLookup" optionLabel="category" 
-                  placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
-                  [disabled]="radDisabled" [style]="{'width':'250px'}"></p-dropdown>
-   </div> -->
-   <div class="ui-g-12">
-      <p-dropdown #categorySelector
-                  [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name" 
-                  placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
-                  [style]="{'width':'250px'}"></p-dropdown>
-   </div>
+   <div class="ui-g-6">   
+      <div class="ui-g-12">
+         <p-dropdown #productSelector
+                     [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName" 
+                     placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                     (onChange)="onChangeProduct($event)"
+                     [style]="{'width':'250px'}"></p-dropdown>
+      </div>
+      <!-- <div class="ui-g-8">
+         <p-dropdown [options]="radData" [(ngModel)]="selectedRadLookup" optionLabel="category" 
+                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
+                     [disabled]="radDisabled" [style]="{'width':'250px'}"></p-dropdown>
+      </div> -->
+      <div class="ui-g-12">
+         <p-dropdown #categorySelector
+                     [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name" 
+                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
+                     [style]="{'width':'250px'}"></p-dropdown>
+      </div>
+
+      <div class="ui-g-12">
+         <p-dropdown #analysisLevelSelector
+                     [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel" optionLabel="label" 
+                     placeholder="Select an Analysis Level" 
+                     [style]="{'width':'250px'}"></p-dropdown>
+      </div>
+      
+      <div class="ui-g-12">
+         <div class="ui-placeholder">
+            <label>Counts</label>
+         </div>
+         <div>
+            <p-selectButton id="seasonsSelect" [options]="seasons" [(ngModel)]="selectedSeason" placeholder="Counts"></p-selectButton>
+         </div>
+      </div>
 
    <div class="ui-g-12">
       <p-dropdown #analysisLevelSelector
                   [options]="analysisLevels" optionLabel="label" [(ngModel)]="selectedAnalysisLevel" 
                   placeholder="Select an Analysis Level" (ngModelChange)="onAnalysisSelectType($event)"
                   [style]="{'width':'250px'}"></p-dropdown>
+      <div class="ui-g-12">
+         <span class="md-inputfield">
+            <input type="text" pInputText>
+            <label>CPM</label>
+         </span>
+      </div>  
+      <div class="ui-g-12">
+         <span class="md-inputfield">
+            <input type="text" pInputText>
+            <label> Dollar Budget</label>
+         </span>
+      </div>  
+      <div class="ui-g-12">
+         <span class="md-inputfield">
+            <input type="text" pInputText>
+            <label> Circ Budget</label>
+         </span>
+      </div>
    </div>
-   
-   <div class="ui-g-12">
-      <div class="ui-placeholder">
-         <label>Counts</label>
+   <div class="ui-g-6">
+      <!-- <div class="ui-g-5">
+         <label>Include Non-Weekly?</label>
       </div>
-      <div>
-         <p-selectButton id="seasonsSelect" [options]="seasons" [(ngModel)]="selectedSeason" placeholder="Counts"></p-selectButton>
+      <div class="ui-g-7">
+         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="val"></p-inputSwitch>
       </div>
+      <div class="ui-g-5">
+         <label>Include POBs?</label>
+      </div>
+      <div class="ui-g-7">
+         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="val"></p-inputSwitch>
+      </div>
+      <div class="ui-g-5">
+         <label>Include ANNE?</label>
+      </div>
+      <div class="ui-g-7">
+         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="val"></p-inputSwitch>
+      </div>
+      <div class="ui-g-5">
+         <label>Include Solo?</label>
+      </div>
+      <div class="ui-g-7">
+         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="val"></p-inputSwitch>
+      </div>    -->
    </div>
 
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-          <input type="text" pInputText>
-          <label>CPM</label>
-      </span>
-   </div>  
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-          <input type="text" pInputText>
-          <label> Dollar Budget</label>
-      </span>
-   </div>  
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-          <input type="text" pInputText>
-          <label> Circ Budget</label>
-      </span>
-   </div>
-   
    <div *ngIf="debugMode" class="ui-g-12">
       <h1>Data Store Test</h1>
       <button (click)="fetchRadData()">Fetch RadData</button>

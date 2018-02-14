@@ -13,6 +13,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 // Import Data Services
 import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from './../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { Console } from '@angular/core/src/console';
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -78,16 +79,16 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.geosSubscription = this.impGeofootprintGeoService.storeObservable.subscribe(storeData => this.onChangeGeos(storeData));
 
       // For now, sub out some data
-      this.stubLocations();
-      this.stubGeos();
+      //this.stubLocations();
+      //this.stubGeos();
 
       console.log('filtered geos: ', this.filterGeosBySite(202193));
    }
 
    ngOnDestroy()
    {
-      this.geosSubscription.unsubscribe();
-      this.siteSubscription.unsubscribe();
+//      this.geosSubscription.unsubscribe();
+      //this.siteSubscription.unsubscribe();
    }
 
    // -----------------------------------------------------------
@@ -101,8 +102,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    onChangeGeos(impGeofootprintGeos: ImpGeofootprintGeo[])
    {
-      //console.log('onChangeGeos fired', impGeofootprintGeos);
-      this.impGeofootprintGeos = impGeofootprintGeos;
+      console.log('onChangeGeos fired', impGeofootprintGeos);
+      this.impGeofootprintGeos = Array.from(impGeofootprintGeos);      
       this.assignSite();
    }
 
@@ -119,9 +120,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // console.log('Ternary in log with braces: '    + ((ary) ? 'Ternary (with braces) think it has entries' : 'Ternary (with braces) thinks its null'));
       // console.log('Ternary in log without braces: ' +  (ary) ? 'Ternary (without braces) think it has entries' : 'Ternary (without braces) thinks its null');
 
+      console.log('----------------------------------------------------------------------------------------');
       console.log('onChangeLocation - Before: ', this.impGeofootprintLocations);
-      this.impGeofootprintLocations = impGeofootprintLocation;
+      this.impGeofootprintLocations = Array.from(impGeofootprintLocation);
       console.log('onChangeLocation - After:  ', this.impGeofootprintLocations);
+      console.log('----------------------------------------------------------------------------------------');
       this.assignSite();
    }
 
@@ -132,6 +135,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * The geo passed in will be compared to the list of locations
     * and the closest will be recorded on the geo as well as the distance.
     */
+   // TODO: changed to selectedImpGeofootprintLocations
    setClosestLocation(geo: ImpGeofootprintGeo, index: number)
    {
       if (this.impGeofootprintLocations == null)
@@ -140,10 +144,44 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          return;
       }
 
+      if (geo == null || geo.impGeofootprintLocation == null)
+      {
+         console.log('setClosestLocation exiting; either geo or geo.impGeofootprintLocation is null');
+         return;
+      }
+
+      const foundLocation = this.impGeofootprintLocationService.find(geo.impGeofootprintLocation);
+      if (foundLocation != null)
+      {
+         console.log(geo.geocode  + '(' + geo.distance + ') assigned location:', foundLocation);
+         geo.impGeofootprintLocation = foundLocation;
+      }
+      else
+         console.log('Did not find a closest site for ', geo.impGeofootprintLocation);
+
       // TODO: This will be replaced with a distance to site calculation
-      geo.impGeofootprintLocation = this.impGeofootprintLocations[(index % this.impGeofootprintLocations.length)];
-      console.log('Determining closest site to: ' + geo.geocode + ', sites: ' + this.impGeofootprintLocations.length + 
-                  ', index: ' + index + ',  mod: ' + (index % this.impGeofootprintLocations.length) + ', stubbed: ' + geo.impGeofootprintLocation.locationName);
+//    geo.impGeofootprintLocation = this.impGeofootprintLocations[(index % this.impGeofootprintLocations.length)];
+
+/*
+      // At this point, we only know the lat/lon of the closest location, find and assign the ImpGeofootprintLocation
+      for (let i = 0; i < this.impGeofootprintLocations.length; i++)
+      {
+         if (geo.impGeofootprintLocation != null)
+            console.log('geo.impGeofootprintLocation', geo.impGeofootprintLocation, ' i: ' + i);
+         else
+            console.log('geo.impGeofootprintLocation is null');
+
+         if (geo.impGeofootprintLocation != null &&
+             this.impGeofootprintLocations[i].xcoord === geo.impGeofootprintLocation.xcoord &&
+             this.impGeofootprintLocations[i].ycoord === geo.impGeofootprintLocation.ycoord)
+         {
+            geo.impGeofootprintLocation = this.impGeofootprintLocations[i];
+            console.log('Determining closest site to: ' + geo.geocode + ', sites: ' + this.impGeofootprintLocations.length + 
+            ', index: ' + index + ',  mod: ' + (index % this.impGeofootprintLocations.length) + ', assigned: ' + geo.impGeofootprintLocation.locationName +
+            ', distance: ' + geo.distance);
+            break;
+         }
+      }*/
    }
 
    /**
@@ -153,11 +191,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    assignSite()
    {
-      console.log('assignSite fired');
       let idx: number = 0;
       if (this.impGeofootprintGeos != null)
+      {
+         console.log('assignSite fired - processing ' + this.impGeofootprintGeos.length + ' geos');
          for (const geo of this.impGeofootprintGeos)
             this.setClosestLocation(geo, idx++);
+      }
       else
          console.log('assignSite - no geos to process');
    }
@@ -169,11 +209,49 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * @param locationId The glId of the parent location to filter on
     */
    filterGeosBySite(locationId: number) : ImpGeofootprintGeo[]
-   {
+   {      
       return this.impGeofootprintGeos.filter(
-         geo => geo.impGeofootprintLocation.glId === locationId);
+         geo => (geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.glId === locationId : null);
    }
 
+   testFind() {
+      console.log('--------------------------------------------------');
+      console.log('testFind');
+      console.log('--------------------------------------------------');
+//      const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.impGeofootprintLocation.glId === 1)];
+//const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.geocode === '48375C1')];
+      const storeGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get();
+//      let  foundGeo = this.impGeofootprintGeoService.find(storeGeos[10]);
+//      console.log('foundGeo', foundGeo);
+
+      let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48375C1'});
+      const foundGeo = this.impGeofootprintGeoService.find(searchGeo);
+      console.log('foundGeo', foundGeo);
+
+      searchGeo = new ImpGeofootprintGeo({impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'Masons'})});
+      const foundGeos: ImpGeofootprintGeo[] = [this.impGeofootprintGeoService.find(searchGeo)];
+      console.log('foundGeos', foundGeos);
+
+      const site: ImpGeofootprintLocation = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation', null);
+      console.log ('site: ', site);
+
+      const siteName: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName', null);
+      console.log ('siteName: ', siteName);
+
+      const testDefault: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName.cocopuffs', 'A default Value');
+      console.log ('defaulted: ', testDefault);
+
+      const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'Masons');
+      console.log ('findBy: ', getByGeos);
+
+      let foundIdx = -1;
+      for (let i = 0; i < storeGeos.length; i++)
+      {
+         foundIdx = this.impGeofootprintGeoService.findIndex(storeGeos[i]);
+         console.log('found geo(' + i + ') at index', foundIdx); 
+      }
+   }
+   
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
@@ -181,7 +259,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       console.log('toggling geocode');
       console.log(geo);
-      console.log('Selected: ' + this.selectedImpGeofootprintGeos.length + ',  Total: ' + this.impGeofootprintGeos.length);
+      if (this.selectedImpGeofootprintGeos != null)
+         console.log('Selected: ' + this.selectedImpGeofootprintGeos.length + ',  Total: ' + this.impGeofootprintGeos.length);
+      else
+         console.log('toggleGeocode: No geocodes selected');
    }
 
    // -----------------------------------------------------------

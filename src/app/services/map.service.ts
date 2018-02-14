@@ -1478,21 +1478,27 @@ export class MapService {
         }
     }
 
-    public async getGeocodes() {
+    public async getGeocodes()
+    {
       console.log('getGeocodes fired');
 
       const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
 
       const loader = EsriLoaderWrapperService.esriLoader;
-      const [FeatureLayer, geometryEngine, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+      const [FeatureLayer, geometryEngine, SpatialReference, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, Point, Polyline, Geometry]
           = await loader.loadModules([
               'esri/layers/FeatureLayer',
               'esri/geometry/geometryEngine',
+              'esri/geometry/SpatialReference',
               'esri/Graphic',
               'esri/symbols/SimpleFillSymbol',
               'esri/symbols/SimpleLineSymbol',
               'esri/symbols/SimpleMarkerSymbol',
-              'esri/Color', 'dojo/domReady!'
+              'esri/Color',
+              'esri/geometry/Point',
+              'esri/geometry/Polyline',
+              'esri/geometry/Geometry',
+              'dojo/domReady!'
           ]);
 
       const centroidGraphics: __esri.Graphic[] = [];
@@ -1530,31 +1536,48 @@ export class MapService {
    //       });
       }
 
+      let geoLayer: __esri.FeatureLayer;
+
+      for (const l of fLyrList) {
+         console.log ('feature layer: ', l);
+      }
+      
+      // Load the geographic feature layers
       for (const lyr of fLyrList) {
          if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
              lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
              lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
+            console.log ('found layer: ' + lyr.title);                
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
             await lyr.load().then((f1: __esri.FeatureLayer) => {
                   loadedFeatureLayer = f1;
+                  geoLayer = f1;
          });
+      }
+   }
 
+      // fs will be the FeatureSet containing the geographies
       let fs: __esri.FeatureSet;
 
       // Query for all of the geocodes
-      const qry = lyr.createQuery();
-      qry.outSpatialReference = this.mapView.spatialReference;
-      await lyr.queryFeatures(qry).then(featureSet => {
-         console.log('geosLayer', lyr);
+      const qry = geoLayer.createQuery();     
+      qry.outSpatialReference = new SpatialReference(4326); //this.mapView.spatialReference;
+
+      await geoLayer.queryFeatures(qry).then(featureSet => {
+         console.log('Assign fs to geosLayer', geoLayer);
+
+         // Assign fs the geographies features set
          fs = featureSet;
-         for (let i = 0; i < featureSet.features.length; i++)
-         {
-            console.log('featureSet.features[' + i + ']', featureSet.features[i].toJSON());
+
+         // Debug print them
+//         for (let i = 0; i < featureSet.features.length; i++)
+//         {
+//            console.log('featureSet.features[' + i + ']', featureSet.features[i].toJSON());
 
             // Compare geocode lat/long to list of sites lat/long and find shortest distance
             //   That will tell me the distance, and I'll have to record the lat long or index of the site to associate with a imp_location object
-            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE, impGeofootprintLocation: new ImpGeofootprintLocation()}));
-         }
+//            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE, impGeofootprintLocation: new ImpGeofootprintLocation()}));
+//         }
       });
 
       // look for closest site
@@ -1564,57 +1587,44 @@ export class MapService {
          // Loop through geocodes to compare against sites
          for (let i = 0; i < fs.features.length; i++)
          {
-            console.log('featureSet.features[' + i + '].geocode = ', fs.features[i].attributes.GEOCODE);
+            let closestSiteIdx: number = -1;
+            const closestCoord: number[] = [];
+            let closestDistance: number = 99999999;
 
-            for (let s = 0; s < sitesLayer.source.length; s++) {
-               console.log('comparing against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s));
-               const dist = EsriModules.geometryEngine.distance(fs.features[i].geometry, sitesLayer.source.getItemAt(s).geometry, 'miles'); // distance(geometry1, geometry2, distanceUnit)
-               console.log('distance: ' + dist);
+            // Loop through all of the sites, comparing to the current geo  (Yep, need a more efficient way)
+            for (let s = 0; s < sitesLayer.source.length; s++)
+            {
+               // Assign to a variable so we can access .x and .y
+               const geometryGeo  = <__esri.Point> fs.features[i].geometry;
+               const geometrySite = <__esri.Point> sitesLayer.source.getItemAt(s).geometry;
 
-               // const nearestPoint: __esri.NearestPointResult = EsriModules.geometryEngine.nearestCoordinate(
-               //    fs.features[i].geometry
-               //    , new __esri.Point({longitude: null, latitude: sitesLayer.source.getItemAt(i).geometry.get('latitude')}));
+               // Construct a polyline to get the geodesic distance between geo and site
+               const polyLine: __esri.Polyline = new Polyline({paths: [[[geometryGeo.x, geometryGeo.y], [geometrySite.x, geometrySite.y]]]});
+               const dist = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
+
+               // If closer to this location, record the lat / lon
+               if (dist < closestDistance)
+               {
+                  closestDistance = dist;
+                  closestSiteIdx = s;
+                  closestCoord[0] = geometrySite.x;
+                  closestCoord[1] = geometrySite.y;
+                  //console.log('Compared ', fs.features[i].attributes.GEOCODE, 'against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s), ', Distance: ' + dist + ' - NEW CLOSEST');
+               }
+               //else
+               //   console.log('Compared ', fs.features[i].attributes.GEOCODE, 'against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s), ', Distance: ' + dist);
             }
+
+            // Create the ImpGeofootprintGeo in local cache
+            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: fs.features[i].attributes.GEOCODE,
+                                                             distance: closestDistance,
+                                                             impGeofootprintLocation: new ImpGeofootprintLocation({glId: (closestSiteIdx + 1) * 10, xcoord: closestCoord[0], ycoord: closestCoord[1]})}));
          }
       }
-
-      // Print selected Object Ids
-      // if (MapService.selectedCentroidObjectIds && MapService.selectedCentroidObjectIds.length > 0) {
-      //    for (let i = 0; i < MapService.selectedCentroidObjectIds.length; i++)
-      //    {
-      //       console.log('selectedCentroidObjectIds[' + i + ']', MapService.selectedCentroidObjectIds);
-      //    }
-      // }
 
       // Update the ImpGeofootprintGeos data store
       this.impGeofootprintGeoService.clearAll();
       this.impGeofootprintGeoService.add(impGeofootprintGeos);
-           // console.log(MapService.SitesGroupLayer);
-
-         // if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.OBJECTID)) {
-         //       MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.HHLD_W;
-         //       MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.NUM_IP_ADDRS;
-         //       MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.CL2I0O;
-         //       MapService.hhChildren = polyFeatureSet.features[i].attributes.CL0C00;
-         //       polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.OBJECTID));
-         //       MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[i].attributes.OBJECTID);
-         // }
-
-            //   for (const graphic of graphicList) {
-            //       const qry = lyr.createQuery();
-            //       qry.geometry = graphic.geometry;
-            //       qry.outSpatialReference = this.mapView.spatialReference;
-            //       await lyr.queryFeatures(qry).then(featureSet => {
-            //           for (let i = 0; i < featureSet.features.length; i++) {
-            //               if (featureSet.features[i].attributes.GEOMETRY_TYPE === 'Polygon') {
-            //                   centroidGraphics.push(featureSet.features[i]);
-            //               }
-            //           }
-            //       });
-            //   }
-            //   await this.selectPoly(centroidGraphics);
-          }
-      }
 
       // console.log('### LIST OF GEOS ###');
       // for (const geo of impGeofootprintGeos)
