@@ -20,7 +20,7 @@
     </div>
     <div class="ui-g-4"><label>Opacity</label></div>
     <div class="ui-g-8">
-      <p class="sliderLabel">{{currentOpacity$ | async}}</p>
+      <p class="sliderLabel">{{currentOpacity$ | async}} %</p>
       <p-slider [ngModel]="currentOpacity$ | async"
                 (ngModelChange)="onOpacityChange($event)"></p-slider>
     </div>
