@@ -73,14 +73,14 @@ export class AppConfig implements EsriLoaderConfig
       counties: '80b6a37efae44e1394a9fec1f80e708b'  // Counties
     },
     zip: {
-      topVars: '4e755a948e66463c8269eae8a12dff20', // ZIP Top Vars
-      centroids: 'c66ab1bb6d3d448e9bb585242b7749e0'  // ZIP_Centroids
+      topVars: '23a54308e914496aa24d94a9b36776a0', // ZIP Top Vars
+      centroids: '88120ac630d746239b133296e87b8e1f'  // ZIP_Centroids
     },
     atz: {
-      topVars: '496cbef99ce743f59e1637b52a95e5be', // ATZ_Top_Vars
-      centroids: '6e4d588e4fbd4e7eb400ca2585a49eea', // ATZ_Centroids
-      digitalTopVars: 'bf9f5d871a044c2095dd3bf437825bc6', // DIG_ATZ_Top_Vars
-      digitalCentroids: '309b009ddf0d4cf58bc686d2d5cb7da4'  // DIG_ATZ_Centroids
+      topVars: 'c0ee701ee95f4bbdbc15ded2a37ca802', // ATZ_Top_Vars
+      centroids: 'fd4b078fc2424dd5a48af860dc421431\n', // ATZ_Centroids
+      digitalTopVars: 'a4449b3ee55442af881f6ac660ca8163', // DIG_ATZ_Top_Vars
+      digitalCentroids: '377018a24ba14afa9e02e56110b3a568'  // DIG_ATZ_Centroids
     },
      pcr: {
        pcr: '8fee65ffdb784c67b76c356e9c26605f'
