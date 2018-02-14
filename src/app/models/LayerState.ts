@@ -22,6 +22,7 @@ export class LayerState {
   private newOpacity: number;
   private newBaseMap: __esri.Basemap;
   private newTopVar: DemographicVariable;
+  private newVarActualFieldName: string;
   private newTheme: SmartMappingTheme;
 
   private colorSlider: __esri.ColorSlider;
@@ -53,6 +54,7 @@ export class LayerState {
     });
     this.selectedTopVar$.subscribe(v => {
       this.newTopVar = v;
+      this.findNewFieldName();
       this.regenerateRenderer();
     });
     this.selectedTheme$.subscribe(t => {
@@ -62,7 +64,6 @@ export class LayerState {
     this.newOpacity$.subscribe(o => {
       this.newOpacity = o;
       if (this.showNewRenderer.getValue()) {
-        console.log('Setting layer opacity 1');
         this.layer.opacity = o / 100;
       }
     });
@@ -76,38 +77,46 @@ export class LayerState {
   private onRendererReady() : void {
     if (this.showNewRenderer.getValue()) {
       this.layer.renderer = this.newRenderer;
-      console.log('Setting layer opacity 2');
       this.layer.opacity = this.newOpacity / 100;
     }
   }
 
   private onShowNewRenderer(show: boolean) : void {
     if (!show) {
-      console.log('Turning off smart renderer.');
       this.layer.renderer = this.originalRenderer;
-      console.log('Setting layer opacity 3');
       this.layer.opacity = this.originalOpacity;
     } else {
-      console.log('Turning on smart renderer.');
       if (this.newRenderer == null) {
-        console.log('New Renderer has not been generated.');
         this.generateRenderer();
       } else {
-        console.log('New Renderer already exists');
         this.layer.renderer = this.newRenderer;
-        console.log('Setting layer opacity 4');
         this.layer.opacity = this.newOpacity / 100;
       }
     }
   }
 
+  private findNewFieldName() {
+    if (this.newTopVar == null) {
+      this.newVarActualFieldName = null;
+      return;
+    }
+    const values = this.layer.fields.filter(f => f.name.toUpperCase() === this.newTopVar.fieldName.toUpperCase());
+    if (values.length > 0) {
+      this.newVarActualFieldName = values[0].name;
+    } else {
+      //field not found
+      this.newVarActualFieldName = null;
+      // TODO: throw error?
+    }
+  }
+
   private generateRenderer() : void {
-    if (this.newTopVar == null) return;
+    if (this.newTopVar == null || this.newVarActualFieldName == null) return;
     console.log('Generating new renderer');
     const colorParams = {
       layer: this.layer,
       basemap: this.newBaseMap,
-      field: this.newTopVar.fieldName,
+      field: this.newVarActualFieldName,
       theme: this.newTheme
     };
     EsriModules.colorRendererCreator.createContinuousRenderer(colorParams)
