@@ -21,6 +21,7 @@ import { MetricService } from './../../val-modules/common/services/metric.servic
 import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+import { AppConfig } from '../../app.config';
 
 
 // this interface holds information on what position the columns in a CSV file are in
@@ -80,7 +81,11 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   // get the radio button element
   @ViewChild('siteRef') private siteRefEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, private mapService: MapService, private geocodingRespService: GeocodingResponseService, private metricService: MetricService) { }
+  constructor(private geocoderService: GeocoderService, 
+              private mapService: MapService, 
+              private geocodingRespService: GeocodingResponseService, 
+              private metricService: MetricService,
+              private config: AppConfig) { }
 
   ngOnInit() {
   }
@@ -613,7 +618,9 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     await this.mapService.getAllFeatureLayers().then(list => {
         if (list.length > 0 ){
             for (const layer of list) {
-                    if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
+                    if (layer.portalItem.id === this.config.layerIds.zip.topVars || 
+                        layer.portalItem.id === this.config.layerIds.atz.topVars || 
+                        layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
                         fLyrList.push(layer);
                     }
                 }
@@ -633,17 +640,17 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
            });
            await this.mapService.getHomeGeocode(llyr, graphic).then( res => {
                  home_geo =  res.get('home_geo');
-                 if (llyr.title === 'ZIP_Top_Vars'){
+                 if (llyr.portalItem.id === this.config.layerIds.zip.topVars){
                   geoAttr.attributeName = 'Home ZIP';
                   geoAttr.attributeValue = home_geo;
                   site.geocodingAttributesList.push(geoAttr);
                  }
-                 if (llyr.title === 'ATZ_Top_Vars'){
+                 if (llyr.portalItem.id === this.config.layerIds.atz.topVars){
                   geoAttr.attributeName = 'Home ATZ';
                   geoAttr.attributeValue = home_geo;
                   site.geocodingAttributesList.push(geoAttr);
                  }
-                 if (llyr.title === 'DIG_ATZ_Top_Vars'){
+                 if (llyr.portalItem.id === this.config.layerIds.atz.digitalTopVars){
                   geoAttr.attributeName = 'Home DIGITAL ATZ';
                   geoAttr.attributeValue = home_geo;
                   site.geocodingAttributesList.push(geoAttr);

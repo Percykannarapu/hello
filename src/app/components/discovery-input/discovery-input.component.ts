@@ -9,6 +9,7 @@ import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
 import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
+import { MapService } from '../../services/map.service';
 
 interface Product {
    productName: string;
@@ -41,7 +42,7 @@ export class DiscoveryInputComponent implements OnInit
    categories: Category[];
    selectedCategory: Category;
    
-   analysisLevels: SelectItem[];
+   public analysisLevels: SelectItem[];
    selectedAnalysisLevel: SelectItem;
 
    seasons: SelectItem[];
@@ -52,7 +53,7 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impRadLookupService: ImpRadLookupService, private appState: AppState)
+   constructor(public impRadLookupService: ImpRadLookupService, private appState: AppState, private mapservice: MapService)
    {
       this.products = [
          {productName: 'Display Advertising',         productCode: 'SM Insert'},
@@ -98,6 +99,8 @@ export class DiscoveryInputComponent implements OnInit
          {label: 'Summer', value: 'SUMMER'},
          {label: 'Winter', value: 'WINTER'}
       ];
+
+     
       
       console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       console.log('DiscoveryInputComponent constructed');
@@ -127,6 +130,12 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
+
+   public onAnalysisSelectType(event: SelectItem) {
+         console.log('Analysis level:::' , event.value);
+         MapService.analysisLevlDiscInput = event.value;
+   }
+
    private handleError (error: any) {
       console.error(error);
       return Observable.throw(error);

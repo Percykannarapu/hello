@@ -37,8 +37,10 @@ export class MapService {
     public static medianHHIncome: String = '0';
     public static hhChildren: number = 0;
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
+    //TODO we need to remove pointsArray after adi's uploadfunction.
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
-   // public static impGeofootprintLocList: ImpGeofootprintLocation[] = [];
+
+    public static analysisLevlDiscInput: string;
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
@@ -1450,9 +1452,11 @@ export class MapService {
             fLyrList = list;
         });
 
-
+// lyr.portalItem.id === this.config.layerIds.pcr need to enable for pcr
         for (const lyr of fLyrList) {
-            if (lyr.title === 'ZIP_Centroids_FL' || lyr.title === 'ATZ_Centroids') {
+            if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
+                lyr.portalItem.id === this.config.layerIds.atz.centroids ||
+                lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
                 await lyr.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
@@ -1527,7 +1531,9 @@ export class MapService {
       }
 
       for (const lyr of fLyrList) {
-         if (lyr.title === 'ZIP_Centroids_FL' || lyr.title === 'ATZ_Centroids') {
+         if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
+             lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
+             lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
             await lyr.load().then((f1: __esri.FeatureLayer) => {
                   loadedFeatureLayer = f1;
@@ -1647,19 +1653,23 @@ export class MapService {
         });
         MapService.selectedCentroidObjectIds = [];
 
+        //lyr.portalItem.id === this.config.layerIds.pcr need to enable for PCR
         for (const lyr of fLyrList) {
-            if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars') {
+            if (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+                lyr.portalItem.id === this.config.layerIds.atz.topVars ||
+                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
                 let layername = null;
-                if (lyr.title === 'ZIP_Top_Vars')
+                if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
                     layername = 'Selected Geography - ZIP';
-                else
+                else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
                     layername = 'Selected Geography - ATZ';
+                else if (lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)   
+                    layername = 'Selected Geography - Ditial ATZ';   
                 const polyGraphics: __esri.Graphic[] = [];
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
                 await lyr.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
-                    // loadedFeatureLayer.renderer = f1
                 });
 
                 await this.removeSubLayer(layername, MapService.SitesGroupLayer);
@@ -1804,9 +1814,10 @@ export class MapService {
         await this.getAllFeatureLayers().then(list => {
             fLyrList = list;
         });
-
         for (const lyr of fLyrList) {
-            if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars') {
+            if (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+                lyr.portalItem.id === this.config.layerIds.atz.topVars ||
+                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
                 const query = lyr.createQuery();
                 if (geom) {
                     console.log ('selectSinglePoly() - geom:' + objID);
@@ -1966,19 +1977,18 @@ export class MapService {
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
-      //  const popUp: __esri.PopupTemplate = new PopupTemplate();
         const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
         await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
                 if ( polyFeatureSet.features.length > 0)
                      homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
-                if (lyr.title === 'ZIP_Top_Vars'){
+                if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
-                if (lyr.title === 'ATZ_Top_Vars'){
+                if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
-                if (lyr.title === 'DIG_ATZ_Top_Vars'){
+                if (lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode); 
                 }
                                 

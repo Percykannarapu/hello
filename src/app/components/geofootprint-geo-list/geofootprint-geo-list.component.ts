@@ -101,7 +101,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    onChangeGeos(impGeofootprintGeos: ImpGeofootprintGeo[])
    {
-      console.log('onChangeGeos fired', impGeofootprintGeos);
+      //console.log('onChangeGeos fired', impGeofootprintGeos);
       this.impGeofootprintGeos = impGeofootprintGeos;
       this.assignSite();
    }

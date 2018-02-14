@@ -20,8 +20,8 @@
 
    <div class="ui-g-12">
       <p-dropdown #analysisLevelSelector
-                  [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevel" optionLabel="label" 
-                  placeholder="Select an Analysis Level" 
+                  [options]="analysisLevels" optionLabel="label" [(ngModel)]="selectedAnalysisLevel" 
+                  placeholder="Select an Analysis Level" (ngModelChange)="onAnalysisSelectType($event)"
                   [style]="{'width':'250px'}"></p-dropdown>
    </div>
    
