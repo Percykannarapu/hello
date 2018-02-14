@@ -146,7 +146,7 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   // check the column headers accourding to the business rules above and figure out the positions of all the headers
-  private verifyCSVColumns(columns: string[]): any {
+  private verifyCSVColumns(columns: string[]) : any {
     let addressFlag: boolean = false;
     let cityFlag: boolean = false;
     let stateFlag: boolean = false;
@@ -289,21 +289,21 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   // this should be implemented in an equals() method in the model
-  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse): boolean {
+  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
     if (site1.number === site2['Number']) {
       return true;
     }
   }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
-  public geocodingFailure(geocodingResponse: any): boolean {
+  public geocodingFailure(geocodingResponse: any) : boolean {
     if (geocodingResponse['Match Quality'].toString() === 'E' || geocodingResponse['Match Code'].toString().substr(0, 1) === 'E') {
       return true;
     }
     return false;
   }
 
-  private async parseCsvResponse(restResponses: RestResponse[], display?: boolean): Promise<GeocodingResponse[]> {
+  private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
     const geocodingResponseList: GeocodingResponse[] = [];
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
@@ -384,9 +384,9 @@ export class UploadLocationsComponent implements OnInit {
     await this.mapService.getAllFeatureLayers().then(list => {
       if (list.length > 0) {
         for (const layer of list) {
-          if (layer.portalItem != null && layer.portalItem.id === this.config.layerIds.zip.topVars ||
+          if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
             layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+            layer.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
             fLyrList.push(layer);
           }
         }
