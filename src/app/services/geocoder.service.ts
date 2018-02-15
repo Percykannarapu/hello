@@ -121,7 +121,7 @@ export class GeocoderService {
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           this.geocodingRespService.locToEntityMapping(sitesList, selector);
-          this.geocodingRespService.pointsPlotted.next();
+          this.geocodingRespService.pointsPlotted.next(selector);
         })
         .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
@@ -137,7 +137,7 @@ export class GeocoderService {
       this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
     } else if (selector === 'Competitor') {
       console.log('Adding competitors from Upload:::');
-      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+      this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
     }
   }
   private async handleError(error: Error) {
