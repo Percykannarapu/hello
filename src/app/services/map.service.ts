@@ -1545,23 +1545,11 @@ export class MapService {
       
       // Load the geographic feature layers
       for (const lyr of fLyrList) {
-<<<<<<< Updated upstream
          if ((lyr.portalItem != null) &&
              (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
              lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
              lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids)) {
             console.log ('found layer: ' + lyr.title);                
-=======
-         // if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
-         //     lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
-         //     lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
-
-         if (lyr.portalItem != null && lyr.portalItem.id === this.config.layerIds.zip.topVars) {
-//         if (lyr.portalItem != null && lyr.portalItem.id === this.config.layerIds.zip.centroids) {
-            console.log ('found layer: ' + lyr.title);
-//            geoLayer = lyr;
-
->>>>>>> Stashed changes
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
             await lyr.load().then((f1: __esri.FeatureLayer) => {
                   loadedFeatureLayer = f1;
