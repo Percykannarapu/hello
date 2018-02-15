@@ -466,7 +466,7 @@ export class MapService {
     public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
         // Toggle all layers
-        this.mapView.map.layers.forEach(function (layer, i) {
+        this.mapView.map.layers.forEach((layer, i) =>  {
             if (layer.visible === true) {
                 //console.log (i + '. layer visible: ' + this.mapView.map.layers.getItemAt(i).visible);
                 this.mapView.map.layers.getItemAt(i).visible = false;
