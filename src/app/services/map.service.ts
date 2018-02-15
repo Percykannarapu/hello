@@ -1557,6 +1557,7 @@ export class MapService {
          });
       }
    }
+   console.log ('geoLayer feature layer: ', geoLayer);
 
       // fs will be the FeatureSet containing the geographies
       let fs: __esri.FeatureSet;
@@ -1565,6 +1566,7 @@ export class MapService {
       const qry = geoLayer.createQuery();     
       qry.outSpatialReference = new SpatialReference(4326); //this.mapView.spatialReference;
 
+   console.log('executing query');
       await geoLayer.queryFeatures(qry).then(featureSet => {
          console.log('Assign fs to geosLayer', geoLayer);
 
@@ -1581,7 +1583,7 @@ export class MapService {
 //            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE, impGeofootprintLocation: new ImpGeofootprintLocation()}));
 //         }
       });
-
+      console.log('finished query.  fs', fs);
       // look for closest site
       //   This needs to be moved to the ImpLocations service to something like AssignGeosToLocations
       if (sitesLayer != null)
