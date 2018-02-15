@@ -157,7 +157,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           .then(res => {this.graphics.push(res); newGraphics.push(res); })
           .catch(err => this.handleError(err));
       } 
-      await this.updateLayer(this.graphics)
+      await this.updateLayer(this.graphics, selector)
         .then(res => { this.mapService.zoomOnMap(this.graphics); })
         .then(res => this.geocodingRespService.locToEntityMapping(sitesList, selector))
         .then(res => this.geocodingRespService.createGrid())
@@ -249,8 +249,12 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   // draw the site graphics on the Sites layer
-  private async updateLayer(graphics: __esri.Graphic[]) {
+  private async updateLayer(graphics: __esri.Graphic[], selector) {
+    if (selector === 'Site'){
     this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+  }else{
+    this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+  }
   }
 
   private async handleError(error: Error) {
@@ -619,9 +623,9 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     await this.mapService.getAllFeatureLayers().then(list => {
         if (list.length > 0 ){
             for (const layer of list) {
-                    if (layer.portalItem.id === this.config.layerIds.zip.topVars || 
+                    if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars || 
                         layer.portalItem.id === this.config.layerIds.atz.topVars || 
-                        layer.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+                        layer.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
                         fLyrList.push(layer);
                     }
                 }

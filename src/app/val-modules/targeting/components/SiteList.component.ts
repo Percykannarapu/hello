@@ -72,13 +72,13 @@ export class SiteListComponent implements OnInit, OnDestroy
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
         private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService ) { 
 
-                this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange());
+                this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange(data));
                }
 
    
   
-   onGroupChange(){
-     if (this.selectedValue === 'Site'){
+   onGroupChange(selector){
+     if (selector === 'Site'){
      this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
      this.selectedImpGeofootprintLocList = this.impGeofootprintLocationService.get();
     } else{

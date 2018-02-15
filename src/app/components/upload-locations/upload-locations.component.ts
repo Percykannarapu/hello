@@ -82,6 +82,7 @@ export class UploadLocationsComponent implements OnInit {
       this.headers = csvRecords[0].split(',');
       let headerPosition: any = {};
       try {
+        
         headerPosition = this.verifyCSVColumns(this.headers);
 
         console.log('header details after edit:' + this.headers);
@@ -138,7 +139,7 @@ export class UploadLocationsComponent implements OnInit {
         });
       } else {
         console.log('csvFormattedData length:::' + csvFormattedData.length);
-        this.parseCsvResponse(csvFormattedData, true);
+        this.parseCsvLatLongResponse(csvFormattedData, true);
         this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
         //this.displayGcSpinner = false;
       }
@@ -165,17 +166,17 @@ export class UploadLocationsComponent implements OnInit {
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
-        this.headers[j] = 'Street';
+        this.headers[j] = 'street';
       }
       if (column === 'CITY') {
         cityFlag = true;
         headerPosition.city = count;
-        this.headers[j] = 'City';
+        this.headers[j] = 'city';
       }
       if (column === 'STATE' || column === 'ST') {
         stateFlag = true;
         headerPosition.state = count;
-        this.headers[j] = 'State';
+        this.headers[j] = 'state';
       }
       if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
         zipFlag = true;
@@ -185,25 +186,25 @@ export class UploadLocationsComponent implements OnInit {
       if (column === 'Y' || column === 'LATITUDE') {
         latFlag = true;
         headerPosition.lat = count;
-        this.headers[j] = 'Latitude';
+        this.headers[j] = 'latitude';
       }
       if (column === 'X' || column === 'LONGITUDE') {
         lonFlag = true;
         headerPosition.lon = count;
-        this.headers[j] = 'Longitude';
+        this.headers[j] = 'longitude';
       }
       if (!nameFlag) {
         if (column.includes('NAME') || column.includes('FIRM')) {
           nameFlag = true;
           headerPosition.name = count;
-          this.headers[j] = 'Name';
+          this.headers[j] = 'name';
         }
       }
       if (!numberFlag) {
         if (column.includes('NUMBER') || column.includes('NBR') || column.includes('ID') || column.includes('NUM') || column.includes('#')) {
           numberFlag = true;
           headerPosition.number = count;
-          this.headers[j] = 'Number';
+          this.headers[j] = 'number';
         }
       }
       count++;
@@ -369,6 +370,75 @@ export class UploadLocationsComponent implements OnInit {
     }
     return geocodingResponseList;
   }
+
+  // for pregeocoded lat long values
+  private async parseCsvLatLongResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
+    const geocodingResponseList: GeocodingResponse[] = [];
+    for (const restResponse of restResponses) {
+      const locationResponseList: any[] = restResponse.payload;
+      const geocodingResponse: GeocodingResponse = new GeocodingResponse();
+      const geocodingAttrList: GeocodingAttributes[] = [];
+
+      const locRespListMap: Map<string, any> = locationResponseList[0];
+      // if (locRespListMap['Geocode Status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
+      //   const failedSite: GeocodingResponse = new GeocodingResponse();
+      //   //locationResponseList[0].status = 'ERROR';
+      //   locRespListMap['Geocode Status'] = 'ERROR';
+
+      //   this.failedSites.push(locRespListMap); //push to failed sites
+      //   UploadLocationsComponent.failedSiteCounter++;
+      //   continue;
+      // }
+      console.log('locRespListMap:::', locRespListMap);
+      geocodingResponse.status = locRespListMap['Geocode Status'];
+      geocodingResponse.city = locRespListMap['city'];
+      geocodingResponse.latitude = locRespListMap['latitude'];
+      geocodingResponse.longitude = locRespListMap['longitude'];
+      geocodingResponse.name = locRespListMap['name'];
+      geocodingResponse.number = locRespListMap['number'];
+      geocodingResponse.state = locRespListMap['state'];
+      geocodingResponse.addressline = locRespListMap['street'];
+      geocodingResponse.zip = locRespListMap['zip'];
+
+      // geocodingResponse.matchCode = locRespListMap['Match Code'];
+      // geocodingResponse.orgAddr = locRespListMap['Original Address'];
+      // geocodingResponse.orgCity = locRespListMap['Original City'];
+      // geocodingResponse.orgState = locRespListMap['Original State'];
+      // geocodingResponse.status = locRespListMap['Geocode Status'];
+      // geocodingResponse.zip10 = locRespListMap['Original ZIP'];
+      // geocodingResponse.locationQualityCode = locRespListMap['Match Quality'];
+      // geocodingResponse.marketName = locRespListMap['Market'];
+      // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
+
+      if (geocodingResponse.number == null || geocodingResponse.number == '') {
+        geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
+        locRespListMap['number'] = geocodingResponse.number;
+      }
+
+      let geocodingAttr = null;
+      for (const [k, v] of Object.entries(locationResponseList[0])) {
+        geocodingAttr = new GeocodingAttributes();
+        geocodingAttr.attributeName = k;
+        geocodingAttr.attributeValue = v;
+        geocodingAttrList.push(geocodingAttr);
+      }
+      geocodingResponse.geocodingAttributesList = geocodingAttrList;
+      geocodingResponseList.push(geocodingResponse);
+      // }
+    }
+    if (display) {
+      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
+      if (this.selector === 'Site'){
+        await this.calculateHomeGeo(geocodingResponseList);
+      }
+      this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
+      this.mapService.callTradeArea();
+      //Hide the spinner on error
+      this.displayGcSpinner = false;
+    }
+    return geocodingResponseList;
+  }
+
   //Calculate home geos for the response list
   async calculateHomeGeo(siteList: GeocodingResponse[]) {
 
