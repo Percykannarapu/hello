@@ -207,6 +207,16 @@ export class DataStore<T>
          this.remove(data);
    }
 
+   /**
+    * Finds a matching object in the store using a partially constructed instance
+    *
+    *  const searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48375C1'});
+    *  const foundGeo = this.impGeofootprintGeoService.find(searchGeo);
+    *  console.log('foundGeo', foundGeo);
+    *
+    *     store instance of storeGeos[10] is returned
+    * @param search An object that you wish to find in the data store
+    */
    public find(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
@@ -215,7 +225,58 @@ export class DataStore<T>
       return match;
    }
 
-   public findIndex(search: any)
+   private deepFindByArray (obj, propsArray, defaultValue)
+   {
+      // If we have reached an undefined/null property
+      // then stop executing and return the default value.
+      // If no default was provided it will be undefined.
+      if (obj === undefined || obj === null) {
+         return defaultValue;
+      }
+
+      // If the path array has no more elements, we've reached
+      // the intended property and return its value
+      if (propsArray.length === 0) {
+         return obj;
+      }
+
+      // Prepare our found property and path array for recursion
+      const foundSoFar = obj[propsArray[0]];
+      const remainingProps = propsArray.slice(1);
+
+      return this.deepFindByArray(foundSoFar, remainingProps, defaultValue);
+   }
+
+   public deepFind (obj, props, defaultValue)
+   {
+      // If the property list is in dot notation, convert to array
+      if (typeof props === 'string') {
+          props = props.split('.');
+      }
+
+      return this.deepFindByArray(obj, props, defaultValue);
+   }
+
+   public getListBy (props, searchValue) : T[]
+   {
+      const results: T[] = [];
+
+      if (this._dataStore != null)
+         for (const geo of this._dataStore)
+         {
+            const site: T = this.deepFind (geo, props, null);
+            if (site === searchValue)
+               results.push(site);
+         }
+
+      return results;
+   }
+
+   /**
+    * This appears to be broken right now.
+    * @param search 
+    */
+    public findIndex(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
       const index = this._dataStore.findIndex(item => keys.some(key => item[key] === search[key]));

@@ -269,6 +269,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   loadVPW() {
+    this.name = 'VPW';
     this.street = '19975 Victor Pkwy';
     this.city = 'Livonia';
     this.state = 'MI';

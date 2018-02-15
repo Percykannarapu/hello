@@ -27,7 +27,8 @@ export class EsriModules {
     'esri/layers/FeatureLayer',
     'esri/core/watchUtils',
     'esri/PopupTemplate',
-    'esri/layers/MapImageLayer'
+    'esri/layers/MapImageLayer',
+    'esri/geometry/Polyline',
   ];
 
   public static Map: typeof __esri.Map;
@@ -45,6 +46,7 @@ export class EsriModules {
   public static watchUtils: typeof __esri.watchUtils;
   public static PopupTemplate: typeof __esri.PopupTemplate;
   public static MapImageLayer: typeof __esri.MapImageLayer;
+  public static PolyLine: typeof __esri.Polyline;
 
   public static widgets: EsriWidgets;
 
@@ -83,7 +85,8 @@ export class EsriModules {
       EsriModules.FeatureLayer,
       EsriModules.watchUtils,
       EsriModules.PopupTemplate,
-      EsriModules.MapImageLayer] = modules;
+      EsriModules.MapImageLayer,
+      EsriModules.PolyLine] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);
