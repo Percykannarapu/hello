@@ -56,7 +56,7 @@ export class EsriLayerSelectComponent implements OnInit {
       this.selectedAnalysisLevel = 'ZIP';
       //this.selectedAnalysisLevels = [];
 
-      this.mapService.setMapLayers(this.selectedAnalysisLevels);
+      this.checkLayers();
 
     }
     // tslint:disable-next-line:one-line

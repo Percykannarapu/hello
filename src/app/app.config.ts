@@ -71,8 +71,8 @@ export class AppConfig implements EsriLoaderConfig
    // QA Server: vallomimpor1vm.val.vlss.local
    public layerIds = {
     dma: {
-      boundaries: 'c71cda854feb4e52928d026de9e95741', // DMA_Boundaries
-      counties: '80b6a37efae44e1394a9fec1f80e708b'  // Counties
+      boundaries: '5c8d7e4a824f4aa0b254925348f2a14a', // DMA_Boundaries
+      counties: '39b51d9d498f4107bc69ac30f31ac115'  // Counties
     },
     zip: {
       topVars: '23a54308e914496aa24d94a9b36776a0', // ZIP Top Vars
