@@ -1454,9 +1454,10 @@ export class MapService {
 
 // lyr.portalItem.id === this.config.layerIds.pcr need to enable for pcr
         for (const lyr of fLyrList) {
-            if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
+            if ((lyr.portalItem != null) &&
+                (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
                 lyr.portalItem.id === this.config.layerIds.atz.centroids ||
-                lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
+                lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids)) {
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
                 await lyr.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
@@ -1544,9 +1545,10 @@ export class MapService {
       
       // Load the geographic feature layers
       for (const lyr of fLyrList) {
-         if (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
+         if ((lyr.portalItem != null) &&
+             (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
              lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
-             lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids) {
+             lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids)) {
             console.log ('found layer: ' + lyr.title);                
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
             await lyr.load().then((f1: __esri.FeatureLayer) => {
@@ -1665,9 +1667,10 @@ export class MapService {
 
         //lyr.portalItem.id === this.config.layerIds.pcr need to enable for PCR
         for (const lyr of fLyrList) {
-            if (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+            if ((lyr.portalItem != null) &&
+                (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
                 lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
                 let layername = null;
                 if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
                     layername = 'Selected Geography - ZIP';
@@ -1825,9 +1828,10 @@ export class MapService {
             fLyrList = list;
         });
         for (const lyr of fLyrList) {
-            if (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+            if ((lyr.portalItem != null) &&
+                (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
                 lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+                lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
                 const query = lyr.createQuery();
                 if (geom) {
                     console.log ('selectSinglePoly() - geom:' + objID);

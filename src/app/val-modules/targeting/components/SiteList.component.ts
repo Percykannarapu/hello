@@ -35,6 +35,8 @@ export class SiteListComponent implements OnInit, OnDestroy
    selectedValue: String = 'Site';
    public impGeofootprintLocList: ImpGeofootprintLocation[] = []; // this is the entire List of Locations
    public selectedImpGeofootprintLocList: ImpGeofootprintLocation[] = []; // // this is for grid component to manage
+   public impGeofootprintCompList: ImpGeofootprintLocation[] = []; // this is the entire List of Locations
+   public selectedImpGeofootprintCompList: ImpGeofootprintLocation[] = []; // // this is for grid component to manage
 
    public impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
 
@@ -76,9 +78,14 @@ export class SiteListComponent implements OnInit, OnDestroy
    
   
    onGroupChange(){
+     if (this.selectedValue === 'Site'){
      this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
      this.selectedImpGeofootprintLocList = this.impGeofootprintLocationService.get();
-    this.gridData = this.selectedValue === 'Site' ? this.impGeofootprintLocList : this.geocodingRespService.amComps;
+    } else{
+      this.impGeofootprintCompList = this.impGeofootprintLocationService.get();
+      this.selectedImpGeofootprintCompList = this.impGeofootprintLocationService.get();
+    }
+    //this.gridData = this.selectedValue === 'Site' ? this.impGeofootprintLocList : this.geocodingRespService.amComps;
    // this.geocodingRespService.createGrid();
    }
    

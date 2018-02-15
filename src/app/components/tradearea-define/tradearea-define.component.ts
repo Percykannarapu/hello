@@ -278,7 +278,7 @@ export class TradeareaDefineComponent implements OnInit {
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
                 let graphicList: __esri.Graphic[];
                 const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
-
+                this.mapService.displayDBSpinner = true;
                 //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;

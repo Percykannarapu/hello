@@ -63,7 +63,7 @@
                 </div>
 
                 <!-- Commented out for US6554: nallana -->
-                <div class="ui-g-12">
+                <!-- <div class="ui-g-12">
                     <label for="fileUpload" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
                         style="width: 100%;">
                         <div style="padding-top: 6px;">
@@ -71,7 +71,7 @@
                             /> Geocode CSV File
                         </div>
                     </label>
-                </div>
+                </div> -->
                 <!--<div *ngIf="failedSites.length > 0" class="ui-g-12">
                     <button (click)="onViewFailures()" type="button" label="View Geocoding Failures" icon="ui-icon-warning" pButton style="width: 100%;"></button>
                 </div>-->
@@ -173,4 +173,4 @@
     </p-dialog>
 </div>
 
-<p-growl [(value)]="geocodingErrors"></p-growl>
+<p-growl [(value)]="geocodingErrors" sticky="sticky"></p-growl>
