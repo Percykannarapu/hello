@@ -1943,7 +1943,7 @@ export class MapService {
                     await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
                         .then(res => {
                             //graphicList = res;
-                            if (max === miles) {
+                            if (max == miles) {
                                 this.selectCentroid(res);
                             }
                         });
