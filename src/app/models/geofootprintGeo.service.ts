@@ -1,20 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Headers, Http, Response } from '@angular/http';
+import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
-// import 'rxjs/add/operator/toPromise';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 
 
 // Import Core Modules
-import { CONFIG } from '../core';
 import { MessageService } from '../val-modules/common/services/message.service';
 
 // Import Models
 import { GeofootprintGeo } from './geofootprintGeo.model';
 
-const geofootprintGeosUrl = 'api/geofootprintGeos'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
+const geofootprintGeosUrl = 'api/geofootprintGeos';
 
 @Injectable()
 export class GeofootprintGeoService {

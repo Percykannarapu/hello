@@ -8,10 +8,10 @@ import { Observable } from 'rxjs/Observable';
 export class AppState
 {
    // URL to access the ArcGIS Portal
-   public static portalUrl: string = 'https://vallomimpor1vm.val.vlss.local/arcgis';
+   //public static portalUrl: string = 'https://vallomimpor1vm.val.vlss.local/arcgis';
 
    // URL to access the ArcGIS Server
-   public static serverUrl: string = 'https://vallomimpor1vm.val.vlss.local/arcgis-server';
+   // public static serverUrl: string = 'https://vallomimpor1vm.val.vlss.local/arcgis-server';
 
    // ID for the DMA Boundaries layer
    public static dmaBoundariesLayerId: string = '9205b77cd8c74773aefad268b6705543';

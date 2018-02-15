@@ -454,9 +454,9 @@ export class UploadLocationsComponent implements OnInit {
     await this.mapService.getAllFeatureLayers().then(list => {
       if (list.length > 0) {
         for (const layer of list) {
-          if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
+          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
             layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
+            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
             fLyrList.push(layer);
           }
         }
@@ -487,7 +487,7 @@ export class UploadLocationsComponent implements OnInit {
             geoAttr.attributeValue = home_geo;
             site.geocodingAttributesList.push(geoAttr);
           }
-          if (llyr.portalItem.id === this.config.layerIds.atz.digitalTopVars) {
+          if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
             geoAttr.attributeName = 'Home DIGITAL ATZ';
             geoAttr.attributeValue = home_geo;
             site.geocodingAttributesList.push(geoAttr);

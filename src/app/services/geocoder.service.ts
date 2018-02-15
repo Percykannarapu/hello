@@ -4,19 +4,15 @@ import { RestResponse } from '../models/RestResponse';
 import { AccountLocation } from '../models/AccountLocation';
 import { GeocodingResponse } from '../models/GeocodingResponse';
 import { GeofootprintMaster } from '../models/GeofootprintMaster';
-import { EsriLoaderWrapperService } from '../services/esri-loader-wrapper.service';
-import { GrowlModule, Message } from 'primeng/primeng';
+import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
+import { Message } from 'primeng/primeng';
 import 'rxjs/add/operator/map';
 import { AmSite } from '../val-modules/targeting/models/AmSite';
-import { RequestOptionsArgs } from '@angular/http/src/interfaces';
-import { Response } from '@angular/http/src/static_response';
-import { AccountLocations } from '../models/AccountLocations';
 import { MapService } from './map.service';
-//import { MessageService } from 'primeng/components/common/messageservice';
-//import { AmSiteService } from '../val-modules/targeting/services/AmSite.service';
 import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
+import { AppConfig } from '../app.config';
 
 @Injectable()
 export class GeocoderService {
@@ -28,9 +24,10 @@ export class GeocoderService {
   public Msgs: Message[] = [];
   public graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
 
-  constructor(public geocodingRespService: GeocodingResponseService, 
-              public http: HttpClient, 
-              private mapService: MapService) { //private messageService: MessageService,
+  constructor(public geocodingRespService: GeocodingResponseService,
+              public http: HttpClient,
+              private mapService: MapService,
+              private config: AppConfig) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
 
@@ -42,19 +39,19 @@ export class GeocoderService {
       state: amSite.state,
       postalCode: amSite.zip
     };
-    // _gridOptions:Map<string, Array<string>> = new Map([["1", ["test"]], ["2", ["test2"]]])    
+    // _gridOptions:Map<string, Array<string>> = new Map([["1", ["test"]], ["2", ["test2"]]])
 
-    return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/geocoder/singlesite', accountLocation);
+    return this.http.post<RestResponse>(this.config.valServiceBase + 'v1/geocoder/singlesite', accountLocation);
   }
 
   multiplesitesGeocode(siteList: any[]) {
-    // console.log('fired multiplGeocode in GeocoderService2:: ' + JSON.stringify(siteList, null, 2));   
-    return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/geocoder/multiplesites', siteList);
+    // console.log('fired multiplGeocode in GeocoderService2:: ' + JSON.stringify(siteList, null, 2));
+    return this.http.post<RestResponse>(this.config.valServiceBase + 'v1/geocoder/multiplesites', siteList);
   }
 
   saveGeofootprintMaster(geofootprintMaster: GeofootprintMaster) {
     console.log('fired saveGeofootprintMaster in GeocoderService ' + JSON.stringify(geofootprintMaster, null, 4));
-    return this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster);
+    return this.http.post<RestResponse>(this.config.valServiceBase + 'v1/mediaexpress/base/geofootprintmaster/save', geofootprintMaster);
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
@@ -131,7 +128,7 @@ export class GeocoderService {
   }
 
   // draw the site graphics on the Sites layer
-  private async updateLayer(graphics: __esri.Graphic[], selector) {
+  public async updateLayer(graphics: __esri.Graphic[], selector) {
     if (selector === 'Site') {
       console.log('Adding sites from Upload:::');
       this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);

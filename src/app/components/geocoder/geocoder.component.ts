@@ -625,7 +625,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
             for (const layer of list) {
                     if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars || 
                         layer.portalItem.id === this.config.layerIds.atz.topVars || 
-                        layer.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
+                        layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
                         fLyrList.push(layer);
                     }
                 }
@@ -655,7 +655,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
                   geoAttr.attributeValue = home_geo;
                   site.geocodingAttributesList.push(geoAttr);
                  }
-                 if (llyr.portalItem.id === this.config.layerIds.atz.digitalTopVars){
+                 if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
                   geoAttr.attributeName = 'Home DIGITAL ATZ';
                   geoAttr.attributeValue = home_geo;
                   site.geocodingAttributesList.push(geoAttr);

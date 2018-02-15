@@ -1,11 +1,11 @@
 import { ColorBoxComponent } from '../color-box/color-box.component';
 import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
-import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
+import { SelectItem, Message } from 'primeng/primeng';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
-import { CONFIG } from '../../core/config';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppConfig } from '../../app.config';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -44,9 +44,10 @@ export class TradeareaDefineComponent implements OnInit {
     private campaignDetailsBox: ColorBoxComponent;
 
     constructor(
-        private mapService: MapService, 
-        private messageService: MessageService, 
-        private impGeofootprintLocationService: ImpGeofootprintLocationService
+        private mapService: MapService,
+        private messageService: MessageService,
+        private impGeofootprintLocationService: ImpGeofootprintLocationService,
+        private config: AppConfig
     ) { }
 
     ngOnInit() {
@@ -154,7 +155,7 @@ export class TradeareaDefineComponent implements OnInit {
         if ((this.ta1Miles != null && this.checked1) || (this.ta2Miles != null && this.checked2) || (this.ta3Miles != null && this.checked3)) {
             let isValid = false;
             ['ta1Miles', 'ta2Miles', 'ta3Miles'].forEach((model) => {
-                if (this[model] < 0 || this[model] > CONFIG.maxBufferRadius) {
+                if (this[model] < 0 || this[model] > this.config.maxBufferRadius) {
                     isValid = true;
                 }
             });
@@ -224,8 +225,8 @@ export class TradeareaDefineComponent implements OnInit {
                     }
 
                   /*
-                  *This code is commented as a part of US6635 points array will no longer be used 
-                  */  
+                  *This code is commented as a part of US6635 points array will no longer be used
+                  */
                   existingGraphics = (<__esri.FeatureLayer>layer).source;
                     if (layer.title.includes(this.selectedValue.toString())) {
                         lyrTitle = layer.title;
@@ -236,7 +237,7 @@ export class TradeareaDefineComponent implements OnInit {
                             points.popup = current.popupTemplate;
                             pointsArray.push(points);
                         });*/
-                    } 
+                    }
                 }
             });
 

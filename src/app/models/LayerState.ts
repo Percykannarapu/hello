@@ -106,6 +106,7 @@ export class LayerState {
     } else {
       //field not found
       this.newVarActualFieldName = null;
+      console.error(`Field '${this.newTopVar.fieldName}' (${this.newTopVar.label}) was not found in the layer set.`);
       // TODO: throw error?
     }
   }

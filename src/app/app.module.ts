@@ -292,7 +292,7 @@ import { ImpGeofootprintLocAttribService } from './val-modules/targeting/service
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
-        EsriMapService, EsriIdentityService,ImpGeofootprintLocAttribService,
+        EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService,
         UserService

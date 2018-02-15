@@ -1,25 +1,19 @@
-import { MetricService } from './../../common/services/metric.service';
-import { Injectable, Component } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { MetricService } from '../../common/services/metric.service';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
-import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { MapService } from '../../../services/map.service';
 import { DefaultLayers } from '../../../models/DefaultLayers';
-import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primeng';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
-import { Points } from '../../../models/Points';
 
 // Import Core Modules
-import { CONFIG } from '../../../core';
 import { MessageService } from '../../common/services/message.service';
 
 // Import Models
-//import { AmSite } from '../models/AmSite';
-import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -203,7 +197,7 @@ export class GeocodingResponseService {
         return csvData;
     }
 
-    public getNewSitePk() : number {
+    public getNewSitePk(): number {
         return this.tempId++;
     }
 
@@ -278,7 +272,7 @@ export class GeocodingResponseService {
         /*  const index = MapService.impGeofootprintLocList.indexOf(loc);
           MapService.impGeofootprintLocList = [...MapService.impGeofootprintLocList.slice(0, index),
           ...MapService.impGeofootprintLocList.slice(index + 1)];
-           
+
           this.impGeofootprintLocList = MapService.impGeofootprintLocList;
           this.unselectedimpGeofootprintLocList =  MapService.impGeofootprintLocList;*/
 
@@ -321,12 +315,16 @@ export class GeocodingResponseService {
         this.subject.next(site);
     }
 
-    public refreshMapSites() {
+    public refreshMapSites(selector) {
         console.log('refreshMapSites fired');
-        this.mapService.clearFeatureLayer(DefaultLayers.SITES);
+        if (selector === 'Site') {
+            this.mapService.clearFeatureLayer(DefaultLayers.SITES);
+        } else {
+            this.mapService.clearFeatureLayer(DefaultLayers.COMPETITORS);
+        }
 
         // Reflect selected sites on the map
-        this.addSelectedSitesToMap();
+        this.addSelectedSitesToMap(selector);
         console.log('refreshMapSites - cleared and set ' + this.sitesList.length + ' sites.');
     }
 
@@ -369,12 +367,17 @@ export class GeocodingResponseService {
     }
 
     // draw the site graphics on the Sites layer
-    private async updateLayer(graphics: __esri.Graphic[]) {
-        this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+    private async updateLayer(graphics: __esri.Graphic[], selector) {
+        console.log('refreshMapSites fired');
+        if (selector === 'Site') {
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+        } else {
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+        }
     }
 
     // Add all of the selected sites to the map
-    private async addSelectedSitesToMap() {
+    private async addSelectedSitesToMap(selector) {
         try {
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Graphic] = await loader.loadModules(['esri/Graphic']);
@@ -386,7 +389,7 @@ export class GeocodingResponseService {
                     .then(res => { graphics.push(res); })
                     .catch(err => this.handleError(err));
             }
-            await this.updateLayer(graphics)
+            await this.updateLayer(graphics, selector)
                 .then(res => { this.mapService.zoomOnMap(graphics); })
                 .then(res => this.add(this.sitesList))
                 .then(res => this.createGrid())
@@ -449,7 +452,7 @@ export class GeocodingResponseService {
                 attrList.forEach(locAttr => {
                     if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP', 'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Market'].indexOf(locAttr.attributeCode) < 0) {
-                        // console.log('locAttr.attributeCode::::', locAttr.attributeCode); 
+                        // console.log('locAttr.attributeCode::::', locAttr.attributeCode);
                         this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '90px' });
                     }
                 });
@@ -503,6 +506,7 @@ export class GeocodingResponseService {
             impGeofootprintLoc.origState = site.orgState;
             impGeofootprintLoc.origPostalCode = site.zip10;
             impGeofootprintLoc.marketName = site.marketName;
+            impGeofootprintLoc.impClientLocationType = selector;
 
             //impGeofootprintLoc.qua = site.locationQualityCode;
             // impGeofootprintLoc.origAddress1 = site
@@ -519,24 +523,11 @@ export class GeocodingResponseService {
                 impLocAttrTempList.push(impGeofootprintLocAttr);
             });
             this.impGeoLocAttrList.push(impLocAttrTempList);
-            if (selector === 'Site'){
             this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-        } else{
-            this.impGeofootprintCompList = [...this.impGeofootprintCompList, impGeofootprintLoc];
-        }
+            
         });
-        if (selector === 'Site') {
-            this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
-            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-            this.siteCount = this.siteCount + (this.impGeofootprintLocList.length);
-            // Update the metrics
-            this.metricService.add('LOCATIONS', '# of Sites', this.siteCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        } else {
-            this.impGeofootprintLocationService.add(this.impGeofootprintCompList);
-            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-            this.compCount = this.compCount + (this.impGeofootprintCompList.length);
-            // Update the metrics
-            this.metricService.add('LOCATIONS', '# of Competitors', this.compCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        }
+        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+        
     }
 }

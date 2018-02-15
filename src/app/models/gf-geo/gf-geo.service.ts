@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-// import { Headers, Http, Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
@@ -8,14 +7,9 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
-// Import Core Modules
-import { CONFIG } from '../../core';
-import { MessageService } from '../../val-modules/common/services/message.service';
-
 // Import Models
-import { GeofootprintGeo } from './../geofootprintGeo.model';
+import { GeofootprintGeo } from '../geofootprintGeo.model';
 
-// const geofootprintGeosUrl = '../../../api/geofootprintGeos';
 const geofootprintGeosUrl = 'api/geofootprintGeos';
 
 @Injectable()
