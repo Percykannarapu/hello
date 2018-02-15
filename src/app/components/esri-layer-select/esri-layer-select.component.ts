@@ -11,6 +11,8 @@ import { MessageService } from '../../val-modules/common/services/message.servic
 
 // import primeng
 import {SelectItem} from 'primeng/primeng';
+import { AppConfig } from '../../app.config';
+import { MetricService } from '../../val-modules/common/services/metric.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -35,7 +37,7 @@ export class EsriLayerSelectComponent implements OnInit {
   public selectedAnalysisLevel: string;
   public selectedAnalysisLevels: string[] = [];
 
-  constructor(public mapService: MapService) {
+  constructor(public mapService: MapService,  private config: AppConfig, private metricService: MetricService) {
       this.mapView = this.mapService.getMapView();
     }
 
@@ -129,6 +131,47 @@ export class EsriLayerSelectComponent implements OnInit {
         else {
             this.mapService.hideMapLayers();
         }
+    }
+
+    async onClearAllSelections(){
+      console.log(' fired Clear selections:::')
+      let fLyrList: __esri.FeatureLayer[] = [];
+      await this.mapService.getAllFeatureLayers().then(list => {
+          fLyrList = list;
+      });
+     
+      for (const lyr of fLyrList) {
+        if ((lyr.portalItem != null) &&
+        (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+        lyr.portalItem.id === this.config.layerIds.atz.topVars ||
+        lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
+          let layername = null;
+          if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
+              layername = 'Selected Geography - ZIP';
+          else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
+              layername = 'Selected Geography - ATZ';
+          else if (lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)   
+              layername = 'Selected Geography - Ditial ATZ';
+
+
+              await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);  
+              MapService.selectedCentroidObjectIds = [];  
+              MapService.hhDetails = 0;
+              MapService.hhIpAddress = 0;
+              MapService.medianHHIncome = '0';
+              MapService.hhChildren = 0;
+              this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+              this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+              this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+              this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+
+        }
+      }
+    }
+
+    onRevertToTradeArea(){
+      console.log(' fired onRevertToTradeArea:::')
+      this.mapService.callTradeArea();
     }
 
 }

@@ -26,4 +26,11 @@
                      onIcon="esri-icon-browser" offIcon="esri-icon-maximize">
     </p-toggleButton>
 
+
      <p-selectButton id="analysisLevels" title="Map Layers" [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevels" multiple="multiple" (onChange)="checkLayers()"></p-selectButton>
+
+     <div class="ui-g-12">
+     </div>
+
+     <button  label="Clear All Selections"  pButton (click)="onClearAllSelections()"  ></button>
+     <button  label="Revert to Trade Area"  pButton (click)="onRevertToTradeArea()"  ></button>
