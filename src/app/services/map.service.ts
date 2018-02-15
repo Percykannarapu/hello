@@ -1983,7 +1983,7 @@ export class MapService {
         await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
                 if ( polyFeatureSet.features.length > 0)
-                     homeGeocode = polyFeatureSet.features[0].attributes.GEOCODE;
+                     homeGeocode = polyFeatureSet.features[0].attributes.geocode;
                 if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
