@@ -15,6 +15,8 @@ export class ImpGeofootprintGeo
    public geoSortOrder:                 number;                        /// Geography sort order
    public hhc:                          number;                        /// Household count
    public distance:                     number;                        /// Geocodes distance to the location
+   public xcoord:                       number;                        /// X Location coordinate
+   public ycoord:                       number;                        /// Y Location coordinate
 
    // IMPOWER.IMP_GEOFOOTPRINT_GEOS - MANY TO ONE RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------

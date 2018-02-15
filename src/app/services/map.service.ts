@@ -987,7 +987,7 @@ export class MapService {
     }
 
     public createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
-        console.log('fired createFeatureLayer() in MapService');
+        console.log('fired createFeatureLayer(' + layerName + ') in MapService');
         if (MapService.layerNames.has(layerName)) {
             console.log('layer name already exists');
             throw new Error('Layer name already exists, please use a different name');
@@ -1042,8 +1042,27 @@ export class MapService {
                   supportsStandardizedQueriesOnly: true,
                   supportsStatistics: true
                }
+            },
+            advancedQueryCapabilities: {
+               supportsAdvancedQueryRelated: true,
+               supportsCountDistinct: true,
+               supportsDistinct: true,
+               supportsHavingClause: true,
+               supportsOrderBy: true,
+               supportsOutFieldSQLExpression: true,
+               supportsPagination: true,
+               supportsPaginationOnAggregatedQueries: true,
+               supportsQueryRelatedPagination: true,
+               supportsQueryWithDatumTransformation: true,
+               supportsQueryWithDistance: true,
+               supportsQueryWithResultType: true,
+               supportsReturningGeometryCentroid: true,
+               supportsReturningGeometryProperties: true,
+               supportsReturningQueryExtent: true,
+               supportsSqlExpression: true,
+               supportsStatistics: true
             }
-        });
+         });
 
         if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')) {
             const index = MapService.SitesGroupLayer.layers.length;
@@ -1479,169 +1498,40 @@ export class MapService {
         }
     }
 
-    public async getGeocodes()
-    {
-      console.log('getGeocodes fired');
+   public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any)
+   {
+      console.log ('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
+      let results: Array<__esri.Graphic>;
 
-      const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
-
-      const loader = EsriLoaderWrapperService.esriLoader;
-      const [FeatureLayer, geometryEngine, SpatialReference, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, Point, Polyline, Geometry]
-          = await loader.loadModules([
-              'esri/layers/FeatureLayer',
-              'esri/geometry/geometryEngine',
-              'esri/geometry/SpatialReference',
-              'esri/Graphic',
-              'esri/symbols/SimpleFillSymbol',
-              'esri/symbols/SimpleLineSymbol',
-              'esri/symbols/SimpleMarkerSymbol',
-              'esri/Color',
-              'esri/geometry/Point',
-              'esri/geometry/Polyline',
-              'esri/geometry/Geometry',
-              'dojo/domReady!'
-          ]);
-
-      const centroidGraphics: __esri.Graphic[] = [];
-      let fLyrList: __esri.FeatureLayer[] = [];
-      await this.getAllFeatureLayers().then(list => {
-          fLyrList = list;
-      });
-
-      // Sites
-      // for (const layr of fLyrList) {
-      //    console.log('layer titles: ', layr.title);
-      //    }
-
-      // const foundLayer: __esri.FeatureLayer = <__esri.FeatureLayer>this.map.layers.find(function(layer) {
-      //       return layer.title === 'Project Sites';
-      // });
-
-      // Find the sites layer to get the lat / long of the site points
-      const sitesLayer: __esri.FeatureLayer = <__esri.FeatureLayer>this.findSubLayerByTitle(MapService.SitesGroupLayer, 'Project Sites');
-
-      if (sitesLayer != null)
-      {
-         console.log('sitesLayer is not null', sitesLayer);
-         for (let i = 0; i < sitesLayer.source.length; i++)
-            console.log('sitesLayer.items[' + i + ']', sitesLayer.source.getItemAt(i));
-   //       const q = sitesLayer.createQuery();
-   //       q.where = '1=1';
-   //       q.returnGeometry = true;
-   //       q.outSpatialReference = this.mapView.spatialReference;
    //       await sitesLayer.queryFeatures(q).then(featureSet => {
    //          for (let i = 0; i < featureSet.features.length; i++) {
    //             console.log('SITE featureSet.features[' + i + ']', featureSet.features[i].toJSON());
    // //            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE}));
-   //          }
-   //       });
-      }
 
-      let geoLayer: __esri.FeatureLayer;
 
-      for (const l of fLyrList) {
-         console.log ('feature layer: ', l);
-      }
-      
-      // Load the geographic feature layers
-      for (const lyr of fLyrList) {
-         if ((lyr.portalItem != null) &&
-             (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
-             lyr.portalItem.id === this.config.layerIds.atz.centroids  ||
-             lyr.portalItem.id === this.config.layerIds.atz.digitalCentroids)) {
-            console.log ('found layer: ' + lyr.title);                
-            let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
-            await lyr.load().then((f1: __esri.FeatureLayer) => {
-                  loadedFeatureLayer = f1;
-                  geoLayer = f1;
-         });
-      }
-   }
-   console.log ('geoLayer feature layer: ', geoLayer);
-
-      // fs will be the FeatureSet containing the geographies
-      let fs: __esri.FeatureSet;
-
-      // Query for all of the geocodes
-      const qry = geoLayer.createQuery();     
-      qry.outSpatialReference = new SpatialReference(4326); //this.mapView.spatialReference;
-
-   console.log('executing query');
-      await geoLayer.queryFeatures(qry).then(featureSet => {
-         console.log('Assign fs to geosLayer', geoLayer);
-
-         // Assign fs the geographies features set
-         fs = featureSet;
-
-         // Debug print them
-//         for (let i = 0; i < featureSet.features.length; i++)
-//         {
-//            console.log('featureSet.features[' + i + ']', featureSet.features[i].toJSON());
-
-            // Compare geocode lat/long to list of sites lat/long and find shortest distance
-            //   That will tell me the distance, and I'll have to record the lat long or index of the site to associate with a imp_location object
-//            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: featureSet.features[i].attributes.GEOCODE, impGeofootprintLocation: new ImpGeofootprintLocation()}));
-//         }
+         return layerView.queryFeatures().then( qryResults => {
+            console.log('queryFeatures returned: ', qryResults);
+            console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
+            results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
       });
-      console.log('finished query.  fs', fs);
-      // look for closest site
-      //   This needs to be moved to the ImpLocations service to something like AssignGeosToLocations
-      if (sitesLayer != null)
-      {
-         // Loop through geocodes to compare against sites
-         for (let i = 0; i < fs.features.length; i++)
-         {
-            let closestSiteIdx: number = -1;
-            const closestCoord: number[] = [];
-            let closestDistance: number = 99999999;
+      
+      // featuresView.graphics.filter(graphic => graphic.attributes && graphic.attributes[key] === value).toArray();   
+   }
 
-            // Loop through all of the sites, comparing to the current geo  (Yep, need a more efficient way)
-            for (let s = 0; s < sitesLayer.source.length; s++)
-            {
-               // Assign to a variable so we can access .x and .y
-               const geometryGeo  = <__esri.Point> fs.features[i].geometry;
-               const geometrySite = <__esri.Point> sitesLayer.source.getItemAt(s).geometry;
+   public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number
+   {
+      // Construct a polyline to get the geodesic distance between geo and site
+      const polyLine: __esri.Polyline = new EsriModules.PolyLine({paths: [[[x1, y1], [x2, y2]]]});
+      const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
+      
+      return dist;
+   }
 
-               // Construct a polyline to get the geodesic distance between geo and site
-               const polyLine: __esri.Polyline = new Polyline({paths: [[[geometryGeo.x, geometryGeo.y], [geometrySite.x, geometrySite.y]]]});
-               const dist = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
-
-               // If closer to this location, record the lat / lon
-               if (dist < closestDistance)
-               {
-                  closestDistance = dist;
-                  closestSiteIdx = s;
-                  closestCoord[0] = geometrySite.x;
-                  closestCoord[1] = geometrySite.y;
-                  //console.log('Compared ', fs.features[i].attributes.GEOCODE, 'against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s), ', Distance: ' + dist + ' - NEW CLOSEST');
-               }
-               //else
-               //   console.log('Compared ', fs.features[i].attributes.GEOCODE, 'against sitesLayer.items[' + s + ']', sitesLayer.source.getItemAt(s), ', Distance: ' + dist);
-            }
-
-            // Create the ImpGeofootprintGeo in local cache
-            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: fs.features[i].attributes.GEOCODE,
-                                                             distance: closestDistance,
-                                                             impGeofootprintLocation: new ImpGeofootprintLocation({glId: (closestSiteIdx + 1) * 10, xcoord: closestCoord[0], ycoord: closestCoord[1]})}));
-         }
-      }
-
-      // Update the ImpGeofootprintGeos data store
-      this.impGeofootprintGeoService.clearAll();
-      this.impGeofootprintGeoService.add(impGeofootprintGeos);
-
-      // console.log('### LIST OF GEOS ###');
-      // for (const geo of impGeofootprintGeos)
-      // {
-      //    console.log('geo: ', geo);
-      // }
-  }
-
-    public async selectPoly(centroidGraphics: __esri.Graphic[]) {
+   public async selectPoly(centroidGraphics: __esri.Graphic[]) {
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, array, geometryEngine, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
+        const [FeatureLayer, array, geometryEngine, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, Point]
             = await loader.loadModules([
                 'esri/layers/FeatureLayer',
                 'dojo/_base/array',
@@ -1650,7 +1540,9 @@ export class MapService {
                 'esri/symbols/SimpleFillSymbol',
                 'esri/symbols/SimpleLineSymbol',
                 'esri/symbols/SimpleMarkerSymbol',
-                'esri/Color', 'dojo/domReady!'
+                'esri/Color',
+                'esri/geometry/Point',
+                'dojo/domReady!'
             ]);
         console.log('centroidGraphics length:::' + centroidGraphics.length);
         const symbol123 = new SimpleFillSymbol(
@@ -1667,6 +1559,22 @@ export class MapService {
         });
         MapService.selectedCentroidObjectIds = [];
 
+        const polyGraphics: __esri.Graphic[] = [];
+        const selectedGraphics: __esri.Graphic[] = [];
+
+        // Collectt the selected geographies for pushing to the ImpGeofootpringGeo data store
+        const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+
+        for (const centroidGraphic of centroidGraphics) {
+            const pt: __esri.Point = <__esri.Point> centroidGraphic.geometry;
+            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: centroidGraphic.attributes.GEOCODE,
+                                                             xcoord:  pt.longitude,
+                                                             ycoord:  pt.latitude}));
+        }
+        // Update the ImpGeofootprintGeos data store
+        this.impGeofootprintGeoService.clearAll();
+        this.impGeofootprintGeoService.add(impGeofootprintGeos);
+
         //lyr.portalItem.id === this.config.layerIds.pcr need to enable for PCR
         for (const lyr of fLyrList) {
             if ((lyr.portalItem != null) &&
@@ -1680,7 +1588,6 @@ export class MapService {
                     layername = 'Selected Geography - ATZ';
                 else if (lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)   
                     layername = 'Selected Geography - Ditial ATZ';   
-                const polyGraphics: __esri.Graphic[] = [];
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
                 await lyr.load().then((f1: __esri.FeatureLayer) => {
@@ -1697,7 +1604,7 @@ export class MapService {
                 this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
                 this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
                 this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
-
+               
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
