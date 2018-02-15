@@ -47,46 +47,16 @@ export class EsriLayerSelectComponent implements OnInit {
       this.analysisLevels = [];
       this.analysisLevels.push({label: 'ZIP',  value: 'ZIP'});
       this.analysisLevels.push({label: 'ATZ',  value: 'ATZ'});
+      this.analysisLevels.push({label: 'DIG_ATZ',  value: 'DIG_ATZ'});
       this.analysisLevels.push({label: 'PCR',  value: 'PCR'});
       this.analysisLevels.push({label: 'WRAP', value: 'WRAP'});
-      this.analysisLevels.push({label: 'HH',   value: 'HH'});
+//      this.analysisLevels.push({label: 'HH',   value: 'HH'});
       this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
       this.selectedAnalysisLevel = 'ZIP';
       //this.selectedAnalysisLevels = [];
-/*
-      this.esriDemographicItems = [
-        // -----------------
-        //    ESRI Layers
-        // -----------------
-            { label: 'Census'                             , value: { group: 'ESRI', portalitem: '', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer', name: 'Census'}},
-            { label: 'USA 1990-2000 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_1990-2000_Population_Change/MapServer',
-              name: 'USA 1990-2000 Population Change'}},
-            { label: 'USA 2000-2010 Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_2000-2010_Population_Change/MapServer',
-              name: 'USA 2000-2010 Population Change'}},
-            { label: 'USA Average Household Size'         , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Average_Household_Size/MapServer', name: 'USA Average Household Size'}},
-            { label: 'USA Diversity Index'                , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Diversity_Index/MapServer', name: 'USA Diversity Index'}},
-            { label: 'USA Labor Force Participation Rate' , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Labor_Force_Participation_Rate/MapServer',
-              name: 'USA Labor Force Participation Rate'}},
-            { label: 'USA Median Age'                     , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Age/MapServer', name: 'USA Median Age'}},
-            { label: 'USA Median Home Value'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Home_Value/MapServer', name: 'USA Median Home Value'}},
-            { label: 'USA Median Household Income'        , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Household_Income/MapServer', name: 'USA Median Household Income'}},
-            { label: 'USA Median Net Worth'               , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Median_Net_Worth/MapServer', name: 'USA Median Net Worth'}},
-            { label: 'USA Owner Occupied Housing'         , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Owner_Occupied_Housing/MapServer', name: 'USA Owner Occupied Housing'}},
-            { label: 'USA Percent Over 64'                , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Percent_Over_64/MapServer', name: 'USA Percent Over 64'}},
-            { label: 'USA Percent Under 18'               , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Percent_Under_18/MapServer', name: 'USA Percent Under 18'}},
-            { label: 'USA Population by Sex'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Population_by_Sex/MapServer', name: 'USA Population by Sex'}},
-            { label: 'USA Population Density'             , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Population_Density/MapServer', name: 'USA Population Density'}},
-            { label: 'USA Projected Population Change'    , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Projected_Population_Change/MapServer',
-              name: 'USA Projected Population Change'}},
-            { label: 'USA Recent Population Change'       , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Recent_Population_Change/MapServer', name: 'USA Recent Population Change'}},
-            { label: 'USA Retail Spending Potential'      , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Retail_Spending_Potential/MapServer', name: 'USA Retail Spending Potential'}},
-            { label: 'USA Social Vulnerability Index'     , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Social_Vulnerability_Index/MapServer',
-              name: 'USA Social Vulnerability Index'}},
-            { label: 'USA Tapestry'                       , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Tapestry/MapServer', name: 'USA Tapestry'}},
-            { label: 'USA Unemployment Rate'              , value: { group: 'ESRI', portalitem: '', url: 'https://server.arcgisonline.com/arcgis/rest/services/Demographics/USA_Unemployment_Rate/MapServer', name: 'USA Unemployment Rate'}}
-        ];
-*/    
+
+      this.mapService.setMapLayers(this.selectedAnalysisLevels);
 
     }
     // tslint:disable-next-line:one-line
@@ -103,10 +73,10 @@ export class EsriLayerSelectComponent implements OnInit {
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis DMA'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ZIP'));
-        if (!this.selectedAnalysisLevels.find(x => x === 'ZIP'))
-             this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ZIP'));
         if (!this.selectedAnalysisLevels.find(x => x === 'ATZ'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis ATZ'));
+        if (!this.selectedAnalysisLevels.find(x => x === 'DIG_ATZ'))
+             this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis Digital ATZ'));
         if (!this.selectedAnalysisLevels.find(x => x === 'PCR'))
              this.mapService.removeLayer(this.mapService.findLayerByTitle('Valassis PCR'));
         if (!this.selectedAnalysisLevels.find(x => x === 'WRAP'))
@@ -119,14 +89,14 @@ export class EsriLayerSelectComponent implements OnInit {
      }
 
     if (this.layerToggle) {
-            this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
+            this.mapService.setMapLayers(this.selectedAnalysisLevels);
         }
     }
 
    // this event handler is for the Toggle Layers control
    handleLayerChange(e) {
         if (e.checked) {
-          this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
+          this.mapService.setMapLayers(this.selectedAnalysisLevels);
         }
         else {
             this.mapService.hideMapLayers();
@@ -144,14 +114,14 @@ export class EsriLayerSelectComponent implements OnInit {
         if ((lyr.portalItem != null) &&
         (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
         lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-        lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)) {
+        lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
           let layername = null;
           if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
               layername = 'Selected Geography - ZIP';
           else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
               layername = 'Selected Geography - ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.atz.digitalTopVars)   
-              layername = 'Selected Geography - Ditial ATZ';
+          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)   
+              layername = 'Selected Geography - Digital ATZ';
 
 
               await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);  
