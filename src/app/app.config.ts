@@ -80,7 +80,7 @@ export class AppConfig implements EsriLoaderConfig
     },
     atz: {
       topVars: 'c0ee701ee95f4bbdbc15ded2a37ca802', // ATZ_Top_Vars
-      centroids: 'fd4b078fc2424dd5a48af860dc421431\n' // ATZ_Centroids
+      centroids: 'fd4b078fc2424dd5a48af860dc421431' // ATZ_Centroids
     },
     digital_atz: {
       digitalTopVars: 'a4449b3ee55442af881f6ac660ca8163', // DIG_ATZ_Top_Vars
