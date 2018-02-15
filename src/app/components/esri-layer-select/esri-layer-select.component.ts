@@ -1,5 +1,5 @@
 
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 
 // Map Services
 import { MapService } from '../../services/map.service';
@@ -14,8 +14,7 @@ import { MetricService } from '../../val-modules/common/services/metric.service'
   templateUrl: './esri-layer-select.component.html',
   styleUrls: ['./esri-layer-select.component.css']
 })
-export class EsriLayerSelectComponent implements OnInit {
-
+export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
 
   // MapService Items
   public mapView: __esri.MapView;
@@ -24,19 +23,20 @@ export class EsriLayerSelectComponent implements OnInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-//  public esriDemographicItems: SelectItem[];
-//  public selectedLayers: SelectItem[] = [];
   public layerToggle: boolean = false;
-
-  public analysisLevels: SelectItem[];
-  public selectedAnalysisLevel: string;
+  public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
 
   constructor(public mapService: MapService,  private config: AppConfig, private metricService: MetricService) {
       this.mapView = this.mapService.getMapView();
     }
 
-  public ngOnInit() {
+    public ngOnInit() {
+      console.log ('fired esri-layer-select.ngOnInit()');
+    }
+
+  public ngAfterViewInit() {
+    console.log ('fired esri-layer-select.ngAfterViewInit()');
 
     try {
       this.analysisLevels = [];
@@ -45,14 +45,15 @@ export class EsriLayerSelectComponent implements OnInit {
       this.analysisLevels.push({label: 'DIG_ATZ',  value: 'DIG_ATZ'});
       this.analysisLevels.push({label: 'PCR',  value: 'PCR'});
       this.analysisLevels.push({label: 'WRAP', value: 'WRAP'});
-//      this.analysisLevels.push({label: 'HH',   value: 'HH'});
+      this.analysisLevels.push({label: 'HH',   value: 'HH'});
       this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
-      this.selectedAnalysisLevel = 'ZIP';
-      //this.selectedAnalysisLevels = [];
+      console.log ('selectedAnalysisLevels = ' + this.selectedAnalysisLevels);
 
-      this.checkLayers();
-
+      // set default layers and disable them
+      this.selectedAnalysisLevels = ['DMA', 'WRAP', 'DIG_ATZ', 'ATZ', 'ZIP'];
+      this.mapService.setMapLayers(this.selectedAnalysisLevels);
+      this.mapService.hideMapLayers();
     }
     // tslint:disable-next-line:one-line
     catch (ex) {
@@ -84,13 +85,15 @@ export class EsriLayerSelectComponent implements OnInit {
      }
 
     if (this.layerToggle) {
-            this.mapService.setMapLayers(this.selectedAnalysisLevels);
+        this.mapService.setMapLayers(this.selectedAnalysisLevels);
         }
     }
 
    // this event handler is for the Toggle Layers control
    handleLayerChange(e) {
-        if (e.checked) {
+    console.log (this.selectedAnalysisLevels);
+    if (e.checked) {
+          this.checkLayers();
           this.mapService.setMapLayers(this.selectedAnalysisLevels);
         }
         else {

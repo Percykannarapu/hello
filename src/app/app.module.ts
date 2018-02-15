@@ -134,6 +134,7 @@ import {GeocoderComponent} from './components/geocoder/geocoder.component';
 import {BusinessSearchComponent} from './components/business-search/business-search.component';
 import {GeofootprintComponent} from './components/geofootprint/geofootprint.component';
 import {EsriLayerSelectComponent} from './components/esri-layer-select/esri-layer-select.component';
+import {EsriMapToolsComponent} from './components/esri-map-tools/esri-map-tools.component';
 import {MapService} from './services/map.service';
 import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
 import {ColorBoxComponent} from './components/color-box/color-box.component';
@@ -273,6 +274,7 @@ import { ImpGeofootprintLocAttribService } from './val-modules/targeting/service
         DocumentationComponent,
         BusinessSearchComponent,
         EsriLayerSelectComponent,
+        EsriMapToolsComponent,
         GeoprocessingComponent,
         ColorBoxComponent,
         SiteListComponent,

@@ -354,7 +354,7 @@ export class MapService {
         //  * Double-clicks to finish sketching polyline or polygon.
         //  * Clicks to finish sketching a point geometry.
         // ***********************************************************
-        this.sketchViewModel.on('draw-complete', function (evt: any) {
+        this.sketchViewModel.on('draw-complete', (evt: any) => {
 
             // if multipoint geometry is created, then change the symbol
             // for the graphic
