@@ -8,7 +8,7 @@ export class AppConfig implements EsriLoaderConfig
    esriConfig = {
      url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal
-     portalUrl:  undefined, //'https://vallomimpor1vm.val.vlss.local/arcgis/',
+     portalUrl:  'https://vallomimpor1vm.val.vlss.local/arcgis/',
      // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
      /*dojoConfig: {
         has: {
@@ -42,7 +42,7 @@ export class AppConfig implements EsriLoaderConfig
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
    public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
-
+/*
    // AGOL
    public layerIds = {
      dma: { boundaries: '9205b77cd8c74773aefad268b6705543'}, // DMA_Boundaries
@@ -65,7 +65,7 @@ export class AppConfig implements EsriLoaderConfig
       source: '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
     },
    };
-/*/
+*/
    // QA Server: vallomimpor1vm.val.vlss.local
    public layerIds = {
     dma: {
@@ -93,5 +93,5 @@ export class AppConfig implements EsriLoaderConfig
        //'5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
      },
   };
-*/
+
 }
