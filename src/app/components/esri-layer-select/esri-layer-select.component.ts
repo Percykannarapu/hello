@@ -126,7 +126,7 @@ export class EsriLayerSelectComponent implements OnInit {
    // this event handler is for the Toggle Layers control
    handleLayerChange(e) {
         if (e.checked) {
-            this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
+          this.mapService.setMapLayers(/*this.esriDemographicItems, this.selectedLayers,*/ this.selectedAnalysisLevels);
         }
         else {
             this.mapService.hideMapLayers();
