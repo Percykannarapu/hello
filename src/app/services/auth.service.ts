@@ -4,7 +4,7 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from
 import { User } from '../models/User';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { mergeMap } from 'rxjs/operators/mergeMap';
+import { AppConfig } from '../app.config';
 
 interface RegistrationResponse {
   clientId: string;
@@ -41,12 +41,12 @@ export class AuthService implements CanActivate {
   private authenticated: boolean = false;
   private authSubject: Subject<boolean> = new Subject<boolean>();
 
-  constructor(private router: Router, private httpClient: HttpClient) { }
+  constructor(private router: Router, private httpClient: HttpClient, private config: AppConfig) { }
 
   /**
    * Determine whether the requested route can be activated or not
-   * @param next 
-   * @param state 
+   * @param next
+   * @param state
    */
   public canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) : Observable<boolean> | Promise<boolean> | boolean {
     if (!this.authenticated) {
@@ -82,14 +82,14 @@ export class AuthService implements CanActivate {
    * @param password the password to authenticate with
    */
   private getOAuthToken(username: string, password: string) : Observable<TokenResponse> {
-    
+
     // Set up the Authorization header for the request
     // The Authorization header must contain the base64 encoded value of username:password
     const authData: string = btoa(username + ':' + password);
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
       .set('Authorization', 'Basic ' + authData);
-    
+
     // Set up the body of the request for the client id and secret
     const registrationPayload: RegistrationPayload = {
       callbackUrl: '',
@@ -108,11 +108,9 @@ export class AuthService implements CanActivate {
       .set('scope', 'apim:api_view');
 
     // Send the request to the API gateway to get the client id and secret
-    const registerUrl: string = 'https://vallomjbs002vm.val.vlss.local:8443/oauth/register';
-    const tokenUrl: string = 'https://vallomjbs002vm.val.vlss.local:8443/oauth/token';
-    return this.httpClient.post<RegistrationResponse>(registerUrl, registrationPayload, { headers: headers })
+    return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
       .map(res => new HttpHeaders().set('Authorization', 'Basic ' + btoa(res.clientId + ':' + res.clientSecret)))
-      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(tokenUrl, tokenParams, {headers: tokenHeaders}));
+      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, {headers: tokenHeaders}));
   }
 
 }

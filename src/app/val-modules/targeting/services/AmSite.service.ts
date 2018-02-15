@@ -1,51 +1,47 @@
-import { MetricService } from './../../common/services/metric.service';
-import { Injectable, Component } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { MetricService } from '../../common/services/metric.service';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
 import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { MapService } from '../../../services/map.service';
 import { DefaultLayers } from '../../../models/DefaultLayers';
-import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primeng';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
 import { Points } from '../../../models/Points';
 
 // Import Core Modules
-import { CONFIG } from '../../../core';
 import { MessageService } from '../../common/services/message.service';
 
 // Import Models
-//import { AmSite } from '../models/AmSite';
-import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { encode } from 'punycode';
 
-const amSitesUrl = 'api/amsites'; // .json'; // CONFIG.baseUrls.geofootprintGeos;
+const amSitesUrl = 'api/amsites';
 
 @Injectable()
-export class AmSiteService 
+export class AmSiteService
 {
-  //\ public  newSitesList: any[] = [];   
+  //\ public  newSitesList: any[] = [];
    public  cols: any[] = [];
    public  columnOptions: SelectItem[] = [];
    private subject: Subject<any> = new Subject<any>();
    public  amComps: Array<any> = new Array<any>();
    public  unselectedAmComps: Array<GeocodingResponse> = new Array<GeocodingResponse>();
 
-   public  sitesList: any[] = [];   
-   public  unselectedSitesList:  any[] = [];   
-   
+   public  sitesList: any[] = [];
+   public  unselectedSitesList:  any[] = [];
+
 
    //TODO need to remove
-   
 
-   
-   
+
+
+
 
    private tempId: number = 0;
 
@@ -72,7 +68,7 @@ export class AmSiteService
          }).appendTo('body');
          link[0].click();
          link.remove();
-   } 
+   }
 
    /**
     * @description turn the AmSite[] array stored in this service into CSV data
@@ -103,7 +99,7 @@ export class AmSiteService
       //csvData.push(displayHeaderRow);
 
       const headerList: any[] = mappingHeaderRow.split(',');
-      
+
       let recNumber: number = 0;
       for (const site of this.sitesList) {
             recNumber++;
@@ -120,19 +116,19 @@ export class AmSiteService
                         continue;
                   }
                   //if (['TRAVELTIME1', 'TRAVELTIME2', 'TRAVELTIME3'].indexOf(header) >= 0 ){
-                  if (header.includes('TRAVELTIME')){      
+                  if (header.includes('TRAVELTIME')){
                         row = row + '0,';
                         continue;
                   }
                   if (header === 'ZIP' || header === 'ZIP4'){
                         if (header === 'ZIP'){
                               const zip = site[header].split('-');
-                              row = row + zip[0] + ',';   
+                              row = row + zip[0] + ',';
                               zip4 = zip[1];
                               continue;
                         }
                         if (header === 'ZIP4'){
-                              row = row + zip4 + ',';   
+                              row = row + zip4 + ',';
                               continue;
                         }
                   }
@@ -142,11 +138,11 @@ export class AmSiteService
                               if (header === 'TA1')
                                     ta1 = MapService.tradeAreaInfoMap.get(header).toString();
                               if (header === 'TA2')
-                                    ta2 = MapService.tradeAreaInfoMap.get(header).toString();   
+                                    ta2 = MapService.tradeAreaInfoMap.get(header).toString();
                               if (header === 'TA2')
-                                    ta3 = MapService.tradeAreaInfoMap.get(header).toString();            
+                                    ta3 = MapService.tradeAreaInfoMap.get(header).toString();
                         }
-                        else 
+                        else
                               row = row + '0,';
                         continue;
                   }
@@ -163,7 +159,7 @@ export class AmSiteService
                               row = row + 'RADIUS3,';
                               continue;
                         }
-                        
+
                               row = row + ' ,';
                               continue;
                   }
@@ -172,14 +168,14 @@ export class AmSiteService
                         continue;
                   }
                   else{
-                        row = row + site[header] + ',';   
+                        row = row + site[header] + ',';
                   }
             }
             Object.keys(site).forEach(item => {
-                 
+
                   if (headerList.indexOf(item) < 0){
                        // console.log('item name:::' + item);
-                        row = row + site[item] + ',';   
+                        row = row + site[item] + ',';
                         if (recNumber == 1) {
                               displayHeaderRow =   displayHeaderRow + ',' + item ;
                         }
@@ -196,7 +192,7 @@ export class AmSiteService
       }
       return csvData;
    }
-               
+
    public  getNewSitePk() : number
    {
       return this.tempId++;
@@ -214,18 +210,18 @@ export class AmSiteService
          // Add the site to the selected sites array
          //this.sitesList = [...this.sitesList, site];
 
-       
+
          //for (let i = 0 ; i < sitesList.length; i++){
             console.log('sitesList.length::' + sitesList.length);
-             const temp = {};   
+             const temp = {};
              site.geocodingAttributesList.forEach(item => {
                  const keyValue = Object.values(item);
-                 temp[keyValue[0].toString()] = keyValue[1];   
-                    
+                 temp[keyValue[0].toString()] = keyValue[1];
+
            });
            this.unselectedSitesList = [...this.unselectedSitesList, temp];
            this.sitesList = [...this.sitesList, temp];
-       
+
          // Notifiy Observers
          this.subject.next(site);
       }
@@ -258,7 +254,7 @@ export class AmSiteService
       // Debug log site arrays to the console
       this.logSites();
    }
- 
+
    public remove (site: GeocodingResponse)
    {
       // Remove the site from the selected sites array
@@ -285,12 +281,12 @@ export class AmSiteService
       point.latitude = site.latitude;
       point.longitude = site.longitude;
       const i = MapService.pointsArray.indexOf(point);
-      const removedpoint = MapService.pointsArray.splice(i, 1);       
+      const removedpoint = MapService.pointsArray.splice(i, 1);
       this.mapService.callTradeArea();
       // Notifiy Observers
       this.subject.next(site);
    }
-    
+
    public update (oldSite: GeocodingResponse, newSite: GeocodingResponse)
    {
       let index = this.sitesList.indexOf(oldSite);
@@ -314,7 +310,7 @@ export class AmSiteService
 
       // Clear all map graphics that have an attribute of parentId with a value of amSite.pk
       this.mapService.clearGraphicsForParent(Number(site.number));
-      
+
       this.subject.next(site);
    }
 
@@ -323,13 +319,13 @@ export class AmSiteService
    public siteWasSelected (site: GeocodingResponse)
    {
       this.subject.next(site);
-   }   
-   
+   }
+
    public refreshMapSites()
    {
       console.log('refreshMapSites fired');
       this.mapService.clearFeatureLayer(DefaultLayers.SITES);
-      
+
       // Reflect selected sites on the map
       this.addSelectedSitesToMap();
       console.log('refreshMapSites - cleared and set ' + this.sitesList.length + ' sites.');
@@ -378,7 +374,7 @@ export class AmSiteService
    private async updateLayer(graphics: __esri.Graphic[]) {
       this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
    }
-  
+
    // Add all of the selected sites to the map
    private async addSelectedSitesToMap()
    {
@@ -392,7 +388,7 @@ export class AmSiteService
                 .then(res => this.createGraphic(site, res))
                 .then(res => { graphics.push(res); })
                 .catch(err => this.handleError(err));
-            } 
+            }
             await this.updateLayer(graphics)
               .then(res => { this.mapService.zoomOnMap(graphics); })
               .then(res => this.add(this.sitesList))
@@ -411,13 +407,13 @@ export class AmSiteService
 
    private log(message: string) {
 //      this.messageService.add({severity: 'success', summary: 'AmSiteService: ' + message, detail: 'Via MessageService'});
-   }  
+   }
 
    public getAmSites() : Observable<GeocodingResponse[]> {
       console.log('getAmSites fired (Observable)');
       return of(this.sitesList);
    }
-    
+
    public XXXgetAmSites() : GeocodingResponse[]
    {
       console.log('getAmSites fired');
@@ -459,7 +455,7 @@ export class AmSiteService
          console.log('  ' + site);
    }
 
-/*  
+/*
   getGeofootprintGeosORIG() : Observable<AmSite[]>
   {
     return <Observable<AmSite[]>>this.http
@@ -508,7 +504,7 @@ export class AmSiteService
       console.log('body: ' + body);
    //    console.log('returning: ' + <T>(body && body.data));
       return <T>(body || {});
-   //    return <T>(body && body.data || {});    
+   //    return <T>(body && body.data || {});
    }
 
    public createGrid(sitesList: GeocodingResponse[]) {

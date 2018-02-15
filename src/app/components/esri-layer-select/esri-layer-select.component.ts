@@ -1,13 +1,8 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { Input, Output, EventEmitter } from '@angular/core';
 
 // Map Services
 import { MapService } from '../../services/map.service';
-
-// Import Core Modules
-import { CONFIG } from '../../core';
-import { MessageService } from '../../val-modules/common/services/message.service';
 
 // import primeng
 import {SelectItem} from 'primeng/primeng';
@@ -109,10 +104,10 @@ export class EsriLayerSelectComponent implements OnInit {
       await this.mapService.getAllFeatureLayers().then(list => {
           fLyrList = list;
       });
-     
+
       for (const lyr of fLyrList) {
         if ((lyr.portalItem != null) &&
-        (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+        (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
         lyr.portalItem.id === this.config.layerIds.atz.topVars ||
         lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
           let layername = null;
@@ -120,12 +115,12 @@ export class EsriLayerSelectComponent implements OnInit {
               layername = 'Selected Geography - ZIP';
           else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
               layername = 'Selected Geography - ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)   
+          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
               layername = 'Selected Geography - Digital ATZ';
 
 
-              await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);  
-              MapService.selectedCentroidObjectIds = [];  
+              await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);
+              MapService.selectedCentroidObjectIds = [];
               MapService.hhDetails = 0;
               MapService.hhIpAddress = 0;
               MapService.medianHHIncome = '0';

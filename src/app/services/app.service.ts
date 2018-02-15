@@ -1,4 +1,4 @@
-// Added nallana: US6087  
+// Added nallana: US6087
 import { Subject } from 'rxjs/Subject';
 import { Injectable, EventEmitter } from '@angular/core';
 import { Http, Response } from '@angular/http';
@@ -7,25 +7,26 @@ import 'rxjs/add/operator/map';
 import { RestResponse } from '../models/RestResponse';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { MapService } from './map.service';
+import { AppConfig } from '../app.config';
 
 @Injectable()
 export class AppService {
     private static mapView: __esri.MapView;
     // updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
     closeOverLayPanel: Subject<any> = new Subject<any>();
-    public categoryList = './assets/demo/data/categories.json'; 
-    
-    /* saveTargetingProfile(targetingprofile : TargetingProfile){
-         
-                 console.log("fired GeoFootPrint saveTarhetingProfile Service "+JSON.stringify(targetingprofile,null,4));
-                
-                 return this.http.post("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
-         
-             } */
-    private readonly searchbusiness = 'https://servicesdev.valassislab.com/services/v1/targeting/base/targetingsearch/search';
+    public categoryList = './assets/demo/data/categories.json';
 
-    constructor(private http: Http, private mapService: MapService) { }
-    //load values from the json 
+    /* saveTargetingProfile(targetingprofile : TargetingProfile){
+
+                 console.log("fired GeoFootPrint saveTarhetingProfile Service "+JSON.stringify(targetingprofile,null,4));
+
+                 return this.http.post("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
+
+             } */
+    private readonly searchbusiness = 'v1/targeting/base/targetingsearch/search';
+
+    constructor(private http: Http, private config: AppConfig, private mapService: MapService) { }
+    //load values from the json
     public getList() : Observable<any> {
         return this.http.get(`${this.categoryList}`)
             .map((resp: Response) => resp.json());
@@ -35,7 +36,8 @@ export class AppService {
     public getBusinesses(paramObj) : Observable<any> {
 
         console.log('Fired getbusiness');
-        return this.http.post(`${this.searchbusiness}`, paramObj)
+        // TODO: clean up the url concat - this isn't very pretty
+        return this.http.post(this.config.valServiceBase + this.searchbusiness, paramObj)
             .map((resp: Response) => resp.json() as RestResponse);
 
     }

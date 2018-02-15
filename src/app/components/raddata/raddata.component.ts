@@ -1,10 +1,8 @@
-import { Component, OnInit, ViewChild, Directive } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-// import { EsriLoaderService } from 'angular-esri-loader';
-import { Http } from '@angular/http';
-import { InputTextModule, Dropdown, GrowlModule, Message, ProgressSpinnerModule, ProgressBarModule } from 'primeng/primeng';
-import { error } from 'selenium-webdriver';
+import { Dropdown, Message } from 'primeng/primeng';
+import { AppConfig } from '../../app.config';
 
 enum GpTool {
     RAD,
@@ -93,7 +91,7 @@ export class RaddataComponent {
     public growlMessages: Message[] = new Array();
     public displayGpSpinner: boolean = false;
 
-    constructor() {
+    constructor(private config: AppConfig) {
 
         let counter: number = 0;
         let objValues = Object.keys(RADCategory).map(k => RADCategory[k]);
@@ -154,7 +152,7 @@ export class RaddataComponent {
             Budget: this.radBudget
         };
         const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
-        geoprocessor.url = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
+        geoprocessor.url = this.config.radDataService;
         await geoprocessor.submitJob(params, null).then(async response => {
             await geoprocessor.getResultData((<GpResponse>response).jobId, 'Predicted_Response', null).then(result => {
                 let pv = result as __esri.ParameterValue;

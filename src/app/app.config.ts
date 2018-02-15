@@ -28,7 +28,6 @@ export class AppConfig implements EsriLoaderConfig
      password: 'password',
      referer: window.location.origin
    };
-
    AgolAuthParams: AuthenticationParams = {
     generatorUrl: 'https://www.arcgis.com/sharing/generateToken',
     tokenServerUrl: 'https://www.arcgis.com',
@@ -38,9 +37,15 @@ export class AppConfig implements EsriLoaderConfig
     //referer: 'http://localhost:4200'
     //referer: 'https://vallomjbs002vm:8443'
   };
+   oAuthParams = {
+     registerUrl: 'https://vallomjbs002vm.val.vlss.local:8443/oauth/register',
+     tokenUrl: 'https://vallomjbs002vm.val.vlss.local:8443/oauth/token'
+   };
 
    public valServiceBase = 'https://servicesdev.valassislab.com/services/';
-   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+   public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
+   public maxBufferRadius = 50;
+  //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
 /*
    // AGOL

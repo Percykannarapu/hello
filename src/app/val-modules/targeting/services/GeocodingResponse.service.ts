@@ -1,25 +1,19 @@
-import { MetricService } from './../../common/services/metric.service';
-import { Injectable, Component } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { MetricService } from '../../common/services/metric.service';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
-import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { MapService } from '../../../services/map.service';
 import { DefaultLayers } from '../../../models/DefaultLayers';
-import { DataTableModule, SharedModule, DataTable, Column } from 'primeng/primeng';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
-import { Points } from '../../../models/Points';
 
 // Import Core Modules
-import { CONFIG } from '../../../core';
 import { MessageService } from '../../common/services/message.service';
 
 // Import Models
-//import { AmSite } from '../models/AmSite';
-import { InMemoryStubService } from '../../../api/in-memory-stub.service';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -278,7 +272,7 @@ export class GeocodingResponseService {
         /*  const index = MapService.impGeofootprintLocList.indexOf(loc);
           MapService.impGeofootprintLocList = [...MapService.impGeofootprintLocList.slice(0, index),
           ...MapService.impGeofootprintLocList.slice(index + 1)];
-           
+
           this.impGeofootprintLocList = MapService.impGeofootprintLocList;
           this.unselectedimpGeofootprintLocList =  MapService.impGeofootprintLocList;*/
 
@@ -458,7 +452,7 @@ export class GeocodingResponseService {
                 attrList.forEach(locAttr => {
                     if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP', 'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
                         'Match Quality', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Market'].indexOf(locAttr.attributeCode) < 0) {
-                        // console.log('locAttr.attributeCode::::', locAttr.attributeCode); 
+                        // console.log('locAttr.attributeCode::::', locAttr.attributeCode);
                         this.cols.push({ field: locAttr.attributeCode, header: locAttr.attributeCode, size: '90px' });
                     }
                 });
