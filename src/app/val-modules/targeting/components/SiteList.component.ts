@@ -16,6 +16,7 @@ import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { MetricService } from '../../common/services/metric.service';
 
 @Component({
   selector: 'val-amsite-list',
@@ -32,11 +33,14 @@ export class SiteListComponent implements OnInit, OnDestroy
    anInt: number = 1;
    selectAllGeos: boolean;
    gridData: any;
-   selectedValue: String = 'Site';
+   selectedValue: String = 'Site' ;
    public impGeofootprintLocList: ImpGeofootprintLocation[] = []; // this is the entire List of Locations
    public selectedImpGeofootprintLocList: ImpGeofootprintLocation[] = []; // // this is for grid component to manage
    public impGeofootprintCompList: ImpGeofootprintLocation[] = []; // this is the entire List of Locations
    public selectedImpGeofootprintCompList: ImpGeofootprintLocation[] = []; // // this is for grid component to manage
+
+   public impGeofootprintFilteredSitesList: ImpGeofootprintLocation[] = [];
+   public impGeofootprintFilteredCompList: ImpGeofootprintLocation[] = [];
 
    public impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
 
@@ -68,22 +72,46 @@ export class SiteListComponent implements OnInit, OnDestroy
   
    constructor(public geocodingRespService: GeocodingResponseService,
                private messageService: MessageService,
+               private metricService: MetricService,
                private mapService: MapService, private appService: AppService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-        private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService ) { 
+              private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService ) { 
 
                 this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange(data));
                }
 
-   
   
    onGroupChange(selector){
+     // update the grid as soon as the geocodingResponseService gives data
      if (selector === 'Site'){
-     this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
-     this.selectedImpGeofootprintLocList = this.impGeofootprintLocationService.get();
-    } else{
-      this.impGeofootprintCompList = this.impGeofootprintLocationService.get();
-      this.selectedImpGeofootprintCompList = this.impGeofootprintLocationService.get();
+       let tempList = [];
+       this.impGeofootprintFilteredSitesList = [];
+       tempList = this.impGeofootprintLocationService.get();
+       for (let i = 0; i < tempList.length; i++){
+         console.log(tempList[i].impClientLocationType);
+         if (tempList[i].impClientLocationType === 'Site'){
+           this.impGeofootprintFilteredSitesList.push(tempList[i]);
+         }
+       }
+
+     //this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
+     
+    //  Array< ImpGeofootprintLocation >.filter(checkForFilter: (value: ImpGeofootprintLocation, ));
+     this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
+     this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    } else {
+      let tempList = [];
+      this.impGeofootprintFilteredCompList = [];
+      tempList = this.impGeofootprintLocationService.get();
+       for (let i = 0; i < tempList.length; i++){
+         console.log(tempList[i].impClientLocationType);
+         if (tempList[i].impClientLocationType === 'Competitor'){
+           this.impGeofootprintFilteredCompList.push(tempList[i]);
+         }
+       }
+      //this.impGeofootprintCompList = this.impGeofootprintLocationService.get();
+      this.selectedImpGeofootprintCompList = this.impGeofootprintFilteredCompList;
+      this.metricService.add('LOCATIONS', '# of Competitors', this.impGeofootprintFilteredCompList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     }
     //this.gridData = this.selectedValue === 'Site' ? this.impGeofootprintLocList : this.geocodingRespService.amComps;
    // this.geocodingRespService.createGrid();
@@ -165,7 +193,7 @@ export class SiteListComponent implements OnInit, OnDestroy
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
       console.log('grid length::' + this.geocodingRespService.sitesList.length);
-      this.geocodingRespService.refreshMapSites();
+      this.geocodingRespService.refreshMapSites(this.selectedValue);
       this.geocodingRespService.siteWasSelected (event.data);
       this.geocodingRespService.logSites();
    }

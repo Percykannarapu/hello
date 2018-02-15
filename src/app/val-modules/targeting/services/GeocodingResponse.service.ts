@@ -203,7 +203,7 @@ export class GeocodingResponseService {
         return csvData;
     }
 
-    public getNewSitePk() : number {
+    public getNewSitePk(): number {
         return this.tempId++;
     }
 
@@ -321,12 +321,16 @@ export class GeocodingResponseService {
         this.subject.next(site);
     }
 
-    public refreshMapSites() {
+    public refreshMapSites(selector) {
         console.log('refreshMapSites fired');
-        this.mapService.clearFeatureLayer(DefaultLayers.SITES);
+        if (selector === 'Site') {
+            this.mapService.clearFeatureLayer(DefaultLayers.SITES);
+        } else {
+            this.mapService.clearFeatureLayer(DefaultLayers.COMPETITORS);
+        }
 
         // Reflect selected sites on the map
-        this.addSelectedSitesToMap();
+        this.addSelectedSitesToMap(selector);
         console.log('refreshMapSites - cleared and set ' + this.sitesList.length + ' sites.');
     }
 
@@ -369,12 +373,17 @@ export class GeocodingResponseService {
     }
 
     // draw the site graphics on the Sites layer
-    private async updateLayer(graphics: __esri.Graphic[]) {
-        this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+    private async updateLayer(graphics: __esri.Graphic[], selector) {
+        console.log('refreshMapSites fired');
+        if (selector === 'Site') {
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+        } else {
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+        }
     }
 
     // Add all of the selected sites to the map
-    private async addSelectedSitesToMap() {
+    private async addSelectedSitesToMap(selector) {
         try {
             const loader = EsriLoaderWrapperService.esriLoader;
             const [Graphic] = await loader.loadModules(['esri/Graphic']);
@@ -386,7 +395,7 @@ export class GeocodingResponseService {
                     .then(res => { graphics.push(res); })
                     .catch(err => this.handleError(err));
             }
-            await this.updateLayer(graphics)
+            await this.updateLayer(graphics, selector)
                 .then(res => { this.mapService.zoomOnMap(graphics); })
                 .then(res => this.add(this.sitesList))
                 .then(res => this.createGrid())
@@ -503,6 +512,7 @@ export class GeocodingResponseService {
             impGeofootprintLoc.origState = site.orgState;
             impGeofootprintLoc.origPostalCode = site.zip10;
             impGeofootprintLoc.marketName = site.marketName;
+            impGeofootprintLoc.impClientLocationType = selector;
 
             //impGeofootprintLoc.qua = site.locationQualityCode;
             // impGeofootprintLoc.origAddress1 = site
@@ -519,24 +529,11 @@ export class GeocodingResponseService {
                 impLocAttrTempList.push(impGeofootprintLocAttr);
             });
             this.impGeoLocAttrList.push(impLocAttrTempList);
-            if (selector === 'Site'){
             this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-        } else{
-            this.impGeofootprintCompList = [...this.impGeofootprintCompList, impGeofootprintLoc];
-        }
+            
         });
-        if (selector === 'Site') {
-            this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
-            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-            this.siteCount = this.siteCount + (this.impGeofootprintLocList.length);
-            // Update the metrics
-            this.metricService.add('LOCATIONS', '# of Sites', this.siteCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        } else {
-            this.impGeofootprintLocationService.add(this.impGeofootprintCompList);
-            this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-            this.compCount = this.compCount + (this.impGeofootprintCompList.length);
-            // Update the metrics
-            this.metricService.add('LOCATIONS', '# of Competitors', this.compCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        }
+        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+        
     }
 }

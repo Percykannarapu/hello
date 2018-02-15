@@ -131,7 +131,7 @@ export class GeocoderService {
   }
 
   // draw the site graphics on the Sites layer
-  private async updateLayer(graphics: __esri.Graphic[], selector) {
+  public async updateLayer(graphics: __esri.Graphic[], selector) {
     if (selector === 'Site') {
       console.log('Adding sites from Upload:::');
       this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
