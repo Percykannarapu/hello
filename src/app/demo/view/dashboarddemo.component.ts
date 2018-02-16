@@ -61,8 +61,8 @@ export class DashboardDemoComponent implements OnInit {
                 private amSiteService: AmSiteService,
                 private appService: AppService,
                 private metricService: MetricService,
-                private impGeofootprintGeoService: ImpGeofootprintGeoService,
-                private impGeofootprintLocationService: ImpGeofootprintLocationService) { }
+                public  impGeofootprintGeoService: ImpGeofootprintGeoService,
+                public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
     ngOnInit() {
 
