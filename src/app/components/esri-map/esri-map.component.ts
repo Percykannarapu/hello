@@ -45,7 +45,7 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
   private setMapViewPoint() {
 
     const { whenFalse } = EsriModules.watchUtils;
-    const KEY = 'IMPOWER-MAP-VIEWPOINT';
+    const KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
     const vpString = localStorage.getItem(KEY);
 
     let vp = {};
