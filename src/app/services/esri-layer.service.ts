@@ -21,6 +21,10 @@ export class EsriLayerService {
 
   constructor(private modules: EsriModules, private topVars: TopVarService, private mapService: EsriMapService, private config: AppConfig){}
 
+  public static getAttributeValue(attributeInstance: any, fieldName: string) : any {
+    return attributeInstance && (attributeInstance[fieldName.toLowerCase()] || attributeInstance[fieldName.toUpperCase()]);
+  }
+
   public initLayerList(sliderElementId: string) : void {
     console.log('Loading Esri Modules for Layer Service');
     this.sliderElementId = sliderElementId;
