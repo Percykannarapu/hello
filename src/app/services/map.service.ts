@@ -1612,7 +1612,9 @@ export class MapService {
                     loadedFeatureLayer = f1;
                 });
 
-                await this.removeSubLayer(layername, MapService.SitesGroupLayer);
+                await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
+                await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
+                await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
                 // MapService.selectedCentroidObjectIds = [];
                 MapService.hhDetails = 0;
                 MapService.hhIpAddress = 0;
