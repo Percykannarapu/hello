@@ -1556,7 +1556,7 @@ export class MapService {
 
         for (const centroidGraphic of centroidGraphics) {
             const pt: __esri.Point = <__esri.Point> centroidGraphic.geometry;
-            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: centroidGraphic.attributes.GEOCODE,
+            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: centroidGraphic.attributes.geocode,
                                                              xcoord:  pt.longitude,
                                                              ycoord:  pt.latitude}));
         }
