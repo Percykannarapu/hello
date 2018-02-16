@@ -950,7 +950,7 @@ body {
   position: fixed;
   z-index: 100;
   width: 100%;
-  height: 75px;
+  height: 55px;
   background-color: #4177a1;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
   -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
@@ -958,15 +958,15 @@ body {
   .layout-container .topbar .logo {
     display: inline-block;
     vertical-align: middle;
-    width: 200px;
-    height: 63px;
-    background: url("../images/logo2x.png") top left no-repeat;
-    background-size: 200px 63px; }
+    width: 137px;
+    height: 43px;
+    background: url("../images/logo-137x43.png") top left no-repeat;
+    background-size: 137px 43px; }
   .layout-container .topbar .topbar-left {
     box-sizing: border-box;
     padding: 7px;
     padding-left: 18px;
-    height: 75px;
+    height: 55px;
     width: 250px;
     background-color: #2e5473;
     float: left;
@@ -1080,7 +1080,7 @@ body {
   position: fixed;
   width: 250px;
   z-index: 99;
-  top: 75px;
+  top: 55px;
   height: 100%;
   background-color: #ffffff;
   box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
@@ -1488,7 +1488,7 @@ body {
     overflow: visible;
     position: fixed;
     width: 100%;
-    top: 75px;
+    top: 55px;
     height: auto;
     background-color: #2e5473;
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
@@ -1705,7 +1705,7 @@ body {
     display: block; }
   .layout-container .topbar .topbar-right .topbar-items {
     position: absolute;
-    top: 75px;
+    top: 55px;
     right: 15px;
     width: 275px;
     -webkit-animation-duration: .5s;
@@ -1839,7 +1839,7 @@ body .layout-wrapper.layout-compact {
     .layout-wrapper.layout-compact .layout-container.menu-layout-horizontal .layout-menu ul.ultima-menu > li > ul li span {
       font-size: 14px; }
   .layout-wrapper.layout-compact .layout-container.menu-layout-horizontal .layout-main {
-    padding-top: 115px; } }
+    padding-top: 90px; } }
 .colorboxPicker {
   padding: 0 !important;
   text-align: center;
