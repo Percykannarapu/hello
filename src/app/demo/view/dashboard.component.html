@@ -103,7 +103,8 @@
    </div>
    <!-- COLORBOX COMPONENTS END -->
 
-   <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space">
+   <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
+   <div class="ui-g-12 no_vertical_space">
       <!-- ESRI Map -->
       <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
          <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
@@ -112,18 +113,16 @@
             </div>
          </p-sidebar>
          <div id="outerMapDiv" class="val-flush-to-edges">
-            <p-toolbar>
-               <!-- div class="ui-toolbar-group-left" -->
+            <p-toolbar class="val-thin-toolbar>">
+               <div class="ui-toolbar-group-left val-flush-to-edges">
                   <!-- <i style="margin-left: 20px"></i> -->
                   <!-- button pButton type="button" label="New" icon="fa-plus"></button -->
                   <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
                   <!-- <i class="fa fa-bars"></i> -->
-               <!-- /div -->
 
-              <!-- <div class="ui-g-12"> class="ui-toolbar-group-left"> -->
-                 <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
-              <!-- </div> -->
-            </p-toolbar>
+               <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
+            </div>
+         </p-toolbar>
             <app-esri-map>Loading Map...</app-esri-map>
          </div>
       </p-panel>
