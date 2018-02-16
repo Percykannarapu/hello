@@ -110,6 +110,7 @@ export class DiscoveryInputComponent implements OnInit
    {
       // Set default values
       this.selectedAnalysisLevel = this.analysisLevels[0];
+      MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -133,7 +134,8 @@ export class DiscoveryInputComponent implements OnInit
 
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event.value);
-         MapService.analysisLevlDiscInput = event.value;
+         this.selectedAnalysisLevel = event.value;
+         MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
    }
 
    private handleError (error: any) {

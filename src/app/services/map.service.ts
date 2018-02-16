@@ -1469,21 +1469,34 @@ export class MapService {
             fLyrList = list;
         });
 
-// lyr.portalItem.id === this.config.layerIds.pcr need to enable for pcr
-        for (const lyr of fLyrList) {
-            if ((lyr.portalItem != null) &&
-                (lyr.portalItem.id === this.config.layerIds.zip.centroids || 
-                lyr.portalItem.id === this.config.layerIds.atz.centroids ||
-                lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids)) {
+        let layer: __esri.FeatureLayer;
+        for (const lyr of fLyrList){
+            if (lyr.portalItem != null ){
+                if (MapService.analysisLevlDiscInput === 'ATZ' && 
+                                            lyr.portalItem.id === this.config.layerIds.atz.centroids){
+                    layer = lyr;
+                }
+                if (MapService.analysisLevlDiscInput === 'ZIP' && 
+                                            lyr.portalItem.id === this.config.layerIds.zip.centroids){
+                    layer = lyr;
+                }
+                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' && 
+                                            lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids){
+                    layer = lyr;
+                }
+            }
+        }
+        
+            if (layer.portalItem != null) {
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
-                await lyr.load().then((f1: __esri.FeatureLayer) => {
+                await layer.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
                 });
                 for (const graphic of graphicList) {
-                    const qry = lyr.createQuery();
+                    const qry = layer.createQuery();
                     qry.geometry = graphic.geometry;
                     qry.outSpatialReference = this.mapView.spatialReference;
-                    await lyr.queryFeatures(qry).then(featureSet => {
+                    await layer.queryFeatures(qry).then(featureSet => {
                         for (let i = 0; i < featureSet.features.length; i++) {
                             if (featureSet.features[i].attributes.geometry_type === 'Polygon') {
                                 centroidGraphics.push(featureSet.features[i]);
@@ -1493,7 +1506,6 @@ export class MapService {
                 }
                 await this.selectPoly(centroidGraphics);
             }
-        }
     }
 
    public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any)
@@ -1564,23 +1576,39 @@ export class MapService {
         this.impGeofootprintGeoService.clearAll();
         this.impGeofootprintGeoService.add(impGeofootprintGeos);
 
-        //lyr.portalItem.id === this.config.layerIds.pcr need to enable for PCR
-        for (const lyr of fLyrList) {
-            if ((lyr.portalItem != null) &&
-                (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
-                lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-                lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
+        
+        let layer: __esri.FeatureLayer;
+        for (const lyr of fLyrList){
+            if (lyr.portalItem != null ){
+                if (MapService.analysisLevlDiscInput === 'ATZ' && 
+                                            lyr.portalItem.id === this.config.layerIds.atz.topVars){
+                    layer = lyr;
+                }
+                if (MapService.analysisLevlDiscInput === 'ZIP' && 
+                                            lyr.portalItem.id === this.config.layerIds.zip.topVars){
+                    layer = lyr;
+                }
+                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' && 
+                                            lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+                    layer = lyr;
+                }
+            }
+        }
+
+
+      //  for (const lyr of fLyrList) {
+            if (layer.portalItem != null) {
                 let layername = null;
-                if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
+                if (layer.portalItem.id === this.config.layerIds.zip.topVars)
                     layername = 'Selected Geography - ZIP';
-                else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
+                else if (layer.portalItem.id === this.config.layerIds.atz.topVars)
                     layername = 'Selected Geography - ATZ';
-                else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)   
+                else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)   
                     layername = 'Selected Geography - Digital ATZ';   
                 const polyGraphics: __esri.Graphic[] = [];
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
-                await lyr.load().then((f1: __esri.FeatureLayer) => {
+                await layer.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
                 });
 
@@ -1623,7 +1651,7 @@ export class MapService {
                     });
                 });
             }
-        }
+       // }
     }
     // to select based on featureLayerView
     /*    public async selectPoly(centroidGraphics: __esri.Graphic[]){
