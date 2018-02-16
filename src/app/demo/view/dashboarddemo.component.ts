@@ -111,8 +111,6 @@ export class DashboardDemoComponent implements OnInit {
 
         // Observe the metricsService
         this.metricService.observeMetrics().subscribe(metricMessage => {
-         console.log('Dashboard component detected change in metrics');
-
          switch (metricMessage.operation)
          {
             case MetricOperations.ADD:

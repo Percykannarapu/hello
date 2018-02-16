@@ -1297,7 +1297,7 @@ export class MapService {
     }
 
     public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
-        console.log('fired updateFeatureList() in MapService');
+        // console.log('fired updateFeatureList() in MapService');
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
             this.createFeatureLayer(graphics, layerTitle);
@@ -1310,7 +1310,7 @@ export class MapService {
         //this.mapView.map.allLayers
         MapService.layers.forEach(currentLayer => {
             if (layerTitle === currentLayer.title) {
-                console.log('updating existing layer with ' + graphics.length + ' graphics');
+                // console.log('updating existing layer with ' + graphics.length + ' graphics');
                 // add the new graphics to the existing layer
                 for (const graphic of graphics) {
                     (<__esri.FeatureLayer>currentLayer).source.add(graphic);
