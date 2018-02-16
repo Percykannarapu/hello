@@ -51,7 +51,8 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
       console.log ('selectedAnalysisLevels = ' + this.selectedAnalysisLevels);
 
       // set default layers and disable them
-      this.selectedAnalysisLevels = ['DMA', 'WRAP', 'DIG_ATZ', 'ATZ', 'ZIP'];
+      // this.selectedAnalysisLevels = ['DMA', 'WRAP', 'DIG_ATZ', 'ATZ', 'ZIP'];
+      this.selectedAnalysisLevels = ['ZIP'];
       this.mapService.setMapLayers(this.selectedAnalysisLevels);
       this.mapService.hideMapLayers();
     }
