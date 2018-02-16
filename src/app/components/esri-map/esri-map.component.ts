@@ -12,6 +12,11 @@ import {EsriModules} from '../../esri-modules/core/esri-modules.service';
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit, AfterViewInit {
+
+  // map container dim
+  public width: number;
+  public height: number = 400;
+
   @Input() zoom: number;
   @Input() centerLng: number;
   @Input() centerLat: number;
@@ -22,11 +27,7 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
   @ViewChild('esriMapContainer') private mapContainerEl: ElementRef;
-
-  // map container dim
-  public width: number;
-  public height: number = 400;
-
+  
   constructor(public mapService: MapService, private esriMapService: EsriMapService, private modules: EsriModules) {
     console.log('Constructing esri-map-component');
   }
@@ -40,17 +41,102 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // save and reset view viewpoint
+  private setMapViewPoint() {
+
+    const { whenFalse } = EsriModules.watchUtils;
+    const KEY = 'IMPOWER-MAP-VIEWPOINT';
+    const vpString = localStorage.getItem(KEY);
+
+    let vp = {};
+    if (vpString) {
+      vp = JSON.parse(vpString);
+    } 
+    this.esriMapService.mapView.viewpoint = EsriModules.Viewpoint.fromJSON(vp);
+
+    whenFalse(this.esriMapService.mapView, 'updating', () => {
+      const currPoint = this.esriMapService.mapView.viewpoint.toJSON();
+      localStorage.setItem(KEY, JSON.stringify(currPoint));
+    });
+  }
+
+  // save and reset map zoom
+  private setMapCenter() {
+
+    const { whenFalse } = EsriModules.watchUtils;
+    const KEY1 = 'IMPOWER-MAP-CENTER-LONGITUDE';
+    const KEY2 = 'IMPOWER-MAP-CENTER-LATITUDE';
+    const vpString1 = localStorage.getItem(KEY1);
+    const vpString2 = localStorage.getItem(KEY2);
+
+    let vp1 = {};
+    if (vpString1) {
+      vp1 = JSON.parse(vpString1);
+    } else {
+      this.esriMapService.mapView.center.longitude = -98.5795;
+    }
+
+    let vp2 = {};
+    if (vpString2) {
+      vp2 = JSON.parse(vpString2);
+    } else {
+      this.esriMapService.mapView.center.latitude = 39.8282;
+    }
+
+    whenFalse(this.esriMapService.mapView, 'updating', () => {
+      localStorage.setItem(KEY1, JSON.stringify(this.esriMapService.mapView.center.longitude));
+      localStorage.setItem(KEY2, JSON.stringify(this.esriMapService.mapView.center.latitude));
+    });
+  }
+
+    // save and reset map zoom
+    private setMapZoom() {
+
+      const { whenFalse } = EsriModules.watchUtils;
+      const KEY = 'IMPOWER-MAP-ZOOM';
+      const vpString = localStorage.getItem(KEY);
+  
+      let vp = {};
+      if (vpString) {
+        vp = JSON.parse(vpString);
+      } else {
+        this.esriMapService.mapView.zoom = 4;
+      }
+  
+      whenFalse(this.esriMapService.mapView, 'updating', () => {
+        localStorage.setItem(KEY, JSON.stringify(this.esriMapService.mapView.zoom));
+      });
+    }
+  
+  // save and reset map height
+  private setMapHeight(el: ElementRef) {
+
+    if (el){
+      console.log ('mapContainerEl (clientHeight) = ' + el.nativeElement.clientHeight);
+
+      const { whenFalse } = EsriModules.watchUtils;
+      const KEY = 'IMPOWER-MAP-HEIGHT';
+      const mapString = localStorage.getItem(KEY);
+
+      let mapHeight: number;
+    
+      if (mapString) {
+        mapHeight = <number> JSON.parse(mapString);
+        console.log ('local storage (' + KEY + ') = ' + mapHeight);
+        this.height = mapHeight;
+        console.log ('AFTER: mapContainerEl (clientHeight) = ' + el.nativeElement.clientHeight);
+      }      
+      whenFalse(this.esriMapService.mapView, 'updating', () => {
+        localStorage.setItem(KEY, JSON.stringify(el.nativeElement.clientHeight));
+      });
+    }
+  }
+
   public ngOnInit() {
     this.modules.onReady(() => { this.init(); });
   }
 
-  // save and reset map viewpoint from local storage
-  public ngAfterViewInit() {
-    
-    //this.setMapHeight();
-    //this.setMapCenter();
-    //this.setMapZoom();
-    //this.setViewPoint();
+  public ngAfterViewInit() {   
   }
 
   private init() : void {
@@ -65,16 +151,15 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
     this.mapService.createMapView();
-    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', EsriMapComponent.replaceCopyrightElement);
-    // set map height from local storage
-    //this.setMapHeight();
 
-    this.setMapHeight();
-    this.setMapCenter();
-    this.setMapZoom();
-    this.setViewPoint();
-    
-  }
+    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', EsriMapComponent.replaceCopyrightElement);
+    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
+      this.setMapHeight(this.mapContainerEl);
+      this.setMapCenter();
+      this.setMapZoom();
+      this.setMapViewPoint(); 
+    });
+  }   
 
   public selectPolyClick(){
     console.log('fired selectPolyClick');
@@ -135,100 +220,5 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // save and reset view viewpoint
-  public setViewPoint() {
-
-    const { whenFalse } = EsriModules.watchUtils;
-    const KEY = 'IMPOWER-MAP-VIEWPOINT';
-    const vpString = localStorage.getItem(KEY);
-
-    let vp = {};
-    if (vpString) {
-      vp = JSON.parse(vpString);
-    } else {
-      this.esriMapService.mapView.center.longitude = -98.5795;
-      this.esriMapService.mapView.center.latitude = 39.8282;
-    }
-
-    this.esriMapService.mapView.viewpoint = EsriModules.Viewpoint.fromJSON(vp);
-
-    whenFalse(this.esriMapService.mapView, 'updating', () => {
-      const currPoint = this.esriMapService.mapView.viewpoint.toJSON();
-      localStorage.setItem(KEY, JSON.stringify(currPoint));
-    });
-  }
-
-  // save and reset map zoom
-  public setMapCenter() {
-
-    const { whenFalse } = EsriModules.watchUtils;
-    const KEY1 = 'IMPOWER-MAP-CENTER-LONGITUDE';
-    const KEY2 = 'IMPOWER-MAP-CENTER-LATITUDE';
-    const vpString1 = localStorage.getItem(KEY1);
-    const vpString2 = localStorage.getItem(KEY2);
-
-    let vp1 = {};
-    if (vpString1) {
-      vp1 = JSON.parse(vpString1);
-    } else {
-      this.esriMapService.mapView.center.longitude = -98.5795;
-    }
-
-    let vp2 = {};
-    if (vpString2) {
-      vp2 = JSON.parse(vpString2);
-    } else {
-      this.esriMapService.mapView.center.latitude = 39.8282;
-    }
-
-    whenFalse(this.esriMapService.mapView, 'updating', () => {
-      localStorage.setItem(KEY1, JSON.stringify(this.esriMapService.mapView.center.longitude));
-      localStorage.setItem(KEY2, JSON.stringify(this.esriMapService.mapView.center.latitude));
-    });
-  }
-
-    // save and reset map zoom
-    public setMapZoom() {
-
-      const { whenFalse } = EsriModules.watchUtils;
-      const KEY = 'IMPOWER-MAP-ZOOM';
-      const vpString = localStorage.getItem(KEY);
-  
-      let vp = {};
-      if (vpString) {
-        vp = JSON.parse(vpString);
-      } else {
-        this.esriMapService.mapView.zoom = 4;
-      }
-  
-      whenFalse(this.esriMapService.mapView, 'updating', () => {
-        localStorage.setItem(KEY, JSON.stringify(this.esriMapService.mapView.zoom));
-      });
-    }
-  
-
-  // save and reset map height
-  public setMapHeight() {
-
-    if (this.mapContainerEl) {
-      console.log ('mapContainerEl (clientHeight) = ' + this.mapContainerEl.nativeElement.clientHeight);
-
-    const { whenFalse } = EsriModules.watchUtils;
-    const KEY = 'IMPOWER-MAP-HEIGHT';
-    const mapString = localStorage.getItem(KEY);
-
-    let mapHeight: number;
-    
-    if (mapString) {
-      mapHeight = <number> JSON.parse(mapString);
-      console.log ('local storage (' + KEY + ') = ' + mapHeight);
-      this.height = mapHeight;
-      console.log ('AFTER: mapContainerEl (clientHeight) = ' + this.mapContainerEl.nativeElement.clientHeight);
-    }      
-    whenFalse(this.esriMapService.mapView, 'updating', () => {
-      localStorage.setItem(KEY, JSON.stringify(this.mapContainerEl.nativeElement.clientHeight));
-    });
-  }
-  }
   
 }
