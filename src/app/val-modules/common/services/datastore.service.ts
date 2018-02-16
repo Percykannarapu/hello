@@ -307,4 +307,9 @@ export class DataStore<T>
    {
       this.rest.jsonp(url, callbackParam);
    }
+
+   public length()
+   {
+      return (this._dataStore != null) ? this._dataStore.length : 0;
+   }
 }

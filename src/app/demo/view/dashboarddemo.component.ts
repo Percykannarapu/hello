@@ -16,6 +16,8 @@ import { Message } from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';
 import { AppService } from '../../services/app.service';
 import { MetricService, MetricOperations } from './../../val-modules/common/services/metric.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -58,7 +60,9 @@ export class DashboardDemoComponent implements OnInit {
                 private messageService: MessageService,
                 private amSiteService: AmSiteService,
                 private appService: AppService,
-                private metricService: MetricService) { }
+                private metricService: MetricService,
+                private impGeofootprintGeoService: ImpGeofootprintGeoService,
+                private impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
     ngOnInit() {
 

@@ -6,15 +6,16 @@
       [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
       resizableColumns="true" columnResizeMode="expand" responsive="true"
       (onRowSelect)="toggleGeocode($event)">
-      <p-header pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}">Locations / Geographies</p-header>
+      <!-- <p-header pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}">Locations / Geographies</p-header> -->
       <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['location']}}</ng-template> -->
       <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
       <p-column selectionMode="multiple" [style]="{'width':'35px'}" (click)="toggleGeocode($event)"></p-column>
 
-      <p-column *ngFor="let col of locGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}"></p-column>
+      <p-column *ngFor="let col of locGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}"
+      pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}"></p-column>
 
       <ng-template let-site pTemplate="rowexpansion">
-         <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
+         <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 2.68em">
             <div class="ui-grid-row">
                
                <p-dataTable [value]="filterGeosBySite(site.glId)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"

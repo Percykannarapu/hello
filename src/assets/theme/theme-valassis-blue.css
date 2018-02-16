@@ -7359,7 +7359,7 @@ body .ui-datatable .ui-datatable-footer {
     body .ui-datatable .ui-datatable-footer .ui-inputtext:focus {
       border-color: #ffffff; }
 body .ui-datatable .ui-paginator {
-  padding: 0.625em 1em; }
+  padding: 0.2em 1em; }
 body .ui-datatable .ui-datatable-thead > tr {
   border-color: #cacaca; }
   body .ui-datatable .ui-datatable-thead > tr th {
