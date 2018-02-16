@@ -38,7 +38,7 @@ export class AuthService implements CanActivate {
 
   private user: User;
   private oauthToken: string;
-  private authenticated: boolean = false;
+  private authenticated: boolean = this.config.authenticated;
   private authSubject: Subject<boolean> = new Subject<boolean>();
 
   constructor(private router: Router, private httpClient: HttpClient, private config: AppConfig) { }

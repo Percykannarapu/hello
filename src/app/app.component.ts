@@ -74,8 +74,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
 
     ngOnInit() {
-        this.esriIdentityService.authenticate(this.config.localPortalAuthParams);
-        this.esriIdentityService.authenticate(this.config.AgolAuthParams);
+        this.esriIdentityService.authenticate(this.config.esriIdentityParams);
     }
 
     ngOnDestroy() {

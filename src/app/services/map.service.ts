@@ -577,7 +577,7 @@ export class MapService {
 
                 if (analysisLevel === 'DMA') {
                     // Add DMA layer IDs
-                    const layers: any[] = Object.values(this.config.layerIds.dma).map(fromPortal);
+                    const layers: any[] = Object.values(this.config.layerIds.dma).filter(i => i != null).map(fromPortal);
 
                     // Add all DMA Layers via Promise
                     Promise.all(layers)
@@ -612,7 +612,7 @@ export class MapService {
                 } else
                     if (analysisLevel === 'ZIP') {
                         // Add ZIP layer IDs
-                        const layers: any[] = Object.values(this.config.layerIds.zip).map(fromPortal);
+                        const layers: any[] = Object.values(this.config.layerIds.zip).filter(i => i != null).map(fromPortal);
 
                         // Add all ZIP Layers via Promise
                         Promise.all(layers)
@@ -650,7 +650,7 @@ export class MapService {
                     } else
                         if (analysisLevel === 'ATZ') {
                             // Add atz layer IDs
-                            const layers: any[] = Object.values(this.config.layerIds.atz).map(fromPortal);
+                            const layers: any[] = Object.values(this.config.layerIds.atz).filter(i => i != null).map(fromPortal);
 
                             // Add all ATZ Layers via Promise
                             Promise.all(layers)
@@ -688,7 +688,7 @@ export class MapService {
                         } else
                         if (analysisLevel === 'DIG_ATZ') {
                             // Add atz layer IDs
-                            const layers: any[] = Object.values(this.config.layerIds.digital_atz).map(fromPortal);
+                            const layers: any[] = Object.values(this.config.layerIds.digital_atz).filter(i => i != null).map(fromPortal);
 
                             // Add all DIGITAL ATZ Layers via Promise
                             Promise.all(layers)
@@ -726,7 +726,7 @@ export class MapService {
                         } else
                             if (analysisLevel === 'PCR') {
                                 // Add PCR layer IDs
-                                const layers: any[] = Object.values(this.config.layerIds.pcr).map(fromPortal);
+                                const layers: any[] = Object.values(this.config.layerIds.pcr).filter(i => i != null).map(fromPortal);
 
                                 // Add all PCR Layers via Promise
                                 Promise.all(layers)
@@ -765,7 +765,7 @@ export class MapService {
                             } else
                                 if (analysisLevel === 'WRAP') {
                                     // Add WRAP layer IDs
-                                    const layers: any[] = Object.values(this.config.layerIds.wrap).map(fromPortal);
+                                    const layers: any[] = Object.values(this.config.layerIds.wrap).filter(i => i != null).map(fromPortal);
 
                                     // Add all WRAP Layers via Promise
                                     Promise.all(layers)
@@ -804,7 +804,7 @@ export class MapService {
                                 } else
                                     if (analysisLevel === 'HH') {
                                         // Add HH layer IDs
-                                        const layers: any[] = Object.values(this.config.layerIds.hh).map(fromPortal);
+                                        const layers: any[] = Object.values(this.config.layerIds.hh).filter(i => i != null).map(fromPortal);
 
                                         // Add all HH Layers via Promise
                                         Promise.all(layers)
@@ -1472,21 +1472,21 @@ export class MapService {
         let layer: __esri.FeatureLayer;
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-                if (MapService.analysisLevlDiscInput === 'ATZ' && 
+                if (MapService.analysisLevlDiscInput === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.centroids){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'ZIP' && 
+                if (MapService.analysisLevlDiscInput === 'ZIP' &&
                                             lyr.portalItem.id === this.config.layerIds.zip.centroids){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' && 
+                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids){
                     layer = lyr;
                 }
             }
         }
-        
+
             if (layer.portalItem != null) {
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
                 await layer.load().then((f1: __esri.FeatureLayer) => {
@@ -1525,7 +1525,7 @@ export class MapService {
       // Construct a polyline to get the geodesic distance between geo and site
       const polyLine: __esri.Polyline = new EsriModules.PolyLine({paths: [[[x1, y1], [x2, y2]]]});
       const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
-      
+
       return dist;
    }
 
@@ -1576,19 +1576,19 @@ export class MapService {
         this.impGeofootprintGeoService.clearAll();
         this.impGeofootprintGeoService.add(impGeofootprintGeos);
 
-        
+
         let layer: __esri.FeatureLayer;
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-                if (MapService.analysisLevlDiscInput === 'ATZ' && 
+                if (MapService.analysisLevlDiscInput === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.topVars){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'ZIP' && 
+                if (MapService.analysisLevlDiscInput === 'ZIP' &&
                                             lyr.portalItem.id === this.config.layerIds.zip.topVars){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' && 
+                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
                     layer = lyr;
                 }
@@ -1603,8 +1603,8 @@ export class MapService {
                     layername = 'Selected Geography - ZIP';
                 else if (layer.portalItem.id === this.config.layerIds.atz.topVars)
                     layername = 'Selected Geography - ATZ';
-                else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)   
-                    layername = 'Selected Geography - Digital ATZ';   
+                else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
+                    layername = 'Selected Geography - Digital ATZ';
                 const polyGraphics: __esri.Graphic[] = [];
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
@@ -1624,7 +1624,7 @@ export class MapService {
                 this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
                 this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
                 this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
-               
+
                 await array.forEach(centroidGraphics, (centroidGraphic) => {
                     const qry1 = loadedFeatureLayer.createQuery();
                     qry1.geometry = centroidGraphic.geometry;
@@ -1758,7 +1758,7 @@ export class MapService {
         });
         for (const lyr of fLyrList) {
             if ((lyr.portalItem != null) &&
-                (lyr.portalItem.id === this.config.layerIds.zip.topVars || 
+                (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
                 lyr.portalItem.id === this.config.layerIds.atz.topVars ||
                 lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
                 const query = lyr.createQuery();
@@ -1826,23 +1826,23 @@ export class MapService {
 
     }
 
-    public async getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
+    public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
         console.log('fired getAllFeatureLayers');
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [GroupLayer, FeatureLayer] = await loader.loadModules([
-            'esri/layers/GroupLayer',
-            'esri/layers/FeatureLayer'
-        ]);
+        // const loader = EsriLoaderWrapperService.esriLoader;
+        // const [GroupLayer, FeatureLayer] = await loader.loadModules([
+        //     'esri/layers/GroupLayer',
+        //     'esri/layers/FeatureLayer'
+        // ]);
         //this.mapView.map.allLayers.length;
         const fLyrList: __esri.FeatureLayer[] = [];
         this.mapView.map.allLayers.forEach(function (lyr: __esri.FeatureLayer) {
             //  console.log('lyrs names before adding::'+lyr.title);
-            if (lyr instanceof FeatureLayer) {
+            if (lyr.type === 'feature') {
                 //  console.log('lyrs names After adding::'+lyr.title);
                 fLyrList.push(lyr);
             }
         });
-        return fLyrList;
+        return Promise.resolve(fLyrList);
     }
 
     public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer) {
@@ -1915,8 +1915,8 @@ export class MapService {
             = await loader.loadModules([
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
                 //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-         const graphic: __esri.Graphic = gra;       
-         console.log('getHomeGeocode fired');    
+         const graphic: __esri.Graphic = gra;
+         console.log('getHomeGeocode fired');
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
@@ -1932,9 +1932,9 @@ export class MapService {
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
                 if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
-                    homeGeocodeMap.set('home_geo' , homeGeocode); 
+                    homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
-                                
+
         });
         return homeGeocodeMap;
       }
