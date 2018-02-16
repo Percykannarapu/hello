@@ -53,28 +53,28 @@ export class MetricService
    // ----------------------------------------------------------------
    public add(groupName: string, key: string, value: string)
    {
-      console.log('Add fired: groupName: ' + groupName + ', key: ' + key + ', value: ' + value);
+      // console.log('Add fired: groupName: ' + groupName + ', key: ' + key + ', value: ' + value);
 
       // Add the site to the selected sites array
       let group: Map<string, string> = this.metrics.get(groupName);
 
-      console.log ('group: ' + group);
+      // console.log ('group: ' + group);
 
       // If the group didn't exist, create it
       if (group == null)
       {
-         console.log('group was null');
+         // console.log('group was null');
          group = new Map<string, string>();
          this.metrics.set(groupName, group);
       }
-      else
-        console.log ('group: ' + groupName + ' found');
+      // else
+      //   console.log ('group: ' + groupName + ' found');
 
-      console.log('about to set key: ' + key);
+      // console.log('about to set key: ' + key);
       group.set(key, value);
 
       // Notifiy Observers
-      console.log('Alerting observers');
+      // console.log('Alerting observers');
       this.subject.next(new MetricMessage(MetricOperations.ADD, groupName, key, value));
    }
  

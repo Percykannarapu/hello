@@ -248,6 +248,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
+   public async onZoomToGeo(geo: ImpGeofootprintGeo)
+   { 
+      // console.log('onZoomToGeo - geo: ', geo);
+      if (geo != null)
+      {
+         const color = {a: 1, r: 35, g: 93, b: 186}; // Because the darn map service requires it
+         await this.mapService.createGraphic(geo.ycoord, geo.xcoord, color, null).then(graphic => {
+            this.mapService.zoomOnMap([graphic]);
+         });
+      }
+   }
+
    toggleGeocode(geo: ImpGeofootprintGeo)
    {
       console.log('toggling geocode');
