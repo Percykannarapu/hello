@@ -1487,7 +1487,7 @@ export class MapService {
             }
         }
 
-            if (layer.portalItem != null) {
+            if (layer != null && layer.portalItem != null) {
                 let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
                 await layer.load().then((f1: __esri.FeatureLayer) => {
                     loadedFeatureLayer = f1;
@@ -1638,7 +1638,7 @@ export class MapService {
                             if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o');
+                                MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
                                 MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
                                 polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, EsriLayerService.getAttributeValue(currentAttribute, 'objectid')));
                                 MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
@@ -1649,7 +1649,9 @@ export class MapService {
                         this.updateFeatureLayer(polyGraphics, layername);
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '$'));
+                        //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace('(\d)(?=(\d{3})+$)', ','));
+                        
                         this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
                     });
                 });
