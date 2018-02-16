@@ -5,6 +5,10 @@ import { EnvironmentData } from '../environments/environment';
 
 @Injectable()
 export class AppConfig implements EsriLoaderConfig {
+
+  // This controls whether or not the user is currently authenticated and will have to log in
+  public authenticated: boolean = EnvironmentData.authenticated;  
+
    esriConfig = {
      url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal

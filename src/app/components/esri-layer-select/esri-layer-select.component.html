@@ -15,33 +15,32 @@
         [panelStyle]="{minWidth:'12em'}" 
         (onPanelHide)="checkLayers()">pTooltip="Enter your username" 
     </p-multiSelect> -->
-
-    <div class="ui-g-8">
-            <div class="ui-g-1">
-                <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers" 
-                    (onChange)="handleLayerChange($event)" 
-                    onLabel="Layers On" offLabel="Layers Off" 
-                    onIcon="esri-icon-collection" offIcon="esri-icon-maps">
-                </p-toggleButton>
-            </div>
-            <div class="ui-g-3">
-                    <!--
-                    <p-toggleButton id="SideBarToggle" [(ngModel)]="mapService.sideBarToggle" title="Toggle Sidebar" 
-                                    onLabel="Show Tools" offLabel="Hide Tools" 
-                                    onIcon="esri-icon-browser" offIcon="esri-icon-maximize">
-                    </p-toggleButton>
-                    -->
-                <val-esri-map-tools>Loading Map-Tools...</val-esri-map-tools>
-            </div>
-            <!--
-            <div class="ui-g-8">
-                   <p-selectButton id="analysisLevels" title="Map Layers" [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevels" multiple="multiple" (onChange)="checkLayers()"></p-selectButton>
-            </div>
-            -->
-        
-        <div class="ui-g-2">
-            <button  label="Clear All"  pButton (click)="onClearAllSelections()"  title="Clear All Selections"></button>
-            <button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>
-        </div>
-        
-     </div>   
+   <div class="ui-g val-flush-to-edges">
+      <!-- <div class="ui-g-6"> -->
+         <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers"
+            (onChange)="handleLayerChange($event)" 
+            onLabel="Layers On" offLabel="Layers Off" 
+            onIcon="esri-icon-collection" offIcon="esri-icon-maps">
+         </p-toggleButton>
+      <!-- </div> -->
+      <!-- <div class="ui-g-3"> -->
+         <!--
+         <p-toggleButton id="SideBarToggle" [(ngModel)]="mapService.sideBarToggle" title="Toggle Sidebar" 
+                        onLabel="Show Tools" offLabel="Hide Tools" 
+                        onIcon="esri-icon-browser" offIcon="esri-icon-maximize">
+         </p-toggleButton>
+         -->
+         <i class="fa-fontAwesome fa ui-bars"></i>
+         <val-esri-map-tools>Loading Map-Tools...</val-esri-map-tools>
+         <i class="fa-fontAwesome fa ui-bars"></i>
+      <!-- </div> -->
+      <!--
+      <div class="ui-g-8">
+         <p-selectButton id="analysisLevels" title="Map Layers" [options]="analysisLevels" [(ngModel)]="selectedAnalysisLevels" multiple="multiple" (onChange)="checkLayers()"></p-selectButton>
+      </div>
+      -->
+      <!-- <div class="ui-g-6"> -->
+         <button  label="Clear All"  pButton (click)="onClearAllSelections()"  title="Clear All Selections"></button>
+         <button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>
+      <!-- </div> -->
+   </div>

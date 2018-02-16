@@ -49,7 +49,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                            /*{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '29%', styleClass: ''}},*/
                                            {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '30%', styleClass: ''}},
                                            {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '20%', styleClass: 'val-text-right'}},
-                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right'}}
+                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '40%', styleClass: 'val-text-right'}}
                                           ];
 
    // public  geoGridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '60%', style: '{\'width\':\'60%\'}'}, styleClass: ''},

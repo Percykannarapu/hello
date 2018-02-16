@@ -3,6 +3,11 @@ export const environment = {
 };
 
 export class EnvironmentData {
+
+  // this variable controls whether a user is currently authenticated
+  // this *MUST* be set to false for all environments other than local
+  public static authenticated = false;
+
   public static fuseBaseUrl = 'https://servicesdev.valassislab.com/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 

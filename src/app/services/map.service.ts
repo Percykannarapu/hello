@@ -188,7 +188,7 @@ export class MapService {
     // Execute each time the "select-this" action is clicked
     public selectThis() {
         console.log('fired popup action select-this()');
-        const objectID: number = this.mapView.popup.selectedFeature.attributes.OBJECTID;
+        const objectID: number = EsriLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
         console.log ('-- objectID = ' + objectID);
         this.selectPolyClick(null, geom, objectID);
@@ -1498,7 +1498,7 @@ export class MapService {
                     qry.outSpatialReference = this.mapView.spatialReference;
                     await layer.queryFeatures(qry).then(featureSet => {
                         for (let i = 0; i < featureSet.features.length; i++) {
-                            if (featureSet.features[i].attributes.geometry_type === 'Polygon') {
+                            if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
                                 centroidGraphics.push(featureSet.features[i]);
                             }
                         }
@@ -1568,7 +1568,7 @@ export class MapService {
 
         for (const centroidGraphic of centroidGraphics) {
             const pt: __esri.Point = <__esri.Point> centroidGraphic.geometry;
-            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: centroidGraphic.attributes.geocode,
+            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: EsriLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
                                                              xcoord:  pt.longitude,
                                                              ycoord:  pt.latitude}));
         }
@@ -1634,13 +1634,14 @@ export class MapService {
                         //const t0 = performance.now();
 
                         for (let i = 0; i < polyFeatureSet.features.length; i++) {
-                            if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[i].attributes.objectid)) {
-                                MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[i].attributes.hhld_w;
-                                MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[i].attributes.num_ip_addrs;
-                                MapService.medianHHIncome = '$' + polyFeatureSet.features[i].attributes.cl2i0o;
-                                MapService.hhChildren = polyFeatureSet.features[i].attributes.cl0c00;
-                                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, polyFeatureSet.features[i].attributes.objectid));
-                                MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[i].attributes.objectid);
+                          const currentAttribute = polyFeatureSet.features[i].attributes;
+                            if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
+                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o');
+                                MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
+                                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, EsriLayerService.getAttributeValue(currentAttribute, 'objectid')));
+                                MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
                             }
                             //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
                         }
@@ -1771,55 +1772,52 @@ export class MapService {
                 }
                 query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
                 await lyr.queryFeatures(query).then(polyFeatureSet => {
-                       if (MapService.selectedCentroidObjectIds.includes(polyFeatureSet.features[0].attributes.objectid)){
+                  if (MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid'))){
+                    const graphi: __esri.Graphic = polyFeatureSet.features[0];
+                    this.mapView.graphics.forEach((graphic) => {
+                      if (objID === EsriLayerService.getAttributeValue(graphic.attributes, 'objectid')){
+                        console.log('deselect objID in mapview');
+                        this.mapView.graphics.remove(graphic);
+                      } else {
+                        if (EsriLayerService.getAttributeValue(graphi.attributes, 'objectid') === EsriLayerService.getAttributeValue(graphic.attributes, 'objectid')){
+                          console.log('deselect to mapview');
+                          this.mapView.graphics.remove(graphic);
+                        }
+                      }
+                      //const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
+                      //MapService.selectedCentroidObjectIds.splice(index, 1);
 
-                            const graphi: __esri.Graphic = polyFeatureSet.features[0];
-                            this.mapView.graphics.forEach((graphic) => {
-                                   if (objID === graphic.attributes){
-                                        console.log('deselect objID in mapview');
-                                     this.mapView.graphics.remove(graphic);
-                                    } else {
-                                        if (graphi.attributes.OBJECTID === graphic.attributes){
-                                            console.log('deselect to mapview');
-                                          this.mapView.graphics.remove(graphic);
-                                        }
-                                    }
-                                    //const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
-                                    //MapService.selectedCentroidObjectIds.splice(index, 1);
-
-                                    if (objID !== null) {
-                                        const index = MapService.selectedCentroidObjectIds.indexOf(objID);
-                                        MapService.selectedCentroidObjectIds.splice(index, 1);
-                                    } else {
-                                        const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.objectid);
-                                        MapService.selectedCentroidObjectIds.splice(index, 1);
-                                    }
-                                    MapService.hhDetails = MapService.hhDetails - polyFeatureSet.features[0].attributes.hhld_w;
-                                    MapService.hhIpAddress = MapService.hhIpAddress - polyFeatureSet.features[0].attributes.num_ip_addrs;
-                                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                                }
-                            );
-                        }else{
-                            console.log('select to mapview');
-                            if (objID != null) {
-                                MapService.selectedCentroidObjectIds.push(objID);
-                                this.mapView.graphics.add(new Graphic(geom, symbol, objID));
-                            }
-                            else {
-                               MapService.selectedCentroidObjectIds.push(polyFeatureSet.features[0].attributes.objectid);
-                               this.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, polyFeatureSet.features[0].attributes.objectid ));
-                            }
-                            MapService.hhDetails = MapService.hhDetails + polyFeatureSet.features[0].attributes.hhld_w;
-                            MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet.features[0].attributes.num_ip_addrs;
-                            //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
-                            //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
-                            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                            //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
-                            //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
-
+                      if (objID !== null) {
+                        const index = MapService.selectedCentroidObjectIds.indexOf(objID);
+                        MapService.selectedCentroidObjectIds.splice(index, 1);
+                      } else {
+                        const index = MapService.selectedCentroidObjectIds.indexOf(EsriLayerService.getAttributeValue(graphi.attributes, 'objectid'));
+                        MapService.selectedCentroidObjectIds.splice(index, 1);
+                      }
+                      MapService.hhDetails = MapService.hhDetails - EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'hhld_w');
+                      MapService.hhIpAddress = MapService.hhIpAddress - EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'num_ip_addrs');
+                      this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                      this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    });
+                  } else {
+                    console.log('select to mapview');
+                    if (objID != null) {
+                      MapService.selectedCentroidObjectIds.push(objID);
+                      this.mapView.graphics.add(new Graphic(geom, symbol, objID));
+                    } else {
+                      MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid'));
+                      this.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid')));
                     }
+                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'hhld_w');
+                    MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'num_ip_addrs');
+                    //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
+                    //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
+                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+                    //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+
+                  }
                 });
             }
         }
