@@ -1,5 +1,9 @@
-
-<div class="esriMapContainer">
+<div class="esriMapContainer" #esriMapContainer [style.height]="height+'px'">
+    <div class="panel-container">
+        <div #mapViewNode (click)="mapClick()"></div>
+    </div>
+</div>
+  <!--
   <div class="panel-container">
     <div class="panel-side" *ngIf="this.mapService.sideBarToggle == true">
       <h2>Mapping Tools</h2>
@@ -16,3 +20,4 @@
     <div #mapViewNode (click)="mapClick()"></div>
   </div>
 </div>
+  -->

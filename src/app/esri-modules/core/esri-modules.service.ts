@@ -29,6 +29,7 @@ export class EsriModules {
     'esri/PopupTemplate',
     'esri/layers/MapImageLayer',
     'esri/geometry/Polyline',
+    'esri/Viewpoint'
   ];
 
   public static Map: typeof __esri.Map;
@@ -47,6 +48,7 @@ export class EsriModules {
   public static PopupTemplate: typeof __esri.PopupTemplate;
   public static MapImageLayer: typeof __esri.MapImageLayer;
   public static PolyLine: typeof __esri.Polyline;
+  public static Viewpoint: typeof __esri.Viewpoint;
 
   public static widgets: EsriWidgets;
 
@@ -86,7 +88,8 @@ export class EsriModules {
       EsriModules.watchUtils,
       EsriModules.PopupTemplate,
       EsriModules.MapImageLayer,
-      EsriModules.PolyLine] = modules;
+      EsriModules.PolyLine,
+      EsriModules.Viewpoint] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);
