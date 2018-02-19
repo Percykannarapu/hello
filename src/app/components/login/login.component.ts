@@ -5,6 +5,9 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
+import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
+import { GeofootprintMaster } from '../../models/GeofootprintMaster';
+import { GeocoderService } from '../../services/geocoder.service';
 
 @Component({
   selector: 'val-login',
@@ -17,7 +20,11 @@ export class LoginComponent implements OnInit {
   public displayLoginSpinner: boolean = false;
   public growlMessages: string[] = new Array<string>();
 
-  constructor(private router: Router, private authService: AuthService, private messageService: MessageService, private userService: UserService) { }
+  constructor(private router: Router, 
+              private authService: AuthService, 
+              private messageService: MessageService, 
+              private userService: UserService,
+              private geocoderService: GeocoderService) { }
 
   ngOnInit() {
   }
@@ -36,6 +43,7 @@ export class LoginComponent implements OnInit {
       if (authenticated) {
         this.displayLoginSpinner = false;
         this.createUser(loginForm.value.username);
+       // this.buildLoginDtls(loginForm.value.username);
         this.router.navigate(['/']);
       }
       else {
@@ -56,6 +64,33 @@ export class LoginComponent implements OnInit {
     user.username = username;
     user.userRoles = null;
     this.userService.setUser(user);
+  }
+
+  private buildLoginDtls(username: string){
+    const geoMaster1           = new ImpGeofootprintMaster();
+    const geoMaster           = new GeofootprintMaster();
+     /*
+         * setting geofootprintMaster
+         */
+        geoMaster.activeSiteCount         = 0;
+        geoMaster.allowDuplicates         = 0;
+        geoMaster.baseStatus              = 'INSERT';
+        geoMaster.cgmId                   = null;
+        geoMaster.createdDate             = new Date();
+        geoMaster.dirty                   = true;
+        geoMaster.isMarketBased           = false;
+        geoMaster.methAnalysis            = null;
+        geoMaster.methSeason              = null;
+        geoMaster.profile                 = 478277; // need to set new profile id from SDE.AM_PROFILES for every request.
+        geoMaster.profileName             = 'User <'+ username+'> logged into <URL e.g impower dev'; // who loggenin what instane of impower User <userId> logged in to <URL e.g. https://impowerdev.val.vlss.local/#/>
+        geoMaster.status                  = 'IMPOWER';
+        geoMaster.summaryInd              = 0;
+        geoMaster.totalSiteCount          = 0;
+
+        var observable = this.geocoderService.saveGeofootprintMaster(geoMaster);
+        observable.subscribe((res) => {
+          console.log('In geofootprint response:::' + JSON.stringify(res.payload, null, 2));
+        });
   }
 
 }

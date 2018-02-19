@@ -2048,11 +2048,30 @@ export class MapService {
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
+        if (this.config.layerIds.dma.counties != lyr.portalItem.id && 
+            this.config.layerIds.dma.boundaries != lyr.portalItem.id){
+                 qry.outFields = ['geocode'];
+        }
+
+        if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+            qry.outFields = ['county_nam'];
+        }
+
+        if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+            qry.outFields = ['dma_name'];
+        }
+            
         const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
         await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
-                if ( polyFeatureSet.features.length > 0)
-                     homeGeocode = polyFeatureSet.features[0].attributes.geocode;
+            let countyName = null;
+            let dmaName    = null;
+          //  let 
+                if (polyFeatureSet.features.length > 0){
+                    homeGeocode = polyFeatureSet.features[0].attributes.geocode;
+                    dmaName = polyFeatureSet.features[0].attributes.dma_name;
+                    countyName = polyFeatureSet.features[0].attributes.county_nam;
+                }
                 if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
@@ -2061,6 +2080,15 @@ export class MapService {
                 }
                 if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
+                }
+                if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+                    homeGeocodeMap.set('home_geo' , homeGeocode);
+                }
+                if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+                    homeGeocodeMap.set('home_geo' , countyName);
+                }
+                if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+                    homeGeocodeMap.set('home_geo' , dmaName);
                 }
 
         });

@@ -13,6 +13,7 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocoderComponent } from '../geocoder/geocoder.component';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 import { AppConfig } from '../../app.config';
+import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 
 interface CsvHeadersPosition {
   street?: number;
@@ -456,47 +457,80 @@ export class UploadLocationsComponent implements OnInit {
         for (const layer of list) {
           if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
             layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
+            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
+            layer.portalItem.id === this.config.layerIds.pcr.topVars ||
+            layer.portalItem.id === this.config.layerIds.dma.counties || 
+            layer.portalItem.id === this.config.layerIds.dma.boundaries)) {
             fLyrList.push(layer);
+           /* const qry = layer.createQuery();
+            qry.outFields = ['geocode'];
+            layer.queryFeatures(qry).then( feaureSet => {
+                  console.log ('feaureSet details::::' , feaureSet);
+            });*/
           }
         }
       }
     });
 
-
     for (const site of siteList) {
+      let geoAttr: GeocodingAttributes;
+      let home_geo_issue: string = 'N';
+      try{
+        for (const llyr of fLyrList) {
+          this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
+  
+          let home_geo = null;
+          geoAttr = new GeocodingAttributes();
+          let graphic: __esri.Graphic;
+          await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
+            graphic = res;
+          });
+          await this.mapService.getHomeGeocode(llyr, graphic).then(res => {
+            home_geo = res.get('home_geo');
+            if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
+              geoAttr.attributeName = 'Home ZIP';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
+              geoAttr.attributeName = 'Home ATZ';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
+              geoAttr.attributeName = 'Home DIGITAL ATZ';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
+              geoAttr.attributeName = 'HOME PCR';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
+               geoAttr.attributeName = 'HOME COUNTY';
+               geoAttr.attributeValue = home_geo;
+               site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
+              geoAttr.attributeName = 'HOME DMA';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+          });
+        }
 
-      for (const llyr of fLyrList) {
-        this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
-
-        let home_geo = null;
-        const geoAttr: GeocodingAttributes = new GeocodingAttributes();
-        let graphic: __esri.Graphic;
-        await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
-          graphic = res;
-        });
-        await this.mapService.getHomeGeocode(llyr, graphic).then(res => {
-          home_geo = res.get('home_geo');
-          if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
-            geoAttr.attributeName = 'Home ZIP';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-          if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
-            geoAttr.attributeName = 'Home ATZ';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-          if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
-            geoAttr.attributeName = 'Home DIGITAL ATZ';
-            geoAttr.attributeValue = home_geo;
-            site.geocodingAttributesList.push(geoAttr);
-          }
-        });
       }
-
+      catch (ex) {
+        home_geo_issue = 'Y';
+        console.error(ex);
+     }
+      
+     geoAttr = new GeocodingAttributes();
+     geoAttr.attributeName  = 'HOME GEOCODE ISSUE';
+     geoAttr.attributeValue = home_geo_issue;
+     site.geocodingAttributesList.push(geoAttr);
     }
-
   }
 
   private async handleError(error: Error) {
