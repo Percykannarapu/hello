@@ -924,7 +924,7 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async bufferMergeEach( pointColor, kms: number, title: string, outlneColor, parentId?: number) {
+    public async bufferMergeEach( pointColor, kms: number, title: string, outlneColor, selector, parentId?: number) {
         /*: Promise<EsriWrapper<__esri.MapView>>*/
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -953,18 +953,26 @@ export class MapService {
         sym.outline.color = outlneColor;
 
         const pointList: __esri.Point[] = [];
-
-
+        //const compList: __esri.Point[] = [];
 
         console.log('impGeofootprintLocList length:::' + this.impGeofootprintLocationService.get().length);
 
         for (const point of this.impGeofootprintLocationService.get()) {
+            if (point.impClientLocationType.toString() == 'Site' && selector === 'Site'){
             const p = new Point({
                 x: point.xcoord,
                 y: point.ycoord,
                 spatialReference: 4326
             });
             pointList.push(p);
+        }else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor'){
+            const p = new Point({
+                x: point.xcoord,
+                y: point.ycoord,
+                spatialReference: 4326
+            });
+            pointList.push(p);
+        }
         }
         // this.mapView.graphics.removeAll();
         const graphicList: __esri.Graphic[] = [];

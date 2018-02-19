@@ -367,7 +367,7 @@ export class GeocodingResponseService {
     }
 
     // draw the site graphics on the Sites layer
-    private async updateLayer(graphics: __esri.Graphic[], selector) {
+    public async updateLayer(graphics: __esri.Graphic[], selector) {
         console.log('refreshMapSites fired');
         if (selector === 'Site') {
             this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);

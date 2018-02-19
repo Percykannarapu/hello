@@ -259,12 +259,13 @@ export class TradeareaDefineComponent implements OnInit {
                 // hide the spinner after drawing buffer
                 // this.displayDBSpinner = false;
             }
+            //this.mapService.callTradeArea();
             if (mergeAllBool) {
                 console.log('inside merge All');
                 const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
                 if (max != null) {
                     this.kms = max / 0.62137;
-                    await this.mapService.bufferMergeEach( color, this.kms, meTitle + max + lyrNme, outlneColor)
+                    await this.mapService.bufferMergeEach( color, this.kms, meTitle + max + lyrNme, outlneColor, this.selectedValue)
                         .then(res => {
                             this.mapService.selectCentroid(res);
                         });
@@ -283,7 +284,7 @@ export class TradeareaDefineComponent implements OnInit {
                 //  for(let point of pointsArray){
                 for (const miles1 of this.milesList) {
                     const kmsMereEach = miles1 / 0.62137;
-                    await this.mapService.bufferMergeEach(color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, ++siteId)
+                    await this.mapService.bufferMergeEach(color, kmsMereEach, meTitle + miles1 + lyrNme, outlneColor, this.selectedValue, ++siteId)
                         .then(res => {
                             graphicList = res;
                         });
