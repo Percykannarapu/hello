@@ -81,7 +81,7 @@ export class EsriLayerService {
     if (id === 'show-shading') {
       console.log(`clicked action '${id}'`);
       if (!this.featureLayers.has(currentLayer.title)) {
-        const state = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.baseMap$,
+        const state = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.onBaseMapChange(),
                                     this.topVars.getSelectedTopVar(), this.currentSmartTheme$,
                                     this.currentThemeOpacity$, this.sliderElementId);
         this.featureLayers.set(currentLayer.title, state);

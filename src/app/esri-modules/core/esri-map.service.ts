@@ -1,18 +1,15 @@
-import {ElementRef, EventEmitter, Injectable} from '@angular/core';
+import {ElementRef, Injectable} from '@angular/core';
 import {EsriModules} from './esri-modules.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class EsriMapService {
-  private isLoaded = new EventEmitter();
-  private isReady = false;
-
+  private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private baseMap: BehaviorSubject<__esri.Basemap> = new BehaviorSubject<__esri.Basemap>(null);
 
   public map: __esri.Map;
   public mapView: __esri.MapView;
-  public baseMap$: Observable<__esri.Basemap> = this.baseMap.asObservable();
 
   constructor(private modules: EsriModules) {}
 
@@ -36,8 +33,7 @@ export class EsriMapService {
     EsriModules.watchUtils.watch(this.map, 'basemap', () => {
       this.baseMap.next(this.map.basemap);
     });
-    this.isReady = true;
-    this.isLoaded.emit();
+    this.isReady.next(true);
   }
 
   public addWidget(item: __esri.Widget, position: string);
@@ -49,11 +45,15 @@ export class EsriMapService {
     }
   }
 
+  public onBaseMapChange() : Observable<__esri.Basemap> {
+    return this.baseMap.asObservable();
+  }
+
   public onReady(initializer: () => void) : void {
-    if (this.isReady) {
-      initializer();
-    } else {
-      this.isLoaded.subscribe(initializer);
-    }
+    this.isReady.subscribe(ready => {
+      if (ready) {
+        initializer();
+      }
+    });
   }
 }
