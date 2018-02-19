@@ -1,3 +1,5 @@
+import { ImpDiscoveryUI } from './../../Models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from './../../services/ImpDiscoveryUI.service';
 import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
 import { ImpRadLookupStore } from './../../val-modules/targeting/services/ImpRadLookup.store';
@@ -20,7 +22,7 @@ interface Category {
    name: string;
 }
 
- @Component({
+@Component({
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
   styleUrls: ['./discovery-input.component.css'],
@@ -29,7 +31,9 @@ interface Category {
 export class DiscoveryInputComponent implements OnInit
 {
    @Input() debugMode: boolean = false;
-   
+
+   public impDiscoveryUI: ImpDiscoveryUI;
+
    products: Product[];
    selectedProduct: Product;
    
@@ -53,7 +57,7 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impRadLookupService: ImpRadLookupService, private appState: AppState, private mapservice: MapService)
+   constructor(public impDiscoveryService: ImpDiscoveryService, public impRadLookupService: ImpRadLookupService, private appState: AppState, private mapservice: MapService)
    {
       this.products = [
          {productName: 'Display Advertising',         productCode: 'SM Insert'},
@@ -99,11 +103,9 @@ export class DiscoveryInputComponent implements OnInit
          {label: 'Summer', value: 'SUMMER'},
          {label: 'Winter', value: 'WINTER'}
       ];
-
-     
       
-      console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
-      console.log('DiscoveryInputComponent constructed');
+      // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
+      // console.log('DiscoveryInputComponent constructed');
    }
 
    ngOnInit()
@@ -118,9 +120,11 @@ export class DiscoveryInputComponent implements OnInit
       else
          this.selectedSeason = this.seasons[1].value;
 
-      // Subscribe to the data store
+      // Subscribe to the data stores
       this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
+      this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
 
+      // console.log('Discovery defaults: ', this.impDiscoveryUI);
       /*  Currently disabled in favor of hard coded categories until we identify the true source
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
@@ -157,6 +161,7 @@ export class DiscoveryInputComponent implements OnInit
       }
    }
 
+   // TODO: move to the discovery service and use to initialize selectedSeason
    public isSummer(startDate: Date = null, plusDays: number = 28) : boolean
    {
       const today: Date = new Date(startDate);
@@ -171,11 +176,36 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    // -----------------------------------------------------------
+   // SUBSCRIPTION CALLBACK METHODS
+   // -----------------------------------------------------------
+
+   /**
+    * Assigns the local cache of discovery ui data from the subscription.
+    *
+    * @param impDiscoveryUI The array of discovery objects received from the observable
+    */
+   onChangeDiscovery(impDiscoveryUI: ImpDiscoveryUI[])
+   {
+//    console.log('----------------------------------------------------------------------------------------');
+//    console.log('discovery-input.component - onChangeDiscovery - Before: ', this.impDiscoveryUI);
+      this.impDiscoveryUI = impDiscoveryUI[0]; // Array.from(impDiscoveryUI);
+//    console.log('discovery-input.component - onChangeDiscovery - After:  ', this.impDiscoveryUI);
+//    console.log('----------------------------------------------------------------------------------------');
+   }
+   
+   // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
+   public onChangeField(event: SelectItem)
+   {
+      this.impDiscoveryService.updateAt(this.impDiscoveryUI);
+//    console.log('Local Discovery data: ', this.impDiscoveryUI);
+//    console.log('Store Discovery data: ', this.impDiscoveryService.get());
+   }
+
    public onChangeProduct(event: SelectItem)
-   {       
-      console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');      
+   {
+      console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');
       if (event.value != null)
       {
          this.radDisabled = false;
@@ -186,13 +216,9 @@ export class DiscoveryInputComponent implements OnInit
          this.radDisabled = true;
          this.selectedRadLookup = null;
       }
-   }
 
-/* public onChangeRound(event: any)
-   {
-      this.cur1 =  Number(parseFloat(event).toFixed(2)); // parseFloat(this.cur1).toFixed(2); //  Math.round(this.cur1 * 100) / 100;
-      console.log('onChangeRound: ' + event + ' = ' + this.cur1);
-   }*/
+      this.onChangeField(event);
+   }   
 
    fetchRadData() {
       console.log('discovery-input-component calling imsRadLookupStore.get');

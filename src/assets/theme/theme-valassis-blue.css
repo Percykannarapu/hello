@@ -5707,11 +5707,11 @@ body {
     body .md-inputfield input.ui-state-filled ~ label,
     body .md-inputfield .ui-inputwrapper-focus ~ label,
     body .md-inputfield .ui-inputwrapper-filled ~ label {
-      top: -20px;
+      top: -1em;
       font-size: 12px;
       color: #4177a1; }
     body .md-inputfield .input:-webkit-autofill ~ label {
-      top: -20px;
+      top: -1em;
       font-size: 12px;
       color: #4177a1; }
     body .md-inputfield input.ng-dirty.ng-invalid ~ label {

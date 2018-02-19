@@ -91,7 +91,7 @@ export class DataStore<T>
     */
    public get(forceRefresh?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>)
    {
-      console.log('DataStore.get fired');
+//    console.log('DataStore.get fired');
       if (preOperation)
          preOperation(this._dataStore);
 
@@ -276,7 +276,7 @@ export class DataStore<T>
     * This appears to be broken right now.
     * @param search 
     */
-    public findIndex(search: any)
+   public findIndex(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
       const index = this._dataStore.findIndex(item => keys.some(key => item[key] === search[key]));
@@ -295,6 +295,22 @@ export class DataStore<T>
       this._storeSubject.next([newData]);
    }
 
+   public updateAt (newData: T, index: number = 0)
+   {
+//    console.log ('datastore updateAt - index: ' + index + ', data: ', newData);
+      if (index == 0)
+         this._dataStore = [newData,
+                           ...this._dataStore.slice(index + 1)];
+      else
+         this._dataStore = [...this._dataStore.slice(0, index),
+                           newData,
+                           ...this._dataStore.slice(index + 1)];
+
+//    console.log('datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
+      // Register data store change and notify observers
+      this._storeSubject.next(this._dataStore);
+   }
+   
    public clearAll()
    {
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change

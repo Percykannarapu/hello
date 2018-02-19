@@ -106,7 +106,6 @@ import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
 
 // Mock Service Imports
-//import {InMemoryStubService} from './api/in-memory-stub.service';
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 
 // Service Imports
@@ -161,6 +160,7 @@ import { DemoVariablesComponent } from './components/target-audience/demo-variab
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 
 @NgModule({
     imports: [
@@ -290,11 +290,11 @@ import { ImpGeofootprintLocAttribService } from './val-modules/targeting/service
         MessageService, AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
-        // InMemoryStubService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
+        ImpDiscoveryService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService,
         UserService
