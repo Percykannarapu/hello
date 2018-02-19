@@ -1357,13 +1357,13 @@ export class MapService {
             // Star path
             path: 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000'
 
-/*          // Red Wings Logo Path  
+/*          // Red Wings Logo Path
             path: 'M2820 2217 c-14 -8 -54 -36 -88 -64 -108 -87 -291 -172 -446 -208 -180 -42 -256 ' +
                   '-48 -581 -50 -293 -1 -326 -3 -396 -22 -151 -42 -290 -132 -373 -240 l-38 -50 -106 ' +
                   ' -6 c-140 -8 -214 -28 -347 -92 -209 -101 -359 -281 -421 -506 -25 -89 -25 -299 0 ' +
                   '-389 114 -424 559 -673 1002 -560 205 52 386 181 489 349 35 56 38 59 85 64 68 8 130 ' +
                   '42 143 78 9 22 18 29 37 29 14 0 57 9 95 19 71 20 125 62 125 96 0 8 10 17 23 19 114 ' +
-                  '22 149 32 198 57 69 35 123 92 116 126 -4 20 5 28 67 61 96 50 156 108 156 150 0 28 7 ' + 
+                  '22 149 32 198 57 69 35 123 92 116 126 -4 20 5 28 67 61 96 50 156 108 156 150 0 28 7 ' +
                   '37 57 69 110 70 188 158 181 206 -2 17 10 34 41 62 55 50 101 120 101 155 0 28 -23 55 ' +
                   '-52 61 -14 3 -12 12 18 59 58 92 77 154 78 251 1 72 -2 90 -18 108 -11 12 -27 21 -38 21 ' +
                   '-16 0 -18 9 -18 68 0 90 -25 113 -90 79z m-29 -172 c-40 -114 -124 -226 -229 -306 l-67 ' +
@@ -1382,8 +1382,8 @@ export class MapService {
                   'M2787 1785 c-27 -25 -86 -63 -130 -85 -146 -72 -306 -92 -712 -89 -159 1 -321 1 -360 0 -205 -6 ' +
                   '-396 -118 -481 -281 -27 -51 -29 -63 -30 -180 -1 -137 -11 -185 -56 -273 -16 -33 -27 -61 -24 -64 ' +
                   '2 -3 23 14 45 37 52 54 79 128 91 249 5 53 15 114 21 136 24 86 124 202 213 247 100 51 98 51 521 58 ' +
-                  '435 8 493 14 648 70 126 47 255 131 290 189 10 17 17 31 15 31 -2 -1 -25 -21 -51 -45z ' + 
-                  'M2790 1740 c-36 -36 -86 -76 -112 -88 -25 -13 -49 -29 -52 -37 -3 -8 ' + 
+                  '435 8 493 14 648 70 126 47 255 131 290 189 10 17 17 31 15 31 -2 -1 -25 -21 -51 -45z ' +
+                  'M2790 1740 c-36 -36 -86 -76 -112 -88 -25 -13 -49 -29 -52 -37 -3 -8 ' +
                   '-14 -15 -24 -15 -10 0 -37 -9 -60 -20 -22 -11 -59 -20 -80 -20 -22 0 -45 -6 ' +
                   '-51 -14 -6 -8 -36 -17 -66 -21 -30 -3 -57 -11 -61 -16 -3 -5 -21 -7 -40 -3 ' +
                   '-24 4 -40 2 -52 -9 -9 -8 -26 -17 -37 -19 -11 -2 -19 -9 -18 -15 2 -11 -73 ' +
@@ -1780,7 +1780,7 @@ export class MapService {
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                       //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        
+
                         this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toFixed(2));
                     });
                 });
@@ -1857,121 +1857,96 @@ export class MapService {
             }
         } */
 
-    public async selectSinglePolygon(evt: __esri.MapViewClickEvent, geom?: __esri.Geometry, objID?: number) {
-        console.log('fired selectSinglePolygon');
+  public selectSinglePolygon(evt: __esri.MapViewClickEvent, preSelectedGeo?: __esri.Geometry, preSelectedObjectId?: number) {
+    console.log('fired selectSinglePolygon');
+    const symbol = new EsriModules.SimpleFillSymbol({
+      style: 'solid',
+      color: new EsriModules.Color([0, 255, 0, 0.10]),
+      outline: new EsriModules.SimpleLineSymbol({
+        style: 'solid',
+        color: new EsriModules.Color([0, 255, 0, 0.65])
+      })
+    });
 
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [Query, GroupLayer, FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
-            = await loader.loadModules([
-                'esri/tasks/support/Query',
-                'esri/layers/GroupLayer',
-                'esri/layers/FeatureLayer',
-                'esri/Graphic',
-                'esri/symbols/SimpleFillSymbol',
-                'esri/symbols/SimpleLineSymbol',
-                'esri/symbols/SimpleMarkerSymbol',
-                'esri/Color', 'dojo/domReady!'
-            ]);
-        const polyGraphics: __esri.Graphic[] = [];
+    const visibleLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter((l: any) => l.visible && (l.parent ? l.parent.visible : true));
 
-        const symbol = new SimpleFillSymbol(
-            SimpleFillSymbol.STYLE_SOLID,
-            new SimpleLineSymbol(
-                SimpleLineSymbol.STYLE_SOLID,
-                new Color([0, 255, 0, 0.65]), 2
-            ),
-            new Color([0, 255, 0, 0.10])
-        );
-
-        let fLyrList: __esri.FeatureLayer[] = [];
-
-        await this.getAllFeatureLayers().then(list => {
-            fLyrList = list;
-        });
-        for (const lyr of fLyrList) {
-            if ((lyr.portalItem != null) &&
-                (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
-                lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-                lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
-                const query = lyr.createQuery();
-                if (geom) {
-                    console.log ('selectSinglePoly() - geom:' + objID);
-                    const currentClick = query.geometry = geom;
-                } else {
-                    console.log ('selectSinlgePoly() - Mapclick' + evt);
-                    const currentClick = query.geometry = evt.mapPoint;
-                }
-                query.outSpatialReference = Query.SPATIAL_REL_INTERSECTS;
-                await lyr.queryFeatures(query).then(polyFeatureSet => {
-                  if (MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid'))){
-                    const graphi: __esri.Graphic = polyFeatureSet.features[0];
-                    this.mapView.graphics.forEach((graphic) => {
-                      if (objID === EsriLayerService.getAttributeValue(graphic.attributes, 'objectid')){
-                        console.log('deselect objID in mapview');
-                        this.mapView.graphics.remove(graphic);
-                      } else {
-                        if (EsriLayerService.getAttributeValue(graphi.attributes, 'objectid') === EsriLayerService.getAttributeValue(graphic.attributes, 'objectid')){
-                          console.log('deselect to mapview');
-                          this.mapView.graphics.remove(graphic);
-                        }
-                      }
-                      //const index = MapService.selectedCentroidObjectIds.indexOf(graphi.attributes.OBJECTID);
-                      //MapService.selectedCentroidObjectIds.splice(index, 1);
-
-                      if (objID !== null) {
-                        const index = MapService.selectedCentroidObjectIds.indexOf(objID);
-                        MapService.selectedCentroidObjectIds.splice(index, 1);
-                      } else {
-                        const index = MapService.selectedCentroidObjectIds.indexOf(EsriLayerService.getAttributeValue(graphi.attributes, 'objectid'));
-                        MapService.selectedCentroidObjectIds.splice(index, 1);
-                      }
-                      MapService.hhDetails = MapService.hhDetails - EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'hhld_w');
-                      MapService.hhIpAddress = MapService.hhIpAddress - EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'num_ip_addrs');
-                      this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                      this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                    });
-                  } else {
-                    console.log('select to mapview');
-                    if (objID != null) {
-                      MapService.selectedCentroidObjectIds.push(objID);
-                      this.mapView.graphics.add(new Graphic(geom, symbol, objID));
-                    } else {
-                      MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid'));
-                      this.mapView.graphics.add(new Graphic(polyFeatureSet.features[0].geometry, symbol, EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'objectid')));
-                    }
-                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'hhld_w');
-                    MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(polyFeatureSet.features[0].attributes, 'num_ip_addrs');
-                    //MapService.medianHHIncome = polyFeatureSet.features[0].attributes.CL2I0O;
-                    //MapService.hhChildren = polyFeatureSet.features[0].attributes.CL0C00;
-                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                    //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
-                    //this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
-
-                  }
-                });
-            }
+    for (const lyr of visibleLayers) {
+      if ((lyr.portalItem != null) && (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
+          lyr.portalItem.id === this.config.layerIds.atz.topVars ||
+          lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
+        const query = lyr.createQuery();
+        if (preSelectedGeo != null) {
+          query.geometry = preSelectedGeo;
+        } else {
+          query.geometry = evt.mapPoint;
         }
-
+        lyr.queryFeatures(query).then((polyFeatureSet: __esri.FeatureSet) => {
+          let currentAttributes: any;
+          if (preSelectedObjectId == null) {
+            currentAttributes = polyFeatureSet.features[0].attributes;
+          } else {
+            polyFeatureSet.features.forEach(f => {
+              if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
+                currentAttributes = f.attributes;
+              }
+            });
+          }
+          if (currentAttributes == null) {
+            console.error('Could not match object id from popup geo selection');
+            return;
+          }
+          const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
+          const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
+          const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
+          if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)){
+            const indexToRemove = this.mapView.graphics.findIndex(g => {
+              const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
+              return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
+            });
+            if (indexToRemove !== -1) {
+              this.mapView.graphics.removeAt(indexToRemove);
+            }
+            // remove the id from the selected centroids list
+            const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
+            MapService.selectedCentroidObjectIds.splice(index, 1);
+            MapService.hhDetails -= currentHHCount;
+            MapService.hhIpAddress -= currentIpCount;
+          } else {
+            let geoToAdd: __esri.Geometry;
+            if (preSelectedObjectId != null) {
+              geoToAdd = preSelectedGeo;
+            } else {
+              geoToAdd = polyFeatureSet.features[0].geometry;
+            }
+            this.mapView.graphics.add(new EsriModules.Graphic({
+              geometry: geoToAdd,
+              symbol: symbol,
+              attributes: Object.assign({}, currentAttributes)
+            }));
+            MapService.selectedCentroidObjectIds.push(queriedObjectId);
+            MapService.hhDetails += currentHHCount;
+            MapService.hhIpAddress += currentIpCount;
+          }
+          this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        });
+      }
     }
+  }
 
     public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
         console.log('fired getAllFeatureLayers');
-        // const loader = EsriLoaderWrapperService.esriLoader;
-        // const [GroupLayer, FeatureLayer] = await loader.loadModules([
-        //     'esri/layers/GroupLayer',
-        //     'esri/layers/FeatureLayer'
-        // ]);
-        //this.mapView.map.allLayers.length;
-        const fLyrList: __esri.FeatureLayer[] = [];
-        this.mapView.map.allLayers.forEach(function (lyr: __esri.FeatureLayer) {
-            //  console.log('lyrs names before adding::'+lyr.title);
-            if (lyr.type === 'feature') {
-                //  console.log('lyrs names After adding::'+lyr.title);
-                fLyrList.push(lyr);
-            }
-        });
-        return Promise.resolve(fLyrList);
+        return Promise.resolve(this._getAllFeatureLayers());
+    }
+
+    private _getAllFeatureLayers() : __esri.FeatureLayer[] {
+      const result: __esri.FeatureLayer[] = [];
+      this.mapView.map.allLayers.forEach(lyr => {
+        if (lyr.type === 'feature') {
+          result.push(lyr as __esri.FeatureLayer);
+        }
+      });
+      return result;
     }
 
     public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer) {
@@ -2049,7 +2024,7 @@ export class MapService {
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
-        if (this.config.layerIds.dma.counties != lyr.portalItem.id && 
+        if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
             this.config.layerIds.dma.boundaries != lyr.portalItem.id){
                  qry.outFields = ['geocode'];
         }
@@ -2061,13 +2036,13 @@ export class MapService {
         if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
             qry.outFields = ['dma_name'];
         }
-            
+
         const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
         await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
             let countyName = null;
             let dmaName    = null;
-          //  let 
+          //  let
                 if (polyFeatureSet.features.length > 0){
                     homeGeocode = polyFeatureSet.features[0].attributes.geocode;
                     dmaName = polyFeatureSet.features[0].attributes.dma_name;

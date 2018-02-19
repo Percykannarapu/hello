@@ -1,13 +1,13 @@
-import {EventEmitter, Inject, Injectable, InjectionToken} from '@angular/core';
+import { EventEmitter, Inject, Injectable, InjectionToken } from '@angular/core';
 import * as esriLoader from 'esri-loader';
-import {EsriWidgets} from './esri-widgets';
-import {ILoadScriptOptions} from 'esri-loader/src/esri-loader';
-import {EsriLoaderWrapperService} from '../../services/esri-loader-wrapper.service';
+import { EsriWidgets } from './esri-widgets';
+import { ILoadScriptOptions } from 'esri-loader/src/esri-loader';
+import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 
 export interface EsriLoaderConfig {
   esriConfig: ILoadScriptOptions;
 }
-//
+
 export const EsriLoaderToken = new InjectionToken<EsriLoaderConfig>('esri-config-options');
 
 @Injectable()
@@ -29,7 +29,11 @@ export class EsriModules {
     'esri/PopupTemplate',
     'esri/layers/MapImageLayer',
     'esri/geometry/Polyline',
-    'esri/Viewpoint'
+    'esri/Viewpoint',
+    'esri/Graphic',
+    'esri/symbols/SimpleFillSymbol',
+    'esri/symbols/SimpleLineSymbol',
+    'esri/Color'
   ];
 
   public static Map: typeof __esri.Map;
@@ -49,6 +53,10 @@ export class EsriModules {
   public static MapImageLayer: typeof __esri.MapImageLayer;
   public static PolyLine: typeof __esri.Polyline;
   public static Viewpoint: typeof __esri.Viewpoint;
+  public static Graphic: typeof __esri.Graphic;
+  public static SimpleFillSymbol: typeof __esri.SimpleFillSymbol;
+  public static SimpleLineSymbol: typeof __esri.SimpleLineSymbol;
+  public static Color: typeof __esri.Color;
 
   public static widgets: EsriWidgets;
 
@@ -89,7 +97,12 @@ export class EsriModules {
       EsriModules.PopupTemplate,
       EsriModules.MapImageLayer,
       EsriModules.PolyLine,
-      EsriModules.Viewpoint] = modules;
+      EsriModules.Viewpoint,
+      EsriModules.Graphic,
+      EsriModules.SimpleFillSymbol,
+      EsriModules.SimpleLineSymbol,
+      EsriModules.Color
+    ] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);

@@ -40,6 +40,10 @@ export class LayerState {
     this.showNewRenderer.next(!this.showNewRenderer.getValue());
   }
 
+  customShadingVisible() : boolean {
+    return this.showNewRenderer.getValue();
+  }
+
   private initSubscriptions() : void {
     this.newRendererReady.subscribe((isReady) => {
       if (isReady) {
