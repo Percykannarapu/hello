@@ -1781,7 +1781,7 @@ export class MapService {
                       //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         
-                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toFixed(2));
                     });
                 });
             }
