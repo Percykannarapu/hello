@@ -1500,9 +1500,9 @@ export class MapService {
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
 
-        console.log('Graphic parentId: ' + parentId);
+//        console.log('Graphic parentId: ' + parentId);
         if (parentId != null) {
-            console.log('Set parentId: ' + parentId);
+//            console.log('Set parentId: ' + parentId);
             // this.setGraphicAttribute (graphic, 'parentId', parentId);
             graphic.setAttribute('parentId', parentId);
         }
@@ -1766,7 +1766,8 @@ export class MapService {
                             if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-                                MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+//                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                                 MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
                                 polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, EsriLayerService.getAttributeValue(currentAttribute, 'objectid')));
                                 MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
@@ -1777,8 +1778,8 @@ export class MapService {
                         this.updateFeatureLayer(polyGraphics, layername);
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace('(\d)(?=(\d{3})+$)', ','));
+                      //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         
                         this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
                     });
@@ -2044,7 +2045,7 @@ export class MapService {
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
                 //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
          const graphic: __esri.Graphic = gra;
-         console.log('getHomeGeocode fired');
+//         console.log('getHomeGeocode fired');
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
