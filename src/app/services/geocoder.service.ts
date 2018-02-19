@@ -114,7 +114,7 @@ export class GeocoderService {
           .then(res => { graphics.push(res); })
           .catch(err => { this.handleError(err); });
       }
-      await this.updateLayer(graphics, selector)
+      await this.geocodingRespService.updateLayer(graphics, selector)
         .then(res => { this.mapService.zoomOnMap(graphics); })
         .then(res => {
           this.geocodingRespService.locToEntityMapping(sitesList, selector);
@@ -127,16 +127,6 @@ export class GeocoderService {
     }
   }
 
-  // draw the site graphics on the Sites layer
-  public async updateLayer(graphics: __esri.Graphic[], selector) {
-    if (selector === 'Site') {
-      console.log('Adding sites from Upload:::');
-      this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
-    } else if (selector === 'Competitor') {
-      console.log('Adding competitors from Upload:::');
-      this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
-    }
-  }
   private async handleError(error: Error) {
     const growlMessage: Message = {
       summary: 'Failed to geocode your address',

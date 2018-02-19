@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import { MapService } from '../../services/map.service';
-import { mapFunctions } from '../../app.component';
 
 @Component({
   selector: 'val-esri-map-tools',

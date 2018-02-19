@@ -363,9 +363,9 @@ export class UploadLocationsComponent implements OnInit {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       if (this.selector === 'Site'){
         await this.calculateHomeGeo(geocodingResponseList);
+        this.mapService.callTradeArea();
       }
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
-      this.mapService.callTradeArea();
       //Hide the spinner on error
       this.displayGcSpinner = false;
     }
@@ -429,11 +429,11 @@ export class UploadLocationsComponent implements OnInit {
     }
     if (display) {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
+      this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       if (this.selector === 'Site'){
         await this.calculateHomeGeo(geocodingResponseList);
+        this.mapService.callTradeArea();
       }
-      this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
-      this.mapService.callTradeArea();
       //Hide the spinner on error
       this.displayGcSpinner = false;
     }

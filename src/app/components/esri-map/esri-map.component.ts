@@ -27,7 +27,7 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
   @ViewChild('esriMapContainer') private mapContainerEl: ElementRef;
-  
+
   constructor(public mapService: MapService, private esriMapService: EsriMapService, private modules: EsriModules) {
     console.log('Constructing esri-map-component');
   }
@@ -51,7 +51,7 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     let vp = {};
     if (vpString) {
       vp = JSON.parse(vpString);
-    } 
+    }
     this.esriMapService.mapView.viewpoint = EsriModules.Viewpoint.fromJSON(vp);
 
     whenFalse(this.esriMapService.mapView, 'updating', () => {
@@ -95,19 +95,19 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
       const { whenFalse } = EsriModules.watchUtils;
       const KEY = 'IMPOWER-MAP-ZOOM';
       const vpString = localStorage.getItem(KEY);
-  
+
       let vp = {};
       if (vpString) {
         vp = JSON.parse(vpString);
       } else {
         this.esriMapService.mapView.zoom = 4;
       }
-  
+
       whenFalse(this.esriMapService.mapView, 'updating', () => {
         localStorage.setItem(KEY, JSON.stringify(this.esriMapService.mapView.zoom));
       });
     }
-  
+
   // save and reset map height
   private setMapHeight(el: ElementRef) {
 
@@ -119,13 +119,13 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
       const mapString = localStorage.getItem(KEY);
 
       let mapHeight: number;
-    
+
       if (mapString) {
         mapHeight = <number> JSON.parse(mapString);
         console.log ('local storage (' + KEY + ') = ' + mapHeight);
         this.height = mapHeight;
         console.log ('AFTER: mapContainerEl (clientHeight) = ' + el.nativeElement.clientHeight);
-      }      
+      }
       whenFalse(this.esriMapService.mapView, 'updating', () => {
         localStorage.setItem(KEY, JSON.stringify(el.nativeElement.clientHeight));
       });
@@ -136,7 +136,7 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     this.modules.onReady(() => { this.init(); });
   }
 
-  public ngAfterViewInit() {   
+  public ngAfterViewInit() {
   }
 
   private init() : void {
@@ -152,73 +152,23 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
     this.mapService.createMapView();
 
-    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', EsriMapComponent.replaceCopyrightElement);
     EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
+      EsriMapComponent.replaceCopyrightElement();
       this.setMapHeight(this.mapContainerEl);
       this.setMapCenter();
       this.setMapZoom();
-      this.setMapViewPoint(); 
+      this.setMapViewPoint();
+      this.registerClickHandler();
     });
-  }   
+  }
 
-  public selectPolyClick(){
-    console.log('fired selectPolyClick');
-    let alreadyRun = false;
+  private registerClickHandler(){
     this.esriMapService.mapView.on('click' , (evt) => {
-      if (!alreadyRun){
-        alreadyRun = true;
-        const zipOrAtzs = this.esriMapService.map.layers
-                               .filter((l) => l.title === 'Valassis ZIP' || l.title === 'Valassis ATZ');
-        if (zipOrAtzs.length > 0) {
-          this.mapService.selectSinglePolygon(evt);
-        }
+      const zipOrAtzs = this.esriMapService.map.layers
+                             .filter((l) => l.title === 'Valassis ZIP' || l.title === 'Valassis ATZ');
+      if (zipOrAtzs.length > 0 && this.mapService.mapFunction === mapFunctions.SelectPoly) {
+        this.mapService.selectSinglePolygon(evt);
       }
     });
   }
-
-  // public async selectPolyClickOld(){
-  //   console.log('fired selectPolyClick');
-  //       const mapView  = this.mapService.getMapView();
-  //     // var graphic ,latitude , longitude;
-  //     // var graphics : __esri.Graphic[] = [];
-  //
-  //       const color = {
-  //           a: 1,
-  //           r: 35,
-  //           g: 93,
-  //           b: 186
-  //         };
-  //       let layers: __esri.Layer[] = [];
-  //       let i: number = 0;
-  //       await mapView.on('click' , (evt) => {
-  //       if (i === 0){
-  //           i++;
-  //           mapView.map.layers.forEach(function(layer: __esri.Layer){
-  //             layers.push(layer);
-  //           });
-  //           let fLyrList: __esri.FeatureLayer[] = [];
-  //           this.mapService.getAllFeatureLayers().then(list => {
-  //             fLyrList = list;
-  //           });
-  //
-  //           for (const lyr of layers){
-  //             if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
-  //               this.mapService.selectSinglePolygon(evt);
-  //               break;
-  //             }
-  //           }
-  //         }
-  //         layers = [];
-  //       });
-  // }
-
-  public mapClick(){
-    // console.log('fired mapclick - (this.mapService.mapFunction) = ' + this.mapService.mapFunction);
-    if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
-        this.selectPolyClick();
-        //this.mapService.selectPolyClick();
-    }
-  }
-
-  
 }
