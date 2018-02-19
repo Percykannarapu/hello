@@ -43,11 +43,10 @@ export class EnvironmentData {
       digitalCentroids: '2acb6088bfbb4be1abd502ea3b20ecf6'  // DIG_ATZ_Centroids
     },
     pcr: {
-      topVars: '53482efa44914dc199f3833276ddb5a1',
-      centroids: 'ab655c84473748159307fe18962138d1'
+      pcr: undefined
     },
     wrap: {
-      topVars: '12bae62392eb47aeb887b6509da557b5'  // WRAP_Top_Vars
+      topVars: '09e5cdab538b43a4a6bd9a0d54b682a7'  // WRAP_Top_Vars
     }, 
     hh: {
       vt: '837f4f8be375464a8971c56a0856198e', // vt layer
