@@ -18,6 +18,7 @@ import { AppService } from '../../services/app.service';
 import { MetricService, MetricOperations } from './../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { RadService } from '../../services/rad.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -61,10 +62,14 @@ export class DashboardDemoComponent implements OnInit {
                 private amSiteService: AmSiteService,
                 private appService: AppService,
                 private metricService: MetricService,
+                private radService: RadService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
     ngOnInit() {
+
+        // load the RAD data
+        this.radService.fetchRadData();
 
         // Load models
         this.metricMapGreen = new Map([
@@ -89,10 +94,9 @@ export class DashboardDemoComponent implements OnInit {
         ]);
 
         this.metricMapTeal = new Map([
-            ['Predicted Response', '0.25%'],
-            ['Estimated Top Line Sales Generation', '$15,000'],
-            ['Predicted ROI $', '$1,524 (20%)'],
-            ['Targeting Index', '130']
+            ['Predicted Response', '0'],
+            ['Predicted Topline Sales Generated', '$0'],
+            ['Predicted ROI', '$0']
         ]);
 
         this.fakeItems = [
