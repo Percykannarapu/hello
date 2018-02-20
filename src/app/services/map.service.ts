@@ -61,9 +61,11 @@ export class MapService {
                 private config: AppConfig,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
                 private impDiscoveryService: ImpDiscoveryService) {
-      this.esriMapService.onReady(() => {
-        this.mapView = this.esriMapService.mapView;
-        this.map = this.esriMapService.map;
+      this.esriMapService.onReady$.subscribe(ready => {
+        if (ready) {
+          this.mapView = this.esriMapService.mapView;
+          this.map = this.esriMapService.map;
+        }
       });
     }
 
@@ -157,36 +159,36 @@ export class MapService {
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
     }
 
-    // Select polygon using either a MapPoint (click) or passed Geometery (popup-action)
-    public selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
-        console.log('fired selectPolyClick');
-        const color = {
-                a: 1,
-                r: 35,
-                g: 93,
-                b: 186
-              };
-        let layers: __esri.Layer[] = [];
-        let i: number = 0;
-        if (i === 0){
-                i++;
-                this.map.layers.forEach(function(layer: __esri.Layer) {
-                  layers.push(layer);
-                });
-                let fLyrList: __esri.FeatureLayer[] = [];
-                this.getAllFeatureLayers().then(list => {
-                  fLyrList = list;
-                });
-
-                for (const lyr of layers){
-                  if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
-                    this.selectSinglePolygon(null, geom, objectID);
-                    break;
-                  }
-                }
-        }
-        layers = [];
-    }
+    // // Select polygon using either a MapPoint (click) or passed Geometery (popup-action)
+    // public selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
+    //     console.log('fired selectPolyClick');
+    //     const color = {
+    //             a: 1,
+    //             r: 35,
+    //             g: 93,
+    //             b: 186
+    //           };
+    //     let layers: __esri.Layer[] = [];
+    //     let i: number = 0;
+    //     if (i === 0){
+    //             i++;
+    //             this.map.layers.forEach(function(layer: __esri.Layer) {
+    //               layers.push(layer);
+    //             });
+    //             let fLyrList: __esri.FeatureLayer[] = [];
+    //             this.getAllFeatureLayers().then(list => {
+    //               fLyrList = list;
+    //             });
+    //
+    //             for (const lyr of layers){
+    //               if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
+    //                 this.selectSinglePolygon(null, geom, objectID);
+    //                 break;
+    //               }
+    //             }
+    //     }
+    //     layers = [];
+    // }
 
     // Execute each time the "select-this" action is clicked
     public selectThis() {
@@ -194,7 +196,7 @@ export class MapService {
         const objectID: number = EsriLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
         console.log ('-- objectID = ' + objectID);
-        this.selectPolyClick(null, geom, objectID);
+        this.selectSinglePolygon(null, geom, objectID);
     }
 
     // create the MapView
@@ -1631,7 +1633,7 @@ export class MapService {
                 console.log('discovery UI Details:::' , discoveryUI[0].analysisLevel);
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-                
+
                 if (discoveryUI[0].analysisLevel === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.centroids){
                     layer = lyr;
@@ -1745,7 +1747,7 @@ export class MapService {
         const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-               
+
                 if (discoveryUI[0].analysisLevel === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.topVars){
                     layer = lyr;
@@ -1909,71 +1911,80 @@ export class MapService {
         color: new EsriModules.Color([0, 255, 0, 0.65])
       })
     });
-
-    const visibleLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter((l: any) => l.visible && (l.parent ? l.parent.visible : true));
-
-    for (const lyr of visibleLayers) {
-      if ((lyr.portalItem != null) && (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
-          lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-          lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
-        const query = lyr.createQuery();
-        if (preSelectedGeo != null) {
-          query.geometry = preSelectedGeo;
-        } else {
-          query.geometry = evt.mapPoint;
-        }
-        lyr.queryFeatures(query).then((polyFeatureSet: __esri.FeatureSet) => {
-          let currentAttributes: any;
-          if (preSelectedObjectId == null) {
-            currentAttributes = polyFeatureSet.features[0].attributes;
-          } else {
-            polyFeatureSet.features.forEach(f => {
-              if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
-                currentAttributes = f.attributes;
-              }
-            });
+    // todo - this might be fragile
+    const currentSelectedAnalysisLevel = this.impDiscoveryService.get()[0].analysisLevel;
+    const featureLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter(l => {
+      switch (currentSelectedAnalysisLevel) {
+        case 'ATZ':
+          return l.portalItem != null && l.portalItem.id === this.config.layerIds.atz.topVars;
+        case 'ZIP':
+          return l.portalItem != null && l.portalItem.id === this.config.layerIds.zip.topVars;
+        case 'PCR':
+          return l.portalItem != null && l.portalItem.id === this.config.layerIds.pcr.topVars;
+        default:
+          console.error(`MapService.selectSinglePoly - Unknown Analysis Level selected: ${currentSelectedAnalysisLevel}`);
+          return false;
+      }
+    });
+    if (featureLayers.length === 0) return;
+    const featureLayer = featureLayers[0];
+    const graphicLayer: __esri.FeatureLayer = this._getAllFeatureLayers().find(l => l.title.endsWith(` - ${currentSelectedAnalysisLevel}`));
+    const query = featureLayer.createQuery();
+    if (preSelectedGeo != null) {
+      query.geometry = preSelectedGeo;
+    } else {
+      query.geometry = evt.mapPoint;
+    }
+    featureLayer.queryFeatures(query).then((polyFeatureSet: __esri.FeatureSet) => {
+      let currentAttributes: any;
+      if (preSelectedObjectId == null) {
+        currentAttributes = polyFeatureSet.features[0].attributes;
+      } else {
+        polyFeatureSet.features.forEach(f => {
+          if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
+            currentAttributes = f.attributes;
           }
-          if (currentAttributes == null) {
-            console.error('Could not match object id from popup geo selection');
-            return;
-          }
-          const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
-          const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
-          const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
-          if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)){
-            const indexToRemove = this.mapView.graphics.findIndex(g => {
-              const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
-              return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
-            });
-            if (indexToRemove !== -1) {
-              this.mapView.graphics.removeAt(indexToRemove);
-            }
-            // remove the id from the selected centroids list
-            const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
-            MapService.selectedCentroidObjectIds.splice(index, 1);
-            MapService.hhDetails -= currentHHCount;
-            MapService.hhIpAddress -= currentIpCount;
-          } else {
-            let geoToAdd: __esri.Geometry;
-            if (preSelectedObjectId != null) {
-              geoToAdd = preSelectedGeo;
-            } else {
-              geoToAdd = polyFeatureSet.features[0].geometry;
-            }
-            this.mapView.graphics.add(new EsriModules.Graphic({
-              geometry: geoToAdd,
-              symbol: symbol,
-              attributes: Object.assign({}, currentAttributes)
-            }));
-            MapService.selectedCentroidObjectIds.push(queriedObjectId);
-            MapService.hhDetails += currentHHCount;
-            MapService.hhIpAddress += currentIpCount;
-          }
-          this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-          this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         });
       }
-    }
+      if (currentAttributes == null) {
+        console.error('Could not match object id from popup geo selection');
+        return;
+      }
+      const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
+      const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
+      const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
+      if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
+        const indexToRemove = graphicLayer.source.findIndex(g => {
+          const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
+          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
+        });
+        if (indexToRemove !== -1) {
+          graphicLayer.source.removeAt(indexToRemove);
+        }
+        // remove the id from the selected centroids list
+        const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
+        MapService.selectedCentroidObjectIds.splice(index, 1);
+        MapService.hhDetails -= currentHHCount;
+        MapService.hhIpAddress -= currentIpCount;
+      } else {
+        let geoToAdd: __esri.Geometry;
+        if (preSelectedObjectId != null) {
+          geoToAdd = preSelectedGeo;
+        } else {
+          geoToAdd = polyFeatureSet.features[0].geometry;
+        }
+        graphicLayer.source.add(new EsriModules.Graphic({
+          geometry: geoToAdd,
+          symbol: symbol,
+          attributes: Object.assign({}, currentAttributes)
+        }));
+        MapService.selectedCentroidObjectIds.push(queriedObjectId);
+        MapService.hhDetails += currentHHCount;
+        MapService.hhIpAddress += currentIpCount;
+      }
+      this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+      this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    });
   }
 
     public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {

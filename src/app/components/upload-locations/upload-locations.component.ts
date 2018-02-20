@@ -40,7 +40,7 @@ export class UploadLocationsComponent implements OnInit {
 
   private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
-  public HandleMsg: boolean = true; //flag for enabling the message after geocoding
+  public handleMsg: boolean = true; //flag for enabling the message after geocoding
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: String = 'Site';
   public headers: any;
@@ -320,7 +320,7 @@ export class UploadLocationsComponent implements OnInit {
         const failedSite: GeocodingResponse = new GeocodingResponse();
         //locationResponseList[0].status = 'ERROR';
         locRespListMap['Geocode Status'] = 'ERROR';
-        this.HandleMsg = false;
+        this.handleMsg = false;
 
         this.failedSites.push(locRespListMap); //push to failed sites
         UploadLocationsComponent.failedSiteCounter++;
@@ -371,7 +371,7 @@ export class UploadLocationsComponent implements OnInit {
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
-      //this.HandleMsg = true;
+      //this.handleMsg = true;
       //this.messageService.add({ severity: 'success', summary: 'Geocoded Successfully', detail: `Success` });
     }
     return geocodingResponseList;
@@ -441,7 +441,7 @@ export class UploadLocationsComponent implements OnInit {
       }
       //Hide the spinner on error
       this.displayGcSpinner = false;
-      this.HandleMsg = true;
+      this.handleMsg = true;
       this.handleMessages();
     }
     return geocodingResponseList;
@@ -545,11 +545,11 @@ export class UploadLocationsComponent implements OnInit {
 
   //Add messages after geocoding
   private async handleMessages() {
-    if (this.HandleMsg){
+    if (this.handleMsg){
     this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
     } else{
       this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
-      this.HandleMsg = true; //turning the flag back on
+      this.handleMsg = true; //turning the flag back on
     }
     return;
   }

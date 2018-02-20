@@ -1,17 +1,16 @@
-import { map } from 'rxjs/operators';
-import { MapService } from './../../services/map.service';
-import {Component, OnInit, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+import { MapService } from '../../services/map.service';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
 import { mapFunctions } from '../../app.component';
-import {EsriMapService} from '../../esri-modules/core/esri-map.service';
-import {EsriModules} from '../../esri-modules/core/esri-modules.service';
+import { EsriMapService } from '../../esri-modules/core/esri-map.service';
+import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 
 @Component({
   selector: 'app-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
 })
-export class EsriMapComponent implements OnInit, AfterViewInit {
+export class EsriMapComponent implements OnInit {
 
   // map container dim
   public width: number;
@@ -136,9 +135,6 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     this.modules.onReady(() => { this.init(); });
   }
 
-  public ngAfterViewInit() {
-  }
-
   private init() : void {
     console.log('Initializing Esri Map Component');
     const mapParams = {
@@ -151,6 +147,11 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
     this.mapService.createMapView();
+    this.esriMapService.onReady$.subscribe(ready => {
+      if (ready) {
+        this.esriMapService.onClick$.subscribe(e => this.clickHandler(e));
+      }
+    });
 
     EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
       EsriMapComponent.replaceCopyrightElement();
@@ -158,17 +159,31 @@ export class EsriMapComponent implements OnInit, AfterViewInit {
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
-      this.registerClickHandler();
     });
   }
 
-  private registerClickHandler(){
-    this.esriMapService.mapView.on('click' , (evt) => {
-      const zipOrAtzs = this.esriMapService.map.layers
-                             .filter((l) => l.title === 'Valassis ZIP' || l.title === 'Valassis ATZ');
-      if (zipOrAtzs.length > 0 && this.mapService.mapFunction === mapFunctions.SelectPoly) {
-        this.mapService.selectSinglePolygon(evt);
-      }
-    });
+  private clickHandler(evt: __esri.MapViewClickEvent){
+    if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
+      this.mapService.selectSinglePolygon(evt);
+    }
   }
+
+  public getCursor() {
+    switch (this.mapService.mapFunction) {
+      case mapFunctions.SelectPoly:
+        return 'copy';
+      case mapFunctions.DrawPoint:
+        return 'cell';
+      case mapFunctions.DrawLine:
+        return 'crosshair';
+      case mapFunctions.DrawPoly:
+        return 'crosshair';
+      case mapFunctions.RemoveGraphics:
+        return 'default';
+      case mapFunctions.Popups:
+        return 'default';
+      case mapFunctions.Labels:
+        return 'default';
+    }
+  }    
 }
