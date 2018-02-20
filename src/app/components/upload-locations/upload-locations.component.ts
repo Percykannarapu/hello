@@ -243,19 +243,19 @@ export class UploadLocationsComponent implements OnInit {
     const siteList: any[] = [];
     const site1 = {};
     const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
-    site1['name'] = row['Name'];
-    site1['number'] = row['Number'];
+    site1['name']     = row['Name'];
+    site1['number']   = row['Number'];
 
-    site1['street'] = row['Street'];
-    site1['city'] = row['City'];
-    site1['state'] = row['State'];
-    site1['zip'] = row['ZIP'];
+    site1['street']   = row['Original Address'];
+    site1['city']     = row['Original City'];
+    site1['state']   = row['Original State'];
+    site1['zip']     = row['Original ZIP'];
 
     Object.keys(row).forEach(site => {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
         'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
         'Match Quality', 'Original Address', 'Original City',
-        'Original State', 'Original ZIP', 'Market'].indexOf(site) < 0) {
+        'Original State', 'Original ZIP'].indexOf(site) < 0) {
 
         site1[site] = row[site];
         //console.log('row:::' + row + ':::Siteval:::'+site)
