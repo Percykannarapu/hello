@@ -167,4 +167,23 @@ export class EsriMapComponent implements OnInit {
       this.mapService.selectSinglePolygon(evt);
     }
   }
+
+  public getCursor() {
+    switch (this.mapService.mapFunction) {
+      case mapFunctions.SelectPoly:
+        return 'copy';
+      case mapFunctions.DrawPoint:
+        return 'cell';
+      case mapFunctions.DrawLine:
+        return 'crosshair';
+      case mapFunctions.DrawPoly:
+        return 'crosshair';
+      case mapFunctions.RemoveGraphics:
+        return 'default';
+      case mapFunctions.Popups:
+        return 'default';
+      case mapFunctions.Labels:
+        return 'default';
+    }
+  }    
 }
