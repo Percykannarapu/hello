@@ -8,6 +8,7 @@ import { MapService } from '../../services/map.service';
 import {SelectItem} from 'primeng/primeng';
 import { AppConfig } from '../../app.config';
 import { MetricService } from '../../val-modules/common/services/metric.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -27,7 +28,10 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
 
-  constructor(public mapService: MapService,  private config: AppConfig, private metricService: MetricService) {
+  constructor(public mapService: MapService,  
+              private config: AppConfig, 
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
+              private metricService: MetricService) {
       this.mapView = this.mapService.getMapView();
     }
 
@@ -133,6 +137,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
               this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
               this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+              this.impGeofootprintGeoService.clearAll();
 
         }
       }
