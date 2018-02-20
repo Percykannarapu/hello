@@ -9,7 +9,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { ImpDiscoveryUI } from '../Models/ImpDiscoveryUI';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
 @Injectable()
 export class RadService {
