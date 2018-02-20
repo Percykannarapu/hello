@@ -44,7 +44,7 @@ export class UploadLocationsComponent implements OnInit {
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: String = 'Site';
   public headers: any;
-  public Msgs: Message[] = new Array();
+  public growlMessages: Message[] = new Array();
   public displaySpinnerMessage: string = 'Geocoding Locations';
 
   @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
