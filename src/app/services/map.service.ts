@@ -1991,7 +1991,7 @@ export class MapService {
                 const max = Math.max(...milesList);
                 for (const miles of milesList) {
                     const kmsMereEach = miles / 0.62137;
-                    await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                    await this.bufferMergeEach(tradeAreaMap.get('color'), kmsMereEach, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), tradeAreaMap.get('selector'))
                         .then(res => {
                             //graphicList = res;
                             if (max == miles) {
@@ -2001,7 +2001,7 @@ export class MapService {
                 }
             }
             if (tradeAreaMap.get('mergeType') === 'MergeAll') {
-                await this.bufferMergeEach(tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null)
+                await this.bufferMergeEach(tradeAreaMap.get('color'), tradeAreaMap.get('milesMax'), tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), tradeAreaMap.get('selector'))
                     .then(res => {
                         this.selectCentroid(res);
                     });
@@ -2011,7 +2011,7 @@ export class MapService {
                 for (const miles of milesList) {
                     const kmsNomerge = miles / 0.62137;
                     for (const point of MapService.pointsArray) {
-                        await this.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), null);
+                        await this.drawCircle(point.latitude, point.longitude, tradeAreaMap.get('color'), kmsNomerge, tradeAreaMap.get('lyrName'), tradeAreaMap.get('outlneColor'), tradeAreaMap.get('selector'));
                     }
                 }
             }

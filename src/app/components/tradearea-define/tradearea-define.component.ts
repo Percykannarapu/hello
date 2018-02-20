@@ -274,6 +274,7 @@ export class TradeareaDefineComponent implements OnInit {
                     MapService.tradeAreaInfoMap.set('milesMax', this.kms);
                     MapService.tradeAreaInfoMap.set('color', color);
                     MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+                    MapService.tradeAreaInfoMap.set('selector', this.selectedValue);
                 }
             } else if (mergeEachBool) {
                 console.log('inside merge Each');
@@ -298,6 +299,7 @@ export class TradeareaDefineComponent implements OnInit {
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
                 MapService.tradeAreaInfoMap.set('color', color);
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+                MapService.tradeAreaInfoMap.set('selector', this.selectedValue);
 
                 // }
             } else {
@@ -318,6 +320,7 @@ export class TradeareaDefineComponent implements OnInit {
                 MapService.tradeAreaInfoMap.set('miles', this.milesList);
                 MapService.tradeAreaInfoMap.set('color', color);
                 MapService.tradeAreaInfoMap.set('outlneColor', outlneColor);
+                MapService.tradeAreaInfoMap.set('selector', this.selectedValue);
             }
             //this.appService.closeOverLayPanel.next(true);
         } catch (ex) {
