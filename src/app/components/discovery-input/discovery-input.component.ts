@@ -1,4 +1,4 @@
-import { ImpDiscoveryUI } from './../../Models/ImpDiscoveryUI';
+import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 import { ImpDiscoveryService } from './../../services/ImpDiscoveryUI.service';
 import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
