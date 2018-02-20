@@ -22,6 +22,7 @@ import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 import { AppConfig } from '../../app.config';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 
 // this interface holds information on what position the columns in a CSV file are in
@@ -42,7 +43,8 @@ interface CsvHeadersPosition {
   //providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
-  styleUrls: ['./geocoder.component.css']
+  styleUrls: ['./geocoder.component.css'],
+  providers: [MessageService]
 })
 export class GeocoderComponent implements OnInit, AfterViewInit {
 
@@ -62,6 +64,8 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   public failedSites: any[] = [];
   public displayFailureWindow: boolean = false;
   public selector1: String = 'Site';
+  public Msgs: Message[] = new Array();
+  public handleMsg: boolean = true;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -83,6 +87,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
   constructor(private geocoderService: GeocoderService, 
               private mapService: MapService, 
+              private messageService: MessageService,
               private geocodingRespService: GeocodingResponseService, 
               private metricService: MetricService,
               private config: AppConfig) { }
@@ -556,6 +561,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 //locationResponseList[0].status = 'ERROR';
                 locRespListMap['status'] = 'ERROR';
+                this.handleMsg = false;
               
                 this.failedSites.push(locRespListMap);
                 GeocoderComponent.failedSiteCounter++;
@@ -596,6 +602,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
            geocodingResponseList.push(geocodingResponse);
      // }
     }
+    this.handleMessages(this.handleMsg);
     if (display) {
       
       await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
@@ -665,6 +672,15 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       
 
   }
-
+//Add messages after geocoding
+private async handleMessages(handleMsg) {
+  if (handleMsg){
+  this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+  } else{
+    this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+    this.handleMsg = true; //turning the flag back on
+  }
+  return;
+}
   
 }
