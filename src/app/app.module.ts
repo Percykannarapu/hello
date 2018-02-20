@@ -162,6 +162,7 @@ import { SiteListComponent } from './val-modules/targeting/components/SiteList.c
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
+import { ImpDiscoveryUI } from './models/ImpDiscoveryUI';
 
 @NgModule({
     imports: [
@@ -295,7 +296,7 @@ import { GeoFootPrint } from './services/geofootprint.service';
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService, GeoFootPrint,
+        ImpDiscoveryService, GeoFootPrint, ImpDiscoveryUI,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService,
         UserService
