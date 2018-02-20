@@ -70,7 +70,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   //public pointsArray: Points[] = []; // moved to mapservices
   public graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-  public displaySpinnerMessage: string = 'Geocoding inprocess';
+  public displaySpinnerMessage: string = 'Geocoding Locations';
 
 
   // get the map from the service and add the new graphic
@@ -598,7 +598,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     }
     if (display) {
       
-      await this.addSitesToMap(geocodingResponseList, this.selector1);
+      await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
       if (this.selector1 === 'Site'){
         await this.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
@@ -634,7 +634,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     for (const site of siteList  ){
 
       for (const llyr of fLyrList){
-          this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
+          this.displaySpinnerMessage = 'Calculating Home Geocodes';
           let home_geo = null; 
           const geoAttr: GeocodingAttributes = new GeocodingAttributes();
           let graphic: __esri.Graphic;

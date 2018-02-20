@@ -44,7 +44,7 @@ export class UploadLocationsComponent implements OnInit {
   public selector: String = 'Site';
   public headers: any;
   public growlMessages: Message[] = new Array();
-  public displaySpinnerMessage: string = 'Geocoding inprocess';
+  public displaySpinnerMessage: string = 'Geocoding Locations';
 
   @ViewChild('fileUpload1') private fileUploadEl: ElementRef;
 
@@ -472,12 +472,15 @@ export class UploadLocationsComponent implements OnInit {
       }
     });
 
+    let siteNumber: number = 0;
     for (const site of siteList) {
       let geoAttr: GeocodingAttributes;
       let home_geo_issue: string = 'N';
+      siteNumber++ ;
+      this.displaySpinnerMessage = 'Calculating Home Geocodes';
       try{
         for (const llyr of fLyrList) {
-          this.displaySpinnerMessage = 'Calculating HomeGeocodes in process';
+          
   
           let home_geo = null;
           geoAttr = new GeocodingAttributes();
