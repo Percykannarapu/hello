@@ -295,7 +295,7 @@ import { GeoFootPrint } from './services/geofootprint.service';
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService, GeoFootPrint,
+        ImpDiscoveryService, GeoFootPrint, 
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService,
         UserService

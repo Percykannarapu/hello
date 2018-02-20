@@ -13,6 +13,8 @@ import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
 @Injectable()
 export class MapService {
@@ -41,7 +43,7 @@ export class MapService {
     //TODO we need to remove pointsArray after adi's uploadfunction.
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
 
-    public static analysisLevlDiscInput: string;
+    //public static analysisLevlDiscInput: string;
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
@@ -57,7 +59,8 @@ export class MapService {
                 private esriMapService: EsriMapService,
                 private impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private config: AppConfig,
-                private impGeofootprintLocationService: ImpGeofootprintLocationService) {
+                private impGeofootprintLocationService: ImpGeofootprintLocationService,
+                private impDiscoveryService: ImpDiscoveryService) {
       this.esriMapService.onReady(() => {
         this.mapView = this.esriMapService.mapView;
         this.map = this.esriMapService.map;
@@ -1624,18 +1627,25 @@ export class MapService {
         });
 
         let layer: __esri.FeatureLayer;
+        const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+                console.log('discovery UI Details:::' , discoveryUI[0].analysisLevel);
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-                if (MapService.analysisLevlDiscInput === 'ATZ' &&
+                
+                if (discoveryUI[0].analysisLevel === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.centroids){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'ZIP' &&
+                if (discoveryUI[0].analysisLevel === 'ZIP' &&
                                             lyr.portalItem.id === this.config.layerIds.zip.centroids){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids){
+                    layer = lyr;
+                }
+                if (discoveryUI[0].analysisLevel === 'PCR' &&
+                                            lyr.portalItem.id === this.config.layerIds.pcr.centroids){
                     layer = lyr;
                 }
             }
@@ -1732,18 +1742,24 @@ export class MapService {
 
 
         let layer: __esri.FeatureLayer;
+        const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
         for (const lyr of fLyrList){
             if (lyr.portalItem != null ){
-                if (MapService.analysisLevlDiscInput === 'ATZ' &&
+               
+                if (discoveryUI[0].analysisLevel === 'ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.atz.topVars){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'ZIP' &&
+                if (discoveryUI[0].analysisLevel === 'ZIP' &&
                                             lyr.portalItem.id === this.config.layerIds.zip.topVars){
                     layer = lyr;
                 }
-                if (MapService.analysisLevlDiscInput === 'DIGITAL ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
                                             lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+                    layer = lyr;
+                }
+                if (discoveryUI[0].analysisLevel === 'PCR' &&
+                                            lyr.portalItem.id === this.config.layerIds.pcr.topVars){
                     layer = lyr;
                 }
             }

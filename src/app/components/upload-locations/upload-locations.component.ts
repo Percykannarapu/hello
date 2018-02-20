@@ -40,6 +40,7 @@ export class UploadLocationsComponent implements OnInit {
 
   private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
+  public HandleMsg: boolean = true; //flag for enabling the message after geocoding
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: String = 'Site';
   public headers: any;
@@ -319,6 +320,7 @@ export class UploadLocationsComponent implements OnInit {
         const failedSite: GeocodingResponse = new GeocodingResponse();
         //locationResponseList[0].status = 'ERROR';
         locRespListMap['Geocode Status'] = 'ERROR';
+        this.HandleMsg = false;
 
         this.failedSites.push(locRespListMap); //push to failed sites
         UploadLocationsComponent.failedSiteCounter++;
@@ -359,6 +361,7 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponseList.push(geocodingResponse);
       // }
     }
+    this.handleMessages();
     if (display) {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       if (this.selector === 'Site'){
@@ -368,6 +371,8 @@ export class UploadLocationsComponent implements OnInit {
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      //this.HandleMsg = true;
+      //this.messageService.add({ severity: 'success', summary: 'Geocoded Successfully', detail: `Success` });
     }
     return geocodingResponseList;
   }
@@ -436,6 +441,8 @@ export class UploadLocationsComponent implements OnInit {
       }
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.HandleMsg = true;
+      this.handleMessages();
     }
     return geocodingResponseList;
   }
@@ -534,6 +541,17 @@ export class UploadLocationsComponent implements OnInit {
      geoAttr.attributeValue = home_geo_issue;
      site.geocodingAttributesList.push(geoAttr);
     }
+  }
+
+  //Add messages after geocoding
+  private async handleMessages() {
+    if (this.HandleMsg){
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+    } else{
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+      this.HandleMsg = true; //turning the flag back on
+    }
+    return;
   }
 
   private async handleError(error: Error) {
