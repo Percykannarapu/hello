@@ -15,6 +15,7 @@ export class EsriMapComponent implements OnInit {
   // map container dim
   public width: number;
   public height: number = 400;
+  public highlight = null;
 
   @Input() zoom: number;
   @Input() centerLng: number;
@@ -159,6 +160,8 @@ export class EsriMapComponent implements OnInit {
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
+      this.disableNavigation(this.esriMapService.mapView);
+      //this.enableHighlightOnPointerMove(this.esriMapService.mapView);
     });
   }
 
@@ -186,4 +189,92 @@ export class EsriMapComponent implements OnInit {
         return 'default';
     }
   }    
+
+  /* requires webGL enabled revisit after 4.6 upgrade
+  private enableHighlightOnPointerMove(layer: __esri.FeatureLayer, view: __esri.MapView) {
+    view.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
+      view.on("pointer-move", (event) => {
+        view.hitTest(event)
+          .then((r) => {
+
+            // remove the previous highlight
+            if (this.highlight) {
+                this.highlight.remove();
+                this.highlight = null;
+            }
+
+            // if a feature is returned, highlight it
+            // and display its attributes in the popup
+            // if no features are returned, then close the popup
+            let id: number = null;
+
+            if (r.results.length > 0) {
+              const feature = r.results[0].graphic;
+              feature.popupTemplate = layer.popupTemplate;
+              id = feature.attributes.OBJECTID;
+              this.highlight = layerView.highlight([id]);
+              const selectionId = view.popup.selectedFeature ?
+                view.popup.selectedFeature.attributes.OBJECTID :
+                null;
+
+              if (this.highlight && (id !== selectionId)) {
+                view.popup.open({
+                  features: [feature],
+                  updateLocationEnabled: true
+                });
+              }
+            } else {
+              if (view.popup.visible) {
+                view.popup.close();
+                view.popup.clear();
+              }
+            }
+          });
+      });
+    });
+  }
+  */
+
+  // stops propagation of default behavior when an event fires
+  private stopEvtPropagation(evt: __esri.MapViewClickEvent) {
+    evt.stopPropagation();
+  }
+
+  // disables all navigation in the view
+  private disableNavigation(view: __esri.MapView) {
+    //view.popup.dockEnabled = true;
+
+    // Removes the zoom action on the popup
+    // view.popup.actions = [];
+
+    // disable mouse wheel scroll zooming on the view
+    view.on("mouse-wheel", this.stopEvtPropagation);
+
+    // disable zooming via double-click on the view
+    view.on("double-click", this.stopEvtPropagation);
+
+    // disable zooming out via double-click + Control on the view
+    view.on("double-click", ["Control"], this.stopEvtPropagation);
+
+    // disables pinch-zoom and panning on the view
+    // view.on("drag", this.stopEvtPropagation);
+
+    // disable the view's zoom box to prevent the Shift + drag
+    // and Shift + Control + drag zoom gestures.
+    view.on("drag", ["Shift"], this.stopEvtPropagation);
+    view.on("drag", ["Shift", "Control"], this.stopEvtPropagation);
+
+    // prevents zooming and rotation with the indicated keys
+    view.on("key-down", (evt) => {
+      var prohibitedKeys = ["+", "-", "_", "=", "a", "d"];
+      var keyPressed = evt.key.toLowerCase();
+      if (prohibitedKeys.indexOf(keyPressed) !== -1) {
+        evt.stopPropagation();
+      }
+    });
+
+    return view;
+  }
+
+
 }
