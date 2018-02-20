@@ -111,7 +111,7 @@ export class GeocoderService {
         //console.log('creating popup for site: ' + amSite.pk);
         await this.createPopup(site)
           .then(res => this.createGraphic(site, res, selector))
-          .then(res => { graphics.push(res); this.allGraphicsOnMap.push(res);})
+          .then(res => { graphics.push(res); this.allGraphicsOnMap.push(res); })
           .catch(err => { this.handleError(err); });
       }
       await this.geocodingRespService.updateLayer(graphics, selector)
@@ -119,6 +119,7 @@ export class GeocoderService {
         .then(res => {
           this.geocodingRespService.locToEntityMapping(sitesList, selector);
           this.geocodingRespService.pointsPlotted.next(selector);
+          //this.successMsg();
         })
         .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
