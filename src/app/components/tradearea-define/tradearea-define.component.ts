@@ -267,7 +267,9 @@ export class TradeareaDefineComponent implements OnInit {
                     this.kms = max / 0.62137;
                     await this.mapService.bufferMergeEach( color, this.kms, meTitle + max + lyrNme, outlneColor, this.selectedValue)
                         .then(res => {
+                            if (this.selectedValue === 'Site'){
                             this.mapService.selectCentroid(res);
+                        }
                         });
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + max + lyrNme);
                     MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
@@ -289,7 +291,7 @@ export class TradeareaDefineComponent implements OnInit {
                         .then(res => {
                             graphicList = res;
                         });
-                    if (max == miles1){
+                    if (max == miles1 && this.selectedValue === 'Site' ){
                         this.mapService.selectCentroid(graphicList);
                     }
                     MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
@@ -311,7 +313,7 @@ export class TradeareaDefineComponent implements OnInit {
                     i++;
                     const kmsNomerge = miles1 / 0.62137;
                     for (const point of this.impGeofootprintLocationService.get()) {
-                        await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, siteId++);
+                        await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, this.selectedValue, siteId++);
                         MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
                     }
 

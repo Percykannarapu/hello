@@ -40,6 +40,7 @@ export class UploadLocationsComponent implements OnInit {
 
   private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
+  public handleMsg: boolean = true; //flag for enabling the message after geocoding
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: String = 'Site';
   public headers: any;
@@ -243,19 +244,19 @@ export class UploadLocationsComponent implements OnInit {
     const siteList: any[] = [];
     const site1 = {};
     const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
-    site1['name'] = row['Name'];
-    site1['number'] = row['Number'];
+    site1['name']     = row['Name'];
+    site1['number']   = row['Number'];
 
-    site1['street'] = row['Street'];
-    site1['city'] = row['City'];
-    site1['state'] = row['State'];
-    site1['zip'] = row['ZIP'];
+    site1['street']   = row['Original Address'];
+    site1['city']     = row['Original City'];
+    site1['state']   = row['Original State'];
+    site1['zip']     = row['Original ZIP'];
 
     Object.keys(row).forEach(site => {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
         'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
         'Match Quality', 'Original Address', 'Original City',
-        'Original State', 'Original ZIP', 'Market'].indexOf(site) < 0) {
+        'Original State', 'Original ZIP'].indexOf(site) < 0) {
 
         site1[site] = row[site];
         //console.log('row:::' + row + ':::Siteval:::'+site)
@@ -306,7 +307,7 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
-    const geocodingResponseList: GeocodingResponse[] = [];
+    let geocodingResponseList: GeocodingResponse[] = [];
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
       const geocodingResponse: GeocodingResponse = new GeocodingResponse();
@@ -319,6 +320,7 @@ export class UploadLocationsComponent implements OnInit {
         const failedSite: GeocodingResponse = new GeocodingResponse();
         //locationResponseList[0].status = 'ERROR';
         locRespListMap['Geocode Status'] = 'ERROR';
+        this.handleMsg = false;
 
         this.failedSites.push(locRespListMap); //push to failed sites
         UploadLocationsComponent.failedSiteCounter++;
@@ -359,22 +361,27 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponseList.push(geocodingResponse);
       // }
     }
+
     if (display) {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       if (this.selector === 'Site'){
-        await this.calculateHomeGeo(geocodingResponseList);
+        this.displaySpinnerMessage = 'Calculating Home Geocodes';
+        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      
+      //this.messageService.add({ severity: 'success', summary: 'Geocoded Successfully', detail: `Success` });
     }
+    this.handleMessages(); //Show messages after the geocoding is done
     return geocodingResponseList;
   }
 
   // for pregeocoded lat long values
   private async parseCsvLatLongResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
-    const geocodingResponseList: GeocodingResponse[] = [];
+    let geocodingResponseList: GeocodingResponse[] = [];
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
       const geocodingResponse: GeocodingResponse = new GeocodingResponse();
@@ -431,109 +438,30 @@ export class UploadLocationsComponent implements OnInit {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       if (this.selector === 'Site'){
-        await this.calculateHomeGeo(geocodingResponseList);
+       // await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.handleMsg = true;
+      this.handleMessages();
     }
     return geocodingResponseList;
   }
 
-  //Calculate home geos for the response list
-  async calculateHomeGeo(siteList: GeocodingResponse[]) {
+ 
 
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-
-    };
-
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.mapService.getAllFeatureLayers().then(list => {
-      if (list.length > 0) {
-        for (const layer of list) {
-          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
-            layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars ||
-            layer.portalItem.id === this.config.layerIds.dma.counties || 
-            layer.portalItem.id === this.config.layerIds.dma.boundaries)) {
-            fLyrList.push(layer);
-           /* const qry = layer.createQuery();
-            qry.outFields = ['geocode'];
-            layer.queryFeatures(qry).then( feaureSet => {
-                  console.log ('feaureSet details::::' , feaureSet);
-            });*/
-          }
-        }
-      }
-    });
-
-    let siteNumber: number = 0;
-    for (const site of siteList) {
-      let geoAttr: GeocodingAttributes;
-      let home_geo_issue: string = 'N';
-      siteNumber++ ;
-      this.displaySpinnerMessage = 'Calculating Home Geocodes';
-      try{
-        for (const llyr of fLyrList) {
-          
-  
-          let home_geo = null;
-          geoAttr = new GeocodingAttributes();
-          let graphic: __esri.Graphic;
-          await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
-            graphic = res;
-          });
-          await this.mapService.getHomeGeocode(llyr, graphic).then(res => {
-            home_geo = res.get('home_geo');
-            if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
-              geoAttr.attributeName = 'Home ZIP';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
-              geoAttr.attributeName = 'Home ATZ';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
-              geoAttr.attributeName = 'Home DIGITAL ATZ';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
-              geoAttr.attributeName = 'HOME PCR';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
-               geoAttr.attributeName = 'HOME COUNTY';
-               geoAttr.attributeValue = home_geo;
-               site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
-              geoAttr.attributeName = 'HOME DMA';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-          });
-        }
-
-      }
-      catch (ex) {
-        home_geo_issue = 'Y';
-        console.error(ex);
-     }
-      
-     geoAttr = new GeocodingAttributes();
-     geoAttr.attributeName  = 'HOME GEOCODE ISSUE';
-     geoAttr.attributeValue = home_geo_issue;
-     site.geocodingAttributesList.push(geoAttr);
+  //Add messages after geocoding
+  private async handleMessages() {
+    this.messageService.clear();
+    if (this.handleMsg){
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+    } else{
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+      this.handleMsg = true; //turning the flag back on
     }
+    return;
   }
 
   private async handleError(error: Error) {

@@ -22,6 +22,7 @@ import { Points } from '../../models/Points';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 import { AppConfig } from '../../app.config';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 
 // this interface holds information on what position the columns in a CSV file are in
@@ -42,7 +43,8 @@ interface CsvHeadersPosition {
   //providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
-  styleUrls: ['./geocoder.component.css']
+  styleUrls: ['./geocoder.component.css'],
+  providers: [MessageService]
 })
 export class GeocoderComponent implements OnInit, AfterViewInit {
 
@@ -62,6 +64,8 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   public failedSites: any[] = [];
   public displayFailureWindow: boolean = false;
   public selector1: String = 'Site';
+  public Msgs: Message[] = new Array();
+  public handleMsg: boolean = true;
 
   private geocodingResponse: GeocodingResponse;
   private esriMap: __esri.Map;
@@ -83,6 +87,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
   constructor(private geocoderService: GeocoderService, 
               private mapService: MapService, 
+              private messageService: MessageService,
               private geocodingRespService: GeocodingResponseService, 
               private metricService: MetricService,
               private config: AppConfig) { }
@@ -543,7 +548,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
-    const geocodingResponseList: GeocodingResponse[] = []; 
+    let geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
       const geocodingResponse: GeocodingResponse = new GeocodingResponse(); 
@@ -556,6 +561,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
                 const failedSite: GeocodingResponse = new GeocodingResponse();
                 //locationResponseList[0].status = 'ERROR';
                 locRespListMap['status'] = 'ERROR';
+                this.handleMsg = false;
               
                 this.failedSites.push(locRespListMap);
                 GeocoderComponent.failedSiteCounter++;
@@ -596,75 +602,25 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
            geocodingResponseList.push(geocodingResponse);
      // }
     }
+    this.handleMessages(this.handleMsg);
     if (display) {
-      
-      await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
       if (this.selector1 === 'Site'){
-        await this.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
+      await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
     }
     return geocodingResponseList;
   }
 
-  async calculateHomeGeo(siteList: GeocodingResponse[] ){
-
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-      
-    };
-
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.mapService.getAllFeatureLayers().then(list => {
-        if (list.length > 0 ){
-            for (const layer of list) {
-                    if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars || 
-                        layer.portalItem.id === this.config.layerIds.atz.topVars || 
-                        layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
-                        fLyrList.push(layer);
-                    }
-                }
-        }
-    });
-
-
-    for (const site of siteList  ){
-
-      for (const llyr of fLyrList){
-          this.displaySpinnerMessage = 'Calculating Home Geocodes';
-          let home_geo = null; 
-          const geoAttr: GeocodingAttributes = new GeocodingAttributes();
-          let graphic: __esri.Graphic;
-           await this.mapService.createGraphic(site.latitude, site.longitude, color).then( res => {
-              graphic = res;
-           });
-           await this.mapService.getHomeGeocode(llyr, graphic).then( res => {
-                 home_geo =  res.get('home_geo');
-                 if (llyr.portalItem.id === this.config.layerIds.zip.topVars){
-                  geoAttr.attributeName = 'Home ZIP';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-                 if (llyr.portalItem.id === this.config.layerIds.atz.topVars){
-                  geoAttr.attributeName = 'Home ATZ';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-                 if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
-                  geoAttr.attributeName = 'Home DIGITAL ATZ';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-          });
-      }
-
+  //Add messages after geocoding
+  private async handleMessages(handleMsg) {
+    if (handleMsg){
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+    } else{
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+      this.handleMsg = true; //turning the flag back on
     }
-      
-
+    return;
   }
-
-  
 }

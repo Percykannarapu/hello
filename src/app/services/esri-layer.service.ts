@@ -83,14 +83,14 @@ export class EsriLayerService {
     if (id === 'show-shading') {
       let currentState = this.featureLayers.get(currentLayer.title);
       if (currentState == null) {
-        currentState = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.onBaseMapChange(),
+        currentState = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.onBaseMapChange$,
                                     this.topVars.getSelectedTopVar(), this.currentSmartTheme$,
                                     this.currentThemeOpacity$, this.sliderElementId);
         this.featureLayers.set(currentLayer.title, currentState);
       }
       currentState.toggleSmartView();
-      event.action.className = currentState.customShadingVisible() ? 'esri-icon-maps' : 'esri-icon-layers';
-      console.log(`Current icon class should be ${event.action.className}`);
+      //event.action.className = currentState.customShadingVisible() ? 'esri-icon-maps' : 'esri-icon-layers';
+      //console.log(`Current icon class should be ${event.action.className}`);
     }
   }
 }

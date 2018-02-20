@@ -9,7 +9,7 @@ import { RestDataService } from '../../../src/app/val-modules/common/services/re
 import { DataStore } from '../../../src/app/val-modules/common/services/datastore.service';
 import { Injectable, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { ImpDiscoveryUI } from '../Models/ImpDiscoveryUI';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
 const dataUrl = '';
 

@@ -1,4 +1,4 @@
-import { ImpDiscoveryUI } from './../../Models/ImpDiscoveryUI';
+import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 import { ImpDiscoveryService } from './../../services/ImpDiscoveryUI.service';
 import { AppState } from './../../app.state';
 import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
@@ -112,7 +112,7 @@ export class DiscoveryInputComponent implements OnInit
    {
       // Set default values
       this.selectedAnalysisLevel = this.analysisLevels[0];
-      MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
+     // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -139,7 +139,8 @@ export class DiscoveryInputComponent implements OnInit
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event.value);
          this.selectedAnalysisLevel = event.value;
-         MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
+         //MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
+         this.impDiscoveryUI.analysisLevel = this.selectedAnalysisLevel.value;
    }
 
    private handleError (error: any) {

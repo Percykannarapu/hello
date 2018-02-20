@@ -8,6 +8,9 @@ import { User } from '../../models/User';
 import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
 import { GeofootprintMaster } from '../../models/GeofootprintMaster';
 import { GeocoderService } from '../../services/geocoder.service';
+import { TargetingProfile } from '../../models/TargetingProfile';
+import { GeoFootPrint } from '../../services/geofootprint.service';
+import { AppConfig } from '../../app.config';
 
 @Component({
   selector: 'val-login',
@@ -24,7 +27,9 @@ export class LoginComponent implements OnInit {
               private authService: AuthService, 
               private messageService: MessageService, 
               private userService: UserService,
-              private geocoderService: GeocoderService) { }
+              private geocoderService: GeocoderService,
+              private geoFootPrintService: GeoFootPrint,
+              private config: AppConfig) { }
 
   ngOnInit() {
   }
@@ -43,7 +48,7 @@ export class LoginComponent implements OnInit {
       if (authenticated) {
         this.displayLoginSpinner = false;
         this.createUser(loginForm.value.username);
-       // this.buildLoginDtls(loginForm.value.username);
+        this.buildLoginDtls(loginForm.value.username);
         this.router.navigate(['/']);
       }
       else {
@@ -67,30 +72,43 @@ export class LoginComponent implements OnInit {
   }
 
   private buildLoginDtls(username: string){
-    const geoMaster1           = new ImpGeofootprintMaster();
-    const geoMaster           = new GeofootprintMaster();
-     /*
-         * setting geofootprintMaster
-         */
-        geoMaster.activeSiteCount         = 0;
-        geoMaster.allowDuplicates         = 0;
-        geoMaster.baseStatus              = 'INSERT';
-        geoMaster.cgmId                   = null;
-        geoMaster.createdDate             = new Date();
-        geoMaster.dirty                   = true;
-        geoMaster.isMarketBased           = false;
-        geoMaster.methAnalysis            = null;
-        geoMaster.methSeason              = null;
-        geoMaster.profile                 = 478277; // need to set new profile id from SDE.AM_PROFILES for every request.
-        geoMaster.profileName             = 'User <'+ username+'> logged into <URL e.g impower dev'; // who loggenin what instane of impower User <userId> logged in to <URL e.g. https://impowerdev.val.vlss.local/#/>
-        geoMaster.status                  = 'IMPOWER';
-        geoMaster.summaryInd              = 0;
-        geoMaster.totalSiteCount          = 0;
+    //const geoMaster1           = new ImpGeofootprintMaster(); TODO need to transfer the data type to impgeofootrprint
+    let targetingProfile = new TargetingProfile();
+    const desc = 'User ' +username+ ' logged into ' + this.config.impowerBaseUrl;
+     
+        targetingProfile.baseStatus              = 'INSERT';
+        targetingProfile.clientId                = 'impower';
+        targetingProfile.createDate              = new Date();
+        targetingProfile.createUser              = 7861; // 7861
+        targetingProfile.description             = desc;
+        targetingProfile.dirty                   = true;
+        targetingProfile.group                   = 7861; // 7861
+        targetingProfile.methAccess              = 14;   //  
+        targetingProfile.methAnalysis            = 'A'; //
+        targetingProfile.methSeason              = '2'; //
+        targetingProfile.modifyDate              = new Date();
+        targetingProfile.modifyUser              = 7861; // 7861
+        targetingProfile.name                    = 'imPower user login'; //imPower user login
+        targetingProfile.pk                      = null; //
+        targetingProfile.preferredDate           = null; 
+        targetingProfile.promoPeriodEndDate      = null;
+        targetingProfile.promoPeriodStartDate    = null;
+        targetingProfile.taSource                = 1;
+        targetingProfile.xmlSicquery             = null;
+        targetingProfile.xmlTradearea            = null;   
+        targetingProfile.xmlVariables            = null; // null
 
-        var observable = this.geocoderService.saveGeofootprintMaster(geoMaster);
+        /*
+        * calling fuse service to persist the Targeting data
+        */
+
+        console.log('calling GeoFootPrintService to save targetingprofile');
+        const observable = this.geoFootPrintService.saveTargetingProfile(targetingProfile);
         observable.subscribe((res) => {
-          console.log('In geofootprint response:::' + JSON.stringify(res.payload, null, 2));
-        });
+          console.log('profileid::::::' + res.payload);
+
+         // targetingProfile =  this.loadTargetingSites(this.profileId);
+         });
   }
 
 }

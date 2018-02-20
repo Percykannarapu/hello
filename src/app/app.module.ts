@@ -161,6 +161,8 @@ import { GeocodingResponseService } from './val-modules/targeting/services/Geoco
 import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { GeoFootPrint } from './services/geofootprint.service';
+import { RadService } from './services/rad.service';
 
 @NgModule({
     imports: [
@@ -294,9 +296,9 @@ import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService,
+        ImpDiscoveryService, GeoFootPrint, 
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
-        TopVarService,
+        TopVarService, RadService,
         UserService
     ],
     bootstrap: [AppComponent]
