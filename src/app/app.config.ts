@@ -40,4 +40,6 @@ export class AppConfig implements EsriLoaderConfig {
   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
    public layerIds = EnvironmentData.layerIds;
+
+   public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
 }

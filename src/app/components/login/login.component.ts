@@ -10,6 +10,7 @@ import { GeofootprintMaster } from '../../models/GeofootprintMaster';
 import { GeocoderService } from '../../services/geocoder.service';
 import { TargetingProfile } from '../../models/TargetingProfile';
 import { GeoFootPrint } from '../../services/geofootprint.service';
+import { AppConfig } from '../../app.config';
 
 @Component({
   selector: 'val-login',
@@ -27,7 +28,8 @@ export class LoginComponent implements OnInit {
               private messageService: MessageService, 
               private userService: UserService,
               private geocoderService: GeocoderService,
-              private geoFootPrintService: GeoFootPrint) { }
+              private geoFootPrintService: GeoFootPrint,
+              private config: AppConfig) { }
 
   ngOnInit() {
   }
@@ -45,7 +47,6 @@ export class LoginComponent implements OnInit {
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
         this.displayLoginSpinner = false;
-        console.log('loginForm.path::::', loginForm);
         this.createUser(loginForm.value.username);
         this.buildLoginDtls(loginForm.value.username);
         this.router.navigate(['/']);
@@ -73,12 +74,13 @@ export class LoginComponent implements OnInit {
   private buildLoginDtls(username: string){
     //const geoMaster1           = new ImpGeofootprintMaster(); TODO need to transfer the data type to impgeofootrprint
     let targetingProfile = new TargetingProfile();
+    const desc = 'User ' +username+ ' logged into ' + this.config.impowerBaseUrl;
      
         targetingProfile.baseStatus              = 'INSERT';
         targetingProfile.clientId                = 'impower';
         targetingProfile.createDate              = new Date();
         targetingProfile.createUser              = 7861; // 7861
-        targetingProfile.description             = 'User ' +username+ ' logged into dev url' ; // User '+ username+' logged into {dynamic url}
+        targetingProfile.description             = desc;
         targetingProfile.dirty                   = true;
         targetingProfile.group                   = 7861; // 7861
         targetingProfile.methAccess              = 14;   //  
