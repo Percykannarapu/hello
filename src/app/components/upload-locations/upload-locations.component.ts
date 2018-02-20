@@ -361,7 +361,7 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponseList.push(geocodingResponse);
       // }
     }
-    this.handleMessages();
+
     if (display) {
       // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       if (this.selector === 'Site'){
@@ -372,9 +372,10 @@ export class UploadLocationsComponent implements OnInit {
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
-      //this.handleMsg = true;
+      
       //this.messageService.add({ severity: 'success', summary: 'Geocoded Successfully', detail: `Success` });
     }
+    this.handleMessages(); //Show messages after the geocoding is done
     return geocodingResponseList;
   }
 
@@ -453,6 +454,7 @@ export class UploadLocationsComponent implements OnInit {
 
   //Add messages after geocoding
   private async handleMessages() {
+    this.messageService.clear();
     if (this.handleMsg){
     this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
     } else{
