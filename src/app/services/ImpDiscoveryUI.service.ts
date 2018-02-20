@@ -30,7 +30,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             circBudget:           null,
             includeNonWeekly:     true,
             includePob:           false,
-            includeAnne:          false,
+            includeAnne:          true,
             includeSolo:          false
          }
       );

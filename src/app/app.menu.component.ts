@@ -2,8 +2,9 @@ import {Component, Input, OnInit} from '@angular/core';
 import {trigger, state, style, transition, animate} from '@angular/animations';
 import {MenuItem} from 'primeng/primeng';
 import {AppComponent} from './app.component';
-import { AmSiteService } from './val-modules/targeting/services/AmSite.service';
-import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
+import {GeocodingResponseService} from './val-modules/targeting/services/GeocodingResponse.service';
+import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
+
 
 @Component({
     selector: 'app-menu',
@@ -17,7 +18,7 @@ export class AppMenuComponent implements OnInit {
 
     model: any[];
 
-    constructor(public app: AppComponent, public amSiteService: AmSiteService, public geocodingRespService: GeocodingResponseService) {}
+    constructor(public app: AppComponent, public impGeofootprintGeoService: ImpGeofootprintGeoService, public geocodingRespService: GeocodingResponseService) {}
 
     ngOnInit() {
         this.model = [
@@ -43,7 +44,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Export', icon: 'file_download',
                 items: [
-                    {label: 'Export Geofootprint', icon: 'map'},
+                    {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore('geofootprint.csv', EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.format_1)},
                     {label: 'Export Sites', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV())},
                     {label: 'Export Competitors', icon: 'store'}
                 ]
