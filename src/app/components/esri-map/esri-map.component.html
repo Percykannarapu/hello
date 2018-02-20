@@ -1,23 +1,6 @@
 <div class="esriMapContainer" #esriMapContainer [style.height]="height+'px'">
     <div class="panel-container">
-        <div #mapViewNode></div>
+        <div #mapViewNode [ngStyle]="{'cursor':this.mapService.mapFunction === 0 ? 'copy' : 'default' }"> </div>
     </div>
 </div>
-  <!--
-  <div class="panel-container">
-    <div class="panel-side" *ngIf="this.mapService.sideBarToggle == true">
-      <h2>Mapping Tools</h2>
-      <div #topbar>
-        <button class="action-button esri-icon-comment"       id="popupsButton"   type="button" title="Show Popups" (click)="this.mapService.popupsButton()"></button>
-        <button class="action-button esri-icon-plus-circled"  id="selectButton"   type="button" title="Select Polygon" (click)="this.mapService.selectPolyButton()"></button>
-        <button class="action-button esri-icon-labels"        id="labelsButton"   type="button" title="Show Labels" (click)="this.mapService.labelsButton()"></button>
-        <button class="action-button esri-icon-map-pin"       id="pointButton"    type="button" title="Draw point" (click)="this.mapService.drawPointButton()"></button>
-        <button class="action-button esri-icon-polyline"      id="polylineButton" type="button" title="Draw polyline" (click)="this.mapService.drawLineButton()"></button>
-        <button class="action-button esri-icon-polygon"       id="polygonButton"  type="button" title="Draw polygon" (click)="this.mapService.drawPolygonButton()"></button>
-        <button class="action-button esri-icon-trash"         id="resetBtn"       type="button" title="Clear graphics" (click)="this.mapService.removeGraphics()"></button>
-      </div>
-    </div>
-    <div #mapViewNode (click)="mapClick()"></div>
-  </div>
-</div>
-  -->
+  

@@ -386,7 +386,7 @@ export class MapService {
     // set active button
     public setActiveButton(selectedButton: any) {
         // focus the view to activate keyboard shortcuts for sketching
-        //this.mapView.focus();
+        this.mapView.focus();
         const elements: any = document.getElementsByClassName('active');
         for (let i = 0; i < elements.length; i++) {
             elements[i].classList.remove('active');
@@ -399,11 +399,13 @@ export class MapService {
     // Toggle Polygon Selection Mode
     public selectPolyButton() {
         this.mapFunction = mapFunctions.SelectPoly;
+        this.toggleFeatureLayerPopups();
     }
 
     // Toggle Popups
     public popupsButton() {
         this.mapFunction = mapFunctions.Popups;
+        this.toggleFeatureLayerPopups();
     }
 
     // Toggle Labels
@@ -416,7 +418,7 @@ export class MapService {
         // set the sketch to create a point geometry
         this.mapFunction = mapFunctions.DrawPoint;
         this.sketchViewModel.create('point');
-        //this.setActiveButton(this);
+        this.setActiveButton(this);
     }
 
     // activate the sketch to create a polyline
@@ -424,7 +426,7 @@ export class MapService {
         // set the sketch to create a polyline geometry
         this.mapFunction = mapFunctions.DrawLine;
         this.sketchViewModel.create('polyline');
-        //this.setActiveButton(this);
+        this.setActiveButton(this);
     }
 
     // activate the sketch to create a polygon
@@ -432,7 +434,7 @@ export class MapService {
         // set the sketch to create a polygon geometry
         this.mapFunction = mapFunctions.DrawPoly;
         this.sketchViewModel.create('polygon');
-        //this.setActiveButton(this);
+        this.setActiveButton(this);
     }
 
     // remove all graphics
@@ -440,7 +442,7 @@ export class MapService {
         this.mapFunction = mapFunctions.RemoveGraphics;
         this.mapView.graphics.removeAll();
         this.sketchViewModel.reset();
-        //this.setActiveButton(this);
+        this.setActiveButton(this);
     }
 
     /*
@@ -526,6 +528,22 @@ export class MapService {
                 return layer.title === title;
             }
         });
+    }
+
+    // Toggle FeatureLayer popups
+    public toggleFeatureLayerPopups() {
+        console.log('fired: toggleFeatureLayerPopups');
+        this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
+        //console.log('title: ' + x.title + ' type: ' + x.type);    
+        if (x.type === 'feature') {
+            if (this.mapFunction === mapFunctions.Popups) {
+                x.popupEnabled = true;
+                //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
+            } else {
+                x.popupEnabled = false;
+                //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
+            }    
+        }});
     }
 
     public setMapLayers(analysisLevels: string[]) : EsriWrapper<__esri.MapView> {

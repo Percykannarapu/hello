@@ -1,8 +1,10 @@
+// Map Services
+import { MapService } from '../../services/map.service';
 
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 
-// Map Services
-import { MapService } from '../../services/map.service';
+import {EsriModules} from '../../esri-modules/core/esri-modules.service';
+import {EsriMapService} from '../../esri-modules/core/esri-map.service';
 
 // import primeng
 import {SelectItem} from 'primeng/primeng';
@@ -31,18 +33,24 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   constructor(public mapService: MapService,  
               private config: AppConfig, 
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
-              private metricService: MetricService) {
+              private metricService: MetricService,
+              private esriMapService: EsriMapService, 
+              private modules: EsriModules) {
       this.mapView = this.mapService.getMapView();
     }
 
-    public ngOnInit() {
-      console.log ('fired esri-layer-select.ngOnInit()');
-    }
+  public ngOnInit() {
+    console.log ('fired esri-layer-select.ngOnInit()');
+  }
+  
+  public ngAfterViewInit() /*ngOnInit()*/ {
+      console.log ('fired esri-layer-select.ngAfterViewInit()');
+      this.modules.onReady(() => { this.init(); });
+  }
 
-  public ngAfterViewInit() {
-    console.log ('fired esri-layer-select.ngAfterViewInit()');
+  private init() : void {
+      console.log('Initializing Esri Layer Select Component');
 
-    try {
       this.analysisLevels = [];
       this.analysisLevels.push({label: 'ZIP',  value: 'ZIP'});
       this.analysisLevels.push({label: 'ATZ',  value: 'ATZ'});
@@ -52,18 +60,14 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
       this.analysisLevels.push({label: 'HH',   value: 'HH'});
       this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
-      console.log ('selectedAnalysisLevels = ' + this.selectedAnalysisLevels);
-
       // set default layers and disable them
       this.selectedAnalysisLevels = ['DMA', 'WRAP', 'DIG_ATZ', 'ATZ', 'ZIP', 'PCR'];
-      //this.selectedAnalysisLevels = ['ZIP'];
+      console.log ('selectedAnalysisLevels = ' + this.selectedAnalysisLevels);
+
+    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
       this.mapService.setMapLayers(this.selectedAnalysisLevels);
       this.mapService.hideMapLayers();
-    }
-    // tslint:disable-next-line:one-line
-    catch (ex) {
-      console.error(ex);
-    }
+  });
   }
 
    // set layers on panel hide, checking to see if layers are enabled
