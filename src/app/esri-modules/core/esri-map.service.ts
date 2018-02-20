@@ -1,13 +1,15 @@
-import {ElementRef, Injectable} from '@angular/core';
-import {EsriModules} from './esri-modules.service';
+import { ElementRef, Injectable } from '@angular/core';
+import { EsriModules } from './esri-modules.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class EsriMapService {
   private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private baseMap: BehaviorSubject<__esri.Basemap> = new BehaviorSubject<__esri.Basemap>(null);
 
+  public onReady$: Observable<boolean> = this.isReady.asObservable();
+  public onBaseMapChange$: Observable<__esri.Basemap>;
+  public onClick$: Observable<__esri.MapViewClickEvent>;
   public map: __esri.Map;
   public mapView: __esri.MapView;
 
@@ -30,9 +32,8 @@ export class EsriMapService {
     // create the MapView
     console.log('Creating map view with props:: ', newMapViewProps);
     this.mapView = new EsriModules.MapView(newMapViewProps);
-    EsriModules.watchUtils.watch(this.map, 'basemap', () => {
-      this.baseMap.next(this.map.basemap);
-    });
+    this.onBaseMapChange$ = this.createBaseMapChangeHandler();
+    this.onClick$ = this.createClickHandler();
     this.isReady.next(true);
   }
 
@@ -45,15 +46,17 @@ export class EsriMapService {
     }
   }
 
-  public onBaseMapChange() : Observable<__esri.Basemap> {
-    return this.baseMap.asObservable();
+  private createBaseMapChangeHandler() : Observable<__esri.Basemap> {
+    return Observable.create(observer => {
+      const esriHandle = this.map.watch('basemap', m => observer.next(m));
+      return () => esriHandle.remove();
+    }).publishReplay(1).refCount();
   }
 
-  public onReady(initializer: () => void) : void {
-    this.isReady.subscribe(ready => {
-      if (ready) {
-        initializer();
-      }
-    });
+  private createClickHandler() : Observable<__esri.MapViewClickEvent> {
+    return Observable.create(observer => {
+      const esriHandle = this.mapView.on('click', e => observer.next(e));
+      return () => esriHandle.remove();
+    }).publish().refCount();
   }
 }
