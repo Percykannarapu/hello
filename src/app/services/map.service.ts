@@ -536,7 +536,7 @@ export class MapService {
     public toggleFeatureLayerPopups() {
         console.log('fired: toggleFeatureLayerPopups');
         this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
-        //console.log('title: ' + x.title + ' type: ' + x.type);    
+        //console.log('title: ' + x.title + ' type: ' + x.type);
         if (x.type === 'feature') {
             if (this.mapFunction === mapFunctions.Popups) {
                 x.popupEnabled = true;
@@ -544,7 +544,7 @@ export class MapService {
             } else {
                 x.popupEnabled = false;
                 //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
-            }    
+            }
         }});
     }
 
@@ -868,7 +868,7 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -942,7 +942,9 @@ export class MapService {
         const graphicList: __esri.Graphic[] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList, title);
+        if (selector === 'Site'){
         await this.selectCentroid(graphicList);
+    }
         //await this.zoomOnMap(graphicList);
         return { val: this.mapView };
     }
@@ -1813,7 +1815,7 @@ export class MapService {
 //                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
                                 MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                                 MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
-                                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, EsriLayerService.getAttributeValue(currentAttribute, 'objectid')));
+                                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
                                 MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
                             }
                             //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
@@ -1956,7 +1958,8 @@ export class MapService {
       if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
         const indexToRemove = graphicLayer.source.findIndex(g => {
           const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
-          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
+          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId ||
+                  g.attributes === queriedObjectId || g.attributes === preSelectedObjectId;
         });
         if (indexToRemove !== -1) {
           graphicLayer.source.removeAt(indexToRemove);

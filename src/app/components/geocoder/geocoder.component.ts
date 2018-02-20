@@ -548,7 +548,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
-    const geocodingResponseList: GeocodingResponse[] = []; 
+    let geocodingResponseList: GeocodingResponse[] = []; 
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
       const geocodingResponse: GeocodingResponse = new GeocodingResponse(); 
@@ -604,83 +604,23 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     }
     this.handleMessages(this.handleMsg);
     if (display) {
-      
-      await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
       if (this.selector1 === 'Site'){
-        await this.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
+      await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
     }
     return geocodingResponseList;
   }
 
-  async calculateHomeGeo(siteList: GeocodingResponse[] ){
-
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
-      
-    };
-
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.mapService.getAllFeatureLayers().then(list => {
-        if (list.length > 0 ){
-            for (const layer of list) {
-                    if (layer.portalItem != null && (layer.portalItem.id === this.config.layerIds.zip.topVars || 
-                        layer.portalItem.id === this.config.layerIds.atz.topVars || 
-                        layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
-                        fLyrList.push(layer);
-                    }
-                }
-        }
-    });
-
-
-    for (const site of siteList  ){
-
-      for (const llyr of fLyrList){
-          this.displaySpinnerMessage = 'Calculating Home Geocodes';
-          let home_geo = null; 
-          const geoAttr: GeocodingAttributes = new GeocodingAttributes();
-          let graphic: __esri.Graphic;
-           await this.mapService.createGraphic(site.latitude, site.longitude, color).then( res => {
-              graphic = res;
-           });
-           await this.mapService.getHomeGeocode(llyr, graphic).then( res => {
-                 home_geo =  res.get('home_geo');
-                 if (llyr.portalItem.id === this.config.layerIds.zip.topVars){
-                  geoAttr.attributeName = 'Home ZIP';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-                 if (llyr.portalItem.id === this.config.layerIds.atz.topVars){
-                  geoAttr.attributeName = 'Home ATZ';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-                 if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
-                  geoAttr.attributeName = 'Home DIGITAL ATZ';
-                  geoAttr.attributeValue = home_geo;
-                  site.geocodingAttributesList.push(geoAttr);
-                 }
-          });
-      }
-
+  //Add messages after geocoding
+  private async handleMessages(handleMsg) {
+    if (handleMsg){
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+    } else{
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+      this.handleMsg = true; //turning the flag back on
     }
-      
-
+    return;
   }
-//Add messages after geocoding
-private async handleMessages(handleMsg) {
-  if (handleMsg){
-  this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
-  } else{
-    this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
-    this.handleMsg = true; //turning the flag back on
-  }
-  return;
-}
-  
 }
