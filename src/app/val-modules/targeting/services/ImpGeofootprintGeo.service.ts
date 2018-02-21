@@ -1,3 +1,5 @@
+import { ImpDiscoveryUI } from './../../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
 /** A TARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
  **
  ** This class contains code operates against data in its data store.
@@ -29,7 +31,14 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   private impDiscoveryUI: ImpDiscoveryUI;
+
+   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService)
+   {
+      super(restDataService, dataUrl);
+
+      impDiscoveryService.storeObservable.subscribe(discoveryData => this.onChangeDiscovery(discoveryData[0]));
+   }
 
    // -----------------------------------------------------------
    // UTILITY METHODS
@@ -59,7 +68,53 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          download: filename
       }).appendTo('body');
       link[0].click();
-      link.remove();
+      link.remove();      
+   }
+
+   // TODO: This needs to be a delegate method
+   public handleVariable(variable: string, rowData: any) : any
+   {
+      console.log('Variable: ' + variable + ':', rowData);
+
+      let varValue: any;
+      let geo: ImpGeofootprintGeo = <ImpGeofootprintGeo> rowData;
+
+      const analysisLevel = (this.impDiscoveryUI != null && this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : 'ATZ'; 
+
+      switch (variable)
+      {
+         case '##-GEOHEADER':
+            switch (analysisLevel)
+            {
+               case 'ATZ': varValue='VALATZ'; break;
+               case 'ZIP': varValue='VALZI';  break;
+               case 'PCR': varValue='VALCR';  break;
+            }
+            break;
+
+         case '##-STREETADDRESS':
+            let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
+            console.log('truncZip ' + truncZip);
+            varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
+                             geo.impGeofootprintLocation.locCity   + ', ' +
+                             geo.impGeofootprintLocation.locState  + ' ' +
+                             truncZip + '"';
+            break;
+
+         case '##-IS_HOME_GEOCODE':
+            varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+            break;
+
+         case '##-TRUNCATE_ZIP':         
+            varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
+            console.log('varValue = ' + varValue);
+            break;
+            
+         default:
+            varValue = null;
+            break;
+      }
+      return varValue;
    }
 
    public prepareCSV<T>(sourceData: T[], columnHeaders: String, columnOrder: String): string[]
@@ -76,11 +131,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const headerList: string[] = columnHeaders.split(',');
       const orderList:  string[] = columnOrder.split(',');
 
+      let isVariable: string;
       let field: string;
       let row: string = ' ';
 
       for (const header of headerList)
-         row += header + ',';
+      {
+         isVariable = header.slice(0, 3);
+         if (isVariable == '##-')
+         {
+            field = this.handleVariable(header, null);
+            row += field + ',';
+         }
+         else
+            row += header + ',';
+      }
       csvData.push(row);
 
       // Iterate through all of the source data, converting to csv rows
@@ -93,8 +158,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             const splitFields: string[] = currCol.split('.');
             for (let i = 0; i < splitFields.length; i++)
             {
-               field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
-//               console.log('field: ' + field);
+               isVariable = splitFields[i].slice(0, 3);
+               if (isVariable == '##-')
+                  field = this.handleVariable(splitFields[i], data);
+               else
+                  if (splitFields[i] === 'null')
+                     field = null
+                  else
+                     field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
             }
             row += (field != null) ? field + ',' : ',';
          }
@@ -106,10 +177,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return csvData;
    }
 
+
+   // -----------------------------------------------------------
+   // SUBSCRIPTION CALLBACK METHODS
+   // -----------------------------------------------------------
+   public onChangeDiscovery(impDiscoveryUI: ImpDiscoveryUI)
+   {
+      this.impDiscoveryUI = impDiscoveryUI;
+   }
+
+   // -----------------------------------------------------------
+   // SERVICE METHODS
+   // -----------------------------------------------------------
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO)
    {
-      const columnHeaders: string = this.getExportHeaders (exportFormat, true);
-      const columnOrder: string = this.getExportHeaders (exportFormat, false);      
+      const columnHeaders: string = this.getExportFormat (exportFormat, true);
+      const columnOrder: string = this.getExportFormat (exportFormat, false);      
       console.log('columnHeaders: ', columnHeaders);
       console.log('columnOrder', columnOrder);
       console.log('dataStore.length: ' + this.length());
@@ -119,7 +202,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.exportCSV(filename, this.prepareCSV(geos, columnHeaders, columnOrder));
    }
    
-   private getExportHeaders (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, returnHeaders: boolean): string
+   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, returnHeaders: boolean): string
    {
       let result: string = '';
 
@@ -137,16 +220,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.format_1:
             console.log ('setExportFormat - format_1');
             if (returnHeaders)
-               result = 'VALZI,Site Name,Site Description, Site Street,' +
+               result = '##-GEOHEADER,Site Name,Site Description, Site Street,' +
                         'Site City,Site State,Zip,' +
                         'Site Address,Market,Market Code,'+
-                        'Passes FIlter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
+                        'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
                         'Owner Trade Area,Owner Site,Include in Deduped Footprint,Base Count';
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
-                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,impGeofootprintLocation.locZip,' +
-                        'impGeofootprintLocation.locAddres,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
-                        '1,distance,null,null,null,' +
+                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,##-TRUNCATE_ZIP,' +
+                        '##-STREETADDRESS,impGeofootprintLocation.marketName, ,' +
+                        '10000,distance,##-IS_HOME_GEOCODE,null,0,' +
                         'null,impGeofootprintLocation.locationNumber,1,null';
          break;
       }

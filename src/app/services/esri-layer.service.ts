@@ -20,7 +20,6 @@ export class EsriLayerService {
 
   public currentSmartTheme$: Observable<SmartMappingTheme> = this.currentSmartTheme.asObservable();
   public currentThemeOpacity$: Observable<number> = this.currentThemeOpacity.asObservable();
-  public selectedTargetAnalysisLevels: string;
 
   constructor(private modules: EsriModules, private topVars: TopVarService, private mapService: EsriMapService, private config: AppConfig){}
 
