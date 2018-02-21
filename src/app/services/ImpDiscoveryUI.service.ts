@@ -10,16 +10,19 @@ import { DataStore } from '../../../src/app/val-modules/common/services/datastor
 import { Injectable, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { Subject } from 'rxjs/Subject';
 
 const dataUrl = '';
 
 @Injectable()
 export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 {
+public analysisLevel: Subject<any> = new Subject<any>();
+    
    constructor(private restDataService: RestDataService) {
       super(restDataService, dataUrl); 
 
-      const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
+       const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
          {
             productCode:          'Email',
             industryCategoryCode: '',

@@ -11,7 +11,7 @@ import {SelectItem} from 'primeng/primeng';
 import { AppConfig } from '../../app.config';
 import { MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { EsriLayerService } from '../../services/esri-layer.service';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -28,9 +28,9 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   public layerToggle: boolean = false;
-  //public selectedTargetAnalysisLevels: SelectItem[];
   public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
+  public selectedTargetAnalysisLevels: string = this.impDiscoveryService.get()[0].analysisLevel;
 
   constructor(public mapService: MapService,  
               private config: AppConfig, 
@@ -38,7 +38,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private metricService: MetricService,
               private esriMapService: EsriMapService, 
               private modules: EsriModules,
-              public layerService: EsriLayerService) {
+              public impDiscoveryService: ImpDiscoveryService) {
       this.mapView = this.mapService.getMapView();
     }
 
