@@ -75,6 +75,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public handleVariable(variable: string, rowData: any) : any
    {
       console.log('Variable: ' + variable + ':', rowData);
+
       let varValue: any;
       let geo: ImpGeofootprintGeo = <ImpGeofootprintGeo> rowData;
 
@@ -95,7 +96,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
                              geo.impGeofootprintLocation.locCity   + ', ' +
                              geo.impGeofootprintLocation.locState  + ' ' +
-                             geo.impGeofootprintLocation.locZip    + '"';
+                             (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : '' + '"';
             break;
 
          case '##-IS_HOME_GEOCODE':
@@ -103,7 +104,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             break;
 
          case '##-TRUNCATE_ZIP':
-            varValue = geo.impGeofootprintLocation.locZip.slice(0, 5);
+            varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
             break;
             
          default:
