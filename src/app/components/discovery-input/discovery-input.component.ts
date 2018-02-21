@@ -12,7 +12,6 @@ import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 import { MapService } from '../../services/map.service';
-import { EsriLayerService } from '../../services/esri-layer.service';
 
 interface Product {
    productName: string;
@@ -60,9 +59,10 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    constructor(public impDiscoveryService: ImpDiscoveryService, 
                public impRadLookupService: ImpRadLookupService, 
-               private appState: AppState, private mapservice: MapService,
-               private layerService: EsriLayerService)
+               private appState: AppState, private mapservice: MapService)
    {
+      this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
+
       this.products = [
          {productName: 'Display Advertising',         productCode: 'SM Insert'},
          {productName: 'Email',                       productCode: 'SM Insert'},
@@ -143,7 +143,7 @@ export class DiscoveryInputComponent implements OnInit
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event);
          this.selectedAnalysisLevel = event;
-         this.layerService.selectedTargetAnalysisLevels = event.label;
+         this.impDiscoveryService.analysisLevel = event.value;
          this.impDiscoveryUI.analysisLevel = event.value;
          this.onChangeField(null);
    }
