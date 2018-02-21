@@ -100,7 +100,7 @@ export class SiteListComponent implements OnInit, OnDestroy
      this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
      this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     } else {
-      let tempList = [];
+      let tempList = []; 
       this.impGeofootprintFilteredCompList = [];
       tempList = this.impGeofootprintLocationService.get();
        for (let i = 0; i < tempList.length; i++){
@@ -135,6 +135,7 @@ export class SiteListComponent implements OnInit, OnDestroy
    {
       console.log('Removing site: ' + loc);      
       this.geocodingRespService.remove(loc);
+      this.onGroupChange(this.selectedValue);
      // MapService.pointsArray.
    }
 
