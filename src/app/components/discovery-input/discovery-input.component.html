@@ -1,15 +1,15 @@
 <div class="ui-g form-group">
-   <div class="ui-g-6">   
+   <div class="ui-g-6">
       <div class="ui-g-12">
          <p-dropdown #productSelector
-                     [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName" 
+                     [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
                      placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
                      (onChange)="onChangeProduct($event)"
                      [style]="{'width':'250px'}"></p-dropdown>
       </div>
       <div class="ui-g-12">
          <p-dropdown #categorySelector
-                     [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name" 
+                     [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name"
                      (onChange)="onChangeField($event)"
                      placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
                      [style]="{'width':'250px'}"></p-dropdown>
@@ -17,12 +17,12 @@
 
       <div class="ui-g-12">
          <p-dropdown #analysisLevelSelector
-                     [options]="analysisLevels" [(ngModel)]="impDiscoveryUI.analysisLevel" optionLabel="label" 
-                     (onChange)="onChangeField($event)"
-                     placeholder="Select an Analysis Level" (onChange)="onAnalysisSelectType($event)"
+                     [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
+                     (ngModelChange)="onAnalysisSelectType($event)"
+                     placeholder="Select an Analysis Level"
                      [style]="{'width':'250px'}"></p-dropdown>
       </div>
-      
+
       <div class="ui-g-12">
          <div class="ui-placeholder">
             <label>Counts</label>
@@ -38,13 +38,13 @@
             <input id="cpm" type="text" [(ngModel)]="impDiscoveryUI.cpm" (change)="onChangeField($event)" pInputText>
             <label>CPM</label>
          </span>
-      </div>  
+      </div>
       <div class="ui-g-12">
          <span class="md-inputfield">
             <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (change)="onChangeField($event)" pInputText>
             <label> Dollar Budget</label>
          </span>
-      </div>  
+      </div>
       <div class="ui-g-12">
          <span class="md-inputfield">
             <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (change)="onChangeField($event)" pInputText>
@@ -76,7 +76,7 @@
       </div>
       <div class="ui-g-5">
          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeSolo" (onChange)="onChangeField($event)"></p-inputSwitch>
-      </div>   
+      </div>
    </div>
 
    <div *ngIf="debugMode" class="ui-g-12">
@@ -96,6 +96,6 @@
          <p-column field="category" header="Category"></p-column>
          <p-column field="product" header="Product"></p-column>
      </p-dataTable>
-   </div>     
+   </div>
 
 </div>
