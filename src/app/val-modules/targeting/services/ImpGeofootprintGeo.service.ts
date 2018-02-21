@@ -102,6 +102,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
             break;
 
+         case '##-TRUNCATE_ZIP':
+            varValue = geo.impGeofootprintLocation.locZip.slice(0, 5);
+            break;
+            
          default:
             varValue = null;
             break;
@@ -196,38 +200,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       let result: string = '';
 
-      // public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
-      // public impGeofootprintMaster:        ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-      // public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;      /// Geofootprint Trade Areas
-      // public impProject:                   ImpProject;                    /// Captures Project information from the UI
-
-      // public glId:                        number;                        /// Primary key, uniquely identifying a locations row
-      // public clientIdentifierId:          number;
-      // public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
-      // public locationNumber:              number;
-      // public locationName:                string;                        /// Name of the location
-      // public marketName:                  string;
-      // public groupName:                   string;
-      // public xcoord:                      number;                        /// X Location coordinate
-      // public ycoord:                      number;                        /// Y Location coordinate
-      // public homeGeocode:                 string;                        /// Identifies the location home geography
-      // public homeGeoName:                 string;                        /// Name of the home geography
-      // public geoProfileId:                number;                        /// Identifies the geography profile
-      // public geoProfileTypeAbbr:          string;                        /// Type of geo profile
-      // public origAddress1:                string;
-      // public origCity:                    string;
-      // public origState:                   string;
-      // public origPostalCode:              string;
-      // public locFranchisee:               string;                        /// Store franchisee
-      // public locAddres:                   string;                        /// Store address
-      // public locCity:                     string;                        /// Store city
-      // public locState:                    string;                        /// Store state
-      // public locZip:                      string;                        /// Store zip code
-      // public locSortOrder:                number;                        /// Locations sort order
-      // public geocoderMatchCode:           string;
-      // public geocoderLocationCode:        string;
-      // public recordStatusCode:            string;
-
       switch (exportFormat)
       {
          // No format specified, derive from the object
@@ -249,7 +221,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         'Owner Trade Area,Owner Site,Include in Deduped Footprint,Base Count';
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
-                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,impGeofootprintLocation.locZip,' +
+                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,##-TRUNCATE_ZIP,' +
                         '##-STREETADDRESS,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
                         '1,distance,##-IS_HOME_GEOCODE,null,null,' +
                         'null,impGeofootprintLocation.locationNumber,1,null';
