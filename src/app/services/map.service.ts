@@ -1046,7 +1046,7 @@ export class MapService {
             //spatialReference: { wkid: 5070 },
             spatialReference: { wkid: 4326 },
             source: graphics,
-            popupTemplate: { content : '{*}' },
+            popupEnabled: false,
             renderer: featureRenderer,
             title: layerName,
             capabilities: {
@@ -1096,9 +1096,7 @@ export class MapService {
          });
 
         if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')) {
-            const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
-
             if (!this.findLayerByTitle('Sites')) {
                 this.mapView.map.layers.add(MapService.SitesGroupLayer);
                 MapService.layers.add(MapService.SitesGroupLayer);
