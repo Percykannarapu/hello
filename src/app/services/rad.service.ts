@@ -57,28 +57,40 @@ export class RadService {
   }
 
   /**
-   * Calculate the predicted response and send it to the metric service
+   * Calculate the performance metrics and send them to the metric service
    */
   private calculateMetrics(metricMessage: MetricMessage) {
     if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Household Count') {
-      if (this.filteredRadData.length > 0) {
+      if (this.filteredRadData != null && this.filteredRadData.length > 0) {
         try {
           //Calculate the predicted response
           const hhCount: number = Number(metricMessage.value.replace(',', ''));
           let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
           predictedResponse = Math.round(predictedResponse);
+          if (Number.isNaN(predictedResponse)) {
+            this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
+          } else {
           this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          }
 
           //Calculate Predicted Topline Sales Generated
           let toplineSales = predictedResponse * this.filteredRadData[0].avgTicket;
           toplineSales = Math.round(toplineSales);
+          if (Number.isNaN(toplineSales)) {
+            this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
+          } else {
           this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          }
 
           //Calculate Predicted ROI
           const discoveryData = this.impDiscoveryService.get();
-          let predictedROI = toplineSales - discoveryData[0].totalBudget;
+          let predictedROI = toplineSales - (discoveryData[0].cpm * hhCount / 1000);
           predictedROI = Math.round(predictedROI);
+          if (Number.isNaN(predictedROI)) {
+            this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+          } else {
           this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          }
         } catch (error) {
           this.handleError(error);
         }
