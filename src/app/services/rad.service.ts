@@ -37,7 +37,7 @@ export class RadService {
   /**
    * get the discovery data from the ImpDiscoveryService
    */
-  private getDiscoveryData() : any {
+  private getDiscoveryData(): any {
     const discoveryData: Array<ImpDiscoveryUI> = this.impDiscoveryService.get();
     return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryCode };
   }
@@ -61,25 +61,31 @@ export class RadService {
    */
   private calculateMetrics(metricMessage: MetricMessage) {
     if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Household Count') {
-      try {
-        //Calculate the predicted response
-        const hhCount: number = Number(metricMessage.value.replace(',', ''));
-        let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
-        predictedResponse = Math.round(predictedResponse);
-        this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+      if (this.filteredRadData.length > 0) {
+        try {
+          //Calculate the predicted response
+          const hhCount: number = Number(metricMessage.value.replace(',', ''));
+          let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
+          predictedResponse = Math.round(predictedResponse);
+          this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-        //Calculate Predicted Topline Sales Generated
-        let toplineSales = predictedResponse * this.filteredRadData[0].avgTicket;
-        toplineSales = Math.round(toplineSales);
-        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          //Calculate Predicted Topline Sales Generated
+          let toplineSales = predictedResponse * this.filteredRadData[0].avgTicket;
+          toplineSales = Math.round(toplineSales);
+          this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-        //Calculate Predicted ROI
-        const discoveryData = this.impDiscoveryService.get();
-        let predictedROI = toplineSales - discoveryData[0].totalBudget;
-        predictedROI = Math.round(predictedROI);
-        this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-      } catch (error) {
-        this.handleError(error);
+          //Calculate Predicted ROI
+          const discoveryData = this.impDiscoveryService.get();
+          let predictedROI = toplineSales - discoveryData[0].totalBudget;
+          predictedROI = Math.round(predictedROI);
+          this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        } catch (error) {
+          this.handleError(error);
+        }
+      } else {
+        this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
+        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+        this.metricService.add('PERFORMANCE', 'Predicted ROI', '$0');
       }
     }
   }
