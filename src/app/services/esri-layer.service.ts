@@ -5,6 +5,7 @@ import { LayerState, SmartMappingTheme } from '../models/LayerState';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import {SelectItem} from 'primeng/primeng';
 import { AppConfig } from '../app.config';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class EsriLayerService {
 
   public currentSmartTheme$: Observable<SmartMappingTheme> = this.currentSmartTheme.asObservable();
   public currentThemeOpacity$: Observable<number> = this.currentThemeOpacity.asObservable();
+  public selectedTargetAnalysisLevels: string;
 
   constructor(private modules: EsriModules, private topVars: TopVarService, private mapService: EsriMapService, private config: AppConfig){}
 

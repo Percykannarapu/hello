@@ -372,7 +372,7 @@ export class AmSiteService
 
    // draw the site graphics on the Sites layer
    private async updateLayer(graphics: __esri.Graphic[]) {
-      this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+      this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
    }
 
    // Add all of the selected sites to the map

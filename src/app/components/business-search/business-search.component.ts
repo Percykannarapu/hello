@@ -310,13 +310,13 @@ export class BusinessSearchComponent implements OnInit {
       this.amSiteService.addCompetitors(this.plottedPoints);
       //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
       console.log('Adding competitors from store search');
-      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS, true);
       this.appService.closeOverLayPanel.next(true);
     } else if (selector === 'Site') {
       this.amSiteService.add(this.parseCsvResponse(this.plottedPoints));
       //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
       console.log('adding sites from store search');
-      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
       this.appService.closeOverLayPanel.next(true);
     }
   }

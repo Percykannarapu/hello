@@ -370,9 +370,9 @@ export class GeocodingResponseService {
     public async updateLayer(graphics: __esri.Graphic[], selector) {
         console.log('refreshMapSites fired');
         if (selector === 'Site') {
-            this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES);
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
         } else {
-            this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS);
+            this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS, true);
         }
     }
 
@@ -524,10 +524,10 @@ export class GeocodingResponseService {
             });
             this.impGeoLocAttrList.push(impLocAttrTempList);
             this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-            
+
         });
         this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
         this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-        
+
     }
 }
