@@ -62,6 +62,28 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       link.remove();
    }
 
+   public handleVariable(variable: string, rowData: any) : any
+   {
+      console.log('Variable: ' + variable + ':', rowData);
+      let varValue: string;
+      let geo: ImpGeofootprintGeo = <ImpGeofootprintGeo> rowData;
+
+      switch (variable)
+      {
+         case '##-STREETADDRESS':
+            varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
+                             geo.impGeofootprintLocation.locCity   + ', ' +
+                             geo.impGeofootprintLocation.locState  + ' ' +
+                             geo.impGeofootprintLocation.locZip    + '"';
+            break;
+
+         default:
+            varValue = null;
+            break;
+      }
+      return varValue;
+   }
+
    public prepareCSV<T>(sourceData: T[], columnHeaders: String, columnOrder: String): string[]
    {
       console.log('prepareCSV fired with sourceData: ', sourceData);
@@ -93,7 +115,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             const splitFields: string[] = currCol.split('.');
             for (let i = 0; i < splitFields.length; i++)
             {
-               field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
+               let isVariable: string = splitFields[i].slice(0, 3);
+               if (isVariable == '##-')
+                  field = this.handleVariable(splitFields[i], data);
+               else
+                  field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
 //               console.log('field: ' + field);
             }
             row += (field != null) ? field + ',' : ',';
@@ -108,8 +134,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO)
    {
-      const columnHeaders: string = this.getExportHeaders (exportFormat, true);
-      const columnOrder: string = this.getExportHeaders (exportFormat, false);      
+      const columnHeaders: string = this.getExportFormat (exportFormat, true);
+      const columnOrder: string = this.getExportFormat (exportFormat, false);      
       console.log('columnHeaders: ', columnHeaders);
       console.log('columnOrder', columnOrder);
       console.log('dataStore.length: ' + this.length());
@@ -119,9 +145,41 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.exportCSV(filename, this.prepareCSV(geos, columnHeaders, columnOrder));
    }
    
-   private getExportHeaders (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, returnHeaders: boolean): string
+   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, returnHeaders: boolean): string
    {
       let result: string = '';
+
+      // public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
+      // public impGeofootprintMaster:        ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
+      // public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;      /// Geofootprint Trade Areas
+      // public impProject:                   ImpProject;                    /// Captures Project information from the UI
+
+      // public glId:                        number;                        /// Primary key, uniquely identifying a locations row
+      // public clientIdentifierId:          number;
+      // public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
+      // public locationNumber:              number;
+      // public locationName:                string;                        /// Name of the location
+      // public marketName:                  string;
+      // public groupName:                   string;
+      // public xcoord:                      number;                        /// X Location coordinate
+      // public ycoord:                      number;                        /// Y Location coordinate
+      // public homeGeocode:                 string;                        /// Identifies the location home geography
+      // public homeGeoName:                 string;                        /// Name of the home geography
+      // public geoProfileId:                number;                        /// Identifies the geography profile
+      // public geoProfileTypeAbbr:          string;                        /// Type of geo profile
+      // public origAddress1:                string;
+      // public origCity:                    string;
+      // public origState:                   string;
+      // public origPostalCode:              string;
+      // public locFranchisee:               string;                        /// Store franchisee
+      // public locAddres:                   string;                        /// Store address
+      // public locCity:                     string;                        /// Store city
+      // public locState:                    string;                        /// Store state
+      // public locZip:                      string;                        /// Store zip code
+      // public locSortOrder:                number;                        /// Locations sort order
+      // public geocoderMatchCode:           string;
+      // public geocoderLocationCode:        string;
+      // public recordStatusCode:            string;
 
       switch (exportFormat)
       {
@@ -145,7 +203,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,impGeofootprintLocation.locZip,' +
-                        'impGeofootprintLocation.locAddres,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
+                        '##-STREETADDRESS,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
                         '1,distance,null,null,null,' +
                         'null,impGeofootprintLocation.locationNumber,1,null';
          break;
