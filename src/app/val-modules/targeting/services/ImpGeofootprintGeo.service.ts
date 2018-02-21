@@ -76,58 +76,27 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const headerList: string[] = columnHeaders.split(',');
       const orderList:  string[] = columnOrder.split(',');
 
+      let field: string;
       let row: string = ' ';
-      let found: boolean = false;
-      let recNumber: number = 0;
-      for (const header of headerList) {
-         recNumber++;
+
+      for (const header of headerList)
          row += header + ',';
-      };
       csvData.push(row);
 
       // Iterate through all of the source data, converting to csv rows
       for (const data of sourceData)
       {
          row = '';
-         found = false;
-         console.log('data: ', data);
          // Output the columns in the specified order
          for (const currCol of orderList)
          {
-            const splitField: string[] = currCol.split('.');
-            if (currCol === 'impGeofootprintLocation.glId')
+            const splitFields: string[] = currCol.split('.');
+            for (let i = 0; i < splitFields.length; i++)
             {
-               console.log('splitField[0]', splitField[0]);
-               console.log('splitField[1]', splitField[1]);
-               console.log('data[' + splitField[0] + '][' + splitField[1] + '] = ', data[splitField[0]][splitField[1]]);
-               console.log('#### TESTING NO SPLIT NEEDED ####');
-               const test: string = 'AquaMan';
-               const splitTest: string[] = test.split('.');
-               console.log('result: ' + splitTest[0]);
+               field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
+//               console.log('field: ' + field);
             }
-            console.log('data[' + currCol + '] = ', data[currCol]);
-            console.log('data[impGeofootprintLocation][glId]', data['impGeofootprintLocation']['glId']);
-
-            // TODO: Try to have one set of code
-            if (splitField.length === 0)
-            {
-               // Look through the structure of the source data, looking for the currCol
-               const fieldIdx = Object.keys(data).findIndex(fieldName => fieldName == currCol);
-               if (fieldIdx >= 0)
-                  row += data[splitField[0]] + ',';
-               else
-                  row += ','; // (row === '') ? ',' : ',,';
-               console.log('currCol: ' + splitField[0] + ', fieldIdx: ' + fieldIdx + ', row: ', row);
-            }
-            else
-            {
-               let sf: string;
-               for (let i = 0; i < splitField.length; i++)
-               {
-                  sf = (i == 0) ? data[splitField[0]] : sf[splitField[i]];
-                  console.log('sf: ' + sf);
-               }
-            }
+            row += (field != null) ? field + ',' : ',';
          }
 
          if (row != '')
@@ -154,13 +123,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       let result: string = '';
 
-
-      // public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
-      // public impGeofootprintMaster:        ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-      // public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;      /// Geofootprint Trade Areas
-      // public impProject:                   ImpProject;                    /// Captures Project information from the UI
-
-
       switch (exportFormat)
       {
          // No format specified, derive from the object
@@ -175,9 +137,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.format_1:
             console.log ('setExportFormat - format_1');
             if (returnHeaders)
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
+               result = 'VALZI,Site Name,Site Description, Site Street,' +
+                        'Site City,Site State,Zip,' +
+                        'Site Address,Market,Market Code,'+
+                        'Passes FIlter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
+                        'Owner Trade Area,Owner Site,Include in Deduped Footprint,Base Count';
             else
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
+               result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
+                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,impGeofootprintLocation.locZip,' +
+                        'impGeofootprintLocation.locAddres,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
+                        '1,distance,null,null,null,' +
+                        'null,impGeofootprintLocation.locationNumber,1,null';
          break;
       }
 
