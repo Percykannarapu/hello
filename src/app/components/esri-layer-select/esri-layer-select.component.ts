@@ -38,7 +38,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private metricService: MetricService,
               private esriMapService: EsriMapService, 
               private modules: EsriModules,
-              private layerService: EsriLayerService) {
+              public layerService: EsriLayerService) {
       this.mapView = this.mapService.getMapView();
     }
 
