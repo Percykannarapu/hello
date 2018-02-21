@@ -553,11 +553,18 @@ export class MapService {
         let PopupTitle: string;
         let layerVisible: boolean = true;
 
+        // const fromPortal = id => {
+        //   return (new EsriModules.FeatureLayer({
+        //     portalItem: {
+        //       id: id
+        //     }
+        //   })).load();
+        // };
+
         const fromPortal = id => EsriModules.Layer.fromPortalItem(<any>{
-            portalItem: {
-                portal: this.config.esriConfig.portalUrl,
-                id: id
-            }
+          portalItem: {
+            id: id
+          }
         });
 
         // Add this action to the popup so it is always available in this view
@@ -638,9 +645,10 @@ export class MapService {
                         const layers: any[] = Object.values(this.config.layerIds.zip).filter(i => i != null).map(fromPortal);
 
                         // Add all ZIP Layers via Promise
-                        Promise.all(layers)
-                            .then(results => {
-                                results.forEach(x => {
+                         Promise.all(layers)
+                             .then(results => {
+                                 console.log('Zip Results', results);
+                                 results.forEach(x => {
                                     PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                         layerVisible = false;
@@ -661,8 +669,8 @@ export class MapService {
                                         MapService.ZipGroupLayer.add(x);
                                     }
                                 });
-                            })
-                            .catch(error => console.warn(error.message));
+                             })
+                             .catch(error => console.warn(error.message));
 
                         // Add ZIP Group Layer if it does not already exist
                         if (!this.findLayerByTitle('Valassis ZIP')) {
@@ -1017,7 +1025,7 @@ export class MapService {
         return graphicList;
     }
 
-    public createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+    public createFeatureLayer(graphics: __esri.Graphic[], layerName: string, layerHasPopup: boolean = false) {
         console.log('fired createFeatureLayer(' + layerName + ') in MapService');
         if (MapService.layerNames.has(layerName)) {
             console.log('layer name already exists');
@@ -1046,7 +1054,8 @@ export class MapService {
             //spatialReference: { wkid: 5070 },
             spatialReference: { wkid: 4326 },
             source: graphics,
-            popupEnabled: false,
+            popupEnabled: layerHasPopup,
+            popupTemplate: '{*}',
             renderer: featureRenderer,
             title: layerName,
             capabilities: {
@@ -1327,11 +1336,11 @@ export class MapService {
         graphic.setAttribute(name, value);
     }
 
-    public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
+    public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string, showPopup: boolean = false) {
         // console.log('fired updateFeatureList() in MapService');
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-            this.createFeatureLayer(graphics, layerTitle);
+            this.createFeatureLayer(graphics, layerTitle, showPopup);
             return;
         }
 
@@ -1351,7 +1360,7 @@ export class MapService {
         });
         if (!layerUpdated) {
             console.log('FeatureLayer requested for update does not exist, creating');
-            this.createFeatureLayer(graphics, layerTitle);
+            this.createFeatureLayer(graphics, layerTitle, showPopup);
             return;
         }
         // await this.zoomOnMap(graphics);

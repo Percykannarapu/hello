@@ -5,7 +5,7 @@ import { ILoadScriptOptions } from 'esri-loader/src/esri-loader';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 
 export interface EsriLoaderConfig {
-  esriConfig: ILoadScriptOptions;
+  esriConfig: ILoadScriptOptions | __esri.config;
 }
 
 export const EsriLoaderToken = new InjectionToken<EsriLoaderConfig>('esri-config-options');
@@ -13,6 +13,7 @@ export const EsriLoaderToken = new InjectionToken<EsriLoaderConfig>('esri-config
 @Injectable()
 export class EsriModules {
   private static names: string[] = [
+    'esri/config',
     'esri/Map',
     'esri/Basemap',
     'esri/views/MapView',
@@ -36,6 +37,7 @@ export class EsriModules {
     'esri/Color'
   ];
 
+  private static config: typeof __esri.config;
   public static Map: typeof __esri.Map;
   public static BaseMap: typeof __esri.Basemap;
   public static MapView: typeof __esri.MapView;
@@ -60,7 +62,7 @@ export class EsriModules {
 
   public static widgets: EsriWidgets;
 
-  private esriConfig: ILoadScriptOptions;
+  private esriConfig: ILoadScriptOptions | __esri.config;
   private isLoaded = new EventEmitter();
   private deferredLoad: Promise<any>;
   public isReady = false;
@@ -70,7 +72,7 @@ export class EsriModules {
     this.esriConfig = config.esriConfig;
     // todo: remove when this wrapper is no longer needed
     EsriLoaderWrapperService.esriLoader = this;
-    esriLoader.loadScript(this.esriConfig).then(() => {
+    esriLoader.loadScript(this.esriConfig as ILoadScriptOptions).then(() => {
       this.deferredLoad = esriLoader.loadModules(EsriModules.names.concat(EsriWidgets.moduleNames));
       this.deferredLoad
         .then(m => this.cacheModules(m))
@@ -81,6 +83,7 @@ export class EsriModules {
   private cacheModules(modules: any[]) : void {
     // modules array index must line up with names array index
     [
+      EsriModules.config,
       EsriModules.Map,
       EsriModules.BaseMap,
       EsriModules.MapView,
@@ -107,12 +110,14 @@ export class EsriModules {
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);
 
+    EsriModules.config.portalUrl = (this.esriConfig as any).portalUrl;
+
     this.isReady = true;
     this.isLoaded.emit();
   }
 
   public loadModules(modules: string[]) : Promise<any[]> {
-    return esriLoader.loadModules(modules, this.esriConfig);
+    return esriLoader.loadModules(modules, this.esriConfig as ILoadScriptOptions);
   }
 
   public onReady(initializer: () => void) : void {
