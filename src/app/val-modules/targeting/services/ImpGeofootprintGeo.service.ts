@@ -93,18 +93,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             break;
 
          case '##-STREETADDRESS':
+            let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
+            console.log('truncZip ' + truncZip);
             varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
                              geo.impGeofootprintLocation.locCity   + ', ' +
                              geo.impGeofootprintLocation.locState  + ' ' +
-                             (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : '' + '"';
+                             truncZip + '"';
             break;
 
          case '##-IS_HOME_GEOCODE':
             varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
             break;
 
-         case '##-TRUNCATE_ZIP':
+         case '##-TRUNCATE_ZIP':         
             varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
+            console.log('varValue = ' + varValue);
             break;
             
          default:
@@ -159,8 +162,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                if (isVariable == '##-')
                   field = this.handleVariable(splitFields[i], data);
                else
-                  field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
-//               console.log('field: ' + field);
+                  if (splitFields[i] === 'null')
+                     field = null
+                  else
+                     field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
             }
             row += (field != null) ? field + ',' : ',';
          }
@@ -218,13 +223,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                result = '##-GEOHEADER,Site Name,Site Description, Site Street,' +
                         'Site City,Site State,Zip,' +
                         'Site Address,Market,Market Code,'+
-                        'Passes FIlter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
+                        'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
                         'Owner Trade Area,Owner Site,Include in Deduped Footprint,Base Count';
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,##-TRUNCATE_ZIP,' +
-                        '##-STREETADDRESS,impGeofootprintLocation.marketName,impGeofootprintLocation.marketName,' +
-                        '1,distance,##-IS_HOME_GEOCODE,null,null,' +
+                        '##-STREETADDRESS,impGeofootprintLocation.marketName, ,' +
+                        '10000,distance,##-IS_HOME_GEOCODE,null,0,' +
                         'null,impGeofootprintLocation.locationNumber,1,null';
          break;
       }
