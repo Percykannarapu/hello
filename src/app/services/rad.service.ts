@@ -83,9 +83,9 @@ export class RadService {
           this.handleError(error);
         }
       } else {
-        this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
-        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
-        this.metricService.add('PERFORMANCE', 'Predicted ROI', '$0');
+        this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
+        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
+        this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
       }
     }
   }
