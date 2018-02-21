@@ -94,14 +94,40 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          // Output the columns in the specified order
          for (const currCol of orderList)
          {
+            const splitField: string[] = currCol.split('.');
+            if (currCol === 'impGeofootprintLocation.glId')
+            {
+               console.log('splitField[0]', splitField[0]);
+               console.log('splitField[1]', splitField[1]);
+               console.log('data[' + splitField[0] + '][' + splitField[1] + '] = ', data[splitField[0]][splitField[1]]);
+               console.log('#### TESTING NO SPLIT NEEDED ####');
+               const test: string = 'AquaMan';
+               const splitTest: string[] = test.split('.');
+               console.log('result: ' + splitTest[0]);
+            }
             console.log('data[' + currCol + '] = ', data[currCol]);
-            // Look through the structure of the source data, looking for the currCol
-            const fieldIdx = Object.keys(data).findIndex(fieldName => fieldName == currCol);
-            if (fieldIdx >= 0)
-               row += data[currCol] + ',';
+            console.log('data[impGeofootprintLocation][glId]', data['impGeofootprintLocation']['glId']);
+
+            // TODO: Try to have one set of code
+            if (splitField.length === 0)
+            {
+               // Look through the structure of the source data, looking for the currCol
+               const fieldIdx = Object.keys(data).findIndex(fieldName => fieldName == currCol);
+               if (fieldIdx >= 0)
+                  row += data[splitField[0]] + ',';
+               else
+                  row += ','; // (row === '') ? ',' : ',,';
+               console.log('currCol: ' + splitField[0] + ', fieldIdx: ' + fieldIdx + ', row: ', row);
+            }
             else
-               row += ','; // (row === '') ? ',' : ',,';
-            console.log('currCol: ' + currCol + ', fieldIdx: ' + fieldIdx + ', row: ', row);
+            {
+               let sf: string;
+               for (let i = 0; i < splitField.length; i++)
+               {
+                  sf = (i == 0) ? data[splitField[0]] : sf[splitField[i]];
+                  console.log('sf: ' + sf);
+               }
+            }
          }
 
          if (row != '')
@@ -141,17 +167,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.default:
             console.log ('setExportFormat - default');
             if (returnHeaders)
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord';
+               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
             else
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord';
+               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
             break;
 
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.format_1:
             console.log ('setExportFormat - format_1');
             if (returnHeaders)
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord';
+               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
             else
-               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord';
+               result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
          break;
       }
 

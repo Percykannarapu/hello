@@ -12,10 +12,9 @@
       </div>
     </div>
     <div class="ui-g-12">
-      <div class="ui-g-12" style="color:red">Help Text goes here</div>
       <div class="ui-g-5">
         <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
-          style="width: 100%;">
+          style="width: 100%;" pTooltip="CSV format required">
           <div style="padding-top: 6px; text-align:center">
             <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCSV($event)" accept=".csv"
             /> Select File
