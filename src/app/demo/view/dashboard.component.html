@@ -11,6 +11,7 @@
                    popupWidth="60%"
                          icon="my_location"
                       [model]="metricMapGreen"
+                      displayOverlay="true"
                       #locationsColorBox>
 
          <p-tabView styleClass="ui-tabview-panels-nopad">
@@ -49,6 +50,7 @@
                   popupWidth="80%"
                         icon="done_all"
                      [model]="metricMapBlue"
+                     displayOverlay="true"
                      #campaignColorBox>
          <p-tabView styleClass="ui-tabview-panels">
             <p-tabPanel header="Discovery">
@@ -65,6 +67,7 @@
                    popupWidth="60%"
                          icon="tune"
                       [model]="metricMapPurple"
+                      displayOverlay="true"
                       #audienceColorBox>
          <p-tabView>
             <p-tabPanel header="Demographic Variables">
@@ -80,9 +83,14 @@
                      boxStyle="colorboxPicker-blue"
                    popupWidth="60%"
                         icon="send"
+                    pTooltip="Predicted response is how many of the households we will deliver to will act on the Ad
+                              Description of metric 2
+                              Description of metric 3"
                      [model]="metricMapTeal"
+                     displayOverlay="false"
                      #performanceColorBox>
-         <p-tabView>
+        <!-- For now we are removing the tab panel since there is no content for it currently
+        <p-tabView>
             <p-tabPanel header="RAD Service">
                <val-raddata></val-raddata>
             </p-tabPanel>
@@ -95,10 +103,10 @@
                      <div>🚨🚧 Under Construction 🚧🚨</div>
                      Some sort of chart that tells somebody something
                   </p-header>
-                  <!-- <p-chart type="line" [data]="chartData" responsive="true"></p-chart> -->
+                  <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
                </p-panel>
             </p-tabPanel>
-         </p-tabView>
+         </p-tabView>-->
          </val-color-box>
    </div>
    <!-- COLORBOX COMPONENTS END -->

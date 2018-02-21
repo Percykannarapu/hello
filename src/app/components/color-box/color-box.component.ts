@@ -8,12 +8,13 @@ import { AppService } from '../../services/app.service';
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
   @ViewChild('op') overlayPanel; 
-   @Input() header:     string = 'Header';
-   @Input() boxStyle:   string = 'colorbox-1';
-   @Input() popupStyle: string = 'green-panel';
-   @Input() popupWidth: string = '40%';
-   @Input() icon:       string;
-   @Input() model:      Map<string, string>;
+   @Input() header:         string = 'Header';
+   @Input() boxStyle:       string = 'colorbox-1';
+   @Input() popupStyle:     string = 'green-panel';
+   @Input() popupWidth:     string = '40%';
+   @Input() icon:           string;
+   @Input() model:          Map<string, string>;
+   @Input() displayOverlay: string;
 
    index: number = 0;
    metric: string = null;
@@ -44,6 +45,12 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
     //   this.generateColorBoxValues();
     //  });
      this.generateColorBoxValues();
+   }
+
+   public onShowOverlay(event: any) {
+     if (this.displayOverlay === 'true') {
+       this.overlayPanel.toggle(event);
+     } 
    }
 
    private generateColorBoxValues(){
