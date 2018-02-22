@@ -54,6 +54,20 @@ export class RadService {
     if (this.radData != null) {
       this.filteredRadData = this.radData.filter(f => f.category === discoveryData.category.name && f.product === discoveryData.product.productCode);
     }
+
+    //If we have valid RAD data and a household count available then we can recalculate the performance metrics
+    /*console.log('determing whether to recalculate metrics');
+    if(this.filteredRadData != null && this.filteredRadData.length > 0) {
+      if(this.metricService.metrics.has('CAMPAIGN')) {
+        const perfMetrics = this.metricService.metrics.get('CAMPAIGN');
+        if(perfMetrics.has('Household Count')) {
+          const hhc = perfMetrics.get('Household Count');
+          const metricMessage: MetricMessage = new MetricMessage(MetricOperations.ADD, 'CAMPAIGN', 'Household Count', hhc);
+          console.log('recalculating metrics');
+          this.calculateMetrics(metricMessage);
+        }
+      }
+    }*/
   }
 
   /**
