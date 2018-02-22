@@ -61,7 +61,7 @@ export class DiscoveryInputComponent implements OnInit
                public impRadLookupService: ImpRadLookupService, 
                private appState: AppState, private mapservice: MapService)
    {
-      this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
+      //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
       this.products = [
          {productName: 'Display Advertising',         productCode: 'DISPLAY'},
@@ -143,7 +143,6 @@ export class DiscoveryInputComponent implements OnInit
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event);
          this.selectedAnalysisLevel = event;
-         this.impDiscoveryService.analysisLevel = event.value;
          this.impDiscoveryUI.analysisLevel = event.value;
          this.onChangeField(null);
    }

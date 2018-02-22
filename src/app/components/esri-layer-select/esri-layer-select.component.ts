@@ -12,6 +12,7 @@ import { AppConfig } from '../../app.config';
 import { MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -30,7 +31,6 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   public layerToggle: boolean = false;
   public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
-  public selectedTargetAnalysisLevels: string = this.impDiscoveryService.get()[0].analysisLevel;
 
   constructor(public mapService: MapService,  
               private config: AppConfig, 

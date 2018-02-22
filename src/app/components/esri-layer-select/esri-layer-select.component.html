@@ -15,7 +15,7 @@
         [panelStyle]="{minWidth:'12em'}" 
         (onPanelHide)="checkLayers()">pTooltip="Enter your username" 
     </p-multiSelect> -->
-   <div class="ui-g val-flush-to-edges">
+   <div class="ui-g ui-toolbar-group-left val-flush-to-edges">
       <!-- <div class="ui-g-6"> -->
          <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers"
             (onChange)="handleLayerChange($event)" 
@@ -43,6 +43,9 @@
          <button  label="Clear All"  pButton (click)="onClearAllSelections()"  title="Clear All Selections"></button>
          <button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>
          
-         <span style="margin-left:950px; margin-top:10px;">Analysis Level = {{this.impDiscoveryService.get()[0].analysisLevel}}</span>
+         <!-- <span style="margin-left:950px; margin-top:10px; font-weight: bold;" > Analysis Level = {{this.impDiscoveryService.get()[0].analysisLevel}}</span> -->
       <!-- </div> -->
    </div>
+   <div class="ui-toolbar-group-right val-flush-to-edges">
+    <span style="margin-top: 5%;font-weight: bold;" > Analysis Level = {{this.impDiscoveryService.get()[0].analysisLevel}}</span>
+  </div>
