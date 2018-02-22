@@ -64,14 +64,14 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
       this.products = [
-         {productName: 'Display Advertising',         productCode: 'SM Insert'},
-         {productName: 'Email',                       productCode: 'SM Insert'},
-         {productName: 'Insert - Newspaper',          productCode: 'NP Insert'},
-         {productName: 'Insert - Shared Mail',        productCode: 'SM Insert'},
-         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'SM Insert'},
+         {productName: 'Display Advertising',         productCode: 'DISPLAY'},
+         {productName: 'Email',                       productCode: 'EMAIL'},
+         {productName: 'Insert - Newspaper',          productCode: 'INS_NEWS'},
+         {productName: 'Insert - Shared Mail',        productCode: 'INS_SHARED'},
+         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'RPDM'},
          {productName: 'Variable Data Postcard',      productCode: 'VDP'},
-         {productName: 'VDP + Email',                 productCode: 'SM Postcard'},
-         {productName: 'Red Plum Wrap',               productCode: 'SM Wrap'}
+         {productName: 'VDP + Email',                 productCode: 'VDP_EMAIL'},
+         {productName: 'Red Plum Wrap',               productCode: 'WRAP'}
       ];
 
       this.categories = [
