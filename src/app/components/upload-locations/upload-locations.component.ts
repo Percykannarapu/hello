@@ -436,7 +436,7 @@ export class UploadLocationsComponent implements OnInit {
       
       if (this.selector === 'Site'){
         this.displaySpinnerMessage = 'Calculating Home Geocodes';
-        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.mapService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);

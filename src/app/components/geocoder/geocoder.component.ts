@@ -605,7 +605,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     this.handleMessages(this.handleMsg);
     if (display) {
       if (this.selector1 === 'Site'){
-        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.mapService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
       await this.geocoderService.addSitesToMap(geocodingResponseList, this.selector1);
