@@ -43,6 +43,10 @@ export class MapService {
     public static hhIpAddress: number = 0; // --> will keep track of houshold ipaddress count
     public static medianHHIncome: String = '0';
     public static hhChildren: number = 0;
+    public static totInvestment: String = '0'; // keeps track of total investment 
+    public static proBudget: String = '0';     // keeps track of Progess to Budget %
+    public static t: number = 0;               // a temp variable to calucate Progress to budget
+    public static circBudget: number = 0;               // a variable to calucate Progress to budget based on Circ budget
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
     //TODO we need to remove pointsArray after adi's uploadfunction.
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
@@ -1828,8 +1832,14 @@ export class MapService {
                 MapService.hhIpAddress = 0;
                 MapService.medianHHIncome = '0';
                 MapService.hhChildren = 0;
+                MapService.totInvestment = '0';
+                MapService.proBudget = '0';
+                MapService.t = 0;
+                MapService.circBudget = 0;
                 this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
                 this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+                this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
+                this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
                 this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
                 this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
@@ -1845,9 +1855,6 @@ export class MapService {
                           const currentAttribute = polyFeatureSet.features[i].attributes;
                           //console.log('CurrentAttribute', currentAttribute);
                             if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
-                                if (EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w')  != null){
-                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                }
                                 if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs')  != null){
                                     MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
                                 }
@@ -1856,6 +1863,40 @@ export class MapService {
                                 if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00')  != null){
                                     MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                                 }
+                                if  (discoveryUI[0].selectedSeason == 'WINTER'){
+                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                console.log('total count:::', MapService.hhDetails);
+                                console.log('winter:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
+                                } else {
+                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                    console.log('total count:::', MapService.hhDetails);
+                                    console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
+                                }
+                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                                if (discoveryUI[0].cpm != null){
+                                    MapService.t = discoveryUI[0].cpm * Math.round(MapService.hhDetails / 1000);
+                                    MapService.totInvestment =  '$' + MapService.t.toString();
+                                } else{
+                                    MapService.totInvestment = 'N/A';
+                                }
+                                if (discoveryUI[0].circBudget != null){
+                                    MapService.circBudget = MapService.hhDetails / discoveryUI[0].circBudget;
+                                    MapService.proBudget = MapService.circBudget * 100 + '%';
+                                    console.log('progress to budget for circ::', MapService.proBudget);
+                                } else if (discoveryUI[0].totalBudget != null){
+                                    MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100  + '%';
+                                     console.log('progress to budget for dollar:::', MapService.proBudget );
+                                } else if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null){
+                                     // if we both Circ Budget and dollar budget were provided, calculate based on the dollar budget
+                                     MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
+                                     console.log('return Progress to budget for dollar :::', MapService.proBudget);
+                                } else {
+                                    MapService.proBudget = 'N/A';
+                                }
+
+                            
+                                //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                                 MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
                                 polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
                                 MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
@@ -1866,9 +1907,11 @@ export class MapService {
                         this.updateFeatureLayer(polyGraphics, layername);
                         this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                      //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
+                        //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                         this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toFixed(2));
                     });
                 });
@@ -1988,6 +2031,11 @@ export class MapService {
           if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
             currentAttributes = f.attributes;
           }
+          this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                
         });
       }
       if (currentAttributes == null) {
