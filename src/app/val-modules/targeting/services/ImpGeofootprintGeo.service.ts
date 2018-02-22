@@ -25,7 +25,7 @@ const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGe
 
 export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
    default,
-   format_1
+   alteryx
 }
 
 @Injectable()
@@ -83,7 +83,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       switch (variable)
       {
-         case '##-GEOHEADER':
+         case '#V-GEOHEADER':
             switch (analysisLevel)
             {
                case 'ATZ': varValue='VALATZ'; break;
@@ -92,7 +92,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             }
             break;
 
-         case '##-STREETADDRESS':
+         case '#V-STREETADDRESS':
             let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
             console.log('truncZip ' + truncZip);
             varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
@@ -101,13 +101,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                              truncZip + '"';
             break;
 
-         case '##-IS_HOME_GEOCODE':
+         case '#V-IS_HOME_GEOCODE':
             varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
             break;
 
-         case '##-TRUNCATE_ZIP':         
+         case '#V-TRUNCATE_ZIP':         
             varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
             console.log('varValue = ' + varValue);
+            break;
+
+         case '#V-OWNER_TRADE_AREA':
+         // Column P - Owner Trade Area - the corresponding TA # 1/2/3 - Can calculate with distance:
+         // if distance is less than TA1 radius, return a 1, if distance is between TA1 and TA2 radius, return a 2, if distance is > than TA 2, return a 3. What to do if the user selected a geo very far outside the TA1 or 2? Leave blank, say "Custom", or return a 3 for now?         
+         //   if (geo.distance < )
             break;
             
          default:
@@ -131,14 +137,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const headerList: string[] = columnHeaders.split(',');
       const orderList:  string[] = columnOrder.split(',');
 
-      let isVariable: string;
+      let isSpecial: string;
       let field: string;
       let row: string = ' ';
 
+      // Build the headers - Note that headers only support constants or #V- variables 
       for (const header of headerList)
       {
-         isVariable = header.slice(0, 3);
-         if (isVariable == '##-')
+         isSpecial = header.slice(0, 3);
+         if (isSpecial == '#V-')
          {
             field = this.handleVariable(header, null);
             row += field + ',';
@@ -151,29 +158,42 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // Iterate through all of the source data, converting to csv rows
       for (const data of sourceData)
       {
+         // Begin a new line for every element in the data
          row = '';
+
          // Output the columns in the specified order
          for (const currCol of orderList)
          {
+            // Split the column to see if we are looking for a nested value eg. parent.child
             const splitFields: string[] = currCol.split('.');
+
+            // Loop through the chain until we reach the bottom
             for (let i = 0; i < splitFields.length; i++)
             {
-               isVariable = splitFields[i].slice(0, 3);
-               if (isVariable == '##-')
-                  field = this.handleVariable(splitFields[i], data);
+               // Look for special fields:  #D- a defaulted value or #V- a variable calculated by handleVariable
+               isSpecial = splitFields[i].slice(0, 3);
+               if (isSpecial === '#D-')
+                  field = splitFields[i].slice(3);
                else
-                  if (splitFields[i] === 'null')
-                     field = null
+                  if (isSpecial === '#V-')
+                     field = this.handleVariable(splitFields[i], data);
                   else
-                     field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
+                  {
+                     // Pluck out nulls as a special case
+                     if (splitFields[i] === 'null' || splitFields[i] == null || splitFields[i] === '' || splitFields[i] === ' ')
+                        field = null
+                     else
+                        // This will either bring you to the child object for next iteration or the value if at the bottom
+                        field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
+                  }
             }
             row += (field != null) ? field + ',' : ',';
          }
 
+         // If we have built a row, push it to the result
          if (row != '')
             csvData.push(row);
       }
-
       return csvData;
    }
 
@@ -208,7 +228,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       switch (exportFormat)
       {
-         // No format specified, derive from the object
+         // No format specified, derive from the object  TODO: IMPLEMENT
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.default:
             console.log ('setExportFormat - default');
             if (returnHeaders)
@@ -217,20 +237,20 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                result = 'ggId,geocode,geoSortOrder,hhc,distance,xcoord,ycoord,impGeofootprintLocation.glId';
             break;
 
-         case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.format_1:
-            console.log ('setExportFormat - format_1');
+         case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx:
+            console.log ('setExportFormat - alteryx');
             if (returnHeaders)
-               result = '##-GEOHEADER,Site Name,Site Description, Site Street,' +
+               result = '#V-GEOHEADER,Site Name,Site Description, Site Street,' +
                         'Site City,Site State,Zip,' +
                         'Site Address,Market,Market Code,'+
                         'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
-                        'Owner Trade Area,Owner Site,Include in Deduped Footprint,Base Count';
+                        'Owner Trade Area,EST GEO IP ADDRESSES,Owner Site,Include in Deduped Footprint,Base Count';
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
-                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,##-TRUNCATE_ZIP,' +
-                        '##-STREETADDRESS,impGeofootprintLocation.marketName, ,' +
-                        '10000,distance,##-IS_HOME_GEOCODE,null,0,' +
-                        'null,impGeofootprintLocation.locationNumber,1,null';
+                        'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,#V-TRUNCATE_ZIP,' +
+                        '#V-STREETADDRESS,impGeofootprintLocation.marketName,null,' +
+                        '#D-1,distance,#V-IS_HOME_GEOCODE,#V-IS_HOME_GEOCODE,#D-0,' +
+                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.locationNumber,#D-1,null';
          break;
       }
 
