@@ -15,6 +15,9 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { GeoFootPrint } from './geofootprint.service';
+import { AuthService } from './auth.service';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class MapService {
@@ -60,7 +63,9 @@ export class MapService {
                 private impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private config: AppConfig,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private impDiscoveryService: ImpDiscoveryService) {
+                private impDiscoveryService: ImpDiscoveryService,
+                private geoFootPrintService: GeoFootPrint,
+                private authService:    AuthService    ) {
       this.esriMapService.onReady$.subscribe(ready => {
         if (ready) {
           this.mapView = this.esriMapService.mapView;
@@ -2074,6 +2079,66 @@ export class MapService {
     }
 
     public removePoint(point: Points) {
+    }
+
+    async multiHomeGeocode(lyrList: __esri.FeatureLayer[], 
+                geometryList: __esri.Geometry[], extent: __esri.Extent){
+        console.log('multiHomeGeocode fired');
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [esriConfig, FeatureSet] 
+                = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
+             
+      // console.log('esriConfig:::', esriConfig);   
+       esriConfig.request.timeout = 600000;
+       const observables: Observable<__esri.FeatureSet>[] = new Array<Observable<__esri.FeatureSet>>();
+       let polyFeatureSetList: __esri.FeatureSet[] = [];
+       for (const lyr of lyrList){
+            const qry = lyr.createQuery();  
+            qry.geometry = extent;
+            if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
+                this.config.layerIds.dma.boundaries != lyr.portalItem.id){
+                    qry.outFields = ['geocode'];
+            }
+
+            if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+                qry.outFields = ['county_nam'];
+            }
+
+            if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+                qry.outFields = ['dma_name'];
+            }
+            //IPromise<__esri.FeatureSet>
+
+            await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                        console.log('polyFeatureSet::::', polyFeatureSet);
+                        polyFeatureSetList.push(polyFeatureSet);
+            });
+       }
+
+       /*Observable.forkJoin(observables).subscribe(res => {
+       });*/
+
+        /*const qry = lyr.createQuery();  
+        qry.geometry = extent;
+        if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
+            this.config.layerIds.dma.boundaries != lyr.portalItem.id){
+                 qry.outFields = ['geocode'];
+        }
+
+        if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+            qry.outFields = ['county_nam'];
+        }
+
+        if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+            qry.outFields = ['dma_name'];
+        }
+        let returnPolyFeatureSet: __esri.FeatureSet;
+        await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                    console.log('polyFeatureSet::::', polyFeatureSet);
+                    returnPolyFeatureSet = polyFeatureSet;
+         });*/
+
+        return polyFeatureSetList; 
     }
 
     async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
