@@ -12,7 +12,7 @@ export class ImpGeofootprintTradeArea
    public gtaId:                        number;                        /// Primary key, uniquely identifying a trade areas row
    public taNumber:                     number;                        /// Trade area number
    public taName:                       string;                        /// Trade area name
-   public taRadiu:                      number;                        /// Trade area radius
+   public taRadius:                     number;                        /// Trade area radius
    public taMinHhc:                     number;                        /// Trade area minimum hhc
    public taUseMinHhcInd:               number;                        /// Use minimum hhc indicator
    public taType:                       string;                        /// Trade area type (RADIUS, GEO_LIST, ...)
