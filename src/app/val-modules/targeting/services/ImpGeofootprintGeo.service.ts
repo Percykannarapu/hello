@@ -46,7 +46,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    // -----------------------------------------------------------
    // UTILITY METHODS
-   // -----------------------------------------------------------   
+   // -----------------------------------------------------------
+   public getFileName()
+   {
+      try
+      {
+         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13);
+
+         return 'GeoFootPrint_1_' + ((this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
+      }
+      catch(e)
+      {
+         return 'GeoFootPrint.csv';
+      }
+   }
+
    public exportCSV(filename:string, csvData: string[])
    {
       // Trap potential errors
@@ -213,6 +227,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          if (row != '')
             csvData.push(row);
       }
+
       return csvData;
    }
 
@@ -242,6 +257,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('dataStore.length: ' + this.length());
       const geos: ImpGeofootprintGeo[] = this.get()
       console.log('geos:', geos);
+
+      if (filename == null)
+         filename = this.getFileName();
 
       this.exportCSV(filename, this.prepareCSV(geos, columnHeaders, columnOrder));
    }
