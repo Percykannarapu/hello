@@ -56,7 +56,7 @@ export class EsriLayerService {
       expandTooltip: 'Expand LayerList',
     });
 
-    this.mapService.addWidget(layerListExpand, 'top-right');
+    this.mapService.addWidget(layerListExpand, 'top-left');
   }
 
   private onListItemCreated(event: any) : void {

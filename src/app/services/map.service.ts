@@ -279,7 +279,7 @@ export class MapService {
         // TODO: hard coded id is temporary
         this.layerService.initLayerList('colorSlider');
         this.esriMapService.addWidget(legend, 'top-left');
-        this.esriMapService.addWidget(bgExpand, 'bottom-right');
+        this.esriMapService.addWidget(bgExpand, 'top-left');
         this.esriMapService.addWidget(legendExpand, 'top-left');
         this.esriMapService.addWidget(home, 'top-left');
         /*US6650: nallana
@@ -385,6 +385,7 @@ export class MapService {
         // -----------------------------------------------------------------------------------
     }
 
+/*    
     // set active button
     public setActiveButton(selectedButton: any) {
         // focus the view to activate keyboard shortcuts for sketching
@@ -397,54 +398,72 @@ export class MapService {
             selectedButton.classList.add('active');
         }
     }
-
+*/
+    // set active button
+    public setActiveButton(event: MouseEvent) {
+        // focus the view to activate keyboard shortcuts for sketching
+        this.mapView.focus();
+        const elements: any = document.getElementsByClassName('active');
+        const el: any = document.getElementById(event.srcElement.id);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('active');
+        }
+        if (event) {
+            el.classList.add('active');
+        }    
+    }
+   
     // Toggle Polygon Selection Mode
-    public selectPolyButton() {
+    public selectPolyButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.SelectPoly;
+        this.setActiveButton(event); 
         this.toggleFeatureLayerPopups();
     }
 
     // Toggle Popups
-    public popupsButton() {
+    public popupsButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.Popups;
+        this.setActiveButton(event);
         this.toggleFeatureLayerPopups();
     }
 
     // Toggle Labels
-    public labelsButton() {
+    public labelsButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.Labels;
+        this.setActiveButton(event); 
     }
 
     // activate the sketch to create a point
-    public drawPointButton() {
-        // set the sketch to create a point geometry
+    public drawPointButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.DrawPoint;
+        this.setActiveButton(event);
+        // set the sketch to create a point geometry
         this.sketchViewModel.create('point');
-        this.setActiveButton(this);
     }
 
     // activate the sketch to create a polyline
-    public drawLineButton() {
-        // set the sketch to create a polyline geometry
+    public drawLineButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.DrawLine;
+        this.setActiveButton(event);
+        // set the sketch to create a polyline geometry
         this.sketchViewModel.create('polyline');
-        this.setActiveButton(this);
     }
 
     // activate the sketch to create a polygon
-    public drawPolygonButton() {
-        // set the sketch to create a polygon geometry
+    public drawPolygonButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.DrawPoly;
+        this.setActiveButton(event);
+        // set the sketch to create a polygon geometry
         this.sketchViewModel.create('polygon');
-        this.setActiveButton(this);
+        this.setActiveButton(event);
     }
 
     // remove all graphics
-    public removeGraphics() {
+    public removeGraphics(event: MouseEvent) {
         this.mapFunction = mapFunctions.RemoveGraphics;
+        this.setActiveButton(event);
         this.mapView.graphics.removeAll();
         this.sketchViewModel.reset();
-        this.setActiveButton(this);
     }
 
     /*

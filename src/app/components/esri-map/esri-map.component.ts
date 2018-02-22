@@ -144,7 +144,20 @@ export class EsriMapComponent implements OnInit {
     };
     const viewParams = {
       center: { longitude: -98.5795, latitude: 39.8282 },
-      zoom: 4
+      zoom: 4,
+      /*
+      extent: {
+        xmin: -178.227822,
+        ymin: 18.910787,
+        xmax: -66.95000499999999,
+        ymax: 71.39048199999999,
+        spatialReference: {
+          wkid: 4326
+        }
+      }, */
+      spatialReference: {
+        wkid: 102100
+      } 
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
     this.mapService.createMapView();
@@ -251,19 +264,20 @@ export class EsriMapComponent implements OnInit {
     view.on("mouse-wheel", this.stopEvtPropagation);
 
     // disable zooming via double-click on the view
-    view.on("double-click", this.stopEvtPropagation);
+    // view.on("double-click", this.stopEvtPropagation);
 
     // disable zooming out via double-click + Control on the view
-    view.on("double-click", ["Control"], this.stopEvtPropagation);
+    // view.on("double-click", ["Control"], this.stopEvtPropagation);
 
     // disables pinch-zoom and panning on the view
     // view.on("drag", this.stopEvtPropagation);
 
     // disable the view's zoom box to prevent the Shift + drag
     // and Shift + Control + drag zoom gestures.
-    view.on("drag", ["Shift"], this.stopEvtPropagation);
-    view.on("drag", ["Shift", "Control"], this.stopEvtPropagation);
+    // view.on("drag", ["Shift"], this.stopEvtPropagation);
+    // view.on("drag", ["Shift", "Control"], this.stopEvtPropagation);
 
+    /*
     // prevents zooming and rotation with the indicated keys
     view.on("key-down", (evt) => {
       var prohibitedKeys = ["+", "-", "_", "=", "a", "d"];
@@ -272,6 +286,7 @@ export class EsriMapComponent implements OnInit {
         evt.stopPropagation();
       }
     });
+    */  
 
     return view;
   }
