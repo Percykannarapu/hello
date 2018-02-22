@@ -209,8 +209,9 @@ export class GeocoderService {
       }
     });
     
-    const polyFeaturesetList = await this.mapService.multiHomeGeocode(fLyrList, geometryList, extent);
-    for (const polyFeatureSet of polyFeaturesetList){
+    //let polyFeaturesetList : __esri.FeatureSet[] = []; 
+     await this.mapService.multiHomeGeocode(fLyrList, geometryList, extent).then(resList => {
+        for (const polyFeatureSet of resList){
           if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('zip')){
             zipFeatureSet = polyFeatureSet;
           }
@@ -229,7 +230,11 @@ export class GeocoderService {
           if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('dma')){
             b_dmaFeatureSet = polyFeatureSet;
           }
-    }
+        }
+     });
+
+     
+    
    /* for (const lyr of fLyrList){
       if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
         await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
@@ -264,7 +269,7 @@ export class GeocoderService {
     }*/
 
     const geoCodedSiteList: GeocodingResponse[] = [];
-
+    console.log('processing sites::');
     for (const site of siteList) {
           let geoAttr: GeocodingAttributes;
           let home_geo_issue: string = 'N';
@@ -361,16 +366,11 @@ export class GeocoderService {
         for (const layer of list) {
           if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
             layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars ||
+            layer.portalItem.id === this.config.layerIds.pcr.topVars 
+            /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
             layer.portalItem.id === this.config.layerIds.dma.counties || 
-            layer.portalItem.id === this.config.layerIds.dma.boundaries)) {
+          layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
             fLyrList.push(layer);
-           /* const qry = layer.createQuery();
-            qry.outFields = ['geocode'];
-            layer.queryFeatures(qry).then( feaureSet => {
-                  console.log ('feaureSet details::::' , feaureSet);
-            });*/
           }
         }
       }
@@ -403,13 +403,13 @@ export class GeocoderService {
               geoAttr.attributeValue = home_geo;
               site.geocodingAttributesList.push(geoAttr);
             }
-            if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
-              geoAttr.attributeName = 'Home DIGITAL ATZ';
+            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
+              geoAttr.attributeName = 'HOME PCR';
               geoAttr.attributeValue = home_geo;
               site.geocodingAttributesList.push(geoAttr);
             }
-            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
-              geoAttr.attributeName = 'HOME PCR';
+           /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
+              geoAttr.attributeName = 'Home DIGITAL ATZ';
               geoAttr.attributeValue = home_geo;
               site.geocodingAttributesList.push(geoAttr);
             }
@@ -422,7 +422,7 @@ export class GeocoderService {
               geoAttr.attributeName = 'HOME DMA';
               geoAttr.attributeValue = home_geo;
               site.geocodingAttributesList.push(geoAttr);
-            }
+            }*/
           });
         }
 

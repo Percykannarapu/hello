@@ -2122,8 +2122,8 @@ export class MapService {
 
       // console.log('esriConfig:::', esriConfig);
        esriConfig.request.timeout = 600000;
-       const observables: Observable<__esri.FeatureSet>[] = new Array<Observable<__esri.FeatureSet>>();
-       let polyFeatureSetList: __esri.FeatureSet[] = [];
+       
+       let polyFeatureSetList: Promise<__esri.FeatureSet>[] = [];
        for (const lyr of lyrList){
             const qry = lyr.createQuery();
             qry.geometry = extent;
@@ -2140,12 +2140,15 @@ export class MapService {
                 qry.outFields = ['dma_name'];
             }
             //IPromise<__esri.FeatureSet>
-
-            await lyr.queryFeatures(qry).then(polyFeatureSet => {
+            polyFeatureSetList.push(lyr.queryFeatures(qry) as any);
+           /* await lyr.queryFeatures(qry).then(polyFeatureSet => {
                         console.log('polyFeatureSet::::', polyFeatureSet);
-                        polyFeatureSetList.push(polyFeatureSet);
-            });
+                       // polyFeatureSetList.push(polyFeatureSet);
+            });*/
        }
+
+       return Promise.all(polyFeatureSetList);
+
 
        /*Observable.forkJoin(observables).subscribe(res => {
        });*/
@@ -2170,7 +2173,7 @@ export class MapService {
                     returnPolyFeatureSet = polyFeatureSet;
          });*/
 
-        return polyFeatureSetList;
+      //  return polyFeatureSetList; 
     }
 
     async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
@@ -2214,10 +2217,11 @@ export class MapService {
                 if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
-                if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+                if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
-                if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+
+               /* if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
                     homeGeocodeMap.set('home_geo' , homeGeocode);
                 }
                 if (this.config.layerIds.dma.counties === lyr.portalItem.id){
@@ -2225,7 +2229,7 @@ export class MapService {
                 }
                 if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
                     homeGeocodeMap.set('home_geo' , dmaName);
-                }
+                }*/
 
         });
         return homeGeocodeMap;
