@@ -149,6 +149,7 @@ import {UploadLocationsComponent} from './components/upload-locations/upload-loc
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
+import {ImpGeofootprintTradeAreaService} from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
@@ -294,7 +295,7 @@ import { RadService } from './services/rad.service';
         GfGeoService, MapService, RestDataService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
-        ImpGeofootprintLocationService, ImpGeofootprintGeoService,
+        ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint, 
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,

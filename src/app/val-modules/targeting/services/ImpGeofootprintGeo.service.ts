@@ -1,5 +1,4 @@
-import { ImpDiscoveryUI } from './../../../models/ImpDiscoveryUI';
-import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
+import { ImpGeofootprintTradeArea } from './../models/ImpGeofootprintTradeArea';
 /** A TARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
  **
  ** This class contains code operates against data in its data store.
@@ -11,7 +10,10 @@ import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service'
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
+import { ImpDiscoveryUI } from './../../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
@@ -32,12 +34,14 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
    private impDiscoveryUI: ImpDiscoveryUI;
+   private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
-   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService)
+   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService, impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService)
    {
       super(restDataService, dataUrl);
 
       impDiscoveryService.storeObservable.subscribe(discoveryData => this.onChangeDiscovery(discoveryData[0]));
+      impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
    }
 
    // -----------------------------------------------------------
@@ -112,8 +116,23 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
          case '#V-OWNER_TRADE_AREA':
          // Column P - Owner Trade Area - the corresponding TA # 1/2/3 - Can calculate with distance:
-         // if distance is less than TA1 radius, return a 1, if distance is between TA1 and TA2 radius, return a 2, if distance is > than TA 2, return a 3. What to do if the user selected a geo very far outside the TA1 or 2? Leave blank, say "Custom", or return a 3 for now?         
-         //   if (geo.distance < )
+         // if distance is less than TA1 radius, return a 1, if distance is between TA1 and TA2 radius, return a 2,
+         // if distance is > than TA 2, return a 3. 
+         //What to do if the user selected a geo very far outside the TA1 or 2? Leave blank, say "Custom", or return a 3 for now?         
+            if (this.impGeofootprintTradeAreas == null)
+               varValue = null;
+            else
+               if (geo.distance < this.impGeofootprintTradeAreas[0].taRadius)
+                  varValue = 1;
+               else
+                  if (geo.distance >= this.impGeofootprintTradeAreas[0].taRadius &&
+                     geo.distance <= this.impGeofootprintTradeAreas[1].taRadius)
+                     varValue = 2
+                  else
+                     if (geo.distance > this.impGeofootprintTradeAreas[1].taRadius)
+                        varValue = 3;
+                     else
+                        varValue = null;
             break;
             
          default:
@@ -204,6 +223,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public onChangeDiscovery(impDiscoveryUI: ImpDiscoveryUI)
    {
       this.impDiscoveryUI = impDiscoveryUI;
+   }
+
+   public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
+   {
+      this.impGeofootprintTradeAreas = impGeofootprintTradeAreas;
    }
 
    // -----------------------------------------------------------

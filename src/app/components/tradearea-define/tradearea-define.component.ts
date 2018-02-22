@@ -6,6 +6,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppConfig } from '../../app.config';
+import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -47,6 +49,7 @@ export class TradeareaDefineComponent implements OnInit {
         private mapService: MapService,
         private messageService: MessageService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
+        private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
         private config: AppConfig
     ) { }
 
@@ -345,7 +348,18 @@ export class TradeareaDefineComponent implements OnInit {
                 this.displayDBSpinner = false;
             });
 
+      // --------------------------------------------------------------------------------
+      // THIS IS TEMPORARY
+      // TODO: Implement real solution when we have time
+      // Add the trade areas to the ImpGeofootprintTradeArea data store manually for now
+      // --------------------------------------------------------------------------------
+      const tradeAreas: ImpGeofootprintTradeArea[] = 
+          [new ImpGeofootprintTradeArea({ gtaId: 1, taNumber: 1, taName: 'Trade Area 1', taRadius: this.ta1Miles }),
+           new ImpGeofootprintTradeArea({ gtaId: 2, taNumber: 2, taName: 'Trade Area 2', taRadius: this.ta2Miles }),
+           new ImpGeofootprintTradeArea({ gtaId: 3, taNumber: 3, taName: 'Trade Area 3', taRadius: this.ta3Miles })];
 
+      this.impGeofootprintTradeAreaService.clearAll();
+      this.impGeofootprintTradeAreaService.add(tradeAreas);
     }
 
     /*
