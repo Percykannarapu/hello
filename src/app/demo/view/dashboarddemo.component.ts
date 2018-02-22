@@ -81,8 +81,8 @@ export class DashboardDemoComponent implements OnInit {
         this.metricMapBlue = new Map([
             ['Household Count', MapService.hhDetails.toString()],
             ['IP Address Count', MapService.hhIpAddress.toString()],
-            ['Total Investment', '$7,476'],
-            ['Progress to Budget', '83%']
+            ['Total Investment', MapService.totInvestment.toString()],
+            ['Progress to Budget', MapService.proBudget.toString()]
         ]);
 
         this.metricMapPurple = new Map([

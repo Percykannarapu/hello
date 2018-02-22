@@ -141,8 +141,11 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               MapService.hhIpAddress = 0;
               MapService.medianHHIncome = '0';
               MapService.hhChildren = 0;
+              MapService.proBudget = '0';
               this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
               this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+              this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
+              this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
               this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
               this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
               this.impGeofootprintGeoService.clearAll();
