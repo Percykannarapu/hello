@@ -70,7 +70,7 @@ export class RadService {
           if (Number.isNaN(predictedResponse)) {
             this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
           } else {
-          this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
           }
 
           //Calculate Predicted Topline Sales Generated
@@ -79,17 +79,21 @@ export class RadService {
           if (Number.isNaN(toplineSales)) {
             this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
           } else {
-          this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
           }
 
           //Calculate Predicted ROI
           const discoveryData = this.impDiscoveryService.get();
-          let predictedROI = toplineSales - (discoveryData[0].cpm * hhCount / 1000);
-          predictedROI = Math.round(predictedROI);
-          if (Number.isNaN(predictedROI)) {
-            this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+          if (discoveryData[0].cpm != null) {
+            let predictedROI = toplineSales - (discoveryData[0].cpm * hhCount / 1000);
+            predictedROI = Math.round(predictedROI);
+            if (Number.isNaN(predictedROI)) {
+              this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+            } else {
+              this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            }
           } else {
-          this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
           }
         } catch (error) {
           this.handleError(error);
