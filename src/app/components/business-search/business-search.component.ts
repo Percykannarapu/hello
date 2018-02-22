@@ -12,6 +12,8 @@ import { forEach } from '@angular/router/src/utils/collection';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
+import { GeocoderService } from '../../services/geocoder.service';
+import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 
 
 @Component({
@@ -51,8 +53,12 @@ export class BusinessSearchComponent implements OnInit {
   showLoader: boolean = false;
 
 
-  constructor(private appService: AppService, private mapService: MapService,
-    private messageService: MessageService, private amSiteService: AmSiteService) {
+  constructor(private geocoderService: GeocoderService,
+    private appService: AppService,
+    private mapService: MapService,
+    private geocodingRespService: GeocodingResponseService,
+    private messageService: MessageService,
+    private amSiteService: AmSiteService) {
     //Dropdown data
 
     this.dropdownList = [
@@ -185,7 +191,7 @@ export class BusinessSearchComponent implements OnInit {
 
   }
 
-  private parseCsvResponse(restResponses: any[]): GeocodingResponse[] {
+  private parseCsvResponse(restResponses: any[]) : GeocodingResponse[] {
     const geocodingResponseList: GeocodingResponse[] = [];
     const geocodingResponse: GeocodingResponse[] = restResponses;
     for (const restResponse of geocodingResponse) {
@@ -200,10 +206,11 @@ export class BusinessSearchComponent implements OnInit {
         geocodingAttrList.push(geocodingAttr);
       }
       restResponse.geocodingAttributesList = geocodingAttrList;
+      geocodingResponseList.push(restResponse);
 
     }
-
-    return geocodingResponse;
+    console.log('geocodingresponselist', geocodingResponseList);
+    return geocodingResponseList;
   }
 
   // For Enabling selectall functionality for the business found
@@ -220,7 +227,9 @@ export class BusinessSearchComponent implements OnInit {
           state: cat.state,
           zip: cat.zip,
           latitude: cat.y,
-          longitude: cat.x
+          longitude: cat.x,
+          number: this.geocodingRespService.getNewSitePk().toString(),
+          status: 'PROVIDED'
         };
 
         this.plottedPoints.push(objname);
@@ -241,8 +250,12 @@ export class BusinessSearchComponent implements OnInit {
           state: obj.state,
           zip: obj.zip,
           latitude: obj.y,
-          longitude: obj.x
+          longitude: obj.x,
+          number: this.geocodingRespService.getNewSitePk().toString(),
+          status: 'PROVIDED'
         };
+        // console.log('Obj', obj);
+        // console.log('Obj', objname);
         this.plottedPoints.push(objname);
         //geocodingResponseList.push(this.plottedPoints);
       }
@@ -306,18 +319,21 @@ export class BusinessSearchComponent implements OnInit {
           });
       }
     }
-    if (selector === 'Competitor') {
-      this.amSiteService.addCompetitors(this.plottedPoints);
-      //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
-      console.log('Adding competitors from store search');
-      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS, true);
-      this.appService.closeOverLayPanel.next(true);
-    } else if (selector === 'Site') {
-      this.amSiteService.add(this.parseCsvResponse(this.plottedPoints));
-      //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
-      console.log('adding sites from store search');
-      await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
-      this.appService.closeOverLayPanel.next(true);
-    }
+    //this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
+    //console.log('this.plottedpoints', this.plottedPoints);
+    this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector);
+    this.appService.closeOverLayPanel.next(true);
+    // if (selector === 'Competitor') {
+    //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
+    //   console.log('Adding competitors from store search');
+    //   await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS, true);
+    //   this.appService.closeOverLayPanel.next(true);
+    // } else if (selector === 'Site') {
+    //   //this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector);
+    //   //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
+    //   console.log('adding sites from store search');
+    //   await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
+    //   this.appService.closeOverLayPanel.next(true);
+    // }
   }
 }

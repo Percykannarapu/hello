@@ -368,6 +368,7 @@ export class UploadLocationsComponent implements OnInit {
         geocodingResponseList = await this.mapService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
+      //console.log('geocodingResponseList', geocodingResponseList);
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
@@ -439,6 +440,7 @@ export class UploadLocationsComponent implements OnInit {
         geocodingResponseList = await this.mapService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
+      //console.log('geocodingResponseList', geocodingResponseList);
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.displayGcSpinner = false;
       this.handleMsg = true;

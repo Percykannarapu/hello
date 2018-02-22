@@ -300,13 +300,15 @@ export class MapService {
         */
 
         // Add widgets to the viewUI
+        this.esriMapService.addWidget(home, 'top-left');
         this.esriMapService.addWidget(searchExpand, 'top-left');
+
         // TODO: hard coded id is temporary
         this.layerService.initLayerList('colorSlider');
-        this.esriMapService.addWidget(legend, 'top-left');
-        this.esriMapService.addWidget(bgExpand, 'top-left');
+
+        //this.esriMapService.addWidget(legend, 'top-left');
         this.esriMapService.addWidget(legendExpand, 'top-left');
-        this.esriMapService.addWidget(home, 'top-left');
+        this.esriMapService.addWidget(bgExpand, 'top-left');
         /*US6650: nallana
         --Removing the demo content
         --We need to keep this content for enhancements,
