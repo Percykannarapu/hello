@@ -36,7 +36,7 @@ export class DiscoveryInputComponent implements OnInit
 
    products: Product[];
    selectedProduct: Product;
-   
+
    radData: ImpRadLookup[];
    selectedRadLookup: ImpRadLookup;
    radDisabled: boolean = true;
@@ -45,29 +45,33 @@ export class DiscoveryInputComponent implements OnInit
 
    categories: Category[];
    selectedCategory: Category;
-   
+
    public analysisLevels: SelectItem[];
-   selectedAnalysisLevel: SelectItem;
+   public selectedAnalysisLevel: SelectItem;
 
    seasons: SelectItem[];
    selectedSeason: String;
-   
+
    summer: boolean = true;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impDiscoveryService: ImpDiscoveryService, public impRadLookupService: ImpRadLookupService, private appState: AppState, private mapservice: MapService)
+   constructor(public impDiscoveryService: ImpDiscoveryService, 
+               public impRadLookupService: ImpRadLookupService, 
+               private appState: AppState, private mapservice: MapService)
    {
+      //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
+
       this.products = [
-         {productName: 'Display Advertising',         productCode: 'SM Insert'},
-         {productName: 'Email',                       productCode: 'SM Insert'},
-         {productName: 'Insert - Newspaper',          productCode: 'NP Insert'},
-         {productName: 'Insert - Shared Mail',        productCode: 'SM Insert'},
-         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'SM Insert'},
+         {productName: 'Display Advertising',         productCode: 'DISPLAY'},
+         {productName: 'Email',                       productCode: 'EMAIL'},
+         {productName: 'Insert - Newspaper',          productCode: 'INS_NEWS'},
+         {productName: 'Insert - Shared Mail',        productCode: 'INS_SHARED'},
+         {productName: 'RedPlum Plus Dynamic Mobile', productCode: 'RPDM'},
          {productName: 'Variable Data Postcard',      productCode: 'VDP'},
-         {productName: 'VDP + Email',                 productCode: 'SM Postcard'},
-         {productName: 'Red Plum Wrap',               productCode: 'SM Wrap'}
+         {productName: 'VDP + Email',                 productCode: 'VDP_EMAIL'},
+         {productName: 'Red Plum Wrap',               productCode: 'WRAP'}
       ];
 
       this.categories = [
@@ -103,7 +107,7 @@ export class DiscoveryInputComponent implements OnInit
          {label: 'Summer', value: 'SUMMER'},
          {label: 'Winter', value: 'WINTER'}
       ];
-      
+
       // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       // console.log('DiscoveryInputComponent constructed');
    }
@@ -111,7 +115,7 @@ export class DiscoveryInputComponent implements OnInit
    ngOnInit()
    {
       // Set default values
-      this.selectedAnalysisLevel = this.analysisLevels[0];
+      this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
 
       // If the current date + 28 days is summer
@@ -137,16 +141,16 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
 
    public onAnalysisSelectType(event: SelectItem) {
-         console.log('Analysis level:::' , event.value);
-         this.selectedAnalysisLevel = event.value;
-         //MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
-         this.impDiscoveryUI.analysisLevel = this.selectedAnalysisLevel.value;
+         console.log('Analysis level:::' , event);
+         this.selectedAnalysisLevel = event;
+         this.impDiscoveryUI.analysisLevel = event.value;
+         this.onChangeField(null);
    }
 
    private handleError (error: any) {
       console.error(error);
       return Observable.throw(error);
-   }   
+   }
 
    // Used to make categories dependent on the value in products
    public filterCategories(productCode: string)
@@ -168,7 +172,7 @@ export class DiscoveryInputComponent implements OnInit
       const today: Date = new Date(startDate);
       today.setDate(today.getDate() + plusDays);
 //    console.log('today + ' + plusDays + ' = ' + today + ', month: ' + today.getMonth());
-      
+
       // May(4) - September (8) is Summer
       if (today.getMonth() >= 4 && today.getMonth() <= 8)
          return true;
@@ -193,7 +197,7 @@ export class DiscoveryInputComponent implements OnInit
 //    console.log('discovery-input.component - onChangeDiscovery - After:  ', this.impDiscoveryUI);
 //    console.log('----------------------------------------------------------------------------------------');
    }
-   
+
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
@@ -219,7 +223,7 @@ export class DiscoveryInputComponent implements OnInit
       }
 
       this.onChangeField(event);
-   }   
+   }
 
    fetchRadData() {
       console.log('discovery-input-component calling imsRadLookupStore.get');
@@ -249,16 +253,16 @@ export class DiscoveryInputComponent implements OnInit
       const impRadLookup2: ImpRadLookup = new ImpRadLookup();
       impRadLookup.radId = 142;
       impRadLookup.category = 'Save the Sharks button';
-      
+
       const impRadLookups: ImpRadLookup[] = [new ImpRadLookup({radId: 99, category: 'Shark Week DvDs', product: null}),
-                                             new ImpRadLookup({radId: 120, category: 'Kung Fu Shrimp Backpack'}), 
+                                             new ImpRadLookup({radId: 120, category: 'Kung Fu Shrimp Backpack'}),
                                              new ImpRadLookup({radId: 142, category: 'Save the Sharks button'})];
 
       this.impRadLookupService.add(impRadLookups, this.addPreOp2);
 
    //   add(impRadLookups: ImpRadLookup[], preOperation?: callbackElementType, postOperation?: callbackSuccessType)
    }
-   
+
    addPreOp (impRadLookup: ImpRadLookup) : boolean
    {
       console.log('Fired addPreOp on ', impRadLookup);
@@ -305,7 +309,7 @@ export class DiscoveryInputComponent implements OnInit
 
    debugLogStore() {
       this.impRadLookupService.debugLogStore();
-   }   
+   }
 
    // -----------------------------------------------------------
    // UNIT TEST METHODS (MOVE SOMEWHERE ELSE)
@@ -314,7 +318,7 @@ export class DiscoveryInputComponent implements OnInit
    {
       const newDate: Date = new Date(aDate);
       newDate.setDate(aDate.getDate() + 28);
-      console.log(aDate + ' plus ' + numDays + ' days ' + newDate + ', isSummer = ' + this.isSummer(aDate, numDays));      
+      console.log(aDate + ' plus ' + numDays + ' days ' + newDate + ', isSummer = ' + this.isSummer(aDate, numDays));
    }
 
    unitTestIsSummer()

@@ -363,17 +363,15 @@ export class UploadLocationsComponent implements OnInit {
     }
 
     if (display) {
-      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
       if (this.selector === 'Site'){
         this.displaySpinnerMessage = 'Calculating Home Geocodes';
-        geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+        geocodingResponseList = await this.geocoderService.calcMultiPointHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
       
-      //this.messageService.add({ severity: 'success', summary: 'Geocoded Successfully', detail: `Success` });
     }
     this.handleMessages(); //Show messages after the geocoding is done
     return geocodingResponseList;
@@ -435,14 +433,13 @@ export class UploadLocationsComponent implements OnInit {
       // }
     }
     if (display) {
-      // console.log('sites list structure:::' + JSON.stringify(geocodingResponseList, null, 2));
-      this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
+      
       if (this.selector === 'Site'){
-       // await this.geocoderService.calculateHomeGeo(geocodingResponseList);
+        this.displaySpinnerMessage = 'Calculating Home Geocodes';
         geocodingResponseList = await this.geocoderService.calculateHomeGeo(geocodingResponseList);
         this.mapService.callTradeArea();
       }
-      //Hide the spinner on error
+      this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       this.displayGcSpinner = false;
       this.handleMsg = true;
       this.handleMessages();

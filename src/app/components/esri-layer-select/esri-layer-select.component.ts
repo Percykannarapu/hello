@@ -11,6 +11,8 @@ import {SelectItem} from 'primeng/primeng';
 import { AppConfig } from '../../app.config';
 import { MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -35,12 +37,14 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private metricService: MetricService,
               private esriMapService: EsriMapService, 
-              private modules: EsriModules) {
+              private modules: EsriModules,
+              public impDiscoveryService: ImpDiscoveryService) {
       this.mapView = this.mapService.getMapView();
     }
 
   public ngOnInit() {
     console.log ('fired esri-layer-select.ngOnInit()');
+    //console.log('selectedTargetAnalysisLevels', this.layerService.selectedTargetAnalysisLevels);
   }
   
   public ngAfterViewInit() /*ngOnInit()*/ {

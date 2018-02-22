@@ -37,7 +37,7 @@ export class RadService {
   /**
    * get the discovery data from the ImpDiscoveryService
    */
-  private getDiscoveryData() : any {
+  private getDiscoveryData(): any {
     const discoveryData: Array<ImpDiscoveryUI> = this.impDiscoveryService.get();
     return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryCode };
   }
@@ -54,32 +54,68 @@ export class RadService {
     if (this.radData != null) {
       this.filteredRadData = this.radData.filter(f => f.category === discoveryData.category.name && f.product === discoveryData.product.productCode);
     }
+
+    //If we have valid RAD data and a household count available then we can recalculate the performance metrics
+    /*console.log('determing whether to recalculate metrics');
+    if(this.filteredRadData != null && this.filteredRadData.length > 0) {
+      if(this.metricService.metrics.has('CAMPAIGN')) {
+        const perfMetrics = this.metricService.metrics.get('CAMPAIGN');
+        if(perfMetrics.has('Household Count')) {
+          const hhc = perfMetrics.get('Household Count');
+          const metricMessage: MetricMessage = new MetricMessage(MetricOperations.ADD, 'CAMPAIGN', 'Household Count', hhc);
+          console.log('recalculating metrics');
+          this.calculateMetrics(metricMessage);
+        }
+      }
+    }*/
   }
 
   /**
-   * Calculate the predicted response and send it to the metric service
+   * Calculate the performance metrics and send them to the metric service
    */
   private calculateMetrics(metricMessage: MetricMessage) {
     if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Household Count') {
-      try {
-        //Calculate the predicted response
-        const hhCount: number = Number(metricMessage.value.replace(',', ''));
-        let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
-        predictedResponse = Math.round(predictedResponse);
-        this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+      if (this.filteredRadData != null && this.filteredRadData.length > 0) {
+        try {
+          //Calculate the predicted response
+          const hhCount: number = Number(metricMessage.value.replace(',', ''));
+          let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
+          predictedResponse = Math.round(predictedResponse);
+          if (Number.isNaN(predictedResponse)) {
+            this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
+          } else {
+            this.metricService.add('PERFORMANCE', 'Predicted Response', predictedResponse.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          }
 
-        //Calculate Predicted Topline Sales Generated
-        let toplineSales = predictedResponse * this.filteredRadData[0].avgTicket;
-        toplineSales = Math.round(toplineSales);
-        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          //Calculate Predicted Topline Sales Generated
+          let toplineSales = predictedResponse * this.filteredRadData[0].avgTicket;
+          toplineSales = Math.round(toplineSales);
+          if (Number.isNaN(toplineSales)) {
+            this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
+          } else {
+            this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          }
 
-        //Calculate Predicted ROI
-        const discoveryData = this.impDiscoveryService.get();
-        let predictedROI = toplineSales - discoveryData[0].totalBudget;
-        predictedROI = Math.round(predictedROI);
-        this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-      } catch (error) {
-        this.handleError(error);
+          //Calculate Predicted ROI
+          const discoveryData = this.impDiscoveryService.get();
+          if (discoveryData[0].cpm != null) {
+            let predictedROI = toplineSales - (discoveryData[0].cpm * hhCount / 1000);
+            predictedROI = Math.round(predictedROI);
+            if (Number.isNaN(predictedROI)) {
+              this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+            } else {
+              this.metricService.add('PERFORMANCE', 'Predicted ROI', '$' + predictedROI.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            }
+          } else {
+            this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+          }
+        } catch (error) {
+          this.handleError(error);
+        }
+      } else {
+        this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
+        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
+        this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
       }
     }
   }

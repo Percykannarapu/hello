@@ -5,6 +5,7 @@ import { LayerState, SmartMappingTheme } from '../models/LayerState';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import {SelectItem} from 'primeng/primeng';
 import { AppConfig } from '../app.config';
 
 @Injectable()

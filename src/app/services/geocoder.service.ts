@@ -13,6 +13,8 @@ import { DefaultLayers } from '../models/DefaultLayers';
 import { GeocodingAttributes } from '../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../val-modules/targeting/services/GeocodingResponse.service';
 import { AppConfig } from '../app.config';
+import { Points } from '../models/Points';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class GeocoderService {
@@ -27,7 +29,8 @@ export class GeocoderService {
   constructor(public geocodingRespService: GeocodingResponseService,
               public http: HttpClient,
               private mapService: MapService,
-              private config: AppConfig) { //private messageService: MessageService,
+              private config: AppConfig,
+              private authService: AuthService) { //private messageService: MessageService,
     console.log('Fired GeocoderService ctor');
   }
 
@@ -139,6 +142,208 @@ export class GeocoderService {
     return;
   }
 
+  async calcMultiPointHomeGeo(siteList: GeocodingResponse[]){
+    const loader = EsriLoaderWrapperService.esriLoader;
+        const [geometryEngine, Extent] 
+                = await loader.loadModules(['esri/geometry/geometryEngine', 'esri/geometry/Extent']);
+    console.log('calcMultiPointHomeGeo:::');
+    let zipFeatureSet: __esri.FeatureSet = null;
+    let atzFeatureSet: __esri.FeatureSet = null;
+    let pcrFeatureSet: __esri.FeatureSet = null;
+    let d_atzFeatureSet: __esri.FeatureSet = null;
+    let b_dmaFeatureSet: __esri.FeatureSet = null;
+    let c_dmaFeatureSet: __esri.FeatureSet = null;
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+    };
+    let geometryList: __esri.Geometry[] = []; 
+    const latList: number[] = [];
+    const lonList: number[] = [];  
+    for(const pt of siteList){
+        lonList.push(pt.longitude);   /// this is X
+        latList.push(pt.latitude);   /// this is y
+      
+        await this.mapService.createGraphic(pt.latitude, pt.longitude, color).then(res => {
+          geometryList.push(res.geometry);
+        });
+    }
+    
+    const minX = Math.min(...lonList);
+    const minY = Math.min(...latList);
+    const maxX = Math.max(...lonList);
+    const maxY = Math.max(...latList);
+    let extent: __esri.Extent;
+    extent = new Extent({
+      xmin: minX,
+      ymin: minY,
+      xmax: maxX,
+      ymax: maxY,
+      spatialReference: {
+          wkid: 4326
+      }
+    });
+    if (extent.width === 0) {
+      extent.xmin = extent.xmin - 0.15;
+      extent.xmax = extent.xmax + 0.15;
+    }
+    if (extent.height === 0) {
+        extent.ymin = extent.ymin - 0.15;
+        extent.ymax = extent.ymax + 0.15;
+    }
+    const fLyrList: __esri.FeatureLayer[] = [];
+    await this.mapService.getAllFeatureLayers().then(list => {
+      if (list.length > 0) {
+        for (const layer of list) {
+          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
+            layer.portalItem.id === this.config.layerIds.atz.topVars ||
+            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
+            layer.portalItem.id === this.config.layerIds.pcr.topVars ||
+            layer.portalItem.id === this.config.layerIds.dma.counties || 
+            layer.portalItem.id === this.config.layerIds.dma.boundaries)) {
+               fLyrList.push(layer);
+          }
+        }
+      }
+    });
+    
+    const polyFeaturesetList = await this.mapService.multiHomeGeocode(fLyrList, geometryList, extent);
+    for (const polyFeatureSet of polyFeaturesetList){
+          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('zip')){
+            zipFeatureSet = polyFeatureSet;
+          }
+          if(polyFeatureSet.features[0].layer.title === 'ATZ_Top_Vars_CopyAllData'){
+            atzFeatureSet = polyFeatureSet;
+          }
+          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('pcr')){
+            pcrFeatureSet = polyFeatureSet;
+          }
+          if(polyFeatureSet.features[0].layer.title === 'DIG_ATZ_Top_Vars_CopyAllData'){
+            d_atzFeatureSet = polyFeatureSet;
+          }
+          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('county')){
+            c_dmaFeatureSet = polyFeatureSet;
+          }
+          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('dma')){
+            b_dmaFeatureSet = polyFeatureSet;
+          }
+    }
+   /* for (const lyr of fLyrList){
+      if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('zipFeatureSet::::' , res);
+          zipFeatureSet = res;});
+      }
+      if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('atzFeatureSet::::' , res);
+          atzFeatureSet = res;});
+      }
+      if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('pcrFeatureSet::::' , res);
+          pcrFeatureSet = res;});
+      }
+      if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('d_atzFeatureSet::::' , res);
+          d_atzFeatureSet = res;});
+      }
+      if (lyr.portalItem.id === this.config.layerIds.dma.boundaries){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('b_dmaFeatureSet::::' , res);
+          b_dmaFeatureSet = res;});
+      }
+      if (lyr.portalItem.id === this.config.layerIds.dma.counties){
+        await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
+          console.log('c_dmaFeatureSet::::' , res);
+          c_dmaFeatureSet = res;});
+      }
+    }*/
+
+    const geoCodedSiteList: GeocodingResponse[] = [];
+
+    for (const site of siteList) {
+          let geoAttr: GeocodingAttributes;
+          let home_geo_issue: string = 'N';
+          let graphic: __esri.Graphic;
+          await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
+            graphic = res;
+          });
+          for (const lyr of fLyrList){
+            geoAttr = new GeocodingAttributes();
+            if (lyr.portalItem.id === this.config.layerIds.dma.counties){
+                for (const graphic1 of c_dmaFeatureSet.features){
+                    if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                        geoAttr.attributeName = 'HOME COUNTY';
+                        geoAttr.attributeValue = graphic1.attributes.county_nam;
+                        site.geocodingAttributesList.push(geoAttr);
+                    }
+                }
+            }
+            if (lyr.portalItem.id === this.config.layerIds.dma.boundaries){
+              for (const graphic1 of b_dmaFeatureSet.features){
+                  if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                      geoAttr.attributeName = 'HOME DMA';
+                      geoAttr.attributeValue = graphic1.attributes.dma_name;
+                      site.geocodingAttributesList.push(geoAttr);
+                  }
+              }
+            }
+            if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+              for (const graphic1 of d_atzFeatureSet.features){
+                  if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                      geoAttr.attributeName = 'HOME DIGITAL ATZ';
+                      geoAttr.attributeValue = graphic1.attributes.geocode;
+                      site.geocodingAttributesList.push(geoAttr);
+                  }
+              }
+            }
+            if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
+              for (const graphic1 of atzFeatureSet.features){
+                  if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                      geoAttr.attributeName = 'HOME ATZ';
+                      geoAttr.attributeValue = graphic1.attributes.geocode;
+                      site.geocodingAttributesList.push(geoAttr);
+                  }
+              }
+            }
+            if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
+              for (const graphic1 of zipFeatureSet.features){
+                  if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                      geoAttr.attributeName = 'HOME ZIP';
+                      geoAttr.attributeValue = graphic1.attributes.geocode;
+                      site.geocodingAttributesList.push(geoAttr);
+                  }
+              }
+            }
+            if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+              for (const graphic1 of pcrFeatureSet.features){
+                  if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
+                      geoAttr.attributeName = 'HOME PCR';
+                      geoAttr.attributeValue = graphic1.attributes.geocode;
+                      site.geocodingAttributesList.push(geoAttr);
+                  }
+              }
+            }
+          }
+      geoCodedSiteList.push(site);  
+    }  
+    return geoCodedSiteList;
+  }
+
+ /* async getToken() {
+    let token = null; 
+    await this.authService.getOAuthToken('reddyn','password').toPromise().then(tokenResponse => {
+         console.log('tokenResponse::', tokenResponse);
+         token = tokenResponse.access_token;
+     });
+     console.log('token:::', token);
+     return token;
+  }*/
+
    //Calculate home geos for the response list
    async calculateHomeGeo(siteList: GeocodingResponse[])  {
     console.log('calculateHomeGeo::');
@@ -180,8 +385,6 @@ export class GeocoderService {
       //this.displaySpinnerMessage = 'Calculating Home Geocodes';
       try{
         for (const llyr of fLyrList) {
-          
-  
           let home_geo = null;
           geoAttr = new GeocodingAttributes();
           let graphic: __esri.Graphic;

@@ -16,14 +16,15 @@ const dataUrl = '';
 @Injectable()
 export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 {
+    
    constructor(private restDataService: RestDataService) {
       super(restDataService, dataUrl); 
 
-      const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
+       const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
          {
             productCode:          'Email',
             industryCategoryCode: '',
-            analysisLevel:        'ZIP',
+            analysisLevel:        '',
             selectedSeason:       'WINTER',
             cpm:                  null,
             totalBudget:          null,

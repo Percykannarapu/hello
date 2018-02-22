@@ -15,6 +15,9 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { GeoFootPrint } from './geofootprint.service';
+import { AuthService } from './auth.service';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class MapService {
@@ -60,7 +63,9 @@ export class MapService {
                 private impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private config: AppConfig,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private impDiscoveryService: ImpDiscoveryService) {
+                private impDiscoveryService: ImpDiscoveryService,
+                private geoFootPrintService: GeoFootPrint,
+                private authService:    AuthService    ) {
       this.esriMapService.onReady$.subscribe(ready => {
         if (ready) {
           this.mapView = this.esriMapService.mapView;
@@ -572,11 +577,18 @@ export class MapService {
         let PopupTitle: string;
         let layerVisible: boolean = true;
 
+        // const fromPortal = id => {
+        //   return (new EsriModules.FeatureLayer({
+        //     portalItem: {
+        //       id: id
+        //     }
+        //   })).load();
+        // };
+
         const fromPortal = id => EsriModules.Layer.fromPortalItem(<any>{
-            portalItem: {
-                portal: this.config.esriConfig.portalUrl,
-                id: id
-            }
+          portalItem: {
+            id: id
+          }
         });
 
         // Add this action to the popup so it is always available in this view
@@ -657,9 +669,10 @@ export class MapService {
                         const layers: any[] = Object.values(this.config.layerIds.zip).filter(i => i != null).map(fromPortal);
 
                         // Add all ZIP Layers via Promise
-                        Promise.all(layers)
-                            .then(results => {
-                                results.forEach(x => {
+                         Promise.all(layers)
+                             .then(results => {
+                                 console.log('Zip Results', results);
+                                 results.forEach(x => {
                                     PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                         layerVisible = false;
@@ -680,8 +693,8 @@ export class MapService {
                                         MapService.ZipGroupLayer.add(x);
                                     }
                                 });
-                            })
-                            .catch(error => console.warn(error.message));
+                             })
+                             .catch(error => console.warn(error.message));
 
                         // Add ZIP Group Layer if it does not already exist
                         if (!this.findLayerByTitle('Valassis ZIP')) {
@@ -1036,7 +1049,7 @@ export class MapService {
         return graphicList;
     }
 
-    public createFeatureLayer(graphics: __esri.Graphic[], layerName: string) {
+    public createFeatureLayer(graphics: __esri.Graphic[], layerName: string, layerHasPopup: boolean = false) {
         console.log('fired createFeatureLayer(' + layerName + ') in MapService');
         if (MapService.layerNames.has(layerName)) {
             console.log('layer name already exists');
@@ -1065,7 +1078,8 @@ export class MapService {
             //spatialReference: { wkid: 5070 },
             spatialReference: { wkid: 4326 },
             source: graphics,
-            popupTemplate: { content : '{*}' },
+            popupEnabled: layerHasPopup,
+            popupTemplate: '{*}',
             renderer: featureRenderer,
             title: layerName,
             capabilities: {
@@ -1115,9 +1129,7 @@ export class MapService {
          });
 
         if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')) {
-            const index = MapService.SitesGroupLayer.layers.length;
             MapService.SitesGroupLayer.layers.unshift(lyr);
-
             if (!this.findLayerByTitle('Sites')) {
                 this.mapView.map.layers.add(MapService.SitesGroupLayer);
                 MapService.layers.add(MapService.SitesGroupLayer);
@@ -1348,11 +1360,11 @@ export class MapService {
         graphic.setAttribute(name, value);
     }
 
-    public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string) {
+    public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string, showPopup: boolean = false) {
         // console.log('fired updateFeatureList() in MapService');
         // check to see if this is the first layer being added
         if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-            this.createFeatureLayer(graphics, layerTitle);
+            this.createFeatureLayer(graphics, layerTitle, showPopup);
             return;
         }
 
@@ -1372,7 +1384,7 @@ export class MapService {
         });
         if (!layerUpdated) {
             console.log('FeatureLayer requested for update does not exist, creating');
-            this.createFeatureLayer(graphics, layerTitle);
+            this.createFeatureLayer(graphics, layerTitle, showPopup);
             return;
         }
         // await this.zoomOnMap(graphics);
@@ -2086,6 +2098,66 @@ export class MapService {
     }
 
     public removePoint(point: Points) {
+    }
+
+    async multiHomeGeocode(lyrList: __esri.FeatureLayer[], 
+                geometryList: __esri.Geometry[], extent: __esri.Extent){
+        console.log('multiHomeGeocode fired');
+        const loader = EsriLoaderWrapperService.esriLoader;
+        const [esriConfig, FeatureSet] 
+                = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
+             
+      // console.log('esriConfig:::', esriConfig);   
+       esriConfig.request.timeout = 600000;
+       const observables: Observable<__esri.FeatureSet>[] = new Array<Observable<__esri.FeatureSet>>();
+       let polyFeatureSetList: __esri.FeatureSet[] = [];
+       for (const lyr of lyrList){
+            const qry = lyr.createQuery();  
+            qry.geometry = extent;
+            if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
+                this.config.layerIds.dma.boundaries != lyr.portalItem.id){
+                    qry.outFields = ['geocode'];
+            }
+
+            if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+                qry.outFields = ['county_nam'];
+            }
+
+            if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+                qry.outFields = ['dma_name'];
+            }
+            //IPromise<__esri.FeatureSet>
+
+            await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                        console.log('polyFeatureSet::::', polyFeatureSet);
+                        polyFeatureSetList.push(polyFeatureSet);
+            });
+       }
+
+       /*Observable.forkJoin(observables).subscribe(res => {
+       });*/
+
+        /*const qry = lyr.createQuery();  
+        qry.geometry = extent;
+        if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
+            this.config.layerIds.dma.boundaries != lyr.portalItem.id){
+                 qry.outFields = ['geocode'];
+        }
+
+        if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+            qry.outFields = ['county_nam'];
+        }
+
+        if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+            qry.outFields = ['dma_name'];
+        }
+        let returnPolyFeatureSet: __esri.FeatureSet;
+        await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                    console.log('polyFeatureSet::::', polyFeatureSet);
+                    returnPolyFeatureSet = polyFeatureSet;
+         });*/
+
+        return polyFeatureSetList; 
     }
 
     async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
