@@ -18,6 +18,7 @@ import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { GeoFootPrint } from './geofootprint.service';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs/Observable';
+import { DefaultLayers } from '../models/DefaultLayers';
 
 @Injectable()
 export class MapService {
@@ -559,11 +560,13 @@ export class MapService {
     // Toggle FeatureLayer popups
     public toggleFeatureLayerPopups() {
         console.log('fired: toggleFeatureLayerPopups');
+        const layersWithPopups = [this.config.layerIds.atz.topVars, this.config.layerIds.digital_atz.digitalTopVars,
+          this.config.layerIds.pcr.topVars, this.config.layerIds.wrap.topVars, this.config.layerIds.zip.topVars];
         this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
         //console.log('title: ' + x.title + ' type: ' + x.type);
         if (x.type === 'feature') {
             if (this.mapFunction === mapFunctions.Popups) {
-                x.popupEnabled = true;
+                x.popupEnabled = (x.portalItem && layersWithPopups.some(id => id === x.portalItem.id)) || x.title === DefaultLayers.COMPETITORS || x.title === DefaultLayers.SITES;
                 //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
             } else {
                 x.popupEnabled = false;
@@ -1986,11 +1989,13 @@ export class MapService {
       const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
       const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
       const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
+      const currentGeocode = EsriLayerService.getAttributeValue(currentAttributes, 'geocode');
+      const currentLat = EsriLayerService.getAttributeValue(currentAttributes, 'latitude');
+      const currentLong = EsriLayerService.getAttributeValue(currentAttributes, 'longitude');
       if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
         const indexToRemove = graphicLayer.source.findIndex(g => {
           const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
-          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId ||
-                  g.attributes === queriedObjectId || g.attributes === preSelectedObjectId;
+          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
         });
         if (indexToRemove !== -1) {
           graphicLayer.source.removeAt(indexToRemove);
@@ -1998,6 +2003,12 @@ export class MapService {
         // remove the id from the selected centroids list
         const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
         MapService.selectedCentroidObjectIds.splice(index, 1);
+        // remove the geo from the datastore
+        if (currentGeocode != null) {
+          this.impGeofootprintGeoService.removeBySearch({ geocode: currentGeocode });
+        } else {
+          console.warn(`Geocode was not found in attributes for object ${queriedObjectId}`);
+        }
         MapService.hhDetails -= currentHHCount;
         MapService.hhIpAddress -= currentIpCount;
       } else {
@@ -2013,6 +2024,8 @@ export class MapService {
           attributes: Object.assign({}, currentAttributes)
         }));
         MapService.selectedCentroidObjectIds.push(queriedObjectId);
+        const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xcoord: currentLong, ycoord: currentLat, hhc: currentHHCount });
+        this.impGeofootprintGeoService.add([newGeoModel]);
         MapService.hhDetails += currentHHCount;
         MapService.hhIpAddress += currentIpCount;
       }
@@ -2100,19 +2113,19 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
-    async multiHomeGeocode(lyrList: __esri.FeatureLayer[], 
+    async multiHomeGeocode(lyrList: __esri.FeatureLayer[],
                 geometryList: __esri.Geometry[], extent: __esri.Extent){
         console.log('multiHomeGeocode fired');
         const loader = EsriLoaderWrapperService.esriLoader;
-        const [esriConfig, FeatureSet] 
+        const [esriConfig, FeatureSet]
                 = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
-             
-      // console.log('esriConfig:::', esriConfig);   
+
+      // console.log('esriConfig:::', esriConfig);
        esriConfig.request.timeout = 600000;
        const observables: Observable<__esri.FeatureSet>[] = new Array<Observable<__esri.FeatureSet>>();
        let polyFeatureSetList: __esri.FeatureSet[] = [];
        for (const lyr of lyrList){
-            const qry = lyr.createQuery();  
+            const qry = lyr.createQuery();
             qry.geometry = extent;
             if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
                 this.config.layerIds.dma.boundaries != lyr.portalItem.id){
@@ -2137,7 +2150,7 @@ export class MapService {
        /*Observable.forkJoin(observables).subscribe(res => {
        });*/
 
-        /*const qry = lyr.createQuery();  
+        /*const qry = lyr.createQuery();
         qry.geometry = extent;
         if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
             this.config.layerIds.dma.boundaries != lyr.portalItem.id){
@@ -2157,7 +2170,7 @@ export class MapService {
                     returnPolyFeatureSet = polyFeatureSet;
          });*/
 
-        return polyFeatureSetList; 
+        return polyFeatureSetList;
     }
 
     async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
