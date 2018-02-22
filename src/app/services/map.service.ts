@@ -19,6 +19,8 @@ import { GeoFootPrint } from './geofootprint.service';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs/Observable';
 import { DefaultLayers } from '../models/DefaultLayers';
+import { GeocodingResponse } from '../models/GeocodingResponse';
+import { GeocodingAttributes } from '../models/GeocodingAttributes';
 
 @Injectable()
 export class MapService {
@@ -2303,6 +2305,98 @@ export class MapService {
         });
         return homeGeocodeMap;
       }
+
+       //Calculate home geos for the response list
+   async calculateHomeGeo(siteList: GeocodingResponse[])  {
+    console.log('calculateHomeGeo::');
+    const color = {
+      a: 1,
+      r: 35,
+      g: 93,
+      b: 186
+
+    };
+
+    const fLyrList: __esri.FeatureLayer[] = [];
+    await this.getAllFeatureLayers().then(list => {
+      if (list.length > 0) {
+        for (const layer of list) {
+          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
+            layer.portalItem.id === this.config.layerIds.atz.topVars ||
+            layer.portalItem.id === this.config.layerIds.pcr.topVars 
+            /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
+            layer.portalItem.id === this.config.layerIds.dma.counties || 
+          layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
+            fLyrList.push(layer);
+          }
+        }
+      }
+    });
+
+    let siteNumber: number = 0;
+    const geoCodedSiteList: GeocodingResponse[] = [];
+    for (const site of siteList) {
+      let geoAttr: GeocodingAttributes;
+      let home_geo_issue: string = 'N';
+      siteNumber++ ;
+      //this.displaySpinnerMessage = 'Calculating Home Geocodes';
+      try{
+        for (const llyr of fLyrList) {
+          let home_geo = null;
+          geoAttr = new GeocodingAttributes();
+          let graphic: __esri.Graphic;
+          await this.createGraphic(site.latitude, site.longitude, color).then(res => {
+            graphic = res;
+          });
+          await this.getHomeGeocode(llyr, graphic).then(res => {
+            home_geo = res.get('home_geo');
+            if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
+              geoAttr.attributeName = 'Home ZIP';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
+              geoAttr.attributeName = 'Home ATZ';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
+              geoAttr.attributeName = 'HOME PCR';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+           /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
+              geoAttr.attributeName = 'Home DIGITAL ATZ';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
+               geoAttr.attributeName = 'HOME COUNTY';
+               geoAttr.attributeValue = home_geo;
+               site.geocodingAttributesList.push(geoAttr);
+            }
+            if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
+              geoAttr.attributeName = 'HOME DMA';
+              geoAttr.attributeValue = home_geo;
+              site.geocodingAttributesList.push(geoAttr);
+            }*/
+          });
+        }
+
+      }
+      catch (ex) {
+        home_geo_issue = 'Y';
+        console.error(ex);
+     }
+      
+     geoAttr = new GeocodingAttributes();
+     geoAttr.attributeName  = 'HOME GEOCODE ISSUE';
+     geoAttr.attributeValue = home_geo_issue;
+     site.geocodingAttributesList.push(geoAttr);
+     geoCodedSiteList.push(site);
+    }
+    return geoCodedSiteList;
+  }
 }
 
 
