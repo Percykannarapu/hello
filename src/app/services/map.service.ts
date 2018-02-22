@@ -222,11 +222,13 @@ export class MapService {
             view: this.mapView
         });
 
+        /*
         // Create an instance of the Search widget
         const search = new EsriModules.widgets.Search({
             view: this.mapView
         });
-
+        */
+       
         // Create an instance of the Legend widget
         const legend = new EsriModules.widgets.Legend({
             view: this.mapView,
@@ -245,6 +247,11 @@ export class MapService {
             container: document.createElement('div')
         });
 
+        // Create an instance of the BasemapGallery widget
+        const search = new EsriModules.widgets.Search({
+            view: this.mapView,
+            container: document.createElement('div')
+        });
         /*
         // Create an instance of the BasemapGallery widget
         const print = new EsriModules.widgets.Print({
@@ -270,6 +277,12 @@ export class MapService {
             expandIconClass: 'esri-icon-documentation',
             expandTooltip: 'Expand Legend',
         });
+        const searchExpand = new EsriModules.widgets.Expand({
+            view: this.mapView,
+            content: search.container,
+            expandIconClass: 'esri-icon-search',
+            expandTooltip: 'Search',
+        });
 
         /*
         const printExpand = new EsriModules.widgets.Expand({
@@ -281,7 +294,7 @@ export class MapService {
         */
 
         // Add widgets to the viewUI
-        this.esriMapService.addWidget(search, 'top-right');
+        this.esriMapService.addWidget(searchExpand, 'top-left');
         // TODO: hard coded id is temporary
         this.layerService.initLayerList('colorSlider');
         this.esriMapService.addWidget(legend, 'top-left');

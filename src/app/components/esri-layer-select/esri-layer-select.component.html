@@ -17,11 +17,14 @@
     </p-multiSelect> -->
    <div class="ui-g ui-toolbar-group-left val-flush-to-edges">
       <!-- <div class="ui-g-6"> -->
+
+         <!-- Remove/hide the Layers Off/On button on the menu bar. At least for now. Nancy 2/22
          <p-toggleButton id="LayersToggleButton" [(ngModel)]="layerToggle" title="Toggle Layers"
             (onChange)="handleLayerChange($event)" 
             onLabel="Layers On" offLabel="Layers Off" 
             onIcon="esri-icon-collection" offIcon="esri-icon-maps">
          </p-toggleButton>
+        -->
       <!-- </div> -->
       <!-- <div class="ui-g-3"> -->
          <!--
@@ -30,7 +33,7 @@
                         onIcon="esri-icon-browser" offIcon="esri-icon-maximize">
          </p-toggleButton>
          -->
-         <i class="fa-fontAwesome fa ui-bars"></i>
+         <!-- <i class="fa-fontAwesome fa ui-bars"></i> -->
          <val-esri-map-tools>Loading Map-Tools...</val-esri-map-tools>
          <i class="fa-fontAwesome fa ui-bars"></i>
       <!-- </div> -->
