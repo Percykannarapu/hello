@@ -1843,11 +1843,19 @@ export class MapService {
 
                         for (let i = 0; i < polyFeatureSet.features.length; i++) {
                           const currentAttribute = polyFeatureSet.features[i].attributes;
+                          //console.log('CurrentAttribute', currentAttribute);
                             if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
-                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                                if (EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w')  != null){
+                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                }
+                                if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs')  != null){
+                                    MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                                }
 //                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                                
+                                if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00')  != null){
+                                    MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                                }
                                 MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
                                 polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
                                 MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
