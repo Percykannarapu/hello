@@ -47,8 +47,6 @@ export class SiteListComponent implements OnInit, OnDestroy
    private locSubscription: ISubscription;
    private locAttrSubscription: ISubscription; 
 
-    //cols: any[];
-
    selectedSites: GeocodingResponse[];   
    //columnOptions: SelectItem[];
 
@@ -70,17 +68,16 @@ export class SiteListComponent implements OnInit, OnDestroy
                          { field: 'origPostalCode',       header: 'Original Zip', size: '70px'}
                         ];
   
-   constructor(public geocodingRespService: GeocodingResponseService,
+   constructor(public  geocodingRespService: GeocodingResponseService,
                private messageService: MessageService,
                private metricService: MetricService,
-               private mapService: MapService, private appService: AppService,
+               private mapService: MapService,
+               private appService: AppService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-              private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService ) { 
+               private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService ) {
+      this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange(data));
+   }
 
-                this.geocodingRespService.pointsPlotted.subscribe(data => this.onGroupChange(data));
-               }
-
-  
    onGroupChange(selector){
      // update the grid as soon as the geocodingResponseService gives data
      if (selector === 'Site'){
@@ -157,12 +154,16 @@ export class SiteListComponent implements OnInit, OnDestroy
       this.locAttrSubscription = this.impGeofootprintLocAttrService.storeObservable.subscribe(locAttrData => this.onChangeLocAttr(locAttrData));
    }
 
+   private updateLocationStore() {
+      this.impGeofootprintLocationService.clearAll();
+      this.impGeofootprintLocationService.add(this.selectedImpGeofootprintLocList);
+   }
+
    onChangeLocation(impGeofootprintLocation: ImpGeofootprintLocation[]) {
      const locList: ImpGeofootprintLocation[] = Array.from(impGeofootprintLocation);
 
      this.impGeofootprintLocList =  locList;
-     //this.selectedImpGeofootprintLocList = locList;
-     
+     //this.selectedImpGeofootprintLocList = locList;     
    }
 
    onChangeLocAttr(impGeofootprintLocAttr: ImpGeofootprintLocAttrib[]){
@@ -186,6 +187,8 @@ export class SiteListComponent implements OnInit, OnDestroy
       this.printSite(event.data);
 
       this.geocodingRespService.logSites();
+
+      this.updateLocationStore();
    }
 
    onRowSelect(event)
@@ -194,9 +197,12 @@ export class SiteListComponent implements OnInit, OnDestroy
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
       console.log('grid length::' + this.geocodingRespService.sitesList.length);
-      this.geocodingRespService.refreshMapSites(this.selectedValue);
+      // this.geocodingRespService.refreshMapSites(this.selectedValue);
       this.geocodingRespService.siteWasSelected (event.data);
-      this.geocodingRespService.logSites();
+      // this.geocodingRespService.logSites();
+
+     // this.geocodingRespService.refreshMapSites('site');
+      this.updateLocationStore();
    }
    
    printSite(site: GeocodingResponse) {
