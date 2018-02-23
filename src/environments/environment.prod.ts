@@ -4,6 +4,9 @@ export const environment = {
 
 export class EnvironmentData {
 
+  // Can be used to hide/show debugging info
+  public static debugMode: boolean = true;
+
   // this variable controls whether a user is currently authenticated
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
