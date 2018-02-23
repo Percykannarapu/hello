@@ -148,7 +148,7 @@ export class UploadLocationsComponent implements OnInit {
     };
   }
 
-  // check the column headers accourding to the business rules above and figure out the positions of all the headers
+  // check the column headers according to the business rules above and figure out the positions of all the headers
   private verifyCSVColumns(columns: string[]) : any {
     let addressFlag: boolean = false;
     let cityFlag: boolean = false;
@@ -158,56 +158,91 @@ export class UploadLocationsComponent implements OnInit {
     let lonFlag: boolean = false;
     let nameFlag: boolean = false;
     let numberFlag: boolean = false;
+    let marketFlag: boolean = false;
     let count: number = 0;
     const headerPosition: any = {};
+
     this.disableshowBusiness = false; //enable the search business button
+
     for (let j = 0; j < columns.length; j++) {
       let column = columns[j];
-      column = column.toUpperCase();
+      column = column.toUpperCase().trim();
 
-      if (column === 'STREET' || column === 'ADDRESS') {
+      if (column === 'STREET' ||
+          column === 'ADDRESS' ||
+          column === 'ADDR') {
         addressFlag = true;
         headerPosition.street = count;
         this.headers[j] = 'street';
       }
-      if (column === 'CITY') {
+      if (column === 'CITY' ||
+          column === 'CTY' ) {
         cityFlag = true;
         headerPosition.city = count;
         this.headers[j] = 'city';
       }
-      if (column === 'STATE' || column === 'ST') {
+      if (column === 'STATE' ||
+          column === 'ST') {
         stateFlag = true;
         headerPosition.state = count;
         this.headers[j] = 'state';
       }
-      if (column === 'ZIP' || column === 'CODE' || column === 'POSTAL') {
+      if (column === 'ZIP' ||
+          column === 'CODE' ||
+          column === 'POSTAL' ||
+          column === 'POSTAL CODE') {
         zipFlag = true;
         headerPosition.zip = count;
         this.headers[j] = 'zip';
       }
-      if (column === 'Y' || column === 'LATITUDE') {
+      if (column === 'Y' ||
+          column === 'Y (OPTIONAL)' ||
+          column === 'Y(OPTIONAL)' ||
+          column === 'Y OPTIONAL' ||
+          column === 'LATITUDE' ||
+          column === 'LAT') {
         latFlag = true;
         headerPosition.lat = count;
         this.headers[j] = 'latitude';
       }
-      if (column === 'X' || column === 'LONGITUDE') {
+      if (column === 'X' ||
+          column === 'X (OPTIONAL)' ||
+          column === 'X(OPTIONAL)' ||
+          column === 'X OPTIONAL' ||
+          column === 'LONGITUDE') {
         lonFlag = true;
         headerPosition.lon = count;
         this.headers[j] = 'longitude';
       }
       if (!nameFlag) {
-        if (column.includes('NAME') || column.includes('FIRM')) {
+        if (column.includes('NAME') ||
+            column.includes('FIRM')) {
           nameFlag = true;
           headerPosition.name = count;
           this.headers[j] = 'name';
         }
       }
       if (!numberFlag) {
-        if (column.includes('NUMBER') || column.includes('NBR') || column.includes('ID') || column.includes('NUM') || column.includes('#')) {
+        if (column.includes('NUMBER') ||
+            column.includes('NBR') ||
+            column.includes('ID') ||
+            column.includes('NUM') ||
+            column.includes('#')) {
           numberFlag = true;
           headerPosition.number = count;
           this.headers[j] = 'number';
         }
+      }
+      if (column === 'MARKET' ||
+          column === 'MKT' ||
+          column === 'MARKET (OPTIONAL)' ||
+          column === 'MARKET(OPTIONAL)' ||
+          column === 'MARKET (OPT)' ||
+          column === 'MARKET(OPT)')
+      {
+         marketFlag = true;
+         headerPosition.market = count;
+         this.headers[j] = 'market';
       }
       count++;
     }
@@ -244,20 +279,18 @@ export class UploadLocationsComponent implements OnInit {
     const siteList: any[] = [];
     const site1 = {};
     const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
-    site1['name']     = row['Name'];
-    site1['number']   = row['Number'];
-
-    site1['street']   = row['Original Address'];
-    site1['city']     = row['Original City'];
-    site1['state']   = row['Original State'];
-    site1['zip']     = row['Original ZIP'];
+    site1['name']   = row['Name'];
+    site1['number'] = row['Number'];
+    site1['street'] = row['Original Address'];
+    site1['city']   = row['Original City'];
+    site1['state']  = row['Original State'];
+    site1['zip']    = row['Original ZIP'];
 
     Object.keys(row).forEach(site => {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
-        'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
-        'Match Quality', 'Original Address', 'Original City',
-        'Original State', 'Original ZIP'].indexOf(site) < 0) {
-
+           'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
+           'Match Quality', 'Original Address', 'Original City',
+           'Original State', 'Original ZIP'].indexOf(site) < 0) {
         site1[site] = row[site];
         //console.log('row:::' + row + ':::Siteval:::'+site)
       }
