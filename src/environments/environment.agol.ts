@@ -58,7 +58,7 @@ export class EnvironmentData {
     zip: {
       centroids: { // ZIP_Centroids
         id: '38b352fed65640beb0c246b82a24c881',
-        name: 'Zip Centroids',
+        name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
       },
