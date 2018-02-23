@@ -1675,16 +1675,19 @@ export class MapService {
                                 MapService.totInvestment = 'N/A';
                                 }
                             }
+                            console.log('disc all', discoveryUI[0]);
                             if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0) {
                                 MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget);
                                 MapService.proBudget = Math.round(MapService.circBudget) + '%';
                                 console.log('progress to budget for circ::', MapService.circBudget);
-                            } else if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
+                            } 
+                            if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
                                 MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
                                 console.log('progress to budget for dollar:::', MapService.proBudget);
-                            } else if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) {
-                                // if we both Circ Budget and dollar budget were provided, calculate based on the dollar budget
+                            }
+                            if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) {
+                                // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
                                 MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
                                 console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
