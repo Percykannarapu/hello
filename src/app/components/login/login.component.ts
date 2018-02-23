@@ -74,7 +74,7 @@ export class LoginComponent implements OnInit {
   private buildLoginDtls(username: string){
     //const geoMaster1           = new ImpGeofootprintMaster(); TODO need to transfer the data type to impgeofootrprint
     let targetingProfile = new TargetingProfile();
-    const desc = 'User ' +username+ ' logged into ' + this.config.impowerBaseUrl;
+    const desc = 'User ' +username+ ' logged in';
      
         targetingProfile.baseStatus              = 'INSERT';
         targetingProfile.clientId                = 'impower';
@@ -88,7 +88,7 @@ export class LoginComponent implements OnInit {
         targetingProfile.methSeason              = '2'; //
         targetingProfile.modifyDate              = new Date();
         targetingProfile.modifyUser              = 7861; // 7861
-        targetingProfile.name                    = 'imPower user login'; //imPower user login
+        targetingProfile.name                    = 'imPower user login from ' + this.config.environmentName + ' environment'; //imPower user login
         targetingProfile.pk                      = null; //
         targetingProfile.preferredDate           = null; 
         targetingProfile.promoPeriodEndDate      = null;

@@ -2,7 +2,7 @@ import { AppFooterComponent } from './../app.footer.component';
 import { ImpGeofootprintGeoService } from './../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { GeocoderComponent } from './../components/geocoder/geocoder.component';
 import { ImpGeofootprintGeo } from './../val-modules/targeting/models/ImpGeofootprintGeo';
-import {ElementRef, Injectable} from '@angular/core';
+import { ElementRef, Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
 import { MetricService } from '../val-modules/common/services/metric.service';
@@ -58,31 +58,31 @@ export class MapService {
     private map: __esri.Map;
     private mapView: __esri.MapView;
 
-  // set a reference to global enum (defined in app.component)
+    // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
     public displayDBSpinner: boolean = false;
 
     constructor(private metricService: MetricService,
-                private layerService: EsriLayerService,
-                private esriMapService: EsriMapService,
-                private impGeofootprintGeoService: ImpGeofootprintGeoService,
-                private config: AppConfig,
-                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private impDiscoveryService: ImpDiscoveryService,
-                private geoFootPrintService: GeoFootPrint,
-                private authService:    AuthService    ) {
-      this.esriMapService.onReady$.subscribe(ready => {
-        if (ready) {
-          this.mapView = this.esriMapService.mapView;
-          this.map = this.esriMapService.map;
-        }
-      });
+        private layerService: EsriLayerService,
+        private esriMapService: EsriMapService,
+        private impGeofootprintGeoService: ImpGeofootprintGeoService,
+        private config: AppConfig,
+        private impGeofootprintLocationService: ImpGeofootprintLocationService,
+        private impDiscoveryService: ImpDiscoveryService,
+        private geoFootPrintService: GeoFootPrint,
+        private authService: AuthService) {
+        this.esriMapService.onReady$.subscribe(ready => {
+            if (ready) {
+                this.mapView = this.esriMapService.mapView;
+                this.map = this.esriMapService.map;
+            }
+        });
     }
 
     // Initialize Group Layers
-    public initGroupLayers() : void {
+    public initGroupLayers(): void {
         console.log('fired initGroupLayers()');
 
         MapService.EsriGroupLayer = new EsriModules.GroupLayer({
@@ -155,13 +155,13 @@ export class MapService {
         const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
 
         this.mapView.popup.content = //this.mapView.popup.selectedFeature.attributes.name +
-        '<div style="background-color:DarkBlue;color:white"><b>' +
-        'Length: ' + distanceStr + ' miles.<br>Area: ' + areaStr + ' square-miles.</b></div>';
+            '<div style="background-color:DarkBlue;color:white"><b>' +
+            'Length: ' + distanceStr + ' miles.<br>Area: ' + areaStr + ' square-miles.</b></div>';
     }
 
     // Execute each time the "Buffer" action is clicked
     public bufferThis() {
-      // TODO: This method does nothing, do we need it?
+        // TODO: This method does nothing, do we need it?
         // load required modules for this method
         // const loader = EsriLoaderWrapperService.esriLoader;
         // const [geometryEngine] = await loader.loadModules([
@@ -207,12 +207,12 @@ export class MapService {
         console.log('fired popup action select-this()');
         const objectID: number = EsriLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
-        console.log ('-- objectID = ' + objectID);
+        console.log('-- objectID = ' + objectID);
         this.selectSinglePolygon(null, geom, objectID);
     }
 
     // create the MapView
-    public createMapView() : void {
+    public createMapView(): void {
         // Create an instance of the Home widget
         const home = new EsriModules.widgets.Home({
             view: this.mapView
@@ -234,7 +234,7 @@ export class MapService {
             view: this.mapView
         });
         */
-       
+
         // Create an instance of the Legend widget
         const legend = new EsriModules.widgets.Legend({
             view: this.mapView,
@@ -356,7 +356,7 @@ export class MapService {
         });
 
         // Event handler that fires each time a popup action is clicked.
-        this.mapView.popup.on('trigger-action', (event) =>  {
+        this.mapView.popup.on('trigger-action', (event) => {
 
             // Execute the measureThis() function if the measure-this action is clicked
             if (event.action.id === 'measure-this') {
@@ -412,20 +412,20 @@ export class MapService {
         // -----------------------------------------------------------------------------------
     }
 
-/*    
-    // set active button
-    public setActiveButton(selectedButton: any) {
-        // focus the view to activate keyboard shortcuts for sketching
-        this.mapView.focus();
-        const elements: any = document.getElementsByClassName('active');
-        for (let i = 0; i < elements.length; i++) {
-            elements[i].classList.remove('active');
+    /*    
+        // set active button
+        public setActiveButton(selectedButton: any) {
+            // focus the view to activate keyboard shortcuts for sketching
+            this.mapView.focus();
+            const elements: any = document.getElementsByClassName('active');
+            for (let i = 0; i < elements.length; i++) {
+                elements[i].classList.remove('active');
+            }
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
         }
-        if (selectedButton) {
-            selectedButton.classList.add('active');
-        }
-    }
-*/
+    */
     // set active button
     public setActiveButton(event: MouseEvent) {
         // focus the view to activate keyboard shortcuts for sketching
@@ -437,13 +437,13 @@ export class MapService {
         }
         if (event) {
             el.classList.add('active');
-        }    
+        }
     }
-   
+
     // Toggle Polygon Selection Mode
     public selectPolyButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.SelectPoly;
-        this.setActiveButton(event); 
+        this.setActiveButton(event);
         this.toggleFeatureLayerPopups();
     }
 
@@ -457,7 +457,7 @@ export class MapService {
     // Toggle Labels
     public labelsButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.Labels;
-        this.setActiveButton(event); 
+        this.setActiveButton(event);
     }
 
     // activate the sketch to create a point
@@ -510,7 +510,7 @@ export class MapService {
 */
 
     // plotMarker
-    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
+    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): EsriWrapper<__esri.MapView> {
 
         console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
@@ -523,16 +523,16 @@ export class MapService {
     }
 
     // Get MapView
-    public getMapView() : __esri.MapView {
+    public getMapView(): __esri.MapView {
         // to return Mapview
         return this.mapView;
     }
 
     // Hide MapLayers
-    public hideMapLayers() : EsriWrapper<__esri.MapView> {
+    public hideMapLayers(): EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
         // Toggle all layers
-        this.mapView.map.layers.forEach((layer, i) =>  {
+        this.mapView.map.layers.forEach((layer, i) => {
             if (layer.visible === true) {
                 //console.log (i + '. layer visible: ' + this.mapView.map.layers.getItemAt(i).visible);
                 this.mapView.map.layers.getItemAt(i).visible = false;
@@ -542,7 +542,7 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public removeMapLayers() : EsriWrapper<__esri.MapView> {
+    public removeMapLayers(): EsriWrapper<__esri.MapView> {
         console.log('fired removeMapLayers() in MapService');
 
         // remove all layers
@@ -551,7 +551,7 @@ export class MapService {
     }
 
     // Physically Remove MapLayer (or GroupLayer)
-    public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
+    public removeLayer(layer: __esri.Layer): EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         this.mapView.map.remove(layer);
@@ -559,7 +559,7 @@ export class MapService {
     }
 
     // Returns a layer instance from the map based on its title property
-    public findLayerByTitle(title: string) : __esri.Layer {
+    public findLayerByTitle(title: string): __esri.Layer {
         return this.mapView.map.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findLayerByTitle Found: ' + title);
@@ -569,7 +569,7 @@ export class MapService {
     }
 
     // Returns a sublayer instance from the map based on its title property
-    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
+    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string): __esri.Layer {
         return GroupLayer.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findSubLayerByTitle found: ' + layer.title);
@@ -582,21 +582,22 @@ export class MapService {
     public toggleFeatureLayerPopups() {
         console.log('fired: toggleFeatureLayerPopups');
         const layersWithPopups = [this.config.layerIds.atz.topVars, this.config.layerIds.digital_atz.digitalTopVars,
-          this.config.layerIds.pcr.topVars, this.config.layerIds.wrap.topVars, this.config.layerIds.zip.topVars];
+        this.config.layerIds.pcr.topVars, this.config.layerIds.wrap.topVars, this.config.layerIds.zip.topVars];
         this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
-        //console.log('title: ' + x.title + ' type: ' + x.type);
-        if (x.type === 'feature') {
-            if (this.mapFunction === mapFunctions.Popups) {
-                x.popupEnabled = (x.portalItem && layersWithPopups.some(id => id === x.portalItem.id)) || x.title === DefaultLayers.COMPETITORS || x.title === DefaultLayers.SITES;
-                //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
-            } else {
-                x.popupEnabled = false;
-                //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
+            //console.log('title: ' + x.title + ' type: ' + x.type);
+            if (x.type === 'feature') {
+                if (this.mapFunction === mapFunctions.Popups) {
+                    x.popupEnabled = (x.portalItem && layersWithPopups.some(id => id === x.portalItem.id)) || x.title === DefaultLayers.COMPETITORS || x.title === DefaultLayers.SITES;
+                    //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
+                } else {
+                    x.popupEnabled = false;
+                    //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
+                }
             }
-        }});
+        });
     }
 
-    public setMapLayers(analysisLevels: string[]) : EsriWrapper<__esri.MapView> {
+    public setMapLayers(analysisLevels: string[]): EsriWrapper<__esri.MapView> {
         console.log('fired setMapLayers() in MapService');
         let PopupTitle: string;
         let layerVisible: boolean = true;
@@ -610,9 +611,9 @@ export class MapService {
         // };
 
         const fromPortal = id => EsriModules.Layer.fromPortalItem(<any>{
-          portalItem: {
-            id: id
-          }
+            portalItem: {
+                id: id
+            }
         });
 
         // Add this action to the popup so it is always available in this view
@@ -634,7 +635,7 @@ export class MapService {
             title: 'buffer',
             id: 'buffer-this',
             className: 'esri-icon-radio-checked'
-          };
+        };
 
         // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         //MapService.EsriGroupLayer.visible = false;
@@ -693,10 +694,10 @@ export class MapService {
                         const layers: any[] = Object.values(this.config.layerIds.zip).filter(i => i != null).map(fromPortal);
 
                         // Add all ZIP Layers via Promise
-                         Promise.all(layers)
-                             .then(results => {
-                                 console.log('Zip Results', results);
-                                 results.forEach(x => {
+                        Promise.all(layers)
+                            .then(results => {
+                                console.log('Zip Results', results);
+                                results.forEach(x => {
                                     PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                         layerVisible = false;
@@ -704,7 +705,7 @@ export class MapService {
                                     } else {
                                         layerVisible = true;
                                     }
-                                        if (x.type === 'feature') {
+                                    if (x.type === 'feature') {
                                         x.minScale = 5000000;
                                         x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                     } else {
@@ -717,8 +718,8 @@ export class MapService {
                                         MapService.ZipGroupLayer.add(x);
                                     }
                                 });
-                             })
-                             .catch(error => console.warn(error.message));
+                            })
+                            .catch(error => console.warn(error.message));
 
                         // Add ZIP Group Layer if it does not already exist
                         if (!this.findLayerByTitle('Valassis ZIP')) {
@@ -742,7 +743,7 @@ export class MapService {
                                         } else {
                                             layerVisible = true;
                                         }
-                                                if (x.type === 'feature') {
+                                        if (x.type === 'feature') {
                                             x.minScale = 5000000;
                                             //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
                                             x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
@@ -765,49 +766,11 @@ export class MapService {
                             }
                             MapService.AtzGroupLayer.visible = true;
                         } else
-                        if (analysisLevel === 'DIG_ATZ') {
-                            // Add atz layer IDs
-                            const layers: any[] = Object.values(this.config.layerIds.digital_atz).filter(i => i != null).map(fromPortal);
+                            if (analysisLevel === 'DIG_ATZ') {
+                                // Add atz layer IDs
+                                const layers: any[] = Object.values(this.config.layerIds.digital_atz).filter(i => i != null).map(fromPortal);
 
-                            // Add all DIGITAL ATZ Layers via Promise
-                            Promise.all(layers)
-                                .then(results => {
-                                    results.forEach(x => {
-                                        PopupTitle = x.portalItem.title + ' - {GEOCODE}';
-                                        if (x.portalItem.title.indexOf('Centroid') > 0) {
-                                            layerVisible = false;
-                                            console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
-                                        } else {
-                                            layerVisible = true;
-                                        }
-                                        if (x.type === 'feature') {
-                                            x.minScale = 5000000;
-                                            //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
-                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
-                                        } else {
-                                            x.maxScale = 5000000;
-                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
-                                        }
-                                        // Add Layer to Group Layer if it does not already exist
-                                        if (!this.findSubLayerByTitle(MapService.DigitalAtzGroupLayer, x.portalItem.title)) {
-                                            console.log('adding subLayer: ' + x.portalItem.title);
-                                            MapService.DigitalAtzGroupLayer.add(x);
-                                        }
-                                    });
-                                })
-                                .catch(error => console.warn(error.message));
-
-                            // Add ZIP Group Layer if it does not already exist
-                            if (!this.findLayerByTitle('Valassis Digital ATZ')) {
-                                this.mapView.map.layers.add(MapService.DigitalAtzGroupLayer);
-                            }
-                            MapService.DigitalAtzGroupLayer.visible = true;
-                        } else
-                            if (analysisLevel === 'PCR') {
-                                // Add PCR layer IDs
-                                const layers: any[] = Object.values(this.config.layerIds.pcr).filter(i => i != null).map(fromPortal);
-
-                                // Add all PCR Layers via Promise
+                                // Add all DIGITAL ATZ Layers via Promise
                                 Promise.all(layers)
                                     .then(results => {
                                         results.forEach(x => {
@@ -818,7 +781,7 @@ export class MapService {
                                             } else {
                                                 layerVisible = true;
                                             }
-                                                        if (x.type === 'feature') {
+                                            if (x.type === 'feature') {
                                                 x.minScale = 5000000;
                                                 //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
                                                 x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
@@ -827,26 +790,25 @@ export class MapService {
                                                 x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                             }
                                             // Add Layer to Group Layer if it does not already exist
-                                            if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
+                                            if (!this.findSubLayerByTitle(MapService.DigitalAtzGroupLayer, x.portalItem.title)) {
                                                 console.log('adding subLayer: ' + x.portalItem.title);
-                                                MapService.PcrGroupLayer.add(x);
+                                                MapService.DigitalAtzGroupLayer.add(x);
                                             }
                                         });
                                     })
                                     .catch(error => console.warn(error.message));
 
-                                // Add PCR Group Layer if it does not already exist
-                                if (!this.findLayerByTitle('Valassis PCR')) {
-                                    this.mapView.map.layers.add(MapService.PcrGroupLayer);
+                                // Add ZIP Group Layer if it does not already exist
+                                if (!this.findLayerByTitle('Valassis Digital ATZ')) {
+                                    this.mapView.map.layers.add(MapService.DigitalAtzGroupLayer);
                                 }
-                                MapService.PcrGroupLayer.visible = true;
-
+                                MapService.DigitalAtzGroupLayer.visible = true;
                             } else
-                                if (analysisLevel === 'WRAP') {
-                                    // Add WRAP layer IDs
-                                    const layers: any[] = Object.values(this.config.layerIds.wrap).filter(i => i != null).map(fromPortal);
+                                if (analysisLevel === 'PCR') {
+                                    // Add PCR layer IDs
+                                    const layers: any[] = Object.values(this.config.layerIds.pcr).filter(i => i != null).map(fromPortal);
 
-                                    // Add all WRAP Layers via Promise
+                                    // Add all PCR Layers via Promise
                                     Promise.all(layers)
                                         .then(results => {
                                             results.forEach(x => {
@@ -857,8 +819,8 @@ export class MapService {
                                                 } else {
                                                     layerVisible = true;
                                                 }
-                                                                if (x.type === 'feature') {
-                                                    // x.minScale = 5000000;
+                                                if (x.type === 'feature') {
+                                                    x.minScale = 5000000;
                                                     //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
                                                     x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                 } else {
@@ -866,65 +828,104 @@ export class MapService {
                                                     x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                 }
                                                 // Add Layer to Group Layer if it does not already exist
-                                                if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
+                                                if (!this.findSubLayerByTitle(MapService.PcrGroupLayer, x.portalItem.title)) {
                                                     console.log('adding subLayer: ' + x.portalItem.title);
-                                                    MapService.WrapGroupLayer.add(x);
+                                                    MapService.PcrGroupLayer.add(x);
                                                 }
                                             });
                                         })
                                         .catch(error => console.warn(error.message));
 
-                                    // Add WRAP Group Layer if it does not already exist
-                                    if (!this.findLayerByTitle('Valassis WRAP')) {
-                                        this.mapView.map.layers.add(MapService.WrapGroupLayer);
+                                    // Add PCR Group Layer if it does not already exist
+                                    if (!this.findLayerByTitle('Valassis PCR')) {
+                                        this.mapView.map.layers.add(MapService.PcrGroupLayer);
                                     }
-                                    MapService.WrapGroupLayer.visible = true;
+                                    MapService.PcrGroupLayer.visible = true;
 
                                 } else
-                                    if (analysisLevel === 'HH') {
-                                        // Add HH layer IDs
-                                        const layers: any[] = Object.values(this.config.layerIds.hh).filter(i => i != null).map(fromPortal);
+                                    if (analysisLevel === 'WRAP') {
+                                        // Add WRAP layer IDs
+                                        const layers: any[] = Object.values(this.config.layerIds.wrap).filter(i => i != null).map(fromPortal);
 
-                                        // Add all HH Layers via Promise
+                                        // Add all WRAP Layers via Promise
                                         Promise.all(layers)
                                             .then(results => {
                                                 results.forEach(x => {
-                                                    PopupTitle = x.portalItem.title;
+                                                    PopupTitle = x.portalItem.title + ' - {GEOCODE}';
                                                     if (x.portalItem.title.indexOf('Centroid') > 0) {
                                                         layerVisible = false;
                                                         console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
                                                     } else {
                                                         layerVisible = true;
                                                     }
-                                                                        if (x.type === 'feature') {
-                                                        x.minScale = 2300000;
+                                                    if (x.type === 'feature') {
+                                                        // x.minScale = 5000000;
                                                         //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
                                                         x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                     } else {
-                                                        x.maxScale = 2300000;
+                                                        x.maxScale = 5000000;
                                                         x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
                                                     }
                                                     // Add Layer to Group Layer if it does not already exist
-                                                    if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
+                                                    if (!this.findSubLayerByTitle(MapService.WrapGroupLayer, x.portalItem.title)) {
                                                         console.log('adding subLayer: ' + x.portalItem.title);
-                                                        MapService.HHGroupLayer.add(x);
+                                                        MapService.WrapGroupLayer.add(x);
                                                     }
                                                 });
                                             })
                                             .catch(error => console.warn(error.message));
 
-                                        // Add HH Group Layer if it does not already exist
-                                        if (!this.findLayerByTitle('Valassis Households')) {
-                                            this.mapView.map.layers.add(MapService.HHGroupLayer);
+                                        // Add WRAP Group Layer if it does not already exist
+                                        if (!this.findLayerByTitle('Valassis WRAP')) {
+                                            this.mapView.map.layers.add(MapService.WrapGroupLayer);
                                         }
-                                        MapService.HHGroupLayer.visible = true;
-                                    }
+                                        MapService.WrapGroupLayer.visible = true;
+
+                                    } else
+                                        if (analysisLevel === 'HH') {
+                                            // Add HH layer IDs
+                                            const layers: any[] = Object.values(this.config.layerIds.hh).filter(i => i != null).map(fromPortal);
+
+                                            // Add all HH Layers via Promise
+                                            Promise.all(layers)
+                                                .then(results => {
+                                                    results.forEach(x => {
+                                                        PopupTitle = x.portalItem.title;
+                                                        if (x.portalItem.title.indexOf('Centroid') > 0) {
+                                                            layerVisible = false;
+                                                            console.log('subLayer: ' + x.portalItem.title + ' visible=' + layerVisible);
+                                                        } else {
+                                                            layerVisible = true;
+                                                        }
+                                                        if (x.type === 'feature') {
+                                                            x.minScale = 2300000;
+                                                            //x.mode = EsriModules.FeatureLayer.MODE_AUTO;
+                                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                        } else {
+                                                            x.maxScale = 2300000;
+                                                            x.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: PopupTitle, content: '{*}', actions: [selectThisAction, measureThisAction], opacity: 0.65, visible: layerVisible });
+                                                        }
+                                                        // Add Layer to Group Layer if it does not already exist
+                                                        if (!this.findSubLayerByTitle(MapService.HHGroupLayer, x.portalItem.title)) {
+                                                            console.log('adding subLayer: ' + x.portalItem.title);
+                                                            MapService.HHGroupLayer.add(x);
+                                                        }
+                                                    });
+                                                })
+                                                .catch(error => console.warn(error.message));
+
+                                            // Add HH Group Layer if it does not already exist
+                                            if (!this.findLayerByTitle('Valassis Households')) {
+                                                this.mapView.map.layers.add(MapService.HHGroupLayer);
+                                            }
+                                            MapService.HHGroupLayer.visible = true;
+                                        }
             }); // End forEach analysisLevels
         }
         return { val: this.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number): Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -998,14 +999,14 @@ export class MapService {
         const graphicList: __esri.Graphic[] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList, title);
-        if (selector === 'Site'){
-        await this.selectCentroid(graphicList);
-    }
+        if (selector === 'Site') {
+            await this.selectCentroid(graphicList);
+        }
         //await this.zoomOnMap(graphicList);
         return { val: this.mapView };
     }
 
-    public async bufferMergeEach( pointColor, kms: number, title: string, outlneColor, selector, parentId?: number) {
+    public async bufferMergeEach(pointColor, kms: number, title: string, outlneColor, selector, parentId?: number) {
         /*: Promise<EsriWrapper<__esri.MapView>>*/
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -1039,21 +1040,21 @@ export class MapService {
         console.log('impGeofootprintLocList length:::' + this.impGeofootprintLocationService.get().length);
 
         for (const point of this.impGeofootprintLocationService.get()) {
-            if (point.impClientLocationType.toString() == 'Site' && selector === 'Site'){
-            const p = new Point({
-                x: point.xcoord,
-                y: point.ycoord,
-                spatialReference: 4326
-            });
-            pointList.push(p);
-        }else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor'){
-            const p = new Point({
-                x: point.xcoord,
-                y: point.ycoord,
-                spatialReference: 4326
-            });
-            pointList.push(p);
-        }
+            if (point.impClientLocationType.toString() == 'Site' && selector === 'Site') {
+                const p = new Point({
+                    x: point.xcoord,
+                    y: point.ycoord,
+                    spatialReference: 4326
+                });
+                pointList.push(p);
+            } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') {
+                const p = new Point({
+                    x: point.xcoord,
+                    y: point.ycoord,
+                    spatialReference: 4326
+                });
+                pointList.push(p);
+            }
         }
         // this.mapView.graphics.removeAll();
         const graphicList: __esri.Graphic[] = [];
@@ -1116,41 +1117,41 @@ export class MapService {
                     supportsQuery: true
                 },
                 query: {
-                  supportsCentroid: false,
-                  supportsDistance: true,
-                  supportsDistinct: true,
-                  supportsExtent: true,
-                  supportsGeometryProperties: false,
-                  supportsOrderBy: true,
-                  supportsPagination: true,
-                  supportsQuantization: true,
-                  supportsQueryByOthers: true,
-                  supportsResultType: true,
-                  supportsSqlExpression: true,
-                  supportsStandardizedQueriesOnly: true,
-                  supportsStatistics: true
-               }
+                    supportsCentroid: false,
+                    supportsDistance: true,
+                    supportsDistinct: true,
+                    supportsExtent: true,
+                    supportsGeometryProperties: false,
+                    supportsOrderBy: true,
+                    supportsPagination: true,
+                    supportsQuantization: true,
+                    supportsQueryByOthers: true,
+                    supportsResultType: true,
+                    supportsSqlExpression: true,
+                    supportsStandardizedQueriesOnly: true,
+                    supportsStatistics: true
+                }
             },
             advancedQueryCapabilities: {
-               supportsAdvancedQueryRelated: true,
-               supportsCountDistinct: true,
-               supportsDistinct: true,
-               supportsHavingClause: true,
-               supportsOrderBy: true,
-               supportsOutFieldSQLExpression: true,
-               supportsPagination: true,
-               supportsPaginationOnAggregatedQueries: true,
-               supportsQueryRelatedPagination: true,
-               supportsQueryWithDatumTransformation: true,
-               supportsQueryWithDistance: true,
-               supportsQueryWithResultType: true,
-               supportsReturningGeometryCentroid: true,
-               supportsReturningGeometryProperties: true,
-               supportsReturningQueryExtent: true,
-               supportsSqlExpression: true,
-               supportsStatistics: true
+                supportsAdvancedQueryRelated: true,
+                supportsCountDistinct: true,
+                supportsDistinct: true,
+                supportsHavingClause: true,
+                supportsOrderBy: true,
+                supportsOutFieldSQLExpression: true,
+                supportsPagination: true,
+                supportsPaginationOnAggregatedQueries: true,
+                supportsQueryRelatedPagination: true,
+                supportsQueryWithDatumTransformation: true,
+                supportsQueryWithDistance: true,
+                supportsQueryWithResultType: true,
+                supportsReturningGeometryCentroid: true,
+                supportsReturningGeometryProperties: true,
+                supportsReturningQueryExtent: true,
+                supportsSqlExpression: true,
+                supportsStatistics: true
             }
-         });
+        });
 
         if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')) {
             MapService.SitesGroupLayer.layers.unshift(lyr);
@@ -1414,7 +1415,7 @@ export class MapService {
         // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -1430,141 +1431,141 @@ export class MapService {
         color.g = pointColor.g;
         color.b = pointColor.b;
 
-      // Red Wings color
-      // color.r = 175;
-      // color.g = 0;
-      // color.b = 0;
+        // Red Wings color
+        // color.r = 175;
+        // color.g = 0;
+        // color.b = 0;
 
         // set up the first required piece, a symbol
         const symbolProps: __esri.SimpleMarkerSymbolProperties = {
             //    style: 'circle',
             style: 'path',
             size: 12, // Star Size
-//          size: 30, // Red Wings Size
+            //          size: 30, // Red Wings Size
             color: color,
             // Star path
             path: 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000'
 
-/*          // Red Wings Logo Path
-            path: 'M2820 2217 c-14 -8 -54 -36 -88 -64 -108 -87 -291 -172 -446 -208 -180 -42 -256 ' +
-                  '-48 -581 -50 -293 -1 -326 -3 -396 -22 -151 -42 -290 -132 -373 -240 l-38 -50 -106 ' +
-                  ' -6 c-140 -8 -214 -28 -347 -92 -209 -101 -359 -281 -421 -506 -25 -89 -25 -299 0 ' +
-                  '-389 114 -424 559 -673 1002 -560 205 52 386 181 489 349 35 56 38 59 85 64 68 8 130 ' +
-                  '42 143 78 9 22 18 29 37 29 14 0 57 9 95 19 71 20 125 62 125 96 0 8 10 17 23 19 114 ' +
-                  '22 149 32 198 57 69 35 123 92 116 126 -4 20 5 28 67 61 96 50 156 108 156 150 0 28 7 ' +
-                  '37 57 69 110 70 188 158 181 206 -2 17 10 34 41 62 55 50 101 120 101 155 0 28 -23 55 ' +
-                  '-52 61 -14 3 -12 12 18 59 58 92 77 154 78 251 1 72 -2 90 -18 108 -11 12 -27 21 -38 21 ' +
-                  '-16 0 -18 9 -18 68 0 90 -25 113 -90 79z m-29 -172 c-40 -114 -124 -226 -229 -306 l-67 ' +
-                  '-52 39 8 c81 14 174 72 277 172 108 105 108 104 84 -10 -20 -97 -68 -179 -163 -279 l-83 ' +
-                  '-87 62 -3 63 -3 -51 -51 c-28 -28 -83 -71 -122 -95 -39 -24 -71 -47 -71 -51 0 -5 22 -8 49 ' +
-                  '-8 28 0 52 -4 55 -9 15 -23 -142 -134 -256 -181 -32 -13 -58 -27 -58 -31 0 -4 15 -12 33 -19 ' +
-                  'l32 -11 -25 -21 c-37 -31 -176 -94 -250 -113 -36 -9 -66 -18 -68 -19 -1 -2 16 -15 38 -30 22 ' +
-                  '-14 40 -30 40 -35 0 -13 -99 -41 -185 -52 -44 -6 -102 -13 -128 -17 l-49 -7 41 -30 c22 -16 43 ' +
-                  '-35 45 -42 7 -18 -53 -32 -161 -40 l-92 -6 14 -28 c18 -34 12 -39 -62 -46 -49 -5 -58 -10 -72 -36 ' +
-                  '-88 -163 -188 -266 -324 -332 -111 -53 -212 -75 -345 -75 -335 0 -621 227 -686 543 -42 202 6 407 131 ' +
-                  '562 138 171 363 275 595 275 l98 0 21 43 c30 58 141 164 218 209 117 68 264 88 632 87 370 0 550 29 ' +
-                  '744 120 80 38 178 106 225 156 32 34 35 20 11 -50z ' +
-                  'M2675 1975 c-183 -142 -400 -195 -792 -195 -179 0 -427 -17 -518 -35 -110 -23 -222 -83 -292 -159 ' +
-                  '-33 -35 -65 -77 -71 -94 -10 -28 -8 -31 19 -42 16 -7 31 -11 32 -9 77 124 149 186 255 219 95 30 274 ' +
-                  '50 440 50 217 1 476 16 567 35 85 17 197 65 267 113 48 33 145 127 159 154 13 24 14 25 -66 -37z ' +
-                  'M2787 1785 c-27 -25 -86 -63 -130 -85 -146 -72 -306 -92 -712 -89 -159 1 -321 1 -360 0 -205 -6 ' +
-                  '-396 -118 -481 -281 -27 -51 -29 -63 -30 -180 -1 -137 -11 -185 -56 -273 -16 -33 -27 -61 -24 -64 ' +
-                  '2 -3 23 14 45 37 52 54 79 128 91 249 5 53 15 114 21 136 24 86 124 202 213 247 100 51 98 51 521 58 ' +
-                  '435 8 493 14 648 70 126 47 255 131 290 189 10 17 17 31 15 31 -2 -1 -25 -21 -51 -45z ' +
-                  'M2790 1740 c-36 -36 -86 -76 -112 -88 -25 -13 -49 -29 -52 -37 -3 -8 ' +
-                  '-14 -15 -24 -15 -10 0 -37 -9 -60 -20 -22 -11 -59 -20 -80 -20 -22 0 -45 -6 ' +
-                  '-51 -14 -6 -8 -36 -17 -66 -21 -30 -3 -57 -11 -61 -16 -3 -5 -21 -7 -40 -3 ' +
-                  '-24 4 -40 2 -52 -9 -9 -8 -26 -17 -37 -19 -11 -2 -19 -9 -18 -15 2 -11 -73 ' +
-                  '-34 -109 -34 -10 0 -20 -4 -23 -10 -4 -5 0 -9 8 -9 8 0 29 -7 47 -16 29 -15 ' +
-                  '44 -15 133 -5 199 24 380 103 514 222 82 74 138 138 149 171 3 11 4 20 2 21 ' +
-                  '-1 1 -32 -27 -68 -63z ' +
-                  'M2020 1503 c-8 -2 -22 -7 -30 -10 -22 -9 -64 -12 -175 -13 -55 0 ' +
-                  '-106 -4 -113 -9 -21 -13 48 -51 91 -51 87 0 276 51 285 78 4 12 -28 15 -58 5z ' +
-                  'M1515 1473 c-16 -2 -39 -8 -50 -13 -11 -5 -33 -14 -49 -20 -16 -6 ' +
-                  '-26 -13 -22 -17 3 -3 -4 -11 -16 -17 -13 -6 -24 -19 -26 -29 -3 -14 4 -17 42 ' +
-                  '-17 82 0 276 52 276 74 0 3 -18 15 -40 26 -38 19 -53 21 -115 13z ' +
-                  'M2605 1445 c-22 -8 -52 -14 -67 -14 -18 -1 -28 -6 -28 -16 0 -10 -11 ' +
-                  '-15 -35 -15 -19 0 -35 -4 -35 -10 0 -5 -22 -10 -49 -10 -28 0 -52 -4 -55 -9 ' +
-                  '-3 -4 -40 -14 -83 -21 -43 -7 -82 -16 -88 -20 -5 -4 -33 -10 -62 -12 -29 -3 ' +
-                  '-59 -12 -68 -21 -9 -10 -29 -17 -45 -17 -16 0 -32 -4 -35 -10 -3 -6 4 -10 18 ' +
-                  '-10 13 0 32 -9 43 -21 17 -19 26 -21 99 -14 126 10 232 34 322 70 84 34 241 ' +
-                  '123 263 150 11 13 8 15 -21 14 -19 -1 -52 -7 -74 -14z ' +
-                  'M680 1415 c-110 -24 -256 -104 -336 -182 -71 -69 -126 -141 -144 ' +
-                  '-187 -7 -20 -6 -24 5 -19 11 4 15 -3 16 -23 l1 -29 10 30 c30 84 165 234 262 ' +
-                  '290 157 92 369 115 529 59 38 -14 43 -13 54 3 16 21 10 25 -72 47 -87 24 -246 ' +
-                  '29 -325 11z ' +
-                  'M1687 1403 c-16 -3 -31 -11 -34 -19 -3 -8 -17 -14 -32 -14 -15 0 -31 ' +
-                  '-4 -36 -9 -6 -5 -26 -11 -45 -13 -30 -3 -32 -5 -15 -12 11 -5 32 -20 47 -34 ' +
-                  '26 -24 29 -25 165 -20 130 5 276 29 297 49 11 10 -65 46 -139 65 -47 13 -146 ' +
-                  '16 -208 7z ' +
-                  'M1298 1319 c-21 -11 -38 -25 -38 -33 0 -7 -9 -21 -20 -31 -11 -10 ' +
-                  '-18 -20 -15 -23 3 -3 0 -11 -6 -19 -9 -10 -4 -13 29 -13 79 0 292 50 292 69 0 ' +
-                  '13 -92 51 -149 61 -29 6 -54 10 -55 10 0 -1 -18 -10 -38 -21z ' +
-                  'M740 1250 c-115 -21 -243 -95 -303 -173 -42 -55 -84 -154 -97 -226 ' +
-                  '-42 -237 142 -478 400 -521 159 -27 346 39 444 157 29 35 28 47 -4 56 -13 3 ' +
-                  '-24 -1 -30 -13 -14 -26 -125 -103 -180 -124 -69 -28 -187 -32 -265 -11 -210 ' +
-                  '56 -344 259 -306 461 16 89 42 137 110 204 131 129 292 168 461 109 30 -10 56 ' +
-                  '-19 58 -19 2 0 2 15 0 33 -3 29 -8 34 -56 49 -63 22 -171 30 -232 18z ' +
-                  'M1582 1243 c-18 -3 -36 -11 -39 -19 -3 -8 -18 -14 -33 -14 -16 0 -32 ' +
-                  '-4 -35 -10 -3 -5 -1 -10 4 -10 6 0 11 -7 11 -15 0 -8 6 -15 14 -15 7 0 19 -6 ' +
-                  '25 -14 20 -24 148 -31 229 -12 38 9 83 22 99 30 15 8 40 20 56 27 15 7 27 16 ' +
-                  '27 19 0 4 -26 15 -58 24 -55 15 -210 20 -300 9z ' +
-                  'M2417 1237 c-38 -7 -65 -15 -61 -19 7 -8 -47 -13 -97 -9 -17 1 -29 ' +
-                  '-4 -33 -15 -5 -14 -15 -15 -56 -10 -39 5 -52 4 -56 -8 -4 -10 -15 -13 -39 -9 ' +
-                  '-44 7 -161 -15 -176 -33 -6 -8 -26 -14 -43 -15 -17 0 -40 -4 -51 -8 -18 -7 ' +
-                  '-15 -11 22 -29 23 -12 44 -26 48 -32 16 -26 284 0 420 41 114 34 283 125 265 ' +
-                  '142 -12 13 -81 14 -143 4z ' +
-                  'M1212 1159 c-12 -12 -22 -31 -22 -40 0 -10 -4 -20 -9 -23 -5 -3 -7 ' +
-                  '-15 -4 -26 4 -16 14 -20 48 -20 51 0 173 23 230 43 l39 14 -29 19 c-43 28 -92 ' +
-                  '43 -166 50 -60 6 -68 5 -87 -17z ' +
-                  'M737 1153 c-4 -3 -7 -34 -7 -68 l0 -62 76 1 75 1 -6 45 c-13 93 -11 ' +
-                  '90 -74 90 -32 0 -61 -3 -64 -7z ' +
-                  'M1505 1078 c-43 -36 -69 -48 -107 -48 -31 -1 -32 -2 -12 -13 12 -7 ' +
-                  '19 -17 17 -23 -2 -5 13 -18 33 -27 31 -15 47 -16 120 -7 91 11 227 50 259 74 ' +
-                  '18 13 14 15 -50 35 -39 12 -106 25 -150 28 -75 5 -82 4 -110 -19z ' +
-                  'M520 1024 c-23 -25 -40 -50 -38 -56 3 -7 26 -30 52 -52 46 -39 49 ' +
-                  '-40 60 -22 6 11 26 36 44 57 19 21 31 42 28 47 -3 4 -27 22 -55 39 l-50 31 ' +
-                  '-41 -44z ' +
-                  'M1165 1027 c-2 -7 -13 -36 -24 -64 l-19 -53 48 0 c51 0 180 35 180 ' +
-                  '49 0 9 -121 65 -158 74 -13 3 -25 0 -27 -6z ' +
-                  'M2205 1019 c-22 -4 -63 -9 -92 -10 -34 -1 -54 -6 -57 -16 -3 -8 -10 ' +
-                  '-12 -14 -9 -5 3 -54 10 -110 15 -104 11 -117 9 -162 -25 -8 -7 -42 -19 -75 ' +
-                  '-29 -56 -16 -58 -18 -35 -28 14 -5 102 -10 195 -11 150 -1 180 2 250 22 89 26 ' +
-                  '195 71 195 82 0 19 -32 22 -95 9z ' +
-                  'M1364 915 c-10 -8 -35 -15 -54 -15 -20 0 -41 -5 -47 -11 -7 -7 -44 ' +
-                  '-11 -91 -11 -61 1 -81 -2 -86 -13 -7 -18 -1 -21 70 -40 110 -28 270 -13 365 ' +
-                  '35 22 12 37 25 34 30 -8 13 -102 40 -140 40 -17 0 -40 -7 -51 -15z ' +
-                  'M1591 864 c-24 -13 -49 -24 -57 -24 -8 0 -14 -4 -14 -9 0 -17 136 ' +
-                  '-44 245 -49 98 -4 242 9 267 24 20 13 -16 34 -58 34 -23 0 -54 4 -68 10 -14 5 ' +
-                  '-27 6 -30 1 -5 -8 -144 11 -163 22 -30 18 -81 15 -122 -9z ' +
-                  'M769 841 c-43 -43 -38 -91 12 -116 15 -8 35 -15 44 -15 24 0 75 55 ' +
-                  '75 80 0 28 -52 80 -80 80 -12 0 -35 -13 -51 -29z ' +
-                  'M1050 821 c0 -18 147 -132 220 -170 73 -38 209 -81 258 -81 37 0 23 ' +
-                  '31 -20 46 -21 7 -53 25 -72 39 -20 15 -36 21 -38 15 -2 -7 -14 -3 -31 10 -15 ' +
-                  '12 -31 18 -37 15 -6 -4 -36 16 -67 44 -39 35 -63 49 -75 45 -10 -3 -43 6 -74 ' +
-                  '20 -64 29 -64 29 -64 17z ' +
-                  'M490 807 c-63 -14 -71 -30 -50 -100 l11 -38 67 3 c61 3 67 5 64 23 ' +
-                  '-2 11 -6 44 -9 73 -3 29 -10 52 -17 51 -6 0 -36 -6 -66 -12z ' +
-                  'M301 799 c0 -8 -8 -24 -16 -35 -15 -19 -15 -19 -30 0 -10 14 -18 16 ' +
-                  '-27 8 -17 -14 -50 -18 -65 -9 -18 11 -7 -68 24 -165 29 -96 103 -209 181 -278 ' +
-                  '70 -62 208 -135 293 -155 35 -8 107 -15 159 -15 177 0 329 61 455 184 64 62 ' +
-                  '165 199 165 223 0 7 -141 55 -147 49 -2 -2 24 -44 53 -84 16 -21 16 -22 -12 ' +
-                  '-22 -16 0 -43 4 -61 9 -29 8 -34 6 -62 -29 -39 -48 -154 -125 -228 -153 -85 ' +
-                  '-31 -243 -30 -337 2 -189 65 -313 221 -336 426 -4 33 -8 53 -9 44z ' +
-                  'M1355 786 c-38 -6 -69 -15 -69 -21 2 -17 162 -76 243 -91 101 -18 ' +
-                  '231 -19 231 -1 0 16 -57 50 -69 42 -5 -3 -13 0 -16 6 -4 6 -18 8 -31 5 -16 -4 ' +
-                  '-42 3 -75 19 -28 15 -57 24 -64 21 -7 -2 -27 4 -44 15 -17 10 -32 18 -34 18 ' +
-                  '-1 -1 -33 -6 -72 -13z ' +
-                  'M980 771 c-18 -34 -11 -48 46 -100 87 -77 264 -162 264 -126 0 14 ' +
-                  '-65 67 -73 59 -3 -3 -15 9 -27 25 -12 17 -27 31 -34 31 -7 0 -23 11 -36 25 ' +
-                  '-13 14 -29 25 -37 25 -7 0 -13 4 -13 8 0 15 -53 72 -66 72 -7 0 -18 -9 -24 ' +
-                  '-19z ' +
-                  'M580 586 c-16 -25 -30 -51 -30 -59 0 -17 38 -53 69 -65 22 -8 30 -3 ' +
-                  '69 41 l44 50 -33 18 c-19 9 -43 26 -53 38 -11 12 -23 21 -27 21 -4 0 -22 -20 ' +
-                  '-39 -44z ' +
-                  'M885 554 c-22 -7 -55 -13 -74 -13 -29 -1 -33 -4 -28 -23 3 -13 9 -40 ' +
-                  '13 -61 8 -46 19 -52 82 -40 l47 8 9 64 c4 34 4 66 0 70 -5 4 -27 2 -49 -5z '*/
-                  };
+            /*          // Red Wings Logo Path
+                        path: 'M2820 2217 c-14 -8 -54 -36 -88 -64 -108 -87 -291 -172 -446 -208 -180 -42 -256 ' +
+                              '-48 -581 -50 -293 -1 -326 -3 -396 -22 -151 -42 -290 -132 -373 -240 l-38 -50 -106 ' +
+                              ' -6 c-140 -8 -214 -28 -347 -92 -209 -101 -359 -281 -421 -506 -25 -89 -25 -299 0 ' +
+                              '-389 114 -424 559 -673 1002 -560 205 52 386 181 489 349 35 56 38 59 85 64 68 8 130 ' +
+                              '42 143 78 9 22 18 29 37 29 14 0 57 9 95 19 71 20 125 62 125 96 0 8 10 17 23 19 114 ' +
+                              '22 149 32 198 57 69 35 123 92 116 126 -4 20 5 28 67 61 96 50 156 108 156 150 0 28 7 ' +
+                              '37 57 69 110 70 188 158 181 206 -2 17 10 34 41 62 55 50 101 120 101 155 0 28 -23 55 ' +
+                              '-52 61 -14 3 -12 12 18 59 58 92 77 154 78 251 1 72 -2 90 -18 108 -11 12 -27 21 -38 21 ' +
+                              '-16 0 -18 9 -18 68 0 90 -25 113 -90 79z m-29 -172 c-40 -114 -124 -226 -229 -306 l-67 ' +
+                              '-52 39 8 c81 14 174 72 277 172 108 105 108 104 84 -10 -20 -97 -68 -179 -163 -279 l-83 ' +
+                              '-87 62 -3 63 -3 -51 -51 c-28 -28 -83 -71 -122 -95 -39 -24 -71 -47 -71 -51 0 -5 22 -8 49 ' +
+                              '-8 28 0 52 -4 55 -9 15 -23 -142 -134 -256 -181 -32 -13 -58 -27 -58 -31 0 -4 15 -12 33 -19 ' +
+                              'l32 -11 -25 -21 c-37 -31 -176 -94 -250 -113 -36 -9 -66 -18 -68 -19 -1 -2 16 -15 38 -30 22 ' +
+                              '-14 40 -30 40 -35 0 -13 -99 -41 -185 -52 -44 -6 -102 -13 -128 -17 l-49 -7 41 -30 c22 -16 43 ' +
+                              '-35 45 -42 7 -18 -53 -32 -161 -40 l-92 -6 14 -28 c18 -34 12 -39 -62 -46 -49 -5 -58 -10 -72 -36 ' +
+                              '-88 -163 -188 -266 -324 -332 -111 -53 -212 -75 -345 -75 -335 0 -621 227 -686 543 -42 202 6 407 131 ' +
+                              '562 138 171 363 275 595 275 l98 0 21 43 c30 58 141 164 218 209 117 68 264 88 632 87 370 0 550 29 ' +
+                              '744 120 80 38 178 106 225 156 32 34 35 20 11 -50z ' +
+                              'M2675 1975 c-183 -142 -400 -195 -792 -195 -179 0 -427 -17 -518 -35 -110 -23 -222 -83 -292 -159 ' +
+                              '-33 -35 -65 -77 -71 -94 -10 -28 -8 -31 19 -42 16 -7 31 -11 32 -9 77 124 149 186 255 219 95 30 274 ' +
+                              '50 440 50 217 1 476 16 567 35 85 17 197 65 267 113 48 33 145 127 159 154 13 24 14 25 -66 -37z ' +
+                              'M2787 1785 c-27 -25 -86 -63 -130 -85 -146 -72 -306 -92 -712 -89 -159 1 -321 1 -360 0 -205 -6 ' +
+                              '-396 -118 -481 -281 -27 -51 -29 -63 -30 -180 -1 -137 -11 -185 -56 -273 -16 -33 -27 -61 -24 -64 ' +
+                              '2 -3 23 14 45 37 52 54 79 128 91 249 5 53 15 114 21 136 24 86 124 202 213 247 100 51 98 51 521 58 ' +
+                              '435 8 493 14 648 70 126 47 255 131 290 189 10 17 17 31 15 31 -2 -1 -25 -21 -51 -45z ' +
+                              'M2790 1740 c-36 -36 -86 -76 -112 -88 -25 -13 -49 -29 -52 -37 -3 -8 ' +
+                              '-14 -15 -24 -15 -10 0 -37 -9 -60 -20 -22 -11 -59 -20 -80 -20 -22 0 -45 -6 ' +
+                              '-51 -14 -6 -8 -36 -17 -66 -21 -30 -3 -57 -11 -61 -16 -3 -5 -21 -7 -40 -3 ' +
+                              '-24 4 -40 2 -52 -9 -9 -8 -26 -17 -37 -19 -11 -2 -19 -9 -18 -15 2 -11 -73 ' +
+                              '-34 -109 -34 -10 0 -20 -4 -23 -10 -4 -5 0 -9 8 -9 8 0 29 -7 47 -16 29 -15 ' +
+                              '44 -15 133 -5 199 24 380 103 514 222 82 74 138 138 149 171 3 11 4 20 2 21 ' +
+                              '-1 1 -32 -27 -68 -63z ' +
+                              'M2020 1503 c-8 -2 -22 -7 -30 -10 -22 -9 -64 -12 -175 -13 -55 0 ' +
+                              '-106 -4 -113 -9 -21 -13 48 -51 91 -51 87 0 276 51 285 78 4 12 -28 15 -58 5z ' +
+                              'M1515 1473 c-16 -2 -39 -8 -50 -13 -11 -5 -33 -14 -49 -20 -16 -6 ' +
+                              '-26 -13 -22 -17 3 -3 -4 -11 -16 -17 -13 -6 -24 -19 -26 -29 -3 -14 4 -17 42 ' +
+                              '-17 82 0 276 52 276 74 0 3 -18 15 -40 26 -38 19 -53 21 -115 13z ' +
+                              'M2605 1445 c-22 -8 -52 -14 -67 -14 -18 -1 -28 -6 -28 -16 0 -10 -11 ' +
+                              '-15 -35 -15 -19 0 -35 -4 -35 -10 0 -5 -22 -10 -49 -10 -28 0 -52 -4 -55 -9 ' +
+                              '-3 -4 -40 -14 -83 -21 -43 -7 -82 -16 -88 -20 -5 -4 -33 -10 -62 -12 -29 -3 ' +
+                              '-59 -12 -68 -21 -9 -10 -29 -17 -45 -17 -16 0 -32 -4 -35 -10 -3 -6 4 -10 18 ' +
+                              '-10 13 0 32 -9 43 -21 17 -19 26 -21 99 -14 126 10 232 34 322 70 84 34 241 ' +
+                              '123 263 150 11 13 8 15 -21 14 -19 -1 -52 -7 -74 -14z ' +
+                              'M680 1415 c-110 -24 -256 -104 -336 -182 -71 -69 -126 -141 -144 ' +
+                              '-187 -7 -20 -6 -24 5 -19 11 4 15 -3 16 -23 l1 -29 10 30 c30 84 165 234 262 ' +
+                              '290 157 92 369 115 529 59 38 -14 43 -13 54 3 16 21 10 25 -72 47 -87 24 -246 ' +
+                              '29 -325 11z ' +
+                              'M1687 1403 c-16 -3 -31 -11 -34 -19 -3 -8 -17 -14 -32 -14 -15 0 -31 ' +
+                              '-4 -36 -9 -6 -5 -26 -11 -45 -13 -30 -3 -32 -5 -15 -12 11 -5 32 -20 47 -34 ' +
+                              '26 -24 29 -25 165 -20 130 5 276 29 297 49 11 10 -65 46 -139 65 -47 13 -146 ' +
+                              '16 -208 7z ' +
+                              'M1298 1319 c-21 -11 -38 -25 -38 -33 0 -7 -9 -21 -20 -31 -11 -10 ' +
+                              '-18 -20 -15 -23 3 -3 0 -11 -6 -19 -9 -10 -4 -13 29 -13 79 0 292 50 292 69 0 ' +
+                              '13 -92 51 -149 61 -29 6 -54 10 -55 10 0 -1 -18 -10 -38 -21z ' +
+                              'M740 1250 c-115 -21 -243 -95 -303 -173 -42 -55 -84 -154 -97 -226 ' +
+                              '-42 -237 142 -478 400 -521 159 -27 346 39 444 157 29 35 28 47 -4 56 -13 3 ' +
+                              '-24 -1 -30 -13 -14 -26 -125 -103 -180 -124 -69 -28 -187 -32 -265 -11 -210 ' +
+                              '56 -344 259 -306 461 16 89 42 137 110 204 131 129 292 168 461 109 30 -10 56 ' +
+                              '-19 58 -19 2 0 2 15 0 33 -3 29 -8 34 -56 49 -63 22 -171 30 -232 18z ' +
+                              'M1582 1243 c-18 -3 -36 -11 -39 -19 -3 -8 -18 -14 -33 -14 -16 0 -32 ' +
+                              '-4 -35 -10 -3 -5 -1 -10 4 -10 6 0 11 -7 11 -15 0 -8 6 -15 14 -15 7 0 19 -6 ' +
+                              '25 -14 20 -24 148 -31 229 -12 38 9 83 22 99 30 15 8 40 20 56 27 15 7 27 16 ' +
+                              '27 19 0 4 -26 15 -58 24 -55 15 -210 20 -300 9z ' +
+                              'M2417 1237 c-38 -7 -65 -15 -61 -19 7 -8 -47 -13 -97 -9 -17 1 -29 ' +
+                              '-4 -33 -15 -5 -14 -15 -15 -56 -10 -39 5 -52 4 -56 -8 -4 -10 -15 -13 -39 -9 ' +
+                              '-44 7 -161 -15 -176 -33 -6 -8 -26 -14 -43 -15 -17 0 -40 -4 -51 -8 -18 -7 ' +
+                              '-15 -11 22 -29 23 -12 44 -26 48 -32 16 -26 284 0 420 41 114 34 283 125 265 ' +
+                              '142 -12 13 -81 14 -143 4z ' +
+                              'M1212 1159 c-12 -12 -22 -31 -22 -40 0 -10 -4 -20 -9 -23 -5 -3 -7 ' +
+                              '-15 -4 -26 4 -16 14 -20 48 -20 51 0 173 23 230 43 l39 14 -29 19 c-43 28 -92 ' +
+                              '43 -166 50 -60 6 -68 5 -87 -17z ' +
+                              'M737 1153 c-4 -3 -7 -34 -7 -68 l0 -62 76 1 75 1 -6 45 c-13 93 -11 ' +
+                              '90 -74 90 -32 0 -61 -3 -64 -7z ' +
+                              'M1505 1078 c-43 -36 -69 -48 -107 -48 -31 -1 -32 -2 -12 -13 12 -7 ' +
+                              '19 -17 17 -23 -2 -5 13 -18 33 -27 31 -15 47 -16 120 -7 91 11 227 50 259 74 ' +
+                              '18 13 14 15 -50 35 -39 12 -106 25 -150 28 -75 5 -82 4 -110 -19z ' +
+                              'M520 1024 c-23 -25 -40 -50 -38 -56 3 -7 26 -30 52 -52 46 -39 49 ' +
+                              '-40 60 -22 6 11 26 36 44 57 19 21 31 42 28 47 -3 4 -27 22 -55 39 l-50 31 ' +
+                              '-41 -44z ' +
+                              'M1165 1027 c-2 -7 -13 -36 -24 -64 l-19 -53 48 0 c51 0 180 35 180 ' +
+                              '49 0 9 -121 65 -158 74 -13 3 -25 0 -27 -6z ' +
+                              'M2205 1019 c-22 -4 -63 -9 -92 -10 -34 -1 -54 -6 -57 -16 -3 -8 -10 ' +
+                              '-12 -14 -9 -5 3 -54 10 -110 15 -104 11 -117 9 -162 -25 -8 -7 -42 -19 -75 ' +
+                              '-29 -56 -16 -58 -18 -35 -28 14 -5 102 -10 195 -11 150 -1 180 2 250 22 89 26 ' +
+                              '195 71 195 82 0 19 -32 22 -95 9z ' +
+                              'M1364 915 c-10 -8 -35 -15 -54 -15 -20 0 -41 -5 -47 -11 -7 -7 -44 ' +
+                              '-11 -91 -11 -61 1 -81 -2 -86 -13 -7 -18 -1 -21 70 -40 110 -28 270 -13 365 ' +
+                              '35 22 12 37 25 34 30 -8 13 -102 40 -140 40 -17 0 -40 -7 -51 -15z ' +
+                              'M1591 864 c-24 -13 -49 -24 -57 -24 -8 0 -14 -4 -14 -9 0 -17 136 ' +
+                              '-44 245 -49 98 -4 242 9 267 24 20 13 -16 34 -58 34 -23 0 -54 4 -68 10 -14 5 ' +
+                              '-27 6 -30 1 -5 -8 -144 11 -163 22 -30 18 -81 15 -122 -9z ' +
+                              'M769 841 c-43 -43 -38 -91 12 -116 15 -8 35 -15 44 -15 24 0 75 55 ' +
+                              '75 80 0 28 -52 80 -80 80 -12 0 -35 -13 -51 -29z ' +
+                              'M1050 821 c0 -18 147 -132 220 -170 73 -38 209 -81 258 -81 37 0 23 ' +
+                              '31 -20 46 -21 7 -53 25 -72 39 -20 15 -36 21 -38 15 -2 -7 -14 -3 -31 10 -15 ' +
+                              '12 -31 18 -37 15 -6 -4 -36 16 -67 44 -39 35 -63 49 -75 45 -10 -3 -43 6 -74 ' +
+                              '20 -64 29 -64 29 -64 17z ' +
+                              'M490 807 c-63 -14 -71 -30 -50 -100 l11 -38 67 3 c61 3 67 5 64 23 ' +
+                              '-2 11 -6 44 -9 73 -3 29 -10 52 -17 51 -6 0 -36 -6 -66 -12z ' +
+                              'M301 799 c0 -8 -8 -24 -16 -35 -15 -19 -15 -19 -30 0 -10 14 -18 16 ' +
+                              '-27 8 -17 -14 -50 -18 -65 -9 -18 11 -7 -68 24 -165 29 -96 103 -209 181 -278 ' +
+                              '70 -62 208 -135 293 -155 35 -8 107 -15 159 -15 177 0 329 61 455 184 64 62 ' +
+                              '165 199 165 223 0 7 -141 55 -147 49 -2 -2 24 -44 53 -84 16 -21 16 -22 -12 ' +
+                              '-22 -16 0 -43 4 -61 9 -29 8 -34 6 -62 -29 -39 -48 -154 -125 -228 -153 -85 ' +
+                              '-31 -243 -30 -337 2 -189 65 -313 221 -336 426 -4 33 -8 53 -9 44z ' +
+                              'M1355 786 c-38 -6 -69 -15 -69 -21 2 -17 162 -76 243 -91 101 -18 ' +
+                              '231 -19 231 -1 0 16 -57 50 -69 42 -5 -3 -13 0 -16 6 -4 6 -18 8 -31 5 -16 -4 ' +
+                              '-42 3 -75 19 -28 15 -57 24 -64 21 -7 -2 -27 4 -44 15 -17 10 -32 18 -34 18 ' +
+                              '-1 -1 -33 -6 -72 -13z ' +
+                              'M980 771 c-18 -34 -11 -48 46 -100 87 -77 264 -162 264 -126 0 14 ' +
+                              '-65 67 -73 59 -3 -3 -15 9 -27 25 -12 17 -27 31 -34 31 -7 0 -23 11 -36 25 ' +
+                              '-13 14 -29 25 -37 25 -7 0 -13 4 -13 8 0 15 -53 72 -66 72 -7 0 -18 -9 -24 ' +
+                              '-19z ' +
+                              'M580 586 c-16 -25 -30 -51 -30 -59 0 -17 38 -53 69 -65 22 -8 30 -3 ' +
+                              '69 41 l44 50 -33 18 c-19 9 -43 26 -53 38 -11 12 -23 21 -27 21 -4 0 -22 -20 ' +
+                              '-39 -44z ' +
+                              'M885 554 c-22 -7 -55 -13 -74 -13 -29 -1 -33 -4 -28 -23 3 -13 9 -40 ' +
+                              '13 -61 8 -46 19 -52 82 -40 l47 8 9 64 c4 34 4 66 0 70 -5 4 -27 2 -49 -5z '*/
+        };
 
         const symbol: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol(symbolProps);
         symbol.outline = null;
@@ -1588,9 +1589,9 @@ export class MapService {
         }
         const graphic: __esri.Graphic = new Graphic(graphicProps);
 
-//        console.log('Graphic parentId: ' + parentId);
+        //        console.log('Graphic parentId: ' + parentId);
         if (parentId != null) {
-//            console.log('Set parentId: ' + parentId);
+            //            console.log('Set parentId: ' + parentId);
             // this.setGraphicAttribute (graphic, 'parentId', parentId);
             graphic.setAttribute('parentId', parentId);
         }
@@ -1687,72 +1688,70 @@ export class MapService {
 
         let layer: __esri.FeatureLayer;
         const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-                console.log('discovery UI Details:::' , discoveryUI[0].analysisLevel);
-        for (const lyr of fLyrList){
-            if (lyr.portalItem != null ){
+        console.log('discovery UI Details:::', discoveryUI[0].analysisLevel);
+        for (const lyr of fLyrList) {
+            if (lyr.portalItem != null) {
 
                 if (discoveryUI[0].analysisLevel === 'ATZ' &&
-                                            lyr.portalItem.id === this.config.layerIds.atz.centroids){
+                    lyr.portalItem.id === this.config.layerIds.atz.centroids) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'ZIP' &&
-                                            lyr.portalItem.id === this.config.layerIds.zip.centroids){
+                    lyr.portalItem.id === this.config.layerIds.zip.centroids) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
-                                            lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids){
+                    lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'PCR' &&
-                                            lyr.portalItem.id === this.config.layerIds.pcr.centroids){
+                    lyr.portalItem.id === this.config.layerIds.pcr.centroids) {
                     layer = lyr;
                 }
             }
         }
 
-            if (layer != null && layer.portalItem != null) {
-                let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
-                await layer.load().then((f1: __esri.FeatureLayer) => {
-                    loadedFeatureLayer = f1;
-                });
-                for (const graphic of graphicList) {
-                    const qry = layer.createQuery();
-                    qry.geometry = graphic.geometry;
-                    qry.outSpatialReference = this.mapView.spatialReference;
-                    await layer.queryFeatures(qry).then(featureSet => {
-                        for (let i = 0; i < featureSet.features.length; i++) {
-                            if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
-                                centroidGraphics.push(featureSet.features[i]);
-                            }
+        if (layer != null && layer.portalItem != null) {
+            let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
+            await layer.load().then((f1: __esri.FeatureLayer) => {
+                loadedFeatureLayer = f1;
+            });
+            for (const graphic of graphicList) {
+                const qry = layer.createQuery();
+                qry.geometry = graphic.geometry;
+                qry.outSpatialReference = this.mapView.spatialReference;
+                await layer.queryFeatures(qry).then(featureSet => {
+                    for (let i = 0; i < featureSet.features.length; i++) {
+                        if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
+                            centroidGraphics.push(featureSet.features[i]);
                         }
-                    });
-                }
-                await this.selectPoly(centroidGraphics);
+                    }
+                });
             }
+            await this.selectPoly(centroidGraphics);
+        }
     }
 
-   public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any)
-   {
-      console.log ('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
-      let results: Array<__esri.Graphic>;
+    public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any) {
+        console.log('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
+        let results: Array<__esri.Graphic>;
 
-      return layerView.queryFeatures().then( qryResults => {
-         console.log('queryFeatures returned: ', qryResults);
-         console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
-         results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
-      });
-   }
+        return layerView.queryFeatures().then(qryResults => {
+            console.log('queryFeatures returned: ', qryResults);
+            console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
+            results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
+        });
+    }
 
-   public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number
-   {
-      // Construct a polyline to get the geodesic distance between geo and site
-      const polyLine: __esri.Polyline = new EsriModules.PolyLine({paths: [[[x1, y1], [x2, y2]]]});
-      const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
+    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number): number {
+        // Construct a polyline to get the geodesic distance between geo and site
+        const polyLine: __esri.Polyline = new EsriModules.PolyLine({ paths: [[[x1, y1], [x2, y2]]] });
+        const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
 
-      return dist;
-   }
+        return dist;
+    }
 
-   public async selectPoly(centroidGraphics: __esri.Graphic[]) {
+    public async selectPoly(centroidGraphics: __esri.Graphic[]) {
         console.log('fired selectPoly');
 
         const loader = EsriLoaderWrapperService.esriLoader;
@@ -1790,10 +1789,12 @@ export class MapService {
         const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
 
         for (const centroidGraphic of centroidGraphics) {
-            const pt: __esri.Point = <__esri.Point> centroidGraphic.geometry;
-            impGeofootprintGeos.push(new ImpGeofootprintGeo({geocode: EsriLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
-                                                             xcoord:  pt.longitude,
-                                                             ycoord:  pt.latitude}));
+            const pt: __esri.Point = <__esri.Point>centroidGraphic.geometry;
+            impGeofootprintGeos.push(new ImpGeofootprintGeo({
+                geocode: EsriLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
+                xcoord: pt.longitude,
+                ycoord: pt.latitude
+            }));
         }
         // Update the ImpGeofootprintGeos data store
         this.impGeofootprintGeoService.clearAll();
@@ -1802,138 +1803,142 @@ export class MapService {
 
         let layer: __esri.FeatureLayer;
         const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-        for (const lyr of fLyrList){
-            if (lyr.portalItem != null ){
+        for (const lyr of fLyrList) {
+            if (lyr.portalItem != null) {
 
                 if (discoveryUI[0].analysisLevel === 'ATZ' &&
-                                            lyr.portalItem.id === this.config.layerIds.atz.topVars){
+                    lyr.portalItem.id === this.config.layerIds.atz.topVars) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'ZIP' &&
-                                            lyr.portalItem.id === this.config.layerIds.zip.topVars){
+                    lyr.portalItem.id === this.config.layerIds.zip.topVars) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
-                                            lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+                    lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
                     layer = lyr;
                 }
                 if (discoveryUI[0].analysisLevel === 'PCR' &&
-                                            lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+                    lyr.portalItem.id === this.config.layerIds.pcr.topVars) {
                     layer = lyr;
                 }
             }
         }
 
 
-      //  for (const lyr of fLyrList) {
-            if (layer.portalItem != null) {
-                let layername = null;
-                if (layer.portalItem.id === this.config.layerIds.zip.topVars)
-                    layername = 'Selected Geography - ZIP';
-                else if (layer.portalItem.id === this.config.layerIds.atz.topVars)
-                    layername = 'Selected Geography - ATZ';
-                else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
-                    layername = 'Selected Geography - Digital ATZ';
-                const polyGraphics: __esri.Graphic[] = [];
-                let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
+        //  for (const lyr of fLyrList) {
+        if (layer.portalItem != null) {
+            let layername = null;
+            if (layer.portalItem.id === this.config.layerIds.zip.topVars)
+                layername = 'Selected Geography - ZIP';
+            else if (layer.portalItem.id === this.config.layerIds.atz.topVars)
+                layername = 'Selected Geography - ATZ';
+            else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
+                layername = 'Selected Geography - Digital ATZ';
+            const polyGraphics: __esri.Graphic[] = [];
+            let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
-                await layer.load().then((f1: __esri.FeatureLayer) => {
-                    loadedFeatureLayer = f1;
-                });
+            await layer.load().then((f1: __esri.FeatureLayer) => {
+                loadedFeatureLayer = f1;
+            });
 
-                await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
-                await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
-                await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
-                // MapService.selectedCentroidObjectIds = [];
-                MapService.hhDetails = 0;
-                MapService.hhIpAddress = 0;
-                MapService.medianHHIncome = '0';
-                MapService.hhChildren = 0;
-                MapService.totInvestment = '0';
-                MapService.proBudget = '0';
-                MapService.t = 0;
-                MapService.circBudget = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
-                this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
-                this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
-                this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
-                this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
+            await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
+            await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
+            await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
+            // MapService.selectedCentroidObjectIds = [];
+            MapService.hhDetails = 0;
+            MapService.hhIpAddress = 0;
+            MapService.medianHHIncome = '0';
+            MapService.hhChildren = 0;
+            MapService.totInvestment = '0';
+            MapService.proBudget = '0';
+            MapService.t = 0;
+            MapService.circBudget = 0;
+            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+            this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
+            this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
+            this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString());
+            this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toString());
 
-                await array.forEach(centroidGraphics, (centroidGraphic) => {
-                    const qry1 = loadedFeatureLayer.createQuery();
-                    qry1.geometry = centroidGraphic.geometry;
-                    qry1.outSpatialReference = this.mapView.spatialReference;
+            await array.forEach(centroidGraphics, (centroidGraphic) => {
+                const qry1 = loadedFeatureLayer.createQuery();
+                qry1.geometry = centroidGraphic.geometry;
+                qry1.outSpatialReference = this.mapView.spatialReference;
 
-                    loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
-                        //const t0 = performance.now();
+                loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
+                    //const t0 = performance.now();
 
-                        for (let i = 0; i < polyFeatureSet.features.length; i++) {
-                          const currentAttribute = polyFeatureSet.features[i].attributes;
-                          //console.log('CurrentAttribute', currentAttribute);
-                            if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
-                                if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs')  != null){
-                                    MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-                                    
-                                }
+                    for (let i = 0; i < polyFeatureSet.features.length; i++) {
+                        const currentAttribute = polyFeatureSet.features[i].attributes;
+                        //console.log('CurrentAttribute', currentAttribute);
+                        if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
+                            if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != null) {
+                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+
+                            }
                             //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                                
-                                if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00')  != null){
-                                    MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+
+                            if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
+                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                            }
+                            if (discoveryUI[0].selectedSeason == 'WINTER') {
+                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != null)) {
+                                    MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
                                 }
-                                if  (discoveryUI[0].selectedSeason == 'WINTER'){
-                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 console.log('total count:::', MapService.hhDetails);
                                 console.log('winter:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
-                                } else {
-                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
-                                    console.log('total count:::', MapService.hhDetails);
-                                    console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
+                            } else {
+                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s') != null)) {
+                                    MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
                                 }
-                                if (discoveryUI[0].cpm != null){
-                                    MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
-                                    MapService.totInvestment =  '$' + Math.round(MapService.t);
-                                } else{
-                                    MapService.totInvestment = 'N/A';
-                                }
-                                if (discoveryUI[0].circBudget != null){
-                                    MapService.circBudget = MapService.hhDetails / discoveryUI[0].circBudget;
-                                    MapService.proBudget = MapService.circBudget * 100 + '%';
-                                    console.log('progress to budget for circ::', MapService.proBudget);
-                                } else if (discoveryUI[0].totalBudget != null){
-                                    MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100  + '%';
-                                     console.log('progress to budget for dollar:::', MapService.proBudget );
-                                } else if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null){
-                                     // if we both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-                                     MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
-                                     console.log('return Progress to budget for dollar :::', MapService.proBudget);
-                                } else {
-                                    MapService.proBudget = 'N/A';
-                                }
-
-                            
-                                //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
-                                MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
-                                polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
-                                MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
+                                console.log('total count:::', MapService.hhDetails);
+                                console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
                             }
-                            //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
-                        }
-                        //this.mapView.graphics.addMany(polyGraphics);
-                        this.updateFeatureLayer(polyGraphics, layername);
-                        this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            if (discoveryUI[0].cpm != null) {
+                                MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
+                                MapService.totInvestment = '$' + Math.round(MapService.t);
+                            } else {
+                                MapService.totInvestment = 'N/A';
+                            }
+                            if (discoveryUI[0].circBudget != null) {
+                                MapService.circBudget = MapService.hhDetails / discoveryUI[0].circBudget;
+                                MapService.proBudget = MapService.circBudget * 100 + '%';
+                                console.log('progress to budget for circ::', MapService.proBudget);
+                            } else if (discoveryUI[0].totalBudget != null) {
+                                MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
+                                console.log('progress to budget for dollar:::', MapService.proBudget);
+                            } else if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) {
+                                // if we both Circ Budget and dollar budget were provided, calculate based on the dollar budget
+                                MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
+                                console.log('return Progress to budget for dollar :::', MapService.proBudget);
+                            } else {
+                                MapService.proBudget = 'N/A';
+                            }
 
-                        //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                        this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toFixed(2));
-                    });
+
+                            //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+                            MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                            MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
+                            polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
+                            MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
+                        }
+                        //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
+                    }
+                    //this.mapView.graphics.addMany(polyGraphics);
+                    this.updateFeatureLayer(polyGraphics, layername);
+                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+
+                    //this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('AUDIENCE', 'Median Household Income', MapService.medianHHIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('AUDIENCE', 'Households with Children', MapService.hhChildren.toFixed(2));
                 });
-            }
-       // }
+            });
+        }
+        // }
     }
     // to select based on featureLayerView
     /*    public async selectPoly(centroidGraphics: __esri.Graphic[]){
@@ -2005,121 +2010,121 @@ export class MapService {
             }
         } */
 
-  public selectSinglePolygon(evt: __esri.MapViewClickEvent, preSelectedGeo?: __esri.Geometry, preSelectedObjectId?: number) {
-    console.log('fired selectSinglePolygon');
-    const symbol = new EsriModules.SimpleFillSymbol({
-      style: 'solid',
-      color: new EsriModules.Color([0, 255, 0, 0.10]),
-      outline: new EsriModules.SimpleLineSymbol({
-        style: 'solid',
-        color: new EsriModules.Color([0, 255, 0, 0.65])
-      })
-    });
-    // todo - this might be fragile
-    const currentSelectedAnalysisLevel = this.impDiscoveryService.get()[0].analysisLevel;
-    const featureLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter(l => {
-      switch (currentSelectedAnalysisLevel) {
-        case 'ATZ':
-          return l.portalItem != null && l.portalItem.id === this.config.layerIds.atz.topVars;
-        case 'ZIP':
-          return l.portalItem != null && l.portalItem.id === this.config.layerIds.zip.topVars;
-        case 'PCR':
-          return l.portalItem != null && l.portalItem.id === this.config.layerIds.pcr.topVars;
-        default:
-          console.error(`MapService.selectSinglePoly - Unknown Analysis Level selected: ${currentSelectedAnalysisLevel}`);
-          return false;
-      }
-    });
-    if (featureLayers.length === 0) return;
-    const featureLayer = featureLayers[0];
-    const graphicLayer: __esri.FeatureLayer = this._getAllFeatureLayers().find(l => l.title.endsWith(` - ${currentSelectedAnalysisLevel}`));
-    const query = featureLayer.createQuery();
-    if (preSelectedGeo != null) {
-      query.geometry = preSelectedGeo;
-    } else {
-      query.geometry = evt.mapPoint;
-    }
-    featureLayer.queryFeatures(query).then((polyFeatureSet: __esri.FeatureSet) => {
-      let currentAttributes: any;
-      if (preSelectedObjectId == null) {
-        currentAttributes = polyFeatureSet.features[0].attributes;
-      } else {
-        polyFeatureSet.features.forEach(f => {
-          if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
-            currentAttributes = f.attributes;
-          }
-          this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-          this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-          this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-          this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                
+    public selectSinglePolygon(evt: __esri.MapViewClickEvent, preSelectedGeo?: __esri.Geometry, preSelectedObjectId?: number) {
+        console.log('fired selectSinglePolygon');
+        const symbol = new EsriModules.SimpleFillSymbol({
+            style: 'solid',
+            color: new EsriModules.Color([0, 255, 0, 0.10]),
+            outline: new EsriModules.SimpleLineSymbol({
+                style: 'solid',
+                color: new EsriModules.Color([0, 255, 0, 0.65])
+            })
         });
-      }
-      if (currentAttributes == null) {
-        console.error('Could not match object id from popup geo selection');
-        return;
-      }
-      const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
-      const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
-      const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
-      const currentGeocode = EsriLayerService.getAttributeValue(currentAttributes, 'geocode');
-      const currentLat = EsriLayerService.getAttributeValue(currentAttributes, 'latitude');
-      const currentLong = EsriLayerService.getAttributeValue(currentAttributes, 'longitude');
-      if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
-        const indexToRemove = graphicLayer.source.findIndex(g => {
-          const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
-          return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
+        // todo - this might be fragile
+        const currentSelectedAnalysisLevel = this.impDiscoveryService.get()[0].analysisLevel;
+        const featureLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter(l => {
+            switch (currentSelectedAnalysisLevel) {
+                case 'ATZ':
+                    return l.portalItem != null && l.portalItem.id === this.config.layerIds.atz.topVars;
+                case 'ZIP':
+                    return l.portalItem != null && l.portalItem.id === this.config.layerIds.zip.topVars;
+                case 'PCR':
+                    return l.portalItem != null && l.portalItem.id === this.config.layerIds.pcr.topVars;
+                default:
+                    console.error(`MapService.selectSinglePoly - Unknown Analysis Level selected: ${currentSelectedAnalysisLevel}`);
+                    return false;
+            }
         });
-        if (indexToRemove !== -1) {
-          graphicLayer.source.removeAt(indexToRemove);
-        }
-        // remove the id from the selected centroids list
-        const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
-        MapService.selectedCentroidObjectIds.splice(index, 1);
-        // remove the geo from the datastore
-        if (currentGeocode != null) {
-          this.impGeofootprintGeoService.removeBySearch({ geocode: currentGeocode });
+        if (featureLayers.length === 0) return;
+        const featureLayer = featureLayers[0];
+        const graphicLayer: __esri.FeatureLayer = this._getAllFeatureLayers().find(l => l.title.endsWith(` - ${currentSelectedAnalysisLevel}`));
+        const query = featureLayer.createQuery();
+        if (preSelectedGeo != null) {
+            query.geometry = preSelectedGeo;
         } else {
-          console.warn(`Geocode was not found in attributes for object ${queriedObjectId}`);
+            query.geometry = evt.mapPoint;
         }
-        MapService.hhDetails -= currentHHCount;
-        MapService.hhIpAddress -= currentIpCount;
-      } else {
-        let geoToAdd: __esri.Geometry;
-        if (preSelectedObjectId != null) {
-          geoToAdd = preSelectedGeo;
-        } else {
-          geoToAdd = polyFeatureSet.features[0].geometry;
-        }
-        graphicLayer.source.add(new EsriModules.Graphic({
-          geometry: geoToAdd,
-          symbol: symbol,
-          attributes: Object.assign({}, currentAttributes)
-        }));
-        MapService.selectedCentroidObjectIds.push(queriedObjectId);
-        const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xcoord: currentLong, ycoord: currentLat, hhc: currentHHCount });
-        this.impGeofootprintGeoService.add([newGeoModel]);
-        MapService.hhDetails += currentHHCount;
-        MapService.hhIpAddress += currentIpCount;
-      }
-      this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-      this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    });
-  }
+        featureLayer.queryFeatures(query).then((polyFeatureSet: __esri.FeatureSet) => {
+            let currentAttributes: any;
+            if (preSelectedObjectId == null) {
+                currentAttributes = polyFeatureSet.features[0].attributes;
+            } else {
+                polyFeatureSet.features.forEach(f => {
+                    if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
+                        currentAttributes = f.attributes;
+                    }
+                    this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                    this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-    public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
+                });
+            }
+            if (currentAttributes == null) {
+                console.error('Could not match object id from popup geo selection');
+                return;
+            }
+            const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
+            const currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
+            const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
+            const currentGeocode = EsriLayerService.getAttributeValue(currentAttributes, 'geocode');
+            const currentLat = EsriLayerService.getAttributeValue(currentAttributes, 'latitude');
+            const currentLong = EsriLayerService.getAttributeValue(currentAttributes, 'longitude');
+            if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
+                const indexToRemove = graphicLayer.source.findIndex(g => {
+                    const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
+                    return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
+                });
+                if (indexToRemove !== -1) {
+                    graphicLayer.source.removeAt(indexToRemove);
+                }
+                // remove the id from the selected centroids list
+                const index = MapService.selectedCentroidObjectIds.indexOf(preSelectedObjectId || queriedObjectId);
+                MapService.selectedCentroidObjectIds.splice(index, 1);
+                // remove the geo from the datastore
+                if (currentGeocode != null) {
+                    this.impGeofootprintGeoService.removeBySearch({ geocode: currentGeocode });
+                } else {
+                    console.warn(`Geocode was not found in attributes for object ${queriedObjectId}`);
+                }
+                MapService.hhDetails -= currentHHCount;
+                MapService.hhIpAddress -= currentIpCount;
+            } else {
+                let geoToAdd: __esri.Geometry;
+                if (preSelectedObjectId != null) {
+                    geoToAdd = preSelectedGeo;
+                } else {
+                    geoToAdd = polyFeatureSet.features[0].geometry;
+                }
+                graphicLayer.source.add(new EsriModules.Graphic({
+                    geometry: geoToAdd,
+                    symbol: symbol,
+                    attributes: Object.assign({}, currentAttributes)
+                }));
+                MapService.selectedCentroidObjectIds.push(queriedObjectId);
+                const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xcoord: currentLong, ycoord: currentLat, hhc: currentHHCount });
+                this.impGeofootprintGeoService.add([newGeoModel]);
+                MapService.hhDetails += currentHHCount;
+                MapService.hhIpAddress += currentIpCount;
+            }
+            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        });
+    }
+
+    public getAllFeatureLayers(): Promise<__esri.FeatureLayer[]> {
         console.log('fired getAllFeatureLayers');
         return Promise.resolve(this._getAllFeatureLayers());
     }
 
-    private _getAllFeatureLayers() : __esri.FeatureLayer[] {
-      const result: __esri.FeatureLayer[] = [];
-      this.mapView.map.allLayers.forEach(lyr => {
-        if (lyr.type === 'feature') {
-          result.push(lyr as __esri.FeatureLayer);
-        }
-      });
-      return result;
+    private _getAllFeatureLayers(): __esri.FeatureLayer[] {
+        const result: __esri.FeatureLayer[] = [];
+        this.mapView.map.allLayers.forEach(lyr => {
+            if (lyr.type === 'feature') {
+                result.push(lyr as __esri.FeatureLayer);
+            }
+        });
+        return result;
     }
 
     public async removeSubLayer(deleteLayerName: string, groupLayer: __esri.GroupLayer) {
@@ -2187,44 +2192,44 @@ export class MapService {
     }
 
     async multiHomeGeocode(lyrList: __esri.FeatureLayer[],
-                geometryList: __esri.Geometry[], extent: __esri.Extent){
+        geometryList: __esri.Geometry[], extent: __esri.Extent) {
         console.log('multiHomeGeocode fired');
         const loader = EsriLoaderWrapperService.esriLoader;
         const [esriConfig, FeatureSet]
-                = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
+            = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
 
-      // console.log('esriConfig:::', esriConfig);
-       esriConfig.request.timeout = 600000;
-       
-       let polyFeatureSetList: Promise<__esri.FeatureSet>[] = [];
-       for (const lyr of lyrList){
+        // console.log('esriConfig:::', esriConfig);
+        esriConfig.request.timeout = 600000;
+
+        let polyFeatureSetList: Promise<__esri.FeatureSet>[] = [];
+        for (const lyr of lyrList) {
             const qry = lyr.createQuery();
             qry.geometry = extent;
             if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
-                this.config.layerIds.dma.boundaries != lyr.portalItem.id){
-                    qry.outFields = ['geocode'];
+                this.config.layerIds.dma.boundaries != lyr.portalItem.id) {
+                qry.outFields = ['geocode'];
             }
 
-            if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+            if (this.config.layerIds.dma.counties === lyr.portalItem.id) {
                 qry.outFields = ['county_nam'];
             }
 
-            if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+            if (this.config.layerIds.dma.boundaries === lyr.portalItem.id) {
                 qry.outFields = ['dma_name'];
             }
             //IPromise<__esri.FeatureSet>
             polyFeatureSetList.push(lyr.queryFeatures(qry) as any);
-           /* await lyr.queryFeatures(qry).then(polyFeatureSet => {
-                        console.log('polyFeatureSet::::', polyFeatureSet);
-                       // polyFeatureSetList.push(polyFeatureSet);
-            });*/
-       }
+            /* await lyr.queryFeatures(qry).then(polyFeatureSet => {
+                         console.log('polyFeatureSet::::', polyFeatureSet);
+                        // polyFeatureSetList.push(polyFeatureSet);
+             });*/
+        }
 
-       return Promise.all(polyFeatureSetList);
+        return Promise.all(polyFeatureSetList);
 
 
-       /*Observable.forkJoin(observables).subscribe(res => {
-       });*/
+        /*Observable.forkJoin(observables).subscribe(res => {
+        });*/
 
         /*const qry = lyr.createQuery();
         qry.geometry = extent;
@@ -2246,30 +2251,30 @@ export class MapService {
                     returnPolyFeatureSet = polyFeatureSet;
          });*/
 
-      //  return polyFeatureSetList; 
+        //  return polyFeatureSetList; 
     }
 
-    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>>{
+    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic): Promise<Map<String, Object>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
                 'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
-                //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-         const graphic: __esri.Graphic = gra;
-//         console.log('getHomeGeocode fired');
+        //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
+        const graphic: __esri.Graphic = gra;
+        //         console.log('getHomeGeocode fired');
 
         const qry = lyr.createQuery();
         qry.geometry = graphic.geometry;
         if (this.config.layerIds.dma.counties != lyr.portalItem.id &&
-            this.config.layerIds.dma.boundaries != lyr.portalItem.id){
-                 qry.outFields = ['geocode'];
+            this.config.layerIds.dma.boundaries != lyr.portalItem.id) {
+            qry.outFields = ['geocode'];
         }
 
-        if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+        if (this.config.layerIds.dma.counties === lyr.portalItem.id) {
             qry.outFields = ['county_nam'];
         }
 
-        if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+        if (this.config.layerIds.dma.boundaries === lyr.portalItem.id) {
             qry.outFields = ['dma_name'];
         }
 
@@ -2277,128 +2282,128 @@ export class MapService {
         await lyr.queryFeatures(qry).then(polyFeatureSet => {
             let homeGeocode = null;
             let countyName = null;
-            let dmaName    = null;
-          //  let
-                if (polyFeatureSet.features.length > 0){
-                    homeGeocode = polyFeatureSet.features[0].attributes.geocode;
-                    dmaName = polyFeatureSet.features[0].attributes.dma_name;
-                    countyName = polyFeatureSet.features[0].attributes.county_nam;
-                }
-                if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
-                    homeGeocodeMap.set('home_geo' , homeGeocode);
-                }
-                if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
-                    homeGeocodeMap.set('home_geo' , homeGeocode);
-                }
-                if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
-                    homeGeocodeMap.set('home_geo' , homeGeocode);
-                }
+            let dmaName = null;
+            //  let
+            if (polyFeatureSet.features.length > 0) {
+                homeGeocode = polyFeatureSet.features[0].attributes.geocode;
+                dmaName = polyFeatureSet.features[0].attributes.dma_name;
+                countyName = polyFeatureSet.features[0].attributes.county_nam;
+            }
+            if (lyr.portalItem.id === this.config.layerIds.zip.topVars) {
+                homeGeocodeMap.set('home_geo', homeGeocode);
+            }
+            if (lyr.portalItem.id === this.config.layerIds.atz.topVars) {
+                homeGeocodeMap.set('home_geo', homeGeocode);
+            }
+            if (lyr.portalItem.id === this.config.layerIds.pcr.topVars) {
+                homeGeocodeMap.set('home_geo', homeGeocode);
+            }
 
-               /* if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
-                    homeGeocodeMap.set('home_geo' , homeGeocode);
-                }
-                if (this.config.layerIds.dma.counties === lyr.portalItem.id){
-                    homeGeocodeMap.set('home_geo' , countyName);
-                }
-                if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
-                    homeGeocodeMap.set('home_geo' , dmaName);
-                }*/
+            /* if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+                 homeGeocodeMap.set('home_geo' , homeGeocode);
+             }
+             if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+                 homeGeocodeMap.set('home_geo' , countyName);
+             }
+             if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+                 homeGeocodeMap.set('home_geo' , dmaName);
+             }*/
 
         });
         return homeGeocodeMap;
-      }
+    }
 
-       //Calculate home geos for the response list
-   async calculateHomeGeo(siteList: GeocodingResponse[])  {
-    console.log('calculateHomeGeo::');
-    const color = {
-      a: 1,
-      r: 35,
-      g: 93,
-      b: 186
+    //Calculate home geos for the response list
+    async calculateHomeGeo(siteList: GeocodingResponse[]) {
+        console.log('calculateHomeGeo::');
+        const color = {
+            a: 1,
+            r: 35,
+            g: 93,
+            b: 186
 
-    };
+        };
 
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.getAllFeatureLayers().then(list => {
-      if (list.length > 0) {
-        for (const layer of list) {
-          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
-            layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars 
+        const fLyrList: __esri.FeatureLayer[] = [];
+        await this.getAllFeatureLayers().then(list => {
+            if (list.length > 0) {
+                for (const layer of list) {
+                    if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
+                        layer.portalItem.id === this.config.layerIds.atz.topVars ||
+                        layer.portalItem.id === this.config.layerIds.pcr.topVars
             /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
             layer.portalItem.id === this.config.layerIds.dma.counties || 
           layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
-            fLyrList.push(layer);
-          }
-        }
-      }
-    });
+                        fLyrList.push(layer);
+                    }
+                }
+            }
+        });
 
-    let siteNumber: number = 0;
-    const geoCodedSiteList: GeocodingResponse[] = [];
-    for (const site of siteList) {
-      let geoAttr: GeocodingAttributes;
-      let home_geo_issue: string = 'N';
-      siteNumber++ ;
-      //this.displaySpinnerMessage = 'Calculating Home Geocodes';
-      try{
-        for (const llyr of fLyrList) {
-          let home_geo = null;
-          geoAttr = new GeocodingAttributes();
-          let graphic: __esri.Graphic;
-          await this.createGraphic(site.latitude, site.longitude, color).then(res => {
-            graphic = res;
-          });
-          await this.getHomeGeocode(llyr, graphic).then(res => {
-            home_geo = res.get('home_geo');
-            if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
-              geoAttr.attributeName = 'Home ZIP';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
-              geoAttr.attributeName = 'Home ATZ';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
-              geoAttr.attributeName = 'HOME PCR';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-           /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
-              geoAttr.attributeName = 'Home DIGITAL ATZ';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
-               geoAttr.attributeName = 'HOME COUNTY';
-               geoAttr.attributeValue = home_geo;
-               site.geocodingAttributesList.push(geoAttr);
-            }
-            if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
-              geoAttr.attributeName = 'HOME DMA';
-              geoAttr.attributeValue = home_geo;
-              site.geocodingAttributesList.push(geoAttr);
-            }*/
-          });
-        }
+        let siteNumber: number = 0;
+        const geoCodedSiteList: GeocodingResponse[] = [];
+        for (const site of siteList) {
+            let geoAttr: GeocodingAttributes;
+            let home_geo_issue: string = 'N';
+            siteNumber++;
+            //this.displaySpinnerMessage = 'Calculating Home Geocodes';
+            try {
+                for (const llyr of fLyrList) {
+                    let home_geo = null;
+                    geoAttr = new GeocodingAttributes();
+                    let graphic: __esri.Graphic;
+                    await this.createGraphic(site.latitude, site.longitude, color).then(res => {
+                        graphic = res;
+                    });
+                    await this.getHomeGeocode(llyr, graphic).then(res => {
+                        home_geo = res.get('home_geo');
+                        if (llyr.portalItem.id === this.config.layerIds.zip.topVars) {
+                            geoAttr.attributeName = 'Home ZIP';
+                            geoAttr.attributeValue = home_geo;
+                            site.geocodingAttributesList.push(geoAttr);
+                        }
+                        if (llyr.portalItem.id === this.config.layerIds.atz.topVars) {
+                            geoAttr.attributeName = 'Home ATZ';
+                            geoAttr.attributeValue = home_geo;
+                            site.geocodingAttributesList.push(geoAttr);
+                        }
+                        if (llyr.portalItem.id === this.config.layerIds.pcr.topVars) {
+                            geoAttr.attributeName = 'HOME PCR';
+                            geoAttr.attributeValue = home_geo;
+                            site.geocodingAttributesList.push(geoAttr);
+                        }
+                        /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
+                           geoAttr.attributeName = 'Home DIGITAL ATZ';
+                           geoAttr.attributeValue = home_geo;
+                           site.geocodingAttributesList.push(geoAttr);
+                         }
+                         if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
+                            geoAttr.attributeName = 'HOME COUNTY';
+                            geoAttr.attributeValue = home_geo;
+                            site.geocodingAttributesList.push(geoAttr);
+                         }
+                         if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
+                           geoAttr.attributeName = 'HOME DMA';
+                           geoAttr.attributeValue = home_geo;
+                           site.geocodingAttributesList.push(geoAttr);
+                         }*/
+                    });
+                }
 
-      }
-      catch (ex) {
-        home_geo_issue = 'Y';
-        console.error(ex);
-     }
-      
-     geoAttr = new GeocodingAttributes();
-     geoAttr.attributeName  = 'HOME GEOCODE ISSUE';
-     geoAttr.attributeValue = home_geo_issue;
-     site.geocodingAttributesList.push(geoAttr);
-     geoCodedSiteList.push(site);
+            }
+            catch (ex) {
+                home_geo_issue = 'Y';
+                console.error(ex);
+            }
+
+            geoAttr = new GeocodingAttributes();
+            geoAttr.attributeName = 'HOME GEOCODE ISSUE';
+            geoAttr.attributeValue = home_geo_issue;
+            site.geocodingAttributesList.push(geoAttr);
+            geoCodedSiteList.push(site);
+        }
+        return geoCodedSiteList;
     }
-    return geoCodedSiteList;
-  }
 }
 
 
