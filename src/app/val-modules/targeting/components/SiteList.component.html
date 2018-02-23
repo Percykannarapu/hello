@@ -40,7 +40,7 @@
         columnResizeMode="expand" responsive="true" [editable]="true"> -->
 
     <div class="ui-g-12" >
-            <p-dataTable *ngIf="selectedValue === 'Competitor'" #siteDt  [value]="impGeofootprintFilteredCompList" expandableRows="true" [(selection)]="selectedImpGeofootprintCompList"
+            <p-dataTable *ngIf="selectedValue === 'Competitor'" #siteDt [globalFilter]="gb" [value]="impGeofootprintFilteredCompList" expandableRows="true" [(selection)]="selectedImpGeofootprintCompList"
             resizableColumns="true"    [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
             columnResizeMode="expand" responsive="true" [editable]="true">
            <p-header> 
@@ -129,7 +129,7 @@
               No locations added.  Use the "Add Locations" tab above.
            </ng-template>
         </p-dataTable>
-       <p-dataTable *ngIf="selectedValue === 'Site'" #siteDt  [value]="impGeofootprintFilteredSitesList" expandableRows="true" [(selection)]="selectedImpGeofootprintLocList"
+       <p-dataTable *ngIf="selectedValue === 'Site'" #siteDt [globalFilter]="gbs" [value]="impGeofootprintFilteredSitesList" expandableRows="true" [(selection)]="selectedImpGeofootprintLocList"
         resizableColumns="true"    [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
         columnResizeMode="expand" responsive="true" [editable]="true">
        <p-header> 
@@ -140,8 +140,8 @@
                </div>
                <div class="ui-g-2">
                   <span class="md-inputfield">
-                     <input #gb id="gb" type="text" pInputText size="50" style="color: white;">
-                     <label for="gb" style="color: white;">Filter Locations</label>
+                     <input #gbs id="gbs" type="text" pInputText size="50" style="color: white;">
+                     <label for="gbs" style="color: white;">Filter Locations</label>
                   </span>
                </div>
 
