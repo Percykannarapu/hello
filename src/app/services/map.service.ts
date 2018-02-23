@@ -1153,7 +1153,7 @@ export class MapService {
             }
         });
 
-        if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ')) {
+        if (layerName.includes('Site') || layerName.includes('ZIP') || layerName.includes('ATZ') || layerName.includes('PCR')) {
             MapService.SitesGroupLayer.layers.unshift(lyr);
             if (!this.findLayerByTitle('Sites')) {
                 this.mapView.map.layers.add(MapService.SitesGroupLayer);
@@ -1408,7 +1408,7 @@ export class MapService {
             }
         });
         if (!layerUpdated) {
-            console.log('FeatureLayer requested for update does not exist, creating');
+            console.log('FeatureLayer requested for update does not exist, creating: ' + layerTitle);
             this.createFeatureLayer(graphics, layerTitle, showPopup);
             return;
         }
@@ -1835,6 +1835,8 @@ export class MapService {
                 layername = 'Selected Geography - ATZ';
             else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
                 layername = 'Selected Geography - Digital ATZ';
+            else if (layer.portalItem.id === this.config.layerIds.pcr.topVars)
+                layername = 'Selected Geography - PCR';
             const polyGraphics: __esri.Graphic[] = [];
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
 
@@ -1845,6 +1847,7 @@ export class MapService {
             await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
             await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
             await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
+            await this.removeSubLayer('Selected Geography - PCR', MapService.SitesGroupLayer);
             // MapService.selectedCentroidObjectIds = [];
             MapService.hhDetails = 0;
             MapService.hhIpAddress = 0;
