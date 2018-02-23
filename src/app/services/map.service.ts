@@ -1491,12 +1491,12 @@ export class MapService {
                         const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
                         const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
-                            if( ( (owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) || (owner_group_primary.toUpperCase() !== 'VALASSIS' && !discoveryUI[0].includeNonWeekly) ) ||
+                          /*  if( ( (owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) || (owner_group_primary.toUpperCase() !== 'VALASSIS' && !discoveryUI[0].includeNonWeekly) ) ||
                                 ((owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      || (owner_group_primary.toUpperCase() !== 'ANNE'     && !discoveryUI[0].includeAnne))      ||
-                                ((owner_group_primary.toUpperCase() ===  'SOLO'    && discoveryUI[0].includeSolo)      || (owner_group_primary.toUpperCase() !== 'SOLO'     && !discoveryUI[0].includeSolo)) ){
-
+                                ((owner_group_primary.toUpperCase() ===  'SOLO'    && discoveryUI[0].includeSolo)      || (owner_group_primary.toUpperCase() !== 'SOLO'     && !discoveryUI[0].includeSolo)) ){ */
+                            console.log('testcentroid');        
                             centroidGraphics.push(featureSet.features[i]);
-                            }
+                        //    }
                            
                         }
                     }
