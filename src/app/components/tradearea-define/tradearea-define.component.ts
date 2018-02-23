@@ -8,6 +8,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
     selector: 'val-tradearea-define',
@@ -17,33 +18,33 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 })
 export class TradeareaDefineComponent implements OnInit {
 
-    mapView: __esri.MapView;
+   mapView: __esri.MapView;
 
-    ta1Miles: number;
-    ta2Miles: number;
-    ta3Miles: number;
-    milesList: number[];
-    selectedValue: String = 'Site';
-    checked2: boolean = false;
-    checked1: boolean = false;
-    checked3: boolean = false;
-    kms: number;
+   ta1Miles: number;
+   ta2Miles: number;
+   ta3Miles: number;
+   milesList: number[];
+   selectedValue: String = 'Site';
+   checked2: boolean = false;
+   checked1: boolean = false;
+   checked3: boolean = false;
+   kms: number;
 
-    kmsList: number[] = [];
-    editedta1: boolean = false;
-    editedta2: boolean = false;
-    editedta3: boolean = false;
+   kmsList: number[] = [];
+   editedta1: boolean = false;
+   editedta2: boolean = false;
+   editedta3: boolean = false;
 
-    competitorsMap: Map<string, string> = new Map<string, string>();
-    sitesMap: Map<string, string> = new Map<string, string>();
+   competitorsMap: Map<string, string> = new Map<string, string>();
+   sitesMap: Map<string, string> = new Map<string, string>();
 
-    public tradeAreaMergeTypes: SelectItem[];
-    public selectedMergeTypes: string;
-    public displayDBSpinner: boolean = false;
-    public growlMessages: Message[] = new Array();
+   public tradeAreaMergeTypes: SelectItem[];
+   public selectedMergeTypes: string;
+   public displayDBSpinner: boolean = false;
+   public growlMessages: Message[] = new Array();
 
-    @ViewChild('campaineDetailsBox')
-    private campaignDetailsBox: ColorBoxComponent;
+   @ViewChild('campaineDetailsBox')
+   private campaignDetailsBox: ColorBoxComponent;
 
     constructor(
         private mapService: MapService,
@@ -61,7 +62,35 @@ export class TradeareaDefineComponent implements OnInit {
         this.tradeAreaMergeTypes.push({ label: 'Merge All', value: 'Merge All' });
         this.selectedMergeTypes = 'Merge Each';
 
+         // Subscribe to the sites data store
+         this.impGeofootprintLocationService.storeObservable.subscribe(storeData => this.onChangeLocation(storeData));    
     }
+
+   /**
+    * Respond to changes in the locations service
+    *
+    * @param impGeofootprintLocation The array of locations received from the observable
+    */
+   onChangeLocation(impGeofootprintLocations: ImpGeofootprintLocation[])
+   {
+      this.displayDBSpinner = true;
+      
+      console.log('----------------------------------------------------------------------------------------');
+      console.log('tradearea-define.component - onChangeLocation - :  ', impGeofootprintLocations);
+      console.log('----------------------------------------------------------------------------------------');
+      
+      let promises: Promise<void>[];
+      promises = [];
+
+      promises.push(this.drawBuffer());
+
+      Promise.all(promises)
+          .then(() => {
+              //Show the DBSpinner on Apply
+              this.displayDBSpinner = false;
+          });
+   }
+
 
     public async drawBuffer() {
         this.messageService.clear();
