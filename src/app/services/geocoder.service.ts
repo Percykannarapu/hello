@@ -144,7 +144,7 @@ export class GeocoderService {
 
   async calcMultiPointHomeGeo(siteList: GeocodingResponse[]){
     const loader = EsriLoaderWrapperService.esriLoader;
-        const [geometryEngine, Extent] 
+        const [geometryEngine, Extent]
                 = await loader.loadModules(['esri/geometry/geometryEngine', 'esri/geometry/Extent']);
     console.log('calcMultiPointHomeGeo:::');
     let zipFeatureSet: __esri.FeatureSet = null;
@@ -159,18 +159,18 @@ export class GeocoderService {
       g: 93,
       b: 186
     };
-    let geometryList: __esri.Geometry[] = []; 
+    const geometryList: __esri.Geometry[] = [];
     const latList: number[] = [];
-    const lonList: number[] = [];  
-    for(const pt of siteList){
+    const lonList: number[] = [];
+    for (const pt of siteList){
         lonList.push(pt.longitude);   /// this is X
         latList.push(pt.latitude);   /// this is y
-      
+
         await this.mapService.createGraphic(pt.latitude, pt.longitude, color).then(res => {
           geometryList.push(res.geometry);
         });
     }
-    
+
     const minX = Math.min(...lonList);
     const minY = Math.min(...latList);
     const maxX = Math.max(...lonList);
@@ -197,19 +197,19 @@ export class GeocoderService {
     await this.mapService.getAllFeatureLayers().then(list => {
       if (list.length > 0) {
         for (const layer of list) {
-          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars ||
-            layer.portalItem.id === this.config.layerIds.atz.topVars ||
-            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars ||
-            layer.portalItem.id === this.config.layerIds.dma.counties || 
-            layer.portalItem.id === this.config.layerIds.dma.boundaries)) {
+          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
+            layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
+            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id ||
+            layer.portalItem.id === this.config.layerIds.pcr.topVars.id ||
+            layer.portalItem.id === this.config.layerIds.counties.boundaries.id ||
+            layer.portalItem.id === this.config.layerIds.dma.boundaries.id)) {
                fLyrList.push(layer);
           }
         }
       }
     });
-    
-    //let polyFeaturesetList : __esri.FeatureSet[] = []; 
+
+    //let polyFeaturesetList : __esri.FeatureSet[] = [];
      await this.mapService.multiHomeGeocode(fLyrList, geometryList, extent).then(resList => {
         for (const polyFeatureSet of resList){
           if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('zip')){
@@ -233,8 +233,8 @@ export class GeocoderService {
         }
      });
 
-     
-    
+
+
    /* for (const lyr of fLyrList){
       if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
         await this.mapService.multiHomeGeocode(lyr, geometryList, extent).then(res => {
@@ -279,7 +279,7 @@ export class GeocoderService {
           });
           for (const lyr of fLyrList){
             geoAttr = new GeocodingAttributes();
-            if (lyr.portalItem.id === this.config.layerIds.dma.counties){
+            if (lyr.portalItem.id === this.config.layerIds.counties.boundaries.id){
                 for (const graphic1 of c_dmaFeatureSet.features){
                     if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                         geoAttr.attributeName = 'HOME COUNTY';
@@ -288,7 +288,7 @@ export class GeocoderService {
                     }
                 }
             }
-            if (lyr.portalItem.id === this.config.layerIds.dma.boundaries){
+            if (lyr.portalItem.id === this.config.layerIds.dma.boundaries.id){
               for (const graphic1 of b_dmaFeatureSet.features){
                   if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                       geoAttr.attributeName = 'HOME DMA';
@@ -297,7 +297,7 @@ export class GeocoderService {
                   }
               }
             }
-            if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+            if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id){
               for (const graphic1 of d_atzFeatureSet.features){
                   if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                       geoAttr.attributeName = 'HOME DIGITAL ATZ';
@@ -306,7 +306,7 @@ export class GeocoderService {
                   }
               }
             }
-            if (lyr.portalItem.id === this.config.layerIds.atz.topVars){
+            if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id){
               for (const graphic1 of atzFeatureSet.features){
                   if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                       geoAttr.attributeName = 'HOME ATZ';
@@ -315,7 +315,7 @@ export class GeocoderService {
                   }
               }
             }
-            if (lyr.portalItem.id === this.config.layerIds.zip.topVars){
+            if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id){
               for (const graphic1 of zipFeatureSet.features){
                   if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                       geoAttr.attributeName = 'HOME ZIP';
@@ -324,7 +324,7 @@ export class GeocoderService {
                   }
               }
             }
-            if (lyr.portalItem.id === this.config.layerIds.pcr.topVars){
+            if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id){
               for (const graphic1 of pcrFeatureSet.features){
                   if (geometryEngine.intersects(graphic1.geometry, graphic.geometry)){
                       geoAttr.attributeName = 'HOME PCR';
@@ -334,13 +334,13 @@ export class GeocoderService {
               }
             }
           }
-      geoCodedSiteList.push(site);  
-    }  
+      geoCodedSiteList.push(site);
+    }
     return geoCodedSiteList;
   }
 
  /* async getToken() {
-    let token = null; 
+    let token = null;
     await this.authService.getOAuthToken('reddyn','password').toPromise().then(tokenResponse => {
          console.log('tokenResponse::', tokenResponse);
          token = tokenResponse.access_token;
@@ -349,7 +349,7 @@ export class GeocoderService {
      return token;
   }*/
 
-  
+
 
   //   private async handleError(error: Error) {
   //   this.messageService.add({ severity: 'error', summary: 'Geo Coding Error', detail: `${error}` });
