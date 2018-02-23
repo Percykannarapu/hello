@@ -1700,7 +1700,7 @@ export class MapService {
                     lyr.portalItem.id === this.config.layerIds.zip.centroids) {
                     layer = lyr;
                 }
-                if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'DIG_ATZ' &&
                     lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids) {
                     layer = lyr;
                 }
@@ -1814,7 +1814,7 @@ export class MapService {
                     lyr.portalItem.id === this.config.layerIds.zip.topVars) {
                     layer = lyr;
                 }
-                if (discoveryUI[0].analysisLevel === 'DIGITAL ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'DIG_ATZ' &&
                     lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
                     layer = lyr;
                 }
