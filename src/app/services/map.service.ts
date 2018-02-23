@@ -1874,8 +1874,9 @@ export class MapService {
                             if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
                                 if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs')  != null){
                                     MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                                    
                                 }
-//                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+                            //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
                                 
                                 if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00')  != null){
                                     MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
@@ -1889,10 +1890,9 @@ export class MapService {
                                     console.log('total count:::', MapService.hhDetails);
                                     console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
                                 }
-                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
                                 if (discoveryUI[0].cpm != null){
-                                    MapService.t = discoveryUI[0].cpm * Math.round(MapService.hhDetails / 1000);
-                                    MapService.totInvestment =  '$' + MapService.t.toString();
+                                    MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
+                                    MapService.totInvestment =  '$' + Math.round(MapService.t);
                                 } else{
                                     MapService.totInvestment = 'N/A';
                                 }
