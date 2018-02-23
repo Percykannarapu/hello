@@ -15,23 +15,23 @@ export class EnvironmentData {
   public static environmentName = 'PROD';
 
   // Can be used to hide/show debugging info
-  public static debugMode: boolean = true;
+  public static debugMode: boolean = false;
 
   // this variable controls whether a user is currently authenticated
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
-  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/';
+  public static fuseBaseUrl = 'https://services.valassislab.com/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 
   public static esri = {
-    portalUrl:  'https://vallomimpor1vm.val.vlss.local/arcgis/'
+    portalUrl:  'https://valvcsimpor1vm.val.vlss.local/arcgis/'
   };
   public static esriIdentityAuth = {
     generatorUrl: `${EnvironmentData.esri.portalUrl}sharing/rest/generateToken`,
     tokenServerUrl: `${EnvironmentData.esri.portalUrl}sharing/rest/portals`,
-    userName: 'admin',
-    password: 'password'
+    userName: 'quickmaps',
+    password: 'quickmaps123'
   };
   public static oAuth = {
     registerUrl: `${EnvironmentData.impowerBaseUrl}oauth/register`,
@@ -41,7 +41,7 @@ export class EnvironmentData {
   public static layerIds = {
     counties: {
       boundaries: { // Counties
-        id: '39b51d9d498f4107bc69ac30f31ac115',
+        id: '78dfd4524abd4665840ec898c03bc88e',
         name: 'County Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
@@ -49,7 +49,7 @@ export class EnvironmentData {
     },
     dma: {
       boundaries: { // DMA_Boundaries
-        id: '5c8d7e4a824f4aa0b254925348f2a14a',
+        id: '3c9cc326b95e4521bed397b5c2dfdc33',
         name: 'DMA Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
@@ -57,13 +57,13 @@ export class EnvironmentData {
     },
     zip: {
       centroids: { // ZIP_Centroids
-        id: '88120ac630d746239b133296e87b8e1f',
+        id: 'f0dd4c98bd3843c2b7ed16f04040ff13',
         name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
       },
       topVars: { // ZIP Top Vars
-        id: '23a54308e914496aa24d94a9b36776a0',
+        id: 'b1d2b37add4d470ca32bfd9f40d91b9f',
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
@@ -71,13 +71,13 @@ export class EnvironmentData {
     },
     atz: {
       centroids: { // ATZ_Centroids
-        id: 'fd4b078fc2424dd5a48af860dc421431',
+        id: '7bde296c08254ed78460accd00c8af49',
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
       },
       topVars: { // ATZ_Top_Vars
-        id: 'c0ee701ee95f4bbdbc15ded2a37ca802',
+        id: 'dac5cea6976a42ceb3f0498d2c901447',
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
@@ -85,13 +85,13 @@ export class EnvironmentData {
     },
     digital_atz: {
       digitalCentroids: { // DIG_ATZ_Centroids
-        id: '377018a24ba14afa9e02e56110b3a568',
+        id: 'ae57986ce91144e98a65208ef8ae5a1d',
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
-        id: 'a4449b3ee55442af881f6ac660ca8163',
+        id: '9230ad1f421847f08d6bf0ae2f8ba00f',
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
@@ -99,13 +99,13 @@ export class EnvironmentData {
     },
     pcr: {
       centroids: {
-        id: 'ab655c84473748159307fe18962138d1',
+        id: '8ac8074ac3c44d91bce4271928ac7e20',
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
       },
       topVars: {
-        id: '53482efa44914dc199f3833276ddb5a1',
+        id: '2fe987a3c8b74c18a719433e69644bb0',
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
@@ -113,7 +113,7 @@ export class EnvironmentData {
     },
     wrap: {
       topVars: { // WRAP_Top_Vars
-        id: '12bae62392eb47aeb887b6509da557b5',
+        id: '8dbaa84192c94b5eab3f4e685ba93af7',
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
