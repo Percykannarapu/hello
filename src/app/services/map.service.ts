@@ -1700,7 +1700,7 @@ export class MapService {
                     lyr.portalItem.id === this.config.layerIds.zip.centroids) {
                     layer = lyr;
                 }
-                if (discoveryUI[0].analysisLevel === 'DIG_ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'Digital ATZ' &&
                     lyr.portalItem.id === this.config.layerIds.digital_atz.digitalCentroids) {
                     layer = lyr;
                 }
@@ -1814,7 +1814,7 @@ export class MapService {
                     lyr.portalItem.id === this.config.layerIds.zip.topVars) {
                     layer = lyr;
                 }
-                if (discoveryUI[0].analysisLevel === 'DIG_ATZ' &&
+                if (discoveryUI[0].analysisLevel === 'Digital ATZ' &&
                     lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
                     layer = lyr;
                 }
@@ -2024,6 +2024,8 @@ export class MapService {
         const currentSelectedAnalysisLevel = this.impDiscoveryService.get()[0].analysisLevel;
         const featureLayers: __esri.FeatureLayer[] = this._getAllFeatureLayers().filter(l => {
             switch (currentSelectedAnalysisLevel) {
+                case 'Digital ATZ':
+                    return l.portalItem != null && l.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars;
                 case 'ATZ':
                     return l.portalItem != null && l.portalItem.id === this.config.layerIds.atz.topVars;
                 case 'ZIP':

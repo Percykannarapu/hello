@@ -98,7 +98,7 @@ export class DiscoveryInputComponent implements OnInit
          ];
 
       this.analysisLevels = [
-         {label: 'Digital ATZ', value: 'DIG_ATZ'},   
+         {label: 'Digital ATZ', value: 'Digital ATZ'},   
          {label: 'ATZ', value: 'ATZ'},
          {label: 'ZIP', value: 'ZIP'},
          {label: 'PCR', value: 'PCR'}
