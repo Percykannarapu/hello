@@ -133,7 +133,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               layername = 'Selected Geography - ATZ';
           else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)
               layername = 'Selected Geography - Digital ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.pcr.topVars)
+          else if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id)
               layername = 'Selected Geography - PCR';
 
 

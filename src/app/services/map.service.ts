@@ -1602,7 +1602,7 @@ export class MapService {
                 layername = 'Selected Geography - ATZ';
             else if (layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)
                 layername = 'Selected Geography - Digital ATZ';
-            else if (layer.portalItem.id === this.config.layerIds.pcr.topVars)
+            else if (layer.portalItem.id === this.config.layerIds.pcr.topVars.id)
                 layername = 'Selected Geography - PCR';
             const polyGraphics: __esri.Graphic[] = [];
             let loadedFeatureLayer: __esri.FeatureLayer = new FeatureLayer();
