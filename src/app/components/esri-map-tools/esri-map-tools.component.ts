@@ -12,8 +12,9 @@ export class EsriMapToolsComponent implements OnInit {
     console.log('Constructing esri-map-tools-component');
   }
 
-
   public ngOnInit() {
+    const el: any = document.getElementById('popupsButton');
+    el.classList.add('active');
   }
 
 }
