@@ -693,8 +693,8 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
-        console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) {
+       // console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -767,11 +767,9 @@ export class MapService {
         const graphicList: __esri.Graphic[] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList, title);
-        if (selector === 'Site') {
-            await this.selectCentroid(graphicList);
-        }
+       
         //await this.zoomOnMap(graphicList);
-        return { val: this.mapView };
+        return graphicList;
     }
 
     public async bufferMergeEach(pointColor, kms: number, title: string, outlneColor, selector, parentId?: number) {
@@ -1490,8 +1488,16 @@ export class MapService {
                 qry.outSpatialReference = this.mapView.spatialReference;
                 await layer.queryFeatures(qry).then(featureSet => {
                     for (let i = 0; i < featureSet.features.length; i++) {
+                        const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
+                        const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
+                            if( ( (owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) || (owner_group_primary.toUpperCase() !== 'VALASSIS' && !discoveryUI[0].includeNonWeekly) ) ||
+                                ((owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      || (owner_group_primary.toUpperCase() !== 'ANNE'     && !discoveryUI[0].includeAnne))      ||
+                                ((owner_group_primary.toUpperCase() ===  'SOLO'    && discoveryUI[0].includeSolo)      || (owner_group_primary.toUpperCase() !== 'SOLO'     && !discoveryUI[0].includeSolo)) ){
+
                             centroidGraphics.push(featureSet.features[i]);
+                            }
+                           
                         }
                     }
                 });
@@ -1893,8 +1899,8 @@ export class MapService {
         });
     }
 
-    public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
-        console.log('fired getAllFeatureLayers');
+    public getAllFeatureLayers(): Promise<__esri.FeatureLayer[]> {
+       // console.log('fired getAllFeatureLayers');
         return Promise.resolve(this._getAllFeatureLayers());
     }
 
