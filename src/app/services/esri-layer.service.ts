@@ -67,7 +67,8 @@ export class EsriLayerService {
       (currentLayer.portalItem.id === this.config.layerIds.atz.topVars ||
         currentLayer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
         currentLayer.portalItem.id === this.config.layerIds.zip.topVars ||
-        currentLayer.portalItem.id === this.config.layerIds.wrap.topVars)) {
+        currentLayer.portalItem.id === this.config.layerIds.wrap.topVars ||
+        currentLayer.portalItem.id === this.config.layerIds.pcr.topVars)) {
       const action: __esri.Action = new EsriModules.Action({
         title: 'Show Demo Var Shading',
         className: 'esri-icon-layers',
