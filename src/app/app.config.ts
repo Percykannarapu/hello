@@ -42,4 +42,7 @@ export class AppConfig implements EsriLoaderConfig {
    public layerIds = EnvironmentData.layerIds;
 
    public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
+
+   // Can be used to hide/show debugging info
+   public debugMode: boolean = EnvironmentData.debugMode;
 }

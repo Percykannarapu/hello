@@ -90,7 +90,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
               private messageService: MessageService,
               private geocodingRespService: GeocodingResponseService, 
               private metricService: MetricService,
-              private config: AppConfig) { }
+              public  config: AppConfig) { }
 
   ngOnInit() {
   }
