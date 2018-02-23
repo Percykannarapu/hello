@@ -157,7 +157,7 @@ export class EsriMapComponent implements OnInit {
       }, */
       spatialReference: {
         wkid: 102100
-      } 
+      }
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
     this.mapService.createMapView();
@@ -201,7 +201,7 @@ export class EsriMapComponent implements OnInit {
       case mapFunctions.Labels:
         return 'default';
     }
-  }    
+  }
 
   /* requires webGL enabled revisit after 4.6 upgrade
   private enableHighlightOnPointerMove(layer: __esri.FeatureLayer, view: __esri.MapView) {
@@ -261,7 +261,7 @@ export class EsriMapComponent implements OnInit {
     // view.popup.actions = [];
 
     // disable mouse wheel scroll zooming on the view
-    view.on("mouse-wheel", this.stopEvtPropagation);
+    // view.on("mouse-wheel", this.stopEvtPropagation);
 
     // disable zooming via double-click on the view
     // view.on("double-click", this.stopEvtPropagation);
@@ -286,7 +286,7 @@ export class EsriMapComponent implements OnInit {
         evt.stopPropagation();
       }
     });
-    */  
+    */
 
     return view;
   }

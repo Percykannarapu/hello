@@ -2,6 +2,13 @@ export const environment = {
   production: false
 };
 
+export interface LayerDefinition {
+  id: string;
+  name: string;
+  defaultVisibility: boolean;
+  popupTitleSuffix: string;
+}
+
 export class EnvironmentData {
 
   // The name of the environment
@@ -32,31 +39,99 @@ export class EnvironmentData {
   };
 
   public static layerIds = {
+    counties: {
+      boundaries: { // Counties
+        id: undefined,
+        name: 'County Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+      }
+    },
     dma: {
-      boundaries: '9205b77cd8c74773aefad268b6705543', // DMA_Boundaries
-      counties: undefined  // Counties
+      boundaries: { // DMA_Boundaries
+        id: '9205b77cd8c74773aefad268b6705543',
+        name: 'DMA Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+      }
     },
     zip: {
-      topVars: '5742f3faba51493ab29f9e78bc5598d4', // ZIP Top Vars
-      centroids: '38b352fed65640beb0c246b82a24c881'  // ZIP_Centroids
+      centroids: { // ZIP_Centroids
+        id: '38b352fed65640beb0c246b82a24c881',
+        name: 'ZIP Centroids',
+        defaultVisibility: false,
+        popupTitleSuffix: '',
+      },
+      topVars: { // ZIP Top Vars
+        id: '5742f3faba51493ab29f9e78bc5598d4',
+        name: 'ZIP Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {GEOCODE}',
+      }
     },
     atz: {
-      topVars: 'd3bf2b2a2a0a46f5bf10e8c6270767da', // ATZ_Top_Vars
-      centroids: '6053fb9b971245a6a61c3c20a2495732' // ATZ_Centroids
+      centroids: { // ATZ_Centroids
+        id: '6053fb9b971245a6a61c3c20a2495732',
+        name: 'ATZ Centroids',
+        defaultVisibility: false,
+        popupTitleSuffix: '',
+      },
+      topVars: { // ATZ_Top_Vars
+        id: 'd3bf2b2a2a0a46f5bf10e8c6270767da',
+        name: 'ATZ Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {GEOCODE}',
+      }
     },
     digital_atz: {
-      digitalTopVars: '2393d7bb2ac547c4a6bfa3d16f8febaa', // DIG_ATZ_Top_Vars
-      digitalCentroids: '2acb6088bfbb4be1abd502ea3b20ecf6'  // DIG_ATZ_Centroids
+      digitalCentroids: { // DIG_ATZ_Centroids
+        id: '2acb6088bfbb4be1abd502ea3b20ecf6',
+        name: 'Digital ATZ Centroids',
+        defaultVisibility: false,
+        popupTitleSuffix: '',
+      },
+      digitalTopVars: { // DIG_ATZ_Top_Vars
+        id: '2393d7bb2ac547c4a6bfa3d16f8febaa',
+        name: 'Digital ATZ Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {GEOCODE}',
+      }
     },
     pcr: {
-      pcr: undefined
+      centroids: {
+        id: undefined,
+        name: 'PCR Centroids',
+        defaultVisibility: false,
+        popupTitleSuffix: '',
+      },
+      topVars: {
+        id: undefined,
+        name: 'PCR Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {GEOCODE}',
+      }
     },
     wrap: {
-      topVars: '09e5cdab538b43a4a6bd9a0d54b682a7'  // WRAP_Top_Vars
-    }, 
+      topVars: { // WRAP_Top_Vars
+        id: '09e5cdab538b43a4a6bd9a0d54b682a7',
+        name: 'Wrap Boundaries',
+        defaultVisibility: true,
+        popupTitleSuffix: ': {GEOCODE}',
+      }
+    },
     hh: {
-      vt: '837f4f8be375464a8971c56a0856198e', // vt layer
-      source: '5a99095bc95b45a7a830c9e25a389712'  // source featurelayer
+      vt: {  // vt layer
+        id: '837f4f8be375464a8971c56a0856198e',
+        name: 'HH VT',
+        defaultVisibility: true,
+        popupTitleSuffix: '',
+      },
+      source: { // source feature layer
+        id: '5a99095bc95b45a7a830c9e25a389712',
+        name: 'HH Source',
+        defaultVisibility: true,
+        popupTitleSuffix: '',
+      }
     }
   };
 }

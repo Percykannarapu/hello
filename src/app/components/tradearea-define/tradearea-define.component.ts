@@ -338,15 +338,37 @@ export class TradeareaDefineComponent implements OnInit {
                 // }
             } else {
                 //var meTitle = 'Trade Area ';
+                // due to time constraintes we had not done the changes need to replace this logic DE1591
                 console.log('About to draw trade area circles');
                 let i: number = 0;
                 let siteId: number = 0;  // This is temporary until we connect trade areas to sites
+                let graphicList: __esri.Graphic[];
+                const max = Math.max(this.ta1Miles, this.ta2Miles, this.ta3Miles);
                 for (const miles1 of this.milesList) {
                     i++;
                     const kmsNomerge = miles1 / 0.62137;
                     for (const point of this.impGeofootprintLocationService.get()) {
-                        await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, this.selectedValue, siteId++);
-                        MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+                        if (point.impClientLocationType.toString() == 'Site' && this.selectedValue === 'Site') {
+                                    await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, this.selectedValue, siteId++)
+                                    .then( res => {
+                                        graphicList = res;
+                                        if (max == miles1 && this.selectedValue === 'Site' ){
+                                            this.mapService.selectCentroid(graphicList);
+                                        }
+                                    }) ;
+                                MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+                        }
+                        else if (point.impClientLocationType.toString() == 'Competitor' && this.selectedValue === 'Competitor') {
+                            await this.mapService.drawCircle(point.ycoord, point.xcoord, color, kmsNomerge, meTitle + miles1 + lyrNme, outlneColor, this.selectedValue, siteId++)
+                                    .then( res => {
+                                        graphicList = res;
+                                        // if (max == miles1 && this.selectedValue === 'Competitor' ){
+                                        //     this.mapService.selectCentroid(graphicList);
+                                        // }
+                                    }) ;
+                                MapService.tradeAreaInfoMap.set('lyrName', meTitle + miles1 + lyrNme);
+                        }
+                       
                     }
 
                 }
