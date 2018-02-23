@@ -74,8 +74,7 @@ export class DashboardDemoComponent implements OnInit {
         // Load models
         this.metricMapGreen = new Map([
             ['# of Sites', this.amSiteService.sitesList.length.toString()],
-            ['# of Competitors', '0'],
-            ['# of Markets', '3']
+            ['# of Competitors', '0']
         ]);
 
         this.metricMapBlue = new Map([

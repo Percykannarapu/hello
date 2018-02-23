@@ -64,11 +64,11 @@ export class EsriLayerService {
     const listItem: __esri.ListItem = event.item;
     const currentLayer: __esri.FeatureLayer = listItem.layer as __esri.FeatureLayer;
     if (currentLayer && currentLayer.portalItem &&
-      (currentLayer.portalItem.id === this.config.layerIds.atz.topVars ||
-        currentLayer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-        currentLayer.portalItem.id === this.config.layerIds.zip.topVars ||
-        currentLayer.portalItem.id === this.config.layerIds.wrap.topVars ||
-        currentLayer.portalItem.id === this.config.layerIds.pcr.topVars)) {
+      (currentLayer.portalItem.id === this.config.layerIds.atz.topVars.id ||
+        currentLayer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id ||
+        currentLayer.portalItem.id === this.config.layerIds.zip.topVars.id ||
+        currentLayer.portalItem.id === this.config.layerIds.wrap.topVars.id ||
+        currentLayer.portalItem.id === this.config.layerIds.pcr.topVars.id)) {
       const action: __esri.Action = new EsriModules.Action({
         title: 'Show Demo Var Shading',
         className: 'esri-icon-layers',

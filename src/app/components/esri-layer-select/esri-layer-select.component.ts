@@ -32,11 +32,11 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
 
-  constructor(public mapService: MapService,  
-              private config: AppConfig, 
+  constructor(public mapService: MapService,
+              private config: AppConfig,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private metricService: MetricService,
-              private esriMapService: EsriMapService, 
+              private esriMapService: EsriMapService,
               private modules: EsriModules,
               public impDiscoveryService: ImpDiscoveryService) {
       this.mapView = this.mapService.getMapView();
@@ -46,7 +46,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
     console.log ('fired esri-layer-select.ngOnInit()');
     //console.log('selectedTargetAnalysisLevels', this.layerService.selectedTargetAnalysisLevels);
   }
-  
+
   public ngAfterViewInit() /*ngOnInit()*/ {
       console.log ('fired esri-layer-select.ngAfterViewInit()');
       this.modules.onReady(() => { this.init(); });
@@ -65,7 +65,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
       this.analysisLevels.push({label: 'DMA',  value: 'DMA'});
 
       // set default layers and disable them
-      this.selectedAnalysisLevels = ['DMA', 'WRAP', 'DIG_ATZ', 'ATZ', 'ZIP', 'PCR'];
+      this.selectedAnalysisLevels = ['PCR', 'DIG_ATZ', 'ATZ', 'ZIP', 'WRAP', 'COUNTY', 'DMA'];
       console.log ('selectedAnalysisLevels = ' + this.selectedAnalysisLevels);
 
     EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
@@ -123,16 +123,18 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
 
       for (const lyr of fLyrList) {
         if ((lyr.portalItem != null) &&
-        (lyr.portalItem.id === this.config.layerIds.zip.topVars ||
-        lyr.portalItem.id === this.config.layerIds.atz.topVars ||
-        lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)) {
+        (lyr.portalItem.id === this.config.layerIds.zip.topVars.id ||
+        lyr.portalItem.id === this.config.layerIds.atz.topVars.id ||
+        lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)) {
           let layername = null;
-          if (lyr.portalItem.id === this.config.layerIds.zip.topVars)
+          if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id)
               layername = 'Selected Geography - ZIP';
-          else if (lyr.portalItem.id === this.config.layerIds.atz.topVars)
+          else if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id)
               layername = 'Selected Geography - ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars)
+          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)
               layername = 'Selected Geography - Digital ATZ';
+          else if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id)
+              layername = 'Selected Geography - PCR';
 
 
               await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);
