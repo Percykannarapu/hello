@@ -6,6 +6,9 @@ import { EnvironmentData } from '../environments/environment';
 @Injectable()
 export class AppConfig implements EsriLoaderConfig {
 
+  // The name of the environment
+  public environmentName = EnvironmentData.environmentName;
+
   // This controls whether or not the user is currently authenticated and will have to log in
   public authenticated: boolean = EnvironmentData.authenticated;  
 

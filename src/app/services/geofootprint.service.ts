@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Http, Headers, RequestOptions } from '@angular/http';
 import { RestResponse } from '../models/RestResponse';
+import { AppConfig } from '../app.config';
 
 import 'rxjs/add/operator/map';
 import { TargetingProfile } from '../models/TargetingProfile';
@@ -10,7 +11,7 @@ import { TargetingProfile } from '../models/TargetingProfile';
 @Injectable()
 export class GeoFootPrint {
 
-    constructor(public http: Http) {
+    constructor(public http: Http, private appConfig: AppConfig) {
         console.log('Fired GeoFootPrint services');
       }
 
@@ -24,14 +25,14 @@ export class GeoFootPrint {
 
         console.log('fired GeoFootPrint saveTarhetingProfile Service ' + JSON.stringify(targetingprofile, null, 4));
        
-        return this.http.post('http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save', targetingprofile).map(res => res.json() as RestResponse);
+        return this.http.post(this.appConfig.valServiceBase + 'v1/targeting/base/targetingprofile/save', targetingprofile).map(res => res.json() as RestResponse);
 
     }
 
     loadTargetingProfile(profileid: number){
 
-        console.log('url:::' + 'http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/load/' + profileid);
-        return this.http.get('http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/load/' + profileid).map(res => res.json() as RestResponse);
+        console.log('url:::' + this.appConfig.valServiceBase + 'v1/targeting/base/targetingprofile/load/' + profileid);
+        return this.http.get(this.appConfig.valServiceBase + 'v1/targeting/base/targetingprofile/load/' + profileid).map(res => res.json() as RestResponse);
 
     }
 }

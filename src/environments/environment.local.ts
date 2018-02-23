@@ -9,6 +9,9 @@ export const environment = {
 
 export class EnvironmentData {
 
+  // The name of the environment
+  public static environmentName = 'LOCAL';
+
   // Can be used to hide/show debugging info
   public static debugMode: boolean = true;
 
