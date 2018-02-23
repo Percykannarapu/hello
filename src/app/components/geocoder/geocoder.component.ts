@@ -131,7 +131,6 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
       if (this.metricService === null)
         console.log('METRIC SERVICE IS NULL');
-      this.metricService.add('LOCATIONS', 'Test', 'Yep, Test');
 
     } catch (error) {
       this.handleError(error);
