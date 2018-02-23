@@ -49,8 +49,9 @@ export class MapService {
     public static hhChildren: number = 0;
     public static totInvestment: String = '0'; // keeps track of total investment
     public static proBudget: String = '0';     // keeps track of Progess to Budget %
-    public static t: number = 0;               // a temp variable to calucate Progress to budget
-    public static circBudget: number = 0;               // a variable to calucate Progress to budget based on Circ budget
+    public static t: number = 0;               // a temp variable to calculate Progress to budget
+    public static circBudget: number = 0;      // a variable to calculate Progress to budget based on Circ budget
+    public static dollarBudget: number = 0;    // a variable to calculate Progress to budget based on dollar budget
     public static tradeAreaInfoMap: Map<string, any> = new Map<string, any>(); // -> this will keep track of tradearea's on the map
     //TODO we need to remove pointsArray after adi's uploadfunction.
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
@@ -84,7 +85,7 @@ export class MapService {
     }
 
     // Initialize Group Layers
-    public initGroupLayers(): void {
+    public initGroupLayers() : void {
         console.log('fired initGroupLayers()');
 
         MapService.EsriGroupLayer = new EsriModules.GroupLayer({
@@ -220,7 +221,7 @@ export class MapService {
     }
 
     // create the MapView
-    public createMapView(): void {
+    public createMapView() : void {
         // Create an instance of the Home widget
         const home = new EsriModules.widgets.Home({
             view: this.mapView
@@ -518,7 +519,7 @@ export class MapService {
 */
 
     // plotMarker
-    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): EsriWrapper<__esri.MapView> {
+    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
 
         console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
@@ -531,13 +532,13 @@ export class MapService {
     }
 
     // Get MapView
-    public getMapView(): __esri.MapView {
+    public getMapView() : __esri.MapView {
         // to return Mapview
         return this.mapView;
     }
 
     // Hide MapLayers
-    public hideMapLayers(): EsriWrapper<__esri.MapView> {
+    public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
         // Toggle all layers
         this.mapView.map.layers.forEach((layer, i) => {
@@ -550,7 +551,7 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public removeMapLayers(): EsriWrapper<__esri.MapView> {
+    public removeMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired removeMapLayers() in MapService');
 
         // remove all layers
@@ -559,7 +560,7 @@ export class MapService {
     }
 
     // Physically Remove MapLayer (or GroupLayer)
-    public removeLayer(layer: __esri.Layer): EsriWrapper<__esri.MapView> {
+    public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         this.mapView.map.remove(layer);
@@ -567,7 +568,7 @@ export class MapService {
     }
 
     // Returns a layer instance from the map based on its title property
-    public findLayerByTitle(title: string): __esri.Layer {
+    public findLayerByTitle(title: string) : __esri.Layer {
         return this.mapView.map.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findLayerByTitle Found: ' + title);
@@ -577,7 +578,7 @@ export class MapService {
     }
 
     // Returns a sublayer instance from the map based on its title property
-    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string): __esri.Layer {
+    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
         return GroupLayer.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findSubLayerByTitle found: ' + layer.title);
@@ -692,7 +693,7 @@ export class MapService {
         return { val: this.mapView };
     }
 
-    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number): Promise<EsriWrapper<__esri.MapView>> {
+    public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) : Promise<EsriWrapper<__esri.MapView>> {
         console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -1182,7 +1183,7 @@ export class MapService {
         // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -1510,7 +1511,7 @@ export class MapService {
         });
     }
 
-    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number): number {
+    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number {
         // Construct a polyline to get the geodesic distance between geo and site
         const polyLine: __esri.Polyline = new EsriModules.PolyLine({ paths: [[[x1, y1], [x2, y2]]] });
         const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
@@ -1624,6 +1625,7 @@ export class MapService {
             MapService.proBudget = '0';
             MapService.t = 0;
             MapService.circBudget = 0;
+            MapService.dollarBudget = 0;
             this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
             this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
@@ -1669,19 +1671,23 @@ export class MapService {
                                 MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
                                 MapService.totInvestment = '$' + Math.round(MapService.t);
                             } else {
+                                if (discoveryUI[0].cpm == null){
                                 MapService.totInvestment = 'N/A';
+                                }
                             }
-                            if (discoveryUI[0].circBudget != null) {
-                                MapService.circBudget = MapService.hhDetails / discoveryUI[0].circBudget;
-                                MapService.proBudget = MapService.circBudget * 100 + '%';
-                                console.log('progress to budget for circ::', MapService.proBudget);
-                            } else if (discoveryUI[0].totalBudget != null) {
-                                MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
+                            if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0) {
+                                MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget);
+                                MapService.proBudget = Math.round(MapService.circBudget) + '%';
+                                console.log('progress to budget for circ::', MapService.circBudget);
+                            } else if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
+                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
+                                MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
                                 console.log('progress to budget for dollar:::', MapService.proBudget);
                             } else if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) {
                                 // if we both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-                                MapService.proBudget = (MapService.t / discoveryUI[0].totalBudget) * 100 + '%';
-                                console.log('return Progress to budget for dollar :::', MapService.proBudget);
+                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
+                                MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
+                                console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
                             } else {
                                 MapService.proBudget = 'N/A';
                             }
@@ -1884,12 +1890,12 @@ export class MapService {
         });
     }
 
-    public getAllFeatureLayers(): Promise<__esri.FeatureLayer[]> {
+    public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
         console.log('fired getAllFeatureLayers');
         return Promise.resolve(this._getAllFeatureLayers());
     }
 
-    private _getAllFeatureLayers(): __esri.FeatureLayer[] {
+    private _getAllFeatureLayers() : __esri.FeatureLayer[] {
         const result: __esri.FeatureLayer[] = [];
         this.mapView.map.allLayers.forEach(lyr => {
             if (lyr.type === 'feature') {
@@ -2026,7 +2032,7 @@ export class MapService {
         //  return polyFeatureSetList;
     }
 
-    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic): Promise<Map<String, Object>> {
+    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
