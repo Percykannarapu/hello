@@ -1491,12 +1491,14 @@ export class MapService {
                         const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
                         const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
-                          /*  if( ( (owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) || (owner_group_primary.toUpperCase() !== 'VALASSIS' && !discoveryUI[0].includeNonWeekly) ) ||
-                                ((owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      || (owner_group_primary.toUpperCase() !== 'ANNE'     && !discoveryUI[0].includeAnne))      ||
-                                ((owner_group_primary.toUpperCase() ===  'SOLO'    && discoveryUI[0].includeSolo)      || (owner_group_primary.toUpperCase() !== 'SOLO'     && !discoveryUI[0].includeSolo)) ){ */
-                            console.log('testcentroid');        
-                            centroidGraphics.push(featureSet.features[i]);
-                        //    }
+
+                           
+                            if( ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                                ((owner_group_primary != undefined && owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      === true) ||
+                                ((cover_frequency     === undefined || cover_frequency  === null || (cover_frequency.toUpperCase()    ===  'SOLO'    && discoveryUI[0].includeSolo)      === true)) ){
+
+                                    centroidGraphics.push(featureSet.features[i]);
+                            }
                            
                         }
                     }
@@ -1681,23 +1683,23 @@ export class MapService {
                                 MapService.totInvestment = 'N/A';
                                 }
                             }
-                            if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0 && (discoveryUI[0].totalBudget == 0 || discoveryUI[0].totalBudget == null)) {
-                                MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget) * 100;
+                            console.log('disc all', discoveryUI[0]);
+                            if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0) {
+                                MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget);
                                 MapService.proBudget = Math.round(MapService.circBudget) + '%';
                                 console.log('progress to budget for circ::', MapService.circBudget);
                             } 
-                            if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0 && (discoveryUI[0].circBudget == 0 || discoveryUI[0].circBudget == null)) {
-                                MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
+                            if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
+                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
                                 console.log('progress to budget for dollar:::', MapService.proBudget);
                             }
                             if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) {
                                 // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-                                MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
+                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
                                 console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
-                            } 
-                            if ((discoveryUI[0].circBudget == null && discoveryUI[0].totalBudget == null) || (discoveryUI[0].circBudget == 0 && discoveryUI[0].totalBudget == 0)) {
+                            } else {
                                 MapService.proBudget = 'N/A';
                             }
 
