@@ -607,7 +607,7 @@ export class MapService {
         });
     }
 
-    private setupSingleLayer(layerDefs: LayerDefinition[], group: __esri.GroupLayer) {
+    private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {
       // Add this action to the popup so it is always available in this view
       const measureThisAction = {
         title: 'Measure Length',
@@ -621,7 +621,7 @@ export class MapService {
         className: 'esri-icon-plus-circled'
       };
       const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
-      layerDefs.filter(i => i != null && i.id != null).forEach(layerDef => {
+      layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
         EsriModules.Layer.fromPortalItem(<any>{
           portalItem: {
             id: layerDef.id
@@ -644,7 +644,7 @@ export class MapService {
       group.visible = true;
     }
 
-    public setMapLayers(analysisLevels: string[]) : EsriWrapper<__esri.MapView> {
+    public setMapLayers(analysisLevels: string[]) : void {
         console.log('fired setMapLayers() in MapService');
         // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.DmaGroupLayer.visible = false;
@@ -662,35 +662,34 @@ export class MapService {
           analysisLevels.forEach(analysisLevel => {
             switch (analysisLevel) {
               case 'DMA':
-                this.setupSingleLayer(Object.values(this.config.layerIds.dma), MapService.DmaGroupLayer);
+                this.setupMapGroup(MapService.DmaGroupLayer, Object.values(this.config.layerIds.dma));
                 break;
               case 'ZIP':
-                this.setupSingleLayer(Object.values(this.config.layerIds.zip), MapService.ZipGroupLayer);
+                this.setupMapGroup(MapService.ZipGroupLayer, Object.values(this.config.layerIds.zip));
                 break;
               case 'ATZ':
-                this.setupSingleLayer(Object.values(this.config.layerIds.atz), MapService.AtzGroupLayer);
+                this.setupMapGroup(MapService.AtzGroupLayer, Object.values(this.config.layerIds.atz));
                 break;
               case 'DIG_ATZ':
-                this.setupSingleLayer(Object.values(this.config.layerIds.digital_atz), MapService.DigitalAtzGroupLayer);
+                this.setupMapGroup(MapService.DigitalAtzGroupLayer, Object.values(this.config.layerIds.digital_atz));
                 break;
               case 'PCR':
-                this.setupSingleLayer(Object.values(this.config.layerIds.pcr), MapService.PcrGroupLayer);
+                this.setupMapGroup(MapService.PcrGroupLayer, Object.values(this.config.layerIds.pcr));
                 break;
               case 'WRAP':
-                this.setupSingleLayer(Object.values(this.config.layerIds.wrap), MapService.WrapGroupLayer);
+                this.setupMapGroup(MapService.WrapGroupLayer, Object.values(this.config.layerIds.wrap));
                 break;
               case 'HH':
-                //this.setupSingleLayer(Object.values(this.config.layerIds.hh), MapService.HHGroupLayer);
+                //this.setupMapGroup(MapService.HHGroupLayer, Object.values(this.config.layerIds.hh));
                 break;
               case 'COUNTY':
-                this.setupSingleLayer(Object.values(this.config.layerIds.counties), MapService.CountyGroupLayer);
+                this.setupMapGroup(MapService.CountyGroupLayer, Object.values(this.config.layerIds.counties));
                 break;
               default:
                 console.error(`MapService.setMapLayers encountered an unknown analysis level: ${analysisLevel}`);
             }
           }); // End forEach analysisLevels
         }
-        return { val: this.mapView };
     }
 
     public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) {
@@ -767,7 +766,7 @@ export class MapService {
         const graphicList: __esri.Graphic[] = [];
         graphicList.push(g);
         await this.updateFeatureLayer(graphicList, title);
-       
+
         //await this.zoomOnMap(graphicList);
         return graphicList;
     }
@@ -1492,14 +1491,14 @@ export class MapService {
                         const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
 
-                           
+
                             if( ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
                                 ((owner_group_primary != undefined && owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      === true) ||
                                 ((cover_frequency     === undefined || cover_frequency  === null || (cover_frequency.toUpperCase()    ===  'SOLO'    && discoveryUI[0].includeSolo)      === true)) ){
 
                                     centroidGraphics.push(featureSet.features[i]);
                             }
-                           
+
                         }
                     }
                 });
@@ -1666,14 +1665,14 @@ export class MapService {
                                 if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != null)) {
                                     MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
                                 }
-                                console.log('total count:::', MapService.hhDetails);
-                                console.log('winter:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
+                                //console.log('total count:::', MapService.hhDetails);
+                                //console.log('winter:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
                             } else {
                                 if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s') != null)) {
                                     MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
                                 }
-                                console.log('total count:::', MapService.hhDetails);
-                                console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
+                                //console.log('total count:::', MapService.hhDetails);
+                                //console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
                             }
                             if (discoveryUI[0].cpm != null) {
                                 MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
@@ -1688,7 +1687,7 @@ export class MapService {
                                 MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget);
                                 MapService.proBudget = Math.round(MapService.circBudget) + '%';
                                 console.log('progress to budget for circ::', MapService.circBudget);
-                            } 
+                            }
                             if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
                                 MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
@@ -1908,7 +1907,7 @@ export class MapService {
 
     private _getAllFeatureLayers() : __esri.FeatureLayer[] {
         const result: __esri.FeatureLayer[] = [];
-        this.mapView.map.allLayers.forEach(lyr => {
+        this.map.allLayers.forEach(lyr => {
             if (lyr.type === 'feature') {
                 result.push(lyr as __esri.FeatureLayer);
             }

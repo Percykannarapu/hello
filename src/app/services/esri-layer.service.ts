@@ -27,6 +27,10 @@ export class EsriLayerService {
     return attributeInstance && (attributeInstance[fieldName.toLowerCase()] || attributeInstance[fieldName.toUpperCase()]);
   }
 
+  public static isFeatureLayer(layer: __esri.Layer) : layer is __esri.FeatureLayer {
+    return layer && layer.type === 'feature';
+  }
+
   public initLayerList(sliderElementId: string) : void {
     console.log('Loading Esri Modules for Layer Service');
     this.sliderElementId = sliderElementId;
