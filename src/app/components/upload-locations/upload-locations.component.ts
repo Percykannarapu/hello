@@ -242,7 +242,7 @@ export class UploadLocationsComponent implements OnInit {
       {
          marketFlag = true;
          headerPosition.market = count;
-         this.headers[j] = 'market';
+         this.headers[j] = 'Market';
       }
       count++;
     }

@@ -1491,10 +1491,9 @@ export class MapService {
                         const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
 
-
                             if( ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
                                 ((owner_group_primary != undefined && owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      === true) ||
-                                ((cover_frequency     === undefined || cover_frequency  === null || (cover_frequency.toUpperCase()    ===  'SOLO'    && discoveryUI[0].includeSolo)      === true)) ){
+                                (((cover_frequency     === undefined || cover_frequency  === null && discoveryUI[0].includeSolo === true)|| (cover_frequency.toUpperCase()  ===  'SOLO'    && discoveryUI[0].includeSolo) === true)) ){
 
                                     centroidGraphics.push(featureSet.features[i]);
                             }
