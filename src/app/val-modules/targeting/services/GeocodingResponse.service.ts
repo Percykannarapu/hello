@@ -85,37 +85,29 @@ export class GeocodingResponseService {
     * @description turn the AmSite[] array stored in this service into CSV data
     * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
     */
-    public createCSV(value): string[] {
+    public createCSV(value) : string[] {
         const sitesList: any = this.displayData(value);
         if (sitesList < 1) {
             throw new Error('No sites available to export');
         }
         
         const csvData: string[] = new Array<string>();
-        let displayHeaderRow ;
-        let mappingHeaderRow;
-        if (value == 'Site'){
         // build the first row of the csvData out of the headers
-        displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
+        let displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
             + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
             + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
             + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
             + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
             + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Original ZIP';
 
-        mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,ZIP,Longitude,Latitude,ICON,TA1,'
+        const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,ZIP,Longitude,Latitude,ICON,TA1,'
             + 'TA2,TA3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TA1_DESC1,TA2_DESC2,TA3_DESC3,'
             + 'Home ZIP,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
             + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
             + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
             + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Original ZIP';
-        }else {
-            // build the first row of the csvData out of the headers
-        displayHeaderRow = 'NUMBER,NAME,STREET,CITY,STATE,ZIP,X,Y';
-
-        mappingHeaderRow = 'Number,Name,Address,City,State,ZIP,Longitude,Latitude';
-        }
-        console.log('headerRow:::' + displayHeaderRow);
+        
+        //console.log('headerRow:::' + displayHeaderRow);
         //csvData.push(displayHeaderRow);
 
         const headerList: any[] = mappingHeaderRow.split(',');
