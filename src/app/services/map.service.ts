@@ -812,7 +812,7 @@ export class MapService {
                     spatialReference: 4326
                 });
                 pointList.push(p);
-            } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') {
+            } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
@@ -1661,7 +1661,7 @@ export class MapService {
                                 MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                             }
                             if (discoveryUI[0].selectedSeason == 'WINTER') {
-                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != null)) {
+                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != null)) { //handle NaN values for some zips
                                     MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
                                 }
                                 //console.log('total count:::', MapService.hhDetails);
