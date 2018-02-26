@@ -7363,7 +7363,7 @@ body .ui-datatable .ui-paginator {
 body .ui-datatable .ui-datatable-thead > tr {
   border-color: #cacaca; }
   body .ui-datatable .ui-datatable-thead > tr th {
-    padding: .425em .875em;
+    padding: .425em .425em;
     background-color: #C4E0F5; }
     body .ui-datatable .ui-datatable-thead > tr th.ui-sortable-column:not(.ui-state-active):hover {
       background-color: #e8e8e8;
@@ -7398,7 +7398,7 @@ body .ui-datatable .ui-datatable-data tr.ui-datatable-even {
 body .ui-datatable .ui-datatable-data tr {
   border: 1px solid #cacaca; }
   body .ui-datatable .ui-datatable-data tr td {
-    padding: .025em .475em; }
+    padding: .025em .425em; }
     body .ui-datatable .ui-datatable-data tr td .ui-row-toggler {
       display: inherit; }
     body .ui-datatable .ui-datatable-data tr td.ui-state-highlight .ui-inputtext {

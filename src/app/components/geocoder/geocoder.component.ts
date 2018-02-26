@@ -245,8 +245,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     return false;
   }
 
-  public clearFieldsOnChange(){
-    //
+  public clearFieldsOnChange() {
     const radioClicked = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box');
     const buttonCls = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-icon');
     radioClicked.classList.remove('ui-state-active');
@@ -255,14 +254,16 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     this.clearFields();
   }
 
-  public clearFields(){
-    //
+  public clearFields() {
     this.street = '';
     this.city = '';
     this.state = '';
     this.zip = '';
     this.name = '';
     this.number = null;
+    this.market = '';
+    this.xcoord = '';
+    this.ycoord = '';  
   }
 
 
