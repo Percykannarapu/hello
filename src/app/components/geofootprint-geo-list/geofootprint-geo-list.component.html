@@ -25,10 +25,10 @@
                   <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column>
                   <p-column *ngFor="let col of geoGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
                      <ng-template *ngIf="col.value.field=='geocode'" let-row="rowData" pTemplate="body">
-                        <div class="ui-g-11">
+                        <div class="ui-g-11" style="vertical-align:inherit">
                            {{row['geocode']}}
                         </div>   
-                        <div class="ui-g-1">
+                        <div class="ui-g-1" style="vertical-align:inherit">
                            <button (click)="onZoomToGeo(geocode)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
                         </div>
                      </ng-template>
