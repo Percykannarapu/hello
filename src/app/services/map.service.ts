@@ -1677,17 +1677,7 @@ export class MapService {
                                 MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
                                 MapService.totInvestment = Math.round(MapService.t);
                             }
-<<<<<<< Updated upstream
-                            console.log('disc all', discoveryUI[0]);
-                            if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0) {
-                                MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget);
-                                MapService.proBudget = Math.round(MapService.circBudget) + '%';
-                                console.log('progress to budget for circ::', MapService.circBudget);
-                            }
-                            if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0) {
-                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
-                                MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
-=======
+
                             if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0 && (discoveryUI[0].totalBudget == 0 || discoveryUI[0].totalBudget == null)) {
                                 MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.circBudget);
@@ -1696,26 +1686,15 @@ export class MapService {
                             if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0 && (discoveryUI[0].circBudget == 0 || discoveryUI[0].circBudget == null)) {
                                 MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget);
->>>>>>> Stashed changes
                                 console.log('progress to budget for dollar:::', MapService.proBudget);
                             }
                             if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null && discoveryUI[0].circBudget != 0 && discoveryUI[0].totalBudget != 0) {
                                 // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-<<<<<<< Updated upstream
-                                MapService.dollarBudget = (MapService.t / discoveryUI[0].totalBudget) * 100;
-                                MapService.proBudget = Math.round(MapService.dollarBudget) + '%';
-                                console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
-                            } else {
-                                MapService.proBudget = 'N/A';
-                            }
-
-=======
                                 MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
                                 MapService.proBudget = Math.round(MapService.dollarBudget);
                                 console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
                             } 
                             
->>>>>>> Stashed changes
 
                             //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
                             MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
