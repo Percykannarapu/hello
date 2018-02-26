@@ -84,7 +84,7 @@ export class UploadLocationsComponent implements OnInit {
       this.headers = csvRecords[0].split(',');
       let headerPosition: any = {};
       try {
-        
+
         headerPosition = this.verifyCSVColumns(this.headers);
 
         console.log('header details after edit:' + this.headers);
@@ -101,7 +101,7 @@ export class UploadLocationsComponent implements OnInit {
         const siteList: any[] = [];
         const site = {};
         let csvRecord = csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '');
-        csvRecord = csvRecord.replace('"', '').split(',');
+        csvRecord = csvRecord.replace(/"/g, '').split(',');
         //console.log('csvRecord dat::' + csvRecords[i].toString().replace(/,(?!(([^"]*"){2})*[^"]*$)/g, ''));
         if (csvRecord.length === this.headers.length) {
 
@@ -243,7 +243,7 @@ export class UploadLocationsComponent implements OnInit {
       {
          marketFlag = true;
          headerPosition.market = count;
-         this.headers[j] = 'market';
+         this.headers[j] = 'Market';
       }
       count++;
     }
@@ -376,7 +376,7 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponse.zip10 = locRespListMap['Original ZIP'];
       geocodingResponse.locationQualityCode = locRespListMap['Match Quality'];
       geocodingResponse.marketName = locRespListMap['Market'];
-      // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
+      // geocodingResponse.orgAddr     =      locRespListMap['Original '];
 
       if (geocodingResponse.number == null || geocodingResponse.number == '') {
         geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
@@ -406,7 +406,7 @@ export class UploadLocationsComponent implements OnInit {
       this.geocoderService.addSitesToMap(geocodingResponseList, this.selector);
       //Hide the spinner on error
       this.displayGcSpinner = false;
-      
+
     }
     this.handleMessages(); //Show messages after the geocoding is done
     return geocodingResponseList;
@@ -450,7 +450,7 @@ export class UploadLocationsComponent implements OnInit {
       // geocodingResponse.zip10 = locRespListMap['Original ZIP'];
       // geocodingResponse.locationQualityCode = locRespListMap['Match Quality'];
       // geocodingResponse.marketName = locRespListMap['Market'];
-      // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
+      // geocodingResponse.orgAddr     =      locRespListMap['Original '];
 
       if (geocodingResponse.number == null || geocodingResponse.number == '') {
         geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
@@ -469,7 +469,7 @@ export class UploadLocationsComponent implements OnInit {
       // }
     }
     if (display) {
-      
+
       if (this.selector === 'Site'){
         this.displaySpinnerMessage = 'Calculating Home Geocodes';
         geocodingResponseList = await this.mapService.calculateHomeGeo(geocodingResponseList);
@@ -484,7 +484,7 @@ export class UploadLocationsComponent implements OnInit {
     return geocodingResponseList;
   }
 
- 
+
 
   //Add messages after geocoding
   private async handleMessages() {
