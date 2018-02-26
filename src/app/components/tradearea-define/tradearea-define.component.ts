@@ -46,7 +46,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
         private esriMapService: EsriMapService
     ) {
       this.tradeAreaMergeTypes = [
-        //{ label: 'No Merge', value: 'No Merge' },
+        //{ label: 'No Merge', value: 'No Merge' }, //Commented out for DE1591 :nallana
         { label: 'Merge Each', value: 'Merge Each' },
         { label: 'Merge All', value: 'Merge All' }
       ];

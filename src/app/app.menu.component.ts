@@ -45,8 +45,8 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx)},
-                    {label: 'Export Sites', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV())},
-                    {label: 'Export Competitors', icon: 'store'}
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Site'), 'Site')},
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Competitor'), 'Competitor')}
                 ]
             },
             /*{
