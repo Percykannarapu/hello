@@ -10,17 +10,17 @@ import { ImpGeofootprintTradeArea } from './../models/ImpGeofootprintTradeArea';
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpDiscoveryUI } from './../../../models/ImpDiscoveryUI';
-import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 // Imports for exporting CSVs
-// import { encode } from 'punycode';
+import { encode } from 'punycode';
 import * as $ from 'jquery';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
@@ -76,7 +76,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // Encode the csvData into a gigantic string
       let csvString: string = '';
       for (const row of csvData) {
-         csvString += row + '\n';
+         csvString += encode(row) + '\n';
       }
 
       // Use jquery to create and autoclick a link that downloads the CSV file
@@ -86,7 +86,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          download: filename
       }).appendTo('body');
       link[0].click();
-      link.remove();      
+      link.remove();
    }
 
    // TODO: This needs to be a delegate method
@@ -97,7 +97,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let varValue: any;
       let geo: ImpGeofootprintGeo = <ImpGeofootprintGeo> rowData;
 
-      const analysisLevel = (this.impDiscoveryUI != null && this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : 'ATZ'; 
+      const analysisLevel = (this.impDiscoveryUI != null && this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : 'ATZ';
 
       switch (variable)
       {
@@ -123,7 +123,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
             break;
 
-         case '#V-TRUNCATE_ZIP':         
+         case '#V-TRUNCATE_ZIP':
             varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
             console.log('varValue = ' + varValue);
             break;
@@ -131,8 +131,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case '#V-OWNER_TRADE_AREA':
          // Column P - Owner Trade Area - the corresponding TA # 1/2/3 - Can calculate with distance:
          // if distance is less than TA1 radius, return a 1, if distance is between TA1 and TA2 radius, return a 2,
-         // if distance is > than TA 2, return a 3. 
-         //What to do if the user selected a geo very far outside the TA1 or 2? Leave blank, say "Custom", or return a 3 for now?         
+         // if distance is > than TA 2, return a 3.
+         //What to do if the user selected a geo very far outside the TA1 or 2? Leave blank, say "Custom", or return a 3 for now?
             if (this.impGeofootprintTradeAreas == null)
                varValue = null;
             else
@@ -148,7 +148,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                      else
                         varValue = null;
             break;
-            
+
          default:
             varValue = null;
             break;
@@ -174,7 +174,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let field: string;
       let row: string = ' ';
 
-      // Build the headers - Note that headers only support constants or #V- variables 
+      // Build the headers - Note that headers only support constants or #V- variables
       for (const header of headerList)
       {
          isSpecial = header.slice(0, 3);
@@ -251,7 +251,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO)
    {
       const columnHeaders: string = this.getExportFormat (exportFormat, true);
-      const columnOrder: string = this.getExportFormat (exportFormat, false);      
+      const columnOrder: string = this.getExportFormat (exportFormat, false);
       console.log('columnHeaders: ', columnHeaders);
       console.log('columnOrder', columnOrder);
       console.log('dataStore.length: ' + this.length());
@@ -263,7 +263,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       this.exportCSV(filename, this.prepareCSV(geos, columnHeaders, columnOrder));
    }
-   
+
    private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, returnHeaders: boolean): string
    {
       let result: string = '';

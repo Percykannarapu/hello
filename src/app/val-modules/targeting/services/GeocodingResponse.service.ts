@@ -39,9 +39,10 @@ export class GeocodingResponseService {
     private tempId: number = 0;
     private siteCount: any = 0;
     private compCount: any = 0;
+    private exportVal: boolean = false;
     public impGeoLocAttrList: any[] = [];
     public impGeofootprintLocList: ImpGeofootprintLocation[] = [];
-    public impGeofootprintCompList: ImpGeofootprintLocation[] = [];
+    public impGeofootprintCompList: any[] = [];
 
 
     constructor(private http: HttpClient,
@@ -54,33 +55,43 @@ export class GeocodingResponseService {
     /**
 * @description export CSV data to the user
 */
-    public exportCSV(csvData: string[]) {
+    public exportCSV(csvData: string[], value) {
         let csvString = '';
         for (const row of csvData) {
             csvString = csvString + encode(row) + '\n';
         }
-
-        // use jquery to create a link, then click that link so the user will download the CSV file
-        const link = $('<a/>', {
-            style: 'display:none',
-            href: 'data:application/octet-stream;base64,' + btoa(csvString),
-            download: 'sites.csv'
-        }).appendTo('body');
-        link[0].click();
-        link.remove();
+        if (value == 'Site') {
+            // use jquery to create a link, then click that link so the user will download the CSV file
+            const link = $('<a/>', {
+                style: 'display:none',
+                href: 'data:application/octet-stream;base64,' + btoa(csvString),
+                download: 'sites.csv'
+            }).appendTo('body');
+            link[0].click();
+            link.remove();
+        } else if (value == 'Competitor') {
+            // use jquery to create a link, then click that link so the user will download the CSV file
+            const link = $('<a/>', {
+                style: 'display:none',
+                href: 'data:application/octet-stream;base64,' + btoa(csvString),
+                download: 'competitors.csv'
+            }).appendTo('body');
+            link[0].click();
+            link.remove();
+        }
     }
 
     /**
     * @description turn the AmSite[] array stored in this service into CSV data
     * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
     */
-    public createCSV(): string[] {
-        const sitesList: any = this.displayData();
+    public createCSV(value) : string[] {
+        const sitesList: any = this.displayData(value);
         if (sitesList < 1) {
             throw new Error('No sites available to export');
         }
+        
         const csvData: string[] = new Array<string>();
-
         // build the first row of the csvData out of the headers
         let displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
             + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
@@ -91,11 +102,11 @@ export class GeocodingResponseService {
 
         const mappingHeaderRow = 'GROUP,Number,Name,DESCRIPTION,Address,City,State,ZIP,Longitude,Latitude,ICON,TA1,'
             + 'TA2,TA3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TA1_DESC1,TA2_DESC2,TA3_DESC3,'
-            + 'Home Zip Code,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
+            + 'Home ZIP,Home ATZ,Home BG,Home Carrier Route,Home Geocode Issue,Carrier Route,ATZ,'
             + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
             + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
             + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Original ZIP';
-
+        
         //console.log('headerRow:::' + displayHeaderRow);
         //csvData.push(displayHeaderRow);
 
@@ -111,7 +122,11 @@ export class GeocodingResponseService {
             let ta3 = null;
             let zip4 = null;
             for (header of headerList) {
+                console.log('header: ' + header);
                 //  if (siteMap.has(header)){
+                if (header === 'market') {
+                    row = row + site[header] + ',';
+                }
                 if (header === 'GROUP') {
                     // we need to get this Group based on radio button
                     row = row + 'Advertisers,';
@@ -463,71 +478,85 @@ export class GeocodingResponseService {
         });
     }
 
-    public displayData() {
+    public displayData(value) {
         const gridtemp: any[] = [];
+        const gridComptemp: any[] = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
+
         for (const impgeoLoc of this.impGeofootprintLocList) {
             const gridMap: any = {};
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
                 attr => attr.impGeofootprintLocation.glId === impgeoLoc.glId);
-
-            for (const locAttr of returnList) {
-                gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+            if (value === 'Site' && impgeoLoc.impClientLocationType == value) {
+                this.exportVal = false;
+                for (const locAttr of returnList) {
+                    gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+                }
+                gridtemp.push(gridMap);
+            } else if ( value === 'Competitor' && impgeoLoc.impClientLocationType == value) {
+                this.exportVal = true;
+                for (const locAttr of returnList) {
+                    gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+                }
+                gridComptemp.push(gridMap);
             }
-            gridtemp.push(gridMap);
         }
+        if (this.exportVal){
+            return gridComptemp;
+        }else {
         return gridtemp;
+    }
     }
 
 
     public locToEntityMapping(sitesList: GeocodingResponse[], selector) {
-        // this.gridData = sitesList;
-        this.impGeofootprintLocList = [];
-        const gridtemp: any[] = [];
-        const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
-        sitesList.forEach(site => {
+    // this.gridData = sitesList;
+    this.impGeofootprintLocList = [];
+    const gridtemp: any[] = [];
+    const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
+    sitesList.forEach(site => {
 
 
-            const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
-            impGeofootprintLoc.glId = Number(site.number);
-            impGeofootprintLoc.locationName = site.name;
-            impGeofootprintLoc.locAddres = site.addressline;
-            impGeofootprintLoc.locCity = site.city;
-            impGeofootprintLoc.locState = site.state;
-            impGeofootprintLoc.locZip = site.zip;
-            impGeofootprintLoc.recordStatusCode = site.status;
-            impGeofootprintLoc.xcoord = site.longitude;
-            impGeofootprintLoc.ycoord = site.latitude;
-            impGeofootprintLoc.geocoderMatchCode = site.matchCode;
-            impGeofootprintLoc.geocoderLocationCode = site.locationQualityCode;
-            impGeofootprintLoc.origAddress1 = site.orgAddr;
-            impGeofootprintLoc.origCity = site.orgCity;
-            impGeofootprintLoc.origState = site.orgState;
-            impGeofootprintLoc.origPostalCode = site.zip10;
-            impGeofootprintLoc.marketName = site.marketName;
-            impGeofootprintLoc.impClientLocationType = selector;
+        const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
+        impGeofootprintLoc.glId = Number(site.number);
+        impGeofootprintLoc.locationName = site.name;
+        impGeofootprintLoc.locAddres = site.addressline;
+        impGeofootprintLoc.locCity = site.city;
+        impGeofootprintLoc.locState = site.state;
+        impGeofootprintLoc.locZip = site.zip;
+        impGeofootprintLoc.recordStatusCode = site.status;
+        impGeofootprintLoc.xcoord = site.longitude;
+        impGeofootprintLoc.ycoord = site.latitude;
+        impGeofootprintLoc.geocoderMatchCode = site.matchCode;
+        impGeofootprintLoc.geocoderLocationCode = site.locationQualityCode;
+        impGeofootprintLoc.origAddress1 = site.orgAddr;
+        impGeofootprintLoc.origCity = site.orgCity;
+        impGeofootprintLoc.origState = site.orgState;
+        impGeofootprintLoc.origPostalCode = site.zip10;
+        impGeofootprintLoc.marketName = site.marketName;
+        impGeofootprintLoc.impClientLocationType = selector;
 
-            //impGeofootprintLoc.qua = site.locationQualityCode;
-            // impGeofootprintLoc.origAddress1 = site
-            let i: number = 0;
-            const impLocAttrTempList: ImpGeofootprintLocAttrib[] = [];
-            site.geocodingAttributesList.forEach(geocodingAttr => {
+        //impGeofootprintLoc.qua = site.locationQualityCode;
+        // impGeofootprintLoc.origAddress1 = site
+        let i: number = 0;
+        const impLocAttrTempList: ImpGeofootprintLocAttrib[] = [];
+        site.geocodingAttributesList.forEach(geocodingAttr => {
 
-                const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
-                impGeofootprintLocAttr.attributeCode = geocodingAttr.attributeName;
-                impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
-                impGeofootprintLocAttr.locAttributeId = i++;
-                impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
-                impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
-                impLocAttrTempList.push(impGeofootprintLocAttr);
-            });
-            this.impGeoLocAttrList.push(impLocAttrTempList);
-            this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
-
+            const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
+            impGeofootprintLocAttr.attributeCode = geocodingAttr.attributeName;
+            impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
+            impGeofootprintLocAttr.locAttributeId = i++;
+            impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
+            impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
+            impLocAttrTempList.push(impGeofootprintLocAttr);
         });
-        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
-        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+        this.impGeoLocAttrList.push(impLocAttrTempList);
+        this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
 
-    }
+    });
+    this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+    this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
+
+}
 }
