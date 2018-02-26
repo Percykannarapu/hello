@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { TradeAreaUIModel } from './trade-area-ui.model';
 
 type SiteType = 'Site' | 'Competitor';
+interface MergeType { value: string; }
 
 @Component({
     selector: 'val-tradearea-define',
@@ -24,12 +25,12 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     private geofootprintSubscription: Subscription;
 
     private siteTradeAreas: TradeAreaUIModel[];
-    private siteMergeType: string;
+    private siteMergeType: MergeType;
     private competitorTradeAreas: TradeAreaUIModel[];
-    private competitorMergeType: string;
+    private competitorMergeType: MergeType;
 
     currentTradeAreas: TradeAreaUIModel[];
-    currentMergeType: string;
+    currentMergeType: MergeType;
     currentSiteType: SiteType;
     tradeAreaMergeTypes: SelectItem[];
     displayDBSpinner: boolean = false;
@@ -55,13 +56,13 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.siteMergeType = this.tradeAreaMergeTypes[1].value;
+      this.siteMergeType = { value: this.tradeAreaMergeTypes[1].value };
       this.competitorTradeAreas = [
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.competitorMergeType = this.tradeAreaMergeTypes[1].value;
+      this.competitorMergeType = { value: this.tradeAreaMergeTypes[1].value };
 
       this.currentSiteType = 'Site';
       this.currentTradeAreas = this.siteTradeAreas;
@@ -117,7 +118,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
             this.clearLayers(currentLayerGroup, layerPrefix);
             const color = { a: 0, r: 0, g: 0, b: 0 };
             const outlineColor = (isSiteBuffer ? [0, 0, 255, 2.50] : [255, 0, 0, 2.50]);
-            switch (this.currentMergeType) {
+            switch (this.currentMergeType.value) {
                 case 'Merge Each':
                     let siteId: number = 0;  // This is temporary until we connect trade areas to sites
                     for (const model of workingTradeAreas) {
@@ -190,7 +191,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                 // MapService.tradeAreaInfoMap.set('selector', this.currentSiteType);
                 break;
               default:
-                console.error(`Trade Area Define component encountered an unknown merge type: ${this.currentMergeType}`);
+                console.error(`Trade Area Define component encountered an unknown merge type: ${this.currentMergeType.value}`);
             }
         } catch (ex) {
             this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `An unknown error has occurred, please check log for details.` });
@@ -222,12 +223,10 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
         switch (event) {
           case 'Site':
             this.currentTradeAreas = this.siteTradeAreas;
-            this.competitorMergeType = this.currentMergeType;
             this.currentMergeType = this.siteMergeType;
             break;
           case 'Competitor':
             this.currentTradeAreas = this.competitorTradeAreas;
-            this.siteMergeType = this.currentMergeType;
             this.currentMergeType = this.competitorMergeType;
         }
     }

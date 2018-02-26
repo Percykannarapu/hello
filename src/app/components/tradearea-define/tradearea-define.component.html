@@ -11,41 +11,17 @@
 
   <div class="ui-g-12">
     <div class="ui-g-2">
-      <div class="ui-md-4">
-        <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="currentTradeAreas[0].isShowing" [style]="{'width':'75px'}"></p-toggleButton>
-      </div>
-      <div class="ui-md-4">
-        <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="currentTradeAreas[1].isShowing" [style]="{'width':'75px'}"></p-toggleButton>
-      </div>
-      <div class="ui-md-4">
-        <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="currentTradeAreas[2].isShowing" [style]="{'width':'75px'}"></p-toggleButton>
+      <div class="ui-md-4" *ngFor="let tradeArea of currentTradeAreas">
+        <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="tradeArea.isShowing" [style]="{'width':'75px'}"></p-toggleButton>
       </div>
     </div>
     <div class="ui-g-8">
-      <div class="ui-md-4">
+      <div class="ui-md-4"  *ngFor="let tradeArea of currentTradeAreas; index as i" [ngClass]="{ 'p-t-15': i > 0 }">
         <span class="ui-float-label">
-            <input [ngModel]="currentTradeAreas[0].tradeArea" pInputText id="ta1Input" (ngModelChange)="currentTradeAreas[0].validate($event)">
-            <label for="ta1Input">Trade Area 1 (in miles)</label>
-            <i *ngIf="currentTradeAreas[0].isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
-            <i *ngIf="currentTradeAreas[0].isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Trade area must be > 0 and <= 50 miles"></i>
-        </span>
-      </div>
-
-      <div class="ui-md-4 p-t-15">
-        <span class="ui-float-label">
-            <input [ngModel]="currentTradeAreas[1].tradeArea" pInputText id="ta2Input" (ngModelChange)="currentTradeAreas[1].validate($event)">
-            <label for="ta2Input">Trade Area 2 (in miles)</label>
-            <i *ngIf="currentTradeAreas[1].isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
-            <i *ngIf="currentTradeAreas[1].isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Trade area must be > 0 and <= 50 miles"></i>
-        </span>
-      </div>
-
-      <div class="ui-md-4 p-t-15">
-        <span class="ui-float-label">
-            <input [ngModel]="currentTradeAreas[2].tradeArea" pInputText id="ta3Input" (ngModelChange)="currentTradeAreas[2].validate($event)">
-            <label for="ta3Input">Trade Area 3 (in miles)</label>
-            <i *ngIf="currentTradeAreas[2].isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
-            <i *ngIf="currentTradeAreas[2].isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Trade area must be > 0 and <= 50 miles"></i>
+            <input [ngModel]="tradeArea.tradeArea" pInputText id="ta1Input" (ngModelChange)="tradeArea.validate($event)">
+            <label for="ta1Input">Trade Area {{i + 1}} (in miles)</label>
+            <i *ngIf="tradeArea.isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
+            <i *ngIf="tradeArea.isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" [title]="tradeArea.validationMessage"></i>
         </span>
       </div>
     </div>
@@ -53,7 +29,7 @@
 
   <div class="ui-g-12">
     <div class="ui-g-4">
-      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="currentMergeType"></p-selectButton>
+      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="currentMergeType.value"></p-selectButton>
     </div>
     <div class="ui-g-4">
       <button (click)="onApplyBtnClick()" pButton label="Apply" [disabled]="applyDisabled()"></button>

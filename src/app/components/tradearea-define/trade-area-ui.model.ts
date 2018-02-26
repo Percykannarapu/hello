@@ -3,7 +3,11 @@ export class TradeAreaUIModel {
   isShowing: boolean;
   isValid?: boolean;
 
-  constructor(private maxRadius: number){}
+  validationMessage: string;
+
+  constructor(private maxRadius: number) {
+    this.validationMessage = `Trade area must be > 0 and <= ${this.maxRadius} miles`;
+  }
 
   get layerName() : string {
     if (this.tradeArea != null) {
