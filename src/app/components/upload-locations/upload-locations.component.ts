@@ -417,19 +417,27 @@ export class UploadLocationsComponent implements OnInit {
     let geocodingResponseList: GeocodingResponse[] = [];
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
+      //const locationRestResponse: RestResponse[] = [];
       const geocodingResponse: GeocodingResponse = new GeocodingResponse();
       const geocodingAttrList: GeocodingAttributes[] = [];
-
+      const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
       const locRespListMap: Map<string, any> = locationResponseList[0];
-      // if (locRespListMap['Geocode Status'] !== 'PROVIDED' && this.geocodingFailure(locRespListMap)) {
-      //   const failedSite: GeocodingResponse = new GeocodingResponse();
-      //   //locationResponseList[0].status = 'ERROR';
-      //   locRespListMap['Geocode Status'] = 'ERROR';
+      if (locRespListMap['latitude'] == '' && locRespListMap['longitude'] == '') {
+        // const failedSite: GeocodingResponse = new GeocodingResponse();
+        // //locationResponseList[0].status = 'ERROR';
+        // locRespListMap['Geocode Status'] = 'ERROR';
 
-      //   this.failedSites.push(locRespListMap); //push to failed sites
-      //   UploadLocationsComponent.failedSiteCounter++;
-      //   continue;
-      // }
+        // this.failedSites.push(locRespListMap); //push to failed sites
+        // UploadLocationsComponent.failedSiteCounter++;
+        //locationRestResponse.push(restResponse);
+        locRespListMap['Geocode Status'] = 'SUCCESS';
+        observables.push(this.geocoderService.multiplesitesGeocode(locationResponseList));
+        Observable.forkJoin(observables).subscribe(res => {
+          this.parseCsvResponse(res, true);
+        });
+        // this.parseCsvResponse(locationRestResponse, true);
+        continue;
+      }
       console.log('locRespListMap:::', locRespListMap);
       geocodingResponse.status = locRespListMap['Geocode Status'];
       geocodingResponse.city = locRespListMap['city'];
