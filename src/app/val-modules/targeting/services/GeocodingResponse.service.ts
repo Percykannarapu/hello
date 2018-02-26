@@ -30,8 +30,8 @@ export class GeocodingResponseService {
     public columnOptions: SelectItem[] = [];
     private subject: Subject<any> = new Subject<any>();
     public pointsPlotted: Subject<any> = new Subject<any>();
-    public amComps: any[] = [];
-    public unselectedAmComps: any[] = [];
+    //public amComps: any[] = [];
+    //public unselectedAmComps: any[] = []; not needed anymore
 
     public sitesList: any[] = [];
     public unselectedSitesList: any[] = [];
@@ -39,7 +39,7 @@ export class GeocodingResponseService {
     private tempId: number = 0;
     private siteCount: any = 0;
     private compCount: any = 0;
-    private exportVal: boolean = false;
+    private exportVal: boolean = false; //bool to set the flag to check competitors/sites
     public impGeoLocAttrList: any[] = [];
     public impGeofootprintLocList: ImpGeofootprintLocation[] = [];
     public impGeofootprintCompList: any[] = [];
@@ -70,7 +70,7 @@ export class GeocodingResponseService {
             link[0].click();
             link.remove();
         } else if (value == 'Competitor') {
-            // use jquery to create a link, then click that link so the user will download the CSV file
+            // use jquery to create a link, then click that link so the user will download the CSV file for competitors
             const link = $('<a/>', {
                 style: 'display:none',
                 href: 'data:application/octet-stream;base64,' + btoa(csvString),
@@ -85,12 +85,12 @@ export class GeocodingResponseService {
     * @description turn the AmSite[] array stored in this service into CSV data
     * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
     */
-    public createCSV(value) : string[] {
+    public createCSV(value): string[] {
         const sitesList: any = this.displayData(value);
         if (sitesList < 1) {
             throw new Error('No sites available to export');
         }
-        
+
         const csvData: string[] = new Array<string>();
         // build the first row of the csvData out of the headers
         let displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
@@ -106,7 +106,7 @@ export class GeocodingResponseService {
             + 'Block Group,Unit,ZIP4,Market,Market Code,Map Group,STDLINXSCD,SWklyVol,STDLINXOCD,SOwnFamCd,'
             + 'SOwnNm,SStCd,SCntCd,FIPS,STDLINXPCD,SSUPFAMCD,SSupNm,SStatusInd,Match Type,Match Pass,'
             + 'Match Score,Match Code,Match Quality,Match Error,Match Error Desc,Original Address,Original City,Original State,Original ZIP';
-        
+
         //console.log('headerRow:::' + displayHeaderRow);
         //csvData.push(displayHeaderRow);
 
@@ -216,6 +216,7 @@ export class GeocodingResponseService {
         return this.tempId++;
     }
 
+    //also should be removed eventually : nallana : we are no loger using this for metric to update: datastore is the source now: 2/26/2018
     public add(sitesList: GeocodingResponse[]) {
         // For each site provided in the parameters
         for (const site of sitesList) {
@@ -249,37 +250,37 @@ export class GeocodingResponseService {
         this.logSites();
     }
 
+    // //Should be removed eventually : refactoring for business search as well as the geocoding.component 
+    //     public addCompetitors(amComps: any[]) {
+    //         // For each site provided in the parameters
+    //         for (const amComp of amComps) {
+    //             if (amComp.number == null)
+    //                 amComp.number = this.getNewSitePk().toString();
 
-    public addCompetitors(amComps: any[]) {
-        // For each site provided in the parameters
-        for (const amComp of amComps) {
-            if (amComp.number == null)
-                amComp.number = this.getNewSitePk().toString();
+    //             // Add the competitor to the selected sites array
 
-            // Add the competitor to the selected sites array
+    //             //for (let i = 0 ; i < sitesList.length; i++){
+    //             const temp = {};
+    //             amComp.geocodingAttributesList.forEach(item => {
+    //                 const keyValue = Object.values(item);
+    //                 temp[keyValue[0].toString()] = keyValue[1];
+    //             });
+    //             // Add the site to the selected sites array
+    //             this.amComps = [...this.amComps, temp];
 
-            //for (let i = 0 ; i < sitesList.length; i++){
-            const temp = {};
-            amComp.geocodingAttributesList.forEach(item => {
-                const keyValue = Object.values(item);
-                temp[keyValue[0].toString()] = keyValue[1];
-            });
-            // Add the site to the selected sites array
-            this.amComps = [...this.amComps, temp];
+    //             // Add the site to the sites list array
+    //             this.unselectedAmComps = [...this.unselectedAmComps, amComp];
 
-            // Add the site to the sites list array
-            this.unselectedAmComps = [...this.unselectedAmComps, amComp];
+    //             // Notifiy Observers
+    //             this.subject.next(amComp);
+    //         }
 
-            // Notifiy Observers
-            this.subject.next(amComp);
-        }
+    //         // Update the metrics
+    //         this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-        // Update the metrics
-        this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-
-        // Debug log site arrays to the console
-        this.logSites();
-    }
+    //         // Debug log site arrays to the console
+    //         this.logSites();
+    //     }
 
     public remove(loc: ImpGeofootprintLocation) {
         // Remove the site from the selected sites array
@@ -479,7 +480,7 @@ export class GeocodingResponseService {
     }
 
     public displayData(value) {
-        const gridtemp: any[] = [];
+        const gridSitetemp: any[] = [];
         const gridComptemp: any[] = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
@@ -488,13 +489,13 @@ export class GeocodingResponseService {
             const gridMap: any = {};
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
                 attr => attr.impGeofootprintLocation.glId === impgeoLoc.glId);
-            if (value === 'Site' && impgeoLoc.impClientLocationType == value) {
+            if (value === 'Site' && impgeoLoc.impClientLocationType == value) { //Site grid data to a csv file
                 this.exportVal = false;
                 for (const locAttr of returnList) {
                     gridMap[locAttr.attributeCode] = locAttr.attributeValue;
                 }
-                gridtemp.push(gridMap);
-            } else if ( value === 'Competitor' && impgeoLoc.impClientLocationType == value) {
+                gridSitetemp.push(gridMap);
+            } else if (value === 'Competitor' && impgeoLoc.impClientLocationType == value) { //Competitor grid data to a csv file
                 this.exportVal = true;
                 for (const locAttr of returnList) {
                     gridMap[locAttr.attributeCode] = locAttr.attributeValue;
@@ -502,61 +503,61 @@ export class GeocodingResponseService {
                 gridComptemp.push(gridMap);
             }
         }
-        if (this.exportVal){
+        if (this.exportVal) {
             return gridComptemp;
-        }else {
-        return gridtemp;
-    }
+        } else {
+            return gridSitetemp;
+        }
     }
 
 
     public locToEntityMapping(sitesList: GeocodingResponse[], selector) {
-    // this.gridData = sitesList;
-    this.impGeofootprintLocList = [];
-    const gridtemp: any[] = [];
-    const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
-    sitesList.forEach(site => {
+        // this.gridData = sitesList;
+        this.impGeofootprintLocList = [];
+        const gridtemp: any[] = [];
+        const impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
+        sitesList.forEach(site => {
 
 
-        const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
-        impGeofootprintLoc.glId = Number(site.number);
-        impGeofootprintLoc.locationName = site.name;
-        impGeofootprintLoc.locAddres = site.addressline;
-        impGeofootprintLoc.locCity = site.city;
-        impGeofootprintLoc.locState = site.state;
-        impGeofootprintLoc.locZip = site.zip;
-        impGeofootprintLoc.recordStatusCode = site.status;
-        impGeofootprintLoc.xcoord = site.longitude;
-        impGeofootprintLoc.ycoord = site.latitude;
-        impGeofootprintLoc.geocoderMatchCode = site.matchCode;
-        impGeofootprintLoc.geocoderLocationCode = site.locationQualityCode;
-        impGeofootprintLoc.origAddress1 = site.orgAddr;
-        impGeofootprintLoc.origCity = site.orgCity;
-        impGeofootprintLoc.origState = site.orgState;
-        impGeofootprintLoc.origPostalCode = site.zip10;
-        impGeofootprintLoc.marketName = site.marketName;
-        impGeofootprintLoc.impClientLocationType = selector;
+            const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
+            impGeofootprintLoc.glId = Number(site.number);
+            impGeofootprintLoc.locationName = site.name;
+            impGeofootprintLoc.locAddres = site.addressline;
+            impGeofootprintLoc.locCity = site.city;
+            impGeofootprintLoc.locState = site.state;
+            impGeofootprintLoc.locZip = site.zip;
+            impGeofootprintLoc.recordStatusCode = site.status;
+            impGeofootprintLoc.xcoord = site.longitude;
+            impGeofootprintLoc.ycoord = site.latitude;
+            impGeofootprintLoc.geocoderMatchCode = site.matchCode;
+            impGeofootprintLoc.geocoderLocationCode = site.locationQualityCode;
+            impGeofootprintLoc.origAddress1 = site.orgAddr;
+            impGeofootprintLoc.origCity = site.orgCity;
+            impGeofootprintLoc.origState = site.orgState;
+            impGeofootprintLoc.origPostalCode = site.zip10;
+            impGeofootprintLoc.marketName = site.marketName;
+            impGeofootprintLoc.impClientLocationType = selector;
 
-        //impGeofootprintLoc.qua = site.locationQualityCode;
-        // impGeofootprintLoc.origAddress1 = site
-        let i: number = 0;
-        const impLocAttrTempList: ImpGeofootprintLocAttrib[] = [];
-        site.geocodingAttributesList.forEach(geocodingAttr => {
+            //impGeofootprintLoc.qua = site.locationQualityCode;
+            // impGeofootprintLoc.origAddress1 = site
+            let i: number = 0;
+            const impLocAttrTempList: ImpGeofootprintLocAttrib[] = [];
+            site.geocodingAttributesList.forEach(geocodingAttr => {
 
-            const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
-            impGeofootprintLocAttr.attributeCode = geocodingAttr.attributeName;
-            impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
-            impGeofootprintLocAttr.locAttributeId = i++;
-            impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
-            impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
-            impLocAttrTempList.push(impGeofootprintLocAttr);
+                const impGeofootprintLocAttr: ImpGeofootprintLocAttrib = new ImpGeofootprintLocAttrib();
+                impGeofootprintLocAttr.attributeCode = geocodingAttr.attributeName;
+                impGeofootprintLocAttr.attributeValue = geocodingAttr.attributeValue;
+                impGeofootprintLocAttr.locAttributeId = i++;
+                impGeofootprintLocAttr.impGeofootprintLocation = impGeofootprintLoc;
+                impGeofootprintLocAttribList.push(impGeofootprintLocAttr);
+                impLocAttrTempList.push(impGeofootprintLocAttr);
+            });
+            this.impGeoLocAttrList.push(impLocAttrTempList);
+            this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
+
         });
-        this.impGeoLocAttrList.push(impLocAttrTempList);
-        this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
+        this.impGeofootprintLocationService.add(this.impGeofootprintLocList); //add to the dataStore for metric calculation
+        this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
 
-    });
-    this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
-    this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
-
-}
+    }
 }

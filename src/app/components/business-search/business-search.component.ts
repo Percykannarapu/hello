@@ -290,6 +290,7 @@ export class BusinessSearchComponent implements OnInit {
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
 
     //await this.searchDatageos.forEach(async business => {
+      //Create a popup for the point clicked on the map
     for (const business of this.searchDatageos) {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
@@ -321,7 +322,7 @@ export class BusinessSearchComponent implements OnInit {
     }
     //this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
     //console.log('this.plottedpoints', this.plottedPoints);
-    this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector);
+    this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
     this.appService.closeOverLayPanel.next(true);
     // if (selector === 'Competitor') {
     //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});

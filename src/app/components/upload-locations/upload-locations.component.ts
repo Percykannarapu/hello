@@ -422,6 +422,8 @@ export class UploadLocationsComponent implements OnInit {
       const geocodingAttrList: GeocodingAttributes[] = [];
       const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
       const locRespListMap: Map<string, any> = locationResponseList[0];
+      
+      //handle empty columns with just lat/long columns:nallana US6466
       if (locRespListMap['latitude'] == '' && locRespListMap['longitude'] == '') {
         // const failedSite: GeocodingResponse = new GeocodingResponse();
         // //locationResponseList[0].status = 'ERROR';
@@ -430,7 +432,7 @@ export class UploadLocationsComponent implements OnInit {
         // this.failedSites.push(locRespListMap); //push to failed sites
         // UploadLocationsComponent.failedSiteCounter++;
         //locationRestResponse.push(restResponse);
-        locRespListMap['Geocode Status'] = 'SUCCESS';
+        locRespListMap['Geocode Status'] = 'SUCCESS'; //set the status to success its valassis geocoded site now
         observables.push(this.geocoderService.multiplesitesGeocode(locationResponseList));
         Observable.forkJoin(observables).subscribe(res => {
           this.parseCsvResponse(res, true);
@@ -438,7 +440,7 @@ export class UploadLocationsComponent implements OnInit {
         // this.parseCsvResponse(locationRestResponse, true);
         continue;
       }
-      console.log('locRespListMap:::', locRespListMap);
+      //console.log('locRespListMap:::', locRespListMap);
       geocodingResponse.status = locRespListMap['Geocode Status'];
       geocodingResponse.city = locRespListMap['city'];
       geocodingResponse.latitude = locRespListMap['latitude'];
@@ -449,16 +451,6 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponse.addressline = locRespListMap['street'];
       geocodingResponse.zip = locRespListMap['zip'];
       geocodingResponse.marketName = locRespListMap['market'];
-
-      // geocodingResponse.matchCode = locRespListMap['Match Code'];
-      // geocodingResponse.orgAddr = locRespListMap['Original Address'];
-      // geocodingResponse.orgCity = locRespListMap['Original City'];
-      // geocodingResponse.orgState = locRespListMap['Original State'];
-      // geocodingResponse.status = locRespListMap['Geocode Status'];
-      // geocodingResponse.zip10 = locRespListMap['Original ZIP'];
-      // geocodingResponse.locationQualityCode = locRespListMap['Match Quality'];
-      // geocodingResponse.marketName = locRespListMap['Market'];
-      // geocodingResponse.orgAddr     =      locRespListMap['Original '];
 
       if (geocodingResponse.number == null || geocodingResponse.number == '') {
         geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
