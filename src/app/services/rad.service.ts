@@ -78,7 +78,7 @@ export class RadService {
       if (this.filteredRadData != null && this.filteredRadData.length > 0) {
         try {
           //Calculate the predicted response
-          const hhCount: number = Number(metricMessage.value.replace(',', ''));
+          const hhCount: number = Number(metricMessage.value.replace(/,/g, ''));
           let predictedResponse: number = hhCount * (this.filteredRadData[0].responseRate / 100);
           predictedResponse = Math.round(predictedResponse);
           if (Number.isNaN(predictedResponse)) {
