@@ -24,7 +24,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
          {
             productCode:          'Email',
             industryCategoryCode: '',
-            analysisLevel:        '',
+            analysisLevel:        '', //removed the analysis value from default ZIP
             selectedSeason:       'WINTER',
             cpm:                  null,
             totalBudget:          null,

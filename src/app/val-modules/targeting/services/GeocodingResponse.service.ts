@@ -127,6 +127,11 @@ export class GeocodingResponseService {
                 if (header === 'market') {
                     row = row + site[header] + ',';
                 }
+                if (header === 'GROUP' && value === 'Competitor') {
+                    // we need to get this Group based on radio button
+                    row = row + 'Competitors,';
+                    continue;
+                }
                 if (header === 'GROUP') {
                     // we need to get this Group based on radio button
                     row = row + 'Advertisers,';
@@ -482,6 +487,8 @@ export class GeocodingResponseService {
     public displayData(value) {
         const gridSitetemp: any[] = [];
         const gridComptemp: any[] = [];
+        this.impGeoLocAttrList = [];
+        this.impGeofootprintLocList = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
 
@@ -489,17 +496,16 @@ export class GeocodingResponseService {
             const gridMap: any = {};
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
                 attr => attr.impGeofootprintLocation.glId === impgeoLoc.glId);
-            if (value === 'Site' && impgeoLoc.impClientLocationType == value) { //Site grid data to a csv file
-                this.exportVal = false;
                 for (const locAttr of returnList) {
                     gridMap[locAttr.attributeCode] = locAttr.attributeValue;
                 }
+            if (value === 'Site' && impgeoLoc.impClientLocationType == value) { //Site grid data to a csv file
+                this.exportVal = false;
+                
                 gridSitetemp.push(gridMap);
             } else if (value === 'Competitor' && impgeoLoc.impClientLocationType == value) { //Competitor grid data to a csv file
                 this.exportVal = true;
-                for (const locAttr of returnList) {
-                    gridMap[locAttr.attributeCode] = locAttr.attributeValue;
-                }
+               
                 gridComptemp.push(gridMap);
             }
         }
