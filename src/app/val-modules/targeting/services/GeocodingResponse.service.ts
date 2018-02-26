@@ -111,7 +111,11 @@ export class GeocodingResponseService {
             let ta3 = null;
             let zip4 = null;
             for (header of headerList) {
+               console.log('header: ' + header);
                 //  if (siteMap.has(header)){
+                  if (header === 'market') {
+                     row = row + site[header] + ',';
+                  }
                 if (header === 'GROUP') {
                     // we need to get this Group based on radio button
                     row = row + 'Advertisers,';

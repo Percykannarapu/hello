@@ -106,6 +106,7 @@ export class UploadLocationsComponent implements OnInit {
         if (csvRecord.length === this.headers.length) {
 
           for (let j = 0; j < this.headers.length; j++) {
+             console.log('importing - site[' + this.headers[j] + '] = ' + csvRecord[j]);
             site[this.headers[j]] = csvRecord[j];
           }
           siteList.push(site);
@@ -439,6 +440,7 @@ export class UploadLocationsComponent implements OnInit {
       geocodingResponse.state = locRespListMap['state'];
       geocodingResponse.addressline = locRespListMap['street'];
       geocodingResponse.zip = locRespListMap['zip'];
+      geocodingResponse.marketName = locRespListMap['market'];
 
       // geocodingResponse.matchCode = locRespListMap['Match Code'];
       // geocodingResponse.orgAddr = locRespListMap['Original Address'];
