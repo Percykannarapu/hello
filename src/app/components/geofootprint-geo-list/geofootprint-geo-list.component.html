@@ -15,28 +15,28 @@
       pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}"></p-column>
 
       <ng-template let-site pTemplate="rowexpansion">
-         <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 2.68em">
+         <div class="ui-grid ui-grid-responsive ui-fluid" style="width:45%;font-size:14px;padding: 0 0 0 2.68em">
             <div class="ui-grid-row">
                
                <p-dataTable [value]="filterGeosBySite(site.glId)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
                               resizableColumns="true" columnResizeMode="expand" responsive="true"
                               [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
-                  <!-- <p-header>Geographies</p-header> -->
-                  <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['site']}}</ng-template> -->
                   
                   <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column>
                   <p-column *ngFor="let col of geoGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
-                <!-- <ng-template *ngIf="col.value.field==''" pTemplate="header">
-                        <p-checkbox label="C" [(ngModel)]="selectAllGeos" binary="true"></p-checkbox>
-                     </ng-template> -->                        
-                     <ng-template *ngIf="col.value.field=='geocode'" let-geocode="rowData" pTemplate="body">
+                     <ng-template *ngIf="col.value.field=='geocode'" let-row="rowData" pTemplate="body">
                         <div class="ui-g-11">
-                           {{geocode['geocode']}}
+                           {{row['geocode']}}
                         </div>   
                         <div class="ui-g-1">
-                           <button (click)="onZoomToGeo(geocode)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px 0px; padding: 0px; width: 22px; height: 22px; display: block"></button>
+                           <button (click)="onZoomToGeo(geocode)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
                         </div>
-                     </ng-template>                        
+                     </ng-template>
+                     <ng-template *ngIf="col.value.field=='distance'" let-row="rowData" pTemplate="body">
+                        <div class="ui-g-12">
+                           {{row['distance'] | number : '1.2-2'}}
+                        </div>
+                     </ng-template>
                   </p-column>                 
                </p-dataTable>
 
