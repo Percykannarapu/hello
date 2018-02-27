@@ -1,31 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { RestResponse } from '../../models/RestResponse';
-import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../models/GeocodingResponse';
-import { Observable } from 'rxjs/Rx';
-import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
-import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
+import { Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
-import { GeocoderComponent } from '../geocoder/geocoder.component';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
-import { AppConfig } from '../../app.config';
-import { EsriModules } from '../../esri-modules/core/esri-modules.service';
-
-interface CsvHeadersPosition {
-  street?: number;
-  city?: number;
-  state?: number;
-  zip?: number;
-  lat?: number;
-  lon?: number;
-  storeNumber?: number;
-  name?: number;
-  number?: number;
-}
 
 @Component({
   selector: 'val-upload-locations',
@@ -38,7 +18,6 @@ export class UploadLocationsComponent implements OnInit {
   private static failedSiteCounter: number = 1;
   public failedSites: any[] = [];
 
-  private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
   public selector: string = 'Site';
@@ -52,17 +31,20 @@ export class UploadLocationsComponent implements OnInit {
   constructor(private geocoderService: GeocoderService,
     private messageService: MessageService,
     private mapService: MapService,
-    private geocodingRespService: GeocodingResponseService,
-    private config: AppConfig) { }
+    private geocodingRespService: GeocodingResponseService) { }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
   public static geocodingFailure(geocodingResponse: any) : boolean {
     return geocodingResponse['Match Quality'] === 'E' || geocodingResponse['Match Code'].startsWith('E');
   }
 
-  ngOnInit() {
+  // this should be implemented in an equals() method in the model
+  public static compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
+    return site1.number === site2['Number'];
   }
 
+  ngOnInit() {
+  }
 
   uploadCSV(event) {
     const input = event.target;
@@ -305,16 +287,9 @@ export class UploadLocationsComponent implements OnInit {
     site.zip = row.ZIP;
     site.number = row.Number;
     for (let i = 0; i < this.failedSites.length; i++) {
-      if (this.compareSites(site, this.failedSites[i])) {
+      if (UploadLocationsComponent.compareSites(site, this.failedSites[i])) {
         this.failedSites.splice(i, 1);
       }
-    }
-  }
-
-  // this should be implemented in an equals() method in the model
-  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
-    if (site1.number === site2['Number']) {
-      return true;
     }
   }
 
