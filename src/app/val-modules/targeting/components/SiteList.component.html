@@ -94,11 +94,11 @@
             <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
          </ng-template>
       </p-column>
-      <p-column header="Edit" [style]="{'width':'60px'}" >
+      <!-- <p-column header="Edit" [style]="{'width':'60px'}" >
             <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
                   <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>   
             </ng-template>  
-      </p-column>
+      </p-column> -->
                
       <p-column *ngFor="let col of cols" 
          [field]="col.field" 
@@ -184,11 +184,11 @@
             <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash" style="width:25px;height:25px"></button>
          </ng-template>
       </p-column>
-      <p-column header="Edit" [style]="{'width':'35px'}" >
+      <!-- <p-column header="Edit" [style]="{'width':'35px'}" >
          <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
             <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit" style="width:25px;height:25px"></button>
          </ng-template>  
-      </p-column>
+      </p-column> -->
             
       <p-column *ngFor="let col of cols" 
          [field]="col.field" 
