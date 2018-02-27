@@ -7,6 +7,7 @@ export interface LayerDefinition {
   name: string;
   defaultVisibility: boolean;
   popupTitleSuffix: string;
+  minScale: number;
 }
 
 export class EnvironmentData {
@@ -53,6 +54,7 @@ export class EnvironmentData {
         name: 'DMA Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+        minScale: undefined,
       }
     },
     zip: {
@@ -61,12 +63,14 @@ export class EnvironmentData {
         name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: { // ZIP Top Vars
         id: '5742f3faba51493ab29f9e78bc5598d4',
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 500000,
       }
     },
     atz: {
@@ -75,12 +79,14 @@ export class EnvironmentData {
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: { // ATZ_Top_Vars
         id: 'd3bf2b2a2a0a46f5bf10e8c6270767da',
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 500000,
       }
     },
     digital_atz: {
@@ -89,12 +95,14 @@ export class EnvironmentData {
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
         id: '2393d7bb2ac547c4a6bfa3d16f8febaa',
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 500000,
       }
     },
     pcr: {
@@ -103,12 +111,14 @@ export class EnvironmentData {
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: {
         id: undefined,
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 500000,
       }
     },
     wrap: {
@@ -117,6 +127,7 @@ export class EnvironmentData {
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 500000,
       }
     },
     hh: {
@@ -125,12 +136,14 @@ export class EnvironmentData {
         name: 'HH VT',
         defaultVisibility: true,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       source: { // source feature layer
         id: '5a99095bc95b45a7a830c9e25a389712',
         name: 'HH Source',
         defaultVisibility: true,
         popupTitleSuffix: '',
+        minScale: undefined,
       }
     }
   };

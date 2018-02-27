@@ -685,6 +685,7 @@ export class MapService {
           const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
           currentLayer.visible = layerDef.defaultVisibility;
           currentLayer.title = layerDef.name;
+          currentLayer.minScale = layerDef.minScale;
           currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
           // Add Layer to Group Layer if it does not already exist
           if (!group.layers.some(groupContainsLayer(layerDef))) {
