@@ -9,21 +9,17 @@
     </div>
   </div>
 
-  <div class="ui-g-12">
-    <div class="ui-g-2">
-      <div class="ui-md-4" *ngFor="let tradeArea of currentTradeAreas">
-        <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="tradeArea.isShowing" [style]="{'width':'75px'}"></p-toggleButton>
-      </div>
+  <div class="ui-g-12" *ngFor="let tradeArea of currentTradeAreas; index as i">
+    <div class="ui-g-1 ui-g-offset-half ui-g-nopad">
+      <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="tradeArea.isShowing" [style]="{'width':'75px'}"></p-toggleButton>
     </div>
-    <div class="ui-g-8">
-      <div class="ui-md-4"  *ngFor="let tradeArea of currentTradeAreas; index as i" [ngClass]="{ 'p-t-15': i > 0 }">
-        <span class="ui-float-label">
-            <input [ngModel]="tradeArea.tradeArea" pInputText id="ta1Input" (ngModelChange)="tradeArea.validate($event)">
-            <label for="ta1Input">Trade Area {{i + 1}} (in miles)</label>
-            <i *ngIf="tradeArea.isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
-            <i *ngIf="tradeArea.isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" [title]="tradeArea.validationMessage"></i>
-        </span>
-      </div>
+    <div class="ui-g-8 ui-g-nopad">
+      <span class="ui-float-label">
+        <input [ngModel]="tradeArea.tradeArea" pInputText id="ta1Input" (ngModelChange)="tradeArea.validate($event)">
+        <label for="ta1Input">Trade Area {{i + 1}} (in miles)</label>
+        <i *ngIf="tradeArea.isValid === true" class="fa fa-check" style="font-size:23px;color:rgb(10, 112, 25);"></i>
+        <i *ngIf="tradeArea.isValid === false" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" [title]="tradeArea.validationMessage"></i>
+      </span>
     </div>
   </div>
 
