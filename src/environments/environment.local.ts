@@ -76,7 +76,7 @@ export class EnvironmentData {
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 500000,
+        minScale: 5000000,
       }
     },
     atz: {
@@ -92,7 +92,7 @@ export class EnvironmentData {
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 500000,
+        minScale: 5000000,
       }
     },
     digital_atz: {
@@ -108,7 +108,7 @@ export class EnvironmentData {
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 500000,
+        minScale: 5000000,
       }
     },
     pcr: {
@@ -124,7 +124,7 @@ export class EnvironmentData {
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 500000,
+        minScale: 5000000,
       }
     },
     wrap: {
@@ -133,7 +133,7 @@ export class EnvironmentData {
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 500000,
+        minScale: 5000000,
       }
     },
     hh: {
