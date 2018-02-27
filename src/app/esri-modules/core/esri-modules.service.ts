@@ -30,12 +30,17 @@ export class EsriModules {
     'esri/PopupTemplate',
     'esri/layers/MapImageLayer',
     'esri/geometry/Polyline',
+    'esri/geometry/Polygon',
     'esri/Viewpoint',
     'esri/Graphic',
     'esri/symbols/SimpleFillSymbol',
+    'esri/symbols/SimpleMarkerSymbol',
     'esri/symbols/SimpleLineSymbol',
-    'esri/Color'
-  ];
+    'esri/symbols/TextSymbol',
+    'esri/Color',
+    'esri/views/2d/draw/Draw',
+    'esri/views/2d/draw/PolygonDrawAction'
+];
 
   private static config: typeof __esri.config;
   public static Map: typeof __esri.Map;
@@ -54,11 +59,16 @@ export class EsriModules {
   public static PopupTemplate: typeof __esri.PopupTemplate;
   public static MapImageLayer: typeof __esri.MapImageLayer;
   public static PolyLine: typeof __esri.Polyline;
+  public static Polygon: typeof __esri.Polyline;
   public static Viewpoint: typeof __esri.Viewpoint;
   public static Graphic: typeof __esri.Graphic;
   public static SimpleFillSymbol: typeof __esri.SimpleFillSymbol;
+  public static SimpleMarkerSymbol: typeof __esri.SimpleFillSymbol;
   public static SimpleLineSymbol: typeof __esri.SimpleLineSymbol;
+  public static TextSymbol: typeof __esri.TextSymbol;
   public static Color: typeof __esri.Color;
+  public static Draw: typeof __esri.Draw;
+  public static PolygonDrawAction: typeof __esri.PolygonDrawAction;
 
   public static widgets: EsriWidgets;
 
@@ -100,11 +110,16 @@ export class EsriModules {
       EsriModules.PopupTemplate,
       EsriModules.MapImageLayer,
       EsriModules.PolyLine,
+      EsriModules.Polygon,
       EsriModules.Viewpoint,
       EsriModules.Graphic,
       EsriModules.SimpleFillSymbol,
+      EsriModules.SimpleMarkerSymbol,
       EsriModules.SimpleLineSymbol,
-      EsriModules.Color
+      EsriModules.TextSymbol,
+      EsriModules.Color,
+      EsriModules.Draw,
+      EsriModules.PolygonDrawAction
     ] = modules;
 
     EsriModules.widgets = new EsriWidgets();

@@ -17,7 +17,8 @@ export enum mapFunctions {
     DrawPoly = 3,
     RemoveGraphics = 4,
     Popups = 5,
-    Labels = 6
+    Labels = 6,
+    MeasureLine = 7
   }
 
 declare var jQuery: any;

@@ -190,6 +190,8 @@ export class EsriMapComponent implements OnInit {
         return 'copy';
       case mapFunctions.DrawPoint:
         return 'cell';
+      case mapFunctions.MeasureLine:
+        return 'crosshair';
       case mapFunctions.DrawLine:
         return 'crosshair';
       case mapFunctions.DrawPoly:

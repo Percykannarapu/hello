@@ -1,3 +1,4 @@
+import { EsriModules } from './../esri-modules/core/esri-modules.service';
 import { AppFooterComponent } from './../app.footer.component';
 import { ImpGeofootprintGeoService } from './../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { GeocoderComponent } from './../components/geocoder/geocoder.component';
@@ -9,7 +10,6 @@ import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriLayerService } from './esri-layer.service';
 import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -311,7 +311,6 @@ export class MapService {
         // Add widgets to the viewUI
         this.esriMapService.addWidget(home, 'top-left');
         this.esriMapService.addWidget(searchExpand, 'top-left');
-
         // TODO: hard coded id is temporary
         this.layerService.initLayerList('colorSlider');
 
@@ -336,7 +335,6 @@ export class MapService {
         // create a new sketch view model
         this.sketchViewModel = new EsriModules.widgets.SketchViewModel(<any>{
             view: this.mapView,
-            //layer: tempGraphicsLayer,
             pointSymbol: { // symbol used for points
                 type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
                 style: 'square',
@@ -348,10 +346,16 @@ export class MapService {
                 }
             },
             polylineSymbol: { // symbol used for polylines
+                /*
                 type: 'simple-line', // autocasts as new SimpleMarkerSymbol()
                 color: '#8A2BE2',
                 width: '4',
                 style: 'dash'
+                */
+                type: 'simple-line',
+                style: 'short-dash',
+                width: 1.25,
+                color: [230, 0, 0, 1]
             },
             polygonSymbol: { // symbol used for polygons
                 type: 'simple-fill', // autocasts as new SimpleMarkerSymbol()
@@ -411,30 +415,29 @@ export class MapService {
                     }
                 };
             }
-            // add the graphic to the graphics layer
-            // tempGraphicsLayer.add(evt.graphic);
             this.mapView.graphics.add(evt.graphic);
-            //this.setActiveButton();
+            
+            // ----------------------------------------------------------------------------------------
+            // Measure Length of PolyLine 
+            if (this.mapFunction === mapFunctions.MeasureLine) {
+                const polyline = evt.graphic.geometry;
+                // calculate the area of the polygon
+                const length: number = EsriModules.geometryEngine.geodesicLength(polyline, 'miles');
+                console.log ('drawMeasureLine (length) = ' + length);
+                if (length > 0) {
+                    // start displaying the length of the polyline
+                    this.labelMeasurePolyLine(polyline, length);
+                }
+                this.removeActiveButtons();
+                const el: any = document.getElementById('popupsButton');
+                el.classList.add('active');
+                this.mapFunction = mapFunctions.Popups;            
+            }
+            // ----------------------------------------------------------------------------------------
         });
-
-        // });
         // -----------------------------------------------------------------------------------
     }
 
-    /*
-        // set active button
-        public setActiveButton(selectedButton: any) {
-            // focus the view to activate keyboard shortcuts for sketching
-            this.mapView.focus();
-            const elements: any = document.getElementsByClassName('active');
-            for (let i = 0; i < elements.length; i++) {
-                elements[i].classList.remove('active');
-            }
-            if (selectedButton) {
-                selectedButton.classList.add('active');
-            }
-        }
-    */
     // set active button
     public setActiveButton(event: MouseEvent) {
         // focus the view to activate keyboard shortcuts for sketching
@@ -449,6 +452,51 @@ export class MapService {
         }
     }
 
+    // remove active button css
+    public removeActiveButtons() {
+        // focus the view to activate keyboard shortcuts for sketching
+        this.mapView.focus();
+        const elements: any = document.getElementsByClassName('active');
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('active');
+        }
+    }
+
+    // Label polyon with its Length
+    private labelMeasurePolyLine(polyline: __esri.Polyline, length: number) {
+        
+        // autocasts as new TextSymbol() 
+        const textSym = {
+            type: 'text',
+            color: 'black',
+            //haloColor: 'red',
+            //haloSize: '1',
+            text: length.toFixed(4) + ' miles',
+            xoffset: 50,
+            yoffset: 3,
+            font: { // autocast as Font
+              size: 10,
+              weight: 'bold',
+              family: 'sans-serif'
+            }
+          };
+
+        // create a point geometry
+        const pt = {
+            type: 'point',  // autocasts as new Point()
+            longitude: polyline.getPoint(0, 0).longitude, 
+            latitude: polyline.getPoint(0, 0).latitude
+        };          
+
+        // autocasts as Graphic
+        const graphic: any = {
+            geometry: pt,
+            symbol: textSym
+        };
+
+        this.mapView.graphics.add(graphic);
+    }
+      
     // Toggle Polygon Selection Mode
     public selectPolyButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.SelectPoly;
@@ -491,7 +539,14 @@ export class MapService {
         this.setActiveButton(event);
         // set the sketch to create a polygon geometry
         this.sketchViewModel.create('polygon');
+    }
+
+    // activate the sketch to create a "Measure" polyline
+    public measureLineButton(event: MouseEvent) {
+        this.mapFunction = mapFunctions.MeasureLine;
         this.setActiveButton(event);
+        // set the sketch to create a polyline geometry
+        this.sketchViewModel.create('polyline');
     }
 
     // remove all graphics
