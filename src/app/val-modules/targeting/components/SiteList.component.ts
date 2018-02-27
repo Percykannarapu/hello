@@ -50,22 +50,22 @@ export class SiteListComponent implements OnInit, OnDestroy
    selectedSites: GeocodingResponse[];   
    //columnOptions: SelectItem[];
 
-   public cols: any[] = [{ field: 'glId',                 header: 'Number', size: '70px'},
-                         { field: 'locationName',         header: 'Name', size: '70px'},
-                         { field: 'locAddres',            header: 'Address', size: '70px'},
-                         { field: 'locCity',              header: 'City', size: '70px'},
-                         { field: 'locState',             header: 'State', size: '70px'},
-                         { field: 'locZip',               header: 'ZIP', size: '70px'},
-                         { field: 'marketName',           header: 'Market', size: '70px'},
-                         { field: 'recordStatusCode',     header: 'Geocode Status', size: '70px'},
-                         { field: 'ycoord',               header: 'Latitude', size: '70px'},
-                         { field: 'xcoord',               header: 'Longitude', size: '70px'},
-                         { field: 'geocoderMatchCode',    header: 'Match Code', size: '70px'},
-                         { field: 'geocoderLocationCode', header: 'Match Quality', size: '70px'},
+   public cols: any[] = [{ field: 'glId',                 header: 'Number',           size: '60px'},
+                         { field: 'locationName',         header: 'Name',             size: '120px'},
+                         { field: 'locAddres',            header: 'Address',          size: '120px'},
+                         { field: 'locCity',              header: 'City',             size: '70px'},
+                         { field: 'locState',             header: 'State',            size: '40px'},
+                         { field: 'locZip',               header: 'ZIP',              size: '75px'},
+                         { field: 'marketName',           header: 'Market',           size: '85px'},
+                         { field: 'recordStatusCode',     header: 'Geocode Status',   size: '70px'},
+                         { field: 'ycoord',               header: 'Latitude',         size: '80px'},
+                         { field: 'xcoord',               header: 'Longitude',        size: '80px'},
+                         { field: 'geocoderMatchCode',    header: 'Match Code',       size: '70px'},
+                         { field: 'geocoderLocationCode', header: 'Match Quality',    size: '70px'},
                          { field: 'origAddress1',         header: 'Original Address', size: '70px'},
-                         { field: 'origCity',             header: 'Original City', size: '70px'},
-                         { field: 'origState',            header: 'Original State', size: '70px'},
-                         { field: 'origPostalCode',       header: 'Original Zip', size: '70px'}
+                         { field: 'origCity',             header: 'Original City',    size: '70px'},
+                         { field: 'origState',            header: 'Original State',   size: '38px'},
+                         { field: 'origPostalCode',       header: 'Original Zip',     size: '70px'}
                         ];
   
    constructor(public  geocodingRespService: GeocodingResponseService,

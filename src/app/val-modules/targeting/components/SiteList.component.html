@@ -94,11 +94,11 @@
             <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
          </ng-template>
       </p-column>
-      <p-column header="Edit" [style]="{'width':'60px'}" >
+      <!-- <p-column header="Edit" [style]="{'width':'60px'}" >
             <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
                   <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>   
             </ng-template>  
-      </p-column>
+      </p-column> -->
                
       <p-column *ngFor="let col of cols" 
          [field]="col.field" 
@@ -132,7 +132,8 @@
       [rows]="8" [paginator]="true" showToggleAll="true" [headerCheckboxToggleAllPages]="true" 
       columnResizeMode="expand" responsive="true" [editable]="true"
       (onRowUnselect)="onRowUnselect($event)"
-      (onRowSelect)="onRowSelect($event)">
+      (onRowSelect)="onRowSelect($event)"
+      headerStyle="text-align:left">
       <p-header> 
          <div class="ui-g" style="flex-wrap: nowrap !important;">
             <div class="ui-g-12 ui-g-nopad">
@@ -171,23 +172,23 @@
          </div>   
       </p-header>
 
-      <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
-      <p-column selectionMode="multiple" [style]="{'width':'40px'}"></p-column>
-      <p-column header="Zoom To" [style]="{'width':'40px'}">
+      <p-column expander="true" styleClass="col-icon" [style]="{'width':'30px'}"></p-column>
+      <p-column selectionMode="multiple" [style]="{'width':'30px'}"></p-column>
+      <p-column header="Zoom To" [style]="{'width':'60px'}">
          <ng-template let-h="rowData" pTemplate="body">
-            <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block"></button>
+            <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
          </ng-template>
       </p-column>
-      <p-column header="Delete" [style]="{'width':'40px'}" >
+      <p-column header="Delete" [style]="{'width':'45px'}" >
          <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
-            <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash"></button>
+            <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash" style="width:25px;height:25px"></button>
          </ng-template>
       </p-column>
-      <p-column header="Edit" [style]="{'width':'60px'}" >
+      <!-- <p-column header="Edit" [style]="{'width':'35px'}" >
          <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
-                  <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>   
+            <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit" style="width:25px;height:25px"></button>
          </ng-template>  
-      </p-column>
+      </p-column> -->
             
       <p-column *ngFor="let col of cols" 
          [field]="col.field" 

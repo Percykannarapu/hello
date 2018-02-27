@@ -52,7 +52,25 @@
                         <label for="zipInput">ZIP Code</label>
                     </span>
                 </div>
-                <div class="ui-g-6">
+               <div class="ui-g-12 p-t-15">
+                  <span class="md-inputfield">
+                     <input [(ngModel)]="market" name="_market" pInputText id="marketInput" style="width: 100%;">
+                     <label for="marketInput">Market</label>
+                  </span>
+               </div>
+               <div class="ui-g-6 p-t-15">
+                  <span class="md-inputfield">
+                     <input [(ngModel)]="ycoord" name="_latitude" pInputText id="ycoordInput" style="width: 100%;">
+                     <label for="ycoordInput">Latitude (Y)</label>
+                  </span>
+               </div>
+               <div class="ui-g-6 p-t-15">
+                  <span class="md-inputfield">
+                     <input [(ngModel)]="xcoord" name="_longitude" pInputText id="xcoordInput" style="width: 100%;">
+                     <label for="xcoordInput">Longitude (X)</label>
+                  </span>
+               </div>
+              <div class="ui-g-6">
                     <button (click)="clearFields()" type="button" label="Clear" icon="ui-icon-close" pButton style="width: 100%;"></button>
                 </div>
                 <div class="ui-g-6">
@@ -60,6 +78,9 @@
                 </div>
                 <div *ngIf="config.debugMode" class="ui-g-6">
                     <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton style="width: 100%;"></button>
+                </div>
+                <div *ngIf="config.debugMode" class="ui-g-6">
+                  <button (click)="loadSkyZone()" type="button" label="Do SkyZone" icon="ui-icon-map" pButton style="width: 100%;"></button>
                 </div>
 
                 <!-- Commented out for US6554: nallana -->

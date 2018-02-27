@@ -1,3 +1,4 @@
+import { LoginComponent } from './../login/login.component';
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { AccountLocation } from '../../models/AccountLocation';
 import { AccountLocations } from '../../models/AccountLocations';
@@ -53,6 +54,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   public city: string;
   public state: string;
   public zip: string;
+  public market: string;
   public xcoord: string;
   public ycoord: string;
   public name: string;
@@ -116,7 +118,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   // create an AmSite, then invoke the geocoder
   public async onGeocode(selector) {
     try {
-      const site: any = new GeocodingResponse();
+      let site: any = new GeocodingResponse();
       if (!this.number){
         site.number = this.geocodingRespService.getNewSitePk().toString();
       }else {
@@ -126,8 +128,65 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       site.city = this.city;
       site.state = this.state;
       site.name = this.name;
-      site.zip = this.zip.toString();
-      this.geocodeAddress(site);
+      site.zip = (this.zip != null) ? this.zip.toString() : null;
+      site.marketName = this.market;
+      site.longitude = this.xcoord;
+      site.latitude= this.ycoord;
+
+      if (site.longitude != null && site.latitude != null)
+      {
+         /*if (selector === 'Site'){
+            //site = await this.mapService.calculateHomeGeo(site);
+            this.mapService.callTradeArea();
+          }*/
+
+
+/*
+          geocodingResponse.orgAddr     =      locRespListMap['Original Address']; 
+          geocodingResponse.orgCity     =      locRespListMap['Original City']; 
+          geocodingResponse.orgState    =      locRespListMap['Original State']; 
+          geocodingResponse.status      =      locRespListMap['Geocode Status'];  
+          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
+          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
+          geocodingResponse.marketName  =   locRespListMap['']; 
+*/          
+         const restResponseList: RestResponse[] = [];
+         const siteList: any[] = [];
+         const manSite = {};
+         manSite['Number'] = site.number;
+         manSite['Address'] = this.street;
+         manSite['street'] = this.street;
+         manSite['City'] = this.city;
+         manSite['State'] = this.state;
+         manSite['Name'] = this.name;
+         manSite['ZIP'] = (this.zip != null) ? this.zip.toString() : null;
+         manSite['Market'] = this.market;
+         manSite['Longitude'] = this.xcoord;
+         manSite['Latitude'] =this.ycoord;
+         manSite['x'] = this.xcoord;
+         manSite['y'] =this.ycoord;
+         manSite['Geocode Status'] = null;
+         manSite['status'] = 'PROVIDED';
+         manSite['Match Code'] = 'S80';
+         manSite['Match Quality'] = 'AS0';
+         siteList.push(manSite);
+
+         const restResp: RestResponse = {
+                  payload:    siteList,
+                  exception:  null,
+                  returnCode: 200
+                };
+         restResponseList.push(restResp);
+
+          console.log('manual - addingSitesToMap: sites: ', site, ' selector: ', selector);
+
+          this.parseCsvResponse(restResponseList, true);
+          //this.parseCsvResponse([site]);
+          //await this.geocoderService.addSitesToMap(siteList, selector);
+          console.log('addSitesToMap returned');
+      }
+      else
+         this.geocodeAddress(site);
 
       if (this.metricService === null)
         console.log('METRIC SERVICE IS NULL');
@@ -186,8 +245,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     return false;
   }
 
-  public clearFieldsOnChange(){
-    //
+  public clearFieldsOnChange() {
     const radioClicked = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-box');
     const buttonCls = this.siteRefEl.nativeElement.querySelector('.ui-radiobutton-icon');
     radioClicked.classList.remove('ui-state-active');
@@ -196,14 +254,16 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     this.clearFields();
   }
 
-  public clearFields(){
-    //
+  public clearFields() {
     this.street = '';
     this.city = '';
     this.state = '';
     this.zip = '';
     this.name = '';
     this.number = null;
+    this.market = '';
+    this.xcoord = '';
+    this.ycoord = '';  
   }
 
 
@@ -273,6 +333,17 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     this.city = 'Livonia';
     this.state = 'MI';
     this.zip = '48152';
+  }
+
+  loadSkyZone() {
+     this.name = 'Sky Zone Trampoline Park'
+     this.street = '10080 E 121st St #182';
+     this.city = 'Fishers';
+     this.state = 'IN';
+     this.zip = '46037';
+     this.market = 'Test Market';
+     this.ycoord = '39.967208';
+     this.xcoord = '-85.988858';
   }
 
   // Business rules for CSV geocoding:

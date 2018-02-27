@@ -30,8 +30,8 @@ export class GeocodingResponseService {
     public columnOptions: SelectItem[] = [];
     private subject: Subject<any> = new Subject<any>();
     public pointsPlotted: Subject<any> = new Subject<any>();
-    public amComps: any[] = [];
-    public unselectedAmComps: any[] = [];
+    //public amComps: any[] = [];
+    //public unselectedAmComps: any[] = []; not needed anymore
 
     public sitesList: any[] = [];
     public unselectedSitesList: any[] = [];
@@ -39,9 +39,10 @@ export class GeocodingResponseService {
     private tempId: number = 0;
     private siteCount: any = 0;
     private compCount: any = 0;
+    private exportVal: boolean = false; //bool to set the flag to check competitors/sites
     public impGeoLocAttrList: any[] = [];
     public impGeofootprintLocList: ImpGeofootprintLocation[] = [];
-    public impGeofootprintCompList: ImpGeofootprintLocation[] = [];
+    public impGeofootprintCompList: any[] = [];
 
 
     constructor(private http: HttpClient,
@@ -54,33 +55,43 @@ export class GeocodingResponseService {
     /**
 * @description export CSV data to the user
 */
-    public exportCSV(csvData: string[]) {
+    public exportCSV(csvData: string[], value) {
         let csvString = '';
         for (const row of csvData) {
             csvString = csvString + encode(row) + '\n';
         }
-
-        // use jquery to create a link, then click that link so the user will download the CSV file
-        const link = $('<a/>', {
-            style: 'display:none',
-            href: 'data:application/octet-stream;base64,' + btoa(csvString),
-            download: 'sites.csv'
-        }).appendTo('body');
-        link[0].click();
-        link.remove();
+        if (value == 'Site') {
+            // use jquery to create a link, then click that link so the user will download the CSV file
+            const link = $('<a/>', {
+                style: 'display:none',
+                href: 'data:application/octet-stream;base64,' + btoa(csvString),
+                download: 'sites.csv'
+            }).appendTo('body');
+            link[0].click();
+            link.remove();
+        } else if (value == 'Competitor') {
+            // use jquery to create a link, then click that link so the user will download the CSV file for competitors
+            const link = $('<a/>', {
+                style: 'display:none',
+                href: 'data:application/octet-stream;base64,' + btoa(csvString),
+                download: 'competitors.csv'
+            }).appendTo('body');
+            link[0].click();
+            link.remove();
+        }
     }
 
     /**
     * @description turn the AmSite[] array stored in this service into CSV data
     * @returns returns a string[] where each element in the array is a row of CSV data and the first element in the array is the header row
     */
-    public createCSV(): string[] {
-        const sitesList: any = this.displayData();
+    public createCSV(value): string[] {
+        const sitesList: any = this.displayData(value);
         if (sitesList < 1) {
             throw new Error('No sites available to export');
         }
-        const csvData: string[] = new Array<string>();
 
+        const csvData: string[] = new Array<string>();
         // build the first row of the csvData out of the headers
         let displayHeaderRow = 'GROUP,NUMBER,NAME,DESCRIPTION,STREET,CITY,STATE,ZIP,X,Y,ICON,RADIUS1,'
             + 'RADIUS2,RADIUS3,TRAVELTIME1,TRAVELTIME2,TRAVELTIME3,TRADE_DESC1,TRADE_DESC2,TRADE_DESC3,'
@@ -111,7 +122,16 @@ export class GeocodingResponseService {
             let ta3 = null;
             let zip4 = null;
             for (header of headerList) {
+                console.log('header: ' + header);
                 //  if (siteMap.has(header)){
+                if (header === 'market') {
+                    row = row + site[header] + ',';
+                }
+                if (header === 'GROUP' && value === 'Competitor') {
+                    // we need to get this Group based on radio button
+                    row = row + 'Competitors,';
+                    continue;
+                }
                 if (header === 'GROUP') {
                     // we need to get this Group based on radio button
                     row = row + 'Advertisers,';
@@ -201,6 +221,7 @@ export class GeocodingResponseService {
         return this.tempId++;
     }
 
+    //also should be removed eventually : nallana : we are no loger using this for metric to update: datastore is the source now: 2/26/2018
     public add(sitesList: GeocodingResponse[]) {
         // For each site provided in the parameters
         for (const site of sitesList) {
@@ -234,37 +255,37 @@ export class GeocodingResponseService {
         this.logSites();
     }
 
+    // //Should be removed eventually : refactoring for business search as well as the geocoding.component 
+    //     public addCompetitors(amComps: any[]) {
+    //         // For each site provided in the parameters
+    //         for (const amComp of amComps) {
+    //             if (amComp.number == null)
+    //                 amComp.number = this.getNewSitePk().toString();
 
-    public addCompetitors(amComps: any[]) {
-        // For each site provided in the parameters
-        for (const amComp of amComps) {
-            if (amComp.number == null)
-                amComp.number = this.getNewSitePk().toString();
+    //             // Add the competitor to the selected sites array
 
-            // Add the competitor to the selected sites array
+    //             //for (let i = 0 ; i < sitesList.length; i++){
+    //             const temp = {};
+    //             amComp.geocodingAttributesList.forEach(item => {
+    //                 const keyValue = Object.values(item);
+    //                 temp[keyValue[0].toString()] = keyValue[1];
+    //             });
+    //             // Add the site to the selected sites array
+    //             this.amComps = [...this.amComps, temp];
 
-            //for (let i = 0 ; i < sitesList.length; i++){
-            const temp = {};
-            amComp.geocodingAttributesList.forEach(item => {
-                const keyValue = Object.values(item);
-                temp[keyValue[0].toString()] = keyValue[1];
-            });
-            // Add the site to the selected sites array
-            this.amComps = [...this.amComps, temp];
+    //             // Add the site to the sites list array
+    //             this.unselectedAmComps = [...this.unselectedAmComps, amComp];
 
-            // Add the site to the sites list array
-            this.unselectedAmComps = [...this.unselectedAmComps, amComp];
+    //             // Notifiy Observers
+    //             this.subject.next(amComp);
+    //         }
 
-            // Notifiy Observers
-            this.subject.next(amComp);
-        }
+    //         // Update the metrics
+    //         this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-        // Update the metrics
-        this.metricService.add('LOCATIONS', '# of Competitors', this.amComps.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-
-        // Debug log site arrays to the console
-        this.logSites();
-    }
+    //         // Debug log site arrays to the console
+    //         this.logSites();
+    //     }
 
     public remove(loc: ImpGeofootprintLocation) {
         // Remove the site from the selected sites array
@@ -463,21 +484,36 @@ export class GeocodingResponseService {
         });
     }
 
-    public displayData() {
-        const gridtemp: any[] = [];
+    public displayData(value) {
+        const gridSitetemp: any[] = [];
+        const gridComptemp: any[] = [];
+        this.impGeoLocAttrList = [];
+        this.impGeofootprintLocList = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
+
         for (const impgeoLoc of this.impGeofootprintLocList) {
             const gridMap: any = {};
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
                 attr => attr.impGeofootprintLocation.glId === impgeoLoc.glId);
-
-            for (const locAttr of returnList) {
-                gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+                for (const locAttr of returnList) {
+                    gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+                }
+            if (value === 'Site' && impgeoLoc.impClientLocationType == value) { //Site grid data to a csv file
+                this.exportVal = false;
+                
+                gridSitetemp.push(gridMap);
+            } else if (value === 'Competitor' && impgeoLoc.impClientLocationType == value) { //Competitor grid data to a csv file
+                this.exportVal = true;
+               
+                gridComptemp.push(gridMap);
             }
-            gridtemp.push(gridMap);
         }
-        return gridtemp;
+        if (this.exportVal) {
+            return gridComptemp;
+        } else {
+            return gridSitetemp;
+        }
     }
 
 
@@ -526,7 +562,7 @@ export class GeocodingResponseService {
             this.impGeofootprintLocList = [...this.impGeofootprintLocList, impGeofootprintLoc];
 
         });
-        this.impGeofootprintLocationService.add(this.impGeofootprintLocList);
+        this.impGeofootprintLocationService.add(this.impGeofootprintLocList); //add to the dataStore for metric calculation
         this.impGeofootprintLocAttrService.add(impGeofootprintLocAttribList);
 
     }

@@ -46,7 +46,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
         private esriMapService: EsriMapService
     ) {
       this.tradeAreaMergeTypes = [
-        { label: 'No Merge', value: 'No Merge' },
+        //{ label: 'No Merge', value: 'No Merge' }, //Commented out for DE1591 :nallana
         { label: 'Merge Each', value: 'Merge Each' },
         { label: 'Merge All', value: 'Merge All' }
       ];
@@ -56,13 +56,13 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.siteMergeType = { value: this.tradeAreaMergeTypes[1].value };
+      this.siteMergeType = { value: this.tradeAreaMergeTypes[0].value };
       this.competitorTradeAreas = [
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.competitorMergeType = { value: this.tradeAreaMergeTypes[1].value };
+      this.competitorMergeType = { value: this.tradeAreaMergeTypes[0].value };
 
       this.currentSiteType = 'Site';
       this.currentTradeAreas = this.siteTradeAreas;
