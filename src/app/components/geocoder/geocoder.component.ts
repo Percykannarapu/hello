@@ -164,7 +164,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
          manSite['Longitude'] = this.xcoord;
          manSite['Latitude'] =this.ycoord;
          manSite['x'] = this.xcoord;
-         manSite['y'] =this.ycoord;
+         manSite['y'] = this.ycoord;
          manSite['Geocode Status'] = null;
          manSite['status'] = 'PROVIDED';
          manSite['Match Code'] = 'S80';
@@ -179,8 +179,12 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
          restResponseList.push(restResp);
 
           console.log('manual - addingSitesToMap: sites: ', site, ' selector: ', selector);
+          if (this.xcoord === '' && this.ycoord === ''){
+            this.geocodeAddress(site);
+          } else {
 
           this.parseCsvResponse(restResponseList, true);
+        }
           //this.parseCsvResponse([site]);
           //await this.geocoderService.addSitesToMap(siteList, selector);
           console.log('addSitesToMap returned');
@@ -394,7 +398,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           for (let j = 0; j < this.headers.length; j++){
               site[this.headers[j]] = csvRecord[j];
           }
-          if (headerPosition.lat === undefined && headerPosition.lon === undefined){
+          if ((headerPosition.lat === undefined && headerPosition.lon === undefined) || (headerPosition.lat === '' && headerPosition.long === '')){
               site['status'] = 'SUCCESS';
               siteList.push(site);
               observables.push(this.geocoderService.multiplesitesGeocode(siteList));
