@@ -62,7 +62,7 @@ export class GeocodingResponseService {
         const link = $('<a/>', {
           style: 'display:none',
           href: 'data:application/octet-stream;base64,' + btoa(csvString),
-          download: `${value.toLowerCase()}.csv`
+          download: `${value.toLowerCase()}s.csv`
         }).appendTo('body');
         link[0].click();
         link.remove();
