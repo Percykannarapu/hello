@@ -1,31 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { RestResponse } from '../../models/RestResponse';
-import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AccountLocations } from '../../models/AccountLocations';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponse } from '../../models/GeocodingResponse';
-import { Observable } from 'rxjs/Rx';
-import { Points } from '../../models/Points';
 import { MapService } from '../../services/map.service';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
-import { SelectItem, GrowlModule, Message } from 'primeng/primeng';
+import { Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
-import { GeocoderComponent } from '../geocoder/geocoder.component';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
-import { AppConfig } from '../../app.config';
-import { EsriModules } from '../../esri-modules/core/esri-modules.service';
-
-interface CsvHeadersPosition {
-  street?: number;
-  city?: number;
-  state?: number;
-  zip?: number;
-  lat?: number;
-  lon?: number;
-  storeNumber?: number;
-  name?: number;
-  number?: number;
-}
 
 @Component({
   selector: 'val-upload-locations',
@@ -38,11 +18,11 @@ export class UploadLocationsComponent implements OnInit {
   private static failedSiteCounter: number = 1;
   public failedSites: any[] = [];
 
-  private geocodingResponse: GeocodingResponse;
   public displayGcSpinner: boolean = false;
   public disableshowBusiness: boolean = true; // flag for enabling/disabling the show business search button
-  public selector: String = 'Site';
-  public headers: any;
+  public selector: string = 'Site';
+  public allHeaders: string[];
+  private additionalHeaders: string[];
   public growlMessages: Message[] = [];
   public displaySpinnerMessage: string = 'Geocoding Locations';
 
@@ -51,17 +31,20 @@ export class UploadLocationsComponent implements OnInit {
   constructor(private geocoderService: GeocoderService,
     private messageService: MessageService,
     private mapService: MapService,
-    private geocodingRespService: GeocodingResponseService,
-    private config: AppConfig) { }
+    private geocodingRespService: GeocodingResponseService) { }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
   public static geocodingFailure(geocodingResponse: any) : boolean {
     return geocodingResponse['Match Quality'] === 'E' || geocodingResponse['Match Code'].startsWith('E');
   }
 
-  ngOnInit() {
+  // this should be implemented in an equals() method in the model
+  public static compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
+    return site1.number === site2['Number'];
   }
 
+  ngOnInit() {
+  }
 
   uploadCSV(event) {
     const input = event.target;
@@ -71,12 +54,12 @@ export class UploadLocationsComponent implements OnInit {
       this.displayGcSpinner = true;
       const csvFile: string = reader.result;
       const csvRecords = csvFile.split(/\r\n|\n/);
-      this.headers = csvRecords[0].split(',');
-      let headerPosition: any = {};
+      this.allHeaders = csvRecords[0].split(',');
+      this.additionalHeaders = [];
+      let headerPositions: any = {};
 
       try {
-        headerPosition = this.verifyCSVColumns(this.headers);
-        console.log('header details after edit:' + this.headers);
+        headerPositions = this.verifyCSVColumns(this.allHeaders);
       } catch (error) {
         this.handleError(error);
         return;
@@ -90,14 +73,14 @@ export class UploadLocationsComponent implements OnInit {
         const csvRow = csvRecords[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, ''); // can't combine both replaces
         const csvColumns = csvRow.split(',');
 
-        if (csvColumns.length === this.headers.length) {
-          for (let j = 0; j < this.headers.length; j++) {
+        if (csvColumns.length === this.allHeaders.length) {
+          for (let j = 0; j < csvColumns.length; j++) {
             // console.log('importing - site[' + this.headers[j] + '] = ' + csvColumns[j]);
-            site[this.headers[j]] = csvColumns[j];
+            site[this.allHeaders[j]] = csvColumns[j];
           }
-          if (headerPosition.lat == null || headerPosition.lon == null ||
-            site[this.headers[headerPosition.lat]] == null || site[this.headers[headerPosition.lat]] === '' ||
-            site[this.headers[headerPosition.lon]] == null || site[this.headers[headerPosition.lon]] === '') {
+          if (headerPositions.lat == null || headerPositions.lon == null ||
+            site[this.allHeaders[headerPositions.lat]] == null || site[this.allHeaders[headerPositions.lat]] === '' ||
+            site[this.allHeaders[headerPositions.lon]] == null || site[this.allHeaders[headerPositions.lon]] === '') {
             site['Geocode Status'] = 'SUCCESS';
             sitesWithoutGeocode.push(site);
           } else {
@@ -142,6 +125,7 @@ export class UploadLocationsComponent implements OnInit {
 
     for (let j = 0; j < columns.length; j++) {
       let column = columns[j];
+      let isStandard = false;
       column = column.toUpperCase().trim();
 
       if (column === 'STREET' ||
@@ -149,19 +133,22 @@ export class UploadLocationsComponent implements OnInit {
           column === 'ADDR') {
         addressFlag = true;
         headerPosition.street = count;
-        this.headers[j] = 'street';
+        this.allHeaders[j] = 'street';
+        isStandard = true;
       }
       if (column === 'CITY' ||
           column === 'CTY' ) {
         cityFlag = true;
         headerPosition.city = count;
-        this.headers[j] = 'city';
+        this.allHeaders[j] = 'city';
+        isStandard = true;
       }
       if (column === 'STATE' ||
           column === 'ST') {
         stateFlag = true;
         headerPosition.state = count;
-        this.headers[j] = 'state';
+        this.allHeaders[j] = 'state';
+        isStandard = true;
       }
       if (column === 'ZIP' ||
           column === 'CODE' ||
@@ -169,7 +156,8 @@ export class UploadLocationsComponent implements OnInit {
           column === 'POSTAL CODE') {
         zipFlag = true;
         headerPosition.zip = count;
-        this.headers[j] = 'zip';
+        this.allHeaders[j] = 'zip';
+        isStandard = true;
       }
       if (column === 'Y' ||
           column === 'Y (OPTIONAL)' ||
@@ -179,7 +167,8 @@ export class UploadLocationsComponent implements OnInit {
           column === 'LAT') {
         latFlag = true;
         headerPosition.lat = count;
-        this.headers[j] = 'latitude';
+        this.allHeaders[j] = 'latitude';
+        isStandard = true;
       }
       if (column === 'X' ||
           column === 'X (OPTIONAL)' ||
@@ -188,14 +177,16 @@ export class UploadLocationsComponent implements OnInit {
           column === 'LONGITUDE') {
         lonFlag = true;
         headerPosition.lon = count;
-        this.headers[j] = 'longitude';
+        this.allHeaders[j] = 'longitude';
+        isStandard = true;
       }
       if (!nameFlag) {
         if (column.includes('NAME') ||
             column.includes('FIRM')) {
           nameFlag = true;
           headerPosition.name = count;
-          this.headers[j] = 'name';
+          this.allHeaders[j] = 'name';
+          isStandard = true;
         }
       }
       if (!numberFlag) {
@@ -206,7 +197,8 @@ export class UploadLocationsComponent implements OnInit {
             column.includes('#')) {
           numberFlag = true;
           headerPosition.number = count;
-          this.headers[j] = 'number';
+          this.allHeaders[j] = 'number';
+          isStandard = true;
         }
       }
       if (column === 'MARKET' ||
@@ -218,8 +210,15 @@ export class UploadLocationsComponent implements OnInit {
       {
          marketFlag = true;
          headerPosition.market = count;
-         this.headers[j] = 'Market';
+         this.allHeaders[j] = 'Market';
+        isStandard = true;
       }
+
+      if (!isStandard) {
+        //add the header to the additional headers array
+        this.additionalHeaders.push(column);
+      }
+
       count++;
     }
 
@@ -288,16 +287,9 @@ export class UploadLocationsComponent implements OnInit {
     site.zip = row.ZIP;
     site.number = row.Number;
     for (let i = 0; i < this.failedSites.length; i++) {
-      if (this.compareSites(site, this.failedSites[i])) {
+      if (UploadLocationsComponent.compareSites(site, this.failedSites[i])) {
         this.failedSites.splice(i, 1);
       }
-    }
-  }
-
-  // this should be implemented in an equals() method in the model
-  public compareSites(site1: GeocodingResponse, site2: GeocodingResponse) : boolean {
-    if (site1.number === site2['Number']) {
-      return true;
     }
   }
 
@@ -338,12 +330,13 @@ export class UploadLocationsComponent implements OnInit {
         locRespListMap['Number'] = geocodingResponse.number;
       }
 
-      let geocodingAttr = null;
       for (const [k, v] of Object.entries(geoResponse)) {
-        geocodingAttr = new GeocodingAttributes();
-        geocodingAttr.attributeName = k;
-        geocodingAttr.attributeValue = v;
-        geocodingAttrList.push(geocodingAttr);
+        if (this.additionalHeaders.indexOf(k.toUpperCase()) > -1) {
+          const geocodingAttr = new GeocodingAttributes();
+          geocodingAttr.attributeName = k;
+          geocodingAttr.attributeValue = v;
+          geocodingAttrList.push(geocodingAttr);
+        }
       }
       geocodingResponse.geocodingAttributesList = geocodingAttrList;
       geocodingResponseList.push(geocodingResponse);

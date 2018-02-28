@@ -12,6 +12,7 @@ export interface LayerDefinition {
   name: string;
   defaultVisibility: boolean;
   popupTitleSuffix: string;
+  minScale: number;
 }
 
 export class EnvironmentData {
@@ -50,6 +51,7 @@ export class EnvironmentData {
         name: 'County Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+        minScale: undefined,
       }
     },
     dma: {
@@ -58,6 +60,7 @@ export class EnvironmentData {
         name: 'DMA Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+        minScale: undefined,
       }
     },
     zip: {
@@ -66,12 +69,14 @@ export class EnvironmentData {
         name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: { // ZIP Top Vars
         id: '23a54308e914496aa24d94a9b36776a0',
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 5000000,
       }
     },
     atz: {
@@ -80,12 +85,14 @@ export class EnvironmentData {
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: { // ATZ_Top_Vars
         id: 'c0ee701ee95f4bbdbc15ded2a37ca802',
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 5000000,
       }
     },
     digital_atz: {
@@ -94,12 +101,14 @@ export class EnvironmentData {
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
         id: 'a4449b3ee55442af881f6ac660ca8163',
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 5000000,
       }
     },
     pcr: {
@@ -108,12 +117,14 @@ export class EnvironmentData {
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       topVars: {
         id: '53482efa44914dc199f3833276ddb5a1',
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 5000000,
       }
     },
     wrap: {
@@ -122,6 +133,7 @@ export class EnvironmentData {
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
+        minScale: 5000000,
       }
     },
     hh: {
@@ -130,12 +142,14 @@ export class EnvironmentData {
         name: '',
         defaultVisibility: true,
         popupTitleSuffix: '',
+        minScale: undefined,
       },
       source: { // source feature layer
         id: undefined,
         name: '',
         defaultVisibility: true,
         popupTitleSuffix: '',
+        minScale: undefined,
       }
     }
   };
