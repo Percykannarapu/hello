@@ -1733,7 +1733,7 @@ export class MapService {
                                 if  (discoveryUI[0].selectedSeason == 'WINTER'){
                                     MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                     const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
-                                    const newGeo = geos.slice(0, 1);
+                                    const newGeo = Array.from(geos.slice(0, 1));
                                     newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                     this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                                 } else {
