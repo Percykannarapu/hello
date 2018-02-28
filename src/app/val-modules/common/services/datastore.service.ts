@@ -220,7 +220,7 @@ export class DataStore<T>
    public find(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
-      const match = this._dataStore.find(item => keys.some(key => item[key] === search[key]));
+      const match = this._dataStore.find(item => keys.some(key => item[key] == search[key]));
 
       return match;
    }

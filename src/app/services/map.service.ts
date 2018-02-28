@@ -2299,6 +2299,8 @@ export class MapService {
                     });
                     await this.getHomeGeocode(llyr, graphic).then(res => {
                         home_geo = res.get('home_geo');
+                        site.homeGeocode = home_geo;
+                        
                         if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
                             geoAttr.attributeName = 'Home ZIP';
                             geoAttr.attributeValue = home_geo;

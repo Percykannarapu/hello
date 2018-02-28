@@ -124,6 +124,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
          case '#V-IS_HOME_GEOCODE':
             varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+            console.log ('geo.geocode = ', geo.geocode, ', geo.impGeofootprintLocation.homeGeocode = ', geo.impGeofootprintLocation.homeGeocode);
             break;
 
          case '#V-TRUNCATE_ZIP':
@@ -295,7 +296,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,#V-TRUNCATE_ZIP,' +
                         '#V-STREETADDRESS,impGeofootprintLocation.marketName,null,' +
                         '#D-1,distance,#V-IS_HOME_GEOCODE,#V-IS_HOME_GEOCODE,#D-0,' +
-                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.locationNumber,#D-1,null';
+                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.glId,#D-1,null';
          break;
       }
 
