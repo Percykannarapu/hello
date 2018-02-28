@@ -104,10 +104,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case '#V-GEOHEADER':
             switch (analysisLevel)
             {
-               case 'ATZ': varValue='VALATZ'; break;
-               case 'ZIP': varValue='VALZI';  break;
-               case 'PCR': varValue='VALCR';  break;
+               case 'ATZ':         varValue='VALATZ'; break;
+               case 'ZIP':         varValue='VALZI';  break;
+               case 'PCR':         varValue='VALCR';  break;
+               case 'DIGITAL ATZ': varValue='VALDIG'; break;
             }
+            if (varValue == null)
+               console.log ('Couldn\'t set varValue for analysisLevel: ' + analysisLevel);
             break;
 
          case '#V-STREETADDRESS':
