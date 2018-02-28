@@ -1742,24 +1742,6 @@ export class MapService {
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
 
                             }
-                            //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-
-                            if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
-                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
-                            }
-                            if (discoveryUI[0].selectedSeason == 'WINTER') {
-                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != null)) { //handle NaN values for some zips
-                                    MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
-                                }
-                                //console.log('total count:::', MapService.hhDetails);
-                                //console.log('winter:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w'));
-                            } else {
-                                if ((EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s') != null)) {
-                                    MapService.hhDetails = (MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
-                                }
-                                //console.log('total count:::', MapService.hhDetails);
-                                //console.log('summer:::', EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s'));
-                            }
                             if (discoveryUI[0].cpm != null) {
                                 MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
                                 MapService.totInvestment = Math.round(MapService.t);
