@@ -162,7 +162,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
          manSite['ZIP'] = (this.zip != null) ? this.zip.toString() : null;
          manSite['Market'] = this.market;
          manSite['Longitude'] = this.xcoord;
-         manSite['Latitude'] =this.ycoord;
+         manSite['Latitude'] = this.ycoord;
          manSite['x'] = this.xcoord;
          manSite['y'] = this.ycoord;
          manSite['Geocode Status'] = null;
@@ -689,6 +689,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
   //Add messages after geocoding
   private async handleMessages(handleMsg) {
+    this.messageService.clear();
     if (handleMsg){
     this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
     } else{
