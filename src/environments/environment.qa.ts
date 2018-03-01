@@ -64,7 +64,7 @@ export class EnvironmentData {
         name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: undefined,
+        minScale: 5000000,
       },
       topVars: { // ZIP Top Vars
         id: '23a54308e914496aa24d94a9b36776a0',
@@ -80,7 +80,7 @@ export class EnvironmentData {
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: undefined,
+        minScale: 5000000,
       },
       topVars: { // ATZ_Top_Vars
         id: 'c0ee701ee95f4bbdbc15ded2a37ca802',
@@ -96,7 +96,7 @@ export class EnvironmentData {
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: undefined,
+        minScale: 5000000,
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
         id: 'a4449b3ee55442af881f6ac660ca8163',
@@ -112,14 +112,14 @@ export class EnvironmentData {
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: undefined,
+        minScale: 600000,
       },
       topVars: {
         id: '53482efa44914dc199f3833276ddb5a1',
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
+        minScale: 600000,
       }
     },
     wrap: {
