@@ -2299,22 +2299,31 @@ export class MapService {
                     });
                     await this.getHomeGeocode(llyr, graphic).then(res => {
                         home_geo = res.get('home_geo');
-                        site.homeGeocode = home_geo;
+                        
                         
                         if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
                             geoAttr.attributeName = 'Home ZIP';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
+                            if(this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
+                                site.homeGeocode = home_geo;
+                            }
                         }
                         if (llyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
                             geoAttr.attributeName = 'Home ATZ';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
+                            if(this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
+                                site.homeGeocode = home_geo;
+                            }
                         }
                         if (llyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
                             geoAttr.attributeName = 'HOME PCR';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
+                            if(this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
+                                site.homeGeocode = home_geo;
+                            }
                         }
                         /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
                            geoAttr.attributeName = 'Home DIGITAL ATZ';
