@@ -43,6 +43,56 @@ export class UploadLocationsComponent implements OnInit {
     return site1.number === site2['Number'];
   }
 
+  private static transformSite(inputSite: any) : any {
+    const result = {};
+    for (const [k, v] of Object.entries(inputSite)) {
+      let newKey: string;
+      switch (k.toUpperCase()) {
+        case 'STREET':
+          newKey = 'Address';
+          break;
+        case 'CITY':
+          newKey = 'City';
+          break;
+        case 'STATE':
+          newKey = 'State';
+          break;
+        case 'ZIP':
+          newKey = 'ZIP';
+          break;
+        case 'LATITUDE':
+          newKey = 'Latitude';
+          break;
+        case 'LONGITUDE':
+          newKey = 'Longitude';
+          break;
+        case 'NAME':
+          newKey = 'Name';
+          break;
+        case 'NUMBER':
+          newKey = 'Number';
+          break;
+        case 'MARKET':
+          newKey = 'Market';
+          break;
+        default:
+          newKey = k;
+      }
+      result[newKey] = v;
+    }
+    return result;
+  }
+
+  private static prepSiteForFuse(inputSite: any) : any {
+    const result = {};
+    for (const [k, v] of Object.entries(inputSite)) {
+      if (!(k.toUpperCase() === 'LATITUDE' || k.toUpperCase() === 'LONGITUDE')) {
+        result[k] = v;
+      }
+    }
+    return result;
+  }
+
   ngOnInit() {
   }
 
@@ -82,10 +132,10 @@ export class UploadLocationsComponent implements OnInit {
             site[this.allHeaders[headerPositions.lat]] == null || site[this.allHeaders[headerPositions.lat]] === '' ||
             site[this.allHeaders[headerPositions.lon]] == null || site[this.allHeaders[headerPositions.lon]] === '') {
             site['Geocode Status'] = 'SUCCESS';
-            sitesWithoutGeocode.push(site);
+            sitesWithoutGeocode.push(UploadLocationsComponent.prepSiteForFuse(site));
           } else {
             site['Geocode Status'] = 'PROVIDED';
-            sitesWithGeocode.push(site);
+            sitesWithGeocode.push(UploadLocationsComponent.transformSite(site));
           }
         } else {
           // TO assign to failed list if headers length < datarecord length
@@ -252,12 +302,12 @@ export class UploadLocationsComponent implements OnInit {
   public onResubmit(row) {
     //const site: GeocodingResponse = new GeocodingResponse();
     const currentSite = {};
-    currentSite['name']   = row['Name'];
-    currentSite['number'] = row['Number'];
-    currentSite['street'] = row['Original Address'];
-    currentSite['city']   = row['Original City'];
-    currentSite['state']  = row['Original State'];
-    currentSite['zip']    = row['Original ZIP'];
+    currentSite['Name']   = row['Name'];
+    currentSite['Number'] = row['Number'];
+    currentSite['Address'] = row['Original Address'];
+    currentSite['City']   = row['Original City'];
+    currentSite['State']  = row['Original State'];
+    currentSite['ZIP']    = row['Original ZIP'];
 
     Object.keys(row).forEach(site => {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
@@ -265,7 +315,6 @@ export class UploadLocationsComponent implements OnInit {
            'Match Quality', 'Original Address', 'Original City',
            'Original State', 'Original ZIP'].indexOf(site) < 0) {
         currentSite[site] = row[site];
-        //console.log('row:::' + row + ':::Siteval:::'+site)
       }
     });
     currentSite['Geocode Status'] = 'SUCCESS';
@@ -281,7 +330,7 @@ export class UploadLocationsComponent implements OnInit {
   public onRemove(row) {
     console.log('on remove');
     const site: GeocodingResponse = new GeocodingResponse();
-    site.addressline = row.Street;
+    site.addressline = row.Address;
     site.city = row.City;
     site.state = row.State;
     site.zip = row.ZIP;
@@ -298,45 +347,44 @@ export class UploadLocationsComponent implements OnInit {
     for (const geoResponse of geoResponses) {
       const geocodingResponse: GeocodingResponse = new GeocodingResponse();
       const geocodingAttrList: GeocodingAttributes[] = [];
-      const locRespListMap: Map<string, any> = geoResponse;
 
-      if (locRespListMap['Geocode Status'] !== 'PROVIDED' && UploadLocationsComponent.geocodingFailure(locRespListMap)) {
-        locRespListMap['Geocode Status'] = 'ERROR';
-        this.failedSites.push(locRespListMap); //push to failed sites
+      if (geoResponse['Geocode Status'] !== 'PROVIDED' && UploadLocationsComponent.geocodingFailure(geoResponse)) {
+        geoResponse['Geocode Status'] = 'ERROR';
+        this.failedSites.push(geoResponse); //push to failed sites
         UploadLocationsComponent.failedSiteCounter++;
         continue;
       }
 
       // where there are two options, the first is the Fuse response field, the second is the client supplied (normalized)
-      geocodingResponse.latitude = locRespListMap['Latitude'] || locRespListMap['latitude'];
-      geocodingResponse.longitude = locRespListMap['Longitude'] || locRespListMap['longitude'];
-      geocodingResponse.addressline = locRespListMap['Address'] || locRespListMap['street'];
-      geocodingResponse.city = locRespListMap['City'] || locRespListMap['city'];
-      geocodingResponse.state = locRespListMap['State'] || locRespListMap['state'];
-      geocodingResponse.zip = locRespListMap['ZIP'] || locRespListMap['zip'];
-      geocodingResponse.number = locRespListMap['Number'] || locRespListMap['number'];
-      geocodingResponse.name = locRespListMap['Name'] || locRespListMap['name'];
-      geocodingResponse.orgAddr = locRespListMap['Original Address'];
-      geocodingResponse.orgCity = locRespListMap['Original City'];
-      geocodingResponse.orgState = locRespListMap['Original State'];
-      geocodingResponse.zip10 = locRespListMap['Original ZIP'];
-      geocodingResponse.status = locRespListMap['Geocode Status'];
-      geocodingResponse.marketName = locRespListMap['Market'] || locRespListMap['market'];
-      geocodingResponse.matchCode = locRespListMap['Match Code'];
-      geocodingResponse.locationQualityCode = locRespListMap['Match Quality'];
+      geocodingResponse.latitude = geoResponse['Latitude']; // || geoResponse['latitude'];
+      geocodingResponse.longitude = geoResponse['Longitude']; // || geoResponse['longitude'];
+      geocodingResponse.addressline = geoResponse['Address']; // || geoResponse['street'];
+      geocodingResponse.city = geoResponse['City']; // || geoResponse['city'];
+      geocodingResponse.state = geoResponse['State']; // || geoResponse['state'];
+      geocodingResponse.zip = geoResponse['ZIP']; // || geoResponse['zip'];
+      geocodingResponse.number = geoResponse['Number']; // || geoResponse['number'];
+      geocodingResponse.name = geoResponse['Name']; // || geoResponse['name'];
+      geocodingResponse.orgAddr = geoResponse['Original Address'];
+      geocodingResponse.orgCity = geoResponse['Original City'];
+      geocodingResponse.orgState = geoResponse['Original State'];
+      geocodingResponse.zip10 = geoResponse['Original ZIP'];
+      geocodingResponse.status = geoResponse['Geocode Status'];
+      geocodingResponse.marketName = geoResponse['Market']; // || geoResponse['market'];
+      geocodingResponse.matchCode = geoResponse['Match Code'];
+      geocodingResponse.locationQualityCode = geoResponse['Match Quality'];
 
       if (geocodingResponse.number == null || geocodingResponse.number == '') {
         geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
-        locRespListMap['Number'] = geocodingResponse.number;
+        geoResponse['Number'] = geocodingResponse.number;
       }
 
       for (const [k, v] of Object.entries(geoResponse)) {
-        if (this.additionalHeaders.indexOf(k.toUpperCase()) > -1) {
+        //if (this.additionalHeaders.indexOf(k.toUpperCase()) > -1) {
           const geocodingAttr = new GeocodingAttributes();
           geocodingAttr.attributeName = k;
           geocodingAttr.attributeValue = v;
           geocodingAttrList.push(geocodingAttr);
-        }
+        //}
       }
       geocodingResponse.geocodingAttributesList = geocodingAttrList;
       geocodingResponseList.push(geocodingResponse);

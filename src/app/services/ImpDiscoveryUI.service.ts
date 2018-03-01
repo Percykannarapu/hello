@@ -32,7 +32,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             includeNonWeekly:     true,
             includePob:           false,
             includeAnne:          true,
-            includeSolo:          false
+            includeSolo:          true //removed US6606 
          }
       );
       this.add([discoveryDefaults]);      

@@ -220,7 +220,7 @@ export class DataStore<T>
    public find(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
-      const match = this._dataStore.find(item => keys.some(key => item[key] === search[key]));
+      const match = this._dataStore.find(item => keys.some(key => item[key] == search[key]));
 
       return match;
    }
@@ -292,7 +292,7 @@ export class DataStore<T>
                          ...this._dataStore.slice(index + 1)];
 
       // Register data store change and notify observers
-      this._storeSubject.next([newData]);
+      this._storeSubject.next(this._dataStore);
    }
 
    public updateAt (newData: T, index: number = 0)

@@ -19,6 +19,7 @@ import { MetricService, MetricOperations } from './../../val-modules/common/serv
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { RadService } from '../../services/rad.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -63,6 +64,7 @@ export class DashboardDemoComponent implements OnInit {
                 private appService: AppService,
                 private metricService: MetricService,
                 private radService: RadService,
+                private targetAudienceService: TargetAudienceService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
@@ -85,11 +87,10 @@ export class DashboardDemoComponent implements OnInit {
         ]);
 
         this.metricMapPurple = new Map([
-            ['Median Household Income', MapService.medianHHIncome.toString()],
-            ['Households with Children', MapService.hhChildren.toString()],
-            ['Valassis Apio Index', '121'],
-            ['Sporting Good TAP Index', '108'],
-            ['Average Sales per HH', '115']
+            ['Median Household Income', '0'],
+            ['% \'17 HHs Families with Related Children < 18 Yrs', '0'],
+            ['% \'17 Pop Hispanic or Latino', '0'],
+            ['Casual Dining: 10+ Times Past 30 Days', '0']
         ]);
 
         this.metricMapTeal = new Map([

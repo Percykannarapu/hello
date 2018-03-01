@@ -161,9 +161,11 @@ import { DemoVariablesComponent } from './components/target-audience/demo-variab
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
+import { TargetAudienceService } from './services/target-audience.service';
 
 @NgModule({
     imports: [
@@ -299,7 +301,7 @@ import { RadService } from './services/rad.service';
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint, 
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
-        TopVarService, RadService,
+        TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService
     ],
     bootstrap: [AppComponent]

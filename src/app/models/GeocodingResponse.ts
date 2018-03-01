@@ -26,6 +26,7 @@ export class GeocodingResponse {
     orgCity: string;
     orgState: string;
     marketName: string;
+    homeGeocode: string;
 
     public   geocodingAttributesList: GeocodingAttributes[]; 
   }

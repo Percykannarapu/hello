@@ -211,12 +211,26 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
       // TODO: Implement real solution when we have time
       // Add the trade areas to the ImpGeofootprintTradeArea data store manually for now
       // --------------------------------------------------------------------------------
-      const tradeAreas: ImpGeofootprintTradeArea[] = this.siteTradeAreas.map((t, index) => {
-        return new ImpGeofootprintTradeArea({ gtaId: index + 1, taNumber: index + 1, taName: `Trade Area ${index + 1}`, taRadius: t.tradeArea });
-      });
+      const siteGFTradeAreas: ImpGeofootprintTradeArea[] =
+        this.siteTradeAreas
+          .filter(t => t.isShowing)
+          .map((t, index) => {
+            return new ImpGeofootprintTradeArea({ gtaId: index + 1, taNumber: index + 1, taName: `Site Trade Area ${index + 1}`, taRadius: t.tradeArea });
+          });
+      const compGFTradeAreas: ImpGeofootprintTradeArea[] =
+        this.competitorTradeAreas
+          .filter(t => t.isShowing)
+          .map((t, index) => {
+            return new ImpGeofootprintTradeArea({ gtaId: index + 1, taNumber: index + 1, taName: `Competitor Trade Area ${index + 1}`, taRadius: t.tradeArea });
+          });
 
       this.impGeofootprintTradeAreaService.clearAll();
-      this.impGeofootprintTradeAreaService.add(tradeAreas);
+      if (siteGFTradeAreas && siteGFTradeAreas.length > 0) {
+        this.impGeofootprintTradeAreaService.add(siteGFTradeAreas);
+      }
+      if (compGFTradeAreas && compGFTradeAreas.length > 0) {
+        this.impGeofootprintTradeAreaService.add(compGFTradeAreas);
+      }
     }
 
     public onChangeSiteType(event: SiteType) : void {

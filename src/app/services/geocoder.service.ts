@@ -58,12 +58,12 @@ export class GeocoderService {
   }
 
   // create a PopupTemplate for the site that will be displayed on the map
-  private async createPopup(site: GeocodingResponse) : Promise<__esri.PopupTemplate> {
+  private async createPopup(site: GeocodingResponse, selector) : Promise<__esri.PopupTemplate> {
     const loader = EsriLoaderWrapperService.esriLoader;
     const [PopupTemplate] = await loader.loadModules(['esri/PopupTemplate']);
     const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
     const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
-    popupTemplate.title = `Site`;
+    popupTemplate.title = `${selector}`;
     let template = `<table> <tbody>`;
     for (const popupAttribute of popupAttributesList) {
       template = template + `<tr><th>${popupAttribute.attributeName.toUpperCase()}</th><td>${popupAttribute.attributeValue}</td></tr>`;
@@ -112,7 +112,7 @@ export class GeocoderService {
       const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
       for (const site of sitesList) {
         //console.log('creating popup for site: ' + amSite.pk);
-        await this.createPopup(site)
+        await this.createPopup(site, selector)
           .then(res => this.createGraphic(site, res, selector))
           .then(res => { graphics.push(res); this.allGraphicsOnMap.push(res); })
           .catch(err => { this.handleError(err); });
@@ -123,8 +123,8 @@ export class GeocoderService {
           this.geocodingRespService.locToEntityMapping(sitesList, selector);
           this.geocodingRespService.pointsPlotted.next(selector);
           //this.successMsg();
+          this.geocodingRespService.createGrid();
         })
-        .then(res => this.geocodingRespService.createGrid())
         .catch(err => this.handleError(err));
     } catch (error) {
       this.handleError(error);
