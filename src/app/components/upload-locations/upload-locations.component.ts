@@ -43,6 +43,11 @@ export class UploadLocationsComponent implements OnInit {
     return site1.number === site2['Number'];
   }
 
+  /**
+   * Manually transforms a Fuse payload into a Fuse response so we can bypass Fuse for pre-geocoded sites
+   * @param inputSite - The site to transform
+   * @returns {any} - The site in Fuse response shape
+   */
   private static transformSite(inputSite: any) : any {
     const result = {};
     for (const [k, v] of Object.entries(inputSite)) {
@@ -86,6 +91,7 @@ export class UploadLocationsComponent implements OnInit {
   private static prepSiteForFuse(inputSite: any) : any {
     const result = {};
     for (const [k, v] of Object.entries(inputSite)) {
+      // since we're sending to Fuse anyway, don't include anything that looks like lat/lon
       if (!(k.toUpperCase() === 'LATITUDE' || k.toUpperCase() === 'LONGITUDE')) {
         result[k] = v;
       }
