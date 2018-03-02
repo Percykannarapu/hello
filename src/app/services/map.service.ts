@@ -2133,6 +2133,7 @@ export class MapService {
     public removePoint(point: Points) {
     }
 
+    // just for reference we are not using it
     async multiHomeGeocode(lyrList: __esri.FeatureLayer[],
         geometryList: __esri.Geometry[], extent: __esri.Extent) {
         console.log('multiHomeGeocode fired');
@@ -2241,10 +2242,10 @@ export class MapService {
                 homeGeocodeMap.set('home_geo', homeGeocode);
             }
 
-            /* if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars){
+             if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id){
                  homeGeocodeMap.set('home_geo' , homeGeocode);
              }
-             if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+            /* if (this.config.layerIds.dma.counties === lyr.portalItem.id){
                  homeGeocodeMap.set('home_geo' , countyName);
              }
              if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
@@ -2272,7 +2273,8 @@ export class MapService {
         for (const layer of list) {
           if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
             layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars .id
+            layer.portalItem.id === this.config.layerIds.pcr.topVars .id ||
+            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
             /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
             layer.portalItem.id === this.config.layerIds.dma.counties ||
           layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
@@ -2325,12 +2327,12 @@ export class MapService {
                                 site.homeGeocode = home_geo;
                             }
                         }
-                        /* if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars) {
+                         if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
                            geoAttr.attributeName = 'Home DIGITAL ATZ';
                            geoAttr.attributeValue = home_geo;
                            site.geocodingAttributesList.push(geoAttr);
                          }
-                         if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
+                        /* if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
                             geoAttr.attributeName = 'HOME COUNTY';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
