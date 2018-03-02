@@ -503,7 +503,7 @@ export class GeocodingResponseService {
             const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
             impGeofootprintLoc.glId = Number(site.number);
             impGeofootprintLoc.locationName = site.name;
-            impGeofootprintLoc.locAddres = site.addressline;
+            impGeofootprintLoc.locAddress = site.addressline;
             impGeofootprintLoc.locCity = site.city;
             impGeofootprintLoc.locState = site.state;
             impGeofootprintLoc.locZip = site.zip;

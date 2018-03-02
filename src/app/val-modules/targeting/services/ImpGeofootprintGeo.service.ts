@@ -116,7 +116,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case '#V-STREETADDRESS':
             let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
             console.log('truncZip ' + truncZip);
-            varValue = '"' + geo.impGeofootprintLocation.locAddres + ', ' +
+            varValue = '"' + geo.impGeofootprintLocation.locAddress + ', ' +
                              geo.impGeofootprintLocation.locCity   + ', ' +
                              geo.impGeofootprintLocation.locState  + ' ' +
                              truncZip + '"';

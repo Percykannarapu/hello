@@ -14,9 +14,10 @@ export class ImpGeofootprintGeo
    public geocode:                      string;                        /// The geography
    public geoSortOrder:                 number;                        /// Geography sort order
    public hhc:                          number;                        /// Household count
+   public xCoord:                       number;                        /// x_coord is longitude
+   public yCoord:                       number;                        /// y_coord is latitude
    public distance:                     number;                        /// Geocodes distance to the location
-   public xcoord:                       number;                        /// X Location coordinate
-   public ycoord:                       number;                        /// Y Location coordinate
+   public isActive:                     number;
 
    // IMPOWER.IMP_GEOFOOTPRINT_GEOS - MANY TO ONE RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------
@@ -43,7 +44,10 @@ export class ImpGeofootprintGeo
          ['geocode',                       'string'],
          ['geoSortOrder',                  'number'],
          ['hhc',                           'number'],
-         ['distance',                      'number']
+         ['xCoord',                        'number'],
+         ['yCoord',                        'number'],
+         ['distance',                      'number'],
+         ['isActive',                      'number']
          ]);
    }
 

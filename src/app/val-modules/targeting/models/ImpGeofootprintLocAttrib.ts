@@ -18,7 +18,7 @@ export class ImpGeofootprintLocAttrib
    public attributeType:               string;
    public attributeValue:              string;
    public formatMask:                  string;
-   public isActive:                    number;
+   public isActive:                    number;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------------------

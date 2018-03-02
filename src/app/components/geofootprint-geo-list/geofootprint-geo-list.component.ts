@@ -159,7 +159,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Comparing each site to the geo parameter
          for (let s = 0; s < this.impGeofootprintLocations.length; s++)
          {
-            dist = this.mapService.getDistanceBetween(geo.xcoord, geo.ycoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
+            dist = this.mapService.getDistanceBetween(geo.xCoord, geo.yCoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
 
             // If closer to this location, record the lat / lon
             if (dist < closestDistance)
@@ -254,7 +254,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (geo != null)
       {
          const color = {a: 1, r: 35, g: 93, b: 186}; // Because the darn map service requires it
-         await this.mapService.createGraphic(geo.ycoord, geo.xcoord, color, null).then(graphic => {
+         await this.mapService.createGraphic(geo.yCoord, geo.xCoord, color, null).then(graphic => {
             this.mapService.zoomOnMap([graphic]);
          });
       }
@@ -290,20 +290,20 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private stubGeos()
    {
       const geos: ImpGeofootprintGeo[] = [
-         {ggId: 7378344, geocode: '48375C1',  geoSortOrder:  1, hhc: 3894, distance:  7.98, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378345, geocode: '48168B1',  geoSortOrder:  2, hhc: 3718, distance:  5.00, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378346, geocode: '48167B1',  geoSortOrder:  3, hhc: 4581, distance:  5.46, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378347, geocode: '48168C1',  geoSortOrder:  4, hhc: 5003, distance:  9.65, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378348, geocode: '48167C1',  geoSortOrder:  5, hhc: 2479, distance: 10.48, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378349, geocode: '48167D1',  geoSortOrder:  6, hhc: 3453, distance:  7.15, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378350, geocode: '48393B1',  geoSortOrder:  7, hhc: 4692, distance: 13.79, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378351, geocode: '48375B1',  geoSortOrder:  8, hhc: 5294, distance:  6.50, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378352, geocode: '48170B1',  geoSortOrder:  9, hhc: 3430, distance:  6.26, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378353, geocode: '48170C1',  geoSortOrder: 10, hhc: 4234, distance:  4.91, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378354, geocode: '48393C1',  geoSortOrder: 11, hhc: 3347, distance: 12.53, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378355, geocode: '48170D1',  geoSortOrder: 12, hhc: 3048, distance:  5.03, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378356, geocode: '48170F1',  geoSortOrder: 13, hhc: 4283, distance: 10.10, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null},
-         {ggId: 7378357, geocode: '48170G1',  geoSortOrder: 14, hhc: 3352, distance:  3.62, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xcoord: null, ycoord: null}
+         {ggId: 7378344, geocode: '48375C1',  geoSortOrder:  1, hhc: 3894, distance:  7.98, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378345, geocode: '48168B1',  geoSortOrder:  2, hhc: 3718, distance:  5.00, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378346, geocode: '48167B1',  geoSortOrder:  3, hhc: 4581, distance:  5.46, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378347, geocode: '48168C1',  geoSortOrder:  4, hhc: 5003, distance:  9.65, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378348, geocode: '48167C1',  geoSortOrder:  5, hhc: 2479, distance: 10.48, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378349, geocode: '48167D1',  geoSortOrder:  6, hhc: 3453, distance:  7.15, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378350, geocode: '48393B1',  geoSortOrder:  7, hhc: 4692, distance: 13.79, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378351, geocode: '48375B1',  geoSortOrder:  8, hhc: 5294, distance:  6.50, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378352, geocode: '48170B1',  geoSortOrder:  9, hhc: 3430, distance:  6.26, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378353, geocode: '48170C1',  geoSortOrder: 10, hhc: 4234, distance:  4.91, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378354, geocode: '48393C1',  geoSortOrder: 11, hhc: 3347, distance: 12.53, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378355, geocode: '48170D1',  geoSortOrder: 12, hhc: 3048, distance:  5.03, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378356, geocode: '48170F1',  geoSortOrder: 13, hhc: 4283, distance: 10.10, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
+         {ggId: 7378357, geocode: '48170G1',  geoSortOrder: 14, hhc: 3352, distance:  3.62, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1}
       ];
          
       this.impGeofootprintGeoService.add(geos);

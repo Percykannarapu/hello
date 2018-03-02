@@ -17,6 +17,7 @@ export class ImpGeofootprintMaster
    public activeLocationCount:       number;                        /// Total number of active location
    public totalLocationCount:        number;                        /// Total number of location
    public isMarketBased:             number;                        /// 1 = Market based, 2 = Store based
+   public isActive:                  number;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_MASTER - MANY TO ONE RELATIONSHIP MEMBERS
    // ------------------------------------------------------------------
@@ -45,7 +46,8 @@ export class ImpGeofootprintMaster
          ['methSeason',                 'string'],
          ['activeLocationCount',        'number'],
          ['totalLocationCount',         'number'],
-         ['isMarketBased',              'number']
+         ['isMarketBased',              'number'],
+         ['isActive',                   'number']
          ]);
    }
 
