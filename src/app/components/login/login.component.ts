@@ -15,17 +15,16 @@ import { AppConfig } from '../../app.config';
 @Component({
   selector: 'val-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  providers: [MessageService]
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
 
   public displayLoginSpinner: boolean = false;
   public growlMessages: string[] = new Array<string>();
 
-  constructor(private router: Router, 
-              private authService: AuthService, 
-              private messageService: MessageService, 
+  constructor(private router: Router,
+              private authService: AuthService,
+              private messageService: MessageService,
               private userService: UserService,
               private geocoderService: GeocoderService,
               private geoFootPrintService: GeoFootPrint,
@@ -56,7 +55,7 @@ export class LoginComponent implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Please check your username and password and try again'});
       }
     });
-    
+
   }
 
   private createUser(username: string) {
@@ -75,7 +74,7 @@ export class LoginComponent implements OnInit {
     //const geoMaster1           = new ImpGeofootprintMaster(); TODO need to transfer the data type to impgeofootrprint
     let targetingProfile = new TargetingProfile();
     const desc = 'User ' +username+ ' logged in';
-     
+
         targetingProfile.baseStatus              = 'INSERT';
         targetingProfile.clientId                = 'impower';
         targetingProfile.createDate              = new Date();
@@ -83,19 +82,19 @@ export class LoginComponent implements OnInit {
         targetingProfile.description             = desc;
         targetingProfile.dirty                   = true;
         targetingProfile.group                   = 7861; // 7861
-        targetingProfile.methAccess              = 14;   //  
+        targetingProfile.methAccess              = 14;   //
         targetingProfile.methAnalysis            = 'A'; //
         targetingProfile.methSeason              = '2'; //
         targetingProfile.modifyDate              = new Date();
         targetingProfile.modifyUser              = 7861; // 7861
         targetingProfile.name                    = 'imPower user login from ' + this.config.environmentName + ' environment'; //imPower user login
         targetingProfile.pk                      = null; //
-        targetingProfile.preferredDate           = null; 
+        targetingProfile.preferredDate           = null;
         targetingProfile.promoPeriodEndDate      = null;
         targetingProfile.promoPeriodStartDate    = null;
         targetingProfile.taSource                = 1;
         targetingProfile.xmlSicquery             = null;
-        targetingProfile.xmlTradearea            = null;   
+        targetingProfile.xmlTradearea            = null;
         targetingProfile.xmlVariables            = null; // null
 
         /*

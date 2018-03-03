@@ -8,7 +8,6 @@
             [autoWidth]="false"></p-dropdown>
         </div>
       <div class="ui-g-12 p-t-15">
-          <p-growl [(value)]="msgs"></p-growl>
         <span class="md-inputfield">
           <input #searchModel type="text" pInputText name="search" (input)="filterCategory(searchModel.value)" />
           <label for="search">Search SIC codes</label>
@@ -104,14 +103,14 @@
         <ul style="list-style: none;padding:0px">
           <!-- <val-businessFound>loading......</val-businessFound> -->
           <!-- <li *ngIf="showLoader">Searching...</li> -->
-          <li *ngIf="searchDatageos.length > 0"> 
+          <li *ngIf="searchDatageos.length > 0">
               <div style="padding: 1px">
                 <p-checkbox binary="true" (onChange)="onSelectAll($event)"
-                 label="Select All" 
+                 label="Select All"
                 [(ngModel)]="selectAll"></p-checkbox>
                 <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchDatageos = [];"></button>
               </div>
-              
+
           </li>
           <li *ngFor="let x of searchDatageos">
             <div style="padding: 1px;">

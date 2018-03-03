@@ -2,16 +2,13 @@ import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule} from '@angular/http';
 import {HttpClientModule} from '@angular/common/http';
-//import {HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/common';
 import {AppConfig} from './app.config';
 import {AppRoutes} from './app.routes';
 import {AppState} from './app.state';
-
 import 'rxjs/add/operator/toPromise';
-
 import {AccordionModule} from 'primeng/primeng';
 import {AutoCompleteModule} from 'primeng/primeng';
 import {BreadcrumbModule} from 'primeng/primeng';
@@ -80,7 +77,7 @@ import {ToolbarModule} from 'primeng/primeng';
 import {TooltipModule} from 'primeng/primeng';
 import {TreeModule} from 'primeng/primeng';
 import {TreeTableModule} from 'primeng/primeng';
-
+import { MessageService } from 'primeng/components/common/messageservice';
 import {AppComponent} from './app.component';
 import {AppMenuComponent, AppSubMenuComponent} from './app.menu.component';
 import {AppTopbarComponent} from './app.topbar.component';
@@ -104,14 +101,9 @@ import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
 import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
-
-// Mock Service Imports
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
-
-// Service Imports
 import {GfGeoService} from './models/gf-geo/gf-geo.service';
 import {MetricService} from './val-modules/common/services/metric.service';
-
 import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
@@ -119,15 +111,8 @@ import {NodeService} from './demo/service/nodeservice';
 import {EsriLayerService} from './services/esri-layer.service';
 import {EsriModules, EsriLoaderToken} from './esri-modules/core/esri-modules.service';
 import {UserService} from './services/user.service';
-
-// ESRI Imports
-//import {EsriLoaderService} from 'angular-esri-loader';
 import {EsriMapComponent} from './components/esri-map/esri-map.component';
-
-// Custom Model Imports
 import {TargetingModule} from './val-modules/targeting/targeting.module';
-
-// Custom Component Imports
 import {GeofootprintGeoListComponent} from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import {GeocoderComponent} from './components/geocoder/geocoder.component';
 import {BusinessSearchComponent} from './components/business-search/business-search.component';
@@ -137,15 +122,12 @@ import {EsriMapToolsComponent} from './components/esri-map-tools/esri-map-tools.
 import {MapService} from './services/map.service';
 import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
 import {ColorBoxComponent} from './components/color-box/color-box.component';
-//import {AmSiteListComponent} from './val-modules/targeting/components/AmSiteList.component';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
-
-// Data Service Imports
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -291,8 +273,8 @@ import { TargetAudienceService } from './services/target-audience.service';
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
-        AppService, AppConfig,
-        CarService, CountryService, EventService, NodeService,
+        AppService, AppConfig, MessageService,
+        CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,

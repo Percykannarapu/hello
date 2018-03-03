@@ -17,8 +17,7 @@ interface MergeType { value: string; }
 @Component({
     selector: 'val-tradearea-define',
     templateUrl: './tradearea-define.component.html',
-    styleUrls: ['./tradearea-define.component.css'],
-    providers: [MessageService]
+    styleUrls: ['./tradearea-define.component.css']
 })
 export class TradeareaDefineComponent implements OnInit, OnDestroy {
 

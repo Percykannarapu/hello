@@ -44,8 +44,7 @@ interface CsvHeadersPosition {
   //providers: [GeocoderService, MapService],
   selector: 'val-geocoder',
   templateUrl: './geocoder.component.html',
-  styleUrls: ['./geocoder.component.css'],
-  providers: [MessageService]
+  styleUrls: ['./geocoder.component.css']
 })
 export class GeocoderComponent implements OnInit, AfterViewInit {
 
@@ -87,10 +86,10 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   // get the radio button element
   @ViewChild('siteRef') private siteRefEl: ElementRef;
 
-  constructor(private geocoderService: GeocoderService, 
-              private mapService: MapService, 
+  constructor(private geocoderService: GeocoderService,
+              private mapService: MapService,
               private messageService: MessageService,
-              private geocodingRespService: GeocodingResponseService, 
+              private geocodingRespService: GeocodingResponseService,
               private metricService: MetricService,
               public  config: AppConfig) { }
 
@@ -109,12 +108,12 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       radioClicked.classList.add('ui-state-active');
       buttonCls.classList.add('fa');
       buttonCls.classList.add('fa-circle');
-      
+
     }
 
   }
 
-  // collect the information entered by the user on the geocorder form and 
+  // collect the information entered by the user on the geocorder form and
   // create an AmSite, then invoke the geocoder
   public async onGeocode(selector) {
     try {
@@ -142,14 +141,14 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
 
 /*
-          geocodingResponse.orgAddr     =      locRespListMap['Original Address']; 
-          geocodingResponse.orgCity     =      locRespListMap['Original City']; 
-          geocodingResponse.orgState    =      locRespListMap['Original State']; 
-          geocodingResponse.status      =      locRespListMap['Geocode Status'];  
-          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
-          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
-          geocodingResponse.marketName  =   locRespListMap['']; 
-*/          
+          geocodingResponse.orgAddr     =      locRespListMap['Original Address'];
+          geocodingResponse.orgCity     =      locRespListMap['Original City'];
+          geocodingResponse.orgState    =      locRespListMap['Original State'];
+          geocodingResponse.status      =      locRespListMap['Geocode Status'];
+          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];
+          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality'];
+          geocodingResponse.marketName  =   locRespListMap[''];
+*/
          const restResponseList: RestResponse[] = [];
          const siteList: any[] = [];
          const manSite = {};
@@ -223,7 +222,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           .then(res => this.createGraphic(site, res, selector))
           .then(res => {this.graphics.push(res); newGraphics.push(res); })
           .catch(err => this.handleError(err));
-      } 
+      }
       await this.geocodingRespService.updateLayer(this.graphics, selector)
         .then(res => { this.mapService.zoomOnMap(this.graphics); })
         .then(res => {
@@ -235,7 +234,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
         .catch(err => this.handleError(err));
 
         this.displayGcSpinner = false;
-        
+
     } catch (error) {
       this.handleError(error);
     }
@@ -267,7 +266,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     this.number = null;
     this.market = '';
     this.xcoord = '';
-    this.ycoord = '';  
+    this.ycoord = '';
   }
 
 
@@ -309,7 +308,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
         r: 35,
         g: 93,
         b: 186
-        
+
       };
     }
 
@@ -352,7 +351,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
   // Business rules for CSV geocoding:
   // 1. The first column is the store name
-  // 2. One column must contain STREET or ADDRESS 
+  // 2. One column must contain STREET or ADDRESS
   // 3. One column must contain CITY
   // 4. One column must contain STATE or ST
   // 5. One column must contain ZIP or CODE or POSTAL
@@ -364,12 +363,12 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   // 11. The geocoded stores becomes a layer that can be turned on and off. Its attribute table can be turned on and off. Prerequisite: US6231 Layer List in IMPower application
   // 12. If the geocoder returned an invalid match code for some rows in the CSV file, an error is displayed somewhere. Very primitive UI please, as error handling is in US6348 Geocoding error handling in imPower application
    geocodeCSV(event) {
-    
+
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
     reader.onload = (data) => {
-      
+
       this.displayGcSpinner = true;
       const csvData = reader.result;
       const csvRecords = csvData.split(/\r\n|\n/);
@@ -377,7 +376,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       let headerPosition: any = {};
       try {
         headerPosition = this.verifyCSVColumns(this.headers);
-        
+
       }catch (error) {
         this.handleError(error);
         return;
@@ -385,7 +384,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       const observables: Observable<RestResponse>[] = new Array<Observable<RestResponse>>();
       let csvFormattedData: any = [];
       const restResponseList: RestResponse[] = [];
-      
+
       // make sure to start loop at 1 to skip headers
       for (let i = 1; i < csvRecords.length; i++) {
           const siteList: any[] = [];
@@ -406,7 +405,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           else{
                siteList.push(site);
                siteList.forEach(siteData => {
-                  site['status'] = 'PROVIDED';  
+                  site['status'] = 'PROVIDED';
                   const restResp: RestResponse = {
                     payload:    siteList,
                     exception:  null,
@@ -429,7 +428,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
               //this.displayGcSpinner = false;
           });
         }else{
-        console.log('csvFormattedData length:::' + csvFormattedData.length);  
+        console.log('csvFormattedData length:::' + csvFormattedData.length);
         this.parseCsvResponse(csvFormattedData, true);
         this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
         this.displayGcSpinner = false;
@@ -453,7 +452,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   for (let j = 0; j < columns.length; j++){
       let column = columns[j];
       column = column.toUpperCase();
-      
+
       if (column === 'STREET' || column === 'ADDRESS') {
         addressFlag = true;
         headerPosition.street = count;
@@ -498,10 +497,10 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           this.headers[j] = 'number';
         }
       }
-      
+
       count++;
   }
-  
+
     if (!addressFlag) {
       const validationError: string = 'Either the City and State must be entered or a Postal Code';
       if (!zipFlag) {
@@ -515,7 +514,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
        const growlMessage: Message = {
         summary: 'Failed to geocode File',
         severity: 'error',
-        detail: `Name column not defined in the upload file` 
+        detail: `Name column not defined in the upload file`
       };
       this.geocodingErrors.push(growlMessage);
       this.displayGcSpinner = false;
@@ -527,7 +526,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       const growlMessage: Message = {
        summary: 'Failed to geocode File',
        severity: 'error',
-       detail: `Number column not defined in the upload file` 
+       detail: `Number column not defined in the upload file`
      };
      this.geocodingErrors.push(growlMessage);
      this.displayGcSpinner = false;
@@ -554,7 +553,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
     site1['city']     = row['Original City'];
     site1['state']   = row['Original State'];
     site1['zip']     = row['Original ZIP'];
-   
+
     Object.keys(row).forEach( site => {
       if (['Number', 'Name', 'Address', 'City', 'State', 'ZIP',
           'Geocode Status', 'Latitude', 'Longitude', 'Match Code',
@@ -622,10 +621,10 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   private async parseCsvResponse(restResponses: RestResponse[], display?: boolean) : Promise<GeocodingResponse[]> {
-    let geocodingResponseList: GeocodingResponse[] = []; 
+    let geocodingResponseList: GeocodingResponse[] = [];
     for (const restResponse of restResponses) {
       const locationResponseList: any[] = restResponse.payload;
-      const geocodingResponse: GeocodingResponse = new GeocodingResponse(); 
+      const geocodingResponse: GeocodingResponse = new GeocodingResponse();
       const geocodingAttrList: GeocodingAttributes[] = [];
      // const geocodingResponse = geocodingResponseList[0];
      // for (const geocodingResponse of geocodingResponseList){
@@ -636,7 +635,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
                 //locationResponseList[0].status = 'ERROR';
                 locRespListMap['status'] = 'ERROR';
                 this.handleMsg = false;
-              
+
                 this.failedSites.push(locRespListMap);
                 GeocoderComponent.failedSiteCounter++;
                 continue;
@@ -649,22 +648,22 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
           geocodingResponse.zip         =      locRespListMap['ZIP'];
           geocodingResponse.number      =      locRespListMap['Number'];
           geocodingResponse.name        =      locRespListMap['Name'];
-          geocodingResponse.matchCode   =      locRespListMap['Match Code']; 
-          geocodingResponse.orgAddr     =      locRespListMap['Original Address']; 
-          geocodingResponse.orgCity     =      locRespListMap['Original City']; 
-          geocodingResponse.orgState    =      locRespListMap['Original State']; 
-          geocodingResponse.status      =      locRespListMap['Geocode Status'];  
-          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];  
-          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality']; 
-          geocodingResponse.marketName  =   locRespListMap['Market']; 
-         // geocodingResponse.orgAddr     =      locRespListMap['Original ']; 
-          
+          geocodingResponse.matchCode   =      locRespListMap['Match Code'];
+          geocodingResponse.orgAddr     =      locRespListMap['Original Address'];
+          geocodingResponse.orgCity     =      locRespListMap['Original City'];
+          geocodingResponse.orgState    =      locRespListMap['Original State'];
+          geocodingResponse.status      =      locRespListMap['Geocode Status'];
+          geocodingResponse.zip10      =      locRespListMap['Original ZIP'];
+          geocodingResponse.locationQualityCode   =      locRespListMap['Match Quality'];
+          geocodingResponse.marketName  =   locRespListMap['Market'];
+         // geocodingResponse.orgAddr     =      locRespListMap['Original '];
+
           if (geocodingResponse.number == null){
             geocodingResponse.number = this.geocodingRespService.getNewSitePk().toString();
             locRespListMap['Number'] = geocodingResponse.number;
           }
 
-         
+
           let geocodingAttr = null;
            for (const [k, v] of Object.entries(locationResponseList[0])){
                   geocodingAttr = new GeocodingAttributes();

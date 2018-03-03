@@ -17,7 +17,6 @@ import { GeocodingResponseService } from '../../val-modules/targeting/services/G
 
 
 @Component({
-  providers: [MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']

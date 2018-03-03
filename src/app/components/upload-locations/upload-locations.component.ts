@@ -10,8 +10,7 @@ import { GeocodingResponseService } from '../../val-modules/targeting/services/G
 @Component({
   selector: 'val-upload-locations',
   templateUrl: './upload-locations.component.html',
-  styleUrls: ['./upload-locations.component.css'],
-  providers: [MessageService]
+  styleUrls: ['./upload-locations.component.css']
 })
 export class UploadLocationsComponent implements OnInit {
 
