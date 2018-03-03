@@ -155,7 +155,6 @@ import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
-import {MessageService} from './val-modules/common/services/message.service';
 import { TopVarService } from './services/top-var.service';
 import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
@@ -292,14 +291,14 @@ import { TargetAudienceService } from './services/target-audience.service';
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
-        MessageService, AppService, AppConfig,
+        AppService, AppConfig,
         CarService, CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
         AmSiteService, MetricService, EsriModules, EsriLayerService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService, GeoFootPrint, 
+        ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService

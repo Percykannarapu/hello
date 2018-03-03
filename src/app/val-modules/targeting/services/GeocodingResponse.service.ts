@@ -9,11 +9,6 @@ import { DefaultLayers } from '../../../models/DefaultLayers';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
-
-// Import Core Modules
-import { MessageService } from '../../common/services/message.service';
-
-// Import Models
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -42,7 +37,6 @@ export class GeocodingResponseService {
 
 
     constructor(private http: HttpClient,
-        private messageService: MessageService,
         private mapService: MapService,
         private metricService: MetricService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,

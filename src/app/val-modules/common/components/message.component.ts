@@ -1,9 +1,7 @@
 import {Component, OnInit } from '@angular/core';
-import {FormBuilder, Validators} from '@angular/forms';
-import {map } from 'rxjs/operators';
+import {FormBuilder} from '@angular/forms';
 import {Observable } from 'rxjs/Observable';
 import {Message } from '../models/Message';
-import {MessageService } from '../services/message.service';
 
 @Component({
   selector: 'val-message-component',
@@ -28,30 +26,30 @@ export class MessageComponent implements OnInit
   messages: Observable<Message[]>;
   singleMessage$: Observable<Message>;
   messageForm: FormBuilder;
- /* 
+ /*
   constructor(
-    private messageService: MessageService, 
+    private messageService: MessageService,
     private formBuilder: any) {
-      
+
     this.messageForm = this.formBuilder.group({
       'message': ['', Validators.required]
     });
   }*/
-  
+
   ngOnInit() {
  /*   this.messages = this.messageService.messages;
     this.singleMessage$ = this.messageService.messages.pipe(
       map(messages => messages.find(item => item.id === '1'))
     );
-    
+
     this.messageService.loadAll();
     this.messageService.load('1');*/
   }
- /* 
+ /*
   onSubmit() {
     //this.messageService.create({ value: this.messageForm.control. .controls.message.value });
   }
-  
+
   deleteTodo(messageId: number) {
     this.messageService.remove(messageId);
   }*/
