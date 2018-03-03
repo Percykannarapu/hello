@@ -104,7 +104,6 @@ import {ParkedComponent} from './demo/view/parked.component';
 import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 import {GfGeoService} from './models/gf-geo/gf-geo.service';
 import {MetricService} from './val-modules/common/services/metric.service';
-import {CarService} from './demo/service/carservice';
 import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
@@ -147,6 +146,7 @@ import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
+import { ValGeocodingService } from './services/val-geocoding.service';
 
 @NgModule({
     imports: [
@@ -283,7 +283,7 @@ import { TargetAudienceService } from './services/target-audience.service';
         ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
-        UserService
+        UserService, ValGeocodingService
     ],
     bootstrap: [AppComponent]
 })

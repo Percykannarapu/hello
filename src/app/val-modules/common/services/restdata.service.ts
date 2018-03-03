@@ -14,13 +14,13 @@ export class RestDataService
    constructor(private http: HttpClient, private appConfig: AppConfig) {
       // Assign the base url from configuration
       this.baseUrl = appConfig.valServiceBase;
-      console.log('RestDataService - baseUrl: ' + this.baseUrl);      
+      console.log('RestDataService - baseUrl: ' + this.baseUrl);
    }
 
    // -----------------------------------------------------------------------------------
    // HTTP METHODS
    // -----------------------------------------------------------------------------------
-   public get(url: string) : Observable<RestResponse> 
+   public get(url: string) : Observable<RestResponse>
    {
       console.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
       return this.http.get<RestResponse>(this.baseUrl + url);
@@ -28,17 +28,17 @@ export class RestDataService
 
    public patch(url: string, payload: any) : Observable<RestResponse>
    {
-      return this.http.patch<RestResponse>(this.baseUrl + url, JSON.stringify(payload));
+      return this.http.patch<RestResponse>(this.baseUrl + url, payload);
    }
-   
+
    public post(url: string, payload: any) : Observable<RestResponse>
    {
-      return this.http.post<RestResponse>(this.baseUrl + url, JSON.stringify(payload));
+      return this.http.post<RestResponse>(this.baseUrl + url, payload);
    }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
    {
-      return this.http.put<RestResponse>(this.baseUrl + url + id, JSON.stringify(itemToUpdate));
+      return this.http.put<RestResponse>(this.baseUrl + url + id, itemToUpdate);
    }
 
    public delete(url: string, id: number) : Observable<RestResponse>
@@ -49,7 +49,7 @@ export class RestDataService
    public jsonp(url: string, callbackParam: string) : Observable<any>
    {
       return this.http.jsonp(url, callbackParam);
-   }   
+   }
 }
 
 @Injectable()
