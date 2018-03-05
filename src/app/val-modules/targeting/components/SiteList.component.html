@@ -40,8 +40,8 @@
 
 <div class="ui-g-12" >
    <p-dataTable *ngIf="selectedValue === 'Competitor'" #siteDt [globalFilter]="gb"
-      [value]="impGeofootprintFilteredCompList"
-      [(selection)]="selectedImpGeofootprintCompList"
+      [value]="impGeofootprintFilteredSitesList"
+      [(selection)]="selectedImpGeofootprintLocList"
       expandableRows="true" resizableColumns="true" [rows]="8" [paginator]="true"
       showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
       columnResizeMode="expand" responsive="true" [editable]="true">
@@ -59,7 +59,7 @@
                </div>
 
                <div class="ui-g-7">
-                  <label style="text-align: center;" pTooltip="Selected {{impGeofootprintFilteredCompList.length}} / {{impGeofootprintFilteredCompList.length}} competitors" tooltipPosition="top">Competitors List</label>
+                  <label style="text-align: center;" pTooltip="Selected {{impGeofootprintFilteredSitesList.length}} / {{impGeofootprintFilteredCompList.length}} competitors" tooltipPosition="top">Competitors List</label>
                </div>
                <!--US6650: nallana
                     Removing the demo content
