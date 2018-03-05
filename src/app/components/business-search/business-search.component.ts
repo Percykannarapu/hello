@@ -84,7 +84,7 @@ export class BusinessSearchComponent implements OnInit {
     this.name = 'Business Search';
     this.appService.getList().subscribe((data) => {
       this.filteredCategories = data.rows;
-      this.selectedCategory = this.dropdownList[0].value;
+      this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
 
@@ -94,7 +94,8 @@ export class BusinessSearchComponent implements OnInit {
     this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
     });
-    this.sourceCategories = this.businessCategories;
+    console.log('this.businessCategories', this.businessCategories);
+    this.sourceCategories = this.businessCategories.sort(this.sortOn('name'));
   }
   assignCopy() {
     this.sourceCategories = Object.assign([], this.businessCategories);
@@ -188,6 +189,18 @@ export class BusinessSearchComponent implements OnInit {
       });
     });
 
+  }
+
+  private sortOn(property) {
+    return function (a, b) {
+      if (a[property] < b[property]) {
+        return -1;
+      } else if (a[property] > b[property]) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
   }
 
   private parseCsvResponse(restResponses: any[]) : GeocodingResponse[] {
@@ -289,7 +302,7 @@ export class BusinessSearchComponent implements OnInit {
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
 
     //await this.searchDatageos.forEach(async business => {
-      //Create a popup for the point clicked on the map
+    //Create a popup for the point clicked on the map
     for (const business of this.searchDatageos) {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
