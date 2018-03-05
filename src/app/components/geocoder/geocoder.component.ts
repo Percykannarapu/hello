@@ -24,6 +24,8 @@ import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
 import { AppConfig } from '../../app.config';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 
 
 // this interface holds information on what position the columns in a CSV file are in
@@ -91,6 +93,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
               private messageService: MessageService,
               private geocodingRespService: GeocodingResponseService,
               private metricService: MetricService,
+              private impDiscoveryService: ImpDiscoveryService,
               public  config: AppConfig) { }
 
   ngOnInit() {
@@ -113,9 +116,21 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
 
   }
 
+  onGeocode(selector) {
+    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    console.log('analysis level:::', discoveryUI[0].analysisLevel);
+    if(discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null ){
+      this.callGeocode(selector);
+    }
+    else{
+      const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
+      this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
+      //throw new Error(validationError);
+    }
+  }
+
   // collect the information entered by the user on the geocorder form and
-  // create an AmSite, then invoke the geocoder
-  public async onGeocode(selector) {
+  public async callGeocode(selector) {
     try {
       let site: any = new GeocodingResponse();
       if (!this.number){
