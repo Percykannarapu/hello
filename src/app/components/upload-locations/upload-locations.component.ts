@@ -106,7 +106,7 @@ export class UploadLocationsComponent implements OnInit {
 
   uploadCSV(event) {
     const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-    console.log('analysis level:::',  this.selector);
+    console.log('analysis level:::',  discoveryUI[0].analysisLevel);
     if(this.selector === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null)){
       this.callUploadCSV(event);
     }

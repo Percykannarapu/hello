@@ -119,10 +119,10 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   onGeocode(selector) {
     const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
     console.log('analysis level:::', discoveryUI[0].analysisLevel);
-    if(discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null ){
+    if(this.selector1 === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null) ){
       this.callGeocode(selector);
     }
-    else{
+    else if(this.selector1 != 'Competitor'){
       const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
       this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //throw new Error(validationError);
