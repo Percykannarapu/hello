@@ -6,6 +6,8 @@ import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 
 @Component({
   selector: 'val-upload-locations',
@@ -30,6 +32,7 @@ export class UploadLocationsComponent implements OnInit {
   constructor(private geocoderService: GeocoderService,
     private messageService: MessageService,
     private mapService: MapService,
+    private impDiscoveryService: ImpDiscoveryService,
     private geocodingRespService: GeocodingResponseService) { }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
@@ -102,6 +105,20 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   uploadCSV(event) {
+    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    console.log('analysis level:::',  this.selector);
+    if(this.selector === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null)){
+      this.callUploadCSV(event);
+    }
+    else if(this.selector != 'Competitor'){
+      const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
+      this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
+      //this.messageService.clear();
+      //throw new Error(validationError);
+    }
+  }
+
+  callUploadCSV(event) {
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
