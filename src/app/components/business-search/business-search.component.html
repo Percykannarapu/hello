@@ -126,10 +126,10 @@
       <label>Select as:</label>
     </div>
     <div class="ui-g-3">
-      <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector" inputId="sites"></p-radioButton>
+      <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector"></p-radioButton>
     </div>
     <div class="ui-g-4">
-      <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector" inputId="competitors"></p-radioButton>
+      <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector"></p-radioButton>
     </div>
     <div class="ui-g-12">
       <button type="button" style="float:right" label="Add to Project" icon="ui-icon-send" pButton (click)="onAddToProject(selector)"></button>

@@ -1,195 +1,119 @@
-<!-- div class="ui-g-12 ui-md-6 ui-lg-4 ui-fluid contact-form" -->
-
 <div class="ui-g" style="width: 100%;">
-    <div class="ui-g-4">
-        <!-- <p-panel header="Enter site manually or upload CSV"> -->
-            <div class="ui-g">
-                <!-- Added US6554 Additional sections for manually add selection -->
-                <!-- <div class="ui-g-12"> -->
-                    <div class="ui-g-3">
-                        <label>Add as:</label>
-                    </div>
-                    <div class="ui-g-4" #siteRef>
-                        <p-radioButton name="add_to_group1" value="Site" label="Sites" [(ngModel)]="selector1" inputId="sitesMA" (ngModelChange)="clearFieldsOnChange()"></p-radioButton>
-                    </div>
-                    <div class="ui-g-5">
-                        <p-radioButton name="add_to_group1" value="Competitor" label="Competitors" [(ngModel)]="selector1" inputId="competitorsMA" (ngModelChange)="clearFieldsOnChange()"></p-radioButton>
-                    </div>
-                <!-- </div> -->
-                <div class="ui-g-12">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="number" name="_number" pInputText id="numberInput" style="width: 100%;">
-                        <label for="numberInput">Number</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 p-t-15">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="name" name="_name" pInputText id="nameInput" style="width: 100%;">
-                        <label for="nameInput">Name</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 p-t-15">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="street" name="_street" pInputText id="streetInput" style="width: 100%;">
-                        <label for="streetInput">Street</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 p-t-15">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="city" name="_city" pInputText id="cityInput" style="width: 100%;">
-                        <label for="cityInput">City</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 p-t-15">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="state" name="_state" pInputText id="stateInput" style="width: 100%;">
-                        <label for="stateInput">State</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 p-t-15">
-                    <span class="md-inputfield">
-                        <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput" style="width: 100%;">
-                        <label for="zipInput">ZIP Code</label>
-                    </span>
-                </div>
-               <div class="ui-g-12 p-t-15">
-                  <span class="md-inputfield">
-                     <input [(ngModel)]="market" name="_market" pInputText id="marketInput" style="width: 100%;">
-                     <label for="marketInput">Market</label>
-                  </span>
-               </div>
-               <div class="ui-g-6 p-t-15">
-                  <span class="md-inputfield">
-                     <input [(ngModel)]="ycoord" name="_latitude" pInputText id="ycoordInput" style="width: 100%;">
-                     <label for="ycoordInput">Latitude (Y)</label>
-                  </span>
-               </div>
-               <div class="ui-g-6 p-t-15">
-                  <span class="md-inputfield">
-                     <input [(ngModel)]="xcoord" name="_longitude" pInputText id="xcoordInput" style="width: 100%;">
-                     <label for="xcoordInput">Longitude (X)</label>
-                  </span>
-               </div>
-              <div class="ui-g-6">
-                    <button (click)="clearFields()" type="button" label="Clear" icon="ui-icon-close" pButton style="width: 100%;"></button>
-                </div>
-                <div class="ui-g-6">
-                    <button (click)="onGeocode(selector1);" type="button" label="Submit" icon="ui-icon-send" pButton style="width: 100%;"></button>
-                </div>
-                <div *ngIf="config.debugMode" class="ui-g-6">
-                    <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton style="width: 100%;"></button>
-                </div>
-                <div *ngIf="config.debugMode" class="ui-g-6">
-                  <button (click)="loadSkyZone()" type="button" label="Do SkyZone" icon="ui-icon-map" pButton style="width: 100%;"></button>
-                </div>
-
-                <!-- Commented out for US6554: nallana -->
-                <!-- <div class="ui-g-12">
-                    <label for="fileUpload" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
-                        style="width: 100%;">
-                        <div style="padding-top: 6px;">
-                            <input #fileUpload id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv"
-                            /> Geocode CSV File
-                        </div>
-                    </label>
-                </div> -->
-                <!--<div *ngIf="failedSites.length > 0" class="ui-g-12">
-                    <button (click)="onViewFailures()" type="button" label="View Geocoding Failures" icon="ui-icon-warning" pButton style="width: 100%;"></button>
-                </div>-->
-            </div>
-        <!-- </p-panel> -->
+  <div class="ui-g-4">
+    <div class="ui-g">
+      <div class="ui-g-3">
+        <label>Add as:</label>
+      </div>
+      <div class="ui-g-4">
+        <p-radioButton name="manualSiteType" value="Site" label="Sites" [ngModel]="currentManualSiteType" (ngModelChange)="onSiteTypeChange($event)"></p-radioButton>
+      </div>
+      <div class="ui-g-5">
+        <p-radioButton name="manualSiteType" value="Competitor" label="Competitors" [ngModel]="currentManualSiteType" (ngModelChange)="onSiteTypeChange($event)"></p-radioButton>
+      </div>
+      <div class="ui-g-12">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.number" pInputText id="numberInput" style="width: 100%;" />
+          <label for="numberInput">Number</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.name" pInputText id="nameInput" style="width: 100%;" />
+          <label for="nameInput">Name</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.street" pInputText id="streetInput" style="width: 100%;" />
+          <label for="streetInput">Street</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.city" pInputText id="cityInput" style="width: 100%;" />
+          <label for="cityInput">City</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.state" pInputText id="stateInput" style="width: 100%;" />
+          <label for="stateInput">State</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.zip" pInputText id="zipInput" style="width: 100%;" />
+          <label for="zipInput">ZIP Code</label>
+        </span>
+      </div>
+      <div class="ui-g-12 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.market" pInputText id="marketInput" style="width: 100%;" />
+          <label for="marketInput">Market</label>
+        </span>
+      </div>
+      <div class="ui-g-6 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.latitude" pInputText id="latInput" style="width: 100%;" />
+          <label for="latInput">Latitude (Y)</label>
+        </span>
+      </div>
+      <div class="ui-g-6 p-t-15">
+        <span class="md-inputfield">
+          <input [(ngModel)]="currentModel.longitude" pInputText id="lonInput" style="width: 100%;" />
+          <label for="lonInput">Longitude (X)</label>
+        </span>
+      </div>
+      <div class="ui-g-6">
+        <button (click)="clearFields()" type="button" label="Clear" icon="ui-icon-close" pButton
+                style="width: 100%;"></button>
+      </div>
+      <div class="ui-g-6">
+        <button (click)="onGeocode();" type="button" label="Submit" icon="ui-icon-send" pButton
+                style="width: 100%;"></button>
+      </div>
+      <div *ngIf="config.debugMode" class="ui-g-6">
+        <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton
+                style="width: 100%;"></button>
+      </div>
+      <div *ngIf="config.debugMode" class="ui-g-6">
+        <button (click)="loadSkyZone()" type="button" label="Do SkyZone" icon="ui-icon-map" pButton
+                style="width: 100%;"></button>
+      </div>
     </div>
-    <div *ngIf="failedSites.length > 0" class="ui-g-8">
-        <p-dataTable [value]="failedSites" [rows]="5" [paginator]="true" [editable]="true">
-            <p-header>Detected {{failedSites.length}} geocoding failures</p-header>
-            <p-column field="Number" [hidden]="true"></p-column>
-            <p-column field="Original Address" header="Street" [editable]="true"></p-column>
-            <p-column field="Original City" header="City" [editable]="true"></p-column>
-            <p-column field="Original State" header="State" [editable]="true"></p-column>
-            <p-column field="Original ZIP" header="ZIP" [editable]="true"></p-column>
-            <p-column field="status" header="Status" [editable]="true"></p-column>
-            <p-column header="Resubmit">
-                <ng-template let-h="rowData" pTemplate="body">
-                    <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
-                </ng-template>
-            </p-column>
-            <p-column header="Remove">
-                <ng-template let-h="rowData" pTemplate="body">
-                    <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
-                </ng-template>
-            </p-column>
-        </p-dataTable>
-    </div>
+  </div>
+  <div *ngIf="geocodingService.hasFailures$ | async" class="ui-g-8">
+    <p-dataTable [value]="geocodingService.geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
+      <p-header>Detected {{(geocodingService.failureCount$ | async) || 0}} geocoding failures</p-header>
+      <p-column field="Number" [hidden]="true"></p-column>
+      <p-column field="Original Address" header="Street" [editable]="true"></p-column>
+      <p-column field="Original City" header="City" [editable]="true"></p-column>
+      <p-column field="Original State" header="State" [editable]="true"></p-column>
+      <p-column field="Original ZIP" header="ZIP" [editable]="true"></p-column>
+      <p-column field="status" header="Status" [editable]="true"></p-column>
+      <p-column header="Resubmit">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+      </p-column>
+      <p-column header="Remove">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+      </p-column>
+    </p-dataTable>
+  </div>
 </div>
-<!--
-          <br>
-            <p-panel header="Geocode CSV File">
-              <label for="fileUpload" class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text">
-                <input id="fileUpload" type="file" #fileImportInput name="File Upload" (change)="geocodeCSV($event)" accept=".csv" />
-                Choose File
-              </label>
-            </p-panel>
-          <br>
-              <button (click)="loadGeocode()" pButton label="Mock Geofootprint"></button>-->
-
-
-
-<!-- div>
-    <p-panel header="Geocode Single Address">
-      <br>
-      <span class="ui-float-label">
-        <input [(ngModel)]="street" name="_street" pInputText id="streetInput">
-        <label for="streetInput">Street</label>
-      </span>
-      <br>
-      <span class="ui-float-label">
-        <input [(ngModel)]="city" name="_city" pInputText id="cityInput">
-        <label for="cityInput">City</label>
-      </span>
-      <br>
-      <span class="ui-float-label">
-        <input [(ngModel)]="state" name="_state" pInputText id="stateInput">
-        <label for="stateInput">State</label>
-      </span>
-      <br>
-      <span class="ui-float-label">
-        <input [(ngModel)]="zip" name="_zip" pInputText id="zipInput">
-        <label for="stateInput">Zip</label>
-      </span>
-      <br>
-      <button (click)="loadVPW()" pButton label="Do VPW"></button>
-      <button (click)="geocodeAddress()" pButton label="submit"></button>
-      <br>
-      <br> {{xcoord}}
-      <br> {{ycoord}}
-    </p-panel>
-  </div-->
 
 <!-- Modal window for GP spinner -->
 <div class="ui-g ui-fluid">
-    <p-dialog [closable]="false" header={{displaySpinnerMessage}} [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
-        width="300">
-        <div class="ui-g-3"></div>
-        <div class="ui-g-5">
-            <p-progressSpinner></p-progressSpinner>
-        </div>
-        <div class="ui-g-4"></div>
-    </p-dialog>
-</div>
-
-<!-- Modal window to review and correct geocoding failures -->
-<div class="ui-g ui-fluid">
-    <p-dialog [closable]="true" header="Review Geocoding Failures" [(visible)]="displayFailureWindow" [contentStyle]="{'overflow':'visible'}"
-        width="400">
-        <div class="ui-g-12">
-            <p>Detected {{failedSites.length}} geocoding failures</p>
-            <p-dataTable [value]="failedSites">
-                <p-column field="number" header="Site#"></p-column>
-                <p-column field="name" header="name"></p-column>
-                <p-column field="addressline" header="Address"></p-column>
-                <p-column field="city" header="city"></p-column>
-                <p-column field="zip" header="ZIP"></p-column>
-            </p-dataTable>
-        </div>
-    </p-dialog>
+  <p-dialog [closable]="false" header={{displaySpinnerMessage}} [(visible)]="displayGcSpinner"
+            [contentStyle]="{'overflow':'visible'}"
+            width="300">
+    <div class="ui-g-3"></div>
+    <div class="ui-g-5">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+    <div class="ui-g-4"></div>
+  </p-dialog>
 </div>

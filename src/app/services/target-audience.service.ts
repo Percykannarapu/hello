@@ -5,6 +5,8 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { MetricService, MetricOperations, MetricMessage } from '../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/delay';
 
 @Injectable()
 export class TargetAudienceService {

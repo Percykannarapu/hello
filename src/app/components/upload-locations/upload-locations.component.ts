@@ -26,15 +26,15 @@ export class UploadLocationsComponent {
   private csvParseRules: ParseRule[] = siteListUploadRules;
   private csvHeaderValidator: (foundHeaders: ParseRule[]) => boolean = siteUploadHeaderValidator;
 
-  constructor(private messageService: MessageService, public locationListService: ValGeocodingService,
+  constructor(private messageService: MessageService, public geocodingService: ValGeocodingService,
               private locationService: ImpGeofootprintLocationService, private attributeService: ImpGeofootprintLocAttribService) { }
 
   public onRemove(row: ValGeocodingResponse) {
-    this.locationListService.removeFailedGeocode(row);
+    this.geocodingService.removeFailedGeocode(row);
   }
 
   public onResubmit(row: ValGeocodingResponse) {
-    this.locationListService.removeFailedGeocode(row);
+    this.geocodingService.removeFailedGeocode(row);
     this.handleGeocodingAndPersisting([row.toGeocodingRequest()]);
   }
 
@@ -67,7 +67,7 @@ export class UploadLocationsComponent {
 
   private handleGeocodingAndPersisting(data: ValGeocodingRequest[]) {
     this.displayGcSpinner = true;
-    this.locationListService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
+    this.geocodingService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
       this.handlePersist(result.map(r => r.toGeoLocation(this.listType)));
       this.displayGcSpinner = false;
     });

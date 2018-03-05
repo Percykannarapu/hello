@@ -1,89 +1,89 @@
 <div class="ui-g dashboard no_vertical_space">
-   <div class="ui-g-12 no_vertical_space">
-      <!--<p-messages [(value)]="msgs"></p-messages>-->
-   </div>
+  <div class="ui-g-12 no_vertical_space">
+    <!--<p-messages [(value)]="msgs"></p-messages>-->
+  </div>
 
-   <!-- COLORBOX COMPONENTS -->
-   <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Green Sites Box Overlay -->
-      <val-color-box   header="Locations"
+  <!-- COLORBOX COMPONENTS -->
+  <div class="ui-g-12 ui-md-6 ui-lg-3">
+    <!-- Home for Green Sites Box Overlay -->
+    <val-color-box   header="Locations"
                      boxStyle="colorboxPicker-green"
-                   popupWidth="60%"
-                         icon="my_location"
-                      [model]="metricMapGreen"
-                      displayOverlay="true"
-                      #locationsColorBox>
+                     popupWidth="60%"
+                     icon="my_location"
+                     [model]="metricMapGreen"
+                     displayOverlay="true"
+                     #locationsColorBox>
 
-         <p-tabView styleClass="ui-tabview-panels-nopad">
-            <p-tabPanel header="Add Locations">
-               <p-accordion>
-                    <p-accordionTab header="Upload">
-                            <val-upload-locations #uploadLocations>Loading...</val-upload-locations>
-                        </p-accordionTab>
-                     <p-accordionTab header="Manually Add">
-                        <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
-                     </p-accordionTab>
-                     <p-accordionTab header="Business Search">
-                        <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
-                     </p-accordionTab>
-                     <!-- Removing the demo content: US6650 nallana-->
-                     <!-- <p-accordionTab header="Copy">
-                         Copy from another profile
-                     </p-accordionTab> -->
-                 </p-accordion>
-            </p-tabPanel>
-            <p-tabPanel header="Manage Locations">
-               <val-amsite-list>Loading AmSiteList...</val-amsite-list>
-            </p-tabPanel>
-            <p-tabPanel header="Define Trade Areas">
-               <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>
-         </p-tabPanel>
+      <p-tabView styleClass="ui-tabview-panels-nopad">
+        <p-tabPanel header="Add Locations">
+          <p-accordion>
+            <p-accordionTab header="Upload">
+              <val-upload-locations #uploadLocations>Loading...</val-upload-locations>
+            </p-accordionTab>
+            <p-accordionTab header="Manually Add">
+              <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
+            </p-accordionTab>
+            <p-accordionTab header="Business Search">
+              <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
+            </p-accordionTab>
+            <!-- Removing the demo content: US6650 nallana-->
+            <!-- <p-accordionTab header="Copy">
+                Copy from another profile
+            </p-accordionTab> -->
+          </p-accordion>
+        </p-tabPanel>
+        <!--<p-tabPanel header="Manage Locations">-->
+          <!--<val-amsite-list>Loading AmSiteList...</val-amsite-list>-->
+        <!--</p-tabPanel>-->
+        <p-tabPanel header="Define Trade Areas">
+          <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>
+        </p-tabPanel>
       </p-tabView>
 
-      </val-color-box>
-   </div>
+    </val-color-box>
+  </div>
 
-   <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Blue Household Count Box Overlay -->
-      <val-color-box header="Campaign Details"
-                     boxStyle="colorboxPicker-teal"
-                  popupWidth="80%"
-                        icon="done_all"
-                     [model]="metricMapBlue"
-                     displayOverlay="true"
-                     #campaignColorBox>
-         <p-tabView styleClass="ui-tabview-panels">
-            <p-tabPanel header="Discovery">
-               <val-discovery-input></val-discovery-input>
-            </p-tabPanel>
-         </p-tabView>
-      </val-color-box>
-   </div>
+  <div class="ui-g-12 ui-md-6 ui-lg-3">
+    <!-- Home for Blue Household Count Box Overlay -->
+    <val-color-box header="Campaign Details"
+                   boxStyle="colorboxPicker-teal"
+                   popupWidth="80%"
+                   icon="done_all"
+                   [model]="metricMapBlue"
+                   displayOverlay="true"
+                   #campaignColorBox>
+      <p-tabView styleClass="ui-tabview-panels">
+        <p-tabPanel header="Discovery">
+          <val-discovery-input></val-discovery-input>
+        </p-tabPanel>
+      </p-tabView>
+    </val-color-box>
+  </div>
 
-   <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Target Audience Box Overlay -->
-      <val-color-box  header="Target Audience"
-                     boxStyle="colorboxPicker-slate"
-                   popupWidth="60%"
-                         icon="tune"
-                      [model]="metricMapPurple"
-                      displayOverlay="true"
-                      #audienceColorBox>
-         <p-tabView>
-            <p-tabPanel header="Demographic Variables">
-                <val-demo-variables></val-demo-variables>
-            </p-tabPanel>
-         </p-tabView>
-      </val-color-box>
-   </div>
+  <div class="ui-g-12 ui-md-6 ui-lg-3">
+    <!-- Home for Target Audience Box Overlay -->
+    <val-color-box  header="Target Audience"
+                    boxStyle="colorboxPicker-slate"
+                    popupWidth="60%"
+                    icon="tune"
+                    [model]="metricMapPurple"
+                    displayOverlay="true"
+                    #audienceColorBox>
+      <p-tabView>
+        <p-tabPanel header="Demographic Variables">
+          <val-demo-variables></val-demo-variables>
+        </p-tabPanel>
+      </p-tabView>
+    </val-color-box>
+  </div>
 
-   <div class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Performance ColorBox Overlay -->
-      <val-color-box   header="Performance"
+  <div class="ui-g-12 ui-md-6 ui-lg-3">
+    <!-- Home for Performance ColorBox Overlay -->
+    <val-color-box   header="Performance"
                      boxStyle="colorboxPicker-blue"
-                   popupWidth="60%"
-                        icon="send"
-                    pTooltip="Predicted Response is the number of households expected to act on the offer received.
+                     popupWidth="60%"
+                     icon="send"
+                     pTooltip="Predicted Response is the number of households expected to act on the offer received.
 
                               Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
 
@@ -91,71 +91,71 @@
                      [model]="metricMapTeal"
                      displayOverlay="false"
                      #performanceColorBox>
-        <!-- For now we are removing the tab panel since there is no content for it currently
-        <p-tabView>
-            <p-tabPanel header="RAD Service">
-               <val-raddata></val-raddata>
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 2">
-               Content 2
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 3">
-               <p-panel class="colorboxPicker-blue">
-                  <p-header>
-                     <div>🚨🚧 Under Construction 🚧🚨</div>
-                     Some sort of chart that tells somebody something
-                  </p-header>
-                  <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
-               </p-panel>
-            </p-tabPanel>
-         </p-tabView>-->
-         </val-color-box>
-   </div>
-   <!-- COLORBOX COMPONENTS END -->
+      <!-- For now we are removing the tab panel since there is no content for it currently
+      <p-tabView>
+          <p-tabPanel header="RAD Service">
+             <val-raddata></val-raddata>
+          </p-tabPanel>
+          <p-tabPanel header="Header Tab 2">
+             Content 2
+          </p-tabPanel>
+          <p-tabPanel header="Header Tab 3">
+             <p-panel class="colorboxPicker-blue">
+                <p-header>
+                   <div>🚨🚧 Under Construction 🚧🚨</div>
+                   Some sort of chart that tells somebody something
+                </p-header>
+                <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
+             </p-panel>
+          </p-tabPanel>
+       </p-tabView>-->
+    </val-color-box>
+  </div>
+  <!-- COLORBOX COMPONENTS END -->
 
-   <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
-   <div class="ui-g-12 no_vertical_space">
-      <!-- ESRI Map -->
-      <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
-         <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
-            <div class="ug-g-12">
-               <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
-            </div>
-         </p-sidebar>
-         <div id="outerMapDiv" class="val-flush-to-edges">
-            <p-toolbar class="val-thin-toolbar>">
-               <div class="val-flush-to-edges">
-                  <!-- <i style="margin-left: 20px"></i> -->
-                  <!-- button pButton type="button" label="New" icon="fa-plus"></button -->
-                  <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
-                  <!-- <i class="fa fa-bars"></i> -->
+  <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
+  <div class="ui-g-12 no_vertical_space">
+    <!-- ESRI Map -->
+    <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
+      <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
+        <div class="ug-g-12">
+          <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
+        </div>
+      </p-sidebar>
+      <div id="outerMapDiv" class="val-flush-to-edges">
+        <p-toolbar class="val-thin-toolbar>">
+          <div class="val-flush-to-edges">
+            <!-- <i style="margin-left: 20px"></i> -->
+            <!-- button pButton type="button" label="New" icon="fa-plus"></button -->
+            <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
+            <!-- <i class="fa fa-bars"></i> -->
 
-               <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
-            </div>
-         </p-toolbar>
-            <app-esri-map>Loading Map...</app-esri-map>
-         </div>
-      </p-panel>
-      <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true">
-         <p-header style="text-align: center;" pTooltip="Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}">Locations / Geographies</p-header>
-
-         <val-geofootprint-geo-list></val-geofootprint-geo-list>
-      </p-panel>
-   </div>
-
-   <div>
-      <br><br><br>
-   </div>
-
-<!-- TODO:  This needs to be moved
-<div class="ui-g ui-fluid">
-    <p-dialog [closable]="true" header="Drawing Buffer" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
-      width="300">
-      <div class="ui-g-3"></div>
-      <div class="ui-g-5">
-        <p-progressSpinner></p-progressSpinner>
+            <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
+          </div>
+        </p-toolbar>
+        <app-esri-map>Loading Map...</app-esri-map>
       </div>
-      <div class="ui-g-4"></div>
-    </p-dialog>
-</div> -->
+    </p-panel>
+    <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true">
+      <p-header style="text-align: center;" pTooltip="Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}">Locations / Geographies</p-header>
+
+      <val-geofootprint-geo-list></val-geofootprint-geo-list>
+    </p-panel>
+  </div>
+
+  <div>
+    <br><br><br>
+  </div>
+
+  <!-- TODO:  This needs to be moved
+  <div class="ui-g ui-fluid">
+      <p-dialog [closable]="true" header="Drawing Buffer" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
+        width="300">
+        <div class="ui-g-3"></div>
+        <div class="ui-g-5">
+          <p-progressSpinner></p-progressSpinner>
+        </div>
+        <div class="ui-g-4"></div>
+      </p-dialog>
+  </div> -->
 </div>

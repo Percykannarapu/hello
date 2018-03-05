@@ -2,6 +2,7 @@ import { ElementRef, Injectable } from '@angular/core';
 import { EsriModules } from './esri-modules.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import { publish, publishReplay, refCount } from 'rxjs/operators';
 
 @Injectable()
 export class EsriMapService {
@@ -50,13 +51,13 @@ export class EsriMapService {
     return Observable.create(observer => {
       const esriHandle = this.map.watch('basemap', m => observer.next(m));
       return () => esriHandle.remove();
-    }).publishReplay(1).refCount();
+    }).pipe(publishReplay(1), refCount());
   }
 
   private createClickHandler() : Observable<__esri.MapViewClickEvent> {
     return Observable.create(observer => {
       const esriHandle = this.mapView.on('click', e => observer.next(e));
       return () => esriHandle.remove();
-    }).publish().refCount();
+    }).pipe(publish(), refCount());
   }
 }

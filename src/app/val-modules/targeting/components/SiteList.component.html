@@ -5,8 +5,8 @@
       </div>
    </p-dialog>
 </div>
-    
-<!-- <div class="ui-g ui-fluid">   
+
+<!-- <div class="ui-g ui-fluid">
    <p-dialog header="Add Site From Search" [(visible)]="displaySearchDialog" modal="true" [responsive]="true">
       <div class="ui-g-12">
          <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
@@ -19,7 +19,7 @@
    <button type="text" (click)="showAddDialog()" pButton icon="fa fa-plus" label="Add" pInputText pTooltip="Add a site manually" tooltipPosition="top" placeholder="Top"></button>
    <button type="text" (click)="showSearchDialog()" pButton icon="fa-fontAwesome fa-search-plus" label="Search" pInputText pTooltip="Add sites using business search" tooltipPosition="top" placeholder="Top"></button> -->
    <!-- </div> -->
-    
+
 <!-- <p-dataTable [value]="amSiteService.amSites" resizableColumns="true" [responsive]="true" [globalFilter]="gb" selectionMode="multiple"
    [(selection)]="selectedSites" [rows]="8" [paginator]="true"> (onRowSelect)="onRowSelect($event)"  (onRowUnselect)="onRowUnselect($event)"-->
 <div class="ui-g-12">
@@ -27,15 +27,15 @@
       <label>Manage for:</label>
    </div>
    <div class="ui-g-1">
-      <p-radioButton name="am_Group" value="Site" label="Sites" [(ngModel)]="selectedValue" inputId="Sites" (ngModelChange)="onGroupChange(selectedValue)"></p-radioButton>
+      <p-radioButton name="am_Group" value="Site" label="Sites" [(ngModel)]="selectedValue" (ngModelChange)="onGroupChange($event)"></p-radioButton>
    </div>
    <div class="ui-g-4">
-      <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="Competitors" (ngModelChange)="onGroupChange(selectedValue)"></p-radioButton>
+      <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" (ngModelChange)="onGroupChange($event)"></p-radioButton>
    </div>
 </div>
 
-<!-- <p-dataTable #siteDt  [value]="impGeofootprintLocList" [(selection)]="selectedImpGeofootprintLocList" expandableRows="true" 
-   resizableColumns="true"   selectionMode="multiple" [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
+<!-- <p-dataTable #siteDt  [value]="impGeofootprintLocList" [(selection)]="selectedImpGeofootprintLocList" expandableRows="true"
+   resizableColumns="true"   selectionMode="multiple" [rows]="8" [paginator]="true" showToggleAll="true"  [headerCheckboxToggleAllPages]="true"
    columnResizeMode="expand" responsive="true" [editable]="true"> -->
 
 <div class="ui-g-12" >
@@ -43,9 +43,9 @@
       [value]="impGeofootprintFilteredSitesList"
       [(selection)]="selectedImpGeofootprintLocList"
       expandableRows="true" resizableColumns="true" [rows]="8" [paginator]="true"
-      showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 
+      showToggleAll="true"  [headerCheckboxToggleAllPages]="true"
       columnResizeMode="expand" responsive="true" [editable]="true">
-      <p-header> 
+      <p-header>
          <div class="ui-g" style="flex-wrap: nowrap !important;">
             <div class="ui-g-12 ui-g-nopad">
                <div class="ui-g-1" style="min-width:25px; width:25px">
@@ -63,24 +63,24 @@
                </div>
                <!--US6650: nallana
                     Removing the demo content
-                    We need to keep this content for enhancements, 
-                    if we want to use the additional functionality 
+                    We need to keep this content for enhancements,
+                    if we want to use the additional functionality
                     -->
                    <!-- <div class="ui-g-1" style="float:right">
-                      <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All" 
+                      <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All"
                          (click)="siteDt.exportCSV()" style="float:right"
                          pTooltip="This will export all of the sites, even if unchecked." tooltipPosition="top"></button>
                       </div>
                    <div class="ui-g-1" style="float:right">
-                         <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected" 
+                         <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected"
                          (click)="siteDt.exportCSV({selectionOnly:true})" style="float:right"
-                         pTooltip="This will export only the sites that are checked." tooltipPosition="top"></button>                              
+                         pTooltip="This will export only the sites that are checked." tooltipPosition="top"></button>
                       </div> -->
                   <div class="ui-g-2" style="float:right; color: white;">
                      <p-multiSelect defaultLabel="Choose Columns" [options]="geocodingRespService.columnOptions" [(ngModel)]="geocodingRespService.cols"></p-multiSelect>
-                  </div>                           
+                  </div>
                </div>
-            </div>         
+            </div>
       </p-header>
       <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
       <p-column selectionMode="multiple" [style]="{'width':'40px'}"></p-column>
@@ -96,17 +96,17 @@
       </p-column>
       <!-- <p-column header="Edit" [style]="{'width':'60px'}" >
             <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
-                  <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>   
-            </ng-template>  
+                  <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit"></button>
+            </ng-template>
       </p-column> -->
-               
-      <p-column *ngFor="let col of cols" 
-         [field]="col.field" 
-         [header]="col.header" 
-         [editable]="true"  
-         [style]="{'width': col.size}">         
-      </p-column>  
-    
+
+      <p-column *ngFor="let col of cols"
+         [field]="col.field"
+         [header]="col.header"
+         [editable]="true"
+         [style]="{'width': col.size}">
+      </p-column>
+
       <ng-template let-site pTemplate="rowexpansion">
          <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
             <div class="ui-grid-row">
@@ -116,10 +116,10 @@
                   <!-- <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column> -->
                   <p-column *ngFor="let col of geocodingRespService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}"></p-column>
                </p-dataTable>
-            </div>  
-         </div>   
+            </div>
+         </div>
       </ng-template>
-      
+
       <ng-template pTemplate="emptymessage">
          No locations added.  Use the "Add Locations" tab above.
       </ng-template>
@@ -129,12 +129,12 @@
       [value]="impGeofootprintFilteredSitesList"
       [(selection)]="selectedImpGeofootprintLocList"
       expandableRows="true" resizableColumns="true"
-      [rows]="8" [paginator]="true" showToggleAll="true" [headerCheckboxToggleAllPages]="true" 
+      [rows]="8" [paginator]="true" showToggleAll="true" [headerCheckboxToggleAllPages]="true"
       columnResizeMode="expand" responsive="true" [editable]="true"
       (onRowUnselect)="onRowUnselect($event)"
       (onRowSelect)="onRowSelect($event)"
       headerStyle="text-align:left">
-      <p-header> 
+      <p-header>
          <div class="ui-g" style="flex-wrap: nowrap !important;">
             <div class="ui-g-12 ui-g-nopad">
                <div class="ui-g-1" style="min-width:25px; width:25px">
@@ -152,24 +152,24 @@
                </div>
                <!--US6650: nallana
                   Removing the demo content
-                  We need to keep this content for enhancements, 
-                  if we want to use the additional functionality 
+                  We need to keep this content for enhancements,
+                  if we want to use the additional functionality
                   -->
                <!-- <div class="ui-g-1" style="float:right">
-                  <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All" 
+                  <button type="button" pButton icon="fa-fontAwesome fa-file-o" iconPos="left" label="Export All"
                      (click)="siteDt.exportCSV()" style="float:right"
                      pTooltip="This will export all of the sites, even if unchecked." tooltipPosition="top"></button>
                   </div>
                <div class="ui-g-1" style="float:right">
-                     <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected" 
+                     <button type="button" pButton icon="fa-fontAwesome fa-file" iconPos="left" label="Export Selected"
                      (click)="siteDt.exportCSV({selectionOnly:true})" style="float:right"
-                     pTooltip="This will export only the sites that are checked." tooltipPosition="top"></button>                              
+                     pTooltip="This will export only the sites that are checked." tooltipPosition="top"></button>
                   </div> -->
                <div class="ui-g-2" style="float:right; color: white;">
                   <p-multiSelect defaultLabel="Choose Columns" [options]="geocodingRespService.columnOptions" [(ngModel)]="geocodingRespService.cols"></p-multiSelect>
-               </div>                           
+               </div>
             </div>
-         </div>   
+         </div>
       </p-header>
 
       <p-column expander="true" styleClass="col-icon" [style]="{'width':'30px'}"></p-column>
@@ -187,15 +187,15 @@
       <!-- <p-column header="Edit" [style]="{'width':'35px'}" >
          <ng-template let-site="rowData" let-i="rowIndex"  pTemplate="body"  >
             <button type="button" pButton (click)="onEditSite(site)" icon="ui-icon-edit" style="width:25px;height:25px"></button>
-         </ng-template>  
+         </ng-template>
       </p-column> -->
-            
-      <p-column *ngFor="let col of cols" 
-         [field]="col.field" 
-         [header]="col.header" 
-         [editable]="true"  
+
+      <p-column *ngFor="let col of cols"
+         [field]="col.field"
+         [header]="col.header"
+         [editable]="true"
          [style]="{'width': col.size}">
-      </p-column>  
+      </p-column>
 
       <ng-template let-site pTemplate="rowexpansion">
       <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
@@ -205,10 +205,10 @@
                [paginator]="true" [rows]="25" >
                <!-- <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column> -->
                <p-column *ngFor="let col of geocodingRespService.cols" [field]="col.field" [header]="col.header" [style]="{'width': col.size}">
-               </p-column>                           
+               </p-column>
             </p-dataTable>
-         </div>  
-      </div>   
+         </div>
+      </div>
       </ng-template>
 
       <ng-template pTemplate="emptymessage">

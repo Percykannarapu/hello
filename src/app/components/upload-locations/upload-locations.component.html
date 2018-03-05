@@ -5,10 +5,10 @@
         <label>Add as:</label>
       </div>
       <div class="ui-g-3">
-        <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="listType" inputId="sites"></p-radioButton>
+        <p-radioButton name="uploadListType" value="Site" label="Sites" [(ngModel)]="listType"></p-radioButton>
       </div>
       <div class="ui-g-5">
-        <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="listType" inputId="competitors"></p-radioButton>
+        <p-radioButton name="uploadListType" value="Competitor" label="Competitors" [(ngModel)]="listType"></p-radioButton>
       </div>
     </div>
     <div class="ui-g-12">
@@ -22,9 +22,9 @@
       </div>
     </div>
   </div>
-  <div *ngIf="locationListService.hasFailures$ | async" class="ui-g-7">
-    <p-dataTable [value]="locationListService.geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-      <p-header>Detected {{(locationListService.failureCount$ | async) || 0}} geocoding failures</p-header>
+  <div *ngIf="geocodingService.hasFailures$ | async" class="ui-g-7">
+    <p-dataTable [value]="geocodingService.geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
+      <p-header>Detected {{(geocodingService.failureCount$ | async) || 0}} geocoding failures</p-header>
       <p-column field="Number" [hidden]="true"></p-column>
       <p-column field="Original Address" header="Street" [editable]="true"></p-column>
       <p-column field="Original City" header="City" [editable]="true"></p-column>
