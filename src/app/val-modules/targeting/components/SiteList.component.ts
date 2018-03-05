@@ -71,38 +71,11 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    onGroupChange(selector){
      // update the grid as soon as the geocodingResponseService gives data
-     if (selector === 'Site'){
-       let tempList = [];
-       this.impGeofootprintFilteredSitesList = [];
-       tempList = this.impGeofootprintLocationService.get();
-       for (let i = 0; i < tempList.length; i++){
-         console.log(tempList[i].impClientLocationType);
-         if (tempList[i].impClientLocationType === 'Site'){
-           this.impGeofootprintFilteredSitesList.push(tempList[i]);
-         }
-       }
+    
+     this.impGeofootprintFilteredSitesList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === selector);
 
-     //this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
-
-    //  Array< ImpGeofootprintLocation >.filter(checkForFilter: (value: ImpGeofootprintLocation, ));
-     this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
-     this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    } else {
-      let tempList = [];
-      this.impGeofootprintFilteredCompList = [];
-      tempList = this.impGeofootprintLocationService.get();
-       for (let i = 0; i < tempList.length; i++){
-         console.log(tempList[i].impClientLocationType);
-         if (tempList[i].impClientLocationType === 'Competitor'){
-           this.impGeofootprintFilteredCompList.push(tempList[i]);
-         }
-       }
-      //this.impGeofootprintCompList = this.impGeofootprintLocationService.get();
-      this.selectedImpGeofootprintCompList = this.impGeofootprintFilteredCompList;
-      this.metricService.add('LOCATIONS', '# of Competitors', this.impGeofootprintFilteredCompList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    }
-    //this.gridData = this.selectedValue === 'Site' ? this.impGeofootprintLocList : this.geocodingRespService.amComps;
-   // this.geocodingRespService.createGrid();
+    this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
+    this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
    }
 
    // zoom to a site when the user clicks the zoom button on the sites grid

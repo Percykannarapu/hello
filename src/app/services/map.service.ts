@@ -1738,6 +1738,10 @@ export class MapService {
                                     this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                                 } else {
                                     MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                    const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
+                                    const newGeo = Array.from(geos.slice(0, 1));
+                                    newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                    this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                                 }
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
 
