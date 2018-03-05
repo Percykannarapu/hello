@@ -21,7 +21,6 @@ export class ValGeocodingResponse {
   'Match Quality': string;
   [key: string] : any;
 
-
   constructor(initializer: any) {
     Object.assign(this, initializer);
   }
@@ -82,4 +81,5 @@ export class ValGeocodingResponse {
     }
     return result;
   }
+
 }

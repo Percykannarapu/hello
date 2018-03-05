@@ -27,43 +27,38 @@ export class ValGeocodingService {
     }
   }
 
-  public resubmitFailedGeocode(data: ValGeocodingResponse) : Promise<ValGeocodingResponse> {
-    const retry = data.toGeocodingRequest();
-    const failures = this.failures.getValue();
-    const removedIndex = failures.indexOf(data);
-    if (removedIndex >= 0) {
-      failures.splice(removedIndex, 1);
-    }
-    return this.geocodeLocations([retry]).then(res => res[0]);
-  }
-
   public geocodeLocations(sites: ValGeocodingRequest[]) : Promise<ValGeocodingResponse[]> {
-    let geoCoderPromise: Promise<ValGeocodingResponse[]>;
-    if (sites.length > 0) {
-      geoCoderPromise = this.restService.post('v1/geocoder/multiplesites', sites).toPromise()
+    let geocoderPromise: Promise<ValGeocodingResponse[]>;
+    const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
+    if (sites.length > preGeoCodedSites.length) {
+      const cleanRequestData = sites.filter(s => s.hasLatAndLong() === false).map(s => s.cleanUploadRequest());
+      geocoderPromise = this.restService.post('v1/geocoder/multiplesites', cleanRequestData).toPromise()
         .catch(err => {
           console.error(err);
           return Promise.reject([]);
         })
         .then(data => {
-          const splitData: { success: ValGeocodingResponse[], failure: ValGeocodingResponse[] } = data.payload.reduce((p, c: ValGeocodingResponse) => {
-            if (c['Match Quality'] === 'E' || c['Match Code'].startsWith('E')) {
-              c['Geocode Status'] = 'ERROR';
-              p.failure.push(new ValGeocodingResponse(c));
+          const fail: ValGeocodingResponse[] = [];
+          const success: ValGeocodingResponse[] = [];
+          data.payload.forEach(d => {
+            if (d['Match Quality'] === 'E' || d['Match Code'].startsWith('E')) {
+              d['Geocode Status'] = 'ERROR';
+              fail.push(new ValGeocodingResponse(d));
             } else {
-              p.success.push(new ValGeocodingResponse(c));
+              d['Geocode Status'] = 'SUCCESS';
+              success.push(new ValGeocodingResponse(d));
             }
-            return p;
-          }, {success: [], failure: []});
-          this.failures.next([...splitData.failure]);
+          });
+          const projectFailures =  this.failures.getValue();
+          this.failures.next([...fail, ...projectFailures]);
           this.showCompletedMessage();
-          return splitData.success;
+          return preGeoCodedSites.concat(success);
         });
     }
-    if (geoCoderPromise) {
-      return geoCoderPromise;
+    if (geocoderPromise) {
+      return geocoderPromise;
     } else {
-      return Promise.resolve([]);
+      return Promise.resolve(preGeoCodedSites);
     }
   }
 

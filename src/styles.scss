@@ -68,3 +68,16 @@
 .ui-g-offset-half {
   margin-left: 4%;
 }
+
+// for prime-ng internal styling tweaks to the upload-locations component:
+.file-upload-align {
+  padding-top: 20px;
+
+  .ui-fileupload-choose {
+    padding: 0 3em;
+
+    .ui-button-icon-left {
+      display: none;
+    }
+  }
+}

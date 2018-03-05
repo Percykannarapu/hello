@@ -12,14 +12,10 @@
       </div>
     </div>
     <div class="ui-g-12">
-      <div class="ui-g-5">
-        <label for="fileUpload1" class="ui-button ui-clickable ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
-          style="width: 100%;" pTooltip="CSV format required">
-          <span style="padding-top: 6px; text-align:center">
-            <input #fileUpload1 id="fileUpload1" type="file" #fileImportInput name="File Upload" (change)="uploadCsv($event)" accept=".csv"/>
-            Select File
-          </span>
-        </label>
+      <div class="ui-g-12">
+        <p-fileUpload #fileUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv" chooseLabel="Select File"
+                      pTooltip="CSV format required" [customUpload]="true" (uploadHandler)="uploadCsv($event)" [auto]="true">
+        </p-fileUpload>
       </div>
       <div class="ui-g-12">
         <a target="_self" href="./assets/sample/sample.csv" [download]="'Sample.csv'">Sample Upload template</a>

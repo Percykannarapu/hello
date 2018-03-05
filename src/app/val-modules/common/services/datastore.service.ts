@@ -274,7 +274,7 @@ export class DataStore<T>
 
    /**
     * This appears to be broken right now.
-    * @param search 
+    * @param search
     */
    public findIndex(search: any)
    {
@@ -310,7 +310,12 @@ export class DataStore<T>
       // Register data store change and notify observers
       this._storeSubject.next(this._dataStore);
    }
-   
+
+   public updateRef()
+   {
+      this._storeSubject.next(this._dataStore);
+   }
+
    public clearAll()
    {
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
