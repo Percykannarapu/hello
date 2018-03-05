@@ -61,6 +61,7 @@ export class BusinessSearchComponent implements OnInit {
     //Dropdown data
 
     this.dropdownList = [
+      { label: 'Select SIC Category (optional)', value: { name: 'Select SIC Category (optional)'} },
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
       { label: 'Automotive Dealers & Service Stations', value: { name: 'Automotive Dealers & Service Stations', category: 55 } },
