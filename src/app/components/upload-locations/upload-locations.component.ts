@@ -301,6 +301,7 @@ export class UploadLocationsComponent implements OnInit {
         //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
         //Hide the spinner on error
         this.displayGcSpinner = false;
+        this.fileUploadEl.nativeElement.value = '';
         throw new Error(validationError);
       }
     }
@@ -309,6 +310,7 @@ export class UploadLocationsComponent implements OnInit {
       //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.fileUploadEl.nativeElement.value = '';
       throw new Error(validationError);
     }
 
@@ -317,6 +319,7 @@ export class UploadLocationsComponent implements OnInit {
       //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.fileUploadEl.nativeElement.value = '';
       throw new Error(validationError);
     }
     return headerPosition;
