@@ -9,7 +9,6 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { DefaultLayers } from '../../models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
-import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocoderService } from '../../services/geocoder.service';
@@ -32,6 +31,7 @@ export class BusinessSearchComponent implements OnInit {
   public numFound: number;
   public mapView: __esri.MapView;
   public color: any;
+  items: any = [];
   dropdownList: any[];
   selectedCategory: any;
   selector: any;
@@ -56,8 +56,7 @@ export class BusinessSearchComponent implements OnInit {
     private appService: AppService,
     private mapService: MapService,
     private geocodingRespService: GeocodingResponseService,
-    private messageService: MessageService,
-    private amSiteService: AmSiteService) {
+    private messageService: MessageService) {
     //Dropdown data
 
     this.dropdownList = [
@@ -105,8 +104,8 @@ export class BusinessSearchComponent implements OnInit {
     if (!value) {
       this.assignCopy();
     } else if (value.length > 2) {
-      this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
-        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
+      this.sourceCategories = Object.assign([], this.filteredCategories.sort(this.sortOn('name'))).filter((item) => {
+        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;  
       });
     }
 
@@ -276,10 +275,10 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   //adding points on the map
-  async onAddToProject(selector) {
-    console.log('selector: ', selector);
+  async onAddToProject(selector2) {
+    console.log('selector: ', selector2);
     //Giving color to the point on the map
-    if (selector === 'Site') {
+    if (selector2 === 'Site') {
       this.color = {
         a: 1,
         r: 35,
@@ -288,7 +287,7 @@ export class BusinessSearchComponent implements OnInit {
       };
       //Close the sidebar after we select the points to be mapped
       //this.showSideBar.emit(false);
-    } else if (selector === 'Competitor') {
+    } else if (selector2 === 'Competitor') {
       this.color = {
         a: 1,
         r: 255,
@@ -308,7 +307,7 @@ export class BusinessSearchComponent implements OnInit {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
         console.log('long: x', business.x + 'lat: y', business.y);
-        popupTemplate.title = `${selector}`,
+        popupTemplate.title = `${selector2}`,
           popupTemplate.content =
           `<table>
           <tbody>
@@ -333,9 +332,9 @@ export class BusinessSearchComponent implements OnInit {
           });
       }
     }
-    //this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
+    this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
     //console.log('this.plottedpoints', this.plottedPoints);
-    this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
+    this.geocoderService.addSitesToMap(this.plottedPoints, selector2); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
     this.appService.closeOverLayPanel.next(true);
     // if (selector === 'Competitor') {
     //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});

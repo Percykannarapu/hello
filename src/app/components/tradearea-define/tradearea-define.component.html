@@ -31,17 +31,15 @@
       <button (click)="onApplyBtnClick()" pButton label="Apply" [disabled]="applyDisabled()"></button>
     </div>
   </div>
-
-  <!-- Add the Spinner when drawing a buffer -->
-  <div class="ui-g ui-fluid">
-    <p-dialog [closable]="true" header="Drawing Buffer" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
-              width="300">
-      <div class="ui-g-3"></div>
-      <div class="ui-g-5">
-        <p-progressSpinner></p-progressSpinner>
-      </div>
-      <div class="ui-g-4"></div>
-    </p-dialog>
-  </div>
-
+</div>
+<!-- Modal window for GP spinner -->
+<div class="ui-g ui-fluid">
+  <p-dialog #dialog1 [closable]="true" header="{{displaySpinnerMessage}}" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
+    width="300" appendTo="body">
+    <div class="ui-g-3"></div>
+    <div class="ui-g-5">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+    <div class="ui-g-4"></div>
+  </p-dialog>
 </div>
