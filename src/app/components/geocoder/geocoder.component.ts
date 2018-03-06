@@ -119,10 +119,10 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   onGeocode(selector) {
     const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
     console.log('analysis level:::', discoveryUI[0].analysisLevel);
-    if(this.selector1 === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null) ){
+    if (this.selector1 === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null) ){
       this.callGeocode(selector);
     }
-    else if(this.selector1 != 'Competitor'){
+    else if (this.selector1 != 'Competitor'){
       const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
       this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //throw new Error(validationError);
@@ -145,7 +145,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
       site.zip = (this.zip != null) ? this.zip.toString() : null;
       site.marketName = this.market;
       site.longitude = this.xcoord;
-      site.latitude= this.ycoord;
+      site.latitude = this.ycoord;
 
       if (site.longitude != null && site.latitude != null)
       {
@@ -354,7 +354,7 @@ export class GeocoderComponent implements OnInit, AfterViewInit {
   }
 
   loadSkyZone() {
-     this.name = 'Sky Zone Trampoline Park'
+     this.name = 'Sky Zone Trampoline Park';
      this.street = '10080 E 121st St #182';
      this.city = 'Fishers';
      this.state = 'IN';

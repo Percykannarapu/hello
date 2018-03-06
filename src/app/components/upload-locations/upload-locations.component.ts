@@ -104,21 +104,22 @@ export class UploadLocationsComponent implements OnInit {
   ngOnInit() {
   }
 
-  uploadCSV(event) {
+  validateCSV() {
     const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
     console.log('analysis level:::',  discoveryUI[0].analysisLevel);
-    if(this.selector === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null)){
-      this.callUploadCSV(event);
+    if (this.selector === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null)){
+    //  this.callUploadCSV(event);
     }
-    else if(this.selector != 'Competitor'){
+    else if (this.selector != 'Competitor'){
       const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
       this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
+      this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
       //this.messageService.clear();
-      //throw new Error(validationError);
+      throw new Error(validationError);
     }
   }
 
-  callUploadCSV(event) {
+  uploadCSV(event) {
     const input = event.target;
     const reader = new FileReader();
     reader.readAsText(input.files[0]);
