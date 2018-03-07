@@ -32,11 +32,14 @@ export class GeocoderComponent implements OnInit {
     this.currentModel = this.siteModel;
   }
 
+
   public onSiteTypeChange($event) : void {
-    if ($event === 'Site') {
-      this.currentModel = this.siteModel;
-    } else {
-      this.currentModel = this.compModel;
+      if ($event === 'Site'){
+             this.currentModel =
+            this.siteModel;
+     } else{
+         this.currentModel =
+      this.compModel;
     }
     this.currentManualSiteType = $event;
   }
