@@ -71,11 +71,16 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    onGroupChange(selector){
      // update the grid as soon as the geocodingResponseService gives data
-    
+    if (selector === 'Site'){
      this.impGeofootprintFilteredSitesList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === selector);
+     this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
+     this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    } else{
+      this.impGeofootprintFilteredCompList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === selector);
+      this.selectedImpGeofootprintCompList = this.impGeofootprintFilteredCompList;
+      this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredCompList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    }
 
-    this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
-    this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
    }
 
    // zoom to a site when the user clicks the zoom button on the sites grid
