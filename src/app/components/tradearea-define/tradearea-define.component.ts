@@ -36,7 +36,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     temp = [];
 
     constructor(
-        private mapService: MapService,
+        public mapService: MapService,
         private messageService: MessageService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
         private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,

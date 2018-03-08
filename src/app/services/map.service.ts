@@ -578,7 +578,7 @@ export class MapService {
 */
 
     // plotMarker
-    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): EsriWrapper<__esri.MapView> {
+    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
 
         console.log('fired plotMarker() in MapService');
         this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
