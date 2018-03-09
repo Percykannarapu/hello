@@ -68,27 +68,28 @@ export class MapService {
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
     public displayDBSpinner: boolean = false;
+    public displaySpinnerMessage: string = 'Drawing Buffer...';
 
     constructor(private metricService: MetricService,
-                private layerService: EsriLayerService,
-                private esriMapService: EsriMapService,
-                private impGeofootprintGeoService: ImpGeofootprintGeoService,
-                private config: AppConfig,
-                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private impDiscoveryService: ImpDiscoveryService,
-                private geoFootPrintService: GeoFootPrint,
-                private authService:    AuthService,
-                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService) {
-      this.esriMapService.onReady$.subscribe(ready => {
-        if (ready) {
-          this.mapView = this.esriMapService.mapView;
-          this.map = this.esriMapService.map;
-        }
-      });
+        private layerService: EsriLayerService,
+        private esriMapService: EsriMapService,
+        private impGeofootprintGeoService: ImpGeofootprintGeoService,
+        private config: AppConfig,
+        private impGeofootprintLocationService: ImpGeofootprintLocationService,
+        private impDiscoveryService: ImpDiscoveryService,
+        private geoFootPrintService: GeoFootPrint,
+        private authService: AuthService,
+        private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService) {
+        this.esriMapService.onReady$.subscribe(ready => {
+            if (ready) {
+                this.mapView = this.esriMapService.mapView;
+                this.map = this.esriMapService.map;
+            }
+        });
     }
 
     // Initialize Group Layers
-    public initGroupLayers() : void {
+    public initGroupLayers(): void {
         console.log('fired initGroupLayers()');
 
         MapService.EsriGroupLayer = new EsriModules.GroupLayer({
@@ -224,7 +225,7 @@ export class MapService {
     }
 
     // create the MapView
-    public createMapView() : void {
+    public createMapView(): void {
         // Create an instance of the Home widget
         const home = new EsriModules.widgets.Home({
             view: this.mapView
@@ -419,14 +420,14 @@ export class MapService {
                 };
             }
             this.mapView.graphics.add(evt.graphic);
-            
+
             // ----------------------------------------------------------------------------------------
             // Measure Length of PolyLine 
             if (this.mapFunction === mapFunctions.MeasureLine) {
                 const polyline = evt.graphic.geometry;
                 // calculate the area of the polygon
                 const length: number = EsriModules.geometryEngine.geodesicLength(polyline, 'miles');
-                console.log ('drawMeasureLine (length) = ' + length);
+                console.log('drawMeasureLine (length) = ' + length);
                 if (length > 0) {
                     // start displaying the length of the polyline
                     this.labelMeasurePolyLine(polyline, length);
@@ -434,7 +435,7 @@ export class MapService {
                 this.removeActiveButtons();
                 const el: any = document.getElementById('popupsButton');
                 el.classList.add('active');
-                this.mapFunction = mapFunctions.Popups;            
+                this.mapFunction = mapFunctions.Popups;
             }
             // ----------------------------------------------------------------------------------------
         });
@@ -467,7 +468,7 @@ export class MapService {
 
     // Label polyon with its Length
     private labelMeasurePolyLine(polyline: __esri.Polyline, length: number) {
-        
+
         // autocasts as new TextSymbol() 
         const textSym = {
             type: 'text',
@@ -478,18 +479,18 @@ export class MapService {
             xoffset: 50,
             yoffset: 3,
             font: { // autocast as Font
-              size: 10,
-              weight: 'bold',
-              family: 'sans-serif'
+                size: 10,
+                weight: 'bold',
+                family: 'sans-serif'
             }
-          };
+        };
 
         // create a point geometry
         const pt = {
             type: 'point',  // autocasts as new Point()
-            longitude: polyline.getPoint(0, 0).longitude, 
+            longitude: polyline.getPoint(0, 0).longitude,
             latitude: polyline.getPoint(0, 0).latitude
-        };          
+        };
 
         // autocasts as Graphic
         const graphic: any = {
@@ -499,7 +500,7 @@ export class MapService {
 
         this.mapView.graphics.add(graphic);
     }
-      
+
     // Toggle Polygon Selection Mode
     public selectPolyButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.SelectPoly;
@@ -590,13 +591,13 @@ export class MapService {
     }
 
     // Get MapView
-    public getMapView() : __esri.MapView {
+    public getMapView(): __esri.MapView {
         // to return Mapview
         return this.mapView;
     }
 
     // Hide MapLayers
-    public hideMapLayers() : EsriWrapper<__esri.MapView> {
+    public hideMapLayers(): EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
         // Toggle all layers
         this.mapView.map.layers.forEach((layer, i) => {
@@ -609,7 +610,7 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public removeMapLayers() : EsriWrapper<__esri.MapView> {
+    public removeMapLayers(): EsriWrapper<__esri.MapView> {
         console.log('fired removeMapLayers() in MapService');
 
         // remove all layers
@@ -618,7 +619,7 @@ export class MapService {
     }
 
     // Physically Remove MapLayer (or GroupLayer)
-    public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
+    public removeLayer(layer: __esri.Layer): EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         this.mapView.map.remove(layer);
@@ -626,7 +627,7 @@ export class MapService {
     }
 
     // Returns a layer instance from the map based on its title property
-    public findLayerByTitle(title: string) : __esri.Layer {
+    public findLayerByTitle(title: string): __esri.Layer {
         return this.mapView.map.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findLayerByTitle Found: ' + title);
@@ -636,7 +637,7 @@ export class MapService {
     }
 
     // Returns a sublayer instance from the map based on its title property
-    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
+    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string): __esri.Layer {
         return GroupLayer.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findSubLayerByTitle found: ' + layer.title);
@@ -650,7 +651,7 @@ export class MapService {
         console.log('fired: toggleFeatureLayerPopups');
         const layersWithPopups = [this.config.layerIds.atz.topVars, this.config.layerIds.digital_atz.digitalTopVars,
         this.config.layerIds.pcr.topVars, this.config.layerIds.wrap.topVars, this.config.layerIds.zip.topVars,
-          this.config.layerIds.counties.boundaries, this.config.layerIds.dma.boundaries];
+        this.config.layerIds.counties.boundaries, this.config.layerIds.dma.boundaries];
         this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
             //console.log('title: ' + x.title + ' type: ' + x.type);
             if (x.type === 'feature') {
@@ -666,44 +667,44 @@ export class MapService {
     }
 
     private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {
-      // Add this action to the popup so it is always available in this view
-      const measureThisAction = {
-        title: 'Measure Length',
-        id: 'measure-this',
-        className: 'esri-icon-share'
-      };
-      // Add this action to the popup so it is always available in this view
-      const selectThisAction = {
-        title: 'Select Polygon',
-        id: 'select-this',
-        className: 'esri-icon-plus-circled'
-      };
-      const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
-      layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
-        EsriModules.Layer.fromPortalItem(<any>{
-          portalItem: {
-            id: layerDef.id
-          }
-        }).then((currentLayer: __esri.FeatureLayer) => {
-          const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
-          currentLayer.visible = layerDef.defaultVisibility;
-          currentLayer.title = layerDef.name;
-          currentLayer.minScale = layerDef.minScale;
-          currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
-          // Add Layer to Group Layer if it does not already exist
-          if (!group.layers.some(groupContainsLayer(layerDef))) {
-            group.add(currentLayer);
-          }
+        // Add this action to the popup so it is always available in this view
+        const measureThisAction = {
+            title: 'Measure Length',
+            id: 'measure-this',
+            className: 'esri-icon-share'
+        };
+        // Add this action to the popup so it is always available in this view
+        const selectThisAction = {
+            title: 'Select Polygon',
+            id: 'select-this',
+            className: 'esri-icon-plus-circled'
+        };
+        const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
+        layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
+            EsriModules.Layer.fromPortalItem(<any>{
+                portalItem: {
+                    id: layerDef.id
+                }
+            }).then((currentLayer: __esri.FeatureLayer) => {
+                const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
+                currentLayer.visible = layerDef.defaultVisibility;
+                currentLayer.title = layerDef.name;
+                currentLayer.minScale = layerDef.minScale;
+                currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
+                // Add Layer to Group Layer if it does not already exist
+                if (!group.layers.some(groupContainsLayer(layerDef))) {
+                    group.add(currentLayer);
+                }
+            });
         });
-      });
-      if (!this.map.layers.some(l => l === group)) {
-        this.map.layers.add(group);
-        MapService.layers.add(group);
-      }
-      group.visible = true;
+        if (!this.map.layers.some(l => l === group)) {
+            this.map.layers.add(group);
+            MapService.layers.add(group);
+        }
+        group.visible = true;
     }
 
-    public setMapLayers(analysisLevels: string[]) : void {
+    public setMapLayers(analysisLevels: string[]): void {
         console.log('fired setMapLayers() in MapService');
         // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.DmaGroupLayer.visible = false;
@@ -718,41 +719,41 @@ export class MapService {
         // Analysis Levels
         if (analysisLevels.length !== 0) {
             // Loop through each of the selected analysisLevels
-          analysisLevels.forEach(analysisLevel => {
-            switch (analysisLevel) {
-              case 'DMA':
-                this.setupMapGroup(MapService.DmaGroupLayer, Object.values(this.config.layerIds.dma));
-                break;
-              case 'ZIP':
-                this.setupMapGroup(MapService.ZipGroupLayer, Object.values(this.config.layerIds.zip));
-                break;
-              case 'ATZ':
-                this.setupMapGroup(MapService.AtzGroupLayer, Object.values(this.config.layerIds.atz));
-                break;
-              case 'DIG_ATZ':
-                this.setupMapGroup(MapService.DigitalAtzGroupLayer, Object.values(this.config.layerIds.digital_atz));
-                break;
-              case 'PCR':
-                this.setupMapGroup(MapService.PcrGroupLayer, Object.values(this.config.layerIds.pcr));
-                break;
-              case 'WRAP':
-                this.setupMapGroup(MapService.WrapGroupLayer, Object.values(this.config.layerIds.wrap));
-                break;
-              case 'HH':
-                //this.setupMapGroup(MapService.HHGroupLayer, Object.values(this.config.layerIds.hh));
-                break;
-              case 'COUNTY':
-                this.setupMapGroup(MapService.CountyGroupLayer, Object.values(this.config.layerIds.counties));
-                break;
-              default:
-                console.error(`MapService.setMapLayers encountered an unknown analysis level: ${analysisLevel}`);
-            }
-          }); // End forEach analysisLevels
+            analysisLevels.forEach(analysisLevel => {
+                switch (analysisLevel) {
+                    case 'DMA':
+                        this.setupMapGroup(MapService.DmaGroupLayer, Object.values(this.config.layerIds.dma));
+                        break;
+                    case 'ZIP':
+                        this.setupMapGroup(MapService.ZipGroupLayer, Object.values(this.config.layerIds.zip));
+                        break;
+                    case 'ATZ':
+                        this.setupMapGroup(MapService.AtzGroupLayer, Object.values(this.config.layerIds.atz));
+                        break;
+                    case 'DIG_ATZ':
+                        this.setupMapGroup(MapService.DigitalAtzGroupLayer, Object.values(this.config.layerIds.digital_atz));
+                        break;
+                    case 'PCR':
+                        this.setupMapGroup(MapService.PcrGroupLayer, Object.values(this.config.layerIds.pcr));
+                        break;
+                    case 'WRAP':
+                        this.setupMapGroup(MapService.WrapGroupLayer, Object.values(this.config.layerIds.wrap));
+                        break;
+                    case 'HH':
+                        //this.setupMapGroup(MapService.HHGroupLayer, Object.values(this.config.layerIds.hh));
+                        break;
+                    case 'COUNTY':
+                        this.setupMapGroup(MapService.CountyGroupLayer, Object.values(this.config.layerIds.counties));
+                        break;
+                    default:
+                        console.error(`MapService.setMapLayers encountered an unknown analysis level: ${analysisLevel}`);
+                }
+            }); // End forEach analysisLevels
         }
     }
 
     public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) {
-       // console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
+        // console.log('inside drawCircle' + lat + 'long::' + lon + 'color::' + pointColor + 'miles::' + miles + 'title::' + title);
         const loader = EsriLoaderWrapperService.esriLoader;
         const [Map, array, geometryEngine, Collection, MapView, Circle, GraphicsLayer, Graphic, Point, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -894,6 +895,7 @@ export class MapService {
         });
         await this.updateFeatureLayer(graphicList, title);
         console.log('draw buffer--------->' + graphicList.length);
+        this.displayDBSpinner = false;
         //await this.selectCentroid(graphicList);
         return graphicList;
     }
@@ -1239,7 +1241,7 @@ export class MapService {
         // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -1493,6 +1495,8 @@ export class MapService {
 
     public async selectCentroid(graphicList: __esri.Graphic[]) {
         console.log('selectCentroid fired::::');
+        this.displayDBSpinner = true;
+        this.displaySpinnerMessage = 'Shading the geofootprint...';
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -1547,21 +1551,24 @@ export class MapService {
                 await layer.queryFeatures(qry).then(featureSet => {
                     for (let i = 0; i < featureSet.features.length; i++) {
                         const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
-                        const cover_frequency : string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
+                        const cover_frequency: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
                         if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
 
-                            if( ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
-                                ((owner_group_primary != undefined && owner_group_primary.toUpperCase() ===  'ANNE'    && discoveryUI[0].includeAnne)      === true) ||
-                                (((cover_frequency     === undefined || cover_frequency  === null && discoveryUI[0].includeSolo === true)|| (cover_frequency.toUpperCase()  ===  'SOLO'    && discoveryUI[0].includeSolo) === true)) ){
+                            if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                                ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
+                                (((cover_frequency === undefined || cover_frequency === null && discoveryUI[0].includeSolo === true) || (cover_frequency.toUpperCase() === 'SOLO' && discoveryUI[0].includeSolo) === true))) {
 
-                                    centroidGraphics.push(featureSet.features[i]);
+                                centroidGraphics.push(featureSet.features[i]);
                             }
 
                         }
                     }
                 });
             }
-            await this.selectPoly(centroidGraphics);
+            await this.selectPoly(centroidGraphics).then(() => {
+
+                this.displayDBSpinner = false;
+            });
         }
     }
 
@@ -1576,7 +1583,7 @@ export class MapService {
         });
     }
 
-    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number {
+    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number): number {
         // Construct a polyline to get the geodesic distance between geo and site
         const polyLine: __esri.Polyline = new EsriModules.PolyLine({ paths: [[[x1, y1], [x2, y2]]] });
         const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
@@ -1586,7 +1593,7 @@ export class MapService {
 
     public async selectPoly(centroidGraphics: __esri.Graphic[]) {
         console.log('fired selectPoly');
-        
+
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, array, geometryEngine, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, Point]
             = await loader.loadModules([
@@ -1680,122 +1687,122 @@ export class MapService {
                 loadedFeatureLayer = f1;
             });
 
-                await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
-                await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
-                await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
-                // MapService.selectedCentroidObjectIds = [];
-                MapService.hhDetails = 0;
-                MapService.hhIpAddress = 0;
-                MapService.medianHHIncome = '0';
-                MapService.hhChildren = 0;
-                MapService.totInvestment = 0;
-                MapService.proBudget = 0;
-                MapService.t = 0;
-                MapService.circBudget = 0;
-                this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-                this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
-                this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
-                this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
+            await this.removeSubLayer('Selected Geography - ZIP', MapService.SitesGroupLayer);
+            await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
+            await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
+            // MapService.selectedCentroidObjectIds = [];
+            MapService.hhDetails = 0;
+            MapService.hhIpAddress = 0;
+            MapService.medianHHIncome = '0';
+            MapService.hhChildren = 0;
+            MapService.totInvestment = 0;
+            MapService.proBudget = 0;
+            MapService.t = 0;
+            MapService.circBudget = 0;
+            this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
+            this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
+            this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
+            this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
 
-                await array.forEach(centroidGraphics, (centroidGraphic) => {
-                    const qry1 = loadedFeatureLayer.createQuery();
-                    qry1.geometry = centroidGraphic.geometry;
-                    qry1.outSpatialReference = this.mapView.spatialReference;
+            await array.forEach(centroidGraphics, (centroidGraphic) => {
+                const qry1 = loadedFeatureLayer.createQuery();
+                qry1.geometry = centroidGraphic.geometry;
+                qry1.outSpatialReference = this.mapView.spatialReference;
 
-                    loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
-                        //const t0 = performance.now();
+                loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
+                    //const t0 = performance.now();
 
-                        for (let i = 0; i < polyFeatureSet.features.length; i++) {
-                          const currentAttribute = polyFeatureSet.features[i].attributes;
-                          //console.log('CurrentAttribute', currentAttribute);
-                            if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
+                    for (let i = 0; i < polyFeatureSet.features.length; i++) {
+                        const currentAttribute = polyFeatureSet.features[i].attributes;
+                        //console.log('CurrentAttribute', currentAttribute);
+                        if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
 
-                                //Create a new geo attribute to store the Median Household Income
-                                this.createGeoAttrib('cl2i00', currentAttribute, impGeofootprintGeos);
+                            //Create a new geo attribute to store the Median Household Income
+                            this.createGeoAttrib('cl2i00', currentAttribute, impGeofootprintGeos);
 
-                                //Create a new geo attribute to store the % '17 HHs Families with Related Children < 18 Yrs
-                                this.createGeoAttrib('cl0c00', currentAttribute, impGeofootprintGeos);
+                            //Create a new geo attribute to store the % '17 HHs Families with Related Children < 18 Yrs
+                            this.createGeoAttrib('cl0c00', currentAttribute, impGeofootprintGeos);
 
-                                //Create a new geo attribute to store % '17 Pop Hispanic or Latino
-                                this.createGeoAttrib('cl2prh', currentAttribute, impGeofootprintGeos);
+                            //Create a new geo attribute to store % '17 Pop Hispanic or Latino
+                            this.createGeoAttrib('cl2prh', currentAttribute, impGeofootprintGeos);
 
-                                //Create a new geo attribute to store Casual Dining: 10+ Times Past 30 Days
-                                this.createGeoAttrib('tap049', currentAttribute, impGeofootprintGeos);
+                            //Create a new geo attribute to store Casual Dining: 10+ Times Past 30 Days
+                            this.createGeoAttrib('tap049', currentAttribute, impGeofootprintGeos);
 
-                                if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs')  != null){
-                                    MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-                                }
-//                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                                
-                                if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00')  != null){
-                                    MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
-                                }
-                                if  (discoveryUI[0].selectedSeason == 'WINTER'){
-                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                    const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
-                                    const newGeo = Array.from(geos.slice(0, 1));
-                                    newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                    this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
-                                } else {
-                                    MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
-                                    const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
-                                    const newGeo = Array.from(geos.slice(0, 1));
-                                    newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
-                                    this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
-                                }
+                            if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != null) {
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-
                             }
-                            if (discoveryUI[0].cpm != null) {
-                                MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
-                                MapService.totInvestment = Math.round(MapService.t);
-                            }
+                            //                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
 
-                            if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0 && (discoveryUI[0].totalBudget == 0 || discoveryUI[0].totalBudget == null)) {
-                                MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget) * 100;
-                                MapService.proBudget = Math.round(MapService.circBudget);
-                                console.log('progress to budget for circ::', MapService.circBudget);
-                            } 
-                            if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0 && (discoveryUI[0].circBudget == 0 || discoveryUI[0].circBudget == null)) {
-                                MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
-                                MapService.proBudget = Math.round(MapService.dollarBudget);
-                                console.log('progress to budget for dollar:::', MapService.proBudget);
+                            if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
+                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                             }
-                            if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null && discoveryUI[0].circBudget != 0 && discoveryUI[0].totalBudget != 0) {
-                                // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-                                MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
-                                MapService.proBudget = Math.round(MapService.dollarBudget);
-                                console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
-                            } 
-                            
+                            if (discoveryUI[0].selectedSeason == 'WINTER') {
+                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
+                                const newGeo = Array.from(geos.slice(0, 1));
+                                newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
+                            } else {
+                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
+                                const newGeo = Array.from(geos.slice(0, 1));
+                                newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
+                            }
+                            MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
 
-                            //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                            MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
-                            MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
-                            polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
-                            MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
                         }
-                        //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
-                    
+                        if (discoveryUI[0].cpm != null) {
+                            MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
+                            MapService.totInvestment = Math.round(MapService.t);
+                        }
+
+                        if (discoveryUI[0].circBudget != null && discoveryUI[0].circBudget != 0 && (discoveryUI[0].totalBudget == 0 || discoveryUI[0].totalBudget == null)) {
+                            MapService.circBudget = (MapService.hhDetails / discoveryUI[0].circBudget) * 100;
+                            MapService.proBudget = Math.round(MapService.circBudget);
+                            console.log('progress to budget for circ::', MapService.circBudget);
+                        }
+                        if (discoveryUI[0].totalBudget != null && discoveryUI[0].totalBudget != 0 && (discoveryUI[0].circBudget == 0 || discoveryUI[0].circBudget == null)) {
+                            MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
+                            MapService.proBudget = Math.round(MapService.dollarBudget);
+                            console.log('progress to budget for dollar:::', MapService.proBudget);
+                        }
+                        if (discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null && discoveryUI[0].circBudget != 0 && discoveryUI[0].totalBudget != 0) {
+                            // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
+                            MapService.dollarBudget = (Math.round(MapService.t) / discoveryUI[0].totalBudget) * 100;
+                            MapService.proBudget = Math.round(MapService.dollarBudget);
+                            console.log('return Progress to budget for dollar :::', MapService.dollarBudget);
+                        }
+
+
+                        //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
+                        MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                        MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
+                        polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
+                        MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
+                    }
+                    //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
+
                     //this.mapView.graphics.addMany(polyGraphics);
                     this.updateFeatureLayer(polyGraphics, layername);
                     this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
                     this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-                    if (discoveryUI[0].cpm == null){
+                    if (discoveryUI[0].cpm == null) {
                         this.metricService.add('CAMPAIGN', 'Total Investment', 'N/A');
-                    } else{
+                    } else {
                         this.metricService.add('CAMPAIGN', 'Total Investment', '$' + MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
                     }
                     if ((discoveryUI[0].circBudget == null && discoveryUI[0].totalBudget == null) || (discoveryUI[0].circBudget == 0 && discoveryUI[0].totalBudget == 0) || (discoveryUI[0].cpm == 0 && discoveryUI[0].cpm == null)) {
                         this.metricService.add('CAMPAIGN', 'Progress to Budget', 'N/A');
-                    } else{
-                       // if ((discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) || (discoveryUI[0].circBudget != 0 && discoveryUI[0].totalBudget != 0)) {
-                            this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%');
-    
+                    } else {
+                        // if ((discoveryUI[0].circBudget != null && discoveryUI[0].totalBudget != null) || (discoveryUI[0].circBudget != 0 && discoveryUI[0].totalBudget != 0)) {
+                        this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%');
+
                         //}
                     }
-                    
+
                 });
             });
         }
@@ -1811,7 +1818,7 @@ export class MapService {
      */
     private createGeoAttrib(searchAttribute: string, allAttributes: any, selectedGeos: ImpGeofootprintGeo[]) {
         const geoAttrib: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
-        if (EsriLayerService.getAttributeValue(allAttributes, searchAttribute)  != null){
+        if (EsriLayerService.getAttributeValue(allAttributes, searchAttribute) != null) {
             geoAttrib.attributeCode = searchAttribute;
             geoAttrib.attributeType = 'number';
             geoAttrib.attributeValue = EsriLayerService.getAttributeValue(allAttributes, searchAttribute);
@@ -1957,26 +1964,26 @@ export class MapService {
             let currentDollarBudget = 0;
             let currentCircBudget = 0;
             let temp = 0;
-            if (this.impDiscoveryService.get()[0].selectedSeason == 'WINTER'){
-               currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
+            if (this.impDiscoveryService.get()[0].selectedSeason == 'WINTER') {
+                currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
             }
-            if (this.impDiscoveryService.get()[0].selectedSeason == 'SUMMER'){
-               currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_s') || 0;
+            if (this.impDiscoveryService.get()[0].selectedSeason == 'SUMMER') {
+                currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_s') || 0;
             }
             if (this.impDiscoveryService.get()[0].cpm != null) {
-                temp = this.impDiscoveryService.get()[0].cpm * (currentHHCount / 1000) ;
-                currentTotalInvestment = Math.round(temp); 
+                temp = this.impDiscoveryService.get()[0].cpm * (currentHHCount / 1000);
+                currentTotalInvestment = Math.round(temp);
             }
-            
-            if (this.impDiscoveryService.get()[0].circBudget != null && this.impDiscoveryService.get()[0].circBudget != 0 && (this.impDiscoveryService.get()[0].totalBudget == 0 || this.impDiscoveryService.get()[0].totalBudget == null)){
+
+            if (this.impDiscoveryService.get()[0].circBudget != null && this.impDiscoveryService.get()[0].circBudget != 0 && (this.impDiscoveryService.get()[0].totalBudget == 0 || this.impDiscoveryService.get()[0].totalBudget == null)) {
                 currentCircBudget = (currentHHCount / this.impDiscoveryService.get()[0].circBudget) * 100;
-                currentProBudget = Math.round(currentCircBudget) ;
+                currentProBudget = Math.round(currentCircBudget);
             }
-            if (this.impDiscoveryService.get()[0].totalBudget != null && this.impDiscoveryService.get()[0].totalBudget != 0 && (this.impDiscoveryService.get()[0].circBudget == 0 || this.impDiscoveryService.get()[0].circBudget == null)){
-                currentDollarBudget = (Math.round(temp) / this.impDiscoveryService.get()[0].totalBudget) * 100 ;
+            if (this.impDiscoveryService.get()[0].totalBudget != null && this.impDiscoveryService.get()[0].totalBudget != 0 && (this.impDiscoveryService.get()[0].circBudget == 0 || this.impDiscoveryService.get()[0].circBudget == null)) {
+                currentDollarBudget = (Math.round(temp) / this.impDiscoveryService.get()[0].totalBudget) * 100;
                 currentProBudget = Math.round(currentDollarBudget);
-            }    
-            if (this.impDiscoveryService.get()[0].circBudget != null && this.impDiscoveryService.get()[0].totalBudget != null){
+            }
+            if (this.impDiscoveryService.get()[0].circBudget != null && this.impDiscoveryService.get()[0].totalBudget != null) {
                 currentDollarBudget = (Math.round(temp) / this.impDiscoveryService.get()[0].totalBudget) * 100;
                 currentProBudget = Math.round(currentDollarBudget);
             }
@@ -1997,7 +2004,7 @@ export class MapService {
                 MapService.selectedCentroidObjectIds.splice(index, 1);
                 // remove the geo from the datastore
                 if (currentGeocode != null) {
-                    this.impGeofootprintGeoAttribService.removeBySearch({impGeofootprintGeo: this.impGeofootprintGeoService.find({geocode: currentGeocode})});
+                    this.impGeofootprintGeoAttribService.removeBySearch({ impGeofootprintGeo: this.impGeofootprintGeoService.find({ geocode: currentGeocode }) });
                     this.impGeofootprintGeoService.removeBySearch({ geocode: currentGeocode });
                 } else {
                     console.warn(`Geocode was not found in attributes for object ${queriedObjectId}`);
@@ -2006,7 +2013,7 @@ export class MapService {
                 MapService.hhIpAddress -= currentIpCount;
                 MapService.totInvestment -= currentTotalInvestment;
                 MapService.proBudget -= currentProBudget;
-                
+
             } else {
                 let geoToAdd: __esri.Geometry;
                 if (preSelectedObjectId != null) {
@@ -2042,28 +2049,27 @@ export class MapService {
             }
             this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
             this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-            if (this.impDiscoveryService.get()[0].cpm != null){
+            if (this.impDiscoveryService.get()[0].cpm != null) {
                 this.metricService.add('CAMPAIGN', 'Total Investment', '$' + MapService.totInvestment.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
             } else {
                 this.metricService.add('CAMPAIGN', 'Total Investment', 'N/A');
             }
-            if ((this.impDiscoveryService.get()[0].circBudget == null && this.impDiscoveryService.get()[0].totalBudget == null) || (this.impDiscoveryService.get()[0].circBudget == 0 && this.impDiscoveryService.get()[0].totalBudget == 0)){
-                 this.metricService.add('CAMPAIGN', 'Progress to Budget', 'N/A');
-           } else{
+            if ((this.impDiscoveryService.get()[0].circBudget == null && this.impDiscoveryService.get()[0].totalBudget == null) || (this.impDiscoveryService.get()[0].circBudget == 0 && this.impDiscoveryService.get()[0].totalBudget == 0)) {
+                this.metricService.add('CAMPAIGN', 'Progress to Budget', 'N/A');
+            } else {
                 this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%');
 
-           }
-           
+            }
 
         });
     }
 
     public getAllFeatureLayers(): Promise<__esri.FeatureLayer[]> {
-       // console.log('fired getAllFeatureLayers');
+        // console.log('fired getAllFeatureLayers');
         return Promise.resolve(this._getAllFeatureLayers());
     }
 
-    private _getAllFeatureLayers() : __esri.FeatureLayer[] {
+    private _getAllFeatureLayers(): __esri.FeatureLayer[] {
         const result: __esri.FeatureLayer[] = [];
         this.map.allLayers.forEach(lyr => {
             if (lyr.type === 'feature') {
@@ -2145,11 +2151,11 @@ export class MapService {
         const [esriConfig, FeatureSet]
             = await loader.loadModules(['esri/config', 'esri/tasks/support/FeatureSet']);
 
-      // console.log('esriConfig:::', esriConfig);
-       esriConfig.request.timeout = 600000;
+        // console.log('esriConfig:::', esriConfig);
+        esriConfig.request.timeout = 600000;
 
-       const polyFeatureSetList: Promise<__esri.FeatureSet>[] = [];
-       for (const lyr of lyrList){
+        const polyFeatureSetList: Promise<__esri.FeatureSet>[] = [];
+        for (const lyr of lyrList) {
             const qry = lyr.createQuery();
             qry.geometry = extent;
             if (this.config.layerIds.counties.boundaries.id !== lyr.portalItem.id &&
@@ -2201,7 +2207,7 @@ export class MapService {
         //  return polyFeatureSetList;
     }
 
-    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
+    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic): Promise<Map<String, Object>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([
@@ -2246,9 +2252,9 @@ export class MapService {
                 homeGeocodeMap.set('home_geo', homeGeocode);
             }
 
-             if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id){
-                 homeGeocodeMap.set('home_geo' , homeGeocode);
-             }
+            if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
+                homeGeocodeMap.set('home_geo', homeGeocode);
+            }
             /* if (this.config.layerIds.dma.counties === lyr.portalItem.id){
                  homeGeocodeMap.set('home_geo' , countyName);
              }
@@ -2271,14 +2277,14 @@ export class MapService {
 
         };
 
-    const fLyrList: __esri.FeatureLayer[] = [];
-    await this.getAllFeatureLayers().then(list => {
-      if (list.length > 0) {
-        for (const layer of list) {
-          if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
-            layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
-            layer.portalItem.id === this.config.layerIds.pcr.topVars .id ||
-            layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
+        const fLyrList: __esri.FeatureLayer[] = [];
+        await this.getAllFeatureLayers().then(list => {
+            if (list.length > 0) {
+                for (const layer of list) {
+                    if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
+                        layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
+                        layer.portalItem.id === this.config.layerIds.pcr.topVars.id ||
+                        layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
             /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
             layer.portalItem.id === this.config.layerIds.dma.counties ||
           layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
@@ -2305,13 +2311,13 @@ export class MapService {
                     });
                     await this.getHomeGeocode(llyr, graphic).then(res => {
                         home_geo = res.get('home_geo');
-                        
-                        
+
+
                         if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
                             geoAttr.attributeName = 'Home ZIP';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
-                            if(this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
+                            if (this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
                                 site.homeGeocode = home_geo;
                             }
                         }
@@ -2319,7 +2325,7 @@ export class MapService {
                             geoAttr.attributeName = 'Home ATZ';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
-                            if(this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
+                            if (this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
                                 site.homeGeocode = home_geo;
                             }
                         }
@@ -2327,15 +2333,15 @@ export class MapService {
                             geoAttr.attributeName = 'HOME PCR';
                             geoAttr.attributeValue = home_geo;
                             site.geocodingAttributesList.push(geoAttr);
-                            if(this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
+                            if (this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
                                 site.homeGeocode = home_geo;
                             }
                         }
-                         if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
-                           geoAttr.attributeName = 'Home DIGITAL ATZ';
-                           geoAttr.attributeValue = home_geo;
-                           site.geocodingAttributesList.push(geoAttr);
-                         }
+                        if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
+                            geoAttr.attributeName = 'Home DIGITAL ATZ';
+                            geoAttr.attributeValue = home_geo;
+                            site.geocodingAttributesList.push(geoAttr);
+                        }
                         /* if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
                             geoAttr.attributeName = 'HOME COUNTY';
                             geoAttr.attributeValue = home_geo;

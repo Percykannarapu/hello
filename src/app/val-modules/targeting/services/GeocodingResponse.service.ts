@@ -205,7 +205,7 @@ export class GeocodingResponseService {
         return csvData;
     }
 
-    public getNewSitePk(): number {
+    public getNewSitePk() : number {
         return this.tempId++;
     }
 

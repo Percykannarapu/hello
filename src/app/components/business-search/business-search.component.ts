@@ -274,10 +274,10 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   //adding points on the map
-  async onAddToProject(selector2) {
-    console.log('selector: ', selector2);
+  async onAddToProject(selector) {
+    console.log('selector: ', selector);
     //Giving color to the point on the map
-    if (selector2 === 'Site') {
+    if (selector === 'Site') {
       this.color = {
         a: 1,
         r: 35,
@@ -286,7 +286,7 @@ export class BusinessSearchComponent implements OnInit {
       };
       //Close the sidebar after we select the points to be mapped
       //this.showSideBar.emit(false);
-    } else if (selector2 === 'Competitor') {
+    } else if (selector === 'Competitor') {
       this.color = {
         a: 1,
         r: 255,
@@ -306,7 +306,7 @@ export class BusinessSearchComponent implements OnInit {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
         console.log('long: x', business.x + 'lat: y', business.y);
-        popupTemplate.title = `${selector2}`,
+        popupTemplate.title = `${selector}`,
           popupTemplate.content =
           `<table>
           <tbody>
@@ -333,7 +333,7 @@ export class BusinessSearchComponent implements OnInit {
     }
     this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
     //console.log('this.plottedpoints', this.plottedPoints);
-    this.geocoderService.addSitesToMap(this.plottedPoints, selector2); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
+    this.geocoderService.addSitesToMap(this.plottedPoints, selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
     this.appService.closeOverLayPanel.next(true);
     // if (selector === 'Competitor') {
     //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
