@@ -422,7 +422,7 @@ export class MapService {
             this.mapView.graphics.add(evt.graphic);
 
             // ----------------------------------------------------------------------------------------
-            // Measure Length of PolyLine 
+            // Measure Length of PolyLine
             if (this.mapFunction === mapFunctions.MeasureLine) {
                 const polyline = evt.graphic.geometry;
                 // calculate the area of the polygon
@@ -469,7 +469,7 @@ export class MapService {
     // Label polyon with its Length
     private labelMeasurePolyLine(polyline: __esri.Polyline, length: number) {
 
-        // autocasts as new TextSymbol() 
+        // autocasts as new TextSymbol()
         const textSym = {
             type: 'text',
             color: 'black',
@@ -1704,6 +1704,7 @@ export class MapService {
             this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
             this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
 
+
             await array.forEach(centroidGraphics, (centroidGraphic) => {
                 const qry1 = loadedFeatureLayer.createQuery();
                 qry1.geometry = centroidGraphic.geometry;
@@ -1711,23 +1712,23 @@ export class MapService {
 
                 loadedFeatureLayer.queryFeatures(qry1).then(polyFeatureSet => {
                     //const t0 = performance.now();
-
+                    const geoAttribsToAdd: ImpGeofootprintGeoAttrib[] = [];
                     for (let i = 0; i < polyFeatureSet.features.length; i++) {
                         const currentAttribute = polyFeatureSet.features[i].attributes;
                         //console.log('CurrentAttribute', currentAttribute);
                         if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
 
                             //Create a new geo attribute to store the Median Household Income
-                            this.createGeoAttrib('cl2i00', currentAttribute, impGeofootprintGeos);
+                            geoAttribsToAdd.push(this.createGeoAttrib('cl2i00', currentAttribute, impGeofootprintGeos));
 
                             //Create a new geo attribute to store the % '17 HHs Families with Related Children < 18 Yrs
-                            this.createGeoAttrib('cl0c00', currentAttribute, impGeofootprintGeos);
+                            geoAttribsToAdd.push(this.createGeoAttrib('cl0c00', currentAttribute, impGeofootprintGeos));
 
                             //Create a new geo attribute to store % '17 Pop Hispanic or Latino
-                            this.createGeoAttrib('cl2prh', currentAttribute, impGeofootprintGeos);
+                            geoAttribsToAdd.push(this.createGeoAttrib('cl2prh', currentAttribute, impGeofootprintGeos));
 
                             //Create a new geo attribute to store Casual Dining: 10+ Times Past 30 Days
-                            this.createGeoAttrib('tap049', currentAttribute, impGeofootprintGeos);
+                            geoAttribsToAdd.push(this.createGeoAttrib('tap049', currentAttribute, impGeofootprintGeos));
 
                             if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != null) {
                                 MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
@@ -1740,15 +1741,15 @@ export class MapService {
                             if (discoveryUI[0].selectedSeason == 'WINTER') {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
-                                const newGeo = Array.from(geos.slice(0, 1));
-                                newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
+                                //const newGeo = Array.from(geos.slice(0, 1));
+                                geos[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             } else {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
-                                const newGeo = Array.from(geos.slice(0, 1));
-                                newGeo[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
-                                this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
+                                //const newGeo = Array.from(geos.slice(0, 1));
+                                geos[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             }
                             MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
 
@@ -1782,7 +1783,7 @@ export class MapService {
                         polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
                         MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
                     }
-                    //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
+                    this.impGeofootprintGeoAttribService.add(geoAttribsToAdd.filter(a => a != null));
 
                     //this.mapView.graphics.addMany(polyGraphics);
                     this.updateFeatureLayer(polyGraphics, layername);
@@ -1816,7 +1817,7 @@ export class MapService {
      * @param allAttributes the entire list of attributes returned by a map query operation
      * @param selectedGeos the list of geos that will become the parent objects to these new attributes
      */
-    private createGeoAttrib(searchAttribute: string, allAttributes: any, selectedGeos: ImpGeofootprintGeo[]) {
+    private createGeoAttrib(searchAttribute: string, allAttributes: any, selectedGeos: ImpGeofootprintGeo[]) : ImpGeofootprintGeoAttrib {
         const geoAttrib: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
         if (EsriLayerService.getAttributeValue(allAttributes, searchAttribute) != null) {
             geoAttrib.attributeCode = searchAttribute;
@@ -1825,10 +1826,10 @@ export class MapService {
             const geos = selectedGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(allAttributes, 'geocode'));
             if (geos.length === 1) {
                 geoAttrib.impGeofootprintGeo = geos[0];
-                console.log('adding new geo attribute');
-                this.impGeofootprintGeoAttribService.add([geoAttrib]);
+                return geoAttrib;
             }
         }
+        return null;
     }
 
     // to select based on featureLayerView
@@ -2028,20 +2029,21 @@ export class MapService {
                 }));
                 MapService.selectedCentroidObjectIds.push(queriedObjectId);
                 const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xcoord: currentLong, ycoord: currentLat, hhc: currentHHCount });
-
+                const newAttributes: ImpGeofootprintGeoAttrib[] = [];
                 //Create a new geo attribute to store the Median Household Income
-                this.createGeoAttrib('cl2i00', currentAttributes, [newGeoModel]);
+                newAttributes.push(this.createGeoAttrib('cl2i00', currentAttributes, [newGeoModel]));
 
                 //Create a new geo attribute to store the % '17 HHs Families with Related Children < 18 Yrs
-                this.createGeoAttrib('cl0c00', currentAttributes, [newGeoModel]);
+                newAttributes.push(this.createGeoAttrib('cl0c00', currentAttributes, [newGeoModel]));
 
                 //Create a new geo attribute to store % '17 Pop Hispanic or Latino
-                this.createGeoAttrib('cl2prh', currentAttributes, [newGeoModel]);
+                newAttributes.push(this.createGeoAttrib('cl2prh', currentAttributes, [newGeoModel]));
 
                 //Create a new geo attribute to store Casual Dining: 10+ Times Past 30 Days
-                this.createGeoAttrib('tap049', currentAttributes, [newGeoModel]);
+                newAttributes.push(this.createGeoAttrib('tap049', currentAttributes, [newGeoModel]));
 
                 this.impGeofootprintGeoService.add([newGeoModel]);
+                this.impGeofootprintGeoAttribService.add(newAttributes.filter(a => a != null));
                 MapService.hhDetails += currentHHCount;
                 MapService.hhIpAddress += currentIpCount;
                 MapService.totInvestment += currentTotalInvestment;
