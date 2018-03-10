@@ -10,12 +10,12 @@ export class AppConfig implements EsriLoaderConfig {
   public environmentName = EnvironmentData.environmentName;
 
   // This controls whether or not the user is currently authenticated and will have to log in
-  public authenticated: boolean = EnvironmentData.authenticated;  
+  public authenticated: boolean = EnvironmentData.authenticated;
 
    esriConfig = {
      url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal
-     portalUrl:  EnvironmentData.esri.portalUrl,
+     portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
      // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
      /*dojoConfig: {
         has: {
@@ -40,7 +40,8 @@ export class AppConfig implements EsriLoaderConfig {
    public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
-  //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+   public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;
 
    public layerIds = EnvironmentData.layerIds;
 

@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Observable';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class ValGeocodingService {
@@ -13,8 +13,8 @@ export class ValGeocodingService {
   private failures: BehaviorSubject<ValGeocodingResponse[]> = new BehaviorSubject<ValGeocodingResponse[]>([]);
 
   public geocodingFailures$: Observable<ValGeocodingResponse[]> = this.failures.asObservable();
-  public failureCount$: Observable<number> = this.geocodingFailures$.map(failures => failures.length);
-  public hasFailures$: Observable<boolean> = this.failureCount$.map(c => c > 0);
+  public failureCount$: Observable<number> = this.geocodingFailures$.pipe(map(failures => failures.length));
+  public hasFailures$: Observable<boolean> = this.failureCount$.pipe(map(c => c > 0));
 
   constructor(private messageService: MessageService, private restService: RestDataService) { }
 

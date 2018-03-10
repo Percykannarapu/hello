@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DemographicVariable, TopVarService } from '../../../services/top-var.service';
 import { Observable } from 'rxjs/Observable';
 import { SmartMappingTheme } from '../../../models/LayerState';
-import { EsriLayerService } from '../../../services/esri-layer.service';
+import { ValLayerService } from '../../../services/val-layer.service';
 import { SelectItem } from 'primeng/primeng';
 
 @Component({
@@ -17,7 +17,7 @@ export class DemoVariablesComponent implements OnInit {
   public selectedTheme$: Observable<SmartMappingTheme>;
   public currentOpacity$: Observable<number>;
 
-  constructor(private topVars: TopVarService, private layerService: EsriLayerService) {
+  constructor(private topVars: TopVarService, private layerService: ValLayerService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);

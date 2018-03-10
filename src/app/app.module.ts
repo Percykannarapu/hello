@@ -107,7 +107,7 @@ import {MetricService} from './val-modules/common/services/metric.service';
 import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
-import {EsriLayerService} from './services/esri-layer.service';
+import {ValLayerService} from './services/val-layer.service';
 import {EsriModules, EsriLoaderToken} from './esri-modules/core/esri-modules.service';
 import {UserService} from './services/user.service';
 import {EsriMapComponent} from './components/esri-map/esri-map.component';
@@ -139,7 +139,6 @@ import {EsriIdentityService} from './services/esri-identity.service';
 import { TopVarService } from './services/top-var.service';
 import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
-import { SiteListComponent } from './val-modules/targeting/components/SiteList.component';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
@@ -147,6 +146,9 @@ import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { ValGeocodingService } from './services/val-geocoding.service';
+import { SiteListComponent } from './components/site-list/site-list.component';
+import { ValSiteListService } from './services/val-site-list.service';
+import { EsriRestQueryService } from './esri-modules/rest-api/esri-rest-query.service';
 
 @NgModule({
     imports: [
@@ -276,14 +278,14 @@ import { ValGeocodingService } from './services/val-geocoding.service';
         AppService, AppConfig, MessageService,
         CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
-        AmSiteService, MetricService, EsriModules, EsriLayerService,
+        AmSiteService, MetricService, EsriModules, ValLayerService, EsriRestQueryService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
-        UserService, ValGeocodingService
+        UserService, ValGeocodingService, ValSiteListService
     ],
     bootstrap: [AppComponent]
 })

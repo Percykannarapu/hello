@@ -2,11 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AppConfig } from '../../app.config';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingService } from '../../services/val-geocoding.service';
-import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ValSiteListService } from '../../services/val-site-list.service';
 
 @Component({
   selector: 'val-geocoder',
@@ -23,15 +19,13 @@ export class GeocoderComponent implements OnInit {
 
   constructor(public  config: AppConfig,
               public geocodingService: ValGeocodingService,
-              private locationService: ImpGeofootprintLocationService,
-              private attributeService: ImpGeofootprintLocAttribService) { }
+              private siteListService: ValSiteListService) { }
 
   public ngOnInit() : void {
     this.siteModel = new ValGeocodingRequest({});
     this.compModel = new ValGeocodingRequest({});
     this.currentModel = this.siteModel;
   }
-
 
   public onSiteTypeChange($event) : void {
       if ($event === 'Site'){
@@ -47,7 +41,10 @@ export class GeocoderComponent implements OnInit {
   // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
   public  onResubmit(row) {
     this.geocodingService.removeFailedGeocode(row);
-    this.handleGeocodingAndPersisting(row);
+    this.displayGcSpinner = true;
+    this.siteListService.geocodeAndPersist([row], this.currentManualSiteType).then(() => {
+      this.displayGcSpinner = false;
+    });
   }
 
   // remove an GeocodingResponse from the list of sites that failed to geocode
@@ -56,26 +53,10 @@ export class GeocoderComponent implements OnInit {
   }
 
   public onGeocode() {
-    this.handleGeocodingAndPersisting([this.currentModel]);
-  }
-
-  private handleGeocodingAndPersisting(data: ValGeocodingRequest[]) {
     this.displayGcSpinner = true;
-    this.geocodingService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
-      this.handlePersist(result.map(r => r.toGeoLocation(this.currentManualSiteType)));
+    this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
       this.displayGcSpinner = false;
     });
-  }
-
-  private handlePersist(data: ImpGeofootprintLocation[]) : void {
-    const flatten = (previous: ImpGeofootprintLocAttrib[], current: ImpGeofootprintLocAttrib[]) => {
-      previous.push(...current);
-      return previous;
-    };
-    const attributes: ImpGeofootprintLocAttrib[] = data.map(l => l['_attributes']).reduce(flatten, []);
-    data.forEach(d => delete d['_attributes']);
-    this.locationService.add(data);
-    this.attributeService.add(attributes);
   }
 
   public clearFields() {

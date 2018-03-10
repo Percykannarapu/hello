@@ -7,7 +7,7 @@ import { ElementRef, Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { EsriLayerService } from './esri-layer.service';
+import { ValLayerService } from './val-layer.service';
 import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
@@ -71,7 +71,7 @@ export class MapService {
     public displaySpinnerMessage: string = 'Drawing Buffer...';
 
     constructor(private metricService: MetricService,
-        private layerService: EsriLayerService,
+        private layerService: ValLayerService,
         private esriMapService: EsriMapService,
         private impGeofootprintGeoService: ImpGeofootprintGeoService,
         private config: AppConfig,
@@ -218,7 +218,7 @@ export class MapService {
     // Execute each time the "select-this" action is clicked
     public selectThis() {
         console.log('fired popup action select-this()');
-        const objectID: number = EsriLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
+        const objectID: number = ValLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
         const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
         console.log('-- objectID = ' + objectID);
         this.selectSinglePolygon(null, geom, objectID);
@@ -1550,9 +1550,9 @@ export class MapService {
                 qry.outSpatialReference = this.mapView.spatialReference;
                 await layer.queryFeatures(qry).then(featureSet => {
                     for (let i = 0; i < featureSet.features.length; i++) {
-                        const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
-                        const cover_frequency: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
-                        if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
+                        const owner_group_primary: string = ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
+                        const cover_frequency: string = ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
+                        if (ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
 
                             if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
                                 ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
@@ -1631,7 +1631,7 @@ export class MapService {
         for (const centroidGraphic of centroidGraphics) {
             const pt: __esri.Point = <__esri.Point>centroidGraphic.geometry;
             impGeofootprintGeos.push(new ImpGeofootprintGeo({
-                geocode: EsriLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
+                geocode: ValLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
                 xcoord: pt.longitude,
                 ycoord: pt.latitude
             }));
@@ -1716,7 +1716,7 @@ export class MapService {
                     for (let i = 0; i < polyFeatureSet.features.length; i++) {
                         const currentAttribute = polyFeatureSet.features[i].attributes;
                         //console.log('CurrentAttribute', currentAttribute);
-                        if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
+                        if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(ValLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
 
                             //Create a new geo attribute to store the Median Household Income
                             geoAttribsToAdd.push(this.createGeoAttrib('cl2i00', currentAttribute, impGeofootprintGeos));
@@ -1730,28 +1730,28 @@ export class MapService {
                             //Create a new geo attribute to store Casual Dining: 10+ Times Past 30 Days
                             geoAttribsToAdd.push(this.createGeoAttrib('tap049', currentAttribute, impGeofootprintGeos));
 
-                            if (EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != null) {
-                                MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                            if (ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != null) {
+                                MapService.hhIpAddress = MapService.hhIpAddress + ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
                             }
                             //                              MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
 
-                            if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
-                                MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                            if (ValLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
+                                MapService.medianHHIncome = '$' + ValLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                             }
                             if (discoveryUI[0].selectedSeason == 'WINTER') {
-                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
-                                const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
+                                MapService.hhDetails = MapService.hhDetails + ValLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                const geos = impGeofootprintGeos.filter(f => f.geocode === ValLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
-                                geos[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
+                                geos[0].hhc = ValLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             } else {
-                                MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
-                                const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
+                                MapService.hhDetails = MapService.hhDetails + ValLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                const geos = impGeofootprintGeos.filter(f => f.geocode === ValLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
-                                geos[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
+                                geos[0].hhc = ValLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             }
-                            MapService.hhIpAddress = MapService.hhIpAddress + EsriLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
+                            MapService.hhIpAddress = MapService.hhIpAddress + ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
 
                         }
                         if (discoveryUI[0].cpm != null) {
@@ -1778,10 +1778,10 @@ export class MapService {
 
 
                         //MapService.medianHHIncome = parseFloat(EsriLayerService.getAttributeValue(currentAttribute, 'cl2i0o')).toFixed(2) + '%';
-                        MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
-                        MapService.hhChildren = EsriLayerService.getAttributeValue(currentAttribute, 'cl0c00');
+                        MapService.medianHHIncome = '$' + ValLayerService.getAttributeValue(currentAttribute, 'cl2i00');
+                        MapService.hhChildren = ValLayerService.getAttributeValue(currentAttribute, 'cl0c00');
                         polyGraphics.push(new Graphic(polyFeatureSet.features[i].geometry, symbol123, currentAttribute));
-                        MapService.selectedCentroidObjectIds.push(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'));
+                        MapService.selectedCentroidObjectIds.push(ValLayerService.getAttributeValue(currentAttribute, 'objectid'));
                     }
                     this.impGeofootprintGeoAttribService.add(geoAttribsToAdd.filter(a => a != null));
 
@@ -1819,11 +1819,11 @@ export class MapService {
      */
     private createGeoAttrib(searchAttribute: string, allAttributes: any, selectedGeos: ImpGeofootprintGeo[]) : ImpGeofootprintGeoAttrib {
         const geoAttrib: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
-        if (EsriLayerService.getAttributeValue(allAttributes, searchAttribute) != null) {
+        if (ValLayerService.getAttributeValue(allAttributes, searchAttribute) != null) {
             geoAttrib.attributeCode = searchAttribute;
             geoAttrib.attributeType = 'number';
-            geoAttrib.attributeValue = EsriLayerService.getAttributeValue(allAttributes, searchAttribute);
-            const geos = selectedGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(allAttributes, 'geocode'));
+            geoAttrib.attributeValue = ValLayerService.getAttributeValue(allAttributes, searchAttribute);
+            const geos = selectedGeos.filter(f => f.geocode === ValLayerService.getAttributeValue(allAttributes, 'geocode'));
             if (geos.length === 1) {
                 geoAttrib.impGeofootprintGeo = geos[0];
                 return geoAttrib;
@@ -1944,7 +1944,7 @@ export class MapService {
                 currentAttributes = polyFeatureSet.features[0].attributes;
             } else {
                 polyFeatureSet.features.forEach(f => {
-                    if (EsriLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
+                    if (ValLayerService.getAttributeValue(f.attributes, 'objectid') === preSelectedObjectId) {
                         currentAttributes = f.attributes;
                     }
                     this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
@@ -1958,7 +1958,7 @@ export class MapService {
                 console.error('Could not match object id from popup geo selection');
                 return;
             }
-            const queriedObjectId = EsriLayerService.getAttributeValue(currentAttributes, 'objectid');
+            const queriedObjectId = ValLayerService.getAttributeValue(currentAttributes, 'objectid');
             let currentHHCount = null;
             let currentTotalInvestment = 0;
             let currentProBudget = 0;
@@ -1966,10 +1966,10 @@ export class MapService {
             let currentCircBudget = 0;
             let temp = 0;
             if (this.impDiscoveryService.get()[0].selectedSeason == 'WINTER') {
-                currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
+                currentHHCount = ValLayerService.getAttributeValue(currentAttributes, 'hhld_w') || 0;
             }
             if (this.impDiscoveryService.get()[0].selectedSeason == 'SUMMER') {
-                currentHHCount = EsriLayerService.getAttributeValue(currentAttributes, 'hhld_s') || 0;
+                currentHHCount = ValLayerService.getAttributeValue(currentAttributes, 'hhld_s') || 0;
             }
             if (this.impDiscoveryService.get()[0].cpm != null) {
                 temp = this.impDiscoveryService.get()[0].cpm * (currentHHCount / 1000);
@@ -1988,13 +1988,13 @@ export class MapService {
                 currentDollarBudget = (Math.round(temp) / this.impDiscoveryService.get()[0].totalBudget) * 100;
                 currentProBudget = Math.round(currentDollarBudget);
             }
-            const currentIpCount = EsriLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
-            const currentGeocode = EsriLayerService.getAttributeValue(currentAttributes, 'geocode');
-            const currentLat = EsriLayerService.getAttributeValue(currentAttributes, 'latitude');
-            const currentLong = EsriLayerService.getAttributeValue(currentAttributes, 'longitude');
+            const currentIpCount = ValLayerService.getAttributeValue(currentAttributes, 'num_ip_addrs') || 0;
+            const currentGeocode = ValLayerService.getAttributeValue(currentAttributes, 'geocode');
+            const currentLat = ValLayerService.getAttributeValue(currentAttributes, 'latitude');
+            const currentLong = ValLayerService.getAttributeValue(currentAttributes, 'longitude');
             if (MapService.selectedCentroidObjectIds.includes(queriedObjectId)) {
                 const indexToRemove = graphicLayer.source.findIndex(g => {
-                    const currentObjectId = EsriLayerService.getAttributeValue(g.attributes, 'objectid');
+                    const currentObjectId = ValLayerService.getAttributeValue(g.attributes, 'objectid');
                     return currentObjectId === queriedObjectId || currentObjectId === preSelectedObjectId;
                 });
                 if (indexToRemove !== -1) {

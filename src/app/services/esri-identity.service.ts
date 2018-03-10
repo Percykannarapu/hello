@@ -19,6 +19,8 @@ export interface AuthenticationParams {
 @Injectable()
 export class EsriIdentityService {
 
+  public token: string;
+
   constructor(private http: HttpClient, private modules: EsriModules) { }
 
   public authenticate(params: AuthenticationParams) {
@@ -36,6 +38,7 @@ export class EsriIdentityService {
       .set('client', 'referer')
       .set('referer', params.referer);
     this.http.post<TokenResponse>(params.generatorUrl, body, {headers: headers}).subscribe(data => {
+      this.token = data.token;
       identityManager.registerToken({expires: data.expires, server: params.tokenServerUrl, ssl: data.ssl, token: data.token});
     });
   }

@@ -4,12 +4,9 @@ import { siteListUploadRules, siteUploadHeaderValidator } from './upload.rules';
 import { FileService, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
 import { ValGeocodingService } from '../../services/val-geocoding.service';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { FileUpload } from 'primeng/primeng';
+import { ValSiteListService } from '../../services/val-site-list.service';
 
 @Component({
   selector: 'val-upload-locations',
@@ -26,8 +23,9 @@ export class UploadLocationsComponent {
   private csvParseRules: ParseRule[] = siteListUploadRules;
   private csvHeaderValidator: (foundHeaders: ParseRule[]) => boolean = siteUploadHeaderValidator;
 
-  constructor(private messageService: MessageService, public geocodingService: ValGeocodingService,
-              private locationService: ImpGeofootprintLocationService, private attributeService: ImpGeofootprintLocAttribService) { }
+  constructor(private messageService: MessageService,
+              public geocodingService: ValGeocodingService,
+              private siteListService: ValSiteListService) { }
 
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
@@ -35,10 +33,14 @@ export class UploadLocationsComponent {
 
   public onResubmit(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
-    this.handleGeocodingAndPersisting([row.toGeocodingRequest()]);
+    this.displayGcSpinner = true;
+    this.siteListService.geocodeAndPersist([row.toGeocodingRequest()], this.listType).then(() => {
+      this.displayGcSpinner = false;
+    });
   }
 
   public uploadCsv(event: any) : void {
+    console.log('Upload Clicked');
     const reader = new FileReader();
     reader.readAsText(event.files[0]);
     reader.onload = () => {
@@ -59,29 +61,14 @@ export class UploadLocationsComponent {
         this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       }
       const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
-      this.handleGeocodingAndPersisting(classInstances);
+      this.displayGcSpinner = true;
+      console.log('sending to Fuse');
+      this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
+        this.displayGcSpinner = false;
+      });
     } catch (e) {
       this.handleError(`${e}`);
     }
-  }
-
-  private handleGeocodingAndPersisting(data: ValGeocodingRequest[]) {
-    this.displayGcSpinner = true;
-    this.geocodingService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
-      this.handlePersist(result.map(r => r.toGeoLocation(this.listType)));
-      this.displayGcSpinner = false;
-    });
-  }
-
-  private handlePersist(data: ImpGeofootprintLocation[]) : void {
-    const flatten = (previous: ImpGeofootprintLocAttrib[], current: ImpGeofootprintLocAttrib[]) => {
-      previous.push(...current);
-      return previous;
-    };
-    const attributes: ImpGeofootprintLocAttrib[] = data.map(l => l['_attributes']).reduce(flatten, []);
-    data.forEach(d => delete d['_attributes']);
-    this.locationService.add(data);
-    this.attributeService.add(attributes);
   }
 
   private handleError(message: string) : void {

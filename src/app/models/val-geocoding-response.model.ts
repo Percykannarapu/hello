@@ -2,6 +2,8 @@ import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from './val-geocoding-request.model';
 
+export const valGeocodingAttributeKey = '_attributes';
+
 export class ValGeocodingResponse {
   Latitude: number;
   Longitude: number;
@@ -26,7 +28,7 @@ export class ValGeocodingResponse {
   }
 
   public toGeoLocation(siteType?: string) : ImpGeofootprintLocation {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name,
       marketName: this.Market,
@@ -40,9 +42,11 @@ export class ValGeocodingResponse {
       origCity: this['Original City'],
       origState: this['Original State'],
       origPostalCode: this['Original ZIP'],
+      recordStatusCode: this['Geocode Status'],
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
-      impClientLocationType: siteType
+      impClientLocationType: siteType,
+      isActive: 1
     });
     if (this.Number != null && !Number.isNaN(Number(this.Number))) {
       result.locationNumber = Number(this.Number);
@@ -54,21 +58,21 @@ export class ValGeocodingResponse {
         const locationAttribute = new ImpGeofootprintLocAttrib({
           attributeCode: k,
           attributeValue: v,
-          impGeofootprintLocation: location
+          impGeofootprintLocation: result
         });
         attributes.push(locationAttribute);
       }
     }
-    result['_attributes'] = attributes;
+    result[valGeocodingAttributeKey] = attributes;
     return result;
   }
 
   public toGeocodingRequest() : ValGeocodingRequest {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result: ValGeocodingRequest = new ValGeocodingRequest({
       name:  this.Name,
       number: this.Number,
-      market: this.Market,
+      Market: this.Market,
       street: this['Original Address'],
       city: this['Original City'],
       state: this['Original State'],

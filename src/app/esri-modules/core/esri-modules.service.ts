@@ -39,7 +39,8 @@ export class EsriModules {
     'esri/symbols/TextSymbol',
     'esri/Color',
     'esri/views/2d/draw/Draw',
-    'esri/views/2d/draw/PolygonDrawAction'
+    'esri/views/2d/draw/PolygonDrawAction',
+    'esri/geometry/Point'
 ];
 
   private static config: typeof __esri.config;
@@ -59,7 +60,7 @@ export class EsriModules {
   public static PopupTemplate: typeof __esri.PopupTemplate;
   public static MapImageLayer: typeof __esri.MapImageLayer;
   public static PolyLine: typeof __esri.Polyline;
-  public static Polygon: typeof __esri.Polyline;
+  public static Polygon: typeof __esri.Polygon;
   public static Viewpoint: typeof __esri.Viewpoint;
   public static Graphic: typeof __esri.Graphic;
   public static SimpleFillSymbol: typeof __esri.SimpleFillSymbol;
@@ -69,6 +70,7 @@ export class EsriModules {
   public static Color: typeof __esri.Color;
   public static Draw: typeof __esri.Draw;
   public static PolygonDrawAction: typeof __esri.PolygonDrawAction;
+  public static Point: typeof __esri.Point;
 
   public static widgets: EsriWidgets;
 
@@ -119,7 +121,8 @@ export class EsriModules {
       EsriModules.TextSymbol,
       EsriModules.Color,
       EsriModules.Draw,
-      EsriModules.PolygonDrawAction
+      EsriModules.PolygonDrawAction,
+      EsriModules.Point
     ] = modules;
 
     EsriModules.widgets = new EsriWidgets();

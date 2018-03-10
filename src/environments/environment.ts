@@ -31,11 +31,11 @@ export class EnvironmentData {
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 
   public static esri = {
-    portalUrl:  'https://vallomimpor1vm.val.vlss.local/arcgis/'
+    portalUrl:  'https://vallomimpor1vm.val.vlss.local/'
   };
   public static esriIdentityAuth = {
-    generatorUrl: `${EnvironmentData.esri.portalUrl}sharing/rest/generateToken`,
-    tokenServerUrl: `${EnvironmentData.esri.portalUrl}sharing/rest/portals`,
+    generatorUrl: `${EnvironmentData.esri.portalUrl}arcgis/sharing/rest/generateToken`,
+    tokenServerUrl: `${EnvironmentData.esri.portalUrl}arcgis/sharing/rest/portals`,
     userName: 'admin',
     password: 'password'
   };

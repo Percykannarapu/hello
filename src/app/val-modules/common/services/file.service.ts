@@ -44,7 +44,9 @@ export class FileService {
     };
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
-      const columns = dataRows[i].split(delimiter);
+      // replace commas embedded inside nested quotes, then remove the quotes.
+      const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '');
+      const columns = csvRow.split(delimiter);
       if (columns.length !== parseEngine.length) {
         result.failedRows.push(dataRows[i]);
       } else {
