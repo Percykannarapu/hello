@@ -11,6 +11,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { TargetingProfile } from '../../models/TargetingProfile';
 import { GeoFootPrint } from '../../services/geofootprint.service';
 import { AppConfig } from '../../app.config';
+import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
 
 @Component({
   selector: 'val-login',
@@ -48,6 +49,7 @@ export class LoginComponent implements OnInit {
         this.displayLoginSpinner = false;
         this.createUser(loginForm.value.username);
         this.buildLoginDtls(loginForm.value.username);
+        this.bootstrapDataStore();
         this.router.navigate(['/']);
       }
       else {
@@ -56,6 +58,17 @@ export class LoginComponent implements OnInit {
       }
     });
 
+  }
+
+  /**
+   * Boostrap the data store with the oauth token that was acquired on login
+   */
+  private bootstrapDataStore() {
+    const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+    config.oauthToken = this.authService.getOauthToken();
+    config.tokenExpiration = this.authService.getTokenExpiration();
+    config.tokenRefreshFunction = this.authService.refreshToken;
+    DataStore.bootstrap(config);
   }
 
   private createUser(username: string) {

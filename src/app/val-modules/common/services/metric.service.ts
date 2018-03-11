@@ -10,7 +10,7 @@ export enum MetricOperations {
    ADD,
    REMOVE,
    UPDATE,
-   COPY
+   COPY // todo: what is the COPY operation??
 }
 export class MetricMessage
 {
@@ -46,6 +46,10 @@ export class MetricService
    constructor()
    {
       this.metrics = new Map<string, Map<string, string>> ();
+   }
+
+   public getMetrics() {
+         return this.metrics;
    }
 
    // ----------------------------------------------------------------
@@ -116,5 +120,9 @@ export class MetricService
    // ----------------------------------------------------------------
    public observeMetrics() : Observable<MetricMessage> {
       return this.subject.asObservable();
-   }   
+   }
+
+   public copy(groupName:string, key: string, src: Map<string, Map<string, string>>, dest: Map<string, Map<string, string>>) {
+
+   }
 }

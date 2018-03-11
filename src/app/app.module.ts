@@ -147,6 +147,7 @@ import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
     imports: [
@@ -283,7 +284,7 @@ import { TargetAudienceService } from './services/target-audience.service';
         ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
-        UserService
+        UserService, CookieService
     ],
     bootstrap: [AppComponent]
 })
