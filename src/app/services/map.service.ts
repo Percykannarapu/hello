@@ -67,8 +67,8 @@ export class MapService {
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
-    public displayDBSpinner: boolean = false;
-    public displaySpinnerMessage: string = 'Drawing Buffer...';
+    public displayDBSpinner: boolean;
+    public displaySpinnerMessage: string = 'Drawing Trade Area ...';
 
     constructor(private metricService: MetricService,
         private layerService: EsriLayerService,
@@ -818,7 +818,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
+        //this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
@@ -1496,7 +1496,7 @@ export class MapService {
     public async selectCentroid(graphicList: __esri.Graphic[]) {
         console.log('selectCentroid fired::::');
         this.displayDBSpinner = true;
-        this.displaySpinnerMessage = 'Shading the geofootprint...';
+        this.displaySpinnerMessage = 'Displaying Selections ...';
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -1565,10 +1565,7 @@ export class MapService {
                     }
                 });
             }
-            await this.selectPoly(centroidGraphics).then(() => {
-
-                this.displayDBSpinner = false;
-            });
+            await this.selectPoly(centroidGraphics);
         }
     }
 
@@ -1691,6 +1688,8 @@ export class MapService {
             await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
             await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
             // MapService.selectedCentroidObjectIds = [];
+            let metricUpdateCount = 0;
+            let p = 0;
             MapService.hhDetails = 0;
             MapService.hhIpAddress = 0;
             MapService.medianHHIncome = '0';
@@ -1707,6 +1706,7 @@ export class MapService {
 
             await array.forEach(centroidGraphics, (centroidGraphic) => {
                 const qry1 = loadedFeatureLayer.createQuery();
+                p++;
                 qry1.geometry = centroidGraphic.geometry;
                 qry1.outSpatialReference = this.mapView.spatialReference;
 
@@ -1715,6 +1715,7 @@ export class MapService {
                     const geoAttribsToAdd: ImpGeofootprintGeoAttrib[] = [];
                     for (let i = 0; i < polyFeatureSet.features.length; i++) {
                         const currentAttribute = polyFeatureSet.features[i].attributes;
+                        metricUpdateCount++;
                         //console.log('CurrentAttribute', currentAttribute);
                         if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(EsriLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
 
@@ -1738,13 +1739,13 @@ export class MapService {
                             if (EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
                                 MapService.medianHHIncome = '$' + EsriLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                             }
-                            if (discoveryUI[0].selectedSeason == 'WINTER') {
+                            if (discoveryUI[0].selectedSeason == 'WINTER' && EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w') != undefined ) {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
                                 geos[0].hhc = EsriLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
-                            } else {
+                            } else if (discoveryUI[0].selectedSeason == 'SUMMER' && EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s') != undefined ) {
                                 MapService.hhDetails = MapService.hhDetails + EsriLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === EsriLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
@@ -1803,9 +1804,14 @@ export class MapService {
 
                         //}
                     }
-
+                    if (metricUpdateCount == p){
+                        this.displayDBSpinner = false;
+                    }
+                    console.log('metricUpdateCount', metricUpdateCount, 'p', p);
+                    console.log('MapService.hhDetails', MapService.hhDetails);
                 });
             });
+            //this.displayDBSpinner = false;
         }
         // }
     }
