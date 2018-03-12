@@ -20,6 +20,14 @@ export class UserService {
     this._userSubject.next(this._user);
   }
 
+  /**
+   * Retreive the User object for the currently logged in user
+   * @returns A User object
+   */
+  public getUser() : User {
+    return this._user;
+  }
+
   constructor() { }
 
 }

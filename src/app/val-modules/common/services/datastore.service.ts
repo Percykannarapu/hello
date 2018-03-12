@@ -15,13 +15,24 @@ type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an
 type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
 type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
 
+/**
+ * Data store configuration, holds the oauth token for communicating with Fuse
+ */
+export class DataStoreServiceConfiguration {
+      public oauthToken: string;
+      public tokenExpiration: number;
+      public tokenRefreshFunction: Function;
+}
+
 export class DataStore<T>
 {
+   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
    private transientId: number = 0;
 
    // Private data store, exposed publicly as an observable
    private _dataStore = new Array<T>();
    private _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
+   
 
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
@@ -31,6 +42,20 @@ export class DataStore<T>
    // ---------------------------------------------
    // Utility / Non-Essential Methods
    // ---------------------------------------------
+
+   /**
+    * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
+    */
+   public static bootstrap(config: DataStoreServiceConfiguration) {
+      DataStore.dataStoreServiceConfiguration = config;
+   }
+
+   /**
+    * Get the data store configuration
+    */
+   public static getConfig() : DataStoreServiceConfiguration {
+         return DataStore.dataStoreServiceConfiguration;
+   }
 
    /**
     * Log the store to the console.  Also an example of two ways to iterate through it
@@ -120,6 +145,9 @@ export class DataStore<T>
     */
    public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
    {
+      if(DataStore.dataStoreServiceConfiguration != null) {
+         console.log('the oauth token in the data store is: ', DataStore.dataStoreServiceConfiguration.oauthToken);
+      }
       let success: boolean = true;
       let localCache: T[];
       let numSuccesses: number = 0;

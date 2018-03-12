@@ -212,22 +212,22 @@ export class GeocoderService {
     //let polyFeaturesetList : __esri.FeatureSet[] = [];
      await this.mapService.multiHomeGeocode(fLyrList, geometryList, extent).then(resList => {
         for (const polyFeatureSet of resList){
-          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('zip')){
+          if (polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('zip')){
             zipFeatureSet = polyFeatureSet;
           }
-          if(polyFeatureSet.features[0].layer.title === 'ATZ_Top_Vars_CopyAllData'){
+          if (polyFeatureSet.features[0].layer.title === 'ATZ_Top_Vars_CopyAllData'){
             atzFeatureSet = polyFeatureSet;
           }
-          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('pcr')){
+          if (polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('pcr')){
             pcrFeatureSet = polyFeatureSet;
           }
-          if(polyFeatureSet.features[0].layer.title === 'DIG_ATZ_Top_Vars_CopyAllData'){
+          if (polyFeatureSet.features[0].layer.title === 'DIG_ATZ_Top_Vars_CopyAllData'){
             d_atzFeatureSet = polyFeatureSet;
           }
-          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('county')){
+          if (polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('county')){
             c_dmaFeatureSet = polyFeatureSet;
           }
-          if(polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('dma')){
+          if (polyFeatureSet.features[0].layer.title.toLocaleLowerCase().includes('dma')){
             b_dmaFeatureSet = polyFeatureSet;
           }
         }
@@ -272,7 +272,7 @@ export class GeocoderService {
     console.log('processing sites::');
     for (const site of siteList) {
           let geoAttr: GeocodingAttributes;
-          let home_geo_issue: string = 'N';
+          const home_geo_issue: string = 'N';
           let graphic: __esri.Graphic;
           await this.mapService.createGraphic(site.latitude, site.longitude, color).then(res => {
             graphic = res;

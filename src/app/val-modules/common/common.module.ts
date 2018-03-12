@@ -1,7 +1,5 @@
 import {NgModule} from '@angular/core';
 
-import { MessageService } from '../common/services/message.service'; // 'primeng/components/common/messageservice';
-
 @NgModule({
    imports: [
    ],
@@ -10,7 +8,7 @@ import { MessageService } from '../common/services/message.service'; // 'primeng
    declarations: [
    ],
    providers: [
-      MessageService
+
    ],
 })
 export class CommonModule { }

@@ -1,16 +1,7 @@
-import { DataDemoComponent } from './../../../demo/view/datademo.component';
-import { state } from '@angular/animations';
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, ISubscription } from 'rxjs/Subscription';
 import { MapService } from '../../../services/map.service';
-import { GeocoderComponent } from '../../../components/geocoder/geocoder.component';
-import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { AppService } from '../../../services/app.service';
-import { DefaultLayers } from '../../../models/DefaultLayers';
-
-// Import Services
-import {MessageService} from '../../common/services/message.service';
-import { SelectItem } from 'primeng/components/common/selectitem';
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingResponseService } from '../services/GeocodingResponse.service';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
@@ -19,6 +10,7 @@ import { ImpGeofootprintLocAttribService } from '../services/ImpGeofootprintLocA
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { MetricService } from '../../common/services/metric.service';
 import { EsriModules } from '../../../esri-modules/core/esri-modules.service';
+import { DefaultLayers } from '../../../models/DefaultLayers';
 
 @Component({
   selector: 'val-amsite-list',
@@ -47,9 +39,9 @@ export class SiteListComponent implements OnInit, OnDestroy
    public impGeofootprintLocAttribList: ImpGeofootprintLocAttrib[] = [];
 
    private locSubscription: ISubscription;
-   private locAttrSubscription: ISubscription; 
+   private locAttrSubscription: ISubscription;
 
-   selectedSites: GeocodingResponse[];   
+   selectedSites: GeocodingResponse[];
    //columnOptions: SelectItem[];
 
    public cols: any[] = [{ field: 'glId',                 header: 'Number',           size: '60px'},
@@ -69,9 +61,8 @@ export class SiteListComponent implements OnInit, OnDestroy
                          { field: 'origState',            header: 'Original State',   size: '38px'},
                          { field: 'origPostalCode',       header: 'Original Zip',     size: '70px'}
                         ];
-  
+
    constructor(public  geocodingRespService: GeocodingResponseService,
-               private messageService: MessageService,
                private metricService: MetricService,
                private mapService: MapService,
                private appService: AppService,
@@ -82,40 +73,18 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    onGroupChange(selector){
      // update the grid as soon as the geocodingResponseService gives data
-     if (selector === 'Site'){
-       let tempList = [];
-       this.impGeofootprintFilteredSitesList = [];
-       tempList = this.impGeofootprintLocationService.get();
-       for (let i = 0; i < tempList.length; i++){
-         console.log(tempList[i].impClientLocationType);
-         if (tempList[i].impClientLocationType === 'Site'){
-           this.impGeofootprintFilteredSitesList.push(tempList[i]);
-         }
-       }
-
-     //this.impGeofootprintLocList =  this.impGeofootprintLocationService.get();
-     
-    //  Array< ImpGeofootprintLocation >.filter(checkForFilter: (value: ImpGeofootprintLocation, ));
+    if (selector === 'Site'){
+     this.impGeofootprintFilteredSitesList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === selector);
      this.selectedImpGeofootprintLocList = this.impGeofootprintFilteredSitesList;
-     this.metricService.add('LOCATIONS', '# of Sites', this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    } else {
-      let tempList = []; 
-      this.impGeofootprintFilteredCompList = [];
-      tempList = this.impGeofootprintLocationService.get();
-       for (let i = 0; i < tempList.length; i++){
-         console.log(tempList[i].impClientLocationType);
-         if (tempList[i].impClientLocationType === 'Competitor'){
-           this.impGeofootprintFilteredCompList.push(tempList[i]);
-         }
-       }
-      //this.impGeofootprintCompList = this.impGeofootprintLocationService.get();
+     this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredSitesList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    } else{
+      this.impGeofootprintFilteredCompList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === selector);
       this.selectedImpGeofootprintCompList = this.impGeofootprintFilteredCompList;
-      this.metricService.add('LOCATIONS', '# of Competitors', this.impGeofootprintFilteredCompList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+      this.metricService.add('LOCATIONS', `# of ${selector}s`, this.impGeofootprintFilteredCompList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     }
-    //this.gridData = this.selectedValue === 'Site' ? this.impGeofootprintLocList : this.geocodingRespService.amComps;
-   // this.geocodingRespService.createGrid();
+
    }
-   
+
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
       const site: GeocodingResponse = new GeocodingResponse();
@@ -132,7 +101,7 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    public onDeleteSite(loc: ImpGeofootprintLocation)
    {
-      console.log('Removing site: ' + loc);      
+      console.log('Removing site: ' + loc);
       this.geocodingRespService.remove(loc);
       this.onGroupChange(this.selectedValue);
    }
@@ -140,15 +109,15 @@ export class SiteListComponent implements OnInit, OnDestroy
    public onEditSite(row: any){
       console.log('test row on edit::::', row);
    }
-   
+
    getAmSites()
    {
 //      this.messageService.add({severity: 'success', summary: 'GetAmSites fired!', detail: 'Via MessageService'});
 
 //      this.amSiteService.getAmSites()
 //          .subscribe(amSites => this.amSites = amSites);
-   }    
-  
+   }
+
    ngOnInit()
    {
       this.locSubscription = this.impGeofootprintLocationService.storeObservable.subscribe(locData => this.onChangeLocation(locData));
@@ -164,7 +133,7 @@ export class SiteListComponent implements OnInit, OnDestroy
      const locList: ImpGeofootprintLocation[] = Array.from(impGeofootprintLocation);
 
      this.impGeofootprintLocList =  locList;
-     //this.selectedImpGeofootprintLocList = locList;     
+     //this.selectedImpGeofootprintLocList = locList;
    }
 
    onChangeLocAttr(impGeofootprintLocAttr: ImpGeofootprintLocAttrib[]){
@@ -251,15 +220,15 @@ export class SiteListComponent implements OnInit, OnDestroy
    showSearchDialog()
    {
       this.displaySearchDialog = true;
-   }  
+   }
 
    /*filterLocAttr(id: number){
      const gridtemp: any[] = [];
      this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
      this.impGeoLocAttrList.forEach(locAttrList => {
-         const gridMap: any = {};   
+         const gridMap: any = {};
          locAttrList.forEach(locAttr => {
-           if (locAttr.locAttributeId === id) 
+           if (locAttr.locAttributeId === id)
                gridMap[locAttr.attributeCode] = locAttr.attributeValue;
          });
          if (gridMap['Number'] >= 0 )
@@ -276,19 +245,19 @@ export class SiteListComponent implements OnInit, OnDestroy
          attr => attr.impGeofootprintLocation.glId === locationId);
    } */
 
-   filterAttrByLoc(locationId: number) 
+   filterAttrByLoc(locationId: number)
    {
      const returnList: ImpGeofootprintLocAttrib[] = this.impGeofootprintLocAttribList.filter(
         attr => attr.impGeofootprintLocation.glId == locationId);
 
         const gridtemp: Map<String, String>[] = [];
-        const gridMap: Map<String, String> = new Map<String, String>();   
+        const gridMap: Map<String, String> = new Map<String, String>();
       for (const locAttr of  returnList){
            gridMap[locAttr.attributeCode] = locAttr.attributeValue;
-      }  
+      }
       gridtemp.push(gridMap);
      return gridtemp;
-   }  
+   }
 
-   
+
 }

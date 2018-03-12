@@ -27,10 +27,10 @@
       <label>Manage for:</label>
    </div>
    <div class="ui-g-1">
-      <p-radioButton name="am_Group" value="Site" label="Sites" [(ngModel)]="selectedValue" inputId="Sites" (ngModelChange)="onGroupChange(selectedValue)"></p-radioButton>
+      <p-radioButton name="am_Group" value="Site" label="Sites" [(ngModel)]="selectedValue" inputId="Sites" (ngModelChange)="onGroupChange($event)"></p-radioButton>
    </div>
    <div class="ui-g-4">
-      <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="Competitors" (ngModelChange)="onGroupChange(selectedValue)"></p-radioButton>
+      <p-radioButton name="am_Group" value="Competitor" label="Competitors" [(ngModel)]="selectedValue" inputId="Competitors" (ngModelChange)="onGroupChange($event)"></p-radioButton>
    </div>
 </div>
 
@@ -40,7 +40,7 @@
 
 <div class="ui-g-12" >
    <p-dataTable *ngIf="selectedValue === 'Competitor'" #siteDt [globalFilter]="gb"
-      [value]="impGeofootprintFilteredCompList"
+      [value]="impGeofootprintFilteredCompList" 
       [(selection)]="selectedImpGeofootprintCompList"
       expandableRows="true" resizableColumns="true" [rows]="8" [paginator]="true"
       showToggleAll="true"  [headerCheckboxToggleAllPages]="true" 

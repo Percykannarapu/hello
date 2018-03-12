@@ -3,11 +3,6 @@ import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
-
-// Import Core Modules
-import { MessageService } from '../val-modules/common/services/message.service';
-
-// Import Models
 import { GeofootprintGeo } from '../models/geofootprintGeo.model';
 
 const geofootprintGeosUrl = '../api/geofootprintGeos';
@@ -16,8 +11,7 @@ const geofootprintGeosUrl = '../api/geofootprintGeos';
 export class GeofootprintGeoService {
 //  onDbReset = this.messageService.state;
 
-  constructor(private http: Http,
-              private messageService: MessageService) {
+  constructor(private http: Http) {
 //    this.messageService.state.subscribe(state => this.getGeofootprintGeos());
   }
 

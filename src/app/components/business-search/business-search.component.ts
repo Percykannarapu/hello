@@ -9,7 +9,6 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { DefaultLayers } from '../../models/DefaultLayers';
 import { forEach } from '@angular/router/src/utils/collection';
-import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
 import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocoderService } from '../../services/geocoder.service';
@@ -17,7 +16,6 @@ import { GeocodingResponseService } from '../../val-modules/targeting/services/G
 
 
 @Component({
-  providers: [MessageService],
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
   styleUrls: ['./business-search.component.css']
@@ -33,6 +31,7 @@ export class BusinessSearchComponent implements OnInit {
   public numFound: number;
   public mapView: __esri.MapView;
   public color: any;
+  items: any = [];
   dropdownList: any[];
   selectedCategory: any;
   selector: any;
@@ -57,11 +56,11 @@ export class BusinessSearchComponent implements OnInit {
     private appService: AppService,
     private mapService: MapService,
     private geocodingRespService: GeocodingResponseService,
-    private messageService: MessageService,
-    private amSiteService: AmSiteService) {
+    private messageService: MessageService) {
     //Dropdown data
 
     this.dropdownList = [
+      { label: 'Select SIC Category (optional)', value: { name: 'Select SIC Category (optional)'} },
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
       { label: 'Automotive Dealers & Service Stations', value: { name: 'Automotive Dealers & Service Stations', category: 55 } },
@@ -85,7 +84,7 @@ export class BusinessSearchComponent implements OnInit {
     this.name = 'Business Search';
     this.appService.getList().subscribe((data) => {
       this.filteredCategories = data.rows;
-      this.selectedCategory = this.dropdownList[0].value;
+      this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
 
@@ -95,7 +94,8 @@ export class BusinessSearchComponent implements OnInit {
     this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
     });
-    this.sourceCategories = this.businessCategories;
+    console.log('this.businessCategories', this.businessCategories);
+    this.sourceCategories = this.businessCategories.sort(this.sortOn('name'));
   }
   assignCopy() {
     this.sourceCategories = Object.assign([], this.businessCategories);
@@ -104,8 +104,8 @@ export class BusinessSearchComponent implements OnInit {
     if (!value) {
       this.assignCopy();
     } else if (value.length > 2) {
-      this.sourceCategories = Object.assign([], this.filteredCategories).filter((item) => {
-        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
+      this.sourceCategories = Object.assign([], this.filteredCategories.sort(this.sortOn('name'))).filter((item) => {
+        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;  
       });
     }
 
@@ -189,6 +189,18 @@ export class BusinessSearchComponent implements OnInit {
       });
     });
 
+  }
+
+  private sortOn(property) {
+    return function (a, b) {
+      if (a[property] < b[property]) {
+        return -1;
+      } else if (a[property] > b[property]) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
   }
 
   private parseCsvResponse(restResponses: any[]) : GeocodingResponse[] {
@@ -290,7 +302,7 @@ export class BusinessSearchComponent implements OnInit {
     const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
 
     //await this.searchDatageos.forEach(async business => {
-      //Create a popup for the point clicked on the map
+    //Create a popup for the point clicked on the map
     for (const business of this.searchDatageos) {
       if (business.checked) {
         const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
@@ -320,9 +332,9 @@ export class BusinessSearchComponent implements OnInit {
           });
       }
     }
-    //this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
+    this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
     //console.log('this.plottedpoints', this.plottedPoints);
-    this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
+    this.geocoderService.addSitesToMap(this.plottedPoints, selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
     this.appService.closeOverLayPanel.next(true);
     // if (selector === 'Competitor') {
     //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});

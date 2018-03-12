@@ -17,8 +17,7 @@ interface MergeType { value: string; }
 @Component({
     selector: 'val-tradearea-define',
     templateUrl: './tradearea-define.component.html',
-    styleUrls: ['./tradearea-define.component.css'],
-    providers: [MessageService]
+    styleUrls: ['./tradearea-define.component.css']
 })
 export class TradeareaDefineComponent implements OnInit, OnDestroy {
 
@@ -33,12 +32,11 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     currentMergeType: MergeType;
     currentSiteType: SiteType;
     tradeAreaMergeTypes: SelectItem[];
-    displayDBSpinner: boolean = false;
-
+  
     temp = [];
 
     constructor(
-        private mapService: MapService,
+        public mapService: MapService,
         private messageService: MessageService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
         private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
@@ -84,19 +82,19 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     * @param impGeofootprintLocations The array of locations received from the observable
     */
     onChangeLocation(impGeofootprintLocations: ImpGeofootprintLocation[]) : void {
-      this.displayDBSpinner = true;
+      this.mapService.displayDBSpinner = true;
 
       console.log('----------------------------------------------------------------------------------------');
       console.log('tradearea-define.component - onChangeLocation - :  ', impGeofootprintLocations);
       console.log('----------------------------------------------------------------------------------------');
 
-     this.drawBuffer('Site').then(() => {
-       this.displayDBSpinner = false;
-     });
+     this.drawBuffer('Site');
+     this.mapService.displayDBSpinner = false;
     }
 
-    public async drawBuffer(tradeAreaType: SiteType) {
+    public drawBuffer(tradeAreaType: SiteType) {
         this.messageService.clear();
+        this.mapService.displayDBSpinner = true;
 
         const isSiteBuffer = (tradeAreaType === 'Site');
         const layerPrefix = `${tradeAreaType} - `;
@@ -125,7 +123,14 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                         this.mapService.bufferMergeEach(color, model.tradeAreaInKm, layerPrefix + model.layerName, outlineColor, tradeAreaType, ++siteId)
                           .then(res => {
                             if (model.tradeArea === maxRadius && isSiteBuffer) {
-                              return this.mapService.selectCentroid(res);
+                              this.mapService.displaySpinnerMessage = 'Selecting geography...';
+                             //const resp = this.mapService.selectCentroid(res);
+                             //this.displaySpinnerMessage = 'Shading the geofootprint...';
+                             return this.mapService.selectCentroid(res).then(() => {
+                              //this.displayDBSpinner = false;
+                              this.mapService.displaySpinnerMessage = 'Drawing Buffer...';
+                              //console.log('display', this.displayDBSpinner);
+                             });
                             }
                           });
                       MapService.tradeAreaInfoMap.set('lyrName', layerPrefix + model.layerName);
@@ -140,9 +145,14 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                     this.mapService.bufferMergeEach(color, maxRadiusModel.tradeAreaInKm, layerPrefix + maxRadiusModel.layerName, outlineColor, tradeAreaType)
                       .then(res => {
                         if (isSiteBuffer) {
-                          return this.mapService.selectCentroid(res);
-                        }
-                      });
+                          this.mapService.displaySpinnerMessage = 'Selecting geography...';
+                          return this.mapService.selectCentroid(res).then(() => {
+                            //this.displayDBSpinner = false;
+                            this.mapService.displaySpinnerMessage = 'Drawing Buffer...';
+                            //console.log('display', this.displayDBSpinner);
+                           });
+                          }
+                        });
                     MapService.tradeAreaInfoMap.set('lyrName', layerPrefix + maxRadiusModel.layerName);
                     MapService.tradeAreaInfoMap.set('mergeType', 'MergeAll');
                     MapService.tradeAreaInfoMap.set('milesMax', maxRadius);
@@ -201,10 +211,8 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
 
     public onApplyBtnClick() {
       //Show the DBSpinner on Apply
-      this.displayDBSpinner = true;
-      this.drawBuffer(this.currentSiteType).then(() => {
-        this.displayDBSpinner = false;
-      });
+      this.mapService.displayDBSpinner = true;
+      this.drawBuffer(this.currentSiteType);
 
       // --------------------------------------------------------------------------------
       // THIS IS TEMPORARY

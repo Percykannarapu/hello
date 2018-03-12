@@ -6,12 +6,13 @@ import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { Message } from 'primeng/primeng';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 
 @Component({
   selector: 'val-upload-locations',
   templateUrl: './upload-locations.component.html',
-  styleUrls: ['./upload-locations.component.css'],
-  providers: [MessageService]
+  styleUrls: ['./upload-locations.component.css']
 })
 export class UploadLocationsComponent implements OnInit {
 
@@ -31,6 +32,7 @@ export class UploadLocationsComponent implements OnInit {
   constructor(private geocoderService: GeocoderService,
     private messageService: MessageService,
     private mapService: MapService,
+    private impDiscoveryService: ImpDiscoveryService,
     private geocodingRespService: GeocodingResponseService) { }
 
   // determine if the response from the geocoder was a failure or not based on the codes we get back
@@ -100,6 +102,21 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  validateCSV() {
+    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    console.log('analysis level:::',  discoveryUI[0].analysisLevel);
+    if (this.selector === 'Competitor' || (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null)){
+    //  this.callUploadCSV(event);
+    }
+    else if (this.selector != 'Competitor'){
+      const validationError: string = 'You must select an Analysis Level on the Discovery tab before adding Sites';
+      this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
+      this.fileUploadEl.nativeElement.value = ''; // reset the value in the file upload element to an empty string
+      //this.messageService.clear();
+      throw new Error(validationError);
+    }
   }
 
   uploadCSV(event) {
@@ -284,6 +301,7 @@ export class UploadLocationsComponent implements OnInit {
         //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
         //Hide the spinner on error
         this.displayGcSpinner = false;
+        this.fileUploadEl.nativeElement.value = '';
         throw new Error(validationError);
       }
     }
@@ -292,6 +310,7 @@ export class UploadLocationsComponent implements OnInit {
       //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.fileUploadEl.nativeElement.value = '';
       throw new Error(validationError);
     }
 
@@ -300,6 +319,7 @@ export class UploadLocationsComponent implements OnInit {
       //this.messageService.add({ severity: 'error', summary: 'Failed to geocode File', detail: `${validationError}` });
       //Hide the spinner on error
       this.displayGcSpinner = false;
+      this.fileUploadEl.nativeElement.value = '';
       throw new Error(validationError);
     }
     return headerPosition;
