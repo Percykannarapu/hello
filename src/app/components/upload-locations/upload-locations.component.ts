@@ -2,11 +2,11 @@ import { Component, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { siteListUploadRules, siteUploadHeaderValidator } from './upload.rules';
 import { FileService, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
-import { ValGeocodingService } from '../../services/val-geocoding.service';
+import { ValGeocodingService } from '../../services/app-geocoding.service';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
 import { FileUpload } from 'primeng/primeng';
-import { ValSiteListService } from '../../services/val-site-list.service';
+import { ValSiteListService } from '../../services/app-site-list.service';
 
 @Component({
   selector: 'val-upload-locations',

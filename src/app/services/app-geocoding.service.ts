@@ -31,7 +31,7 @@ export class ValGeocodingService {
     let geocoderPromise: Promise<ValGeocodingResponse[]>;
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
-      const cleanRequestData = sites.filter(s => s.hasLatAndLong() === false).map(s => s.cleanUploadRequest());
+      const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
       geocoderPromise = this.restService.post('v1/geocoder/multiplesites', cleanRequestData).toPromise()
         .catch(err => {
           console.error(err);

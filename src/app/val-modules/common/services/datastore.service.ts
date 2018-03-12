@@ -89,7 +89,7 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire prior to the fetch
     * @param postOperation - A callback delegate that will fire after the fetch
     */
-   public get(forceRefresh?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>)
+   public get(forceRefresh?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[]
    {
 //    console.log('DataStore.get fired');
       if (preOperation)

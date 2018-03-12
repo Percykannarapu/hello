@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AppConfig } from '../../app.config';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ValGeocodingService } from '../../services/val-geocoding.service';
-import { ValSiteListService } from '../../services/val-site-list.service';
+import { ValGeocodingService } from '../../services/app-geocoding.service';
+import { ValSiteListService } from '../../services/app-site-list.service';
 
 @Component({
   selector: 'val-geocoder',
@@ -28,12 +28,10 @@ export class GeocoderComponent implements OnInit {
   }
 
   public onSiteTypeChange($event) : void {
-      if ($event === 'Site'){
-             this.currentModel =
-            this.siteModel;
-     } else{
-         this.currentModel =
-      this.compModel;
+    if ($event === 'Site'){
+      this.currentModel = this.siteModel;
+    } else {
+      this.currentModel = this.compModel;
     }
     this.currentManualSiteType = $event;
   }

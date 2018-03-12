@@ -32,8 +32,6 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     currentMergeType: MergeType;
     currentSiteType: SiteType;
     tradeAreaMergeTypes: SelectItem[];
-  
-    temp = [];
 
     constructor(
         public mapService: MapService,
