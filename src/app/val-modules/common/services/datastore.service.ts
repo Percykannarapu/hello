@@ -257,16 +257,29 @@ export class DataStore<T>
       return this.deepFindByArray(obj, props, defaultValue);
    }
 
-   public getListBy (props, searchValue) : T[]
+   /**
+    * Return a list of data store objects that match the searchValue
+    * 
+    * Ex: Return all of the geofootprint geos whose location is BUDDY'S PIZZA - GRAND RAPIDS
+    * const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS');
+    *
+    * @param props The property to search for
+    * @param searchValue The value to match
+    */
+   // TODO: Add a comparator delegate property, use === if not provided
+   public getListBy (props, searchValue, comparator?: callbackElementType<T>) : T[]
    {
       const results: T[] = [];
 
       if (this._dataStore != null)
-         for (const geo of this._dataStore)
+         for (const item of this._dataStore)
          {
-            const site: T = this.deepFind (geo, props, null);
-            if (site === searchValue)
-               results.push(site);
+            const result: T = this.deepFind (item, props, null);
+            if (comparator != null && comparator(item))
+               results.push(item);
+            else
+               if (result === searchValue)
+                  results.push(item);
          }
 
       return results;

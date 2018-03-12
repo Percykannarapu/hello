@@ -6,6 +6,7 @@ import { MapService } from '../../../services/map.service';
 import { GeocoderComponent } from '../../../components/geocoder/geocoder.component';
 import { EsriLoaderWrapperService } from '../../../services/esri-loader-wrapper.service';
 import { AppService } from '../../../services/app.service';
+import { DefaultLayers } from '../../../models/DefaultLayers';
 
 // Import Services
 import {MessageService} from '../../common/services/message.service';
@@ -17,6 +18,7 @@ import { ImpGeofootprintLocationService } from '../services/ImpGeofootprintLocat
 import { ImpGeofootprintLocAttribService } from '../services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { MetricService } from '../../common/services/metric.service';
+import { EsriModules } from '../../../esri-modules/core/esri-modules.service';
 
 @Component({
   selector: 'val-amsite-list',
@@ -133,7 +135,6 @@ export class SiteListComponent implements OnInit, OnDestroy
       console.log('Removing site: ' + loc);      
       this.geocodingRespService.remove(loc);
       this.onGroupChange(this.selectedValue);
-     // MapService.pointsArray.
    }
 
    public onEditSite(row: any){
@@ -184,26 +185,58 @@ export class SiteListComponent implements OnInit, OnDestroy
       this.geocodingRespService.siteWasUnselected (event.data);
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
-      this.printSite(event.data);
-
-      this.geocodingRespService.logSites();
-
+      //this.printSite(event.data);
+      //this.geocodingRespService.logSites();
       this.updateLocationStore();
+      this.mapService.clearGraphicsForParent(Number(event.data.glId));
    }
 
-   onRowSelect(event)
+   public async onRowSelect(event)
    {
-      console.log('Selected Site');
+      console.log('Selected Site: ', event.data);
       // this.msgs = [];
       // this.msgs.push({severity: 'info', summary: 'Car Unselected', detail: event.data.vin + ' - ' + event.data.brand});
       console.log('grid length::' + this.geocodingRespService.sitesList.length);
       // this.geocodingRespService.refreshMapSites(this.selectedValue);
-      this.geocodingRespService.siteWasSelected (event.data);
+      //this.geocodingRespService.siteWasSelected (event.data);
       // this.geocodingRespService.logSites();
 
      // this.geocodingRespService.refreshMapSites('site');
       this.updateLocationStore();
+
+      // const color = {a: 1, r: 35, g: 93, b: 186};
+      // this.mapService.createGraphic(event.data.ycoord, event.data.xcoord, color, event.data.glId).then(graphic => {
+      //    console.log('graphic: ', graphic);
+//         this.mapService.zoomOnMap([graphic]);
+      // });
+      await this.createGraphic(event.data);
    }
+
+   public async createGraphic(site: ImpGeofootprintLocation) {
+      console.log ('SiteList.component - createGraphic - site: ', site);
+
+      let graphic: __esri.Graphic = new EsriModules.Graphic()
+      let popupTemplate: __esri.PopupTemplate = new EsriModules.PopupTemplate();
+
+      // const popupAttributesList: GeocodingAttributes[] = site.geocodingAttributesList;
+
+      // popupTemplate.title = `Sites`;
+      // let template = `<table> <tbody>`;
+      // for (const popupAttribute of popupAttributesList) {
+      //       template = template + `<tr><th>${popupAttribute.attributeName}</th><td>${popupAttribute.attributeValue}</td></tr>`;
+      // }
+      // template = template + `</tbody> </table>`;
+      // popupTemplate.content = template;
+
+      const color = {a: 1, r: 35, g: 93, b: 186};
+      console.log ('calling this.mapService.createGraphic(' + site.ycoord + ', ' + site.xcoord + ', ', color, ', null, ' + site.glId +');');
+      await this.mapService.createGraphic(site.ycoord, site.xcoord, color, null, site.glId).then(res => {
+         graphic = res;
+     });
+
+      this.mapService.updateFeatureLayer([graphic], DefaultLayers.SITES, true);
+      console.log ('SiteList.component - createGraphic - Finished');
+   }   
    
    printSite(site: GeocodingResponse) {
       console.log(site);
