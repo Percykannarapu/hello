@@ -1627,19 +1627,19 @@ export class MapService {
 
         // Collect the selected geographies for pushing to the ImpGeofootpringGeo data store
         let impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+//        let impGeofootprintGeos: Array<ImpGeofootprintGeo> = [];
 
         for (const centroidGraphic of centroidGraphics) {
             const pt: __esri.Point = <__esri.Point>centroidGraphic.geometry;
             impGeofootprintGeos.push(new ImpGeofootprintGeo({
                 geocode: EsriLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
-                xcoord: pt.longitude,
-                ycoord: pt.latitude
+                xCoord: pt.longitude,
+                yCoord: pt.latitude
             }));
         }
         // Update the ImpGeofootprintGeos data store
         this.impGeofootprintGeoService.clearAll();
         this.impGeofootprintGeoService.add(impGeofootprintGeos);
-        impGeofootprintGeos = this.impGeofootprintGeoService.get();
 
         // Also clear the geo attribute data store
         this.impGeofootprintGeoAttribService.clearAll();
