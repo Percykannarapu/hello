@@ -67,8 +67,8 @@ export class MapService {
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
-    public displayDBSpinner: boolean = false;
-    public displaySpinnerMessage: string = 'Drawing Buffer...';
+    public displayDBSpinner: boolean;
+    public displaySpinnerMessage: string = 'Drawing Trade Area ...';
 
     constructor(private metricService: MetricService,
         private layerService: ValLayerService,
@@ -89,7 +89,7 @@ export class MapService {
     }
 
     // Initialize Group Layers
-    public initGroupLayers(): void {
+    public initGroupLayers() : void {
         console.log('fired initGroupLayers()');
 
         MapService.EsriGroupLayer = new EsriModules.GroupLayer({
@@ -225,7 +225,7 @@ export class MapService {
     }
 
     // create the MapView
-    public createMapView(): void {
+    public createMapView() : void {
         // Create an instance of the Home widget
         const home = new EsriModules.widgets.Home({
             view: this.mapView
@@ -591,13 +591,13 @@ export class MapService {
     }
 
     // Get MapView
-    public getMapView(): __esri.MapView {
+    public getMapView() : __esri.MapView {
         // to return Mapview
         return this.mapView;
     }
 
     // Hide MapLayers
-    public hideMapLayers(): EsriWrapper<__esri.MapView> {
+    public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
         // Toggle all layers
         this.mapView.map.layers.forEach((layer, i) => {
@@ -610,7 +610,7 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public removeMapLayers(): EsriWrapper<__esri.MapView> {
+    public removeMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired removeMapLayers() in MapService');
 
         // remove all layers
@@ -619,7 +619,7 @@ export class MapService {
     }
 
     // Physically Remove MapLayer (or GroupLayer)
-    public removeLayer(layer: __esri.Layer): EsriWrapper<__esri.MapView> {
+    public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
         // remove Group Layer
         this.mapView.map.remove(layer);
@@ -627,7 +627,7 @@ export class MapService {
     }
 
     // Returns a layer instance from the map based on its title property
-    public findLayerByTitle(title: string): __esri.Layer {
+    public findLayerByTitle(title: string) : __esri.Layer {
         return this.mapView.map.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findLayerByTitle Found: ' + title);
@@ -637,7 +637,7 @@ export class MapService {
     }
 
     // Returns a sublayer instance from the map based on its title property
-    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string): __esri.Layer {
+    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
         return GroupLayer.layers.find(function (layer) {
             if (layer.title === title) {
                 console.log('findSubLayerByTitle found: ' + layer.title);
@@ -704,7 +704,7 @@ export class MapService {
         group.visible = true;
     }
 
-    public setMapLayers(analysisLevels: string[]): void {
+    public setMapLayers(analysisLevels: string[]) : void {
         console.log('fired setMapLayers() in MapService');
         // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.DmaGroupLayer.visible = false;
@@ -818,7 +818,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-        this.displayDBSpinner = false;
+        //this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
@@ -1241,7 +1241,7 @@ export class MapService {
         // await this.zoomOnMap(graphics);
     }
 
-    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number): Promise<__esri.Graphic> {
+    public async createGraphic(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : Promise<__esri.Graphic> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [SimpleMarkerSymbol, Point, Graphic, Color] = await loader.loadModules([
             'esri/symbols/SimpleMarkerSymbol',
@@ -1496,7 +1496,7 @@ export class MapService {
     public async selectCentroid(graphicList: __esri.Graphic[]) {
         console.log('selectCentroid fired::::');
         this.displayDBSpinner = true;
-        this.displaySpinnerMessage = 'Shading the geofootprint...';
+        this.displaySpinnerMessage = 'Displaying Selections ...';
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
             = await loader.loadModules([
@@ -1565,10 +1565,7 @@ export class MapService {
                     }
                 });
             }
-            await this.selectPoly(centroidGraphics).then(() => {
-
-                this.displayDBSpinner = false;
-            });
+            await this.selectPoly(centroidGraphics);
         }
     }
 
@@ -1583,7 +1580,7 @@ export class MapService {
         });
     }
 
-    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number): number {
+    public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number {
         // Construct a polyline to get the geodesic distance between geo and site
         const polyLine: __esri.Polyline = new EsriModules.PolyLine({ paths: [[[x1, y1], [x2, y2]]] });
         const dist: number = EsriModules.geometryEngine.geodesicLength(polyLine, 'miles');
@@ -1691,6 +1688,8 @@ export class MapService {
             await this.removeSubLayer('Selected Geography - ATZ', MapService.SitesGroupLayer);
             await this.removeSubLayer('Selected Geography - Digital ATZ', MapService.SitesGroupLayer);
             // MapService.selectedCentroidObjectIds = [];
+            let metricUpdateCount = 0;
+            let p = 0;
             MapService.hhDetails = 0;
             MapService.hhIpAddress = 0;
             MapService.medianHHIncome = '0';
@@ -1707,6 +1706,7 @@ export class MapService {
 
             await array.forEach(centroidGraphics, (centroidGraphic) => {
                 const qry1 = loadedFeatureLayer.createQuery();
+                p++;
                 qry1.geometry = centroidGraphic.geometry;
                 qry1.outSpatialReference = this.mapView.spatialReference;
 
@@ -1715,6 +1715,7 @@ export class MapService {
                     const geoAttribsToAdd: ImpGeofootprintGeoAttrib[] = [];
                     for (let i = 0; i < polyFeatureSet.features.length; i++) {
                         const currentAttribute = polyFeatureSet.features[i].attributes;
+                        metricUpdateCount++;
                         //console.log('CurrentAttribute', currentAttribute);
                         if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(ValLayerService.getAttributeValue(currentAttribute, 'objectid'))) {
 
@@ -1738,21 +1739,22 @@ export class MapService {
                             if (ValLayerService.getAttributeValue(currentAttribute, 'cl2i00') != null) {
                                 MapService.medianHHIncome = '$' + ValLayerService.getAttributeValue(currentAttribute, 'cl2i00');
                             }
-                            if (discoveryUI[0].selectedSeason == 'WINTER') {
+                            if (discoveryUI[0].selectedSeason == 'WINTER' && ValLayerService.getAttributeValue(currentAttribute, 'hhld_w') != undefined ) {
                                 MapService.hhDetails = MapService.hhDetails + ValLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === ValLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
                                 geos[0].hhc = ValLayerService.getAttributeValue(currentAttribute, 'hhld_w');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
-                            } else {
+                            } else if (discoveryUI[0].selectedSeason == 'SUMMER' && ValLayerService.getAttributeValue(currentAttribute, 'hhld_s') != undefined ) {
                                 MapService.hhDetails = MapService.hhDetails + ValLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 const geos = impGeofootprintGeos.filter(f => f.geocode === ValLayerService.getAttributeValue(currentAttribute, 'geocode'));
                                 //const newGeo = Array.from(geos.slice(0, 1));
                                 geos[0].hhc = ValLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             }
+                            if (ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != undefined){ //undefined values of one iP address return NaN
                             MapService.hhIpAddress = MapService.hhIpAddress + ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-
+                        }
                         }
                         if (discoveryUI[0].cpm != null) {
                             MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
@@ -1803,9 +1805,14 @@ export class MapService {
 
                         //}
                     }
-
+                    if (metricUpdateCount == p){
+                        this.displayDBSpinner = false;
+                    }
+                    // console.log('metricUpdateCount', metricUpdateCount, 'p', p);
+                    // console.log('MapService.hhDetails', MapService.hhDetails);
                 });
             });
+            //this.displayDBSpinner = false;
         }
         // }
     }
@@ -2066,12 +2073,12 @@ export class MapService {
         });
     }
 
-    public getAllFeatureLayers(): Promise<__esri.FeatureLayer[]> {
+    public getAllFeatureLayers() : Promise<__esri.FeatureLayer[]> {
         // console.log('fired getAllFeatureLayers');
         return Promise.resolve(this._getAllFeatureLayers());
     }
 
-    private _getAllFeatureLayers(): __esri.FeatureLayer[] {
+    private _getAllFeatureLayers() : __esri.FeatureLayer[] {
         const result: __esri.FeatureLayer[] = [];
         this.map.allLayers.forEach(lyr => {
             if (lyr.type === 'feature') {
@@ -2209,7 +2216,7 @@ export class MapService {
         //  return polyFeatureSetList;
     }
 
-    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic): Promise<Map<String, Object>> {
+    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, PopupTemplate]
             = await loader.loadModules([

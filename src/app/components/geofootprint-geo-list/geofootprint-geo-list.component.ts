@@ -207,6 +207,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          geo => (geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.glId === locationId : null);
    }
 
+   compare(compareTo: ImpGeofootprintGeo) : boolean
+   {
+      console.log('comparing to: ', compareTo);
+      return true;
+   }
+
+
    testFind() {
       console.log('--------------------------------------------------');
       console.log('testFind');
@@ -214,27 +221,43 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //      const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.impGeofootprintLocation.glId === 1)];
 //const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.geocode === '48375C1')];
       const storeGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get();
+      console.log ('Working with geos: ', storeGeos);
 //      let  foundGeo = this.impGeofootprintGeoService.find(storeGeos[10]);
 //      console.log('foundGeo', foundGeo);
 
-      let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48375C1'});
+      console.log('');
+      console.log('Looking for geo: 48080');
+      let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48080'});
       const foundGeo = this.impGeofootprintGeoService.find(searchGeo);
       console.log('foundGeo', foundGeo);
 
-      searchGeo = new ImpGeofootprintGeo({impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'Masons'})});
+      console.log('');
+      console.log('Looking for geos for location: BUDDY\'S PIZZA - GRAND RAPIDS');
+      searchGeo = new ImpGeofootprintGeo({impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'BUDDY\'S PIZZA - GRAND RAPIDS'})});
       const foundGeos: ImpGeofootprintGeo[] = [this.impGeofootprintGeoService.find(searchGeo)];
       console.log('foundGeos', foundGeos);
 
+      console.log('');
       const site: ImpGeofootprintLocation = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation', null);
       console.log ('site: ', site);
 
+      console.log('');
       const siteName: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName', null);
       console.log ('siteName: ', siteName);
 
+      console.log('');
+      console.log ('Test returning a default value when search is not found');
       const testDefault: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName.cocopuffs', 'A default Value');
       console.log ('defaulted: ', testDefault);
 
-      const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'Masons');
+      console.log('');
+      console.log('Test getting a list of objects by a relationship property');
+      const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS');
+      console.log ('findBy: ', getByGeos);
+
+      console.log('');
+      console.log('Test getting a list of objects by a relationship property using a comparator');
+      const getByGeosC: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS', this.compare);
       console.log ('findBy: ', getByGeos);
 
       let foundIdx = -1;

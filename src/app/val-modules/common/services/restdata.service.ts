@@ -5,6 +5,7 @@ import 'rxjs/add/operator/map';
 import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { DataStore } from './datastore.service';
 
 @Injectable()
 export class RestDataService
@@ -61,7 +62,7 @@ export class RestDataInterceptor implements HttpInterceptor
          req = req.clone({ headers: req.headers.set('Content-Type', 'application/json') });
       }
 
-      req = req.clone({ headers: req.headers.set('Accept', 'application/json') });
+      req = req.clone({ headers: req.headers.set('Accept', 'application/json').set('Authorization: Bearer', DataStore.getConfig().oauthToken) });
       console.log(JSON.stringify(req.headers));
       return next.handle(req);
    }

@@ -150,6 +150,7 @@ import { SiteListComponent } from './components/site-list/site-list.component';
 import { ValSiteListService } from './services/app-site-list.service';
 import { EsriRestQueryService } from './esri-modules/rest-api/esri-rest-query.service';
 import { ValTradeAreaService } from './services/app-trade-area.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
     imports: [
@@ -286,7 +287,8 @@ import { ValTradeAreaService } from './services/app-trade-area.service';
         ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
-        UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService
+        UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
+        CookieService
     ],
     bootstrap: [AppComponent]
 })
