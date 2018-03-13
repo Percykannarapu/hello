@@ -803,7 +803,7 @@ export class MapService {
         const p = new Point({
             x: pointLongitude,
             y: pointLatitude,
-            spatialReference: 4326
+            spatialReference: this.config.val_spatialReference
         });
 
         const circle = new Circle({
@@ -869,14 +869,14 @@ export class MapService {
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
-                    spatialReference: 4326
+                    spatialReference: this.config.val_spatialReference
                 });
                 pointList.push(p);
             } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
-                    spatialReference: 4326
+                    spatialReference: this.config.val_spatialReference
                 });
                 pointList.push(p);
             }
@@ -927,7 +927,7 @@ export class MapService {
             objectIdField: 'ObjectID',
             geometryType: 'point',
             //spatialReference: { wkid: 5070 },
-            spatialReference: { wkid: 4326 },
+            spatialReference: { wkid: this.config.val_spatialReference },
             source: graphics,
             popupEnabled: layerHasPopup,
             popupTemplate: '{*}',
@@ -1470,7 +1470,7 @@ export class MapService {
             xmax: maxX,
             ymax: maxY,
             spatialReference: {
-                wkid: 4326
+                wkid: this.config.val_spatialReference
             }
         });
         try {
@@ -1544,6 +1544,7 @@ export class MapService {
             await layer.load().then((f1: __esri.FeatureLayer) => {
                 loadedFeatureLayer = f1;
             });
+            //console.log('test:::', centroidGraphics);
             for (const graphic of graphicList) {
                 const qry = layer.createQuery();
                 qry.geometry = graphic.geometry;
@@ -1552,16 +1553,28 @@ export class MapService {
                     for (let i = 0; i < featureSet.features.length; i++) {
                         const owner_group_primary: string = ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
                         const cover_frequency: string = ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
-                        if (ValLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
+                        const is_pob: any = featureSet.features[i].attributes['is_pob_only'];
+                            if (discoveryUI[0].includePob === true){
+                                if (is_pob === 1 || is_pob === 0) {
 
-                            if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                                if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
                                 ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
                                 (((cover_frequency === undefined || cover_frequency === null && discoveryUI[0].includeSolo === true) || (cover_frequency.toUpperCase() === 'SOLO' && discoveryUI[0].includeSolo) === true))) {
 
                                 centroidGraphics.push(featureSet.features[i]);
+                                }
                             }
+                        }else{
+                            if (is_pob === 0) {
+                                if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                                ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
+                                (((cover_frequency === undefined || cover_frequency === null && discoveryUI[0].includeSolo === true) || (cover_frequency.toUpperCase() === 'SOLO' && discoveryUI[0].includeSolo) === true))) {
 
+                                centroidGraphics.push(featureSet.features[i]);
+                                }
+                            }
                         }
+                    //}
                     }
                 });
             }
@@ -1624,19 +1637,19 @@ export class MapService {
 
         // Collect the selected geographies for pushing to the ImpGeofootpringGeo data store
         let impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+//        let impGeofootprintGeos: Array<ImpGeofootprintGeo> = [];
 
         for (const centroidGraphic of centroidGraphics) {
             const pt: __esri.Point = <__esri.Point>centroidGraphic.geometry;
             impGeofootprintGeos.push(new ImpGeofootprintGeo({
                 geocode: ValLayerService.getAttributeValue(centroidGraphic.attributes, 'geocode'),
-                xcoord: pt.longitude,
-                ycoord: pt.latitude
+                xCoord: pt.longitude,
+                yCoord: pt.latitude
             }));
         }
         // Update the ImpGeofootprintGeos data store
         this.impGeofootprintGeoService.clearAll();
         this.impGeofootprintGeoService.add(impGeofootprintGeos);
-        impGeofootprintGeos = this.impGeofootprintGeoService.get();
 
         // Also clear the geo attribute data store
         this.impGeofootprintGeoAttribService.clearAll();

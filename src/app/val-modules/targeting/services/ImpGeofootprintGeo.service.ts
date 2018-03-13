@@ -116,15 +116,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case '#V-STREETADDRESS':
             let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
             console.log('truncZip ' + truncZip);
-            varValue = '"' + geo.impGeofootprintLocation.locAddress + ', ' +
-                             geo.impGeofootprintLocation.locCity   + ', ' +
-                             geo.impGeofootprintLocation.locState  + ' ' +
-                             truncZip + '"';
+            varValue = (geo != null && geo.impGeofootprintLocation != null)
+                        ? '"' + geo.impGeofootprintLocation.locAddress + ', ' +
+                          geo.impGeofootprintLocation.locCity   + ', ' +
+                          geo.impGeofootprintLocation.locState  + ' ' +
+                          truncZip + '"'
+                        : null;
             break;
 
          case '#V-IS_HOME_GEOCODE':
-            varValue = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
-            console.log ('geo.geocode = ', geo.geocode, ', geo.impGeofootprintLocation.homeGeocode = ', geo.impGeofootprintLocation.homeGeocode);
+            varValue = (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+            console.log ('geo.geocode = ', geo.geocode, ', geo.impGeofootprintLocation.homeGeocode = ', (geo != null && geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.homeGeocode : null);
             break;
 
          case '#V-TRUNCATE_ZIP':
@@ -140,17 +142,23 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             if (this.impGeofootprintTradeAreas == null)
                varValue = null;
             else
-               if (geo.distance < this.impGeofootprintTradeAreas[0].taRadius)
+            {
+               const radiuses : Array<number> = [(this.impGeofootprintTradeAreas.length >= 1) ? this.impGeofootprintTradeAreas[0].taRadius : 0
+                                                ,(this.impGeofootprintTradeAreas.length >= 2) ? this.impGeofootprintTradeAreas[1].taRadius : 0
+                                                ,(this.impGeofootprintTradeAreas.length >= 3) ? this.impGeofootprintTradeAreas[2].taRadius : 0];
+
+               if (geo.distance < radiuses[0])
                   varValue = 1;
                else
-                  if (geo.distance >= this.impGeofootprintTradeAreas[0].taRadius &&
-                     geo.distance <= this.impGeofootprintTradeAreas[1].taRadius)
+                  if (geo.distance >= radiuses[0] &&
+                     geo.distance <= radiuses[1])
                      varValue = 2
                   else
-                     if (geo.distance > this.impGeofootprintTradeAreas[1].taRadius)
+                     if (geo.distance > radiuses[1])
                         varValue = 3;
                      else
                         varValue = null;
+            }
             break;
 
          default:
@@ -292,7 +300,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
                         'Owner Trade Area,EST GEO IP ADDRESSES,Owner Site,Include in Deduped Footprint,Base Count';
             else
-               result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddres,' +
+               result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddress,' +
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,#V-TRUNCATE_ZIP,' +
                         '#V-STREETADDRESS,impGeofootprintLocation.marketName,null,' +
                         '#D-1,distance,#V-IS_HOME_GEOCODE,#V-IS_HOME_GEOCODE,#D-0,' +

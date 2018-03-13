@@ -112,7 +112,7 @@ export class EnvironmentData {
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 600000,
+        minScale: 577790 // turn on at scale level 10
       },
       topVars: {
         id: '53482efa44914dc199f3833276ddb5a1',
