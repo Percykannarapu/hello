@@ -54,17 +54,17 @@
    </div>
    <div class="ui-g-12">
       <div class="ui-g-7">
+          <label>Include POBs?</label>
+       </div>
+       <div class="ui-g-5">
+          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
+       </div> 
+      <div class="ui-g-7">
          <label>Include Valassis geographies?</label>
       </div>
       <div class="ui-g-5">
          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeNonWeekly" (onChange)="onChangeField($event)"></p-inputSwitch>
       </div>
-      <!-- <div class="ui-g-7">
-         <label>Include POBs?</label>
-      </div>
-      <div class="ui-g-5">
-         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
-      </div> -->
       <div class="ui-g-7">
          <label>Include ANNE geographies?</label>
       </div>

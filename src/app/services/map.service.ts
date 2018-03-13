@@ -1544,6 +1544,7 @@ export class MapService {
             await layer.load().then((f1: __esri.FeatureLayer) => {
                 loadedFeatureLayer = f1;
             });
+            //console.log('test:::', centroidGraphics);
             for (const graphic of graphicList) {
                 const qry = layer.createQuery();
                 qry.geometry = graphic.geometry;
@@ -1552,16 +1553,28 @@ export class MapService {
                     for (let i = 0; i < featureSet.features.length; i++) {
                         const owner_group_primary: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'owner_group_primary');
                         const cover_frequency: string = EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'cov_frequency');
-                        if (EsriLayerService.getAttributeValue(featureSet.features[i].attributes, 'geometry_type') === 'Polygon') {
-
-                            if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                        const is_pob: any = featureSet.features[i].attributes['is_pob_only'];
+                            if (discoveryUI[0].includePob === true){
+                                if (is_pob === 1 || is_pob === 0) {
+                               
+                                if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
                                 ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
                                 (((cover_frequency === undefined || cover_frequency === null && discoveryUI[0].includeSolo === true) || (cover_frequency.toUpperCase() === 'SOLO' && discoveryUI[0].includeSolo) === true))) {
 
                                 centroidGraphics.push(featureSet.features[i]);
+                                }
                             }
+                        }else{
+                            if (is_pob === 0) {
+                                if (((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'VALASSIS' && discoveryUI[0].includeNonWeekly) === true) ||
+                                ((owner_group_primary != undefined && owner_group_primary.toUpperCase() === 'ANNE' && discoveryUI[0].includeAnne) === true) ||
+                                (((cover_frequency === undefined || cover_frequency === null && discoveryUI[0].includeSolo === true) || (cover_frequency.toUpperCase() === 'SOLO' && discoveryUI[0].includeSolo) === true))) {
 
+                                centroidGraphics.push(featureSet.features[i]);
+                                }
+                            }
                         }
+                    //}
                     }
                 });
             }

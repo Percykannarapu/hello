@@ -30,7 +30,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             totalBudget:          null,
             circBudget:           null,
             includeNonWeekly:     true,
-            includePob:           false,
+            includePob:           true,
             includeAnne:          true,
             includeSolo:          true //removed US6606 
          }
