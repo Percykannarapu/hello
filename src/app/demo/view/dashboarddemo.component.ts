@@ -1,21 +1,12 @@
-import { InMemoryStubService } from './../../api/in-memory-stub.service';
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-// import {CarService} from '../service/carservice';
-//import {EventService} from '../service/eventservice';
-//import {Car} from '../domain/car';
-import { SelectItem } from 'primeng/primeng';
-import { StepsModule, MenuItem } from 'primeng/primeng';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import {  MenuItem } from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
-
 import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AmProfile } from '../../val-modules/targeting/models/AmProfile';
 import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
-//import { AmSiteListComponent } from '../../val-modules/targeting/components/AmSiteList.component';
-import { MessageService } from '../../val-modules/common/services/message.service';
 import { Message } from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';
 import { AppService } from '../../services/app.service';
-import { MetricService, MetricOperations } from './../../val-modules/common/services/metric.service';
+import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { RadService } from '../../services/rad.service';
@@ -59,7 +50,6 @@ export class DashboardDemoComponent implements OnInit {
     private performanceColorBox: ColorBoxComponent;
 
     constructor(private mapService: MapService,
-                private messageService: MessageService,
                 private amSiteService: AmSiteService,
                 private appService: AppService,
                 private metricService: MetricService,
@@ -244,16 +234,5 @@ export class DashboardDemoComponent implements OnInit {
     showSideBar($event) {
         this.display = $event;
         //this.mapService.plotMarker($event.x, $event.y);
-    }
-
-    showViaService() {
-        console.log('showViaService fired');
-        if (this.messageService == null)
-            console.log('messageService not injected');
-        else
-            console.log('messageService was injected');
-        //      this.messageService.add({severity: 'success', summary: 'Service Message', detail: 'Via MessageService'});
-        console.log(this.messageService);
-        this.msgs.push({ severity: 'success', summary: 'Info Message', detail: 'You have received a message from the message fairy.' });
     }
 }

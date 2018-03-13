@@ -29,7 +29,7 @@ export class ImpGeofootprintLocation
    public origState:                   string;
    public origPostalCode:              string;
    public locFranchisee:               string;                        /// Store franchisee
-   public locAddres:                   string;                        /// Store address
+   public locAddress:                  string;                        /// Store address
    public locCity:                     string;                        /// Store city
    public locState:                    string;                        /// Store state
    public locZip:                      string;                        /// Store zip code
@@ -37,6 +37,7 @@ export class ImpGeofootprintLocation
    public geocoderMatchCode:           string;
    public geocoderLocationCode:        string;
    public recordStatusCode:            string;
+   public isActive:                    number;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - MANY TO ONE RELATIONSHIP MEMBERS
    // ---------------------------------------------------------------------
@@ -78,14 +79,15 @@ export class ImpGeofootprintLocation
          ['origState',                    'string'],
          ['origPostalCode',               'string'],
          ['locFranchisee',                'string'],
-         ['locAddres',                    'string'],
+         ['locAddress',                   'string'],
          ['locCity',                      'string'],
          ['locState',                     'string'],
          ['locZip',                       'string'],
          ['locSortOrder',                 'number'],
          ['geocoderMatchCode',            'string'],
          ['geocoderLocationCode',         'string'],
-         ['recordStatusCode',             'string']
+         ['recordStatusCode',             'string'],
+         ['isActive',                     'number']
          ]);
    }
 

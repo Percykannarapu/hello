@@ -17,6 +17,7 @@ export class ImpGeofootprintTradeArea
    public taUseMinHhcInd:               number;                        /// Use minimum hhc indicator
    public taType:                       string;                        /// Trade area type (RADIUS, GEO_LIST, ...)
    public taOverrideInd:                number;                        /// Trade area override indicator
+   public isActive:                     number;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_TRADE_AREAS - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------------------
@@ -41,11 +42,12 @@ export class ImpGeofootprintTradeArea
          ['gtaId',                         'number'],
          ['taNumber',                      'number'],
          ['taName',                        'string'],
-         ['taRadiu',                       'number'],
+         ['taRadius',                      'number'],
          ['taMinHhc',                      'number'],
          ['taUseMinHhcInd',                'number'],
          ['taType',                        'string'],
-         ['taOverrideInd',                 'number']
+         ['taOverrideInd',                 'number'],
+         ['isActive',                      'number']
          ]);
    }
 

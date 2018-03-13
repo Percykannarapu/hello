@@ -1,7 +1,7 @@
 import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from '@angular/core';
-// import { EsriLoaderWrapperService } from './services/esri-loader-wrapper.service';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
+import {Message} from 'primeng/primeng';
 
 enum MenuOrientation {
     STATIC,
@@ -24,7 +24,6 @@ export enum mapFunctions {
 declare var jQuery: any;
 
 @Component({
-    //providers: [EsriLoaderWrapperService, EsriIdentityService],
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
@@ -66,6 +65,8 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
     resetMenu: boolean;
 
     menuHoverActive: boolean;
+
+    growlMessages: Message[] = [];
 
     @ViewChild('layoutContainer') layourContainerViewChild: ElementRef;
 

@@ -9,11 +9,6 @@ import { DefaultLayers } from '../../../models/DefaultLayers';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import * as $ from 'jquery';
-
-// Import Core Modules
-import { MessageService } from '../../common/services/message.service';
-
-// Import Models
 import { GeocodingResponse } from '../../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../../models/GeocodingAttributes';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -42,7 +37,6 @@ export class GeocodingResponseService {
 
 
     constructor(private http: HttpClient,
-        private messageService: MessageService,
         private mapService: MapService,
         private metricService: MetricService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
@@ -211,7 +205,7 @@ export class GeocodingResponseService {
         return csvData;
     }
 
-    public getNewSitePk(): number {
+    public getNewSitePk() : number {
         return this.tempId++;
     }
 
@@ -503,7 +497,7 @@ export class GeocodingResponseService {
             const impGeofootprintLoc: ImpGeofootprintLocation = new ImpGeofootprintLocation();
             impGeofootprintLoc.glId = Number(site.number);
             impGeofootprintLoc.locationName = site.name;
-            impGeofootprintLoc.locAddres = site.addressline;
+            impGeofootprintLoc.locAddress = site.addressline;
             impGeofootprintLoc.locCity = site.city;
             impGeofootprintLoc.locState = site.state;
             impGeofootprintLoc.locZip = site.zip;

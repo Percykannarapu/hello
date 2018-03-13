@@ -26,6 +26,7 @@ export class ImpGeofootprintVar
    public decimal:                      string;                        /// Decimal precision
    public indexValue:                   number;                        /// Variable indexed value
    public natlAvg:                      string;                        /// National average
+   public isActive:                     number;                        /// Is Activee
 
    // IMPOWER.IMP_GEOFOOTPRINT_VARS - MANY TO ONE RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------
@@ -63,7 +64,8 @@ export class ImpGeofootprintVar
          ['fieldconte',                    'string'],
          ['decimal',                       'string'],
          ['indexValue',                    'number'],
-         ['natlAvg',                       'string']
+         ['natlAvg',                       'string'],
+         ['isActive',                      'number']
          ]);
    }
 

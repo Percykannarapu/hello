@@ -167,7 +167,7 @@
 
 <!-- Modal window for GP spinner -->
 <div class="ui-g ui-fluid">
-    <p-dialog [closable]="false" header={{displaySpinnerMessage}} [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
+    <p-dialog #dialog3 [closable]="false" header={{displaySpinnerMessage}} [(visible)]="displayGcSpinner" [contentStyle]="{'overflow':'visible'}"
         width="300">
         <div class="ui-g-3"></div>
         <div class="ui-g-5">
@@ -193,5 +193,3 @@
         </div>
     </p-dialog>
 </div>
-
-<p-growl [(value)]="geocodingErrors" sticky="sticky"></p-growl>
