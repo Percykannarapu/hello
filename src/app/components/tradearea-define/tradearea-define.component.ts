@@ -123,12 +123,13 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                         this.mapService.bufferMergeEach(color, model.tradeAreaInKm, layerPrefix + model.layerName, outlineColor, tradeAreaType, ++siteId)
                           .then(res => {
                             if (model.tradeArea === maxRadius && isSiteBuffer) {
-                              this.mapService.displaySpinnerMessage = 'Selecting geography...';
+                              this.mapService.displayDBSpinner = true;
+                              this.mapService.displaySpinnerMessage = 'Making Selections ...';
                              //const resp = this.mapService.selectCentroid(res);
                              //this.displaySpinnerMessage = 'Shading the geofootprint...';
                              return this.mapService.selectCentroid(res).then(() => {
-                              //this.displayDBSpinner = false;
-                              this.mapService.displaySpinnerMessage = 'Drawing Buffer...';
+                              //this.mapService.displayDBSpinner = false;
+                              //this.mapService.displaySpinnerMessage = 'Drawing Trade Area ...';
                               //console.log('display', this.displayDBSpinner);
                              });
                             }
@@ -145,11 +146,9 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                     this.mapService.bufferMergeEach(color, maxRadiusModel.tradeAreaInKm, layerPrefix + maxRadiusModel.layerName, outlineColor, tradeAreaType)
                       .then(res => {
                         if (isSiteBuffer) {
-                          this.mapService.displaySpinnerMessage = 'Selecting geography...';
+                          this.mapService.displaySpinnerMessage = 'Making Selections ...';
                           return this.mapService.selectCentroid(res).then(() => {
-                            //this.displayDBSpinner = false;
-                            this.mapService.displaySpinnerMessage = 'Drawing Buffer...';
-                            //console.log('display', this.displayDBSpinner);
+                            
                            });
                           }
                         });
