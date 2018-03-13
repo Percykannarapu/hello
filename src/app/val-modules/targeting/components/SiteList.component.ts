@@ -46,7 +46,7 @@ export class SiteListComponent implements OnInit, OnDestroy
 
    public cols: any[] = [{ field: 'glId',                 header: 'Number',           size: '60px'},
                          { field: 'locationName',         header: 'Name',             size: '120px'},
-                         { field: 'locAddres',            header: 'Address',          size: '120px'},
+                         { field: 'locAddress',           header: 'Address',          size: '120px'},
                          { field: 'locCity',              header: 'City',             size: '70px'},
                          { field: 'locState',             header: 'State',            size: '40px'},
                          { field: 'locZip',               header: 'ZIP',              size: '75px'},
@@ -88,7 +88,7 @@ export class SiteListComponent implements OnInit, OnDestroy
    // zoom to a site when the user clicks the zoom button on the sites grid
    public async onZoomToSite(row: any) {
       const site: GeocodingResponse = new GeocodingResponse();
-      site.addressline = row.locAddres;
+      site.addressline = row.locAddress;
       site.city = row.locCity;
       site.state = row.locState;
       site.zip = row.locZip;
