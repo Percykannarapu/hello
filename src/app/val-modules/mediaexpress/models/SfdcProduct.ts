@@ -1,6 +1,6 @@
 /** A MEDIAEXPRESS domain class representing the table: CBX.CBX_SFDC_PRODUCTS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class SfdcProduct
@@ -19,7 +19,7 @@ export class SfdcProduct
    public addOnFamilyName:      string;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: SfdcProduct | {} = {}) {
+   constructor(data?:Partial<SfdcProduct>) {
       Object.assign(this, data);
    }
 

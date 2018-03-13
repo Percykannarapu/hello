@@ -1,6 +1,6 @@
 /** A MEDIAEXPRESS domain class representing the table: CBX.CBX_VDP_TYPES
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class VdpType
@@ -15,7 +15,7 @@ export class VdpType
    public sortOrder:            number;                    /// Sort Order
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: VdpType | {} = {}) {
+   constructor(data?:Partial<VdpType>) {
       Object.assign(this, data);
    }
 

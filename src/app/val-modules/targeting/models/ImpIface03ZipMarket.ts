@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_IFACE03_ZIP_MARKET_V
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpIface03ZipMarket
@@ -24,7 +24,7 @@ export class ImpIface03ZipMarket
    public isOnlyWayToGetMail: number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpIface03ZipMarket | {} = {}) {
+   constructor(data?:Partial<ImpIface03ZipMarket>) {
       Object.assign(this, data);
    }
 

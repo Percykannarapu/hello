@@ -1,6 +1,6 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOC_ATTRIBUTES
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ImpClientLocation } from './ImpClientLocation';
@@ -23,7 +23,7 @@ export class ImpClientLocAttribute
    public impClientLocation:      ImpClientLocation;          /// Client Library Repository of Client Locations
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientLocAttribute | {} = {}) {
+   constructor(data?:Partial<ImpClientLocAttribute>) {
       Object.assign(this, data);
    }
 
@@ -59,7 +59,7 @@ export class ImpClientLocAttribute
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientLocationId',        'ImpClientLocation']
+         ['impClientLocation',       'ImpClientLocation']
          ]);
    }
 

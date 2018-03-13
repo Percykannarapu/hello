@@ -1,6 +1,6 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_PREFS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -23,7 +23,7 @@ export class ImpClientPref
    public clientIdentifierType:        ClientIdentifierType;      /// Cbx Client Identifier Types
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientPref | {} = {}) {
+   constructor(data?:Partial<ImpClientPref>) {
       Object.assign(this, data);
    }
 
@@ -59,7 +59,7 @@ export class ImpClientPref
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',     'ClientIdentifierType']
+         ['clientIdentifierType',         'ClientIdentifierType']
          ]);
    }
 

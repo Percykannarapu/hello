@@ -1,6 +1,6 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_IDENTIFIER_TYPES
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpClientIdentifierType
@@ -16,7 +16,7 @@ export class ImpClientIdentifierType
    public isActive:                 number;     /// Is Active
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientIdentifierType | {} = {}) {
+   constructor(data?:Partial<ImpClientIdentifierType>) {
       Object.assign(this, data);
    }
 

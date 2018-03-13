@@ -1,6 +1,6 @@
 /** A MEDIAEXPRESS domain class representing the table: CBX.CBX_WRAP_PAGE_POSITIONS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class WrapPagePosition
@@ -24,7 +24,7 @@ export class WrapPagePosition
    public isInsideBack:         number;                /// Is Inside Back
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: WrapPagePosition | {} = {}) {
+   constructor(data?:Partial<WrapPagePosition>) {
       Object.assign(this, data);
    }
 

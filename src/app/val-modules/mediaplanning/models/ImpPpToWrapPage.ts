@@ -1,6 +1,6 @@
 /** A MEDIAPLANNING domain class representing the table: IMPOWER.IMP_PP_TO_WRAP_PAGES
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { SfdcProduct } from '../../mediaexpress/models/SfdcProduct';
@@ -25,7 +25,7 @@ export class ImpPpToWrapPage
    public impProductAllocation:     ImpProductAllocation;      /// Product allocations for an Advertiser_Info_Id
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpPpToWrapPage | {} = {}) {
+   constructor(data?:Partial<ImpPpToWrapPage>) {
       Object.assign(this, data);
    }
 

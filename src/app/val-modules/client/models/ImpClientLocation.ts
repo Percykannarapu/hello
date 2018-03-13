@@ -1,6 +1,6 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOCATIONS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -63,7 +63,7 @@ export class ImpClientLocation
    public impClientLocationType:        ImpClientLocationType;        /// Client Library - Client Location Types (CLIENT, COMPETITOR etc.)
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientLocation | {} = {}) {
+   constructor(data?:Partial<ImpClientLocation>) {
       Object.assign(this, data);
    }
 
@@ -137,8 +137,8 @@ export class ImpClientLocation
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierTypeCode',      'ClientIdentifierType'],
-         ['clientLocationTypeCode',        'ImpClientLocationType']
+         ['clientIdentifierType',          'ClientIdentifierType'],
+         ['impClientLocationType',         'ImpClientLocationType']
          ]);
    }
 

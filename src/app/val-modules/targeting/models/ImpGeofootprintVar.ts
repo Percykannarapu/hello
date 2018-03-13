@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_VARS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
@@ -36,7 +36,7 @@ export class ImpGeofootprintVar
    public impProject:                   ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpGeofootprintVar | {} = {}) {
+   constructor(data?:Partial<ImpGeofootprintVar>) {
       Object.assign(this, data);
    }
 

@@ -1,18 +1,22 @@
-/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_OBJECTIVES */
+/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_OBJECTIVES
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.01
+ **/
+
 export class Objective
 {
-   public objectiveCode:  string;              /// Objectivecd
-   public createUser:     number;              /// Fkcreateuser
-   public createDate:     Date;                /// Createdate
-   public modifyUser:     number;              /// Fkmodifyuser
-   public modifyDate:     Date;                /// Modifydate
+   public objectiveCode:  string;              /// Objective Cd
+   public createUser:     number;              /// Fk Create User
+   public createDate:     Date;                /// Create Date
+   public modifyUser:     number;              /// Fk Modify User
+   public modifyDate:     Date;                /// Modify Date
    public objective:      string;              /// Objective
    public description:    string;              /// Description
-   public sortOrder:      number;              /// Sortorder
-   public isActive:       number;              /// Isactive
+   public sortOrder:      number;              /// Sort Order
+   public isActive:       number;              /// Is Active
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: Objective | {} = {}) {
+   constructor(data?:Partial<Objective>) {
       Object.assign(this, data);
    }
 

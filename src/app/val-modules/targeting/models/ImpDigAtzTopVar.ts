@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_DIG_ATZ_TOP_VARS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpDigAtzTopVar
@@ -241,7 +241,7 @@ export class ImpDigAtzTopVar
    public tap298:                     number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpDigAtzTopVar | {} = {}) {
+   constructor(data?:Partial<ImpDigAtzTopVar>) {
       Object.assign(this, data);
    }
 

@@ -1,18 +1,22 @@
-/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_GOALS */
+/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_GOALS
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.01
+ **/
+
 export class Goal
 {
-   public goalCode:       string;              /// Goalcd
-   public createUser:     number;              /// Fkcreateuser
-   public createDate:     Date;                /// Createdate
-   public modifyUser:     number;              /// Fkmodifyuser
-   public modifyDate:     Date;                /// Modifydate
+   public goalCode:       string;              /// Goal Cd
+   public createUser:     number;              /// Fk Create User
+   public createDate:     Date;                /// Create Date
+   public modifyUser:     number;              /// Fk Modify User
+   public modifyDate:     Date;                /// Modify Date
    public goal:           string;              /// Goal
    public description:    string;              /// Description
-   public sortOrder:      number;              /// Sortorder
-   public isActive:       number;              /// Isactive
+   public sortOrder:      number;              /// Sort Order
+   public isActive:       number;              /// Is Active
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: Goal | {} = {}) {
+   constructor(data?:Partial<Goal>) {
       Object.assign(this, data);
    }
 
