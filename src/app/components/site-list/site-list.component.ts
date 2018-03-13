@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ValSiteListService } from '../../services/val-site-list.service';
+import { ValSiteListService } from '../../services/app-site-list.service';
 import { Observable } from 'rxjs/Observable';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';

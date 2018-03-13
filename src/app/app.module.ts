@@ -107,7 +107,7 @@ import {MetricService} from './val-modules/common/services/metric.service';
 import {CountryService} from './demo/service/countryservice';
 import {EventService} from './demo/service/eventservice';
 import {NodeService} from './demo/service/nodeservice';
-import {ValLayerService} from './services/val-layer.service';
+import {ValLayerService} from './services/app-layer.service';
 import {EsriModules, EsriLoaderToken} from './esri-modules/core/esri-modules.service';
 import {UserService} from './services/user.service';
 import {EsriMapComponent} from './components/esri-map/esri-map.component';
@@ -145,10 +145,11 @@ import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
-import { ValGeocodingService } from './services/val-geocoding.service';
+import { ValGeocodingService } from './services/app-geocoding.service';
 import { SiteListComponent } from './components/site-list/site-list.component';
-import { ValSiteListService } from './services/val-site-list.service';
+import { ValSiteListService } from './services/app-site-list.service';
 import { EsriRestQueryService } from './esri-modules/rest-api/esri-rest-query.service';
+import { ValTradeAreaService } from './services/app-trade-area.service';
 
 @NgModule({
     imports: [
@@ -285,7 +286,7 @@ import { EsriRestQueryService } from './esri-modules/rest-api/esri-rest-query.se
         ImpDiscoveryService, GeoFootPrint,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
-        UserService, ValGeocodingService, ValSiteListService
+        UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService
     ],
     bootstrap: [AppComponent]
 })

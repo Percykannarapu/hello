@@ -5,7 +5,7 @@ import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeo
 import { valGeocodingAttributeKey, ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ValGeocodingService } from './val-geocoding.service';
+import { ValGeocodingService } from './app-geocoding.service';
 import { Subscription } from 'rxjs/Subscription';
 import { EsriRestQueryService, HomeGeoPoint, homeGeoTempKey } from '../esri-modules/rest-api/esri-rest-query.service';
 import { Observable } from 'rxjs/Observable';
@@ -48,6 +48,7 @@ export class ValSiteListService implements OnDestroy {
     this.siteSubscription = this.allLocations$.subscribe(locations => {
       this.determineAllHomeGeos(locations);
     });
+
     this.allSites$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.impClientLocationType === 'Site' as any))
     );

@@ -7,7 +7,7 @@ import { ElementRef, Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { ValLayerService } from './val-layer.service';
+import { ValLayerService } from './app-layer.service';
 import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
