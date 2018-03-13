@@ -802,7 +802,7 @@ export class MapService {
         const p = new Point({
             x: pointLongitude,
             y: pointLatitude,
-            spatialReference: 4326
+            spatialReference: this.config.val_spatialReference
         });
 
         const circle = new Circle({
@@ -868,14 +868,14 @@ export class MapService {
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
-                    spatialReference: 4326
+                    spatialReference: this.config.val_spatialReference
                 });
                 pointList.push(p);
             } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
-                    spatialReference: 4326
+                    spatialReference: this.config.val_spatialReference
                 });
                 pointList.push(p);
             }
@@ -925,7 +925,7 @@ export class MapService {
             objectIdField: 'ObjectID',
             geometryType: 'point',
             //spatialReference: { wkid: 5070 },
-            spatialReference: { wkid: 4326 },
+            spatialReference: { wkid: this.config.val_spatialReference },
             source: graphics,
             popupEnabled: layerHasPopup,
             popupTemplate: '{*}',
@@ -1468,7 +1468,7 @@ export class MapService {
             xmax: maxX,
             ymax: maxY,
             spatialReference: {
-                wkid: 4326
+                wkid: this.config.val_spatialReference
             }
         });
         try {
