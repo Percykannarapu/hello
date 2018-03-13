@@ -8,7 +8,6 @@ import { User } from '../../models/User';
 import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
 import { GeofootprintMaster } from '../../models/GeofootprintMaster';
 import { GeocoderService } from '../../services/geocoder.service';
-import { TargetingProfile } from '../../models/TargetingProfile';
 import { GeoFootPrint } from '../../services/geofootprint.service';
 import { AppConfig } from '../../app.config';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
@@ -48,7 +47,6 @@ export class LoginComponent implements OnInit {
       if (authenticated) {
         this.displayLoginSpinner = false;
         this.createUser(loginForm.value.username);
-        this.buildLoginDtls(loginForm.value.username);
         this.bootstrapDataStore();
         this.router.navigate(['/']);
       }
@@ -81,46 +79,6 @@ export class LoginComponent implements OnInit {
     user.username = username;
     user.userRoles = null;
     this.userService.setUser(user);
-  }
-
-  private buildLoginDtls(username: string){
-    //const geoMaster1           = new ImpGeofootprintMaster(); TODO need to transfer the data type to impgeofootrprint
-    let targetingProfile = new TargetingProfile();
-    const desc = 'User ' +username+ ' logged in';
-
-        targetingProfile.baseStatus              = 'INSERT';
-        targetingProfile.clientId                = 'impower';
-        targetingProfile.createDate              = new Date();
-        targetingProfile.createUser              = 7861; // 7861
-        targetingProfile.description             = desc;
-        targetingProfile.dirty                   = true;
-        targetingProfile.group                   = 7861; // 7861
-        targetingProfile.methAccess              = 14;   //
-        targetingProfile.methAnalysis            = 'A'; //
-        targetingProfile.methSeason              = '2'; //
-        targetingProfile.modifyDate              = new Date();
-        targetingProfile.modifyUser              = 7861; // 7861
-        targetingProfile.name                    = 'imPower user login from ' + this.config.environmentName + ' environment'; //imPower user login
-        targetingProfile.pk                      = null; //
-        targetingProfile.preferredDate           = null;
-        targetingProfile.promoPeriodEndDate      = null;
-        targetingProfile.promoPeriodStartDate    = null;
-        targetingProfile.taSource                = 1;
-        targetingProfile.xmlSicquery             = null;
-        targetingProfile.xmlTradearea            = null;
-        targetingProfile.xmlVariables            = null; // null
-
-        /*
-        * calling fuse service to persist the Targeting data
-        */
-
-        console.log('calling GeoFootPrintService to save targetingprofile');
-        const observable = this.geoFootPrintService.saveTargetingProfile(targetingProfile);
-        observable.subscribe((res) => {
-          console.log('profileid::::::' + res.payload);
-
-         // targetingProfile =  this.loadTargetingSites(this.profileId);
-         });
   }
 
 }

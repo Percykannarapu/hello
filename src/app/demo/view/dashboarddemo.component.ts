@@ -11,6 +11,7 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { RadService } from '../../services/rad.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -55,6 +56,7 @@ export class DashboardDemoComponent implements OnInit {
                 private metricService: MetricService,
                 private radService: RadService,
                 private targetAudienceService: TargetAudienceService,
+                private userService: UserService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
@@ -230,7 +232,14 @@ export class DashboardDemoComponent implements OnInit {
                 }
             ]
         };
+
+        this.userService.userObservable.subscribe(user => this.recordUser());
     }
+
+    private recordUser() {
+        this.userService.buildLoginDtls();
+    }
+
     showSideBar($event) {
         this.display = $event;
         //this.mapService.plotMarker($event.x, $event.y);
