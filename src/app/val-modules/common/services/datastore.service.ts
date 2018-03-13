@@ -286,10 +286,12 @@ export class DataStore<T>
 
    public update (oldData: T, newData: T)
    {
-      const index = this._dataStore.indexOf(oldData);
-      this._dataStore = [...this._dataStore.slice(0, index),
-                         newData,
-                         ...this._dataStore.slice(index + 1)];
+     if (oldData != null && newData != null && oldData !== newData) {
+       const index = this._dataStore.indexOf(oldData);
+       this._dataStore = [...this._dataStore.slice(0, index),
+         newData,
+         ...this._dataStore.slice(index + 1)];
+     }
 
       // Register data store change and notify observers
       this._storeSubject.next(this._dataStore);
@@ -308,11 +310,6 @@ export class DataStore<T>
 
 //    console.log('datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
       // Register data store change and notify observers
-      this._storeSubject.next(this._dataStore);
-   }
-
-   public updateRef()
-   {
       this._storeSubject.next(this._dataStore);
    }
 

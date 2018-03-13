@@ -143,7 +143,7 @@ export class ValSiteListService implements OnDestroy {
         }
       }
     }
-    this.locationService.updateRef();
+    this.locationService.update(null, null);
     this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `Primary geo has been set` });
   }
 
