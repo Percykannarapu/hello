@@ -248,6 +248,7 @@ export class AuthService implements CanActivate {
       }
     }, error => {
       console.error(error);
+      this.router.navigate(['/login']);
       this.refreshSubject.next(false);
     });
     return this.refreshSubject;
