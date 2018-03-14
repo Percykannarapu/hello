@@ -1,6 +1,6 @@
 /** A MEDIAPLANNING domain class representing the table: IMPOWER.IMP_PRODUCT_ALLOCATIONS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { EntryPoint } from '../../mediaexpress/models/EntryPoint';
@@ -46,7 +46,7 @@ export class ImpProductAllocation
    public impProduct:               ImpProduct;                /// Product codes table with product specific infomation
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpProductAllocation | {} = {}) {
+   constructor(data?:Partial<ImpProductAllocation>) {
       Object.assign(this, data);
    }
 

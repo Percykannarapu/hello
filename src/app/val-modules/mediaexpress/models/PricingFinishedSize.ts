@@ -1,14 +1,14 @@
 /** A MEDIAEXPRESS domain class representing the table: CBX.CBX_PRICING_FINISHED_SIZES_MV
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class PricingFinishedSize
 {
-   public finishedSize:         string;                    /// Finished Size
+   public finishedSize:            string;                    /// Finished Size
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: PricingFinishedSize | {} = {}) {
+   constructor(data?:Partial<PricingFinishedSize>) {
       Object.assign(this, data);
    }
 
@@ -21,7 +21,7 @@ export class PricingFinishedSize
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['finishedSize',          'string']
+         ['finishedSize',             'string']
          ]);
    }
 

@@ -2048,7 +2048,7 @@ export class MapService {
                     attributes: Object.assign({}, currentAttributes)
                 }));
                 MapService.selectedCentroidObjectIds.push(queriedObjectId);
-                const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xcoord: currentLong, ycoord: currentLat, hhc: currentHHCount });
+                const newGeoModel = new ImpGeofootprintGeo({ geocode: currentGeocode, xCoord: currentLong, yCoord: currentLat, hhc: currentHHCount });
                 const newAttributes: ImpGeofootprintGeoAttrib[] = [];
                 //Create a new geo attribute to store the Median Household Income
                 newAttributes.push(this.createGeoAttrib('cl2i00', currentAttributes, [newGeoModel]));

@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_IFACE03_ZIP_LEVEL_COUNTS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpIface03ZipLevelCount
@@ -15,7 +15,7 @@ export class ImpIface03ZipLevelCount
    public isPobOnly:          number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpIface03ZipLevelCount | {} = {}) {
+   constructor(data?:Partial<ImpIface03ZipLevelCount>) {
       Object.assign(this, data);
    }
 

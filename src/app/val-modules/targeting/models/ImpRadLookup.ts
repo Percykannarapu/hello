@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_RAD_LOOKUP
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpRadLookup
@@ -16,7 +16,7 @@ export class ImpRadLookup
    public grossMargin:  number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpRadLookup | {} = {}) {
+   constructor(data?:Partial<ImpRadLookup>) {
       Object.assign(this, data);
    }
 

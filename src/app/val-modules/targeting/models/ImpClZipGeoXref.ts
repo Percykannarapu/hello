@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_CL_ZIP_GEO_XREF
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpClZipGeoXref
@@ -47,7 +47,7 @@ export class ImpClZipGeoXref
    public latitude:          number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClZipGeoXref | {} = {}) {
+   constructor(data?:Partial<ImpClZipGeoXref>) {
       Object.assign(this, data);
    }
 

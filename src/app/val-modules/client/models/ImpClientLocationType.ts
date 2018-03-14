@@ -1,22 +1,22 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOCATION_TYPES
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpClientLocationType
 {
-   public clientLocationTypeCode: string;     /// Primary Key
-   public createUser:             number;     /// User to create the row
-   public createDate:             Date;
-   public modifyUser:             number;
-   public modifyDate:             Date;
-   public clientLocationType:     string;     /// ex. CLIENT or COMPETITOR
-   public sortOrder:              number;
-   public isDefault:              number;
-   public isActive:               number;
+   public clientLocationTypeCode:    string;                       /// Primary Key
+   public createUser:                number;                       /// User to create the row
+   public createDate:                Date;
+   public modifyUser:                number;
+   public modifyDate:                Date;
+   public clientLocationType:        string;                       /// ex. CLIENT or COMPETITOR
+   public sortOrder:                 number;
+   public isDefault:                 number;
+   public isActive:                  number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClientLocationType | {} = {}) {
+   constructor(data?:Partial<ImpClientLocationType>) {
       Object.assign(this, data);
    }
 
@@ -29,15 +29,15 @@ export class ImpClientLocationType
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['clientLocationTypeCode',  'string'],
-         ['createUser',              'number'],
-         ['createDate',              'Date'],
-         ['modifyUser',              'number'],
-         ['modifyDate',              'Date'],
-         ['clientLocationType',      'string'],
-         ['sortOrder',               'number'],
-         ['isDefault',               'number'],
-         ['isActive',                'number']
+         ['clientLocationTypeCode',     'string'],
+         ['createUser',                 'number'],
+         ['createDate',                 'Date'],
+         ['modifyUser',                 'number'],
+         ['modifyDate',                 'Date'],
+         ['clientLocationType',         'string'],
+         ['sortOrder',                  'number'],
+         ['isDefault',                  'number'],
+         ['isActive',                   'number']
          ]);
    }
 

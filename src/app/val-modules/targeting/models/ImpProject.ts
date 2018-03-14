@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -18,6 +18,7 @@ export class ImpProject
    public industryCategoryCode:        string;                        /// Industry Categories from IMO (QSR, Soft Goods, Home Improvement, etc.
    public projectName:                 string;                        /// Project Name
    public description:                 string;                        /// Notes/Description
+   public methAnalysis:                string;
    public ihwFrom:                     Date;                          /// In Home Week From
    public ihwTo:                       Date;                          /// In Home Week To
    public ihd:                         Date;                          /// In Home Day
@@ -49,7 +50,7 @@ export class ImpProject
    public objective:                   Objective;                     /// Cbx Objectives
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpProject | {} = {}) {
+   constructor(data?:Partial<ImpProject>) {
       Object.assign(this, data);
    }
 
@@ -70,6 +71,7 @@ export class ImpProject
          ['industryCategoryCode',         'string'],
          ['projectName',                  'string'],
          ['description',                  'string'],
+         ['methAnalysis',                 'string'],
          ['ihwFrom',                      'Date'],
          ['ihwTo',                        'Date'],
          ['ihd',                          'Date'],

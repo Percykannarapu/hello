@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -48,7 +48,7 @@ export class ImpGeofootprintLocation
    public impProject:                  ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpGeofootprintLocation | {} = {}) {
+   constructor(data?:Partial<ImpGeofootprintLocation>) {
       Object.assign(this, data);
    }
 

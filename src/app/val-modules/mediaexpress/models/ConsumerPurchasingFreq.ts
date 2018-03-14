@@ -1,20 +1,24 @@
-/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_CONSUMER_PURCHASING_FREQS */
+/** A MEDIAEXPRESS domain class representing the table: CBX.CBX_CONSUMER_PURCHASING_FREQS
+ **
+ ** Generated from VAL_ENTITY_GEN - v2.01
+ **/
+
 export class ConsumerPurchasingFreq
 {
-   public consumerPurchaseFreqCode: string;                      /// Consumerpurchasefreqcd
-   public createUser:               number;                      /// Fkcreateuser
-   public createDate:               Date;                        /// Createdate
-   public modifyUser:               number;                      /// Fkmodifyuser
-   public modifyDate:               Date;                        /// Modifydate
-   public consumerPurchaseFreq:     string;                      /// Consumerpurchasefreq
-   public description:              string;                      /// Description
-   public sortOrder:                number;                      /// Sortorder
-   public isActive:                 number;                      /// Isactive
-   public printSpend:               number;                      /// Printspend
-   public digitalSpend:             number;                      /// Digitalspend
+   public consumerPurchaseFreqCode:   string;                      /// Consumer Purchase Freq Cd
+   public createUser:                 number;                      /// Fk Create User
+   public createDate:                 Date;                        /// Create Date
+   public modifyUser:                 number;                      /// Fk Modify User
+   public modifyDate:                 Date;                        /// Modify Date
+   public consumerPurchaseFreq:       string;                      /// Consumer Purchase Freq
+   public description:                string;                      /// Description
+   public sortOrder:                  number;                      /// Sort Order
+   public isActive:                   number;                      /// Is Active
+   public printSpend:                 number;                      /// Print Spend
+   public digitalSpend:               number;                      /// Digital Spend
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ConsumerPurchasingFreq | {} = {}) {
+   constructor(data?:Partial<ConsumerPurchasingFreq>) {
       Object.assign(this, data);
    }
 
@@ -27,17 +31,17 @@ export class ConsumerPurchasingFreq
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['consumerPurchaseFreqCode',  'string'],
-         ['createUser',                'number'],
-         ['createDate',                'Date'],
-         ['modifyUser',                'number'],
-         ['modifyDate',                'Date'],
-         ['consumerPurchaseFreq',      'string'],
-         ['description',               'string'],
-         ['sortOrder',                 'number'],
-         ['isActive',                  'number'],
-         ['printSpend',                'number'],
-         ['digitalSpend',              'number']
+         ['consumerPurchaseFreqCode',    'string'],
+         ['createUser',                  'number'],
+         ['createDate',                  'Date'],
+         ['modifyUser',                  'number'],
+         ['modifyDate',                  'Date'],
+         ['consumerPurchaseFreq',        'string'],
+         ['description',                 'string'],
+         ['sortOrder',                   'number'],
+         ['isActive',                    'number'],
+         ['printSpend',                  'number'],
+         ['digitalSpend',                'number']
          ]);
    }
 

@@ -1,6 +1,6 @@
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENTS_V
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpClient
@@ -46,7 +46,7 @@ export class ImpClient
    public npProductLine:            string;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpClient | {} = {}) {
+   constructor(data?:Partial<ImpClient>) {
       Object.assign(this, data);
    }
 

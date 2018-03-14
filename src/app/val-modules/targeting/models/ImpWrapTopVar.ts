@@ -1,6 +1,6 @@
 /** A TARGETING domain class representing the table: IMPOWER.IMP_WRAP_TOP_VARS
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class ImpWrapTopVar
@@ -172,7 +172,7 @@ export class ImpWrapTopVar
    public tap298:          number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: ImpWrapTopVar | {} = {}) {
+   constructor(data?:Partial<ImpWrapTopVar>) {
       Object.assign(this, data);
    }
 

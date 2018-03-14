@@ -1,6 +1,6 @@
 /** A MEDIAEXPRESS domain class representing the table: CBX.CBX_WRAP_PAGE_PRIORITY
  **
- ** Generated from VAL_ENTITY_GEN - v2.0
+ ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
 export class WrapPagePriority
@@ -18,7 +18,7 @@ export class WrapPagePriority
    public isDefault:                 number;                    /// Is Default
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data: WrapPagePriority | {} = {}) {
+   constructor(data?:Partial<WrapPagePriority>) {
       Object.assign(this, data);
    }
 
