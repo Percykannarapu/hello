@@ -179,6 +179,7 @@
             <button (click)="onZoomToSite(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
          </ng-template>
       </p-column>
+      
       <p-column header="Delete" [style]="{'width':'45px'}" >
          <ng-template let-site="rowData" let-i="rowIndex" pTemplate="body">
             <button type="button" pButton (click)="onDeleteSite(site)" icon="ui-icon-trash" style="width:25px;height:25px"></button>
