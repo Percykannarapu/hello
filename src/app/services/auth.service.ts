@@ -7,6 +7,8 @@ import { Subject } from 'rxjs/Subject';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
 
 interface RegistrationResponse {
   clientId: string;
