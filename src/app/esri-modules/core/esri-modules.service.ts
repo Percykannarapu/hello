@@ -64,7 +64,7 @@ export class EsriModules {
   public static Viewpoint: typeof __esri.Viewpoint;
   public static Graphic: typeof __esri.Graphic;
   public static SimpleFillSymbol: typeof __esri.SimpleFillSymbol;
-  public static SimpleMarkerSymbol: typeof __esri.SimpleFillSymbol;
+  public static SimpleMarkerSymbol: typeof __esri.SimpleMarkerSymbol;
   public static SimpleLineSymbol: typeof __esri.SimpleLineSymbol;
   public static TextSymbol: typeof __esri.TextSymbol;
   public static Color: typeof __esri.Color;

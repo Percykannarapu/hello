@@ -13,6 +13,9 @@ import { map } from 'rxjs/operators';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { LocationUiModel } from '../models/location-ui.model';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { MetricService } from '../val-modules/common/services/metric.service';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
@@ -25,47 +28,67 @@ export class ValSiteListService implements OnDestroy {
     ['Digital ATZ', 'DIG_ATZ_Top_Vars_CopyAllData/FeatureServer/0/query']
   ]);
   private siteSubscription: Subscription;
+  private siteAttributeSubscription: Subscription;
   private discoverySubscription: Subscription;
+  private clientCountSubscription: Subscription;
+  private compCountSubscription: Subscription;
+
   private allLocations$: Observable<ImpGeofootprintLocation[]>;
   private currentAnalysisLevel: string;
+  private uiModelSubject: BehaviorSubject<LocationUiModel[]> = new BehaviorSubject<LocationUiModel[]>([]);
+  private uiModels: LocationUiModel[];
 
   public allSites$: Observable<ImpGeofootprintLocation[]>;
   public activeSites$: Observable<ImpGeofootprintLocation[]>;
   public allCompetitors$: Observable<ImpGeofootprintLocation[]>;
   public activeCompetitors$: Observable<ImpGeofootprintLocation[]>;
 
+  public allUiSites$: Observable<LocationUiModel[]> = this.uiModelSubject.asObservable();
+
   constructor(private locationService: ImpGeofootprintLocationService,
               private attributeService: ImpGeofootprintLocAttribService,
               private discoveryService: ImpDiscoveryService,
               private geocodingService: ValGeocodingService,
               private esriRestService: EsriRestQueryService,
-              private messageService: MessageService) {
+              private messageService: MessageService,
+              private metricsService: MetricService) {
+    this.allLocations$ = this.locationService.storeObservable;
+    this.uiModels = [];
     this.discoverySubscription = this.discoveryService.storeObservable.subscribe(d => {
       this.onDiscoveryChange(d[0]);
     });
-
-    this.allLocations$ = this.locationService.storeObservable;
     this.siteSubscription = this.allLocations$.subscribe(locations => {
+      this.createOrUpdateUiModels(locations);
       this.determineAllHomeGeos(locations);
+    });
+    this.siteAttributeSubscription = this.attributeService.storeObservable.subscribe(attributes => {
+      const locs = new Set(attributes.map(a => a.impGeofootprintLocation));
+      this.createOrUpdateUiModels(Array.from(locs));
     });
 
     this.allSites$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType === 'Site' as any))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site'))
     );
     this.activeSites$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType === 'Site' as any && l.isActive === 1))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site' && l.isActive === 1))
     );
     this.allCompetitors$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType === 'Competitor' as any))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor'))
     );
     this.activeCompetitors$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType === 'Competitor' as any && l.isActive === 1))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor' && l.isActive === 1))
     );
+
+    this.clientCountSubscription = this.activeSites$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
+    this.compCountSubscription = this.activeCompetitors$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
   }
 
   public ngOnDestroy() : void {
-    this.siteSubscription.unsubscribe();
-    this.discoverySubscription.unsubscribe();
+    if (this.siteSubscription) this.siteSubscription.unsubscribe();
+    if (this.siteAttributeSubscription) this.siteAttributeSubscription.unsubscribe();
+    if (this.discoverySubscription) this.discoverySubscription.unsubscribe();
+    if (this.clientCountSubscription) this.clientCountSubscription.unsubscribe();
+    if (this.compCountSubscription) this.compCountSubscription.unsubscribe();
   }
 
   public geocodeAndPersist(data: ValGeocodingRequest[], siteType: string) : Promise<void> {
@@ -101,7 +124,7 @@ export class ValSiteListService implements OnDestroy {
           console.error(e);
           return [];
         })
-        .then(result => this.processHomeGeoResult(result, homeGeoKey));
+        .then(result => this.processHomeGeoResult(result, homeGeoKey, analysisLevel));
     }
   }
 
@@ -112,7 +135,7 @@ export class ValSiteListService implements OnDestroy {
     return Promise.reject([]);
   }
 
-  private processHomeGeoResult(sites: HomeGeoPoint[], geoKey: string) {
+  private processHomeGeoResult(sites: HomeGeoPoint[], geoKey: string, analysisLevelInProcess: string) {
     const allRealAttributes: ImpGeofootprintLocAttrib[] = [];
     for (const currentSite of sites as ImpGeofootprintLocation[]) {
       if (currentSite[homeGeoTempKey] != null && currentSite[homeGeoTempKey][geoKey] != null) {
@@ -122,6 +145,7 @@ export class ValSiteListService implements OnDestroy {
           impGeofootprintLocation: currentSite
         });
         allRealAttributes.push(realAttribute);
+        if (analysisLevelInProcess === this.currentAnalysisLevel) currentSite.homeGeocode = currentSite[homeGeoTempKey][geoKey];
       }
     }
     this.attributeService.add(allRealAttributes);
@@ -152,6 +176,37 @@ export class ValSiteListService implements OnDestroy {
     if (discoveryUI.analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discoveryUI.analysisLevel;
       this.setPrimaryGeocode(this.currentAnalysisLevel);
+    }
+  }
+
+  private createOrUpdateUiModels(locations: ImpGeofootprintLocation[]) {
+    console.log('Building ui sites', locations);
+    const locationSet: Set<ImpGeofootprintLocation> = new Set(locations);
+    const uiSet = new Set(this.uiModels.map(m => m.location));
+    const updatedModels = new Set(this.uiModels.filter(m => locationSet.has(m.location)));
+    const newSites = new Set(locations.filter(l => !uiSet.has(l)));
+    const newAttributes = this.attributeService.get().filter(a => newSites.has(a.impGeofootprintLocation));
+    const updatedAttributes = this.attributeService.get().filter(a => uiSet.has(a.impGeofootprintLocation) && !newSites.has(a.impGeofootprintLocation));
+    // adds
+    for (const site of Array.from(newSites)) {
+      const newModel = new LocationUiModel(site, newAttributes.filter(a => a.impGeofootprintLocation === site));
+      this.uiModels.push(newModel);
+    }
+    // updates
+    for (const update of Array.from(updatedModels)) {
+      update.setAttributes(updatedAttributes.filter(a => a.impGeofootprintLocation === update.location));
+      update.setPointVisibility(update.location.isActive === 1);
+    }
+    //deletes
+    this.uiModels = this.uiModels.filter(m => locationSet.has(m.location));
+    this.uiModelSubject.next(this.uiModels);
+  }
+
+  private setCounts(count: number, siteType: string) {
+    if (siteType === 'Site') {
+      this.metricsService.add('LOCATIONS', '# of Sites', count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    } else {
+      this.metricsService.add('LOCATIONS', '# of Competitors', count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     }
   }
 }

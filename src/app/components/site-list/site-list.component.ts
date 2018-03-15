@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { map } from 'rxjs/operators';
-import { SelectItem } from 'primeng/primeng';
+import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 @Component({
@@ -45,7 +45,8 @@ export class SiteListComponent implements OnInit {
 
   constructor(private siteListService: ValSiteListService,
               private locationService: ImpGeofootprintLocationService,
-              private attributeService: ImpGeofootprintLocAttribService) { }
+              private attributeService: ImpGeofootprintLocAttribService,
+              private confirmationService: ConfirmationService) { }
 
   ngOnInit() {
     this.onListTypeChange('Site');
@@ -73,7 +74,17 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowDelete(row: ImpGeofootprintLocation) {
-    this.locationService.remove(row);
+    this.confirmationService.confirm({
+      message: 'Do you want to delete this record?',
+      header: 'Delete Confirmation',
+      icon: 'fa fa-trash',
+      accept: () => {
+        this.locationService.remove(row);
+      },
+      reject: () => {
+        console.log('cancelled remove');
+      }
+    });
   }
 
   public onRowZoom(row: ImpGeofootprintLocation) {

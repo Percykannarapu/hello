@@ -7,6 +7,7 @@ import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
 import { FileUpload } from 'primeng/primeng';
 import { ValSiteListService } from '../../services/app-site-list.service';
+import { ValMapService } from '../../services/app-map.service';
 
 @Component({
   selector: 'val-upload-locations',
@@ -25,7 +26,8 @@ export class UploadLocationsComponent {
 
   constructor(private messageService: MessageService,
               public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService) { }
+              private siteListService: ValSiteListService,
+              private appMapService: ValMapService) { }
 
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);

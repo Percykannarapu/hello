@@ -1,6 +1,7 @@
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from './val-geocoding-request.model';
+import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLocationType';
 
 export const valGeocodingAttributeKey = '_attributes';
 
@@ -45,7 +46,7 @@ export class ValGeocodingResponse {
       recordStatusCode: this['Geocode Status'],
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
-      impClientLocationType: siteType,
+      impClientLocationType: new ImpClientLocationType({clientLocationType: siteType}),
       isActive: 1
     });
     if (this.Number != null && !Number.isNaN(Number(this.Number))) {

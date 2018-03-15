@@ -152,6 +152,8 @@ import { ValSiteListService } from './services/app-site-list.service';
 import { EsriRestQueryService } from './esri-modules/rest-api/esri-rest-query.service';
 import { ValTradeAreaService } from './services/app-trade-area.service';
 import { CookieService } from 'ngx-cookie-service';
+import { ValMapService } from './services/app-map.service';
+import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 
 @NgModule({
     imports: [
@@ -285,11 +287,11 @@ import { CookieService } from 'ngx-cookie-service';
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService, GeoFootPrint,
+        ImpDiscoveryService, GeoFootPrint, EsriLayerService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
-        CookieService
+        CookieService, ValMapService
     ],
     bootstrap: [AppComponent]
 })

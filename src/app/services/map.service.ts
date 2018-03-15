@@ -1,9 +1,7 @@
-import { EsriModules } from './../esri-modules/core/esri-modules.service';
-import { AppFooterComponent } from './../app.footer.component';
-import { ImpGeofootprintGeoService } from './../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { GeocoderComponent } from './../components/geocoder/geocoder.component';
-import { ImpGeofootprintGeo } from './../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ElementRef, Injectable } from '@angular/core';
+import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { Injectable } from '@angular/core';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { Points } from '../models/Points';
 import { MetricService } from '../val-modules/common/services/metric.service';
@@ -11,16 +9,12 @@ import { ValLayerService } from './app-layer.service';
 import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { GeoFootPrint } from './geofootprint.service';
 import { AuthService } from './auth.service';
-import { Observable } from 'rxjs/Observable';
 import { DefaultLayers } from '../models/DefaultLayers';
-import { GeocodingResponse } from '../models/GeocodingResponse';
-import { GeocodingAttributes } from '../models/GeocodingAttributes';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LayerDefinition } from '../../environments/environment';
@@ -66,7 +60,7 @@ export class MapService {
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
-    public sideBarToggle: boolean = false;
+    //public sideBarToggle: boolean = false;
     public displayDBSpinner: boolean;
     public displaySpinnerMessage: string = 'Drawing Trade Area ...';
 
@@ -516,34 +510,34 @@ export class MapService {
     }
 
     // Toggle Labels
-    public labelsButton(event: MouseEvent) {
-        this.mapFunction = mapFunctions.Labels;
-        this.setActiveButton(event);
-    }
-
-    // activate the sketch to create a point
-    public drawPointButton(event: MouseEvent) {
-        this.mapFunction = mapFunctions.DrawPoint;
-        this.setActiveButton(event);
-        // set the sketch to create a point geometry
-        this.sketchViewModel.create('point');
-    }
-
-    // activate the sketch to create a polyline
-    public drawLineButton(event: MouseEvent) {
-        this.mapFunction = mapFunctions.DrawLine;
-        this.setActiveButton(event);
-        // set the sketch to create a polyline geometry
-        this.sketchViewModel.create('polyline');
-    }
-
-    // activate the sketch to create a polygon
-    public drawPolygonButton(event: MouseEvent) {
-        this.mapFunction = mapFunctions.DrawPoly;
-        this.setActiveButton(event);
-        // set the sketch to create a polygon geometry
-        this.sketchViewModel.create('polygon');
-    }
+    // public labelsButton(event: MouseEvent) {
+    //     this.mapFunction = mapFunctions.Labels;
+    //     this.setActiveButton(event);
+    // }
+    //
+    // // activate the sketch to create a point
+    // public drawPointButton(event: MouseEvent) {
+    //     this.mapFunction = mapFunctions.DrawPoint;
+    //     this.setActiveButton(event);
+    //     // set the sketch to create a point geometry
+    //     this.sketchViewModel.create('point');
+    // }
+    //
+    // // activate the sketch to create a polyline
+    // public drawLineButton(event: MouseEvent) {
+    //     this.mapFunction = mapFunctions.DrawLine;
+    //     this.setActiveButton(event);
+    //     // set the sketch to create a polyline geometry
+    //     this.sketchViewModel.create('polyline');
+    // }
+    //
+    // // activate the sketch to create a polygon
+    // public drawPolygonButton(event: MouseEvent) {
+    //     this.mapFunction = mapFunctions.DrawPoly;
+    //     this.setActiveButton(event);
+    //     // set the sketch to create a polygon geometry
+    //     this.sketchViewModel.create('polygon');
+    // }
 
     // activate the sketch to create a "Measure" polyline
     public measureLineButton(event: MouseEvent) {
@@ -578,17 +572,17 @@ export class MapService {
 */
 
     // plotMarker
-    public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
-
-        console.log('fired plotMarker() in MapService');
-        this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
-            if (parentId != null)
-                graphic.setAttribute('parentId', parentId);
-            this.mapView.graphics.add(graphic);
-        });
-
-        return { val: this.mapView };
-    }
+    // public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
+    //
+    //     console.log('fired plotMarker() in MapService');
+    //     this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
+    //         if (parentId != null)
+    //             graphic.setAttribute('parentId', parentId);
+    //         this.mapView.graphics.add(graphic);
+    //     });
+    //
+    //     return { val: this.mapView };
+    // }
 
     // Get MapView
     public getMapView() : __esri.MapView {
@@ -610,13 +604,13 @@ export class MapService {
     }
 
     // Physically Remove All MapLayers
-    public removeMapLayers() : EsriWrapper<__esri.MapView> {
-        console.log('fired removeMapLayers() in MapService');
-
-        // remove all layers
-        this.mapView.map.layers.removeAll();
-        return { val: this.mapView };
-    }
+    // public removeMapLayers() : EsriWrapper<__esri.MapView> {
+    //     console.log('fired removeMapLayers() in MapService');
+    //
+    //     // remove all layers
+    //     this.mapView.map.layers.removeAll();
+    //     return { val: this.mapView };
+    // }
 
     // Physically Remove MapLayer (or GroupLayer)
     public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
@@ -637,14 +631,14 @@ export class MapService {
     }
 
     // Returns a sublayer instance from the map based on its title property
-    public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
-        return GroupLayer.layers.find(function (layer) {
-            if (layer.title === title) {
-                console.log('findSubLayerByTitle found: ' + layer.title);
-                return layer.title === title;
-            }
-        });
-    }
+    // public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
+    //     return GroupLayer.layers.find(function (layer) {
+    //         if (layer.title === title) {
+    //             console.log('findSubLayerByTitle found: ' + layer.title);
+    //             return layer.title === title;
+    //         }
+    //     });
+    // }
 
     // Toggle FeatureLayer popups
     public toggleFeatureLayerPopups() {
@@ -690,7 +684,7 @@ export class MapService {
                 currentLayer.visible = layerDef.defaultVisibility;
                 currentLayer.title = layerDef.name;
                 currentLayer.minScale = layerDef.minScale;
-                currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
+                currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}',  actions: [selectThisAction, measureThisAction] });
                 // Add Layer to Group Layer if it does not already exist
                 if (!group.layers.some(groupContainsLayer(layerDef))) {
                     group.add(currentLayer);
@@ -1026,66 +1020,66 @@ export class MapService {
             console.log('Did not find layer: ' + layerTitle + ' to clear');
     }
 
-    public clearFeatureLayerAt(layerTitle: string, lat: number, lon: number) {
-        // If there are no layers, there is nothing to do
-        if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-            console.log('fired clearFeatureLayerAt() in MapService, but there were no feature layers to clear');
-            return;
-        }
-        else
-            console.log('fired clearFeatureLayerAt() in MapService');
+    // public clearFeatureLayerAt(layerTitle: string, lat: number, lon: number) {
+    //     // If there are no layers, there is nothing to do
+    //     if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+    //         console.log('fired clearFeatureLayerAt() in MapService, but there were no feature layers to clear');
+    //         return;
+    //     }
+    //     else
+    //         console.log('fired clearFeatureLayerAt() in MapService');
+    //
+    //     let layerCleared: boolean = false;
+    //
+    //     // loop through the existing layers to see if we can find one to clear
+    //     MapService.layers.forEach(currentLayer => {
+    //         console.log('Skipping layer: ' + currentLayer.title);
+    //         if (layerTitle === currentLayer.title) {
+    //             console.log('Clearing layer: ' + layerTitle);
+    //             const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
+    //             const src: __esri.Collection<__esri.Graphic> = currLayer.source;
+    //
+    //             for (let i: number = 0; i < src.length; i++) {
+    //                 console.log('Clearing graphic ' + i + ' / ' + src.length);
+    //                 const graphic: __esri.Graphic = src.getItemAt(i);
+    //                 const point: __esri.Point = (<__esri.Point>graphic.geometry);
+    //                 console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
+    //                 if (point.latitude === lat && point.longitude === lon) {
+    //                     console.log('found graphic at lat: ' + lat + ', lon: ' + lon);
+    //                     src.remove(graphic);
+    //                     layerCleared = true;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     });
+    //
+    //     if (!layerCleared)
+    //         console.log('Did not find layer: ' + layerTitle + ' to clear');
+    // }
 
-        let layerCleared: boolean = false;
+    // public clearAllFeatureLayersAt(lat: number, lon: number) {
+    //     // If there are no layers, there is nothing to do
+    //     if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
+    //         console.log('fired clearAllFeatureLayersAt() in MapService, but there were no feature layers to clear');
+    //         return;
+    //     }
+    //     else
+    //         console.log('fired clearAllFeatureLayersAt() in MapService');
+    //
+    //     // loop through the existing layers to see if we can find one to clear
+    //     MapService.layers.forEach(currentLayer => {
+    //         console.log('Clearing layer: ' + currentLayer.title);
+    //         this.clearFeatureLayerAt(currentLayer.title, lat, lon);
+    //     });
+    // }
 
-        // loop through the existing layers to see if we can find one to clear
-        MapService.layers.forEach(currentLayer => {
-            console.log('Skipping layer: ' + currentLayer.title);
-            if (layerTitle === currentLayer.title) {
-                console.log('Clearing layer: ' + layerTitle);
-                const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
-                const src: __esri.Collection<__esri.Graphic> = currLayer.source;
-
-                for (let i: number = 0; i < src.length; i++) {
-                    console.log('Clearing graphic ' + i + ' / ' + src.length);
-                    const graphic: __esri.Graphic = src.getItemAt(i);
-                    const point: __esri.Point = (<__esri.Point>graphic.geometry);
-                    console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
-                    if (point.latitude === lat && point.longitude === lon) {
-                        console.log('found graphic at lat: ' + lat + ', lon: ' + lon);
-                        src.remove(graphic);
-                        layerCleared = true;
-                        break;
-                    }
-                }
-            }
-        });
-
-        if (!layerCleared)
-            console.log('Did not find layer: ' + layerTitle + ' to clear');
-    }
-
-    public clearAllFeatureLayersAt(lat: number, lon: number) {
-        // If there are no layers, there is nothing to do
-        if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-            console.log('fired clearAllFeatureLayersAt() in MapService, but there were no feature layers to clear');
-            return;
-        }
-        else
-            console.log('fired clearAllFeatureLayersAt() in MapService');
-
-        // loop through the existing layers to see if we can find one to clear
-        MapService.layers.forEach(currentLayer => {
-            console.log('Clearing layer: ' + currentLayer.title);
-            this.clearFeatureLayerAt(currentLayer.title, lat, lon);
-        });
-    }
-
-    public aproximatelyEqual(valueA: number, valueB: number, epsilon: number) {
-        if (epsilon == null) {
-            epsilon = 0.001;
-        }
-        return Math.abs(valueA - valueB) < epsilon;
-    }
+    // public aproximatelyEqual(valueA: number, valueB: number, epsilon: number) {
+    //     if (epsilon == null) {
+    //         epsilon = 0.001;
+    //     }
+    //     return Math.abs(valueA - valueB) < epsilon;
+    // }
 
     /* Technically this worked as transpiled javascript, but typescript threw errors
        error TS2339: Property 'centroid' does not exist on type 'Geometry'.
@@ -1207,9 +1201,9 @@ export class MapService {
         });
     }
 
-    public setGraphicAttribute(graphic: __esri.Graphic, name: string, value: any) {
-        graphic.setAttribute(name, value);
-    }
+    // public setGraphicAttribute(graphic: __esri.Graphic, name: string, value: any) {
+    //     graphic.setAttribute(name, value);
+    // }
 
     public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string, showPopup: boolean = false) {
         // console.log('fired updateFeatureList() in MapService');
@@ -1582,16 +1576,16 @@ export class MapService {
         }
     }
 
-    public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any) {
-        console.log('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
-        let results: Array<__esri.Graphic>;
-
-        return layerView.queryFeatures().then(qryResults => {
-            console.log('queryFeatures returned: ', qryResults);
-            console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
-            results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
-        });
-    }
+    // public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any) {
+    //     console.log('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
+    //     let results: Array<__esri.Graphic>;
+    //
+    //     return layerView.queryFeatures().then(qryResults => {
+    //         console.log('queryFeatures returned: ', qryResults);
+    //         console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
+    //         results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
+    //     });
+    // }
 
     public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number {
         // Construct a polyline to get the geodesic distance between geo and site
@@ -2159,8 +2153,8 @@ export class MapService {
         }
     }
 
-    public removePoint(point: Points) {
-    }
+    // public removePoint(point: Points) {
+    // }
 
     // just for reference we are not using it
     async multiHomeGeocode(lyrList: __esri.FeatureLayer[],
@@ -2226,168 +2220,168 @@ export class MapService {
         //  return polyFeatureSetList;
     }
 
-    async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const [FeatureLayer, Graphic, PopupTemplate]
-            = await loader.loadModules([
-                'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
-        //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-        const graphic: __esri.Graphic = gra;
-        //         console.log('getHomeGeocode fired');
-
-        const qry = lyr.createQuery();
-        qry.geometry = graphic.geometry;
-        if (this.config.layerIds.counties.boundaries.id !== lyr.portalItem.id &&
-            this.config.layerIds.dma.boundaries.id !== lyr.portalItem.id) {
-            qry.outFields = ['geocode'];
-        }
-
-        if (this.config.layerIds.counties.boundaries.id === lyr.portalItem.id) {
-            qry.outFields = ['county_nam'];
-        }
-
-        if (this.config.layerIds.dma.boundaries.id === lyr.portalItem.id) {
-            qry.outFields = ['dma_name'];
-        }
-
-        const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
-        await lyr.queryFeatures(qry).then(polyFeatureSet => {
-            let homeGeocode = null;
-            let countyName = null;
-            let dmaName = null;
-            //  let
-            if (polyFeatureSet.features.length > 0) {
-                homeGeocode = polyFeatureSet.features[0].attributes.geocode;
-                dmaName = polyFeatureSet.features[0].attributes.dma_name;
-                countyName = polyFeatureSet.features[0].attributes.county_nam;
-            }
-            if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
-                homeGeocodeMap.set('home_geo', homeGeocode);
-            }
-            if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
-                homeGeocodeMap.set('home_geo', homeGeocode);
-            }
-            if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
-                homeGeocodeMap.set('home_geo', homeGeocode);
-            }
-
-            if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
-                homeGeocodeMap.set('home_geo', homeGeocode);
-            }
-            /* if (this.config.layerIds.dma.counties === lyr.portalItem.id){
-                 homeGeocodeMap.set('home_geo' , countyName);
-             }
-             if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
-                 homeGeocodeMap.set('home_geo' , dmaName);
-             }*/
-
-        });
-        return homeGeocodeMap;
-    }
+    // async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
+    //     const loader = EsriLoaderWrapperService.esriLoader;
+    //     const [FeatureLayer, Graphic, PopupTemplate]
+    //         = await loader.loadModules([
+    //             'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
+    //     //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
+    //     const graphic: __esri.Graphic = gra;
+    //     //         console.log('getHomeGeocode fired');
+    //
+    //     const qry = lyr.createQuery();
+    //     qry.geometry = graphic.geometry;
+    //     if (this.config.layerIds.counties.boundaries.id !== lyr.portalItem.id &&
+    //         this.config.layerIds.dma.boundaries.id !== lyr.portalItem.id) {
+    //         qry.outFields = ['geocode'];
+    //     }
+    //
+    //     if (this.config.layerIds.counties.boundaries.id === lyr.portalItem.id) {
+    //         qry.outFields = ['county_nam'];
+    //     }
+    //
+    //     if (this.config.layerIds.dma.boundaries.id === lyr.portalItem.id) {
+    //         qry.outFields = ['dma_name'];
+    //     }
+    //
+    //     const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
+    //     await lyr.queryFeatures(qry).then(polyFeatureSet => {
+    //         let homeGeocode = null;
+    //         let countyName = null;
+    //         let dmaName = null;
+    //         //  let
+    //         if (polyFeatureSet.features.length > 0) {
+    //             homeGeocode = polyFeatureSet.features[0].attributes.geocode;
+    //             dmaName = polyFeatureSet.features[0].attributes.dma_name;
+    //             countyName = polyFeatureSet.features[0].attributes.county_nam;
+    //         }
+    //         if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
+    //             homeGeocodeMap.set('home_geo', homeGeocode);
+    //         }
+    //         if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
+    //             homeGeocodeMap.set('home_geo', homeGeocode);
+    //         }
+    //         if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
+    //             homeGeocodeMap.set('home_geo', homeGeocode);
+    //         }
+    //
+    //         if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
+    //             homeGeocodeMap.set('home_geo', homeGeocode);
+    //         }
+    //         /* if (this.config.layerIds.dma.counties === lyr.portalItem.id){
+    //              homeGeocodeMap.set('home_geo' , countyName);
+    //          }
+    //          if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
+    //              homeGeocodeMap.set('home_geo' , dmaName);
+    //          }*/
+    //
+    //     });
+    //     return homeGeocodeMap;
+    // }
 
     //Calculate home geos for the response list
-    async calculateHomeGeo(siteList: GeocodingResponse[]) {
-        console.log('calculateHomeGeo::');
-        const color = {
-            a: 1,
-            r: 35,
-            g: 93,
-            b: 186
-
-        };
-
-        const fLyrList: __esri.FeatureLayer[] = [];
-        await this.getAllFeatureLayers().then(list => {
-            if (list.length > 0) {
-                for (const layer of list) {
-                    if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
-                        layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
-                        layer.portalItem.id === this.config.layerIds.pcr.topVars.id ||
-                        layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
-            /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-            layer.portalItem.id === this.config.layerIds.dma.counties ||
-          layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
-                        fLyrList.push(layer);
-                    }
-                }
-            }
-        });
-
-        let siteNumber: number = 0;
-        const geoCodedSiteList: GeocodingResponse[] = [];
-        for (const site of siteList) {
-            let geoAttr: GeocodingAttributes;
-            let home_geo_issue: string = 'N';
-            siteNumber++;
-            //this.displaySpinnerMessage = 'Calculating Home Geocodes';
-            try {
-                for (const llyr of fLyrList) {
-                    let home_geo = null;
-                    geoAttr = new GeocodingAttributes();
-                    let graphic: __esri.Graphic;
-                    await this.createGraphic(site.latitude, site.longitude, color).then(res => {
-                        graphic = res;
-                    });
-                    await this.getHomeGeocode(llyr, graphic).then(res => {
-                        home_geo = res.get('home_geo');
-
-
-                        if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
-                            geoAttr.attributeName = 'Home ZIP';
-                            geoAttr.attributeValue = home_geo;
-                            site.geocodingAttributesList.push(geoAttr);
-                            if (this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
-                                site.homeGeocode = home_geo;
-                            }
-                        }
-                        if (llyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
-                            geoAttr.attributeName = 'Home ATZ';
-                            geoAttr.attributeValue = home_geo;
-                            site.geocodingAttributesList.push(geoAttr);
-                            if (this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
-                                site.homeGeocode = home_geo;
-                            }
-                        }
-                        if (llyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
-                            geoAttr.attributeName = 'HOME PCR';
-                            geoAttr.attributeValue = home_geo;
-                            site.geocodingAttributesList.push(geoAttr);
-                            if (this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
-                                site.homeGeocode = home_geo;
-                            }
-                        }
-                        if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
-                            geoAttr.attributeName = 'Home DIGITAL ATZ';
-                            geoAttr.attributeValue = home_geo;
-                            site.geocodingAttributesList.push(geoAttr);
-                        }
-                        /* if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
-                            geoAttr.attributeName = 'HOME COUNTY';
-                            geoAttr.attributeValue = home_geo;
-                            site.geocodingAttributesList.push(geoAttr);
-                         }
-                         if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
-                           geoAttr.attributeName = 'HOME DMA';
-                           geoAttr.attributeValue = home_geo;
-                           site.geocodingAttributesList.push(geoAttr);
-                         }*/
-                    });
-                }
-
-            }
-            catch (ex) {
-                home_geo_issue = 'Y';
-                console.error(ex);
-            }
-
-            geoAttr = new GeocodingAttributes();
-            geoAttr.attributeName = 'HOME GEOCODE ISSUE';
-            geoAttr.attributeValue = home_geo_issue;
-            site.geocodingAttributesList.push(geoAttr);
-            geoCodedSiteList.push(site);
-        }
-        return geoCodedSiteList;
-    }
+    // async calculateHomeGeo(siteList: GeocodingResponse[]) {
+    //     console.log('calculateHomeGeo::');
+    //     const color = {
+    //         a: 1,
+    //         r: 35,
+    //         g: 93,
+    //         b: 186
+    //
+    //     };
+    //
+    //     const fLyrList: __esri.FeatureLayer[] = [];
+    //     await this.getAllFeatureLayers().then(list => {
+    //         if (list.length > 0) {
+    //             for (const layer of list) {
+    //                 if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
+    //                     layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
+    //                     layer.portalItem.id === this.config.layerIds.pcr.topVars.id ||
+    //                     layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
+    //         /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
+    //         layer.portalItem.id === this.config.layerIds.dma.counties ||
+    //       layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
+    //                     fLyrList.push(layer);
+    //                 }
+    //             }
+    //         }
+    //     });
+    //
+    //     let siteNumber: number = 0;
+    //     const geoCodedSiteList: GeocodingResponse[] = [];
+    //     for (const site of siteList) {
+    //         let geoAttr: GeocodingAttributes;
+    //         let home_geo_issue: string = 'N';
+    //         siteNumber++;
+    //         //this.displaySpinnerMessage = 'Calculating Home Geocodes';
+    //         try {
+    //             for (const llyr of fLyrList) {
+    //                 let home_geo = null;
+    //                 geoAttr = new GeocodingAttributes();
+    //                 let graphic: __esri.Graphic;
+    //                 await this.createGraphic(site.latitude, site.longitude, color).then(res => {
+    //                     graphic = res;
+    //                 });
+    //                 await this.getHomeGeocode(llyr, graphic).then(res => {
+    //                     home_geo = res.get('home_geo');
+    //
+    //
+    //                     if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
+    //                         geoAttr.attributeName = 'Home ZIP';
+    //                         geoAttr.attributeValue = home_geo;
+    //                         site.geocodingAttributesList.push(geoAttr);
+    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
+    //                             site.homeGeocode = home_geo;
+    //                         }
+    //                     }
+    //                     if (llyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
+    //                         geoAttr.attributeName = 'Home ATZ';
+    //                         geoAttr.attributeValue = home_geo;
+    //                         site.geocodingAttributesList.push(geoAttr);
+    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
+    //                             site.homeGeocode = home_geo;
+    //                         }
+    //                     }
+    //                     if (llyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
+    //                         geoAttr.attributeName = 'HOME PCR';
+    //                         geoAttr.attributeValue = home_geo;
+    //                         site.geocodingAttributesList.push(geoAttr);
+    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
+    //                             site.homeGeocode = home_geo;
+    //                         }
+    //                     }
+    //                     if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
+    //                         geoAttr.attributeName = 'Home DIGITAL ATZ';
+    //                         geoAttr.attributeValue = home_geo;
+    //                         site.geocodingAttributesList.push(geoAttr);
+    //                     }
+    //                     /* if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
+    //                         geoAttr.attributeName = 'HOME COUNTY';
+    //                         geoAttr.attributeValue = home_geo;
+    //                         site.geocodingAttributesList.push(geoAttr);
+    //                      }
+    //                      if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
+    //                        geoAttr.attributeName = 'HOME DMA';
+    //                        geoAttr.attributeValue = home_geo;
+    //                        site.geocodingAttributesList.push(geoAttr);
+    //                      }*/
+    //                 });
+    //             }
+    //
+    //         }
+    //         catch (ex) {
+    //             home_geo_issue = 'Y';
+    //             console.error(ex);
+    //         }
+    //
+    //         geoAttr = new GeocodingAttributes();
+    //         geoAttr.attributeName = 'HOME GEOCODE ISSUE';
+    //         geoAttr.attributeValue = home_geo_issue;
+    //         site.geocodingAttributesList.push(geoAttr);
+    //         geoCodedSiteList.push(site);
+    //     }
+    //     return geoCodedSiteList;
+    // }
 }
 
 
