@@ -7,6 +7,8 @@ import { Subject } from 'rxjs/Subject';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
 
 interface RegistrationResponse {
   clientId: string;
@@ -74,7 +76,7 @@ export class AuthService implements CanActivate {
       //attempt to load oauth data saved in cookies
       if (this.loadOAuthData()) {
         //if the load of oauth data was successfull then refresh the token
-        return this.refreshToken();
+        return this.refreshToken(true);
       }
       this.router.navigate(['/login']);
       return false;
@@ -235,9 +237,10 @@ export class AuthService implements CanActivate {
 
   /**
    * Refresh a user's OAuth token for the impower application using the API gateway REST interface
+   * @param forceLoginOnFailure an optional boolean which if true will force the user to login again if the token refresh fails
    * @returns An Observable<boolean> which will indicate whether the refresh operation was successfull or not
    */
-  public refreshToken() : Observable<boolean> {
+  public refreshToken(forceLoginOnFailure?: boolean) : Observable<boolean> {
     this._refreshToken().subscribe(refreshResponse => {
       if (refreshResponse.access_token != null) {
         this.parseTokenResponse(refreshResponse);
@@ -248,6 +251,9 @@ export class AuthService implements CanActivate {
       }
     }, error => {
       console.error(error);
+      if (forceLoginOnFailure) {
+        this.router.navigate(['/login']);
+      }
       this.refreshSubject.next(false);
     });
     return this.refreshSubject;

@@ -77,6 +77,7 @@ import {ToolbarModule} from 'primeng/primeng';
 import {TooltipModule} from 'primeng/primeng';
 import {TreeModule} from 'primeng/primeng';
 import {TreeTableModule} from 'primeng/primeng';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
 import {AppComponent} from './app.component';
 import {AppMenuComponent, AppSubMenuComponent} from './app.menu.component';
@@ -285,7 +286,7 @@ import { CookieService } from 'ngx-cookie-service';
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint,
-        {provide: EsriLoaderToken, useClass: AppConfig}, AuthService,
+        {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService

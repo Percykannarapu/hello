@@ -1765,9 +1765,6 @@ export class MapService {
                                 geos[0].hhc = ValLayerService.getAttributeValue(currentAttribute, 'hhld_s');
                                 //this.impGeofootprintGeoService.update(geos[0], newGeo[0]);
                             }
-                            if (ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs') != undefined){ //undefined values of one iP address return NaN
-                            MapService.hhIpAddress = MapService.hhIpAddress + ValLayerService.getAttributeValue(currentAttribute, 'num_ip_addrs');
-                        }
                         }
                         if (discoveryUI[0].cpm != null) {
                             MapService.t = discoveryUI[0].cpm * (MapService.hhDetails / 1000);
