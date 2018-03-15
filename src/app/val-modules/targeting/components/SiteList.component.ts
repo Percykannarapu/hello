@@ -101,22 +101,25 @@ export class SiteListComponent implements OnInit, OnDestroy {
     site.longitude = row.xcoord;
     const graphic = await this.geocodingRespService.createGraphic(site, null);
     this.mapService.zoomOnMap([graphic]);
-    this.appService.closeOverLayPanel.next(true);
+    //this.appService.closeOverLayPanel.next(true);
   }
 
   public onDeleteSite(loc: ImpGeofootprintLocation) {
     this.confirmationService.confirm({
-      message: 'Do you want to delete this record?',
+      message: 'Are you sure you want to delete this location?',
       header: 'Delete Confirmation',
-      icon: 'fa fa-trash',
+      
       accept: () => {
-        this.messageService.add({ severity: 'success', summary: 'Accepted', detail: 'You have Accepted' });
+        //this.messageService.add({ severity: 'info', summary: 'Accepted', detail: 'You have Accepted' });
         console.log('Removing site: ' + loc);
         this.geocodingRespService.remove(loc);
         this.onGroupChange(this.selectedValue);
+        //this.appService.closeOverLayPanel.next(true);
       },
       reject: () => {
-        this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected' });
+        console.log('Rejected..!');
+        this.appService.closeOverLayPanel.next(false);
+        //this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected' });
       }
     });
   }
