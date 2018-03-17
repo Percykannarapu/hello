@@ -79,6 +79,8 @@ export class SiteListComponent implements OnInit {
       header: 'Delete Confirmation',
       icon: 'fa fa-trash',
       accept: () => {
+        const attributes = this.attributeService.find({ impGeoFootprintLocation: row });
+        this.attributeService.remove(attributes);
         this.locationService.remove(row);
       },
       reject: () => {

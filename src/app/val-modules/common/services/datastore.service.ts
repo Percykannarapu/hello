@@ -32,7 +32,7 @@ export class DataStore<T>
    // Private data store, exposed publicly as an observable
    private _dataStore = new Array<T>();
    private _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
-   
+
 
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
@@ -219,11 +219,17 @@ export class DataStore<T>
       this._storeSubject.next(this._dataStore);
    }
 
-   public remove (data: T)
+   public remove (data: T | T[])
    {
-      // Remove the element from the array
-      const index = this._dataStore.indexOf(data);
-      this.removeAt(index);
+     if (Array.isArray(data)) {
+       const removals = new Set(data);
+       this._dataStore = this._dataStore.filter(t => !removals.has(t));
+       this._storeSubject.next(this._dataStore);
+     } else {
+       // Remove the element from the array
+       const index = this._dataStore.indexOf(data);
+       this.removeAt(index);
+     }
    }
 
    // TODO: loop until no search results found
@@ -287,7 +293,7 @@ export class DataStore<T>
 
    /**
     * Return a list of data store objects that match the searchValue
-    * 
+    *
     * Ex: Return all of the geofootprint geos whose location is BUDDY'S PIZZA - GRAND RAPIDS
     * const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS');
     *

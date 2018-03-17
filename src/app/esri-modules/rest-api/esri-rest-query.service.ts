@@ -6,7 +6,7 @@ import { AppConfig } from '../../app.config';
 
 export const homeGeoTempKey = '_homeGeos';
 
-export interface HomeGeoPoint {
+export interface Coordinates {
   xcoord: number;
   ycoord: number;
 }
@@ -24,7 +24,7 @@ export class EsriRestQueryService {
    * @param locations The array of locations to determine home geocodes for
    * @returns A HttpParams object that can be used in the home geocode query with ArcGIS
    */
-  private createHomeGeocodeParams(locations: HomeGeoPoint[]) : HttpParams {
+  private createHomeGeocodeParams(locations: Coordinates[]) : HttpParams {
     const queryParams: HttpParams = new HttpParams()
       .set('objectIds', '')
       .set('time', '')
@@ -67,7 +67,7 @@ export class EsriRestQueryService {
    * @param locations The array of locations to determine home geocodes for
    * @returns an object that is in the correct input format for a multipoint ArcGIS query
    */
-  private createHomeGeocodeGeometry(locations: HomeGeoPoint[]) : any {
+  private createHomeGeocodeGeometry(locations: Coordinates[]) : any {
     const points: number[][] = [];
     let count = 0;
     for (const location of locations) {
@@ -86,7 +86,7 @@ export class EsriRestQueryService {
    * @param attributeName
    * @returns An observable that will asynchronously return an array of ImpGeofootprintLocation[] with the home geocodes populated
    */
-  public homeGeocodeQuery(locations: HomeGeoPoint[], queryUrl: string, attributeName: string) : Promise<HomeGeoPoint[]> {
+  public homeGeocodeQuery(locations: Coordinates[], queryUrl: string, attributeName: string) : Promise<Coordinates[]> {
     console.log('querying with the following data', locations);
     return this.http.post<__esri.FeatureSet>(this.config.esriRestApiBase + queryUrl, this.createHomeGeocodeParams(locations), { withCredentials: true})
       .toPromise()
@@ -114,7 +114,7 @@ export class EsriRestQueryService {
    * @param attributeName
    * @returns an array of ImpGeofootprintLocation[] with the home geocode populated
    */
-  private parseHomeGeocodeResult(queryResult: __esri.FeatureSet, locations: HomeGeoPoint[], attributeName: string) : HomeGeoPoint[] {
+  private parseHomeGeocodeResult(queryResult: __esri.FeatureSet, locations: Coordinates[], attributeName: string) : Coordinates[] {
     let count: number = 0;
     for (const location of locations) {
       const point: __esri.Point = new EsriModules.Point();

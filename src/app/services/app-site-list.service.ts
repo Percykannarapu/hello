@@ -7,7 +7,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ValGeocodingService } from './app-geocoding.service';
 import { Subscription } from 'rxjs/Subscription';
-import { EsriRestQueryService, HomeGeoPoint, homeGeoTempKey } from '../esri-modules/rest-api/esri-rest-query.service';
+import { EsriRestQueryService, Coordinates, homeGeoTempKey } from '../esri-modules/rest-api/esri-rest-query.service';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -110,7 +110,7 @@ export class ValSiteListService implements OnDestroy {
 
   private determineAllHomeGeos(locations: ImpGeofootprintLocation[]) {
     if (locations.length === 0) return;
-    this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: 'Home Geos are being calculated' });
+    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: 'Home Geos are being calculated' });
     const attributes = this.attributeService.get().filter(a => locations.includes(a.impGeofootprintLocation));
 
     for (const analysisLevel of Array.from(this.restUrls.keys())) {
@@ -128,14 +128,14 @@ export class ValSiteListService implements OnDestroy {
     }
   }
 
-  private determineHomeGeos(sites: HomeGeoPoint[], analysisLevel: string, attributeKey: string) : Promise<HomeGeoPoint[]>{
+  private determineHomeGeos(sites: Coordinates[], analysisLevel: string, attributeKey: string) : Promise<Coordinates[]>{
     if (this.restUrls.has(analysisLevel)) {
       return this.esriRestService.homeGeocodeQuery(sites, this.restUrls.get(analysisLevel), attributeKey);
     }
     return Promise.reject([]);
   }
 
-  private processHomeGeoResult(sites: HomeGeoPoint[], geoKey: string, analysisLevelInProcess: string) {
+  private processHomeGeoResult(sites: Coordinates[], geoKey: string, analysisLevelInProcess: string) {
     const allRealAttributes: ImpGeofootprintLocAttrib[] = [];
     for (const currentSite of sites as ImpGeofootprintLocation[]) {
       if (currentSite[homeGeoTempKey] != null && currentSite[homeGeoTempKey][geoKey] != null) {
@@ -150,7 +150,7 @@ export class ValSiteListService implements OnDestroy {
     }
     this.attributeService.add(allRealAttributes);
     console.log(`${geoKey} is done calculating`);
-    this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `${geoKey} is done calculating` });
+    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `${geoKey} is done calculating` });
   }
 
   private setPrimaryGeocode(analysisLevel: string) {
@@ -169,7 +169,7 @@ export class ValSiteListService implements OnDestroy {
       }
     }
     this.locationService.update(null, null);
-    this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `Primary geo has been set` });
+    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `Primary geo has been set` });
   }
 
   private onDiscoveryChange(discoveryUI: ImpDiscoveryUI) {

@@ -1,9 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {  MenuItem } from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
-import { AmSite } from '../../val-modules/targeting/models/AmSite';
-import { AmSiteService } from '../../val-modules/targeting/services/AmSite.service';
-import { Message } from '../../val-modules/common/models/Message';
 import { ColorBoxComponent } from '../../components/color-box/color-box.component';
 import { AppService } from '../../services/app.service';
 import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
@@ -15,12 +12,8 @@ import { UserService } from '../../services/user.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
-    //providers: [MapService, AppService] //
 })
 export class DashboardDemoComponent implements OnInit {
-    msgs: Message[] = [];
-    public displayRADInputs: boolean = false;
-
     chartData: any;
     events: any[];
 
@@ -28,15 +21,11 @@ export class DashboardDemoComponent implements OnInit {
 
     fakeItems: MenuItem[];
     public miles: number;
-    public amSite: AmSite = new AmSite();
 
     public metricMapGreen: Map<string, string>;
     public metricMapBlue: Map<string, string>;
     public metricMapPurple: Map<string, string>;
     public metricMapTeal: Map<string, string>;
-
-    competitorsMap: Map<string, string> = new Map<string, string>();
-    sitesMap: Map<string, string> = new Map<string, string>();
 
     @ViewChild('locationsColorBox')
     private locationsColorBox: ColorBoxComponent;
@@ -51,7 +40,6 @@ export class DashboardDemoComponent implements OnInit {
     private performanceColorBox: ColorBoxComponent;
 
     constructor(private mapService: MapService,
-                private amSiteService: AmSiteService,
                 private appService: AppService,
                 private metricService: MetricService,
                 private radService: RadService,
@@ -67,7 +55,7 @@ export class DashboardDemoComponent implements OnInit {
 
         // Load models
         this.metricMapGreen = new Map([
-            ['# of Sites', this.amSiteService.sitesList.length.toString()],
+            ['# of Sites', '0'],
             ['# of Competitors', '0']
         ]);
 

@@ -42,7 +42,6 @@ export class LocationUiModel {
   }
 
   public setPointVisibility(flag: boolean) : void {
-    console.log('Setting visibility');
     this.point.visible = flag;
   }
 

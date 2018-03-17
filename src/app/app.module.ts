@@ -61,7 +61,6 @@ import {RadioButtonModule} from 'primeng/primeng';
 import {RatingModule} from 'primeng/primeng';
 import {ScheduleModule} from 'primeng/primeng';
 import {SelectButtonModule} from 'primeng/primeng';
-import {SelectItem} from 'primeng/primeng';
 import {SidebarModule} from 'primeng/primeng';
 import {SlideMenuModule} from 'primeng/primeng';
 import {SliderModule} from 'primeng/primeng';
@@ -102,7 +101,6 @@ import {DocumentationComponent} from './demo/view/documentation.component';
 import {PocComponent} from './demo/view/poc.component';
 import {PocMapComponent} from './demo/view/poc.map';
 import {ParkedComponent} from './demo/view/parked.component';
-import {AmSiteService} from './val-modules/targeting/services/AmSite.service';
 import {GfGeoService} from './models/gf-geo/gf-geo.service';
 import {MetricService} from './val-modules/common/services/metric.service';
 import {CountryService} from './demo/service/countryservice';
@@ -162,8 +160,6 @@ import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
         AppRoutes,
         HttpModule,
         HttpClientModule,
-//        HttpClientInMemoryWebApiModule.forRoot(InMemoryStubService), //  , { dataEncapsulation: false, delay: 600 }),
-//        HttpClientInMemoryWebApiModule.forRoot(AmSiteService),
         BrowserAnimationsModule,
         AccordionModule,
         AutoCompleteModule,
@@ -283,7 +279,7 @@ import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
         AppService, AppConfig, MessageService,
         CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
-        AmSiteService, MetricService, EsriModules, ValLayerService, EsriRestQueryService,
+        MetricService, EsriModules, ValLayerService, EsriRestQueryService,
         AppState, GeocoderService, GeocodingResponseService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,

@@ -26,8 +26,7 @@ export class UploadLocationsComponent {
 
   constructor(private messageService: MessageService,
               public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService,
-              private appMapService: ValMapService) { }
+              private siteListService: ValSiteListService) { }
 
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);

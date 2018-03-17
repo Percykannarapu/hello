@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../core/esri-modules.service';
 import { EsriMapService } from '../core/esri-map.service';
+import LayerListViewModel = __esri.LayerListViewModel;
+import ListItem = __esri.ListItem;
 
 export type layerGeometryType = 'point' | 'mulitpoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -11,6 +13,22 @@ export class EsriLayerService {
   private layerRefs = new Map<string, __esri.FeatureLayer>();
 
   constructor(private modules: EsriModules, private mapService: EsriMapService) { }
+
+  public groupExists(groupName: string) : boolean {
+    return this.groupRefs.has(groupName);
+  }
+
+  public layerExists(layerName: string) : boolean {
+    return this.layerRefs.has(layerName);
+  }
+
+  public removeLayer(layerName: string) : void {
+    if (this.layerRefs.has(layerName)) {
+      const group: __esri.GroupLayer = (this.layerRefs.get(layerName) as any).parent;
+      group.remove(this.layerRefs.get(layerName));
+      this.layerRefs.delete(layerName);
+    }
+  }
 
   public createGroup(groupName: string, isVisible: boolean) : void {
     if (this.groupRefs.has(groupName)) return;
@@ -30,9 +48,14 @@ export class EsriLayerService {
       this.createGroup(groupName, true);
     }
     const group = this.groupRefs.get(groupName);
-    const fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-      return { name: k, alias: k, type: 'string' };
-    });
+    let fields: any[];
+    if (sourceGraphics[0].attributes == null) {
+      fields = [];
+    } else {
+      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
+        return { name: k, alias: k, type: 'string' };
+      });
+    }
     const layer = new EsriModules.FeatureLayer({
       source: sourceGraphics,
       objectIdField: 'parentId',
@@ -61,13 +84,27 @@ export class EsriLayerService {
     }
   }
 
-  public setGraphicVisibility(layerName: string, graphics: __esri.Graphic[]) : void {
+  public replaceGraphicsOnLayer(layerName: string, graphics: __esri.Graphic[]) : void {
+    if (this.layerRefs.has(layerName)) {
+      this.layerRefs.get(layerName).source.removeAll();
+      this.layerRefs.get(layerName).source.addMany(graphics);
+    }
+  }
+
+  public updateGraphicAttributes(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
       const layer = this.layerRefs.get(layerName);
       layer.applyEdits({ updateFeatures: graphics });
+    }
+  }
+
+  public setGraphicVisibility(layerName: string, graphics: __esri.Graphic[]) : void {
+    if (this.layerRefs.has(layerName)) {
+      const layer = this.layerRefs.get(layerName);
       for (const g of graphics) {
+        const sourceGraphics = new Set(layer.source.toArray());
         if (g.visible) {
-          if (!layer.source.includes(g)) layer.source.add(g);
+          if (!sourceGraphics.has(g)) layer.source.add(g);
         } else {
           layer.source.remove(g);
         }

@@ -23,6 +23,7 @@ export class EsriModules {
     'esri/renderers/smartMapping/statistics/histogram',
     'esri/core/lang',
     'esri/geometry/geometryEngine',
+    'esri/geometry/geometryEngineAsync',
     'esri/layers/Layer',
     'esri/layers/GroupLayer',
     'esri/layers/FeatureLayer',
@@ -53,6 +54,7 @@ export class EsriModules {
   public static histogram: typeof __esri.histogram;
   public static lang: typeof __esri.lang;
   public static geometryEngine: typeof __esri.geometryEngine;
+  public static geometryEngineAsync: typeof __esri.geometryEngineAsync;
   public static Layer: typeof __esri.Layer;
   public static GroupLayer: typeof __esri.GroupLayer;
   public static FeatureLayer: typeof __esri.FeatureLayer;
@@ -105,6 +107,7 @@ export class EsriModules {
       EsriModules.histogram,
       EsriModules.lang,
       EsriModules.geometryEngine,
+      EsriModules.geometryEngineAsync,
       EsriModules.Layer,
       EsriModules.GroupLayer,
       EsriModules.FeatureLayer,
