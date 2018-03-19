@@ -53,7 +53,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
         minScale: undefined,
-        popUpFields: []
+        popUpFields: ['objectid', 'gdt_id', 'county_nam', 'state_abbr', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
       }
     },
     dma: {
@@ -63,7 +63,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
         minScale: undefined,
-        popUpFields: []
+        popUpFields: ['objectid', 'dma_code', 'dma_name', 'dma_area', 'cent_lat', 'cent_long']
       }
     },
     zip: {
@@ -109,7 +109,7 @@ export class EnvironmentData {
         defaultVisibility: false,
         popupTitleSuffix: '',
         minScale: 5000000,
-        popUpFields: []
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
         id: 'a4449b3ee55442af881f6ac660ca8163',
