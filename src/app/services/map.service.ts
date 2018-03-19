@@ -680,17 +680,45 @@ export class MapService {
             className: 'esri-icon-plus-circled'
         };
         const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
+        //const currentLayer = (layerDef) => (layer: __esri.FeatureLayer) => curren = (layerDef => {EsriModules.Layer.fromPortalItem(<any>{portalItem: { id: layerDef.id}});
+
+        // if (layerDefinitions.filter(i => i != null && i.id != null)){
+        //     for (let i: number = 0; i < layerDefinitions.length; i++) {
+        //         const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
+
+            
+        // }
+            
         layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
             EsriModules.Layer.fromPortalItem(<any>{
                 portalItem: {
                     id: layerDef.id
                 }
             }).then((currentLayer: __esri.FeatureLayer) => {
+
                 const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
+                const localPopUpFields = new Set(layerDef.popUpFields);
                 currentLayer.visible = layerDef.defaultVisibility;
                 currentLayer.title = layerDef.name;
                 currentLayer.minScale = layerDef.minScale;
+
+                if (layerDef.popUpFields.length > 0){
                 currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
+
+                currentLayer.on('layerview-create', e => {
+                    const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+                    localLayer.popupTemplate.fieldInfos = localLayer.fields.filter(f => {
+                      return localPopUpFields.has(f.name);
+                    }).map(f => {
+                      return {fieldName: f.name, label: f.alias};
+                    });
+                    localLayer.popupTemplate.content = [{
+                      type: 'fields'
+                    }];
+                  });
+                } else {
+                    currentLayer.popupEnabled = false; 
+                } 
                 // Add Layer to Group Layer if it does not already exist
                 if (!group.layers.some(groupContainsLayer(layerDef))) {
                     group.add(currentLayer);
