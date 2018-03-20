@@ -8,7 +8,8 @@ export interface LayerDefinition {
   defaultVisibility: boolean;
   popupTitleSuffix: string;
   minScale: number;
-}
+  popUpFields: string[];
+  }
 
 export class EnvironmentData {
 
@@ -47,6 +48,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
         minScale: undefined,
+        popUpFields: ['objectid', 'gdt_id', 'county_nam', 'state_abbr', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
       }
     },
     dma: {
@@ -56,6 +58,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
         minScale: undefined,
+        popUpFields: ['objectid', 'dma_code', 'dma_name', 'dma_area', 'cent_lat', 'cent_long']
       }
     },
     zip: {
@@ -65,6 +68,7 @@ export class EnvironmentData {
         defaultVisibility: false,
         popupTitleSuffix: '',
         minScale: 5000000,
+        popUpFields: []
       },
       topVars: { // ZIP Top Vars
         id: '23a54308e914496aa24d94a9b36776a0',
@@ -72,6 +76,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
         minScale: 5000000,
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     atz: {
@@ -81,6 +86,7 @@ export class EnvironmentData {
         defaultVisibility: false,
         popupTitleSuffix: '',
         minScale: 5000000,
+        popUpFields: []
       },
       topVars: { // ATZ_Top_Vars
         id: 'c0ee701ee95f4bbdbc15ded2a37ca802',
@@ -88,6 +94,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
         minScale: 5000000,
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     digital_atz: {
@@ -97,6 +104,7 @@ export class EnvironmentData {
         defaultVisibility: false,
         popupTitleSuffix: '',
         minScale: 5000000,
+        popUpFields: []
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
         id: 'a4449b3ee55442af881f6ac660ca8163',
@@ -104,6 +112,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
         minScale: 5000000,
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     pcr: {
@@ -112,7 +121,8 @@ export class EnvironmentData {
         name: 'PCR Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 577790 // turn on at scale level 10
+        minScale: 577790, // turn on at scale level 10
+        popUpFields: []
       },
       topVars: {
         id: '53482efa44914dc199f3833276ddb5a1',
@@ -120,6 +130,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
         minScale: 600000,
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     wrap: {
@@ -129,6 +140,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
         minScale: 5000000,
+        popUpFields: ['geocode', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_mkt', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     hh: {
