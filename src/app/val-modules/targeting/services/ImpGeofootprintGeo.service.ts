@@ -18,6 +18,7 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
@@ -36,7 +37,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
-   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService, impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService)
+   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService, impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService)
    {
       super(restDataService, dataUrl);
 
@@ -168,10 +169,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return varValue;
    }
 
-   public prepareCSV<T>(sourceData: T[], columnHeaders: String, columnOrder: String): string[]
+   public prepareCSV<T>(sourceData: T[], columnHeaders: String, columnOrder: String) : string[]
    {
       console.log('prepareCSV fired with sourceData: ', sourceData);
       if (sourceData == null || sourceData.length < 1) {
+            this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
          throw new Error('prepareCSV - No data provided to export');
       }
 
@@ -267,7 +269,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('columnHeaders: ', columnHeaders);
       console.log('columnOrder', columnOrder);
       console.log('dataStore.length: ' + this.length());
-      const geos: ImpGeofootprintGeo[] = this.get()
+      const geos: ImpGeofootprintGeo[] = this.get();
       console.log('geos:', geos);
 
       if (filename == null)

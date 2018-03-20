@@ -19,6 +19,7 @@ import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.servic
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 @Injectable()
 export class GeocodingResponseService {
@@ -41,7 +42,8 @@ export class GeocodingResponseService {
         private metricService: MetricService,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
         private impGeofootprintLocAttrService: ImpGeofootprintLocAttribService,
-        private tradeAreaService: ImpGeofootprintTradeAreaService) { }
+        private tradeAreaService: ImpGeofootprintTradeAreaService,
+        private messageService: MessageService) { }
 
     /**
 * @description export CSV data to the user
@@ -69,6 +71,7 @@ export class GeocodingResponseService {
     public createCSV(value: string) : string[] {
         const sitesList: any[] = this.displayData(value);
         if (sitesList.length < 1) {
+            this.messageService.add({ severity: 'error', summary: 'No location found', detail: `Please add locations.` });
             throw new Error('No sites available to export');
         }
         const tradeAreas: ImpGeofootprintTradeArea[] = this.tradeAreaService.get().filter(t => t.taName.startsWith(value));
@@ -472,7 +475,7 @@ export class GeocodingResponseService {
         this.impGeofootprintLocList = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
-        const currentLocList = this.impGeofootprintLocList.filter(l => l.impClientLocationType === value);
+        const currentLocList = this.impGeofootprintLocList.filter(l => l.impClientLocationType.clientLocationType === value);
 
         for (const currentLoc of currentLocList) {
             const gridMap: any = {};
