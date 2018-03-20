@@ -5,6 +5,7 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { Subscription } from 'rxjs/Subscription';
 import { ValMapService } from './app-map.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 export class RadialTradeAreaDefaults {
   radials: { radius: number, displayed: boolean }[];
@@ -31,9 +32,18 @@ export class ValTradeAreaService implements OnDestroy {
   private locationSubscription: Subscription;
   private tradeAreaSubscription: Subscription;
 
+  private clientBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
+  private competitorBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
+
+  public clientBuffer$ = this.clientBuffers.asObservable();
+  public competitorBuffer$ = this.competitorBuffers.asObservable();
+
+  // TODO: These are hacks and I want to be rid of them as soon as possible.
+  public clientMergeFlag: boolean = false;
+  public competitorMergeFlag: boolean = false;
+
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private locationService: ImpGeofootprintLocationService,
-              private mapService: ValMapService) {
+              private locationService: ImpGeofootprintLocationService) {
     this.currentLocations = [];
     this.locationSubscription = this.locationService.storeObservable.subscribe(locations => {
       this.onLocationChange(locations);
@@ -94,10 +104,10 @@ export class ValTradeAreaService implements OnDestroy {
         competitorBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
       }
     }
-    const siteFlag = this.currentDefaults.has('Site') && this.currentDefaults.get('Site').merge;
-    const compFlag = this.currentDefaults.has('Competitor') && this.currentDefaults.get('Competitor').merge;
-    this.mapService.drawRadiusBuffers(clientBufferMap, siteFlag, 'Site');
-    this.mapService.drawRadiusBuffers(competitorBufferMap, compFlag, 'Competitor');
+    this.clientMergeFlag = this.currentDefaults.has('Site') && this.currentDefaults.get('Site').merge;
+    this.competitorMergeFlag = this.currentDefaults.has('Competitor') && this.currentDefaults.get('Competitor').merge;
+    this.clientBuffers.next(clientBufferMap);
+    this.competitorBuffers.next(competitorBufferMap);
   }
 
   public applyRadialDefaults(tradeAreaDefinition: RadialTradeAreaDefaults, siteType: string, locations?: ImpGeofootprintLocation[]) : void {

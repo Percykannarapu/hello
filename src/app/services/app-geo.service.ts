@@ -13,8 +13,8 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
-import { ValLayerService } from './app-layer.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { AppConfig } from '../app.config';
 
 class QuerySelection {
   x: number;
@@ -49,7 +49,7 @@ export class ValGeoService implements OnDestroy {
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService, private discoveryService: ImpDiscoveryService,
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
-              private queryService: EsriQueryService, private layerService: ValLayerService) {
+              private queryService: EsriQueryService, private config: AppConfig) {
     this.currentTradeAreas = [];
     this.uniqueSelectedGeocodes = new BehaviorSubject<string[]>([]);
     this.uniqueSelectedGeocodes$ = this.uniqueSelectedGeocodes.asObservable();
@@ -105,7 +105,7 @@ export class ValGeoService implements OnDestroy {
       this.geoService.remove(deletedGeos);
     }
     if (adds != null && adds.length > 0) {
-      const layerId = this.layerService.getLayerIdForAnalysisLevel(analysisLevel, false);
+      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, false);
       const queryMap = this.createTradeAreaQueryMap(adds);
       const radii = Array.from(queryMap.keys());
       radii.forEach(radius => {
@@ -185,5 +185,13 @@ export class ValGeoService implements OnDestroy {
       }
     }
     this.attributeService.add(newAttributes);
+  }
+
+  public addManualGeo(geocode: string) {
+
+  }
+
+  public removeGeocode(geocode: string) {
+
   }
 }

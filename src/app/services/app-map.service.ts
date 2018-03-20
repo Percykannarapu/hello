@@ -13,12 +13,16 @@ import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './app-metrics.service';
+import { ValTradeAreaService } from './app-trade-area.service';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Injectable()
 export class ValMapService {
   private siteSubscription: Subscription;
   private geoSubscription: Subscription;
   private discoverySubscription: Subscription;
+  private clientTradeAreaSubscription: Subscription;
+  private competitorTradeAreaSubscription: Subscription;
 
   private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
@@ -29,7 +33,7 @@ export class ValMapService {
               private mapService: EsriMapService, private config: AppConfig,
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
-              private metricsService: ValMetricsService) {
+              private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService) {
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.siteSubscription = this.siteService.allUiSites$.subscribe(sites => {
@@ -46,6 +50,8 @@ export class ValMapService {
         });
         this.geoSubscription = this.appGeoService.uniqueSelectedGeocodes$.subscribe(geocodes => this.onGeocodeListChanged(geocodes));
         this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
+        this.clientTradeAreaSubscription = this.tradeAreaService.clientBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Site'));
+        this.competitorTradeAreaSubscription = this.tradeAreaService.competitorBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Competitor'));
       }
     });
   }
@@ -85,8 +91,31 @@ export class ValMapService {
     if (deletes.length > 0) this.removeFromSelection(deletes, this.currentAnalysisLevel);
   }
 
+  private onTradeAreaBufferChange(buffer: Map<ImpGeofootprintLocation, number[]>, siteType: string) {
+    const mergeFlag = siteType === 'Site' ? this.tradeAreaService.clientMergeFlag : this.tradeAreaService.competitorMergeFlag;
+    this.drawRadiusBuffers(buffer, mergeFlag, siteType);
+  }
+
   public setupMap() : void {
 
+  }
+
+  public handleClickEvent(event:  __esri.MapViewClickEvent) {
+    // still need to figure out how add these geos to the data model
+    console.log('NO SOUP FOR YOU');
+    return;
+
+    // const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
+    // const layer = this.layerService.getPortalLayerById(layerId);
+    // const query = layer.createQuery();
+    // query.geometry = event.mapPoint;
+    // query.outFields = ['geocode'];
+    // const sub = this.queryService.executeQuery(layer, query).subscribe(featureSet => {
+    //   console.log('query Map point result', featureSet);
+    //   if (featureSet && featureSet.features && featureSet.features.length === 1) {
+    //     this.addToSelection([featureSet.features[0].attributes.geocode], this.currentAnalysisLevel);
+    //   }
+    // }, err => console.error('Error getting geocode for map click event', err), () => sub.unsubscribe());
   }
 
   public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
@@ -162,7 +191,7 @@ export class ValMapService {
       outline: { color: outlineColor, style: 'solid'},
       style: 'solid'
     });
-    const portalId = this.appLayerService.getLayerIdForAnalysisLevel(analysisLevel);
+    const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const outFields = this.metricsService.getLayerAttributes();
     const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, true, outFields).subscribe(graphics => {
         const newGraphics = graphics.map(f => {

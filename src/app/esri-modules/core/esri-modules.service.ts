@@ -138,7 +138,6 @@ export class EsriModules {
     EsriModules.widgets.loadModules(modules);
 
     EsriModules.config.portalUrl = (this.esriConfig as any).portalUrl;
-    EsriModules.config.request.timeout = 120000;
 
     this.isReady = true;
     this.isLoaded.emit();

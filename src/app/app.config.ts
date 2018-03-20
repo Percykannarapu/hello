@@ -43,7 +43,8 @@ export class AppConfig implements EsriLoaderConfig {
    public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
-   public maxPointsPerGeometryQuery = 10;
+   public maxPointsPerBufferQuery = 10;
+   public maxPointsPerAttributeQuery = 10;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
    public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;
 
@@ -53,4 +54,19 @@ export class AppConfig implements EsriLoaderConfig {
 
    // Can be used to hide/show debugging info
    public debugMode: boolean = EnvironmentData.debugMode;
+
+  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+    switch (analysisLevel.toLowerCase()) {
+      case 'zip':
+        return boundary ? this.layerIds.zip.topVars.id : this.layerIds.zip.centroids.id;
+      case 'atz':
+        return boundary ? this.layerIds.atz.topVars.id : this.layerIds.atz.centroids.id;
+      case 'digital atz':
+        return boundary ? this.layerIds.digital_atz.digitalTopVars.id : this.layerIds.digital_atz.digitalCentroids.id;
+      case 'pcr':
+        return boundary ? this.layerIds.pcr.topVars.id : this.layerIds.pcr.centroids.id;
+      default:
+        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel()`);
+    }
+  }
 }

@@ -82,7 +82,7 @@ export class EsriLayerService {
       title: layerName
     });
 
-    group.layers.add(layer);
+    group.layers.unshift(layer);
     this.layerRefs.set(layerName, layer);
     return layer;
   }

@@ -18,6 +18,7 @@ import { DefaultLayers } from '../models/DefaultLayers';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LayerDefinition } from '../../environments/environment';
+import { ValMapService } from './app-map.service';
 
 @Injectable()
 export class MapService {
@@ -73,7 +74,8 @@ export class MapService {
         private impDiscoveryService: ImpDiscoveryService,
         private geoFootPrintService: GeoFootPrint,
         private authService: AuthService,
-        private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService) {
+        private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
+        private appMapService: ValMapService) {
         this.esriMapService.onReady$.subscribe(ready => {
             if (ready) {
                 this.mapView = this.esriMapService.mapView;
@@ -1943,6 +1945,10 @@ export class MapService {
         } */
 
     public selectSinglePolygon(evt: __esri.MapViewClickEvent, preSelectedGeo?: __esri.Geometry, preSelectedObjectId?: number) {
+        if (evt != null) {
+          this.appMapService.handleClickEvent(evt);
+          return;
+        }
         console.log('fired selectSinglePolygon');
         const symbol = new EsriModules.SimpleFillSymbol({
             style: 'solid',

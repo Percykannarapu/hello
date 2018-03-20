@@ -28,7 +28,8 @@ export class EsriMapComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
   @ViewChild('esriMapContainer') private mapContainerEl: ElementRef;
 
-  constructor(public mapService: MapService, private esriMapService: EsriMapService, private modules: EsriModules) {
+  constructor(public mapService: MapService, private esriMapService: EsriMapService,
+               private modules: EsriModules) {
     console.log('Constructing esri-map-component');
   }
 
