@@ -27,7 +27,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public  impGeofootprintLocations: ImpGeofootprintLocation[];
    public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
-   
+
    public  impGeofootprintGeos: ImpGeofootprintGeo[];
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
@@ -35,7 +35,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       'background-color': 'lime',
       'text-align': 'right'
       };
-   
+
    public rAlign = 'right';
 
    public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}},
@@ -101,7 +101,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onChangeGeos(impGeofootprintGeos: ImpGeofootprintGeo[])
    {
       console.log('onChangeGeos fired', impGeofootprintGeos);
-      this.impGeofootprintGeos = Array.from(impGeofootprintGeos);      
+      this.impGeofootprintGeos = Array.from(impGeofootprintGeos);
       this.assignSite();
    }
 
@@ -169,7 +169,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist + ' - NEW CLOSEST');
             }
 //          else
-//             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist);            
+//             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist);
          }
 
          geo.distance = closestDistance;
@@ -187,9 +187,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       let idx: number = 0;
       if (this.impGeofootprintGeos != null)
       {
-         console.log('assignSite fired - processing ' + this.impGeofootprintGeos.length + ' geos');
-         for (const geo of this.impGeofootprintGeos)
-            this.setClosestLocation(geo, idx++);
+         const unassignedGeos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation == null);
+         console.log('assignSite fired - processing ' + unassignedGeos + ' geos');
+          for (const geo of unassignedGeos)
+             this.setClosestLocation(geo, idx++);
       }
       else
          console.log('assignSite - no geos to process');
@@ -202,7 +203,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * @param locationId The glId of the parent location to filter on
     */
    filterGeosBySite(locationId: number) : ImpGeofootprintGeo[]
-   {      
+   {
       return this.impGeofootprintGeos.filter(
          geo => (geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.glId === locationId : null);
    }
@@ -264,15 +265,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       for (let i = 0; i < storeGeos.length; i++)
       {
          foundIdx = this.impGeofootprintGeoService.findIndex(storeGeos[i]);
-         console.log('found geo(' + i + ') at index', foundIdx); 
+         console.log('found geo(' + i + ') at index', foundIdx);
       }
    }
-   
+
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
    public async onZoomToGeo(geo: ImpGeofootprintGeo)
-   { 
+   {
       // console.log('onZoomToGeo - geo: ', geo);
       if (geo != null)
       {
@@ -298,10 +299,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    private stubLocations()
    {
-      const sites: ImpGeofootprintLocation[] = 
+      const sites: ImpGeofootprintLocation[] =
           [new ImpGeofootprintLocation({glId: 202193, locationName: 'Masons',           xcoord: -83.37270100, ycoord: 42.38179900}),
            new ImpGeofootprintLocation({glId: 202194, locationName: 'The Looney Baker', xcoord: -83.373658,   ycoord: 42.383524})];
-         
+
       this.impGeofootprintLocationService.add(sites);
    }
 
@@ -328,7 +329,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          {ggId: 7378356, geocode: '48170F1',  geoSortOrder: 13, hhc: 4283, distance: 10.10, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1},
          {ggId: 7378357, geocode: '48170G1',  geoSortOrder: 14, hhc: 3352, distance:  3.62, impGeofootprintLocation: null, impGeofootprintMaster: null, impGeofootprintTradeArea: null, impProject: null, xCoord: null, yCoord: null, isActive: 1}
       ];
-         
+
       this.impGeofootprintGeoService.add(geos);
    }
 

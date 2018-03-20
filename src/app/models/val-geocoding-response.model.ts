@@ -6,8 +6,8 @@ import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLoc
 export const valGeocodingAttributeKey = '_attributes';
 
 export class ValGeocodingResponse {
-  Latitude: number;
-  Longitude: number;
+  Latitude: string;
+  Longitude: string;
   Address: string;
   City: string;
   State: string;
@@ -37,8 +37,8 @@ export class ValGeocodingResponse {
       locCity: this.City,
       locState: this.State,
       locZip: this.ZIP,
-      xcoord: this.Longitude,
-      ycoord: this.Latitude,
+      xcoord: Number(this.Longitude),
+      ycoord: Number(this.Latitude),
       origAddress1: this['Original Address'],
       origCity: this['Original City'],
       origState: this['Original State'],

@@ -8,8 +8,8 @@ export class ValGeocodingRequest {
   city: string;
   state: string;
   zip: string;
-  latitude?: number | null;
-  longitude?: number | null;
+  latitude?: string | null;
+  longitude?: string | null;
   [key: string] : any;
 
   constructor(initializer: any) {

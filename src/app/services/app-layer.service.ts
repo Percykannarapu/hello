@@ -26,10 +26,6 @@ export class ValLayerService {
     return attributeInstance && (attributeInstance[fieldName.toLowerCase()] || attributeInstance[fieldName.toUpperCase()]);
   }
 
-  public static isFeatureLayer(layer: __esri.Layer) : layer is __esri.FeatureLayer {
-    return layer && layer.type === 'feature';
-  }
-
   public initLayerList(sliderElementId: string) : void {
     console.log('Loading Esri Modules for Layer Service');
     this.sliderElementId = sliderElementId;
@@ -42,6 +38,21 @@ export class ValLayerService {
 
   public changeOpacity(newValue: number) : void {
     this.currentThemeOpacity.next(newValue);
+  }
+
+  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+    switch (analysisLevel.toLowerCase()) {
+      case 'zip':
+        return boundary ? this.config.layerIds.zip.topVars.id : this.config.layerIds.zip.centroids.id;
+      case 'atz':
+        return boundary ? this.config.layerIds.atz.topVars.id : this.config.layerIds.atz.centroids.id;
+      case 'digital atz':
+        return boundary ? this.config.layerIds.digital_atz.digitalTopVars.id : this.config.layerIds.digital_atz.digitalCentroids.id;
+      case 'pcr':
+        return boundary ? this.config.layerIds.pcr.topVars.id : this.config.layerIds.pcr.centroids.id;
+      default:
+        throw new Error(`Invalid analysis level '${analysisLevel}' passed into ValLayerService::getLayerIdForAnalysisLevel()`);
+    }
   }
 
   private initImpl() : void {

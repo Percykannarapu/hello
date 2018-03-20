@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../core/esri-modules.service';
 import { EsriMapService } from '../core/esri-map.service';
-import LayerListViewModel = __esri.LayerListViewModel;
-import ListItem = __esri.ListItem;
 
 export type layerGeometryType = 'point' | 'mulitpoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -14,12 +12,29 @@ export class EsriLayerService {
 
   constructor(private modules: EsriModules, private mapService: EsriMapService) { }
 
+  public static isFeatureLayer(layer: __esri.Layer) : layer is __esri.FeatureLayer {
+    return layer && layer.type === 'feature';
+  }
+
   public groupExists(groupName: string) : boolean {
     return this.groupRefs.has(groupName);
   }
 
   public layerExists(layerName: string) : boolean {
     return this.layerRefs.has(layerName);
+  }
+
+  public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
+    let result: __esri.FeatureLayer = null;
+    this.mapService.map.allLayers.forEach(l => {
+      if (EsriLayerService.isFeatureLayer(l) && l.portalItem && l.portalItem.id === portalId) result = l;
+    });
+    return result;
+  }
+
+  public getClientLayerByName(layerName: string) : __esri.FeatureLayer {
+    if (this.layerExists(layerName)) return this.layerRefs.get(layerName);
+    return null;
   }
 
   public removeLayer(layerName: string) : void {

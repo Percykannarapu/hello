@@ -152,6 +152,9 @@ import { ValTradeAreaService } from './services/app-trade-area.service';
 import { CookieService } from 'ngx-cookie-service';
 import { ValMapService } from './services/app-map.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
+import { ValGeoService } from './services/app-geo.service';
+import { EsriQueryService } from './esri-modules/layers/esri-query.service';
+import { ValMetricsService } from './services/app-metrics.service';
 
 @NgModule({
     imports: [
@@ -287,7 +290,8 @@ import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
-        CookieService, ValMapService
+        CookieService, ValMapService, ValGeoService, EsriQueryService,
+        ValMetricsService
     ],
     bootstrap: [AppComponent]
 })

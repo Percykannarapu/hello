@@ -7,15 +7,29 @@ import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { Coordinates } from '../esri-modules/rest-api/esri-rest-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { ValLayerService } from './app-layer.service';
+import { ValGeoService } from './app-geo.service';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { ValMetricsService } from './app-metrics.service';
 
 @Injectable()
 export class ValMapService {
   private siteSubscription: Subscription;
+  private geoSubscription: Subscription;
+  private discoverySubscription: Subscription;
+
+  private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
   private currentBufferLayerNames = new Map<string, string[]>();
+  private currentGeocodeList: string[] = [];
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
-               private mapService: EsriMapService, private config: AppConfig) {
+              private mapService: EsriMapService, private config: AppConfig,
+              private appLayerService: ValLayerService, private appGeoService: ValGeoService,
+              private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
+              private metricsService: ValMetricsService) {
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.siteSubscription = this.siteService.allUiSites$.subscribe(sites => {
@@ -30,6 +44,8 @@ export class ValMapService {
             this.onSiteListChanged(competitorSites, 'Competitor');
           }
         });
+        this.geoSubscription = this.appGeoService.uniqueSelectedGeocodes$.subscribe(geocodes => this.onGeocodeListChanged(geocodes));
+        this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
       }
     });
   }
@@ -51,6 +67,22 @@ export class ValMapService {
       this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point');
     }
     this.currentLocationList.set(siteType, Array.from(sites));
+  }
+
+  private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
+    if (discovery[0].analysisLevel !== this.currentAnalysisLevel) {
+      this.currentAnalysisLevel = discovery[0].analysisLevel;
+    }
+  }
+
+  private onGeocodeListChanged(geocodes: string[]) {
+    const currentGeocodes = new Set(this.currentGeocodeList);
+    const newGeocodes = new Set(geocodes);
+    const adds = geocodes.filter(g => !currentGeocodes.has(g));
+    const deletes = this.currentGeocodeList.filter(g => !newGeocodes.has(g));
+    this.currentGeocodeList = Array.from(geocodes);
+    if (adds.length > 0) this.addToSelection(adds, this.currentAnalysisLevel);
+    if (deletes.length > 0) this.removeFromSelection(deletes, this.currentAnalysisLevel);
   }
 
   public setupMap() : void {
@@ -117,5 +149,46 @@ export class ValMapService {
         this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon');
       });
     }
+  }
+
+  public addToSelection(geocodes: string[], analysisLevel: string) {
+    if (geocodes == null || geocodes.length === 0) return;
+
+    const layerName = `Selected Geography - ${analysisLevel}`;
+    const highlightColor = new EsriModules.Color([0, 255, 0, 0.1]);
+    const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
+    const highlightSymbol = new EsriModules.SimpleFillSymbol({
+      color: highlightColor,
+      outline: { color: outlineColor, style: 'solid'},
+      style: 'solid'
+    });
+    const portalId = this.appLayerService.getLayerIdForAnalysisLevel(analysisLevel);
+    const outFields = this.metricsService.getLayerAttributes();
+    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, true, outFields).subscribe(graphics => {
+        const newGraphics = graphics.map(f => {
+          return new EsriModules.Graphic({
+            symbol: highlightSymbol,
+            geometry: f.geometry,
+            attributes: f.attributes
+          });
+        });
+        const attributesForUpdate = graphics.map(g => g.attributes);
+        this.appGeoService.updatedGeoAttributes(attributesForUpdate);
+        if (this.layerService.layerExists(layerName)) {
+          this.layerService.addGraphicsToLayer(layerName, newGraphics);
+        } else {
+          this.layerService.createClientLayer('Sites', layerName, newGraphics, 'polygon');
+        }
+    }, err => console.error(err), () => {
+      console.log('addToSelection complete');
+      sub.unsubscribe();
+    });
+  }
+
+  public removeFromSelection(geocodes: string[], analysisLevel: string) {
+    const layerName = `Selected Geography - ${analysisLevel}`;
+    const sub = this.queryService.queryAttributeIn({ clientLayerName: layerName }, 'geocode', geocodes, true).subscribe(graphics => {
+      this.layerService.removeGraphicsFromLayer(layerName, graphics);
+    }, err => console.error(err), () => sub.unsubscribe());
   }
 }

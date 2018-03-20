@@ -1477,6 +1477,7 @@ export class MapService {
                 extent.ymax = extent.ymax + 0.15;
             }
             this.mapView.extent = extent;
+
         } catch (error) {
             throw new Error(error.message);
         }

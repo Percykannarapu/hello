@@ -41,7 +41,9 @@ export class EsriModules {
     'esri/Color',
     'esri/views/2d/draw/Draw',
     'esri/views/2d/draw/PolygonDrawAction',
-    'esri/geometry/Point'
+    'esri/geometry/Point',
+    'esri/geometry/Multipoint',
+    'esri/tasks/support/Query'
 ];
 
   private static config: typeof __esri.config;
@@ -73,6 +75,8 @@ export class EsriModules {
   public static Draw: typeof __esri.Draw;
   public static PolygonDrawAction: typeof __esri.PolygonDrawAction;
   public static Point: typeof __esri.Point;
+  public static Multipoint: typeof __esri.Multipoint;
+  public static Query: typeof __esri.Query;
 
   public static widgets: EsriWidgets;
 
@@ -125,13 +129,16 @@ export class EsriModules {
       EsriModules.Color,
       EsriModules.Draw,
       EsriModules.PolygonDrawAction,
-      EsriModules.Point
+      EsriModules.Point,
+      EsriModules.Multipoint,
+      EsriModules.Query
     ] = modules;
 
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);
 
     EsriModules.config.portalUrl = (this.esriConfig as any).portalUrl;
+    EsriModules.config.request.timeout = 120000;
 
     this.isReady = true;
     this.isLoaded.emit();

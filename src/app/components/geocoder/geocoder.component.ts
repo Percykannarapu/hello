@@ -83,7 +83,7 @@ export class GeocoderComponent implements OnInit {
     this.currentModel.state = 'IN';
     this.currentModel.zip = '46037';
     this.currentModel.market = 'Test Market';
-    this.currentModel.latitude = 39.967208;
-    this.currentModel.longitude = -85.988858;
+    this.currentModel.latitude = '39.967208';
+    this.currentModel.longitude = '-85.988858';
   }
 }
