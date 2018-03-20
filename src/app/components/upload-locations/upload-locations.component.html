@@ -13,7 +13,7 @@
     </div>
     <div class="ui-g-12">
       <div class="ui-g-12">
-        <p-fileUpload #fileUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv" chooseLabel="Select File"
+        <p-fileUpload #fileUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
                       pTooltip="CSV format required" [customUpload]="true" (uploadHandler)="uploadCsv($event)" [auto]="true">
         </p-fileUpload>
       </div>

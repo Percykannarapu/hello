@@ -8,6 +8,7 @@ import { ValGeocodingResponse } from '../../models/val-geocoding-response.model'
 import { FileUpload } from 'primeng/primeng';
 import { ValSiteListService } from '../../services/app-site-list.service';
 import { ValMapService } from '../../services/app-map.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'val-upload-locations',
@@ -43,10 +44,18 @@ export class UploadLocationsComponent {
   public uploadCsv(event: any) : void {
     console.log('Upload Clicked');
     const reader = new FileReader();
-    reader.readAsText(event.files[0]);
-    reader.onload = () => {
-      this.onFileUpload(reader.result);
-    };
+    const name: String = event.files[0].name;
+    console.log('file Name:::', name);
+    if (name.includes('.xlsx') || name.includes('.xls') ){
+        this.parseExcelFile(event);
+    }
+    else {
+      reader.readAsText(event.files[0]);
+      reader.onload = () => {
+        this.onFileUpload(reader.result);
+      };
+    }
+    
     this.fileUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.fileUploadEl.basicFileInput.nativeElement.value = '';
@@ -75,5 +84,29 @@ export class UploadLocationsComponent {
   private handleError(message: string) : void {
     this.displayGcSpinner = false;
     this.messageService.add({ severity: 'error', summary: 'Geocoding Error', detail: message });
+  }
+
+  // to process excel upload data
+  public parseExcelFile(event: any ) : void {
+    console.log('process excel data::');
+  
+    const target: DataTransfer = <DataTransfer>(event);
+    const reader: FileReader = new FileReader();
+    reader.readAsBinaryString(target.files[0]);
+    reader.onload = () => {
+      const bstr: string = reader.result;
+      const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
+      const wsname: string = wb.SheetNames[0];
+      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+      const csvData  = XLSX.utils.sheet_to_csv(ws);
+      //console.log('csv data:::data1', csvData);
+      this.onFileUpload(csvData);
+      this.fileUploadEl.clear();
+      // workaround for https://github.com/primefaces/primeng/issues/4816
+      this.fileUploadEl.basicFileInput.nativeElement.value = '';
+
+    };
+    
+
   }
 }
