@@ -210,6 +210,11 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     }
 
     public onApplyBtnClick() {
+      
+      if (this.impGeofootprintLocationService.get().length < 1){
+        this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 Site before attempting to apply a trade area to Sites`});
+
+      } else {
       //Show the DBSpinner on Apply
       this.mapService.displayDBSpinner = true;
       this.drawBuffer(this.currentSiteType);
@@ -239,8 +244,10 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
       }
       if (compGFTradeAreas && compGFTradeAreas.length > 0) {
         this.impGeofootprintTradeAreaService.add(compGFTradeAreas);
+
       }
     }
+  }
 
     public onChangeSiteType(event: SiteType) : void {
         switch (event) {
@@ -263,13 +270,12 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
           this.esriMapService.map.remove(layer);
         }
     }
-
     private displayTradeAreaError(type) {
         this.messageService.clear();
         this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 ${type} before attempting to apply a trade area to ${type}s`});
     }
 
     applyDisabled() : boolean {
-        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null) || this.impGeofootprintLocationService.get().length < 1;
+        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null) ;
     }
 }
