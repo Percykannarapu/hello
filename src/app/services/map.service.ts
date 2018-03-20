@@ -693,16 +693,19 @@ export class MapService {
                     id: layerDef.id
                 }
             }).then((currentLayer: __esri.FeatureLayer) => {
-
+                
                 const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
                 const localPopUpFields = new Set(layerDef.popUpFields);
                 currentLayer.visible = layerDef.defaultVisibility;
                 currentLayer.title = layerDef.name;
                 currentLayer.minScale = layerDef.minScale;
-
+                const compare = (f1, f2) => {
+                    const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
+                    const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
+                    return firstIndex - secondIndex;
+                };
                 if (layerDef.popUpFields.length > 0){
                 currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
-
                 currentLayer.on('layerview-create', e => {
                     const localLayer = (e.layerView.layer as __esri.FeatureLayer);
                     localLayer.popupTemplate.fieldInfos = localLayer.fields.filter(f => {
@@ -710,10 +713,11 @@ export class MapService {
                     }).map(f => {
                       return {fieldName: f.name, label: f.alias};
                     });
+                    localLayer.popupTemplate.fieldInfos.sort(compare);
                     localLayer.popupTemplate.content = [{
                       type: 'fields'
                     }];
-                  });
+                     });
                 } else {
                     currentLayer.popupEnabled = false; 
                 } 
@@ -844,7 +848,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-        // this.displayDBSpinner = false;
+         this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
