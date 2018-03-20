@@ -128,7 +128,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
                              //const resp = this.mapService.selectCentroid(res);
                              //this.displaySpinnerMessage = 'Shading the geofootprint...';
                              return this.mapService.selectCentroid(res).then(() => {
-                              //this.mapService.displayDBSpinner = false;
+                              // this.mapService.displayDBSpinner = false;
                               //this.mapService.displaySpinnerMessage = 'Drawing Trade Area ...';
                               //console.log('display', this.displayDBSpinner);
                              });
@@ -202,7 +202,8 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
               default:
                 console.error(`Trade Area Define component encountered an unknown merge type: ${this.currentMergeType.value}`);
             }
-        } catch (ex) {
+            this.mapService.displayDBSpinner = false;
+          } catch (ex) {
             this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `An unknown error has occurred, please check log for details.` });
             console.error(ex);
         }
@@ -212,6 +213,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
       //Show the DBSpinner on Apply
       this.mapService.displayDBSpinner = true;
       this.drawBuffer(this.currentSiteType);
+      // this.mapService.displayDBSpinner = false;
 
       // --------------------------------------------------------------------------------
       // THIS IS TEMPORARY
@@ -268,6 +270,6 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
     }
 
     applyDisabled() : boolean {
-        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null);
+        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null) || this.impGeofootprintLocationService.get().length < 1;
     }
 }

@@ -67,8 +67,8 @@ export class MapService {
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     public sideBarToggle: boolean = false;
-    public displayDBSpinner: boolean;
-    public displaySpinnerMessage: string = 'Drawing Trade Area ...';
+    public displayDBSpinner: boolean = false;
+    public displaySpinnerMessage: string ;
 
     constructor(private metricService: MetricService,
         private layerService: EsriLayerService,
@@ -685,8 +685,6 @@ export class MapService {
         // if (layerDefinitions.filter(i => i != null && i.id != null)){
         //     for (let i: number = 0; i < layerDefinitions.length; i++) {
         //         const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
-
-            
         // }
             
         layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
@@ -846,7 +844,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-        //this.displayDBSpinner = false;
+        // this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
@@ -1850,7 +1848,7 @@ export class MapService {
                     // console.log('MapService.hhDetails', MapService.hhDetails);
                 });
             });
-            //this.displayDBSpinner = false;
+            this.displayDBSpinner = false;
         }
         // }
     }
