@@ -62,8 +62,8 @@ export class MapService {
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     //public sideBarToggle: boolean = false;
-    public displayDBSpinner: boolean;
-    public displaySpinnerMessage: string = 'Drawing Trade Area ...';
+    public displayDBSpinner: boolean = false;
+    public displaySpinnerMessage: string ;
 
     constructor(private metricService: MetricService,
         private layerService: ValLayerService,
@@ -681,8 +681,6 @@ export class MapService {
         // if (layerDefinitions.filter(i => i != null && i.id != null)){
         //     for (let i: number = 0; i < layerDefinitions.length; i++) {
         //         const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
-
-
         // }
 
         layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
@@ -697,10 +695,13 @@ export class MapService {
                 currentLayer.visible = layerDef.defaultVisibility;
                 currentLayer.title = layerDef.name;
                 currentLayer.minScale = layerDef.minScale;
-
+                const compare = (f1, f2) => {
+                    const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
+                    const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
+                    return firstIndex - secondIndex;
+                };
                 if (layerDef.popUpFields.length > 0){
                 currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
-
                 currentLayer.on('layerview-create', e => {
                     const localLayer = (e.layerView.layer as __esri.FeatureLayer);
                     localLayer.popupTemplate.fieldInfos = localLayer.fields.filter(f => {
@@ -708,10 +709,11 @@ export class MapService {
                     }).map(f => {
                       return {fieldName: f.name, label: f.alias};
                     });
+                    localLayer.popupTemplate.fieldInfos.sort(compare);
                     localLayer.popupTemplate.content = [{
                       type: 'fields'
                     }];
-                  });
+                     });
                 } else {
                     currentLayer.popupEnabled = false;
                 }
@@ -842,7 +844,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-        //this.displayDBSpinner = false;
+         this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
@@ -1847,7 +1849,7 @@ export class MapService {
                     // console.log('MapService.hhDetails', MapService.hhDetails);
                 });
             });
-            //this.displayDBSpinner = false;
+            this.displayDBSpinner = false;
         }
         // }
     }

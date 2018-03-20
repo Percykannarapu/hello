@@ -68,6 +68,6 @@ export class TradeareaDefineComponent {
     }
 
     applyDisabled() : boolean {
-        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null);
+        return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null) ;
     }
 }
