@@ -137,14 +137,14 @@ export class ValTradeAreaService implements OnDestroy {
   }
 
   public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[]){
+    const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
     tradeAreasForInsert.forEach(impGeoTradeArea => {
       const homegeocode = impGeoTradeArea.impGeofootprintLocation.homeGeocode;
       console.log('homegeocode:::', homegeocode);
       const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
       impGeofootprintGeo.geocode = homegeocode;
       impGeofootprintGeos.push(impGeofootprintGeo);
-      this.impGeoService.add(impGeofootprintGeos);
     });
+    this.impGeoService.add(impGeofootprintGeos);
   }
 }
