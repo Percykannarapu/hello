@@ -4,7 +4,6 @@ import { Subscription } from 'rxjs/Subscription';
 import { LocationUiModel } from '../models/location-ui.model';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
-import { Coordinates } from '../esri-modules/rest-api/esri-rest-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ValLayerService } from './app-layer.service';
@@ -15,6 +14,11 @@ import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './app-metrics.service';
 import { ValTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+
+export interface Coordinates {
+  xcoord: number;
+  ycoord: number;
+}
 
 @Injectable()
 export class ValMapService {

@@ -7,7 +7,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ValGeocodingService } from './app-geocoding.service';
 import { Subscription } from 'rxjs/Subscription';
-import { EsriRestQueryService, Coordinates, homeGeoTempKey } from '../esri-modules/rest-api/esri-rest-query.service';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -16,17 +15,16 @@ import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { LocationUiModel } from '../models/location-ui.model';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { MetricService } from '../val-modules/common/services/metric.service';
+import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { AppConfig } from '../app.config';
+import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
 
   // TODO: get these into a config file somewhere
-  private restUrls: Map<string, string> = new Map([
-    ['ZIP', 'ZIP_Top_Vars_CopyAllData/FeatureServer/0/query'],
-    ['ATZ', 'ATZ_Top_Vars_CopyAllData/FeatureServer/0/query'],
-    ['PCR', 'PCR_Top_Vars_Portal_CopyAllData/FeatureServer/0/query'],
-    ['Digital ATZ', 'DIG_ATZ_Top_Vars_CopyAllData/FeatureServer/0/query']
-  ]);
+  private homeGeos = ['ZIP', 'ATZ', 'PCR', 'Digital ATZ'];
   private siteSubscription: Subscription;
   private siteAttributeSubscription: Subscription;
   private discoverySubscription: Subscription;
@@ -49,9 +47,10 @@ export class ValSiteListService implements OnDestroy {
               private attributeService: ImpGeofootprintLocAttribService,
               private discoveryService: ImpDiscoveryService,
               private geocodingService: ValGeocodingService,
-              private esriRestService: EsriRestQueryService,
+              private queryService: EsriQueryService,
               private messageService: MessageService,
-              private metricsService: MetricService) {
+              private metricsService: MetricService,
+              private config: AppConfig) {
     this.allLocations$ = this.locationService.storeObservable;
     this.uiModels = [];
     this.discoverySubscription = this.discoveryService.storeObservable.subscribe(d => {
@@ -91,6 +90,13 @@ export class ValSiteListService implements OnDestroy {
     if (this.compCountSubscription) this.compCountSubscription.unsubscribe();
   }
 
+  private onDiscoveryChange(discoveryUI: ImpDiscoveryUI) {
+    if (discoveryUI.analysisLevel !== this.currentAnalysisLevel) {
+      this.currentAnalysisLevel = discoveryUI.analysisLevel;
+      this.setPrimaryGeocode(this.currentAnalysisLevel);
+    }
+  }
+
   public geocodeAndPersist(data: ValGeocodingRequest[], siteType: string) : Promise<void> {
     return this.geocodingService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
       this.handlePersist(result.map(r => r.toGeoLocation(siteType)));
@@ -110,47 +116,39 @@ export class ValSiteListService implements OnDestroy {
 
   private determineAllHomeGeos(locations: ImpGeofootprintLocation[]) {
     if (locations.length === 0) return;
-    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: 'Home Geos are being calculated' });
-    const attributes = this.attributeService.get().filter(a => locations.includes(a.impGeofootprintLocation));
-
-    for (const analysisLevel of Array.from(this.restUrls.keys())) {
+    const locationSet = new Set(locations);
+    const attributes = this.attributeService.get().filter(a => locationSet.has(a.impGeofootprintLocation));
+    const subscriptions = {};
+    for (const analysisLevel of this.homeGeos) {
       const homeGeoKey = `Home ${analysisLevel}`;
       const locationsWithHomeGeos = new Set(attributes.filter(a => a.attributeCode === homeGeoKey && a.attributeValue != null).map(a => a.impGeofootprintLocation));
       const locationsNeedingHomeGeo = locations.filter(l => !locationsWithHomeGeos.has(l));
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
-      this.determineHomeGeos(locationsNeedingHomeGeo, analysisLevel, homeGeoKey)
-        .catch(e => {
-          console.error(e);
-          return [];
-        })
-        .then(result => this.processHomeGeoResult(result, homeGeoKey, analysisLevel));
+      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
+      subscriptions[analysisLevel] = this.queryService.queryPoint({ portalLayerId: layerId }, locationsNeedingHomeGeo, true, ['geocode']).subscribe(graphics => {
+        const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
+        for (const loc of locationsNeedingHomeGeo) {
+          const currentPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
+          for (const graphic of graphics) {
+            if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
+              if (graphic.geometry.contains(currentPoint)) {
+                const realAttribute = new ImpGeofootprintLocAttrib({
+                  attributeCode: homeGeoKey,
+                  attributeValue: graphic.attributes.geocode,
+                  impGeofootprintLocation: loc
+                });
+                attributesToAdd.push(realAttribute);
+                if (analysisLevel === this.currentAnalysisLevel) loc.homeGeocode = graphic.attributes.geocode;
+              }
+            }
+          }
+        }
+        this.attributeService.add(attributesToAdd);
+      },
+          err => console.error('There was an error determining the Home Geocode.', err),
+        () => subscriptions[analysisLevel].unsubscribe());
     }
-  }
-
-  private determineHomeGeos(sites: Coordinates[], analysisLevel: string, attributeKey: string) : Promise<Coordinates[]>{
-    if (this.restUrls.has(analysisLevel)) {
-      return this.esriRestService.homeGeocodeQuery(sites, this.restUrls.get(analysisLevel), attributeKey);
-    }
-    return Promise.reject([]);
-  }
-
-  private processHomeGeoResult(sites: Coordinates[], geoKey: string, analysisLevelInProcess: string) {
-    const allRealAttributes: ImpGeofootprintLocAttrib[] = [];
-    for (const currentSite of sites as ImpGeofootprintLocation[]) {
-      if (currentSite[homeGeoTempKey] != null && currentSite[homeGeoTempKey][geoKey] != null) {
-        const realAttribute = new ImpGeofootprintLocAttrib({
-          attributeCode: geoKey,
-          attributeValue: currentSite[homeGeoTempKey][geoKey],
-          impGeofootprintLocation: currentSite
-        });
-        allRealAttributes.push(realAttribute);
-        if (analysisLevelInProcess === this.currentAnalysisLevel) currentSite.homeGeocode = currentSite[homeGeoTempKey][geoKey];
-      }
-    }
-    this.attributeService.add(allRealAttributes);
-    console.log(`${geoKey} is done calculating`);
-    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `${geoKey} is done calculating` });
   }
 
   private setPrimaryGeocode(analysisLevel: string) {
@@ -169,18 +167,9 @@ export class ValSiteListService implements OnDestroy {
       }
     }
     this.locationService.update(null, null);
-    //this.messageService.add({ severity: 'info', summary: 'Home Geo Processing', detail: `Primary geo has been set` });
-  }
-
-  private onDiscoveryChange(discoveryUI: ImpDiscoveryUI) {
-    if (discoveryUI.analysisLevel !== this.currentAnalysisLevel) {
-      this.currentAnalysisLevel = discoveryUI.analysisLevel;
-      this.setPrimaryGeocode(this.currentAnalysisLevel);
-    }
   }
 
   private createOrUpdateUiModels(locations: ImpGeofootprintLocation[]) {
-    console.log('Building ui sites', locations);
     const locationSet: Set<ImpGeofootprintLocation> = new Set(locations);
     const uiSet = new Set(this.uiModels.map(m => m.location));
     const updatedModels = new Set(this.uiModels.filter(m => locationSet.has(m.location)));

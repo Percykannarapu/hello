@@ -121,7 +121,11 @@ export class EsriQueryService {
     const pointArray = (Array.isArray(points)) ? points : [points];
     let chunkSize: number;
     if (returnGeometry) {
-      chunkSize = this.config.maxPointsPerBufferQuery;
+      if (bufferInMiles > 0) {
+        chunkSize = this.config.maxPointsPerBufferQuery;
+      } else {
+        chunkSize = this.config.maxPointsPerAttributeQuery;
+      }
     } else {
       chunkSize = pointArray.length;
     }

@@ -3,10 +3,10 @@ import { EsriModules } from './esri-modules.service';
 export class EsriUtils {
 
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
-    return g.type === 'point';
+    return g != null && g.type === 'point';
   }
   public static geometryIsPolygon(g: __esri.Geometry) : g is __esri.Polygon {
-    return g.type === 'polygon';
+    return g != null && g.type === 'polygon';
   }
 
   public static getDistance(a: __esri.Point, b: __esri.Point) : number;

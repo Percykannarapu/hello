@@ -36,13 +36,13 @@ export class TradeareaDefineComponent {
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.siteMergeType = { value: this.tradeAreaMergeTypes[0].value };
+      this.siteMergeType = { value: this.tradeAreaMergeTypes[1].value };
       this.competitorTradeAreas = [
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius),
         new TradeAreaUIModel(this.config.maxBufferRadius)
       ];
-      this.competitorMergeType = { value: this.tradeAreaMergeTypes[0].value };
+      this.competitorMergeType = { value: this.tradeAreaMergeTypes[1].value };
 
       this.currentSiteType = 'Site';
       this.currentTradeAreas = this.siteTradeAreas;

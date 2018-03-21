@@ -44,7 +44,7 @@ export class AppConfig implements EsriLoaderConfig {
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
    public maxPointsPerBufferQuery = 10;
-   public maxPointsPerAttributeQuery = 10;
+   public maxPointsPerAttributeQuery = 100;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
    public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;
 
