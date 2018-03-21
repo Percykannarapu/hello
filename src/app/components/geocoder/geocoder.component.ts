@@ -3,6 +3,9 @@ import { AppConfig } from '../../app.config';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingService } from '../../services/app-geocoding.service';
 import { ValSiteListService } from '../../services/app-site-list.service';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 @Component({
   selector: 'val-geocoder',
@@ -19,7 +22,9 @@ export class GeocoderComponent implements OnInit {
 
   constructor(public  config: AppConfig,
               public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService) { }
+              private siteListService: ValSiteListService,
+              private impDiscoveryService: ImpDiscoveryService,
+              private messageService: MessageService ) { }
 
   public ngOnInit() : void {
     this.siteModel = new ValGeocodingRequest({});
@@ -45,17 +50,23 @@ export class GeocoderComponent implements OnInit {
     });
   }
 
-  // remove an GeocodingResponse from the list of sites that failed to geocode
+  // remove an GeocodingResponse from the  list of sites that failed to geocode
   public onRemove(row) {
     this.geocodingService.removeFailedGeocode(row);
   }
 
   public onGeocode() {
-    this.displayGcSpinner = true;
-    this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
+    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    console.log('analysisLevel:::', discoveryUI[0].analysisLevel);
+    if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null){
+      this.displayGcSpinner = true;
+      this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
       this.displayGcSpinner = false;
-    });
-  }
+      });
+    } else{
+      this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
+    }
+}
 
   public clearFields() {
     if (this.currentManualSiteType === 'Site') {

@@ -9,6 +9,10 @@ import { FileUpload } from 'primeng/primeng';
 import { ValSiteListService } from '../../services/app-site-list.service';
 import { ValMapService } from '../../services/app-map.service';
 import * as XLSX from 'xlsx';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+
+
 
 @Component({
   selector: 'val-upload-locations',
@@ -27,7 +31,8 @@ export class UploadLocationsComponent {
 
   constructor(private messageService: MessageService,
               public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService) { }
+              private siteListService: ValSiteListService,
+              private impDiscoveryService: ImpDiscoveryService) { }
 
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
@@ -42,6 +47,8 @@ export class UploadLocationsComponent {
   }
 
   public uploadCsv(event: any) : void {
+    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+   if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null){
     console.log('Upload Clicked');
     const reader = new FileReader();
     const name: String = event.files[0].name;
@@ -59,7 +66,10 @@ export class UploadLocationsComponent {
     this.fileUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.fileUploadEl.basicFileInput.nativeElement.value = '';
+  } else{
+    this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
   }
+}
 
   private onFileUpload(dataBuffer: string) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
