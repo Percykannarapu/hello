@@ -130,7 +130,7 @@ export class ValTradeAreaService implements OnDestroy {
       });
     }
 
-    this.calculateHomegeocodeBuffer(tradeAreasForInsert);
+    //this.calculateHomegeocodeBuffer(tradeAreasForInsert);
 
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(tradeAreasForInsert);
