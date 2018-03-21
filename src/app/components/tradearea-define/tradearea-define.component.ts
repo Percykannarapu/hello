@@ -1,8 +1,9 @@
 import { SelectItem } from 'primeng/primeng';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { AppConfig } from '../../app.config';
 import { TradeAreaUIModel } from './trade-area-ui.model';
 import { RadialTradeAreaDefaults, ValTradeAreaService } from '../../services/app-trade-area.service';
+import { FileUpload } from 'primeng/primeng';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -18,7 +19,7 @@ export class TradeareaDefineComponent {
     private siteMergeType: MergeType;
     private competitorTradeAreas: TradeAreaUIModel[];
     private competitorMergeType: MergeType;
-
+    
     currentTradeAreas: TradeAreaUIModel[];
     currentMergeType: MergeType;
     currentSiteType: SiteType;

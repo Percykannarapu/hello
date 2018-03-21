@@ -154,6 +154,7 @@ import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 import { ValGeoService } from './services/app-geo.service';
 import { EsriQueryService } from './esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './services/app-metrics.service';
+import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
 
 @NgModule({
     imports: [
@@ -274,7 +275,8 @@ import { ValMetricsService } from './services/app-metrics.service';
         DiscoveryInputComponent,
         UploadLocationsComponent,
         DemoVariablesComponent,
-        LoginComponent
+        LoginComponent,
+        UploadTradeAreasComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},

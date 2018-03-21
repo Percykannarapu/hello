@@ -36,7 +36,14 @@
           <val-site-list>Loading Site List...</val-site-list>
         </p-tabPanel>
         <p-tabPanel header="Define Trade Areas">
-          <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>
+          <p-accordion>
+            <p-accordionTab header="Upload Trade Areas">
+              <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
+            </p-accordionTab>
+            <p-accordionTab header="Trade Area Radius">
+                <val-tradearea-define>Loading TradeAreas...</val-tradearea-define>
+            </p-accordionTab>
+        </p-accordion>
         </p-tabPanel>
       </p-tabView>
 
