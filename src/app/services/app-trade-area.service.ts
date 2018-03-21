@@ -6,6 +6,9 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { Subscription } from 'rxjs/Subscription';
 import { ValMapService } from './app-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { ValGeoService } from './app-geo.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 
 export class RadialTradeAreaDefaults {
   radials: { radius: number, displayed: boolean }[];
@@ -43,7 +46,8 @@ export class ValTradeAreaService implements OnDestroy {
   public competitorMergeFlag: boolean = false;
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private locationService: ImpGeofootprintLocationService) {
+              private locationService: ImpGeofootprintLocationService,
+              private impGeoService:  ImpGeofootprintGeoService) {
     this.currentLocations = [];
     this.locationSubscription = this.locationService.storeObservable.subscribe(locations => {
       this.onLocationChange(locations);
@@ -126,7 +130,21 @@ export class ValTradeAreaService implements OnDestroy {
       });
     }
 
+    this.calculateHomegeocodeBuffer(tradeAreasForInsert);
+
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(tradeAreasForInsert);
+  }
+
+  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[]){
+    tradeAreasForInsert.forEach(impGeoTradeArea => {
+      const homegeocode = impGeoTradeArea.impGeofootprintLocation.homeGeocode;
+      console.log('homegeocode:::', homegeocode);
+      const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
+      const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+      impGeofootprintGeo.geocode = homegeocode;
+      impGeofootprintGeos.push(impGeofootprintGeo);
+      this.impGeoService.add(impGeofootprintGeos);
+    });
   }
 }
