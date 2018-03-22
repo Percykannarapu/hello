@@ -9,6 +9,11 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { AppConfig } from '../app.config';
+import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 
 export class RadialTradeAreaDefaults {
   radials: { radius: number, displayed: boolean }[];
@@ -25,6 +30,7 @@ export class RadialTradeAreaDefaults {
   }
 }
 
+
 @Injectable()
 export class ValTradeAreaService implements OnDestroy {
 
@@ -34,6 +40,7 @@ export class ValTradeAreaService implements OnDestroy {
   private currentLocations: ImpGeofootprintLocation[];
   private locationSubscription: Subscription;
   private tradeAreaSubscription: Subscription;
+  private tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];
 
   private clientBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
   private competitorBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
@@ -47,7 +54,10 @@ export class ValTradeAreaService implements OnDestroy {
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService,
               private locationService: ImpGeofootprintLocationService,
-              private impGeoService:  ImpGeofootprintGeoService) {
+              private impGeoService:  ImpGeofootprintGeoService,
+              private impDiscoveryService: ImpDiscoveryService,
+              private appConfig: AppConfig,
+              private esriQueryService: EsriQueryService) {
     this.currentLocations = [];
     this.locationSubscription = this.locationService.storeObservable.subscribe(locations => {
       this.onLocationChange(locations);
@@ -62,6 +72,18 @@ export class ValTradeAreaService implements OnDestroy {
       taName: `${location.impClientLocationType.clientLocationType} Radius ${index + 1}`,
       taRadius: radius,
       taType: 'RADIUS',
+      impGeofootprintLocation: location,
+      isActive: (isActive ? 1 : 0)
+    });
+  }
+
+  private static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean, radius?: number) : ImpGeofootprintTradeArea {
+    return new ImpGeofootprintTradeArea({
+      gtaId: ValTradeAreaService.id++,
+      taNumber: index + 1,
+      taName: `${location.impClientLocationType.clientLocationType} CUSTOM ${index + 1}`,
+      taRadius: (radius !== null ? radius : 0),
+      taType: 'CUSTOM',
       impGeofootprintLocation: location,
       isActive: (isActive ? 1 : 0)
     });
@@ -122,30 +144,61 @@ export class ValTradeAreaService implements OnDestroy {
     const currentLocations = locs.filter(l => l.impClientLocationType.clientLocationType === siteType);
     const locationSet = new Set(currentLocations);
     const removals = this.tradeAreaService.get().filter(ta => locationSet.has(ta.impGeofootprintLocation));
-    const tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];
+    //const tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];
+    this.tradeAreasForInsert = [];
 
     for (const loc of currentLocations) {
       tradeAreaDefinition.radials.forEach((radial, i) => {
-        tradeAreasForInsert.push(ValTradeAreaService.createTradeArea(radial.radius, i, loc, radial.displayed));
+        this.tradeAreasForInsert.push(ValTradeAreaService.createTradeArea(radial.radius, i, loc, radial.displayed));
       });
     }
 
     // this code fires off assignSite during every update, which kills the browser's performance.
     //this.calculateHomegeocodeBuffer(tradeAreasForInsert);
+    this.calculateHomegeocodeBuffer(this.tradeAreasForInsert, siteType, currentLocations);
 
     this.tradeAreaService.remove(removals);
-    this.tradeAreaService.add(tradeAreasForInsert);
+    this.tradeAreaService.add(this.tradeAreasForInsert);
   }
 
-  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[]){
-    const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
-    tradeAreasForInsert.forEach(impGeoTradeArea => {
-      const homegeocode = impGeoTradeArea.impGeofootprintLocation.homeGeocode;
-      //console.log('homegeocode:::', homegeocode);
-      const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      impGeofootprintGeo.geocode = homegeocode;
-      impGeofootprintGeos.push(impGeofootprintGeo);
+  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]){
+    const impDiscoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    
+    const analysisLevel = impDiscoveryUI[0].analysisLevel;
+    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
+    const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);
+    const geocodesSet = new Set(geocodesList);
+    const geocodes = Array.from(geocodesSet);
+    let customIndex: number = 0;
+    const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true).subscribe(graphics => {
+      const tas = tradeAreasForInsert.map(tradeareas => {
+        return tradeareas.taRadius;
+      });
+      graphics.map(graphic => {
+        let geocodeDistance = null;
+         currentLocations.forEach(loc => {
+          if (loc.homeGeocode === graphic.attributes['geocode']){
+            customIndex++;
+            geocodeDistance =  EsriUtils.getDistance(graphic.geometry['x'], graphic.geometry['y'], loc.xcoord, loc.ycoord);
+            if (geocodeDistance > Math.max(...tas)){
+              this.addGeofootprintgeos(geocodeDistance, graphic, loc, customIndex);
+            }
+          }
+        });
+      
+      });
     });
+  }
+
+  public  addGeofootprintgeos(geocodeDistance: number, graphic: __esri.Graphic, loc: ImpGeofootprintLocation, customIndex: number){
+    const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+    const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
+    impGeofootprintGeo.geocode = graphic.attributes['geocode'];
+    impGeofootprintGeo.isActive = 1;
+    impGeofootprintGeo.impGeofootprintLocation = loc;
+    impGeofootprintGeos.push(impGeofootprintGeo);
     this.impGeoService.add(impGeofootprintGeos);
+    //create trade area
+    this.tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true));
   }
 }
