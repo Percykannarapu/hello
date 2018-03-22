@@ -92,6 +92,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
+    console.log('Geos changed - creating new unique List', geos);
     const uniqueGeos: Set<string> = new Set(geos.filter(g => g.isActive === 1).map(g => g.geocode));
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
@@ -108,11 +109,18 @@ export class ValGeoService implements OnDestroy {
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, false);
       const queryMap = this.createTradeAreaQueryMap(adds);
       const radii = Array.from(queryMap.keys());
+      let geosToPersist: ImpGeofootprintGeo[] = [];
       radii.forEach(radius => {
         const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(radius), radius, true, ['geocode'], g => new QuerySelection(g));
-        const sub = query$.subscribe(selections => {
-          this.persistGeos(radius, queryMap.get(radius), selections);
-        }, err => console.error(err), () => sub.unsubscribe());
+        const sub = query$.subscribe(
+          selections => {
+            geosToPersist = geosToPersist.concat(this.persistGeos(radius, queryMap.get(radius), selections));
+          },
+          err => console.error(err),
+          () => {
+            this.geoService.add(geosToPersist);
+            sub.unsubscribe();
+          });
       });
     }
   }
@@ -129,7 +137,7 @@ export class ValGeoService implements OnDestroy {
     return result;
   }
 
-  private persistGeos(radius: number, locations: ImpGeofootprintLocation[], selections: QuerySelection[]) : void {
+  private persistGeos(radius: number, locations: ImpGeofootprintLocation[], selections: QuerySelection[]) : ImpGeofootprintGeo[] {
     const locationSet = new Set(locations);
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
@@ -147,13 +155,14 @@ export class ValGeoService implements OnDestroy {
               geocode: selection.geocode,
               distance: currentDistance,
               impGeofootprintTradeArea: currentTradeAreas[0],
-              impGeofootprintLocation: loc
+              impGeofootprintLocation: loc,
+              isActive: 1
             }));
           }
         }
       });
     });
-    this.geoService.add(geosToSave);
+    return geosToSave;
   }
 
   public updatedGeoAttributes(attributesForUpdate: any[]) {
