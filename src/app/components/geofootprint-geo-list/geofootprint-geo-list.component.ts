@@ -188,7 +188,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this.impGeofootprintGeos != null)
       {
          const unassignedGeos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation == null);
-         console.log('assignSite fired - processing ' + unassignedGeos + ' geos');
+         console.log('assignSite fired - processing ' + unassignedGeos.length + ' geos');
           for (const geo of unassignedGeos)
              this.setClosestLocation(geo, idx++);
       }
