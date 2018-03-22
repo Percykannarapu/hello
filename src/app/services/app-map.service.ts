@@ -192,7 +192,7 @@ export class ValMapService {
     const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
     const highlightSymbol = new EsriModules.SimpleFillSymbol({
       color: highlightColor,
-      outline: { color: outlineColor, style: 'solid'},
+      outline: { color: outlineColor, style: 'solid', width: 2},
       style: 'solid'
     });
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);

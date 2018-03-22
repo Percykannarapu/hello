@@ -92,7 +92,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
-    const uniqueGeos: Set<string> = new Set(geos.map(g => g.geocode));
+    const uniqueGeos: Set<string> = new Set(geos.filter(g => g.isActive === 1).map(g => g.geocode));
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
 
