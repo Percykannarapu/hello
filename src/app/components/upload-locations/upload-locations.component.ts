@@ -46,7 +46,7 @@ export class UploadLocationsComponent {
 
   public uploadFile(event: any) : void {
     const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-    if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null) {
+    //if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null) {
       console.log('Upload Clicked');
       const reader = new FileReader();
       const name: String = event.files[0].name;
@@ -66,9 +66,9 @@ export class UploadLocationsComponent {
       this.fileUploadEl.clear();
       // workaround for https://github.com/primefaces/primeng/issues/4816
       this.fileUploadEl.basicFileInput.nativeElement.value = '';
-    } else {
-      this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
-  }
+  //   } else {
+  //     this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
+  // }
 }
 
   private parseCsvFile(dataBuffer: string) {

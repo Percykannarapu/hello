@@ -56,16 +56,20 @@ export class GeocoderComponent implements OnInit {
   }
 
   public onGeocode() {
-    const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-    console.log('analysisLevel:::', discoveryUI[0].analysisLevel);
-    if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null){
+    this.displayGcSpinner = true;
+      this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
+      this.displayGcSpinner = false;
+      });
+    //const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    //console.log('analysisLevel:::', discoveryUI[0].analysisLevel);
+    //if (discoveryUI[0].analysisLevel !== '' && discoveryUI[0].analysisLevel != null){
       this.displayGcSpinner = true;
       this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
       this.displayGcSpinner = false;
       });
-    } else{
-      this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
-    }
+    // } else{
+    //   this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must select an Analysis Level on the Discovery tab before adding Sites`});
+    // }
 }
 
   public clearFields() {
