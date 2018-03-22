@@ -4,6 +4,8 @@ import { AppConfig } from '../../app.config';
 import { TradeAreaUIModel } from './trade-area-ui.model';
 import { RadialTradeAreaDefaults, ValTradeAreaService } from '../../services/app-trade-area.service';
 import { FileUpload } from 'primeng/primeng';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -25,7 +27,7 @@ export class TradeareaDefineComponent {
     currentSiteType: SiteType;
     tradeAreaMergeTypes: SelectItem[];
 
-    constructor(private tradeAreaService: ValTradeAreaService, private config: AppConfig) {
+    constructor(private tradeAreaService: ValTradeAreaService, private config: AppConfig, private impGeofootprintLocationService: ImpGeofootprintLocationService, private messageService: MessageService) {
       this.tradeAreaMergeTypes = [
         { label: 'No Merge', value: 'No Merge' },
         { label: 'Merge Each', value: 'Merge Each' },
@@ -51,9 +53,14 @@ export class TradeareaDefineComponent {
     }
 
     public onApplyBtnClick() {
+      if (this.impGeofootprintLocationService.get().length < 1){
+        this.messageService.add({ severity: 'error', summary: 'Draw Buffer Error', detail: `You must add at least 1 Site before attempting to apply a trade area to Sites`});
+
+      } else {
       const tradeAreas: TradeAreaUIModel[] = this.currentTradeAreas.filter(ta => ta.isShowing) || [];
       const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
       this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);
+     }
     }
 
     public onChangeSiteType(event: SiteType) : void {
