@@ -130,7 +130,8 @@ export class ValTradeAreaService implements OnDestroy {
       });
     }
 
-    this.calculateHomegeocodeBuffer(tradeAreasForInsert);
+    // this code fires off assignSite during every update, which kills the browser's performance.
+    //this.calculateHomegeocodeBuffer(tradeAreasForInsert);
 
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(tradeAreasForInsert);
@@ -140,7 +141,7 @@ export class ValTradeAreaService implements OnDestroy {
     const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
     tradeAreasForInsert.forEach(impGeoTradeArea => {
       const homegeocode = impGeoTradeArea.impGeofootprintLocation.homeGeocode;
-      console.log('homegeocode:::', homegeocode);
+      //console.log('homegeocode:::', homegeocode);
       const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       impGeofootprintGeo.geocode = homegeocode;
       impGeofootprintGeos.push(impGeofootprintGeo);
