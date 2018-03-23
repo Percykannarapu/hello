@@ -52,6 +52,8 @@ export class DiscoveryInputComponent implements OnInit
    seasons: SelectItem[];
    selectedSeason: String;
 
+   public productCategoryTooltip: string;
+
    summer: boolean = true;
 
    // -----------------------------------------------------------
@@ -64,6 +66,7 @@ export class DiscoveryInputComponent implements OnInit
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
       this.products = [
+         {productName: 'N/A',                         productCode: 'N/A'},   
          {productName: 'Display Advertising',         productCode: 'N/A'},
          {productName: 'Email',                       productCode: 'N/A'},
          {productName: 'Insert - Newspaper',          productCode: 'NP Insert'},
@@ -75,6 +78,7 @@ export class DiscoveryInputComponent implements OnInit
       ];
 
       this.categories = [
+         {name: 'N/A'},   
          {name: 'Auto Service/Parts'},
          {name: 'Discount Stores'},
          {name: 'Education'},
@@ -118,6 +122,7 @@ export class DiscoveryInputComponent implements OnInit
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
+     this.productCategoryTooltip = 'Used to calculate Performance metrics';
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -128,6 +133,7 @@ export class DiscoveryInputComponent implements OnInit
       // Subscribe to the data stores
       this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
+      this.impRadLookupService.get(true);
 
       // console.log('Discovery defaults: ', this.impDiscoveryUI);
       /*  Currently disabled in favor of hard coded categories until we identify the true source
@@ -205,8 +211,22 @@ export class DiscoveryInputComponent implements OnInit
    public onChangeField(event: SelectItem)
    {
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
-//    console.log('Local Discovery data: ', this.impDiscoveryUI);
-//    console.log('Store Discovery data: ', this.impDiscoveryService.get());
+      
+      this.impRadLookupService.storeObservable.subscribe(res => {
+            //console.log('good:', res);
+            let isvalid = false;
+            res.forEach(radLookup => {
+                  if (!isvalid){
+                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
+                              this.productCategoryTooltip = '';
+                              isvalid = true;
+                        }
+                        else{
+                              this.productCategoryTooltip = 'Performance data is not available';
+                        }
+                  }
+            });
+      });
    }
 
    public onChangeProduct(event: SelectItem)

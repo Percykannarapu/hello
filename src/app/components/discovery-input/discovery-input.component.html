@@ -4,14 +4,14 @@
          <p-dropdown #productSelector
                      [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
                      placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-                     (onChange)="onChangeProduct($event)"
+                     (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
                      [style]="{'width':'250px'}"></p-dropdown>
       </div>
       <div class="ui-g-12">
          <p-dropdown #categorySelector
                      [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name"
                      (onChange)="onChangeField($event)"
-                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name"
+                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
                      [style]="{'width':'250px'}"></p-dropdown>
       </div>
 
