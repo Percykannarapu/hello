@@ -31,6 +31,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
   public layerToggle: boolean = false;
   public analysisLevels: SelectItem[] = [];
   public selectedAnalysisLevels: string[] = [];
+  public currentAnalysisLevel: string = '';
 
   constructor(public mapService: MapService,
               private config: AppConfig,
@@ -44,6 +45,9 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
 
   public ngOnInit() {
     console.log ('fired esri-layer-select.ngOnInit()');
+    this.impDiscoveryService.storeObservable.subscribe(d => {
+      if (d && d[0] && d[0].analysisLevel) this.currentAnalysisLevel = d[0].analysisLevel;
+    });
     //console.log('selectedTargetAnalysisLevels', this.layerService.selectedTargetAnalysisLevels);
   }
 
