@@ -133,7 +133,6 @@ export class DiscoveryInputComponent implements OnInit
 
    ngOnInit()
    {
-     this.impDiscoveryService.init();
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
