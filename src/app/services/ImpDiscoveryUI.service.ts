@@ -16,11 +16,15 @@ const dataUrl = '';
 @Injectable()
 export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 {
-    
    constructor(private restDataService: RestDataService) {
       super(restDataService, dataUrl); 
+   }
 
-       const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
+   public onInit()
+   {
+      console.log('ImpDiscoveryService - onInit - fired');
+
+      const discoveryDefaults: ImpDiscoveryUI = new ImpDiscoveryUI (
          {
             productCode:          'Email',
             industryCategoryCode: '',
@@ -35,8 +39,8 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             includeSolo:          true //removed US6606 
          }
       );
-      this.add([discoveryDefaults]);      
-      console.log('impDiscoveryUI.service - constructor - initialized defaults', discoveryDefaults);
+      this.add([discoveryDefaults]);
+      console.log('impDiscoveryUI.service - onInit - initialized defaults', discoveryDefaults);
    }
    
    private handleError(error: Response)

@@ -1,3 +1,4 @@
+import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from '@angular/core';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
@@ -72,11 +73,15 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
-    constructor(private esriIdentityService: EsriIdentityService, private config: AppConfig) { }
+    constructor(private esriIdentityService: EsriIdentityService,
+                private impDiscoveryService: ImpDiscoveryService,
+                private config: AppConfig) { }
 
 
     ngOnInit() {
+        console.log('app.component.ngOnInit - Fired');
         this.esriIdentityService.authenticate(this.config.esriIdentityParams);
+        this.impDiscoveryService.onInit();
     }
 
     ngOnDestroy() {
