@@ -1,3 +1,7 @@
+import { GeofootprintMaster } from './../../models/GeofootprintMaster';
+import { ImpProductService } from './../../val-modules/mediaplanning/services/ImpProduct.service';
+import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocation } from './../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 import { ImpDiscoveryService } from './../../services/ImpDiscoveryUI.service';
 import { AppState } from './../../app.state';
@@ -5,13 +9,20 @@ import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpR
 import { ImpRadLookupStore } from './../../val-modules/targeting/services/ImpRadLookup.store';
 
 import { Observable } from 'rxjs/Observable';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
 import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
 import { MapService } from '../../services/map.service';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { ClientIdentifierType } from '../../val-modules/mediaexpress/models/ClientIdentifierType';
+import { ConsumerPurchasingFreq } from '../../val-modules/mediaexpress/models/ConsumerPurchasingFreq';
+import { Goal } from '../../val-modules/mediaexpress/models/Goal';
+import { Objective } from '../../val-modules/mediaexpress/models/Objective';
+import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
+import { RestResponse } from '../../models/RestResponse';
 
 interface Product {
    productName: string;
@@ -59,7 +70,10 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    constructor(public impDiscoveryService: ImpDiscoveryService, 
                public impRadLookupService: ImpRadLookupService, 
-               private appState: AppState, private mapservice: MapService)
+               public impGeofootprintLocationService: ImpGeofootprintLocationService,
+               private http: HttpClient,
+               private appState: AppState,
+               private mapservice: MapService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -224,6 +238,96 @@ export class DiscoveryInputComponent implements OnInit
       }
 
       this.onChangeField(event);
+   }
+
+   // Test Persisting the Project
+   //   This is just proving out converting the typescript models
+   //   to a JSON string and posting to the back end save endpoint
+   //   will persist to the database
+   saveProject() {
+      console.log('discovery-input-component calling saveProject');
+      const impProject = new ImpProject();
+
+      //TODO - save should be part of the project service - this is a quick and dirty PoC
+
+      // This will become mapDisciveryUItoImpProject
+      console.log('discovery-input-component populating project');
+      impProject['dirty'] = true;
+      impProject['baseStatus'] = 'INSERT';
+      impProject.projectId = null;
+      impProject.createUser = -1;
+      impProject.createDate = new Date(Date.now());
+      impProject.modifyUser = -1;
+      impProject.modifyDate = new Date(Date.now());
+//      impProject.clientIdentifierType = new ClientIdentifierType({clientIdentifierTypeCode: 'CAR_LIST'}); // TODO: Find source
+      impProject.clientIdentifierTypeCode = 'CAR_LIST';
+//      impProject.consumerPurchasingFreq = new ConsumerPurchasingFreq({consumerPurchaseFreqCode: 'REMINDER'});
+      impProject.consumerPurchFreqCode = 'REMINDER';
+//      impProject.goal = new Goal({goalCode: 'ACQUISITION'});
+      impProject.goalCode = 'ACQUISITION';
+//      impProject.objective = new Objective({objectiveCode: 'INCREASE_PENETRATION'});
+      impProject.objectiveCode = 'INCREASE_PENETRATION';
+      impProject.industryCategoryCode = this.impDiscoveryUI.industryCategoryCode,
+      impProject.projectName = 'Whee Look at me!  I\'m Angie Dickenson';
+      impProject.description = 'Yep, this is a project description';
+      impProject.methAnalysis = this.impDiscoveryUI.analysisLevel;
+      impProject.totalBudget = (this.impDiscoveryUI.totalBudget != null) ? this.impDiscoveryUI.totalBudget : this.impDiscoveryUI.circBudget;
+      impProject.isValidated = true;
+      impProject.isCircBudget = (this.impDiscoveryUI.totalBudget != null) ? false : true;
+      impProject.isSingleDate = true;
+      impProject.isExcludePob = (this.impDiscoveryUI.includePob) ? true : false;
+      impProject.isActive = true;
+
+      impProject.isSingleDate   = true;
+      impProject.isMustCover    = true;
+      impProject.isDollarBudget = true;
+      impProject.isRunAvail     = true;
+      impProject.isHardPdi      = true;
+
+      // Geofootprint
+      console.log('discovery-input-component populating geofootprint');
+      impProject.impGeofootprintMasters = new Set<ImpGeofootprintMaster>();
+      let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
+      newCGM.isMarketBased = false;
+      newCGM.isActive = true;
+      newCGM.impGeofootprintLocations = new Set<ImpGeofootprintLocation>();
+      newCGM['baseStatus'] = 'INSERT';
+      newCGM['dirty'] = true;
+
+      // TODO: Really the project service should be utilized and as locations are added, they become children of the project
+      console.log('discovery-input-component populating locations');
+      for (let location of this.impGeofootprintLocationService.get())
+      {
+         location['dirty'] = true;
+         location['baseStatus'] = 'INSERT';
+         location.isActive = 1;
+//         impProject.impGeofootprintMasters.impGeofootprintLocations.add(location);
+         newCGM.impGeofootprintLocations.add(location);
+      }
+
+      impProject.impGeofootprintMasters.add(newCGM);
+
+// TODO:  geofootprint master is not getting created
+// We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
+// need to alter the typescript models to emit booleans for the "is" variables
+// The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys 
+// from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
+// See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity    
+// But we are going to let that slide for now.   It will persist fine without these IDs, but NEED to fix down the road.
+
+      // Convert the Typescript models into a JSON string
+      console.log('discovery-input-component populating posting');
+      const payload: string = JSON.stringify(impProject);
+      console.log('payload', payload);
+
+      // Prepare HTTP Headers
+      const headers = new HttpHeaders()
+     .set('Content-Type', 'application/json');
+
+      // TODO: Need to implement save in the data store
+      this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
+         console.log ('result: ', result);
+      });
    }
 
    fetchRadData() {

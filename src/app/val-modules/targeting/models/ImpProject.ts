@@ -7,6 +7,7 @@ import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifier
 import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
 import { Goal } from '../../mediaexpress/models/Goal';
 import { Objective } from '../../mediaexpress/models/Objective';
+import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 
 export class ImpProject
 {
@@ -32,22 +33,33 @@ export class ImpProject
    public sfdcRfpName:                 string;                        /// Sdfc Request for Proposal Name
    public sfdcMediaPlanId:             string;                        /// The Salesforce media plan id (18 character UID)
    public sdfcNotificationId:          string;                        /// Sdfc Notification Id
-   public isValidated:                 number;                        /// UI validation flag
-   public isSingleDate:                number;                        /// Determines if using shared hhc possible (1) or scheduled
-   public isMustCover:                 number;                        /// When MBU has a home_geo and UI says is_must_cover, exclude the mbu_score filter
-   public isExcludePob:                number;                        /// Indicates if POB is excluded.  Used in meets_var_filter calculation
-   public isDollarBudget:              number;                        /// Dollar Budget flag
-   public isCircBudget:                number;                        /// Circ Budget flag
-   public isRunAvail:                  number;                        /// Global Flag to check if MAA run Avails should occur
-   public isHardPdi:                   number;                        /// Is hard pdi, 0=false, 1=true
-   public isActive:                    number;                        /// 1 = Active, 0 = Inactive
+   public isValidated:                 boolean;                       /// UI validation flag
+   public isSingleDate:                boolean;                       /// Determines if using shared hhc possible (1) or scheduled
+   public isMustCover:                 boolean;                       /// When MBU has a home_geo and UI says is_must_cover, exclude the mbu_score filter
+   public isExcludePob:                boolean;                       /// Indicates if POB is excluded.  Used in meets_var_filter calculation
+   public isDollarBudget:              boolean;                       /// Dollar Budget flag
+   public isCircBudget:                boolean;                       /// Circ Budget flag
+   public isRunAvail:                  boolean;                       /// Global Flag to check if MAA run Avails should occur
+   public isHardPdi:                   boolean;                       /// Is hard pdi, 0=false, 1=true
+   public isActive:                    boolean;                       /// 1 = Active, 0 = Inactive
 
    // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------------------
-   public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
-   public consumerPurchasingFreq:      ConsumerPurchasingFreq;        /// Cbx Consumer Purchasing Freqs
-   public goal:                        Goal;                          /// Cbx Goals
-   public objective:                   Objective;                     /// Cbx Objectives
+//   public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
+   public clientIdentifierTypeCode:    string;
+
+   // We need to make the typescript mirror what the base object is doing
+//   public consumerPurchasingFreq:      ConsumerPurchasingFreq;        /// Cbx Consumer Purchasing Freqs
+   public consumerPurchFreqCode:       string;
+//   public goal:                        Goal;                          /// Cbx Goals
+   public goalCode:                    string;
+//   public objective:                   Objective;                     /// Cbx Objectives
+   public objectiveCode:               string;
+
+   // IMPOWER.IMP_PROJECTS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+   // ----------------------------------------------------------------------
+   public impGeofootprintMasters:      Set<ImpGeofootprintMaster>;    /// Set of impGeofootprintMasters related to this ImpProject
+//   public impGeofootprintMaster:       ImpGeofootprintMaster;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpProject>) {

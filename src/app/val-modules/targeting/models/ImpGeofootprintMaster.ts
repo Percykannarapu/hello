@@ -4,6 +4,7 @@
  **/
 
 import { ImpProject } from './ImpProject';
+import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 
 export class ImpGeofootprintMaster
 {
@@ -16,13 +17,17 @@ export class ImpGeofootprintMaster
    public methSeason:                string;                        /// Season
    public activeLocationCount:       number;                        /// Total number of active location
    public totalLocationCount:        number;                        /// Total number of location
-   public isMarketBased:             number;                        /// 1 = Market based, 2 = Store based
-   public isActive:                  number;                        /// Is Active
+   public isMarketBased:             boolean;                        /// 1 = Market based, 2 = Store based
+   public isActive:                  boolean;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_MASTER - MANY TO ONE RELATIONSHIP MEMBERS
    // ------------------------------------------------------------------
    public impProject:                ImpProject;                    /// Captures Project information from the UI
 
+   // IMPOWER.IMP_GEOFOOTPRINT_MASTER - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+   // ------------------------------------------------------------------
+   public impGeofootprintLocations:  Set<ImpGeofootprintLocation>;  /// Set of impGeofootprintLocations related to this ImpGeofootprintMaster
+   
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintMaster>) {
       Object.assign(this, data);

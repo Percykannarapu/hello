@@ -8,6 +8,8 @@ import { ImpClientLocation } from '../../client/models/ImpClientLocation';
 import { ImpClientLocationType } from '../../client/models/ImpClientLocationType';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
+import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
+import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 
 export class ImpGeofootprintLocation
 {
@@ -47,6 +49,11 @@ export class ImpGeofootprintLocation
    public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
    public impProject:                  ImpProject;                    /// Captures Project information from the UI
 
+   // IMPOWER.IMP_GEOFOOTPRINT_TRADE_AREAS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+   // -----------------------------------------------------------------------
+   public impGeofootprintGeos:          Set<ImpGeofootprintGeo>;       /// Set of impGeofootprintGeos related to this ImpGeofootprintTradeArea
+   public impGeofootprintVars:          Set<ImpGeofootprintVar>;       /// Set of impGeofootprintVars related to this ImpGeofootprintTradeArea
+   
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintLocation>) {
       Object.assign(this, data);
