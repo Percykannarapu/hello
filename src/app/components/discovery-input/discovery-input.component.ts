@@ -70,8 +70,8 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impDiscoveryService: ImpDiscoveryService, 
-               public impRadLookupService: ImpRadLookupService, 
+   constructor(public impDiscoveryService: ImpDiscoveryService,
+               public impRadLookupService: ImpRadLookupService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
                private http: HttpClient,
                private appState: AppState,
@@ -80,7 +80,7 @@ export class DiscoveryInputComponent implements OnInit
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
       this.products = [
-         {productName: 'N/A',                         productCode: 'N/A'},   
+         {productName: 'N/A',                         productCode: 'N/A'},
          {productName: 'Display Advertising',         productCode: 'N/A'},
          {productName: 'Email',                       productCode: 'N/A'},
          {productName: 'Insert - Newspaper',          productCode: 'NP Insert'},
@@ -92,7 +92,7 @@ export class DiscoveryInputComponent implements OnInit
       ];
 
       this.categories = [
-         {name: 'N/A'},   
+         {name: 'N/A'},
          {name: 'Auto Service/Parts'},
          {name: 'Discount Stores'},
          {name: 'Education'},
@@ -116,7 +116,7 @@ export class DiscoveryInputComponent implements OnInit
          ];
 
       this.analysisLevels = [
-         {label: 'Digital ATZ', value: 'Digital ATZ'},   
+         {label: 'Digital ATZ', value: 'Digital ATZ'},
          {label: 'ATZ', value: 'ATZ'},
          {label: 'ZIP', value: 'ZIP'},
          {label: 'PCR', value: 'PCR'}
@@ -133,6 +133,7 @@ export class DiscoveryInputComponent implements OnInit
 
    ngOnInit()
    {
+     this.impDiscoveryService.init();
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
@@ -225,7 +226,7 @@ export class DiscoveryInputComponent implements OnInit
    public onChangeField(event: SelectItem)
    {
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
-      
+
       this.impRadLookupService.storeObservable.subscribe(res => {
             //console.log('good:', res);
             let isvalid = false;
@@ -335,9 +336,9 @@ export class DiscoveryInputComponent implements OnInit
 // TODO:  geofootprint master is not getting created
 // We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
 // need to alter the typescript models to emit booleans for the "is" variables
-// The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys 
+// The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys
 // from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
-// See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity    
+// See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity
 // But we are going to let that slide for now.   It will persist fine without these IDs, but NEED to fix down the road.
 
       // Convert the Typescript models into a JSON string

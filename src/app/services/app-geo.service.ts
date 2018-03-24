@@ -51,6 +51,7 @@ export class ValGeoService implements OnDestroy {
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
               private queryService: EsriQueryService, private config: AppConfig) {
     this.currentTradeAreas = [];
+    this.currentAnalysisLevel = '';
     this.uniqueSelectedGeocodes = new BehaviorSubject<string[]>([]);
     this.uniqueSelectedGeocodes$ = this.uniqueSelectedGeocodes.asObservable();
     this.tradeAreaSubscription = this.tradeAreaService.storeObservable.subscribe(tradeAreas => this.onTradeAreaChange(tradeAreas));
@@ -84,7 +85,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
-    if (discovery[0].analysisLevel !== this.currentAnalysisLevel) {
+    if (discovery && discovery[0] && discovery[0].analysisLevel && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.geoService.clearAll();
       this.selectAndPersistGeos(this.currentTradeAreas, null, null, discovery[0].analysisLevel);
       this.currentAnalysisLevel = discovery[0].analysisLevel;

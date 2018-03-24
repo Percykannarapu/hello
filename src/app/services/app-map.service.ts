@@ -38,6 +38,7 @@ export class ValMapService {
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
               private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService) {
+    this.currentAnalysisLevel = '';
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.siteSubscription = this.siteService.allUiSites$.subscribe(sites => {
@@ -80,7 +81,7 @@ export class ValMapService {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
-    if (discovery[0].analysisLevel !== this.currentAnalysisLevel) {
+    if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
     }
   }

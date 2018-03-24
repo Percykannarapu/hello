@@ -39,7 +39,10 @@ export class RadService {
    */
   private getDiscoveryData(): any {
     const discoveryData: Array<ImpDiscoveryUI> = this.impDiscoveryService.get();
-    return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryCode };
+    if (discoveryData && discoveryData[0]) {
+      return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryCode };
+    }
+    return null;
   }
 
   /**
@@ -51,7 +54,7 @@ export class RadService {
     const discoveryData = this.getDiscoveryData();
 
     //filter down the RAD data based on the current product and category
-    if (this.radData != null) {
+    if (this.radData != null && discoveryData != null) {
       this.filteredRadData = this.radData.filter(f => f.category === discoveryData.category.name && f.product === discoveryData.product.productCode);
     }
 

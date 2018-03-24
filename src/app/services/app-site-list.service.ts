@@ -53,6 +53,7 @@ export class ValSiteListService implements OnDestroy {
               private config: AppConfig) {
     this.allLocations$ = this.locationService.storeObservable;
     this.uiModels = [];
+    this.currentAnalysisLevel = '';
     this.discoverySubscription = this.discoveryService.storeObservable.subscribe(d => {
       this.onDiscoveryChange(d[0]);
     });
@@ -91,7 +92,7 @@ export class ValSiteListService implements OnDestroy {
   }
 
   private onDiscoveryChange(discoveryUI: ImpDiscoveryUI) {
-    if (discoveryUI.analysisLevel !== this.currentAnalysisLevel) {
+    if (discoveryUI && discoveryUI.analysisLevel != null && discoveryUI.analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discoveryUI.analysisLevel;
       this.setPrimaryGeocode(this.currentAnalysisLevel);
     }
