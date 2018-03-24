@@ -324,7 +324,7 @@ export class DiscoveryInputComponent implements OnInit
       {
          location['baseStatus'] = 'INSERT';
          location['dirty'] = true;
-         location.isActive = 1;
+         location.isActive = true;
          location.glId = null;
 //         impProject.impGeofootprintMasters.impGeofootprintLocations.add(location);
          newCGM.impGeofootprintLocations.push(location);

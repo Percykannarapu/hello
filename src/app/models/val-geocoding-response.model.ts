@@ -47,7 +47,7 @@ export class ValGeocodingResponse {
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
       impClientLocationType: new ImpClientLocationType({clientLocationType: siteType}),
-      isActive: 1
+      isActive: true
     });
     if (this.Number != null && !Number.isNaN(Number(this.Number))) {
       result.locationNumber = Number(this.Number);

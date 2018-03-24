@@ -36,7 +36,7 @@ export class LocationUiModel {
       geometry: point,
       symbol: symbol,
       popupTemplate: popupTemplate,
-      visible: (this.location.isActive === 1)
+      visible: (this.location.isActive === true)
     });
     this.setAttributes(this.attributes);
   }

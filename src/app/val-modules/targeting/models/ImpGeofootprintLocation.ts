@@ -39,7 +39,7 @@ export class ImpGeofootprintLocation
    public geocoderMatchCode:           string;
    public geocoderLocationCode:        string;
    public recordStatusCode:            string;
-   public isActive:                    number;                        /// Is Active
+   public isActive:                    boolean;                        /// Is Active
 
    // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - MANY TO ONE RELATIONSHIP MEMBERS
    // ---------------------------------------------------------------------

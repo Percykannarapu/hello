@@ -70,13 +70,13 @@ export class ValSiteListService implements OnDestroy {
       map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site'))
     );
     this.activeSites$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site' && l.isActive === 1))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site' && l.isActive === true))
     );
     this.allCompetitors$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor'))
     );
     this.activeCompetitors$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor' && l.isActive === 1))
+      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor' && l.isActive === true))
     );
 
     this.clientCountSubscription = this.activeSites$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
@@ -186,7 +186,7 @@ export class ValSiteListService implements OnDestroy {
     // updates
     for (const update of Array.from(updatedModels)) {
       update.setAttributes(updatedAttributes.filter(a => a.impGeofootprintLocation === update.location));
-      update.setPointVisibility(update.location.isActive === 1);
+      update.setPointVisibility(update.location.isActive === true);
     }
     //deletes
     this.uiModels = this.uiModels.filter(m => locationSet.has(m.location));

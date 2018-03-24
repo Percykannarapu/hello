@@ -69,7 +69,7 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowSelect(event: any, isSelected: boolean) {
-    (event.data as ImpGeofootprintLocation).isActive = isSelected ? 1 : 0;
+    (event.data as ImpGeofootprintLocation).isActive = isSelected ? true : false;
     this.locationService.update(event.data, event.data);
   }
 
