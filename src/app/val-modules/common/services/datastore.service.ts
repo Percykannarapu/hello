@@ -82,6 +82,7 @@ export class DataStore<T>
    private fetch()
    {
       console.log('DataStore.fetch fired for ' + this.dataUrl);
+//    console.trace('fetch trace');
 
       this.rest.get(this.dataUrl).subscribe(restResponse => {
          // Log and test the response
@@ -120,7 +121,7 @@ export class DataStore<T>
       if (preOperation)
          preOperation(this._dataStore);
 
-      if (forceRefresh || this._dataStore.length === 0)
+      if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
          this.fetch();
 
       if (postOperation)
