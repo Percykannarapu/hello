@@ -306,26 +306,31 @@ export class DiscoveryInputComponent implements OnInit
 
       // Geofootprint
       console.log('discovery-input-component populating geofootprint');
-      impProject.impGeofootprintMasters = new Set<ImpGeofootprintMaster>();
+      impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
       let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
-      newCGM.isMarketBased = false;
-      newCGM.isActive = true;
-      newCGM.impGeofootprintLocations = new Set<ImpGeofootprintLocation>();
       newCGM['baseStatus'] = 'INSERT';
       newCGM['dirty'] = true;
+      newCGM.methAnalysis = this.impDiscoveryUI.analysisLevel;
+      newCGM.status = 'SUCCESS';
+      newCGM.summaryInd = 0;
+      newCGM.createdDate = new Date(Date.now());
+      newCGM.isMarketBased = false;
+      newCGM.isActive = true;
+      newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
 
       // TODO: Really the project service should be utilized and as locations are added, they become children of the project
       console.log('discovery-input-component populating locations');
       for (let location of this.impGeofootprintLocationService.get())
       {
-         location['dirty'] = true;
          location['baseStatus'] = 'INSERT';
+         location['dirty'] = true;
          location.isActive = 1;
+         location.glId = null;
 //         impProject.impGeofootprintMasters.impGeofootprintLocations.add(location);
-         newCGM.impGeofootprintLocations.add(location);
+         newCGM.impGeofootprintLocations.push(location);
       }
 
-      impProject.impGeofootprintMasters.add(newCGM);
+      impProject.impGeofootprintMasters.push(newCGM);
 
 // TODO:  geofootprint master is not getting created
 // We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)

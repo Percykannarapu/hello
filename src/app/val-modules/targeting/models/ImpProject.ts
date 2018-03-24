@@ -58,7 +58,7 @@ export class ImpProject
 
    // IMPOWER.IMP_PROJECTS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
    // ----------------------------------------------------------------------
-   public impGeofootprintMasters:      Set<ImpGeofootprintMaster>;    /// Set of impGeofootprintMasters related to this ImpProject
+   public impGeofootprintMasters:      Array<ImpGeofootprintMaster>;    /// Set of impGeofootprintMasters related to this ImpProject
 //   public impGeofootprintMaster:       ImpGeofootprintMaster;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});

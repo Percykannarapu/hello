@@ -13,7 +13,7 @@ export class ImpGeofootprintMaster
    public allowDuplicate:            number;                        /// Indicator for allowing duplicate geos
    public createdDate:               Date;                          /// Date/Time row was created
    public status:                    string;                        /// Indicates success or failure of geofootprint creation
-   public methAnalysi:               string;                        /// Method analysis level. ZIP or ATZ
+   public methAnalysis:              string;                        /// Method analysis level. ZIP or ATZ
    public methSeason:                string;                        /// Season
    public activeLocationCount:       number;                        /// Total number of active location
    public totalLocationCount:        number;                        /// Total number of location
@@ -26,7 +26,7 @@ export class ImpGeofootprintMaster
 
    // IMPOWER.IMP_GEOFOOTPRINT_MASTER - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
    // ------------------------------------------------------------------
-   public impGeofootprintLocations:  Set<ImpGeofootprintLocation>;  /// Set of impGeofootprintLocations related to this ImpGeofootprintMaster
+   public impGeofootprintLocations:  Array<ImpGeofootprintLocation>;  /// Set of impGeofootprintLocations related to this ImpGeofootprintMaster
    
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintMaster>) {
@@ -47,7 +47,7 @@ export class ImpGeofootprintMaster
          ['allowDuplicate',             'number'],
          ['createdDate',                'Date'],
          ['status',                     'string'],
-         ['methAnalysi',                'string'],
+         ['methAnalysis',               'string'],
          ['methSeason',                 'string'],
          ['activeLocationCount',        'number'],
          ['totalLocationCount',         'number'],
