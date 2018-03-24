@@ -58,12 +58,12 @@ export class ValSiteListService implements OnDestroy {
       this.onDiscoveryChange(d[0]);
     });
     this.siteSubscription = this.allLocations$.subscribe(locations => {
-      this.createOrUpdateUiModels(locations);
+      this.createOrUpdateUiModels(locations, null);
       this.determineAllHomeGeos(locations);
     });
     this.siteAttributeSubscription = this.attributeService.storeObservable.subscribe(attributes => {
       const locs = new Set(attributes.map(a => a.impGeofootprintLocation));
-      this.createOrUpdateUiModels(Array.from(locs));
+      this.createOrUpdateUiModels(Array.from(locs), attributes);
     });
 
     this.allSites$ = this.allLocations$.pipe(
@@ -170,13 +170,14 @@ export class ValSiteListService implements OnDestroy {
     this.locationService.update(null, null);
   }
 
-  private createOrUpdateUiModels(locations: ImpGeofootprintLocation[]) {
+  private createOrUpdateUiModels(locations: ImpGeofootprintLocation[], attributes: ImpGeofootprintLocAttrib[]) {
+    const localAttributes = attributes == null ? this.attributeService.get() : attributes;
     const locationSet: Set<ImpGeofootprintLocation> = new Set(locations);
     const uiSet = new Set(this.uiModels.map(m => m.location));
     const updatedModels = new Set(this.uiModels.filter(m => locationSet.has(m.location)));
     const newSites = new Set(locations.filter(l => !uiSet.has(l)));
-    const newAttributes = this.attributeService.get().filter(a => newSites.has(a.impGeofootprintLocation));
-    const updatedAttributes = this.attributeService.get().filter(a => uiSet.has(a.impGeofootprintLocation) && !newSites.has(a.impGeofootprintLocation));
+    const newAttributes = localAttributes.filter(a => newSites.has(a.impGeofootprintLocation));
+    const updatedAttributes = localAttributes.filter(a => uiSet.has(a.impGeofootprintLocation) && !newSites.has(a.impGeofootprintLocation));
     // adds
     for (const site of Array.from(newSites)) {
       const newModel = new LocationUiModel(site, newAttributes.filter(a => a.impGeofootprintLocation === site));
