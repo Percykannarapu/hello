@@ -81,8 +81,10 @@ export class FileService {
       }
       if (!matched) result.push(FileService.createNullParser(headerColumns[i]));
     }
-    if (requiredHeaders.filter(p => !p.found).length > 0) {
-      throw new Error(`"${requiredHeaders[0].outputFieldName}" is a required column and was not found in the file.`);
+   
+    const reqHeaders = requiredHeaders.filter(p => !p.found);
+    if (reqHeaders.length > 0) {
+      throw new Error(`"${reqHeaders[0].outputFieldName}" is a required column and was not found in the file.`);
     }
     return result;
   }
