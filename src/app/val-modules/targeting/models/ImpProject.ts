@@ -1,3 +1,4 @@
+import { BaseModel, DAOBaseStatus } from './../../api/models/BaseModel';
 /** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
@@ -9,7 +10,7 @@ import { Goal } from '../../mediaexpress/models/Goal';
 import { Objective } from '../../mediaexpress/models/Objective';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 
-export class ImpProject
+export class ImpProject extends BaseModel
 {
    public projectId:                   number;                        /// Primary Key
    public createUser:                  number;                        /// User to create the row
@@ -63,9 +64,60 @@ export class ImpProject
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpProject>) {
+      super();
+//      this.clear();
       Object.assign(this, data);
    }
 
+   public clear() 
+   {
+      this.dirty                    = true;
+      this.baseStatus               = DAOBaseStatus.INSERT;
+
+      this.projectId                = null;
+      this.createUser               = null;
+      this.createDate               = null;
+      this.modifyUser               = null;
+      this.modifyDate               = null;
+      this.industryCategoryCode     = null;
+      this.projectName              = null;
+      this.description              = null;
+      this.methAnalysis             = null;
+      this.ihwFrom                  = null;
+      this.ihwTo                    = null;
+      this.ihd                      = null;
+      this.totalBudget              = null;
+      this.clientIdentifierId       = null;
+      this.clientIdentifierName     = null;
+      this.customerNumber           = null;
+      this.preferredIhDate          = null;
+      this.afterIhdIsPreferred      = null;
+      this.sfdcRfpId                = null;
+      this.sfdcRfpName              = null;
+      this.sfdcMediaPlanId          = null;
+      this.sdfcNotificationId       = null;
+      this.isValidated              = null;
+      this.isSingleDate             = null;
+      this.isMustCover              = null;
+      this.isExcludePob             = null;
+      this.isDollarBudget           = null;
+      this.isCircBudget             = null;
+      this.isRunAvail               = null;
+      this.isHardPdi                = null;
+      this.isActive                 = null;
+   
+      // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
+      // -------------------------------------------------------
+      this.clientIdentifierTypeCode = null;
+      this.consumerPurchFreqCode    = null;
+      this.goalCode                 = null;
+      this.objectiveCode            = null;
+   
+      // IMPOWER.IMP_PROJECTS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+      // ----------------------------------------------------------------------
+      this.impGeofootprintMasters   = null;
+   }
+   
    /**
     * Produces a map of this classes fields and data types.
     * Used instead of reflection, which has limitations.

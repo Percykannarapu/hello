@@ -67,16 +67,16 @@ export class ValSiteListService implements OnDestroy {
     });
 
     this.allSites$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site'))
+      map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Site'))
     );
     this.activeSites$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Site' && l.isActive === true))
+      map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Site' && l.isActive === true))
     );
     this.allCompetitors$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor'))
+      map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Competitor'))
     );
     this.activeCompetitors$ = this.allLocations$.pipe(
-      map(locations => locations.filter(l => l.impClientLocationType && l.impClientLocationType.clientLocationType === 'Competitor' && l.isActive === true))
+      map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Competitor' && l.isActive === true))
     );
 
     this.clientCountSubscription = this.activeSites$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));

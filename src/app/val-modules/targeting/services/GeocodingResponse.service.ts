@@ -475,7 +475,7 @@ export class GeocodingResponseService {
         this.impGeofootprintLocList = [];
         this.impGeoLocAttrList = this.impGeofootprintLocAttrService.get();
         this.impGeofootprintLocList = this.impGeofootprintLocationService.get();
-        const currentLocList = this.impGeofootprintLocList.filter(l => l.impClientLocationType.clientLocationType === value);
+        const currentLocList = this.impGeofootprintLocList.filter(l => l.clientLocationTypeCode === value);
 
         for (const currentLoc of currentLocList) {
             const gridMap: any = {};
@@ -514,7 +514,7 @@ export class GeocodingResponseService {
             impGeofootprintLoc.origState = site.orgState;
             impGeofootprintLoc.origPostalCode = site.zip10;
             impGeofootprintLoc.marketName = site.marketName;
-            impGeofootprintLoc.impClientLocationType = selector;
+            impGeofootprintLoc.clientLocationTypeCode = selector;
             impGeofootprintLoc.homeGeocode = site.homeGeocode;
 
             //impGeofootprintLoc.qua = site.locationQualityCode;

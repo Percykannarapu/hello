@@ -23,6 +23,7 @@ import { Goal } from '../../val-modules/mediaexpress/models/Goal';
 import { Objective } from '../../val-modules/mediaexpress/models/Objective';
 import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
 import { RestResponse } from '../../models/RestResponse';
+import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 
 interface Product {
    productName: string;
@@ -272,8 +273,10 @@ export class DiscoveryInputComponent implements OnInit
 
       // This will become mapDisciveryUItoImpProject
       console.log('discovery-input-component populating project');
-      impProject['dirty'] = true;
-      impProject['baseStatus'] = 'INSERT';
+//      impProject['dirty'] = true;
+//      impProject['baseStatus'] = 'INSERT';
+      impProject.dirty = true;
+      impProject.baseStatus = DAOBaseStatus.INSERT;
       impProject.projectId = null;
       impProject.createUser = -1;
       impProject.createDate = new Date(Date.now());
@@ -308,9 +311,11 @@ export class DiscoveryInputComponent implements OnInit
       console.log('discovery-input-component populating geofootprint');
       impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
       let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
-      newCGM['baseStatus'] = 'INSERT';
-      newCGM['dirty'] = true;
-      newCGM.methAnalysis = this.impDiscoveryUI.analysisLevel;
+//    newCGM['dirty'] = true;
+//    newCGM['baseStatus'] = 'INSERT';
+      newCGM.dirty = true;
+      newCGM.baseStatus = DAOBaseStatus.INSERT;
+      newCGM.methAnalysis = (this.impDiscoveryUI.analysisLevel) ? this.impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
       newCGM.status = 'SUCCESS';
       newCGM.summaryInd = 0;
       newCGM.createdDate = new Date(Date.now());
@@ -320,16 +325,18 @@ export class DiscoveryInputComponent implements OnInit
 
       // TODO: Really the project service should be utilized and as locations are added, they become children of the project
       console.log('discovery-input-component populating locations');
-      for (let location of this.impGeofootprintLocationService.get())
+      newCGM.impGeofootprintLocations = this.impGeofootprintLocationService.get();
+//      for (let location of this.impGeofootprintLocationService.get())
+      let locNumber: number = 1000;
+      for (let location of newCGM.impGeofootprintLocations)
       {
-         location['baseStatus'] = 'INSERT';
-         location['dirty'] = true;
          location.isActive = true;
          location.glId = null;
-//         impProject.impGeofootprintMasters.impGeofootprintLocations.add(location);
-         newCGM.impGeofootprintLocations.push(location);
+         location.locationNumber = locNumber++;
+         location.clientIdentifierId = locNumber;          // Mandatory field, stubbing
+         location.marketName = 'Test Market ' + locNumber; // Mandatory field, stubbing
       }
-
+      console.log('discovery-input-component pushing new geofootprint');
       impProject.impGeofootprintMasters.push(newCGM);
 
 // TODO:  geofootprint master is not getting created

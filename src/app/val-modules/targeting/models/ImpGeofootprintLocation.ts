@@ -2,18 +2,24 @@
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
  **/
-
+import { BaseModel, DAOBaseStatus } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ImpClientLocation } from '../../client/models/ImpClientLocation';
-import { ImpClientLocationType } from '../../client/models/ImpClientLocationType';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintVar } from './ImpGeofootprintVar';
+import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
+import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 
-export class ImpGeofootprintLocation
+export class ImpGeofootprintLocation extends BaseModel
 {
    public glId:                        number;                        /// Primary key, uniquely identifying a locations row
+   public cgmId:                       number;
+   public projectId:                   number;
+   public clientLocationId:            number;
+   public clientLocationTypeCode:      string;
+   public clientIdentifierTypeCode:    string;
    public clientIdentifierId:          number;
    public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
    public locationNumber:              number;
@@ -40,23 +46,60 @@ export class ImpGeofootprintLocation
    public geocoderLocationCode:        string;
    public recordStatusCode:            string;
    public isActive:                    boolean;                        /// Is Active
-
-   // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - MANY TO ONE RELATIONSHIP MEMBERS
+   
+   // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
    // ---------------------------------------------------------------------
-   public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
-   public impClientLocation:           ImpClientLocation;             /// Client Library Repository of Client Locations
-   public impClientLocationType:       ImpClientLocationType;         /// Client Library - Client Location Types (CLIENT, COMPETITOR etc.)
-   public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-   public impProject:                  ImpProject;                    /// Captures Project information from the UI
-
-   // IMPOWER.IMP_GEOFOOTPRINT_TRADE_AREAS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
-   // -----------------------------------------------------------------------
-   public impGeofootprintGeos:          Set<ImpGeofootprintGeo>;       /// Set of impGeofootprintGeos related to this ImpGeofootprintTradeArea
-   public impGeofootprintVars:          Set<ImpGeofootprintVar>;       /// Set of impGeofootprintVars related to this ImpGeofootprintTradeArea
+   public impGeofootprintLocAttribs:   Set<ImpGeofootprintLocAttrib>; /// Set of impGeofootprintLocAttribs related to this ImpGeofootprintLocation
+   public impGeofootprintTradeAreas:   Set<ImpGeofootprintTradeArea>; /// Set of impGeofootprintTradeAreas related to this ImpGeofootprintLocation
    
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintLocation>) {
+      super();
+//      this.clear();
       Object.assign(this, data);
+   }
+
+   public clear() 
+   {
+      this.dirty                    = true;
+      this.baseStatus               = DAOBaseStatus.INSERT;
+      this.glId                     = null;
+      this.cgmId                    = null;
+      this.projectId                = null;
+      this.clientLocationId         = null;
+      this.clientLocationTypeCode   = null;
+      this.clientIdentifierTypeCode = null;
+      this.clientIdentifierId       = null;
+      this.locationIdDisplay        = null;
+      this.locationNumber           = null;
+      this.locationName             = null;
+      this.marketName               = null;
+      this.groupName                = null;
+      this.xcoord                   = null;
+      this.ycoord                   = null;
+      this.homeGeocode              = null;
+      this.homeGeoName              = null;
+      this.geoProfileId             = null;
+      this.geoProfileTypeAbbr       = null;
+      this.origAddress1             = null;
+      this.origCity                 = null;
+      this.origState                = null;
+      this.origPostalCode           = null;
+      this.locFranchisee            = null;
+      this.locAddress               = null;
+      this.locCity                  = null;
+      this.locState                 = null;
+      this.locZip                   = null;
+      this.locSortOrder             = null;
+      this.geocoderMatchCode        = null;
+      this.geocoderLocationCode     = null;
+      this.recordStatusCode         = null;
+      this.isActive                 = true;
+      
+      // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+      // ---------------------------------------------------------------------
+      this.impGeofootprintLocAttribs = null;
+      this.impGeofootprintTradeAreas = null;
    }
 
    /**

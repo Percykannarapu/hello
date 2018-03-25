@@ -891,14 +891,17 @@ export class MapService {
         console.log('impGeofootprintLocList length:::' + this.impGeofootprintLocationService.get().length);
 
         for (const point of this.impGeofootprintLocationService.get()) {
-            if (point.impClientLocationType.toString() == 'Site' && selector === 'Site') {
+//          if (point.impClientLocationType.toString() == 'Site' && selector === 'Site') {
+            if (point.clientLocationTypeCode == 'Site' && selector === 'Site') {
+               
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
                     spatialReference: this.config.val_spatialReference
                 });
                 pointList.push(p);
-            } else if (point.impClientLocationType.toString() == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
+//          } else if (point.impClientLocationTypeCode == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
+            } else if (point.clientLocationTypeCode == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors               
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,

@@ -69,7 +69,7 @@ export class ValTradeAreaService implements OnDestroy {
     return new ImpGeofootprintTradeArea({
       gtaId: ValTradeAreaService.id++,
       taNumber: index + 1,
-      taName: `${location.impClientLocationType.clientLocationType} Radius ${index + 1}`,
+      taName: `${location.clientLocationTypeCode} Radius ${index + 1}`,
       taRadius: radius,
       taType: 'RADIUS',
       impGeofootprintLocation: location,
@@ -81,7 +81,7 @@ export class ValTradeAreaService implements OnDestroy {
     return new ImpGeofootprintTradeArea({
       gtaId: ValTradeAreaService.id++,
       taNumber: index + 1,
-      taName: `${location.impClientLocationType.clientLocationType} CUSTOM ${index + 1}`,
+      taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
       taRadius: (radius !== null ? radius : 0),
       taType: 'CUSTOM',
       impGeofootprintLocation: location,
@@ -112,7 +112,7 @@ export class ValTradeAreaService implements OnDestroy {
     const adds = locations.filter(l => !previousLocations.has(l));
     const availableSiteTypes = Array.from(this.currentDefaults.keys());
     for (const siteType of availableSiteTypes) {
-      const currentLocations = adds.filter(l => l.impClientLocationType.clientLocationType === siteType);
+      const currentLocations = adds.filter(l => l.clientLocationTypeCode === siteType);
       this.applyRadialDefaults(this.currentDefaults.get(siteType), siteType, currentLocations);
     }
     this.currentLocations = Array.from(locations);
@@ -124,7 +124,7 @@ export class ValTradeAreaService implements OnDestroy {
     const clientBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     const competitorBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     for (const [k, v] of Array.from(taMap.entries())) {
-      if (k.impClientLocationType.clientLocationType === 'Site') {
+      if (k.clientLocationTypeCode === 'Site') {
         clientBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
       } else {
         competitorBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
@@ -141,7 +141,7 @@ export class ValTradeAreaService implements OnDestroy {
     this.currentDefaults.set(siteType, tradeAreaDefinition);
 
     const locs = (locations == null) ? this.locationService.get() : locations;
-    const currentLocations = locs.filter(l => l.impClientLocationType.clientLocationType === siteType);
+    const currentLocations = locs.filter(l => l.clientLocationTypeCode === siteType);
     const locationSet = new Set(currentLocations);
     const removals = this.tradeAreaService.get().filter(ta => locationSet.has(ta.impGeofootprintLocation));
     //const tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];

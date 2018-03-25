@@ -5,8 +5,9 @@
 
 import { ImpProject } from './ImpProject';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
+import { BaseModel, DAOBaseStatus } from '../../api/models/BaseModel';
 
-export class ImpGeofootprintMaster
+export class ImpGeofootprintMaster extends BaseModel
 {
    public cgmId:                     number;                        /// Primary key identifying the current run for the profile.
    public summaryInd:                number;                        /// 1 = Summary, 0 = Not summary
@@ -30,7 +31,34 @@ export class ImpGeofootprintMaster
    
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintMaster>) {
+      super();
+//      this.clear();
       Object.assign(this, data);
+   }
+
+   public clear() 
+   {
+      this.dirty               = true;
+      this.baseStatus          = DAOBaseStatus.INSERT;
+      this.cgmId               = null;
+      this.summaryInd          = null;
+      this.allowDuplicate      = null;
+      this.createdDate         = null;
+      this.status              = null;
+      this.methAnalysis        = null;
+      this.methSeason          = null;
+      this.activeLocationCount = null;
+      this.totalLocationCount  = null;
+      this.isMarketBased       = null;
+      this.isActive            = null;
+   
+      // IMPOWER.IMP_GEOFOOTPRINT_MASTER - MANY TO ONE RELATIONSHIP MEMBERS
+      // ------------------------------------------------------------------
+//      this.impProject          = null;
+   
+      // IMPOWER.IMP_GEOFOOTPRINT_MASTER - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
+      // ------------------------------------------------------------------
+      this.impGeofootprintLocations = null;
    }
 
    /**

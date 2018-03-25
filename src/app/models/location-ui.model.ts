@@ -16,7 +16,7 @@ export class LocationUiModel {
   }
 
   private initGraphic() : void {
-    const currentColor = new EsriModules.Color((this.location.impClientLocationType && this.location.impClientLocationType.clientLocationType === 'Site') ? LocationUiModel.blue : LocationUiModel.red);
+    const currentColor = new EsriModules.Color((this.location.clientLocationTypeCode && this.location.clientLocationTypeCode === 'Site') ? LocationUiModel.blue : LocationUiModel.red);
     const symbol: __esri.SimpleMarkerSymbol = new EsriModules.SimpleMarkerSymbol({
       style: 'path',
       size: 12,

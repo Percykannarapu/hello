@@ -42,8 +42,8 @@ export class ValMapService {
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.siteSubscription = this.siteService.allUiSites$.subscribe(sites => {
-          const clientSites = sites.filter(s => s.location.impClientLocationType.clientLocationType === 'Site');
-          const competitorSites = sites.filter(s => s.location.impClientLocationType.clientLocationType === 'Competitor');
+          const clientSites = sites.filter(s => s.location.clientLocationTypeCode === 'Site');
+          const competitorSites = sites.filter(s => s.location.clientLocationTypeCode === 'Competitor');
           if (clientSites.length > 0) {
             if (!this.currentLocationList.has('Site')) this.currentLocationList.set('Site', []);
             this.onSiteListChanged(clientSites, 'Site');

@@ -1,3 +1,4 @@
+import {BaseModel} from './val-modules/api/models/BaseModel';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule} from '@angular/http';
@@ -155,7 +156,6 @@ import { ValGeoService } from './services/app-geo.service';
 import { EsriQueryService } from './esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
-
 @NgModule({
     imports: [
         BrowserModule,
