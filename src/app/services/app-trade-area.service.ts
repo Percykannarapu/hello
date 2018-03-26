@@ -120,7 +120,8 @@ export class ValTradeAreaService implements OnDestroy {
 
   private drawTradeAreaBuffers(tradeAreas: ImpGeofootprintTradeArea[]) {
     if (tradeAreas.length === 0) return;
-    const taMap: Map<ImpGeofootprintLocation, ImpGeofootprintTradeArea[]> = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
+    const tradeAreasWithBuffer = tradeAreas.filter(ta => ta.taType === 'RADIUS');
+    const taMap: Map<ImpGeofootprintLocation, ImpGeofootprintTradeArea[]> = ValTradeAreaService.createLocationTradeAreaMap(tradeAreasWithBuffer);
     const clientBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     const competitorBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     for (const [k, v] of Array.from(taMap.entries())) {
@@ -153,8 +154,6 @@ export class ValTradeAreaService implements OnDestroy {
       });
     }
 
-    // this code fires off assignSite during every update, which kills the browser's performance.
-    //this.calculateHomegeocodeBuffer(tradeAreasForInsert);
     this.calculateHomegeocodeBuffer(this.tradeAreasForInsert, siteType, currentLocations);
 
     console.log('length of geocodes::', this.impGeoService.get().length);
@@ -165,7 +164,7 @@ export class ValTradeAreaService implements OnDestroy {
 
   public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]){
     const impDiscoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-    
+
     const analysisLevel = impDiscoveryUI[0].analysisLevel;
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
     const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);
@@ -196,7 +195,7 @@ export class ValTradeAreaService implements OnDestroy {
             }
           }
         });
-      
+
       });
     });
   }

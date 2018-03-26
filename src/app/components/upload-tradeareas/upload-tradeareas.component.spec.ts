@@ -1,6 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { UploadTradeAreasComponent } from './upload-trade-areas.component';
+import { UploadTradeAreasComponent } from './upload-tradeareas.component';
 
 describe('UploadTradeAreasComponent', () => {
   let component: UploadTradeAreasComponent;

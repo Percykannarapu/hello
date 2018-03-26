@@ -1,7 +1,37 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import { HttpClient } from '@angular/common/http';
 import { ValLayerService } from './app-layer.service';
+import { map } from 'rxjs/operators';
+
+export interface DemographicCategory {
+  '@ref': number;
+  'pk': number;
+  'tablename': string;
+  'tabledesc': string;
+  'sort': number;
+  'accessType': string;
+}
+
+export interface CategoryVariable {
+  '@ref': number;
+  'tablename': string;
+  'fieldnum': string;
+  'fieldname': string;
+  'fielddescr': string;
+  'fieldtype': string;
+  'fieldconte': string;
+  'decimals': string;
+  'source': string;
+  'userAccess': string;
+  'varFormat': string;
+  'natlAvg': string;
+  'avgType': string;
+  'pk': string;
+  'includeInCb': string;
+  'includeInDatadist': string;
+}
 
 export interface DemographicVariable {
   fieldName: string;
@@ -188,7 +218,7 @@ export class TopVarService {
 
   public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   public getAllTopVars() : Observable<DemographicVariable[]> {
     if (this.allTopVars.getValue().length === 0) {
@@ -216,5 +246,18 @@ export class TopVarService {
         // TODO: error handling?
       }
     }
+  }
+
+  public getDemographicCategories() : Observable<DemographicCategory[]> {
+    return this.http.get('https://servicesdev.valassislab.com/services/v1/targeting/base/amtabledesc/search?q=amtabledesc').pipe(
+      map((result: any) => result.payload.rows as DemographicCategory[])
+    );
+  }
+
+  public getVariablesByCategory(categoryName: string) : Observable<CategoryVariable[]> {
+    const url = `https://servicesdev.valassislab.com/services/v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${categoryName}`;
+    return this.http.get(url).pipe(
+      map((result: any) => result.payload.rows as CategoryVariable[])
+    );
   }
 }
