@@ -13,6 +13,7 @@ import { GeocodingResponse } from '../../models/GeocodingResponse';
 import { GeocodingAttributes } from '../../models/GeocodingAttributes';
 import { GeocoderService } from '../../services/geocoder.service';
 import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
 
 @Component({
@@ -50,12 +51,15 @@ export class BusinessSearchComponent implements OnInit {
   public plottedPoints: any;
   showLoader: boolean = false;
 
+  //private layerRefs = new Map<string, __esri.FeatureLayer>();
+
 
   constructor(private geocoderService: GeocoderService,
     private appService: AppService,
     private mapService: MapService,
     private geocodingRespService: GeocodingResponseService,
-    private messageService: MessageService) {
+    private messageService: MessageService,
+   private esriLayerService: EsriLayerService) {
     //Dropdown data
 
     this.dropdownList = [
@@ -138,16 +142,13 @@ export class BusinessSearchComponent implements OnInit {
 
     //get the coordinates for all sites from the sites layer
     const sites: __esri.Collection<{ x: any; y: any; }> = new Collection();
-    MapService.layers.forEach(layer => {
-      if (layer.title === DefaultLayers.SITES) {
+    const layer = this.esriLayerService.getLayer(DefaultLayers.SITES);
         (<__esri.FeatureLayer>layer).source.forEach(graphic => {
           sites.add({
             x: graphic.geometry['x'],
             y: graphic.geometry['y']
           });
         });
-      }
-    });
 
     paramObj['sites'] = sites['items'];
 

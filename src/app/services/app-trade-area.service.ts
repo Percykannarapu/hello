@@ -157,6 +157,8 @@ export class ValTradeAreaService implements OnDestroy {
     //this.calculateHomegeocodeBuffer(tradeAreasForInsert);
     this.calculateHomegeocodeBuffer(this.tradeAreasForInsert, siteType, currentLocations);
 
+    console.log('length of geocodes::', this.impGeoService.get().length);
+
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(this.tradeAreasForInsert);
   }
@@ -167,20 +169,29 @@ export class ValTradeAreaService implements OnDestroy {
     const analysisLevel = impDiscoveryUI[0].analysisLevel;
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
     const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);
+    console.log('length of home geocodes::', geocodesList);
     const geocodesSet = new Set(geocodesList);
     const geocodes = Array.from(geocodesSet);
+    console.log('length of home geocodes filtered::', geocodes);
     let customIndex: number = 0;
+    const tas = tradeAreasForInsert.map(tradeareas => {
+      return tradeareas.taRadius;
+    });
+    const maxRadius = Math.max(...tas);
     const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true).subscribe(graphics => {
-      const tas = tradeAreasForInsert.map(tradeareas => {
-        return tradeareas.taRadius;
-      });
+      
+      console.log('graphics length::', graphics.length);
       graphics.map(graphic => {
         let geocodeDistance = null;
          currentLocations.forEach(loc => {
           if (loc.homeGeocode === graphic.attributes['geocode']){
-            customIndex++;
             geocodeDistance =  EsriUtils.getDistance(graphic.geometry['x'], graphic.geometry['y'], loc.xcoord, loc.ycoord);
-            if (geocodeDistance > Math.max(...tas)){
+            console.log('geocode not selected::', graphic.attributes['geocode']);
+            console.log('geocodeDistance::', geocodeDistance, ':tas distance', maxRadius);
+           
+            if (geocodeDistance > maxRadius){
+              customIndex++;
+              console.log('geocode selected::', graphic.attributes['geocode']);
               this.addGeofootprintgeos(geocodeDistance, graphic, loc, customIndex);
             }
           }
@@ -191,6 +202,7 @@ export class ValTradeAreaService implements OnDestroy {
   }
 
   public  addGeofootprintgeos(geocodeDistance: number, graphic: __esri.Graphic, loc: ImpGeofootprintLocation, customIndex: number){
+    console.log('addGeofootprintgeos fired');
     const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = graphic.attributes['geocode'];

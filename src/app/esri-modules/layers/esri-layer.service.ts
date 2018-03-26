@@ -126,4 +126,8 @@ export class EsriLayerService {
       }
     }
   }
+
+  public getLayer(layerName: string) : __esri.FeatureLayer {
+    return this.layerRefs.get(layerName);
+  }
 }
