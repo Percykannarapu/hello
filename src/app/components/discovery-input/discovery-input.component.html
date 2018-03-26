@@ -12,14 +12,11 @@
       </div>
      
       <div class="ui-g-12">
-            <div class="ui-g-6">
                 <p-dropdown #categorySelector
                             [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name"
                             (onChange)="onChangeCategory($event)"
                             placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
                             [style]="{'width':'250px'}"></p-dropdown>
-            </div>   
-            <div class="ui-g-6"><label>{{calcProductCatRadData}}</label>  </div>             
       </div>
 
       <div class="ui-g-12">

@@ -453,7 +453,7 @@ export class DiscoveryInputComponent implements OnInit
                               isvalid = true;
                          }
                          else{
-                               this.calcProductCatRadData = 'Performance data is not available';
+                               this.calcProductCatRadData = 'Performance data is not available for the selected Product and Industry Category.';
                          }     
                      }   
                   }
