@@ -15,7 +15,7 @@
             <div class="ui-g-6">
                 <p-dropdown #categorySelector
                             [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name"
-                            (onChange)="onChangeField($event)"
+                            (onChange)="onChangeCategory($event)"
                             placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
                             [style]="{'width':'250px'}"></p-dropdown>
             </div>   

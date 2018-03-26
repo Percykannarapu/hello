@@ -232,21 +232,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
       
 
-      this.impRadLookupService.storeObservable.subscribe(res => {
-            //console.log('good:', res);
-            let isvalid = false;
-            res.forEach(radLookup => {
-                  if (!isvalid){
-                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
-                             this.calcProductCatRadData = '';
-                             isvalid = true;
-                        }
-                        else{
-                              this.calcProductCatRadData = 'Performance data is not available';
-                        }
-                  }
-            });
-      });
+      
    }
 
    public onChangeProduct(event: SelectItem)
@@ -263,7 +249,14 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedRadLookup = null;
       }
 
+      this.radDataCalc();
       this.onChangeField(event);
+   }
+
+   public onChangeCategory(event: SelectItem){
+      this.radDataCalc();
+      this.onChangeField(event);
+      //this.impDiscoveryUI.industryCategoryCode
    }
 
    // Test Persisting the Project
@@ -447,6 +440,26 @@ export class DiscoveryInputComponent implements OnInit
       console.log('discovery-input-component calling imsRadLookupStore.remove');
 
       this.impRadLookupService.removeAt(0);
+   }
+
+   radDataCalc(){
+      this.impRadLookupService.storeObservable.subscribe(res => {
+            let isvalid = false;
+            res.forEach(radLookup => {
+                  if (!isvalid){
+                     if (this.impDiscoveryUI.industryCategoryCode !== '' && this.impDiscoveryUI.productCode !== ''){
+                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
+                              this.calcProductCatRadData = '';
+                              isvalid = true;
+                         }
+                         else{
+                               this.calcProductCatRadData = 'Performance data is not available';
+                         }     
+                     }   
+                  }
+            });
+      });
+
    }
 
    debugLogStore() {
