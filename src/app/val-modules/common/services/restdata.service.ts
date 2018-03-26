@@ -2,7 +2,7 @@ import { RestResponse } from './../../../models/RestResponse';
 import { AppConfig } from './../../../app.config';
 import 'rxjs/add/operator/map';
 
-import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { DataStore } from './datastore.service';
@@ -34,7 +34,8 @@ export class RestDataService
 
    public post(url: string, payload: any) : Observable<RestResponse>
    {
-      return this.http.post<RestResponse>(this.baseUrl + url, payload);
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
+      return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: headers});
    }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>

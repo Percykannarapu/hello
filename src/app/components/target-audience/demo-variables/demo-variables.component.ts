@@ -31,7 +31,7 @@ export class DemoVariablesComponent implements OnInit {
 
   ngOnInit() {
     this.allTopVars$ = this.topVars.getAllTopVars();
-    this.selectedTopVar$ = this.topVars.getSelectedTopVar();
+    this.selectedTopVar$ = this.topVars.selectedTopVar$;
     this.selectedTheme$ = this.layerService.currentSmartTheme$;
     this.currentOpacity$ = this.layerService.currentThemeOpacity$;
   }

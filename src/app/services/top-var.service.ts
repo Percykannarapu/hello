@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import { ValLayerService } from './app-layer.service';
 
 export interface DemographicVariable {
   fieldName: string;
@@ -185,7 +186,9 @@ export class TopVarService {
   private allTopVars: BehaviorSubject<DemographicVariable[]> = new BehaviorSubject<DemographicVariable[]>([]);
   private selectedTopVar: BehaviorSubject<DemographicVariable> = new BehaviorSubject<DemographicVariable>(null);
 
-  constructor() {}
+  public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
+
+  constructor() { }
 
   public getAllTopVars() : Observable<DemographicVariable[]> {
     if (this.allTopVars.getValue().length === 0) {
@@ -196,8 +199,8 @@ export class TopVarService {
     return this.allTopVars.asObservable();
   }
 
-  public getSelectedTopVar() : Observable<DemographicVariable> {
-    return this.selectedTopVar.asObservable();
+  public getSelectedTopVar() : DemographicVariable {
+    return this.selectedTopVar.getValue();
   }
 
   public selectTopVar(newTopVar: DemographicVariable) : void {
