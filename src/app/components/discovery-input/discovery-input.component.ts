@@ -64,7 +64,9 @@ export class DiscoveryInputComponent implements OnInit
    seasons: SelectItem[];
    selectedSeason: String;
 
+   public calcProductCatRadData: string;
    public productCategoryTooltip: string;
+  
 
    summer: boolean = true;
 
@@ -137,7 +139,9 @@ export class DiscoveryInputComponent implements OnInit
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
+     this.calcProductCatRadData = '';
      this.productCategoryTooltip = 'Used to calculate Performance metrics';
+     
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -226,6 +230,7 @@ export class DiscoveryInputComponent implements OnInit
    public onChangeField(event: SelectItem)
    {
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
+      
 
       this.impRadLookupService.storeObservable.subscribe(res => {
             //console.log('good:', res);
@@ -233,11 +238,11 @@ export class DiscoveryInputComponent implements OnInit
             res.forEach(radLookup => {
                   if (!isvalid){
                         if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
-                              this.productCategoryTooltip = '';
-                              isvalid = true;
+                             this.calcProductCatRadData = '';
+                             isvalid = true;
                         }
                         else{
-                              this.productCategoryTooltip = 'Performance data is not available';
+                              this.calcProductCatRadData = 'Performance data is not available';
                         }
                   }
             });
