@@ -52,12 +52,37 @@ export class ImpProjectService extends DataStore<ImpProject>
       console.log('ImpProject.service.loadProject - fired');
       this.debugLogStore(true);
       
-    this.dataUrl = restUrl + 'load/' + projectId;
+      this.dataUrl = restUrl + 'load/' + projectId;
 //      this.dataUrl = restUrl + 'search?q=impProject&projectId=' + projectId;
+      this.get(true,true, undefined, this.populateLocations);
+
       console.log ('ImpProject.service.loadProject - dataUrl: ' + dataUrl);
-      this.get(true,true);
       this.debugLogStore(true);
    }
+
+   // type callbackSuccessType<T> = (boolean) => boolean;   
+   populateLocations(projects: ImpProject[]): ImpProject[]
+   {
+      console.log('ImpProject.service.populateLocations - fired', projects);
+      console.log('projects = null: ' + (projects) ? false : true);
+      console.log('projects.length = ' + projects.length);
+      if (projects && projects.length > 0)
+      {
+         console.log('ImpProject.service.populateLocations - Project loaded successfully');
+         // const impProject: ImpProject = this.get(true,true)[0];
+
+         // // Put the locations into the location service
+         // this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations, null, this.populateLocations);
+         
+         return projects;
+      }
+      else
+      {
+         console.log('ImpProject.service.populateLocations - Project did not load, cannot populate locations');
+         return projects;
+      }
+   }
+
    // Test Persisting the Project
    //   This is just proving out converting the typescript models
    //   to a JSON string and posting to the back end save endpoint

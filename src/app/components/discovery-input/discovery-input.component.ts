@@ -323,7 +323,8 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------   
    public onChangeField(event: SelectItem)
    {
-      this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
+      if (this.selectedCategory)
+         this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
 
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);    
 

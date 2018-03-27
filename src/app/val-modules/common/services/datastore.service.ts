@@ -223,6 +223,26 @@ export class DataStore<T>
          this._storeSubject.next(this._dataStore);
    }
 
+   /**
+    * Replace clears the current data store state and replaces it with the dataArray.
+    * The preOperation callback can be used to validate each record before it goes into the store.
+    * If the preOperation returns false, then that element will not be put in the store.
+    * Furthermore, a postOperation callback fires after all of the elements have been processed and
+    * can be used to determine if the good changes can go in despite having some failures not being inserted.
+    * This would be allowed when postOperation is either not present or returns true.
+    * If the postOperation is present and returns false, then all rows must be a success or none of them are inserted.
+    * When there is no postOperation, only when ALL of the data elements fail validation would be considered a failure.
+    *
+    * @param dataArray     - An array of data elements to add to the data store
+    * @param preOperation  - A callback delegate that will fire for each element just before it is added
+    * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist
+    */
+   public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
+   {
+      this.clearAll(false);
+      this.add(dataArray, preOperation, postOperation);
+   }
+   
    public removeAt (index: number)
    {
       console.log('delete at index: ' + index);
@@ -388,12 +408,14 @@ export class DataStore<T>
       this._storeSubject.next(this._dataStore);
    }
 
-   public clearAll()
+   public clearAll(notifySubscribers = true)
    {
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
 
-      this._storeSubject.next(this._dataStore);
+      // There are times where you want to clear as part of transaction and notify at the end
+      if (notifySubscribers)
+         this._storeSubject.next(this._dataStore);
    }
 
    public jsonp(url: string, callbackParam: string)
