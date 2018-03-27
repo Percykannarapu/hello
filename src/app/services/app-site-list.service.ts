@@ -81,8 +81,8 @@ export class ValSiteListService implements OnDestroy {
       map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Competitor' && l.isActive === true))
     );
 
-    this.allClientSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientIdentifierTypeCode === 'Site')));
-    this.allCompetitorSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientIdentifierTypeCode === 'Competitor')));
+    this.allClientSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientLocationTypeCode === 'Site')));
+    this.allCompetitorSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientLocationTypeCode === 'Competitor')));
 
     this.clientCountSubscription = this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.compCountSubscription = this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));

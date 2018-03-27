@@ -238,9 +238,19 @@ export class ValMapService implements OnDestroy {
 
   public removeFromSelection(geocodes: string[], analysisLevel: string) {
     const layerName = `Selected Geography - ${analysisLevel}`;
-    const sub = this.queryService.queryAttributeIn({ clientLayerName: layerName }, 'geocode', geocodes, true).subscribe(graphics => {
-      this.layerService.removeGraphicsFromLayer(layerName, graphics);
-    }, err => console.error(err), () => sub.unsubscribe());
+    const sourceLayer = this.layerService.getClientLayerByName(layerName);
+    const geocodeSet = new Set(geocodes); 
+    console.log('geocodes::::', geocodes);
+    const localGraphics = sourceLayer.source.filter(g => 
+                                                  {
+                                                    console.log('geocode compare 1', g.attributes.geocode);
+                                                    console.log('geocode compare 2', geocodeSet.has(g.attributes.geocode));
+                                                    return geocodeSet.has(g.attributes.geocode);
+                                                  });
+     console.log('sourceLayer::::', sourceLayer.source.length);
+     console.log('localGraphics:::', localGraphics.length);
+    sourceLayer.source.removeMany(localGraphics);
+    
   }
 
   private setRendererInfo(newGeocodes: Set<string>, currentAnalysisLevel: string) {

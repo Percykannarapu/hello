@@ -67,6 +67,7 @@ export class ValMetricsService implements OnDestroy {
     for (const definition of this.metricDefinitions) {
       const usedGeocodes = new Set();
       const values: number[] = [];
+      definition.metricValue = definition.metricDefault;
       attributes.filter(a => a.attributeCode === definition.metricCode).forEach(attribute => {
         if (!usedGeocodes.has(attribute.impGeofootprintGeo.geocode)) {
           values.push(Number(attribute.attributeValue));

@@ -72,7 +72,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
         if (newChildren.length > 0) {
           const newCategory = Object.assign({}, category);
           newCategory.children = newChildren;
-          newCategory.expanded = newChildren.length < 3;
+          newCategory.expanded = newChildren.length < 6;
           this.currentNodes.push(newCategory);
         }
       });

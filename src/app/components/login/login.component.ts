@@ -45,10 +45,11 @@ export class LoginComponent implements OnInit {
     this.displayLoginSpinner = true;
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
-        this.displayLoginSpinner = false;
-        this.createUser(loginForm.value.username);
-        this.bootstrapDataStore();
-        this.router.navigate(['/']);
+//        this.displayLoginSpinner = false;
+//        this.createUser(loginForm.value.username);
+//        this.bootstrapDataStore();
+//        this.router.navigate(['/']);
+          this.fetchUserInfo(loginForm.value.username);
       }
       else {
         this.displayLoginSpinner = false;
@@ -56,6 +57,27 @@ export class LoginComponent implements OnInit {
       }
     });
 
+  }
+
+  /**
+   * Lookup the AM_USER record from the Fuse service
+   * @param username 
+   */
+  private fetchUserInfo(username: string) {
+    this.userService.fetchUserRecord(username).subscribe(user => {
+      if (user != null) {
+        this.createUser(username, user);
+        this.bootstrapDataStore();
+        this.displayLoginSpinner = false;
+        this.router.navigate(['/']);
+      } else {
+        this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Unable to look up user info'});
+        this.displayLoginSpinner = false;
+      }
+    }, err => {
+      this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Unable to look up user info'});
+      this.displayLoginSpinner = false;
+    });
   }
 
   /**
@@ -69,16 +91,15 @@ export class LoginComponent implements OnInit {
     DataStore.bootstrap(config);
   }
 
-  private createUser(username: string) {
-    const user: User = new User();
+  private createUser(username: string, user: User) {
     user.clientName = null;
     user.creationDate = null;
     user.deactivationDate = null;
     user.email = null;
-    user.userId = null;
     user.username = username;
     user.userRoles = null;
     this.userService.setUser(user);
+    this.userService.storeUserCookie(user);
   }
 
 }
