@@ -6,6 +6,17 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { map } from 'rxjs/operators';
 import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+//import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { ValMapService } from '../../services/app-map.service';
+import { ValLayerService } from '../../services/app-layer.service';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ValGeoService } from '../../services/app-geo.service';
+
+
+
 
 @Component({
   selector: 'val-site-list',
@@ -46,7 +57,13 @@ export class SiteListComponent implements OnInit {
   constructor(private siteListService: ValSiteListService,
               private locationService: ImpGeofootprintLocationService,
               private attributeService: ImpGeofootprintLocAttribService,
-              private confirmationService: ConfirmationService) { }
+              private confirmationService: ConfirmationService,
+              private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+              private impGeofootprintGeoService:  ImpGeofootprintGeoService,
+              private impDiscoveryService: ImpDiscoveryService,
+              private appMapService: ValMapService,
+              private appLayerService: ValLayerService,
+              private valGeoService: ValGeoService) { }
 
   ngOnInit() {
     this.onListTypeChange('Site');
@@ -79,9 +96,18 @@ export class SiteListComponent implements OnInit {
       header: 'Delete Confirmation',
       icon: 'fa fa-trash',
       accept: () => {
-        const attributes = this.attributeService.find({ impGeoFootprintLocation: row });
+        const location  =  this.locationService.get().filter(loc => loc = row);
+        const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation = row);
+        const tas = this.impGeofootprintTradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation = row);
+        const geos = this.impGeofootprintGeoService.get().filter(geo => row === geo.impGeofootprintLocation);
+        
+        console.log('list of geos on the map', geos);
+        this.impGeofootprintTradeAreaService.remove(tas);
         this.attributeService.remove(attributes);
         this.locationService.remove(row);
+        this.impGeofootprintGeoService.remove(geos);
+        console.log('remove successful');
+             
       },
       reject: () => {
         console.log('cancelled remove');

@@ -481,7 +481,7 @@ export class GeocodingResponseService {
         for (const currentLoc of currentLocList) {
             const gridMap: any = {};
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
-                attr => attr.impGeofootprintLocation.glId === currentLoc.glId);
+                attr => attr.impGeofootprintLocation === currentLoc);
             for (const locAttr of returnList) {
                 gridMap['Number'] = currentLoc.glId;
                 gridMap['Name'] = currentLoc.locationName;
