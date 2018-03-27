@@ -56,6 +56,9 @@ export class UserService {
     if (this.cookieService.check('u')) {
       const userJson: string = atob(this.cookieService.get('u'));
       const user: User = JSON.parse(userJson);
+      if (user == null || user.username == null || user.userId) {
+        return false;
+      }
       this.setUser(user);
       return true;
     }

@@ -10,6 +10,7 @@ import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { UserService } from './user.service';
 
 @Injectable()
 export class ValLayerService {
@@ -29,7 +30,8 @@ export class ValLayerService {
       private topVars: TopVarService,
       private mapService: EsriMapService,
       private config: AppConfig,
-      private restClient: RestDataService){
+      private restClient: RestDataService,
+      private userService: UserService){
     this.topVars.selectedTopVar$.subscribe(demoVar => this.trackVariableUsage(demoVar));
   }
 
@@ -125,11 +127,11 @@ export class ValLayerService {
     impMetricCounter['baseStatus'] = 'INSERT';
     impMetricCounter.metricId = 1;
     impMetricCounter.createDate = new Date(Date.now());
-    impMetricCounter.createUser = -1;
+    impMetricCounter.createUser = this.userService.getUser().userId;
     impMetricCounter.metricText = 'selected demographic variable' + '~' + demographicVariable.fieldName + '~' + demographicVariable.label;
     impMetricCounter.metricValue = 1;
     impMetricCounter.modifyDate = new Date(Date.now());
-    impMetricCounter.modifyUser = -1;
+    impMetricCounter.modifyUser = this.userService.getUser().userId;
 
     // Send the counter data to Fuse for persistence
     this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter))
