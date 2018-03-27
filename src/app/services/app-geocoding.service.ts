@@ -6,6 +6,8 @@ import { Observable } from 'rxjs/Observable';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { map } from 'rxjs/operators';
+import { RestResponse } from '../models/RestResponse';
+import { merge } from 'rxjs/observable/merge';
 
 @Injectable()
 export class ValGeocodingService {
@@ -29,31 +31,44 @@ export class ValGeocodingService {
 
   public geocodeLocations(sites: ValGeocodingRequest[]) : Promise<ValGeocodingResponse[]> {
     let geocoderPromise: Promise<ValGeocodingResponse[]>;
+   // geocoderPromise = null;
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
+      const index: number = 0;
       const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
-      geocoderPromise = this.restService.post('v1/geocoder/multiplesites', cleanRequestData).toPromise()
-        .catch(err => {
-          console.error(err);
-          return Promise.reject([]);
-        })
-        .then(data => {
-          const fail: ValGeocodingResponse[] = [];
-          const success: ValGeocodingResponse[] = [];
-          data.payload.forEach(d => {
-            if (d['Match Quality'] === 'E' || d['Match Code'].startsWith('E')) {
-              d['Geocode Status'] = 'ERROR';
-              fail.push(new ValGeocodingResponse(d));
-            } else {
-              d['Geocode Status'] = 'SUCCESS';
-              success.push(new ValGeocodingResponse(d));
-            }
-          });
-          const projectFailures =  this.failures.getValue();
+      const requestData = this.chunkArray(cleanRequestData, 50);
+      const observables: Observable<ValGeocodingResponse[]>[] = [];
+      const promises: Promise<ValGeocodingResponse[]>[] = [];
+      requestData.forEach(reqList => {
+        const obs = this.restService.post('v1/geocoder/multiplesites', reqList).pipe(
+          map(data => {
+            const fail: ValGeocodingResponse[] = [];
+            const success: ValGeocodingResponse[] = [];
+            data.payload.forEach(d => {
+              if (d['Match Quality'] === 'E' || d['Match Code'].startsWith('E')) {
+                d['Geocode Status'] = 'ERROR';
+                fail.push(new ValGeocodingResponse(d));
+              } else {
+                d['Geocode Status'] = 'SUCCESS';
+                success.push(new ValGeocodingResponse(d));
+              }
+            });
+            const projectFailures =  this.failures.getValue();
           this.failures.next([...fail, ...projectFailures]);
-          this.showCompletedMessage();
-          return preGeoCodedSites.concat(success);
-        });
+          return success;
+          })
+        );
+        observables.push(obs);
+      });
+
+      observables.forEach(o => promises.push(o.toPromise()));
+      geocoderPromise = Promise.all(promises).then(data => {
+        this.showCompletedMessage();
+        return Array.prototype.concat(...data);
+      });
+
+     // mergeMap()
+     //const obs =  merge(...observables).subscribe(, null, () => obs.unsubscribe());
     }
     if (geocoderPromise) {
       return geocoderPromise;
@@ -69,4 +84,10 @@ export class ValGeocodingService {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
     }
   }
+
+  public chunkArray(data: ValGeocodingRequest[], size: number){
+    return Array.from({length: Math.ceil(data.length / size)})
+                      .map((_, i) => Array.from({length: size})
+                      .map((_ , j) => data[i * size + j]));
+  } 
 }
