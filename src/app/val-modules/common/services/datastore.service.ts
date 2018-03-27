@@ -62,13 +62,26 @@ export class DataStore<T>
     */
     public debugLogStore(useFirstMethod: boolean = false)
     {
+       try
+       {
        console.log('--# STORE CONTENTS #----------------');
        if (useFirstMethod)
-          for (const data of this._dataStore)
-             console.log(data);
+       {
+         if (this._dataStore)
+            for (const data of this._dataStore)
+               console.log(data);
+         else
+            console.log('** Empty **');
+       }
        else
-          for (let i = 0; i < this._storeSubject.getValue().length; i++)
-             console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
+          if (this._storeSubject && this._storeSubject.getValue())
+            for (let i = 0; i < this._storeSubject.getValue().length; i++)
+               console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
+      }
+      catch (e)
+      {
+         console.log('** Empty **');
+      }
     }
 
    // ---------------------------------------------
@@ -90,7 +103,15 @@ export class DataStore<T>
          console.log(restResponse);
 
          // Populate data store and notify observers
-         this._dataStore = restResponse.payload.rows;
+         if (restResponse.payload && restResponse.payload.rows)
+            this._dataStore = restResponse.payload.rows;
+         else
+         // A single object through a load
+         {
+            if (this._dataStore == null)
+               this._dataStore = new Array<T>();
+            this._dataStore.push(restResponse.payload);
+         }
          this._storeSubject.next(this._dataStore);
 
          // Debug log the data store
@@ -115,11 +136,17 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire prior to the fetch
     * @param postOperation - A callback delegate that will fire after the fetch
     */
-   public get(forceRefresh?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[]
+   public get(forceRefresh?: boolean, forceClear: boolean = false, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[]
    {
 //    console.log('DataStore.get fired');
       if (preOperation)
          preOperation(this._dataStore);
+
+      if (forceClear)
+      {
+         this._dataStore.length = 0;
+         this._dataStore = new Array<T>();
+      }
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
          this.fetch();

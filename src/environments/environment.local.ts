@@ -13,6 +13,7 @@ export interface LayerDefinition {
   defaultVisibility: boolean;
   popupTitleSuffix: string;
   minScale: number;
+  popUpFields: string[];
 }
 
 export class EnvironmentData {

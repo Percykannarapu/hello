@@ -1,3 +1,6 @@
+import { ImpProjectService } from './../../val-modules/targeting/services/ImpProject.service';
+import { UserService } from './../../services/user.service';
+import { AuthService } from './../../services/auth.service';
 import { GeofootprintMaster } from './../../models/GeofootprintMaster';
 import { ImpProductService } from './../../val-modules/mediaplanning/services/ImpProduct.service';
 import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -32,6 +35,7 @@ interface Product {
 
 interface Category {
    name: string;
+   code: string;
 }
 
 @Component({
@@ -45,6 +49,7 @@ export class DiscoveryInputComponent implements OnInit
    @Input() debugMode: boolean = false;
 
    public impDiscoveryUI: ImpDiscoveryUI;
+   public impProject: ImpProject = new ImpProject();
 
    products: Product[];
    selectedProduct: Product;
@@ -67,13 +72,17 @@ export class DiscoveryInputComponent implements OnInit
    public productCategoryTooltip: string;
 
    summer: boolean = true;
+   
+   showLoadBtn: boolean = false;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
    constructor(public impDiscoveryService: ImpDiscoveryService,
+               public impProjectService: ImpProjectService,
                public impRadLookupService: ImpRadLookupService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public userService: UserService,
                private http: HttpClient,
                private appState: AppState,
                private mapservice: MapService)
@@ -93,27 +102,27 @@ export class DiscoveryInputComponent implements OnInit
       ];
 
       this.categories = [
-         {name: 'N/A'},
-         {name: 'Auto Service/Parts'},
-         {name: 'Discount Stores'},
-         {name: 'Education'},
-         {name: 'Financial Services'},
-         {name: 'Full Service Restaurants'},
-         {name: 'Hardware_Home Improvement Ctrs'},
-         {name: 'Health and Beauty'},
-         {name: 'Healthcare'},
-         {name: 'Healthcare_Optical'},
-         {name: 'Home Furnishing_Mattress'},
-         {name: 'Home Services'},
-         {name: 'Non-profit'},
-         {name: 'Professional'},
-         {name: 'QSR Pizza'},
-         {name: 'Quick Service Restaurants'},
-         {name: 'Reminder'},
-         {name: 'Research'},
-         {name: 'Ritual'},
-         {name: 'Specialty Stores'},
-         {name: 'Telecommunications'}
+         {name: 'N/A',                            code: 'NA'},
+         {name: 'Auto Service/Parts',             code: 'AS03'},
+         {name: 'Discount Stores',                code: 'DS01'},
+         {name: 'Education',                      code: 'ED01'},
+         {name: 'Financial Services',             code: 'FS01'},
+         {name: 'Full Service Restaurants',       code: 'FSR03'},
+         {name: 'Hardware_Home Improvement Ctrs', code: 'HI03'},
+         {name: 'Health and Beauty',              code: 'HB01'},
+         {name: 'Healthcare',                     code: 'HC01'},
+         {name: 'Healthcare_Optical',             code: 'OP01'},
+         {name: 'Home Furnishing_Mattress',       code: 'HF01'},
+         {name: 'Home Services',                  code: 'HS01'},
+         {name: 'Non-profit',                     code: 'NP01'},
+         {name: 'Professional',                   code: 'PF01'},
+         {name: 'QSR Pizza',                      code: 'QSR01'},
+         {name: 'Quick Service Restaurants',      code: 'FSR01'},
+         {name: 'Reminder',                       code: 'REM'},
+         {name: 'Research',                       code: 'RES'},
+         {name: 'Ritual',                         code: 'RIT'},
+         {name: 'Specialty Stores',               code: 'SP01'},
+         {name: 'Telecommunications',             code: 'TE03'}
          ];
 
       this.analysisLevels = [
@@ -127,6 +136,20 @@ export class DiscoveryInputComponent implements OnInit
          {label: 'Summer', value: 'SUMMER'},
          {label: 'Winter', value: 'WINTER'}
       ];
+     
+      // Get a reference to the project
+      if (this.impProjectService.length() === 0)
+      // TODO: Should the service do this?
+//      if (this.impProject == null)
+      {
+         console.log('projectService was empty, creating new project');
+         this.impProject = new ImpProject();
+         this.impProject.projectId = null;
+         this.impProject.projectName = null;
+         this.impProjectService.add([this.impProject]);
+      }
+      else
+      this.impProject = this.impProjectService.get()[0];
 
       // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       // console.log('DiscoveryInputComponent constructed');
@@ -137,7 +160,7 @@ export class DiscoveryInputComponent implements OnInit
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
-     this.productCategoryTooltip = 'Used to calculate Performance metrics';
+      this.productCategoryTooltip = 'Used to calculate Performance metrics';
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -146,6 +169,7 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedSeason = this.seasons[1].value;
 
       // Subscribe to the data stores
+      this.impProjectService.storeObservable.subscribe(impProject => { this.impProject = impProject[0]; this.mapFromProject(); });
       this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
       this.impRadLookupService.get(true);
@@ -155,12 +179,82 @@ export class DiscoveryInputComponent implements OnInit
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
          console.log('DiscoveryInputComponent - impRadLookupService.impRadLookups.length: ' + this.impRadLookupService.impRadLookups.length);
-         }) ; */
+         }) ; */   
    }
 
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
+   // TODO: This component's controls should either be mapped right from the project or a UI composite model
+   public mapToProject()
+   {
+      if (this.impProject == null)
+         return;
+
+      console.log ('discovery-input.component - mapToProject - fired');
+      this.impProject.dirty = true;
+      this.impProject.baseStatus = (this.impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+      if (this.impProject.createUser == null)
+         this.impProject.createUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
+      if (this.impProject.createDate == null)
+         this.impProject.createDate = new Date(Date.now());
+      this.impProject.modifyUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
+      this.impProject.modifyDate = new Date(Date.now());
+      this.impProject.clientIdentifierTypeCode = 'CAR_LIST';
+      this.impProject.consumerPurchFreqCode = 'REMINDER';
+      this.impProject.goalCode = 'ACQUISITION';
+      this.impProject.objectiveCode = 'INCREASE_PENETRATION';
+      this.impProject.industryCategoryCode = this.impDiscoveryUI.industryCategoryCode,
+//      this.impProject.projectName    = 'Whee Look at me!  I\'m Angie Dickenson';
+//      this.impProject.description    = 'Yep, this is a project description';
+      this.impProject.methAnalysis   = this.impDiscoveryUI.analysisLevel;
+      this.impProject.totalBudget    = (this.impDiscoveryUI.totalBudget != null) ? this.impDiscoveryUI.totalBudget : this.impDiscoveryUI.circBudget;
+      this.impProject.isValidated    = true;
+      this.impProject.isCircBudget   = (this.impDiscoveryUI.totalBudget != null) ? false : true;
+      this.impProject.isSingleDate   = true;
+      this.impProject.isExcludePob   = (this.impDiscoveryUI.includePob) ? true : false;
+      this.impProject.isActive       = true;
+      this.impProject.isSingleDate   = true;
+      this.impProject.isMustCover    = true;
+      this.impProject.isDollarBudget = true;
+      this.impProject.isRunAvail     = true;
+      this.impProject.isHardPdi      = true;
+
+      // TODO: This needs to be in product allocations, hijacking description for product code for now
+      this.impProject.description    = this.impDiscoveryUI.productCode;
+   }
+
+   public mapFromProject()
+   {
+      // Bail if there is no project to map from
+      if (this.impProject == null || this.impProject.projectId == null)
+         return;
+      
+      console.log ('discovery-input.component - mapFromProject - fired');
+      this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
+      this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
+
+      this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
+      this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
+      // TODO: This belongs in product allocations, which doesn't exist yet.  Using project description
+      this.impDiscoveryUI.productCode          = this.impProject.description
+//    this.selectedProduct = this.products.filter(product => product.productCode = this.impProject.description)[0];
+      console.log('this.impDiscoveryUI.productCode: ', this.impDiscoveryUI.productCode);
+
+      if (this.impProject.isCircBudget)
+      {
+         this.impDiscoveryUI.circBudget = this.impProject.totalBudget;
+         this.impDiscoveryUI.totalBudget = null;
+      }
+      else
+      {
+         this.impDiscoveryUI.circBudget = null;
+         this.impDiscoveryUI.totalBudget = this.impProject.totalBudget;
+      }
+      
+      this.impDiscoveryUI.includePob = this.impProject.isExcludePob;
+      console.log ('discovery-input.component - mapFromProject - finished');
+   }
 
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event);
@@ -222,9 +316,11 @@ export class DiscoveryInputComponent implements OnInit
 
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
-   // -----------------------------------------------------------
+   // -----------------------------------------------------------   
    public onChangeField(event: SelectItem)
    {
+      this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
+
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
 
       this.impRadLookupService.storeObservable.subscribe(res => {
@@ -232,7 +328,9 @@ export class DiscoveryInputComponent implements OnInit
             let isvalid = false;
             res.forEach(radLookup => {
                   if (!isvalid){
-                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
+                        if (this.impDiscoveryUI.industryCategoryCode &&
+                            this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&
+                            this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
                               this.productCategoryTooltip = '';
                               isvalid = true;
                         }
@@ -244,6 +342,12 @@ export class DiscoveryInputComponent implements OnInit
       });
    }
 
+   public onChangeProjectId(event: SelectItem)
+   {
+      // Conditionally display the load button if the projectId has a value
+      this.showLoadBtn = (this.impProject && this.impProject.projectId) ? true : false;
+   }
+
    public onChangeProduct(event: SelectItem)
    {
       console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');
@@ -251,6 +355,7 @@ export class DiscoveryInputComponent implements OnInit
       {
          this.radDisabled = false;
          //this.filterCategories(event.value.productCode);
+         this.impDiscoveryUI.productCode = event.value.productCode;
       }
       else
       {
@@ -261,105 +366,22 @@ export class DiscoveryInputComponent implements OnInit
       this.onChangeField(event);
    }
 
-   // Test Persisting the Project
-   //   This is just proving out converting the typescript models
-   //   to a JSON string and posting to the back end save endpoint
-   //   will persist to the database
-   saveProject() {
-      console.log('discovery-input-component calling saveProject');
-      const impProject = new ImpProject();
+   public loadProject()
+   {
+      console.log('discovery-input.component - loadProject fired');
 
-      //TODO - save should be part of the project service - this is a quick and dirty PoC
+      // Load the project
+      this.impProjectService.loadProject(this.impProject.projectId);
+   }
 
-      // This will become mapDisciveryUItoImpProject
-      console.log('discovery-input-component populating project');
-//      impProject['dirty'] = true;
-//      impProject['baseStatus'] = 'INSERT';
-      impProject.dirty = true;
-      impProject.baseStatus = DAOBaseStatus.INSERT;
-      impProject.projectId = null;
-      impProject.createUser = -1;
-      impProject.createDate = new Date(Date.now());
-      impProject.modifyUser = -1;
-      impProject.modifyDate = new Date(Date.now());
-//      impProject.clientIdentifierType = new ClientIdentifierType({clientIdentifierTypeCode: 'CAR_LIST'}); // TODO: Find source
-      impProject.clientIdentifierTypeCode = 'CAR_LIST';
-//      impProject.consumerPurchasingFreq = new ConsumerPurchasingFreq({consumerPurchaseFreqCode: 'REMINDER'});
-      impProject.consumerPurchFreqCode = 'REMINDER';
-//      impProject.goal = new Goal({goalCode: 'ACQUISITION'});
-      impProject.goalCode = 'ACQUISITION';
-//      impProject.objective = new Objective({objectiveCode: 'INCREASE_PENETRATION'});
-      impProject.objectiveCode = 'INCREASE_PENETRATION';
-      impProject.industryCategoryCode = this.impDiscoveryUI.industryCategoryCode,
-      impProject.projectName = 'Whee Look at me!  I\'m Angie Dickenson';
-      impProject.description = 'Yep, this is a project description';
-      impProject.methAnalysis = this.impDiscoveryUI.analysisLevel;
-      impProject.totalBudget = (this.impDiscoveryUI.totalBudget != null) ? this.impDiscoveryUI.totalBudget : this.impDiscoveryUI.circBudget;
-      impProject.isValidated = true;
-      impProject.isCircBudget = (this.impDiscoveryUI.totalBudget != null) ? false : true;
-      impProject.isSingleDate = true;
-      impProject.isExcludePob = (this.impDiscoveryUI.includePob) ? true : false;
-      impProject.isActive = true;
+   public saveProject()
+   {
+      // Map the discovery data to the project
+      this.mapToProject();
 
-      impProject.isSingleDate   = true;
-      impProject.isMustCover    = true;
-      impProject.isDollarBudget = true;
-      impProject.isRunAvail     = true;
-      impProject.isHardPdi      = true;
-
-      // Geofootprint
-      console.log('discovery-input-component populating geofootprint');
-      impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
-      let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
-//    newCGM['dirty'] = true;
-//    newCGM['baseStatus'] = 'INSERT';
-      newCGM.dirty = true;
-      newCGM.baseStatus = DAOBaseStatus.INSERT;
-      newCGM.methAnalysis = (this.impDiscoveryUI.analysisLevel) ? this.impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
-      newCGM.status = 'SUCCESS';
-      newCGM.summaryInd = 0;
-      newCGM.createdDate = new Date(Date.now());
-      newCGM.isMarketBased = false;
-      newCGM.isActive = true;
-      newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
-
-      // TODO: Really the project service should be utilized and as locations are added, they become children of the project
-      console.log('discovery-input-component populating locations');
-      newCGM.impGeofootprintLocations = this.impGeofootprintLocationService.get();
-//      for (let location of this.impGeofootprintLocationService.get())
-      let locNumber: number = 1000;
-      for (let location of newCGM.impGeofootprintLocations)
-      {
-         location.isActive = true;
-         location.glId = null;
-         location.locationNumber = locNumber++;
-         location.clientIdentifierId = locNumber;          // Mandatory field, stubbing
-         location.marketName = 'Test Market ' + locNumber; // Mandatory field, stubbing
-      }
-      console.log('discovery-input-component pushing new geofootprint');
-      impProject.impGeofootprintMasters.push(newCGM);
-
-// TODO:  geofootprint master is not getting created
-// We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
-// need to alter the typescript models to emit booleans for the "is" variables
-// The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys
-// from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
-// See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity
-// But we are going to let that slide for now.   It will persist fine without these IDs, but NEED to fix down the road.
-
-      // Convert the Typescript models into a JSON string
-      console.log('discovery-input-component populating posting');
-      const payload: string = JSON.stringify(impProject);
-      console.log('payload', payload);
-
-      // Prepare HTTP Headers
-      const headers = new HttpHeaders()
-     .set('Content-Type', 'application/json');
-
-      // TODO: Need to implement save in the data store
-      this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
-         console.log ('result: ', result);
-      });
+      // Save the project
+      this.impProjectService.saveProject();      
+      this.impProject = this.impProjectService.get()[0];
    }
 
    fetchRadData() {

@@ -129,9 +129,14 @@ import {DiscoveryInputComponent} from './components/discovery-input/discovery-in
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {GeocoderService} from './services/geocoder.service';
+import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
+import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
+import {ImpClientLocationService} from './val-modules/client/services/ImpClientLocation.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import {ImpGeofootprintTradeAreaService} from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
+import {ImpGeofootprintLocAttribService} from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import {ImpGeofootprintGeoAttribService} from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
@@ -139,8 +144,6 @@ import {EsriIdentityService} from './services/esri-identity.service';
 import { TopVarService } from './services/top-var.service';
 import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
-import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
@@ -285,6 +288,7 @@ import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload
         GfGeoService, MapService, RestDataService,
         MetricService, EsriModules, ValLayerService,
         AppState, GeocoderService, GeocodingResponseService,
+        ImpProjectService, ImpProjectPrefService, ImpClientLocationService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint, EsriLayerService,
