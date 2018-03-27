@@ -499,7 +499,7 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    debugLogStore() {
-      this.impRadLookupService.debugLogStore();
+      this.impRadLookupService.debugLogStore("RAD LOOKUP");
    }
 
    // -----------------------------------------------------------

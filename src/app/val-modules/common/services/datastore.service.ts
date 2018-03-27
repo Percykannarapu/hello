@@ -54,29 +54,30 @@ export class DataStore<T>
     * Get the data store configuration
     */
    public static getConfig() : DataStoreServiceConfiguration {
-         return DataStore.dataStoreServiceConfiguration;
+      return DataStore.dataStoreServiceConfiguration;
    }
 
    /**
     * Log the store to the console.  Also an example of two ways to iterate through it
     */
-    public debugLogStore(useFirstMethod: boolean = false)
+    public debugLogStore(storeTitle: string, useFirstMethod: boolean = false)
     {
-       try
-       {
-       console.log('--# STORE CONTENTS #----------------');
-       if (useFirstMethod)
-       {
-         if (this._dataStore)
-            for (const data of this._dataStore)
-               console.log(data);
+      try
+      {
+         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '') + 'STORE CONTENTS #----------------');
+
+         if (useFirstMethod)
+         {
+            if (this._dataStore)
+               for (const data of this._dataStore)
+                  console.log(data);
+            else
+               console.log('** Empty **');
+         }
          else
-            console.log('** Empty **');
-       }
-       else
-          if (this._storeSubject && this._storeSubject.getValue())
-            for (let i = 0; i < this._storeSubject.getValue().length; i++)
-               console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
+            if (this._storeSubject && this._storeSubject.getValue())
+               for (let i = 0; i < this._storeSubject.getValue().length; i++)
+                  console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
       }
       catch (e)
       {
@@ -92,17 +93,16 @@ export class DataStore<T>
     * Private method accessed publicly through get, which will fetch
     * data into the store from this.dataUrl.
     */
-   private fetch()
+   private fetch(postOperation?: callbackMutationType<T>)
    {
       console.log('DataStore.fetch fired for ' + this.dataUrl);
 //    console.trace('fetch trace');
 
       this.rest.get(this.dataUrl).subscribe(restResponse => {
          // Log and test the response
-         console.log('fetch - returnCode: ' + restResponse.returnCode);
-         console.log(restResponse);
+         console.log('DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
 
-         // Populate data store and notify observers
+         // Populate data store
          if (restResponse.payload && restResponse.payload.rows)
             this._dataStore = restResponse.payload.rows;
          else
@@ -112,11 +112,15 @@ export class DataStore<T>
                this._dataStore = new Array<T>();
             this._dataStore.push(restResponse.payload);
          }
-         this._storeSubject.next(this._dataStore);
 
-         // Debug log the data store
-         console.log('fetched ' + this._storeSubject.getValue().length + ' rows.');
-         this.debugLogStore();
+//       console.log('DataStore.fetched ' + this._storeSubject.getValue().length + ' rows, notifying subscribers');
+         console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
+
+         // Notify observers
+         this._storeSubject.next(this._dataStore);
+         
+         if (postOperation)
+            postOperation(this._dataStore);
       },
       (error: any) => {
          console.log ('DataStore.fetch - ERROR:', error);
@@ -149,10 +153,10 @@ export class DataStore<T>
       }
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
-         this.fetch();
+         this.fetch(postOperation);
 
-      if (postOperation)
-         postOperation(this._dataStore);
+//      if (postOperation)
+//          postOperation(this._dataStore);
 
       return this._dataStore;
    }
@@ -203,8 +207,9 @@ export class DataStore<T>
       }
       else
          // Add every new element to the data store, because there is no preOperation to invalidate them
-         for (const data of dataArray)
-            this._dataStore.push(data);
+         if (dataArray && dataArray.length > 0)
+            for (const data of dataArray)
+               this._dataStore.push(data);
 
       // postOperation determines if a success = false, is still a success.  ie. some of the rows were added, but not all and thats ok
       if (postOperation)
@@ -220,7 +225,10 @@ export class DataStore<T>
 
       // Register data store change and notify observers
       if (success)
+      {
+         console.log('DataStore.service.add - success, alerting subscribers');
          this._storeSubject.next(this._dataStore);
+      }
    }
 
    /**
@@ -239,7 +247,9 @@ export class DataStore<T>
     */
    public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
    {
+      console.log ('datastore.replace - fired');
       this.clearAll(false);
+      console.log ('datastore.replace - adding data');
       this.add(dataArray, preOperation, postOperation);
    }
    

@@ -50,37 +50,59 @@ export class ImpProjectService extends DataStore<ImpProject>
    loadProject(projectId: number, clearStore: boolean = false)
    {
       console.log('ImpProject.service.loadProject - fired');
-      this.debugLogStore(true);
+      this.debugLogStore('PROJECTS');
       
       this.dataUrl = restUrl + 'load/' + projectId;
 //      this.dataUrl = restUrl + 'search?q=impProject&projectId=' + projectId;
-      this.get(true,true, undefined, this.populateLocations);
+      this.get(true,true, p => this.onBeforeLoadProject(p), p => this.populateLocations(p));
 
-      console.log ('ImpProject.service.loadProject - dataUrl: ' + dataUrl);
-      this.debugLogStore(true);
+      //      console.log ('ImpProject.service.loadProject - dataUrl: ' + dataUrl);
+//      this.impGeofootprintLocationService.debugLogStore("RIGHT AFTER GET", true);
+//      this.debugLogStore('LOCATIONS', true);
+
+      // Alternate solution
+      // this.storeObservable.subscribe(projectData => this.populateLocations(projectData));
    }
 
-   // type callbackSuccessType<T> = (boolean) => boolean;   
-   populateLocations(projects: ImpProject[]): ImpProject[]
+   onBeforeLoadProject(projects: ImpProject[]): boolean
    {
-      console.log('ImpProject.service.populateLocations - fired', projects);
-      console.log('projects = null: ' + (projects) ? false : true);
-      console.log('projects.length = ' + projects.length);
+      console.log('########  ImpProject.service.onBeforeLoadProjectFired', projects);
+      return true;
+   }
+
+   populateLocations(projects: ImpProject[]) //: ImpProject[]
+   {
       if (projects && projects.length > 0)
       {
+         console.log('#######  ImpProject.service.populateLocations - fired', projects);
+//         console.log('projects = ' + JSON.stringify(projects));
+         console.log('projects = null: ' + (projects) ? true : false);
+         console.log('projects.length = ' + projects.length);
          console.log('ImpProject.service.populateLocations - Project loaded successfully');
          // const impProject: ImpProject = this.get(true,true)[0];
 
          // // Put the locations into the location service
-         // this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations, null, this.populateLocations);
-         
+         console.log('projects == null: ' + (projects == null) ? true : false);
+         console.log('projects.length = ', projects.length);
+//         console.log('projects[0] = ', JSON.stringify(projects[0]));
+//         console.log('projects[0].impGeofootprintMasters = ', JSON.stringify(projects[0].impGeofootprintMasters));
+//         console.log('projects[0].impGeofootprintMasters.locations = ', JSON.stringify(projects[0].impGeofootprintMasters[0].impGeofootprintLocations));
+//         console.log('###### About to print data store');
+         if (this == null)
+            console.log('this is null');
+         else
+         {
+            if (this.impGeofootprintLocationService == null)
+               console.log('this.impGeofootprintLocationService is null');
+            else
+               console.log('Apparently, nothing is null');
+//            this.impGeofootprintLocationService.replace(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
+               this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
+            }
          return projects;
       }
       else
-      {
-         console.log('ImpProject.service.populateLocations - Project did not load, cannot populate locations');
          return projects;
-      }
    }
 
    // Test Persisting the Project
@@ -102,34 +124,42 @@ export class ImpProjectService extends DataStore<ImpProject>
       // Geofootprint
       // TODO: We really do not want to create a new CGM each time
       console.log('ImpProject.service - populating geofootprint master');
-      impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
-      let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
-      newCGM.dirty = true;
-      newCGM.baseStatus = (impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-      newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
-      newCGM.status = 'SUCCESS';
-      newCGM.summaryInd = 0;
-      newCGM.createdDate = new Date(Date.now());
-      newCGM.isMarketBased = false;
-      newCGM.isActive = true;
-      newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
+      if (!impProject.impGeofootprintMasters)
+         impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
+
+      if (impProject.impGeofootprintMasters.length === 0)
+      {
+         let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
+         newCGM.dirty = true;
+         newCGM.baseStatus = (impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+         newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
+         newCGM.status = 'SUCCESS';
+         newCGM.summaryInd = 0;
+         newCGM.createdDate = new Date(Date.now());
+         newCGM.isMarketBased = false;
+         newCGM.isActive = true;
+         newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
+         impProject.impGeofootprintMasters.push(newCGM);
+      }
 
       // TODO: Really the project service should be utilized and as locations are added, they become children of the project
       console.log('ImpProject.service - populating locations');
-      newCGM.impGeofootprintLocations = this.impGeofootprintLocationService.get();
+      impProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impGeofootprintLocationService.get();
+
+      // Problem is, we need trade areas under the locations
+      // TODO: This should be coming from the ImpGeofootprintTradeAreaService
 
       let locNumber: number = 1000;
-      for (let location of newCGM.impGeofootprintLocations)
+      for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
       {
          location.baseStatus = (location.glId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-         location.isActive = true;
-         location.locationNumber = locNumber++;            // Mandatory field, stubbing
-         location.clientIdentifierId = locNumber;          // Mandatory field, stubbing
+//       location.isActive = true;
+//       location.locationNumber = locNumber++;            // Mandatory field, stubbing
+         location.clientIdentifierId = location.locationNumber; // Mandatory field, stubbing
          location.marketName = 'Test Market ' + locNumber; // Mandatory field, stubbing
          console.log('location: ', location);
       }
       console.log('ImpProject.service - pushing new geofootprint');
-      impProject.impGeofootprintMasters.push(newCGM);
 
 // TODO:
 // We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)

@@ -23,7 +23,7 @@ export class SiteListComponent implements OnInit {
   public columnOptions: SelectItem[] = [];
   // TODO: Where to put this stuff?
   public allColumns: any[] = [
-    { field: 'glId',                 header: 'Number',           size: '60px'},
+    { field: 'locationNumber',       header: 'Number',           size: '60px'},
     { field: 'locationName',         header: 'Name',             size: '120px'},
     { field: 'locAddress',           header: 'Address',          size: '120px'},
     { field: 'locCity',              header: 'City',             size: '70px'},
