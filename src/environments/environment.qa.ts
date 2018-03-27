@@ -150,6 +150,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: '',
         minScale: undefined,
+        popUpFields: []        
       },
       source: { // source feature layer
         id: undefined,
@@ -157,6 +158,7 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitleSuffix: '',
         minScale: undefined,
+        popUpFields: []        
       }
     }
   };

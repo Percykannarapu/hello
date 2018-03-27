@@ -16,15 +16,14 @@ export class AppConfig implements EsriLoaderConfig {
      url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal
      portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
-     /*
-     dojoConfig: {
+       dojoConfig: {
         has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
-        // 'esri-promise-compatibility': 1,
+        //'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-        // 'esri-featurelayer-webgl': 1
+        //'esri-featurelayer-webgl': 1
         }
-      }*/
+      }
    };
    esriIdentityParams: AuthenticationParams = {
      // for valvcshad001vm
@@ -70,4 +69,5 @@ export class AppConfig implements EsriLoaderConfig {
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel()`);
     }
   }
+
 }

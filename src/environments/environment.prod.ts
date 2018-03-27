@@ -10,7 +10,7 @@ export interface LayerDefinition {
   minScale: number;
   popUpFields: string[];
 }
-
+ 
 export class EnvironmentData {
 
   // The name of the environment

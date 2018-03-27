@@ -57,6 +57,7 @@ export class MapService {
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
+    //private highlight: __esri.Graphic[] = null;
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups;
@@ -1949,6 +1950,62 @@ export class MapService {
             }
         } */
 
+  /*      
+  // requires webGL enabled revisit after 4.6+ upgrade
+  public enableHighlightOnPointerMove() {
+
+    const impDiscoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
+    console.log('PointerMove impDiscoveryUI[0].analysisLevel = ' + impDiscoveryUI[0].analysisLevel);
+    if (impDiscoveryUI[0].analysisLevel != '') {
+      const analysisLevel: string = impDiscoveryUI[0].analysisLevel;
+      const portalLayerId: string = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+      console.log('my_analysisLevel = ' + analysisLevel); 
+      const layer: __esri.FeatureLayer = this.layerService.getPortalLayerById(portalLayerId);       
+      
+      this.mapView.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
+      this.mapView.on('pointer-move', (event) => {
+      this.mapView.hitTest(event)
+        .then((r) => {
+
+          // remove the previous highlight
+          if (this.highlight) {
+              //this.highlight.remove();
+              this.highlight = null;
+          }
+
+          // if a feature is returned, highlight it
+          // and display its attributes in the popup
+          // if no features are returned, then close the popup
+          let id: number = null;
+
+          if (r.results.length > 0) {
+            const feature = r.results[0].graphic;
+            feature.popupTemplate = layer.popupTemplate;
+            id = feature.attributes.OBJECTID;
+            this.highlight = layerView.highlight([id]);
+            const selectionId = this.mapView.popup.selectedFeature ?
+              this.mapView.popup.selectedFeature.attributes.OBJECTID :
+              null;
+
+            if (this.highlight && (id !== selectionId)) {
+              this.mapView.popup.open({
+                features: [feature],
+                updateLocationEnabled: true
+              });
+            }
+          } else {
+            if (this.mapView.popup.visible) {
+                this.mapView.popup.close();
+                this.mapView.popup.clear();
+            }
+          }
+        });
+    });
+  });
+} // END IF  
+}
+*/
+
     public selectSinglePolygon(evt: __esri.MapViewClickEvent, preSelectedGeo?: __esri.Geometry, preSelectedObjectId?: number) {
         if (evt != null) {
           this.appMapService.handleClickEvent(evt);
@@ -2423,7 +2480,6 @@ export class MapService {
     //     return geoCodedSiteList;
     // }
 }
-
 
 export interface EsriWrapper<T> {
 
