@@ -149,7 +149,6 @@ export class AuthService implements CanActivate {
     this.cookieService.set('te', this.oauthToken != null ? btoa(this.tokenExpiration.toString()) : null, date);
     this.cookieService.set('ci', this.oauthToken != null ? btoa(this.clientId) : null, date);
     this.cookieService.set('cs', this.oauthToken != null ? btoa(this.clientSecret) : null, date);
-    this.cookieService.set('u', this.oauthToken != null ? btoa(username) : null, date);
   }
 
   /**
@@ -172,16 +171,15 @@ export class AuthService implements CanActivate {
     if (this.cookieService.check('cs')) {
       this.clientSecret = atob(this.cookieService.get('cs'));
     }
-    if (this.cookieService.check('u')) {
-      const user: User = new User();
-      user.username = atob(this.cookieService.get('u'));
-      this.userService.setUser(user);
+    if (this.userService.loadUserCookie()) {
+      this.user = this.userService.getUser();
     }
     if (this.oauthToken != null &&
       this.oauthRefreshToken != null &&
       this.tokenExpiration != null &&
       this.clientId != null &&
-      this.clientSecret != null) {
+      this.clientSecret != null &&
+      this.user != null) {
       return true;
     }
     return false;
