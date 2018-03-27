@@ -59,11 +59,11 @@ export class SiteListComponent implements OnInit {
   public onListTypeChange(data: 'Site' | 'Competitor') {
     this.selectedListType = data;
     if (this.selectedListType === 'Site') {
-      this.currentAllSites$ = this.siteListService.allSites$;
-      this.currentActiveSites$ = this.siteListService.activeSites$;
+      this.currentAllSites$ = this.siteListService.allClientLocations$;
+      this.currentActiveSites$ = this.siteListService.activeClientLocations$;
     } else {
-      this.currentAllSites$ = this.siteListService.allCompetitors$;
-      this.currentActiveSites$ = this.siteListService.activeCompetitors$;
+      this.currentAllSites$ = this.siteListService.allCompetitorLocations$;
+      this.currentActiveSites$ = this.siteListService.activeCompetitorLocations$;
     }
     this.setCounts();
   }

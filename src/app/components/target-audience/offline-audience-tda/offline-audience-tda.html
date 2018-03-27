@@ -1,0 +1,8 @@
+<div class="val-wide-tree">
+  <div class="ui-g-8">
+      <i class="fa fa-search"></i>
+      <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
+  </div>
+  <p-tree [value]="currentNodes" selectionMode="checkbox" [(selection)]="selectedVariables"></p-tree>
+</div>
+

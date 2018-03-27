@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { ValSiteListService } from './app-site-list.service';
 import { Subscription } from 'rxjs/Subscription';
 import { LocationUiModel } from '../models/location-ui.model';
@@ -14,6 +14,8 @@ import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './app-metrics.service';
 import { ValTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { MessageService } from 'primeng/components/common/messageservice';
+import { tap } from 'rxjs/operators';
 
 export interface Coordinates {
   xcoord: number;
@@ -21,8 +23,9 @@ export interface Coordinates {
 }
 
 @Injectable()
-export class ValMapService {
+export class ValMapService implements OnDestroy {
   private siteSubscription: Subscription;
+  private competitorSubscription: Subscription;
   private geoSubscription: Subscription;
   private discoverySubscription: Subscription;
   private clientTradeAreaSubscription: Subscription;
@@ -33,32 +36,38 @@ export class ValMapService {
   private currentBufferLayerNames = new Map<string, string[]>();
   private currentGeocodeList: string[] = [];
 
+  private defaultRenderers = new Map<string, __esri.Renderer>();
+
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
-              private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService) {
+              private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService,
+              private messageService: MessageService) {
     this.currentAnalysisLevel = '';
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
-        this.siteSubscription = this.siteService.allUiSites$.subscribe(sites => {
-          const clientSites = sites.filter(s => s.location.clientLocationTypeCode === 'Site');
-          const competitorSites = sites.filter(s => s.location.clientLocationTypeCode === 'Competitor');
-          if (clientSites.length > 0) {
-            if (!this.currentLocationList.has('Site')) this.currentLocationList.set('Site', []);
-            this.onSiteListChanged(clientSites, 'Site');
-          }
-          if (competitorSites.length > 0) {
-            if (!this.currentLocationList.has('Competitor')) this.currentLocationList.set('Competitor', []);
-            this.onSiteListChanged(competitorSites, 'Competitor');
-          }
-        });
+        this.siteSubscription = this.siteService.allClientSites$.pipe(
+          tap(() => { if (!this.currentLocationList.has('Site')) this.currentLocationList.set('Site', []); })
+        ).subscribe(sites => this.onSiteListChanged(sites, 'Site'));
+        this.competitorSubscription = this.siteService.allCompetitorSites$.pipe(
+          tap(() => { if (!this.currentLocationList.has('Competitor')) this.currentLocationList.set('Competitor', []); })
+        ).subscribe(competitors => this.onSiteListChanged(competitors, 'Competitor'));
         this.geoSubscription = this.appGeoService.uniqueSelectedGeocodes$.subscribe(geocodes => this.onGeocodeListChanged(geocodes));
         this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
         this.clientTradeAreaSubscription = this.tradeAreaService.clientBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Site'));
         this.competitorTradeAreaSubscription = this.tradeAreaService.competitorBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Competitor'));
       }
     });
+  }
+
+  ngOnDestroy() : void {
+    if (this.siteSubscription) this.siteSubscription.unsubscribe();
+    if (this.competitorSubscription) this.competitorSubscription.unsubscribe();
+    if (this.geoSubscription) this.geoSubscription.unsubscribe();
+    if (this.discoverySubscription) this.discoverySubscription.unsubscribe();
+    if (this.clientTradeAreaSubscription) this.clientTradeAreaSubscription.unsubscribe();
+    if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
   }
 
   private onSiteListChanged(sites: LocationUiModel[], siteType: string) {
@@ -92,6 +101,7 @@ export class ValMapService {
     const adds = geocodes.filter(g => !currentGeocodes.has(g));
     const deletes = this.currentGeocodeList.filter(g => !newGeocodes.has(g));
     this.currentGeocodeList = Array.from(geocodes);
+    //this.setRendererInfo(newGeocodes, this.currentAnalysisLevel);
     if (adds.length > 0) this.addToSelection(adds, this.currentAnalysisLevel);
     if (deletes.length > 0) this.removeFromSelection(deletes, this.currentAnalysisLevel);
   }
@@ -198,7 +208,9 @@ export class ValMapService {
     });
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const outFields = this.metricsService.getLayerAttributes();
-    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, true, outFields).subscribe(graphics => {
+
+    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, true, outFields).subscribe(
+      graphics => {
         const newGraphics = graphics.map(f => {
           return new EsriModules.Graphic({
             symbol: highlightSymbol,
@@ -213,10 +225,15 @@ export class ValMapService {
         } else {
           this.layerService.createClientLayer('Sites', layerName, newGraphics, 'polygon');
         }
-    }, err => console.error(err), () => {
-      console.log('addToSelection complete');
-      sub.unsubscribe();
-    });
+      },
+      err => {
+        console.error(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'There was an error during geo selection' });
+      },
+      () => {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Geo selection is complete' });
+        sub.unsubscribe();
+      });
   }
 
   public removeFromSelection(geocodes: string[], analysisLevel: string) {
@@ -224,5 +241,28 @@ export class ValMapService {
     const sub = this.queryService.queryAttributeIn({ clientLayerName: layerName }, 'geocode', geocodes, true).subscribe(graphics => {
       this.layerService.removeGraphicsFromLayer(layerName, graphics);
     }, err => console.error(err), () => sub.unsubscribe());
+  }
+
+  private setRendererInfo(newGeocodes: Set<string>, currentAnalysisLevel: string) {
+    if (newGeocodes.size === 0) return;
+    const selectedGeo = (feature: __esri.Graphic) => newGeocodes.has(feature.attributes.geocode) ? 'Selected Geo' : 'Unselected Geo';
+    const highlightColor = new EsriModules.Color([0, 255, 0, 0.1]);
+    const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
+    const highlightSymbol = new EsriModules.SimpleFillSymbol({
+      color: highlightColor,
+      outline: { color: outlineColor, style: 'solid', width: 2},
+      style: 'solid'
+    });
+    const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const layer = this.layerService.getPortalLayerById(portalId);
+    if (!this.defaultRenderers.has(currentAnalysisLevel)) {
+      this.defaultRenderers.set(currentAnalysisLevel, layer.renderer);
+    }
+    const newRenderer = new EsriModules.UniqueValueRenderer({
+      defaultSymbol: (this.defaultRenderers.get(currentAnalysisLevel) as __esri.SimpleRenderer).symbol,
+      field: selectedGeo
+    });
+    newRenderer.addUniqueValueInfo('Selected Geo', highlightSymbol);
+    layer.renderer = newRenderer;
   }
 }

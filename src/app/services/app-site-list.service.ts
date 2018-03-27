@@ -36,12 +36,14 @@ export class ValSiteListService implements OnDestroy {
   private uiModelSubject: BehaviorSubject<LocationUiModel[]> = new BehaviorSubject<LocationUiModel[]>([]);
   private uiModels: LocationUiModel[];
 
-  public allSites$: Observable<ImpGeofootprintLocation[]>;
-  public activeSites$: Observable<ImpGeofootprintLocation[]>;
-  public allCompetitors$: Observable<ImpGeofootprintLocation[]>;
-  public activeCompetitors$: Observable<ImpGeofootprintLocation[]>;
+  public allClientLocations$: Observable<ImpGeofootprintLocation[]>;
+  public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
+  public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
+  public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
 
-  public allUiSites$: Observable<LocationUiModel[]> = this.uiModelSubject.asObservable();
+  public allSites$: Observable<LocationUiModel[]> = this.uiModelSubject.asObservable();
+  public allClientSites$: Observable<LocationUiModel[]>;
+  public allCompetitorSites$: Observable<LocationUiModel[]>;
 
   constructor(private locationService: ImpGeofootprintLocationService,
               private attributeService: ImpGeofootprintLocAttribService,
@@ -66,21 +68,24 @@ export class ValSiteListService implements OnDestroy {
       this.createOrUpdateUiModels(Array.from(locs), attributes);
     });
 
-    this.allSites$ = this.allLocations$.pipe(
+    this.allClientLocations$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Site'))
     );
-    this.activeSites$ = this.allLocations$.pipe(
+    this.activeClientLocations$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Site' && l.isActive === true))
     );
-    this.allCompetitors$ = this.allLocations$.pipe(
+    this.allCompetitorLocations$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Competitor'))
     );
-    this.activeCompetitors$ = this.allLocations$.pipe(
+    this.activeCompetitorLocations$ = this.allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode && l.clientLocationTypeCode === 'Competitor' && l.isActive === true))
     );
 
-    this.clientCountSubscription = this.activeSites$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
-    this.compCountSubscription = this.activeCompetitors$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
+    this.allClientSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientIdentifierTypeCode === 'Site')));
+    this.allCompetitorSites$ = this.allSites$.pipe(map(sites => sites.filter(s => s.location.clientIdentifierTypeCode === 'Competitor')));
+
+    this.clientCountSubscription = this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
+    this.compCountSubscription = this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
   }
 
   public ngOnDestroy() : void {
@@ -130,14 +135,15 @@ export class ValSiteListService implements OnDestroy {
       subscriptions[analysisLevel] = this.queryService.queryPoint({ portalLayerId: layerId }, locationsNeedingHomeGeo, true, ['geocode']).subscribe(graphics => {
         const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
         for (const loc of locationsNeedingHomeGeo) {
-          const currentPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
+          const locationPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
           for (const graphic of graphics) {
             if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
-              if (graphic.geometry.contains(currentPoint)) {
+              if (graphic.geometry.contains(locationPoint)) {
                 const realAttribute = new ImpGeofootprintLocAttrib({
                   attributeCode: homeGeoKey,
                   attributeValue: graphic.attributes.geocode,
-                  impGeofootprintLocation: loc
+                  impGeofootprintLocation: loc,
+                  isActive: 1
                 });
                 attributesToAdd.push(realAttribute);
                 if (analysisLevel === this.currentAnalysisLevel) loc.homeGeocode = graphic.attributes.geocode;
@@ -161,9 +167,8 @@ export class ValSiteListService implements OnDestroy {
       const homeGeoKey = `Home ${analysisLevel}`; // TODO: This was copy pasta'd
       const currentAttributes = this.attributeService.get().filter(a => a.attributeCode === homeGeoKey);
       for (const attribute of currentAttributes) {
-        const index = currentLocations.indexOf(attribute.impGeofootprintLocation);
-        if (index >= 0) {
-          currentLocations[index].homeGeocode = attribute.attributeValue;
+        if (attribute.impGeofootprintLocation != null) {
+          attribute.impGeofootprintLocation.homeGeocode = attribute.attributeValue;
         }
       }
     }

@@ -228,7 +228,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   {
                      // Pluck out nulls as a special case
                      if (splitFields[i] === 'null' || splitFields[i] == null || splitFields[i] === '' || splitFields[i] === ' ')
-                        field = null
+                        field = null;
                      else
                         // This will either bring you to the child object for next iteration or the value if at the bottom
                         field = (i == 0) ? data[splitFields[0]] : field[splitFields[i]];
@@ -241,7 +241,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          if (row != '')
             csvData.push(row);
       }
-
       return csvData;
    }
 
@@ -298,7 +297,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             if (returnHeaders)
                result = '#V-GEOHEADER,Site Name,Site Description, Site Street,' +
                         'Site City,Site State,Zip,' +
-                        'Site Address,Market,Market Code,'+
+                        'Site Address,Market,Market Code,' +
                         'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
                         'Owner Trade Area,EST GEO IP ADDRESSES,Owner Site,Include in Deduped Footprint,Base Count';
             else

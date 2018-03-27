@@ -159,6 +159,8 @@ import { ValGeoService } from './services/app-geo.service';
 import { EsriQueryService } from './esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
+import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda';
+
 @NgModule({
     imports: [
         BrowserModule,
@@ -279,7 +281,8 @@ import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload
         UploadLocationsComponent,
         DemoVariablesComponent,
         LoginComponent,
-        UploadTradeAreasComponent
+        UploadTradeAreasComponent,
+        OfflineAudienceTdaComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},

@@ -16,10 +16,10 @@ export class TargetAudienceService {
     private metricService: MetricService) {
 
     //Subscribe to the ImpGeofootprintGeoAttribService
-    this.impGeofootprintGeoAttribService.storeObservable
-      .filter(attrs => attrs[0] != null)
-      .delay(2000)
-      .subscribe(attrs => this.calculateMetrics(attrs));
+    // this.impGeofootprintGeoAttribService.storeObservable
+    //   .filter(attrs => attrs[0] != null)
+    //   .delay(2000)
+    //   .subscribe(attrs => this.calculateMetrics(attrs));
   }
 
   /**

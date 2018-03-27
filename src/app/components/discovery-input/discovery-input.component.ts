@@ -69,7 +69,9 @@ export class DiscoveryInputComponent implements OnInit
    seasons: SelectItem[];
    selectedSeason: String;
 
+   public calcProductCatRadData: string;
    public productCategoryTooltip: string;
+  
 
    summer: boolean = true;
    
@@ -160,7 +162,9 @@ export class DiscoveryInputComponent implements OnInit
       // Set default values
       this.selectedAnalysisLevel = null;
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
-      this.productCategoryTooltip = 'Used to calculate Performance metrics';
+     this.calcProductCatRadData = '';
+     this.productCategoryTooltip = 'Used to calculate Performance metrics';
+     
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -321,7 +325,7 @@ export class DiscoveryInputComponent implements OnInit
    {
       this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
 
-      this.impDiscoveryService.updateAt(this.impDiscoveryUI);
+      this.impDiscoveryService.updateAt(this.impDiscoveryUI);    
 
       this.impRadLookupService.storeObservable.subscribe(res => {
             //console.log('good:', res);
@@ -363,7 +367,14 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedRadLookup = null;
       }
 
+      this.radDataCalc();
       this.onChangeField(event);
+   }
+
+   public onChangeCategory(event: SelectItem){
+      this.radDataCalc();
+      this.onChangeField(event);
+      //this.impDiscoveryUI.industryCategoryCode
    }
 
    public loadProject()
@@ -464,6 +475,26 @@ export class DiscoveryInputComponent implements OnInit
       console.log('discovery-input-component calling imsRadLookupStore.remove');
 
       this.impRadLookupService.removeAt(0);
+   }
+
+   radDataCalc(){
+      this.impRadLookupService.storeObservable.subscribe(res => {
+            let isvalid = false;
+            res.forEach(radLookup => {
+                  if (!isvalid){
+                     if (this.impDiscoveryUI.industryCategoryCode !== '' && this.impDiscoveryUI.productCode !== ''){
+                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
+                              this.calcProductCatRadData = '';
+                              isvalid = true;
+                         }
+                         else{
+                               this.calcProductCatRadData = 'Performance data is not available for the selected Product and Industry Category.';
+                         }     
+                     }   
+                  }
+            });
+      });
+
    }
 
    debugLogStore() {

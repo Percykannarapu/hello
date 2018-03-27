@@ -16,12 +16,13 @@ export class AppConfig implements EsriLoaderConfig {
      url: 'https://js.arcgis.com/4.5/',
      // Set the hostname to the on-premise portal
      portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
-     /*dojoConfig: {
+     /*
+     dojoConfig: {
         has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
-        'esri-promise-compatibility': 1,
+        // 'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-        'esri-featurelayer-webgl': 1
+        // 'esri-featurelayer-webgl': 1
         }
       }*/
    };
@@ -43,7 +44,7 @@ export class AppConfig implements EsriLoaderConfig {
    public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
-   public maxPointsPerBufferQuery = 50;
+   public maxPointsPerBufferQuery = 25;
    public maxPointsPerAttributeQuery = 50;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
    public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;

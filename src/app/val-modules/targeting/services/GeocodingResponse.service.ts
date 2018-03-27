@@ -49,6 +49,7 @@ export class GeocodingResponseService {
 * @description export CSV data to the user
 */
     public exportCSV(csvData: string[], value) {
+
         let csvString = '';
         for (const row of csvData) {
             let encodedData = encode(row);
@@ -482,10 +483,22 @@ export class GeocodingResponseService {
             const returnList: ImpGeofootprintLocAttrib[] = this.impGeoLocAttrList.filter(
                 attr => attr.impGeofootprintLocation.glId === currentLoc.glId);
             for (const locAttr of returnList) {
+                gridMap['Number'] = currentLoc.glId;
+                gridMap['Name'] = currentLoc.locationName;
+                gridMap['Latitude'] = currentLoc.ycoord;
+                gridMap['Longitude'] = currentLoc.xcoord;
+                gridMap['City'] = currentLoc.origCity;
+                gridMap['State'] = currentLoc.origState;
+                gridMap['Orginal ZIP'] = currentLoc.origPostalCode;
+                gridMap['Original Address'] = currentLoc.origAddress1;
+                gridMap['ZIP'] = currentLoc.locZip;
+                gridMap['Address'] = currentLoc.locAddress;
                 gridMap[locAttr.attributeCode] = locAttr.attributeValue;
+               // this.impGeofootprintLocList[locAttr.attributeCode] = locAttr.attributeValue;
+       
             }
             result.push(gridMap);
-        }
+        }   
         return result;
     }
 

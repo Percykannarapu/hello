@@ -19,16 +19,20 @@
    
    <!-- <div class="ui-g-6"> -->
       <div class="ui-g-12">
-         <p-dropdown #productSelector
-                     [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
-                     placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-                     (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
-                     [style]="{'width':'250px'}"></p-dropdown>
+            <div class="ui-g-6">
+                    <p-dropdown #productSelector
+                    [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
+                    placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                    (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
+                    [style]="{'width':'250px'}"></p-dropdown>   
+            </div> 
+            <div class="ui-g-6"><label>{{calcProductCatRadData}}</label>  </div>   
       </div>
+     
       <div class="ui-g-12">
          <p-dropdown #categorySelector
                      [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
-                     (onChange)="onChangeField($event)"
+                     (onChange)="onChangeCategory($event)"
                      placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
                      [style]="{'width':'250px'}"></p-dropdown>
          <!-- <p-dropdown #categorySelector

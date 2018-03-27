@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { TopVarService } from './top-var.service';
+import { TopVarService, DemographicVariable } from './top-var.service';
 import { LayerState, SmartMappingTheme } from '../models/LayerState';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { AppConfig } from '../app.config';
+import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 @Injectable()
 export class ValLayerService {
@@ -16,11 +20,18 @@ export class ValLayerService {
   private currentThemeOpacity: BehaviorSubject<number> = new BehaviorSubject<number>(65);
   private featureLayers: Map<string, LayerState> = new Map<string, LayerState>();
   private sliderElementId: string = null;
+  private shadingEnabled: boolean = false;
 
   public currentSmartTheme$: Observable<SmartMappingTheme> = this.currentSmartTheme.asObservable();
   public currentThemeOpacity$: Observable<number> = this.currentThemeOpacity.asObservable();
 
-  constructor(private modules: EsriModules, private topVars: TopVarService, private mapService: EsriMapService, private config: AppConfig){}
+  constructor(private modules: EsriModules,
+      private topVars: TopVarService,
+      private mapService: EsriMapService,
+      private config: AppConfig,
+      private restClient: RestDataService){
+    this.topVars.selectedTopVar$.subscribe(demoVar => this.trackVariableUsage(demoVar));
+  }
 
   public static getAttributeValue(attributeInstance: any, fieldName: string) : any {
     return attributeInstance && (attributeInstance[fieldName.toLowerCase()] || attributeInstance[fieldName.toUpperCase()]);
@@ -85,13 +96,48 @@ export class ValLayerService {
       let currentState = this.featureLayers.get(currentLayer.title);
       if (currentState == null) {
         currentState = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.onBaseMapChange$,
-                                    this.topVars.getSelectedTopVar(), this.currentSmartTheme$,
+                                    this.topVars.selectedTopVar$, this.currentSmartTheme$,
                                     this.currentThemeOpacity$, this.sliderElementId);
         this.featureLayers.set(currentLayer.title, currentState);
       }
       currentState.toggleSmartView();
+      this.shadingEnabled = currentState.customShadingVisible();
+      this.trackVariableUsage(this.topVars.getSelectedTopVar());
       //event.action.className = currentState.customShadingVisible() ? 'esri-icon-maps' : 'esri-icon-layers';
       //console.log(`Current icon class should be ${event.action.className}`);
     }
+  }
+
+  /**
+   * Track the usage of the demographic variables
+   * @param demographicVariable The demographic variable to be tracked
+   */
+  private trackVariableUsage(demographicVariable: DemographicVariable) {
+
+    // If shading is not currently enabled do nothing
+    if (!this.shadingEnabled || demographicVariable == null) {
+      return;
+    }
+
+    // Create the new counter to be persisted
+    const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();  
+    impMetricCounter['dirty'] = true;
+    impMetricCounter['baseStatus'] = 'INSERT';
+    impMetricCounter.metricId = 1;
+    impMetricCounter.createDate = new Date(Date.now());
+    impMetricCounter.createUser = -1;
+    impMetricCounter.metricText = 'selected demographic variable' + '~' + demographicVariable.fieldName + '~' + demographicVariable.label;
+    impMetricCounter.metricValue = 1;
+    impMetricCounter.modifyDate = new Date(Date.now());
+    impMetricCounter.modifyUser = -1;
+
+    // Send the counter data to Fuse for persistence
+    this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter))
+      .subscribe(res => {
+        console.log(res);
+      }, err => {
+        console.warn('Unable to persist metric data');
+      });
+
   }
 }

@@ -18,10 +18,11 @@ export class ImpMetricName
    public action:               string;                    /// Metric Action (past tense verb (Ex. failed)
    public description:          string;
    public isActive:             number;                    /// Is Active
+   public metricTypeCode:       string;                    /// The metric type being used, COUNTER, HISTOGRAM, etc
 
    // IMPOWER.IMP_METRIC_NAMES - MANY TO ONE RELATIONSHIP MEMBERS
    // -----------------------------------------------------------
-   public impMetricType:        ImpMetricType;             /// Impower Metric Types (Gauge, Counter, Histogram, Meter, Timer, Health-Check)
+   //public impMetricType:        ImpMetricType;             /// Impower Metric Types (Gauge, Counter, Histogram, Meter, Timer, Health-Check)
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpMetricName>) {
@@ -57,13 +58,13 @@ export class ImpMetricName
     *
     * @returns Map<field, type>
     */
-   public static getRelationships () : Map<string, string>
+   /*public static getRelationships () : Map<string, string>
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
          ['impMetricType',         'ImpMetricType']
          ]);
-   }
+   }*/
 
    /**
     * Returns the class as a string.

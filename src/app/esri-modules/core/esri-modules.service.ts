@@ -21,6 +21,7 @@ export class EsriModules {
     'esri/core/Collection',
     'esri/renderers/smartMapping/creators/color',
     'esri/renderers/smartMapping/statistics/histogram',
+    'esri/renderers/UniqueValueRenderer',
     'esri/core/lang',
     'esri/geometry/geometryEngine',
     'esri/geometry/geometryEngineAsync',
@@ -54,6 +55,7 @@ export class EsriModules {
   public static Collection: __esri.Collection;
   public static colorRendererCreator: typeof __esri.color;
   public static histogram: typeof __esri.histogram;
+  public static UniqueValueRenderer: typeof __esri.UniqueValueRenderer;
   public static lang: typeof __esri.lang;
   public static geometryEngine: typeof __esri.geometryEngine;
   public static geometryEngineAsync: typeof __esri.geometryEngineAsync;
@@ -109,6 +111,7 @@ export class EsriModules {
       EsriModules.Collection,
       EsriModules.colorRendererCreator,
       EsriModules.histogram,
+      EsriModules.UniqueValueRenderer,
       EsriModules.lang,
       EsriModules.geometryEngine,
       EsriModules.geometryEngineAsync,

@@ -93,7 +93,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
-    console.log('Geos changed - creating new unique List', geos);
+    console.log('Geo Service onGeoChange. Creating unique list of geocodes...');
     const uniqueGeos: Set<string> = new Set(geos.filter(g => g.isActive === 1).map(g => g.geocode));
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
@@ -115,7 +115,7 @@ export class ValGeoService implements OnDestroy {
         const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(radius), radius, true, ['geocode'], g => new QuerySelection(g));
         const sub = query$.subscribe(
           selections => {
-            geosToPersist = geosToPersist.concat(this.persistGeos(radius, queryMap.get(radius), selections));
+            geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), selections));
           },
           err => console.error(err),
           () => {
@@ -138,7 +138,7 @@ export class ValGeoService implements OnDestroy {
     return result;
   }
 
-  private persistGeos(radius: number, locations: ImpGeofootprintLocation[], selections: QuerySelection[]) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], selections: QuerySelection[]) : ImpGeofootprintGeo[] {
     const locationSet = new Set(locations);
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
@@ -197,7 +197,7 @@ export class ValGeoService implements OnDestroy {
     this.attributeService.add(newAttributes);
   }
 
-  public addManualGeo(geocode: string) {
+  public addManualGeo(geocode: string, site?: ImpGeofootprintLocation) {
 
   }
 
