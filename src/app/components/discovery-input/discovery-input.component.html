@@ -1,4 +1,4 @@
-<div class="ui-g form-group">
+<div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
    <div class="ui-g-3">
       <span class="md-inputfield">
          <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" pInputText>
@@ -17,96 +17,95 @@
       </span>
    </div>
    
-   <!-- <div class="ui-g-6"> -->
-      <div class="ui-g-12">
-            <div class="ui-g-6">
-                    <p-dropdown #productSelector
-                    [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
-                    placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-                    (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
-                    [style]="{'width':'250px'}"></p-dropdown>   
-            </div> 
-            <div class="ui-g-6"><label>{{calcProductCatRadData}}</label>  </div>   
-      </div>
-     
-      <div class="ui-g-12">
-         <p-dropdown #categorySelector
-                     [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
-                     (onChange)="onChangeCategory($event)"
-                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
-                     [style]="{'width':'250px'}"></p-dropdown>
-         <!-- <p-dropdown #categorySelector
-                     [options]="categories" [(ngModel)]="impDiscoveryUI.industryCategoryCode" optionLabel="name"
-                     (onChange)="onChangeField($event)"
-                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
-                     [style]="{'width':'250px'}"></p-dropdown> -->
-      </div>
-
-      <div class="ui-g-12">
-         <p-dropdown #analysisLevelSelector
-                     [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
-                     (ngModelChange)="onAnalysisSelectType($event)"
-                     placeholder="Select an Analysis Level"
-                     [style]="{'width':'250px'}"></p-dropdown>
-      </div>
-
-   <div class="ui-g-12">
-      <div class="ui-placeholder">
-         <label>Counts</label>
-      </div>
-      <div>
-         <p-selectButton id="seasonsSelect" [options]="seasons" placeholder="Counts" [(ngModel)]="impDiscoveryUI.selectedSeason" (onChange)="onChangeField($event)"></p-selectButton>
-      </div>
+   <div class="ui-g-12 val-flush-to-edges">
+      <div class="ui-g-6">
+               <p-dropdown #productSelector
+               [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
+               placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+               (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
+               [style]="{'width':'250px'}"></p-dropdown>   
+      </div> 
+      <div class="ui-g-6"><label>{{calcProductCatRadData}}</label></div>   
+   </div>
+   
+   <div class="ui-g-12 val-flush-to-edges">
+      <p-dropdown #categorySelector
+                  [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
+                  (onChange)="onChangeCategory($event)"
+                  placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
+                  [style]="{'width':'250px'}"></p-dropdown>
    </div>
 
-   <div class="ui-g-12">
-      <div class="ui-g-12">
+   <div class="ui-g-12 val-flush-to-edges">
+      <p-dropdown #analysisLevelSelector
+                  [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
+                  (ngModelChange)="onAnalysisSelectType($event)"
+                  placeholder="Select an Analysis Level"
+                  [style]="{'width':'250px'}"></p-dropdown>
+   </div>
+
+   <div class="ui-g-5 val-grid-no-pad-left">
+      <div class="ui-g-12 val-flush-to-edges">
+         <div class="ui-placeholder">
+            <label>Counts</label>
+         </div>
+         <div>
+            <p-selectButton id="seasonsSelect" [options]="seasons" placeholder="Counts" [(ngModel)]="impDiscoveryUI.selectedSeason" (onChange)="onChangeField($event)"></p-selectButton>
+         </div>
+      </div>
+
+      <div class="ui-g-12 val-grid-no-pad-left val-grid-no-pad-right">
          <span class="md-inputfield">
             <input id="cpm" type="text" [(ngModel)]="impDiscoveryUI.cpm" (change)="onChangeField($event)" pInputText>
             <label>CPM</label>
          </span>
       </div>
-      <div class="ui-g-12">
+      <div class="ui-g-12 val-grid-no-pad-left">
          <span class="md-inputfield">
             <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (change)="onChangeField($event)" pInputText>
             <label> Dollar Budget</label>
          </span>
       </div>
-      <div class="ui-g-12">
+      <div class="ui-g-12 val-grid-no-pad-left">
          <span class="md-inputfield">
             <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (change)="onChangeField($event)" pInputText>
             <label> Circ Budget</label>
          </span>
       </div>
    </div>
-   <div class="ui-g-12">
+
+   <div class="ui-g-7">
+      <div class="ui-g-9">
+         <label>Include POBs?</label>
+      </div>
       <div class="ui-g-3">
-          <label>Include POBs?</label>
-       </div>
-       <div class="ui-g-9">
-          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
-       </div> 
-      <div class="ui-g-3">
+         <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
+      </div> 
+
+      <div class="ui-g-9">
          <label>Include Valassis geographies?</label>
       </div>
-      <div class="ui-g-9">
+      <div class="ui-g-3">
          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeNonWeekly" (onChange)="onChangeField($event)"></p-inputSwitch>
       </div>
-      <div class="ui-g-3">
+
+      <div class="ui-g-9">
          <label>Include ANNE geographies?</label>
       </div>
-      <div class="ui-g-9">
+      <div class="ui-g-3">
          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeAnne" (onChange)="onChangeField($event)"></p-inputSwitch>
       </div>
-      <div class="ui-g-3">
+
+      <div class="ui-g-9">
          <label>Include Solo geographies?</label>
       </div>
-      <div class="ui-g-9">
+      <div class="ui-g-3">
          <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeSolo" (onChange)="onChangeField($event)"></p-inputSwitch>
+      </div>            
+
+      <div class="ui-g-12">
+            <button label="Save Project" pButton (click)="saveProject()"></button>
       </div>
-   </div>
-   <div class="ui-g-12">
-      <button (click)="saveProject()">Save Project {{impProject.projectId}}</button>
    </div>
 
    <div *ngIf="debugMode" class="ui-g-12">

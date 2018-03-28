@@ -54,6 +54,16 @@ export class ValMetricsService implements OnDestroy {
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(householdCount);
+    const ipCount: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: 'num_ip_addrs',
+      metricCategory: 'CAMPAIGN',
+      metricFriendlyName: 'IP Address Count',
+      metricAccumulator: (p, c) => p + c,
+      metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    };
+    this.metricDefinitions.push(ipCount);
   }
 
   private generateMetricObservable() : void {
@@ -67,6 +77,7 @@ export class ValMetricsService implements OnDestroy {
     for (const definition of this.metricDefinitions) {
       const usedGeocodes = new Set();
       const values: number[] = [];
+      definition.metricValue = definition.metricDefault;
       attributes.filter(a => a.attributeCode === definition.metricCode).forEach(attribute => {
         if (!usedGeocodes.has(attribute.impGeofootprintGeo.geocode)) {
           values.push(Number(attribute.attributeValue));

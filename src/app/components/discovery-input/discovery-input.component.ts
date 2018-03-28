@@ -241,7 +241,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
       // TODO: This belongs in product allocations, which doesn't exist yet.  Using project description
-      this.impDiscoveryUI.productCode          = this.impProject.description
+      this.impDiscoveryUI.productCode          = this.impProject.description;
 //    this.selectedProduct = this.products.filter(product => product.productCode = this.impProject.description)[0];
       console.log('this.impDiscoveryUI.productCode: ', this.impDiscoveryUI.productCode);
 
@@ -499,7 +499,7 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    debugLogStore() {
-      this.impRadLookupService.debugLogStore();
+      this.impRadLookupService.debugLogStore("RAD LOOKUP");
    }
 
    // -----------------------------------------------------------

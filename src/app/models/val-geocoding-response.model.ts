@@ -51,7 +51,7 @@ export class ValGeocodingResponse {
     });
     if (this.Number != null && !Number.isNaN(Number(this.Number))) {
       result.locationNumber = Number(this.Number);
-      result.glId = Number(this.Number);
+      result.glId = null; // Number(this.Number);
     }
     const attributes: ImpGeofootprintLocAttrib[] = [];
     for (const [k, v] of Object.entries(this)) {
