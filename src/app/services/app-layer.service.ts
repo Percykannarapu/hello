@@ -11,6 +11,9 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { UserService } from './user.service';
+import { UsageService, UsageTypes } from './usage.service';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
 @Injectable()
 export class ValLayerService {
@@ -31,9 +34,9 @@ export class ValLayerService {
       private mapService: EsriMapService,
       private config: AppConfig,
       private restClient: RestDataService,
-      private userService: UserService){
-    this.topVars.selectedTopVar$.subscribe(demoVar => this.trackVariableUsage(demoVar));
-  }
+      private userService: UserService,
+      private usageService: UsageService,
+      private discoveryService: ImpDiscoveryService){ }
 
   public static getAttributeValue(attributeInstance: any, fieldName: string) : any {
     return attributeInstance && (attributeInstance[fieldName.toLowerCase()] || attributeInstance[fieldName.toUpperCase()]);
@@ -104,42 +107,13 @@ export class ValLayerService {
       }
       currentState.toggleSmartView();
       this.shadingEnabled = currentState.customShadingVisible();
-      this.trackVariableUsage(this.topVars.getSelectedTopVar());
+      if (currentState.customShadingVisible()) {
+        const discoveryData: ImpDiscoveryUI[] = this.discoveryService.get();
+        const usageText: string = discoveryData[0].analysisLevel + '~' + currentLayer.title;
+        this.usageService.createCounterMetric(UsageTypes.targetingMapThematicShadingActivated, usageText, 1);
+      }
       //event.action.className = currentState.customShadingVisible() ? 'esri-icon-maps' : 'esri-icon-layers';
       //console.log(`Current icon class should be ${event.action.className}`);
     }
-  }
-
-  /**
-   * Track the usage of the demographic variables
-   * @param demographicVariable The demographic variable to be tracked
-   */
-  private trackVariableUsage(demographicVariable: DemographicVariable) {
-
-    // If shading is not currently enabled do nothing
-    if (!this.shadingEnabled || demographicVariable == null) {
-      return;
-    }
-
-    // Create the new counter to be persisted
-    const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();  
-    impMetricCounter['dirty'] = true;
-    impMetricCounter['baseStatus'] = 'INSERT';
-    impMetricCounter.metricId = 1;
-    impMetricCounter.createDate = new Date(Date.now());
-    impMetricCounter.createUser = this.userService.getUser().userId;
-    impMetricCounter.metricText = 'selected demographic variable' + '~' + demographicVariable.fieldName + '~' + demographicVariable.label;
-    impMetricCounter.metricValue = 1;
-    impMetricCounter.modifyDate = new Date(Date.now());
-    impMetricCounter.modifyUser = this.userService.getUser().userId;
-
-    // Send the counter data to Fuse for persistence
-    this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter))
-      .subscribe(res => {
-        console.log(res);
-      }, err => {
-        console.warn('Unable to persist metric data');
-      });
-
   }
 }

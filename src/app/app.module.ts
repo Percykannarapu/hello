@@ -160,6 +160,7 @@ import { EsriQueryService } from './esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda';
+import { UsageService } from './services/usage.service';
 
 @NgModule({
     imports: [
@@ -298,7 +299,7 @@ import { OfflineAudienceTdaComponent } from './components/target-audience/offlin
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
-        CookieService, ValMapService, ValGeoService, EsriQueryService,
+        CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
         ValMetricsService
     ],
     bootstrap: [AppComponent]

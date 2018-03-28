@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { ValLayerService } from './app-layer.service';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { UsageService, UsageTypes } from './usage.service';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -218,7 +219,7 @@ export class TopVarService {
 
   public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private usageService: UsageService) { }
 
   public getAllTopVars() : Observable<DemographicVariable[]> {
     if (this.allTopVars.getValue().length === 0) {
@@ -242,6 +243,7 @@ export class TopVarService {
       });
       if (candidates && candidates.length > 0) {
         this.selectedTopVar.next(candidates[0]);
+        this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineChecked, candidates[0].fieldName + '~' + candidates[0].label, 1);
       } else {
         // TODO: error handling?
       }
