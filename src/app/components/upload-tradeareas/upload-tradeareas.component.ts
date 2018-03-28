@@ -141,7 +141,7 @@ export class UploadTradeAreasComponent implements OnInit {
   //Create a custom trade area 
   public createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean, radius?: number): ImpGeofootprintTradeArea {
     return new ImpGeofootprintTradeArea({
-      gtaId: ValTradeAreaService.id++,
+      //gtaId: ValTradeAreaService.id++,
       taNumber: index + 1,
       taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
       taRadius: (radius !== null ? radius : 0),
