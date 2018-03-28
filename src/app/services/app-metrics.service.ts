@@ -6,6 +6,8 @@ import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeo
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
 export interface MetricDefinition {
   metricValue: number;
@@ -20,20 +22,24 @@ export interface MetricDefinition {
 @Injectable()
 export class ValMetricsService implements OnDestroy {
   private metricSub: Subscription;
+  private discoverySub: Subscription;
   private metricDefinitions: MetricDefinition[] = [];
+  private currentDiscoveryVar: ImpDiscoveryUI;
 
   public metrics$: Observable<MetricDefinition[]>;
 
   constructor(private config: AppConfig, private attributeService: ImpGeofootprintGeoAttribService,
-              private metricService: MetricService) {
+              private metricService: MetricService, private discoveryService: ImpDiscoveryService) {
     this.registerMetrics();
     this.generateMetricObservable();
 
     this.metricSub = this.metrics$.subscribe(metrics => this.onMetricsChanged(metrics));
+    this.discoverySub = this.discoveryService.storeObservable.subscribe(d => this.currentDiscoveryVar = d[0]);
   }
 
   ngOnDestroy() : void {
     if (this.metricSub) this.metricSub.unsubscribe();
+    if (this.discoverySub) this.discoverySub.unsubscribe();
   }
 
   private onMetricsChanged(metrics: MetricDefinition[]) {
@@ -64,6 +70,22 @@ export class ValMetricsService implements OnDestroy {
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(ipCount);
+    const totalInvestment: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: 'hhld_s',
+      metricCategory: 'CAMPAIGN',
+      metricFriendlyName: 'Total Investment',
+      metricAccumulator: (p, c) => p + (c * this.currentDiscoveryVar.cpm / 1000),
+      metricFormatter: v => {
+        if (v != null) {
+          return '$' + (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+        } else {
+          return 'N/A';
+        }
+      }
+    };
+    this.metricDefinitions.push(totalInvestment);
   }
 
   private generateMetricObservable() : void {
