@@ -176,38 +176,38 @@ export class ValTradeAreaService implements OnDestroy {
     });
     const maxRadius = Math.max(...tas);
     const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true).subscribe(graphics => {
-      
-     // console.log('graphics length::', graphics.length);
-      graphics.map(graphic => {
+      const geosToAdd: ImpGeofootprintGeo[] = [];
+      graphics.forEach(graphic => {
         let geocodeDistance = null;
          currentLocations.forEach(loc => {
           if (loc.homeGeocode === graphic.attributes['geocode']){
             geocodeDistance =  EsriUtils.getDistance(graphic.geometry['x'], graphic.geometry['y'], loc.xcoord, loc.ycoord);
            // console.log('geocode not selected::', graphic.attributes['geocode']);
             //console.log('geocodeDistance::', geocodeDistance, ':tas distance', maxRadius);
-           
+
             if (geocodeDistance > maxRadius){
               customIndex++;
               //console.log('geocode selected::', graphic.attributes['geocode']);
-              this.addGeofootprintgeos(geocodeDistance, graphic, loc, customIndex);
+              geosToAdd.push(this.addGeofootprintgeos(geocodeDistance, graphic, loc, customIndex));
             }
           }
         });
-
       });
+      this.impGeoService.add(geosToAdd);
     });
   }
 
-  public  addGeofootprintgeos(geocodeDistance: number, graphic: __esri.Graphic, loc: ImpGeofootprintLocation, customIndex: number){
-    const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+  public  addGeofootprintgeos(geocodeDistance: number, graphic: __esri.Graphic, loc: ImpGeofootprintLocation, customIndex: number) : ImpGeofootprintGeo {
+    //const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = graphic.attributes['geocode'];
     impGeofootprintGeo.isActive = 1;
     impGeofootprintGeo.impGeofootprintLocation = loc;
     impGeofootprintGeo.distance = geocodeDistance;
-    impGeofootprintGeos.push(impGeofootprintGeo);
-    this.impGeoService.add(impGeofootprintGeos);
+    //impGeofootprintGeos.push(impGeofootprintGeo);
+    //this.impGeoService.add(impGeofootprintGeos);
     //create trade area
     this.tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true));
+    return impGeofootprintGeo;
   }
 }
