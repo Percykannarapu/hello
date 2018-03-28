@@ -16,25 +16,6 @@ import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { AppConfig } from '../app.config';
 
-class QuerySelection {
-  x: number;
-  y: number;
-  geocode: string;
-  constructor(graphic: __esri.Graphic) {
-    let point: __esri.Point = null;
-    if (EsriUtils.geometryIsPoint(graphic.geometry)) {
-      point = graphic.geometry;
-    }
-    if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
-      point = graphic.geometry.centroid;
-    }
-    if (point == null) throw new Error('Invalid geometry type in QuerySelection constructor');
-    this.x = point.x;
-    this.y = point.y;
-    this.geocode = graphic.attributes['geocode'];
-  }
-}
-
 @Injectable()
 export class ValGeoService implements OnDestroy {
   private tradeAreaSubscription: Subscription;
@@ -112,7 +93,7 @@ export class ValGeoService implements OnDestroy {
       const radii = Array.from(queryMap.keys());
       let geosToPersist: ImpGeofootprintGeo[] = [];
       radii.forEach(radius => {
-        const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(radius), radius, true, ['geocode'], g => new QuerySelection(g));
+        const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(radius), radius, true, ['geocode']);
         const sub = query$.subscribe(
           selections => {
             geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), selections));
@@ -138,27 +119,29 @@ export class ValGeoService implements OnDestroy {
     return result;
   }
 
-  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], selections: QuerySelection[]) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], selections: __esri.Graphic[]) : ImpGeofootprintGeo[] {
     const locationSet = new Set(locations);
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
     const geosToSave: ImpGeofootprintGeo[] = [];
     selections.forEach(selection => {
       locations.forEach(loc => {
-        const currentDistance = EsriUtils.getDistance(selection.x, selection.y, loc.xcoord, loc.ycoord);
-        if (currentDistance <= radius) {
-          const currentTradeAreas = tradeAreaMap.get(loc);
-          if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
-          if (currentTradeAreas.length === 1) {
-            geosToSave.push(new ImpGeofootprintGeo({
-              xCoord: selection.x,
-              yCoord: selection.y,
-              geocode: selection.geocode,
-              distance: currentDistance,
-              impGeofootprintTradeArea: currentTradeAreas[0],
-              impGeofootprintLocation: loc,
-              isActive: 1
-            }));
+        if (EsriUtils.geometryIsPoint(selection.geometry)) {
+          const currentDistance = EsriUtils.getDistance(selection.geometry, loc.xcoord, loc.ycoord);
+          if (currentDistance <= radius) {
+            const currentTradeAreas = tradeAreaMap.get(loc);
+            if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
+            if (currentTradeAreas.length === 1) {
+              geosToSave.push(new ImpGeofootprintGeo({
+                xCoord: selection.geometry.x,
+                yCoord: selection.geometry.y,
+                geocode: selection.attributes.geocode,
+                distance: currentDistance,
+                impGeofootprintTradeArea: currentTradeAreas[0],
+                impGeofootprintLocation: loc,
+                isActive: 1
+              }));
+            }
           }
         }
       });
@@ -197,11 +180,14 @@ export class ValGeoService implements OnDestroy {
     this.attributeService.add(newAttributes);
   }
 
-  public addManualGeo(geocode: string, site?: ImpGeofootprintLocation) {
-
-  }
-
-  public removeGeocode(geocode: string) {
-
+  public createAttributesForGeos(geocode: string, attribute: ImpGeofootprintGeoAttrib) : ImpGeofootprintGeoAttrib[] {
+    const geos = this.geoService.get().filter(geo => geo.geocode === geocode);
+    const result = [];
+    for (const geo of geos) {
+      const newAttribute = Object.assign({}, attribute);
+      newAttribute.impGeofootprintGeo = geo;
+      result.push(newAttribute);
+    }
+    return result;
   }
 }

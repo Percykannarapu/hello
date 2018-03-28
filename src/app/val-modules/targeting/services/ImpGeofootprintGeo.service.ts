@@ -305,7 +305,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,#V-TRUNCATE_ZIP,' +
                         '#V-STREETADDRESS,impGeofootprintLocation.marketName,null,' +
                         '#D-1,distance,#V-IS_HOME_GEOCODE,#V-IS_HOME_GEOCODE,#D-0,' +
-                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.glId,#D-1,null';
+                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.locationNumber,#D-1,null';
          break;
       }
 
