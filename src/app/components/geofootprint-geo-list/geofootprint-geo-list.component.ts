@@ -14,6 +14,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from './../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Console } from '@angular/core/src/console';
+import { AppConfig } from '../../app.config';
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -63,7 +64,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
+   constructor(public  config: AppConfig,
+               private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
                public  mapService: MapService,
                private appState: AppState) { }
