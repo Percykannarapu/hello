@@ -169,7 +169,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const attributeNames = Array.from(new Set(allExportAttributes.map(att => att.attributeCode)));
           attributeNames.sort();
           if (rowData == null) {
-            varValue = attributeNames.join(',');
+            varValue = attributeNames.map(s => s.replace(',', '')).join(',');
           } else {
             const currentAttributes = allExportAttributes.filter(att => att.impGeofootprintGeo === geo);
             const values = [];
