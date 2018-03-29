@@ -3,6 +3,8 @@ import { EsriModules } from './esri-modules.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { publish, publishReplay, refCount } from 'rxjs/operators';
+import { Coordinates } from '../layers/esri-query.service';
+import { AppConfig } from '../../app.config';
 
 @Injectable()
 export class EsriMapService {
@@ -14,7 +16,7 @@ export class EsriMapService {
   public map: __esri.Map;
   public mapView: __esri.MapView;
 
-  constructor(private modules: EsriModules) {}
+  constructor(private modules: EsriModules, private config: AppConfig) {}
 
   public loadMap(mapProperties: __esri.MapProperties, mapViewProperties: __esri.MapViewProperties, mapEl: ElementRef) : void {
     this.modules.onReady(() => {
@@ -59,5 +61,50 @@ export class EsriMapService {
       const esriHandle = this.mapView.on('click', e => observer.next(e));
       return () => esriHandle.remove();
     }).pipe(publish(), refCount());
+  }
+
+  public zoomOnMap(coordinates: Coordinates[]){
+
+    const pList: __esri.Point[] = [];
+    const latList: number[] = [];
+    const lonList: number[] = [];
+    const graphicList1: __esri.Graphic[] = [];
+
+    coordinates.forEach(function (current: Coordinates) {
+      lonList.push(current.xcoord);   /// this is X
+      latList.push(current.ycoord);   /// this is y
+    });
+
+    const minX = Math.min(...lonList);
+    const minY = Math.min(...latList);
+    const maxX = Math.max(...lonList);
+    const maxY = Math.max(...latList);
+
+    console.log('minX::' + minX + '::minY::' + minY + '::maxX::' + maxX + '::maxY::' + maxY);
+    let extent: __esri.Extent;
+    //new EsriModules
+    extent = new EsriModules.Extent({
+      xmin: minX,
+      ymin: minY,
+      xmax: maxX,
+      ymax: maxY,
+      spatialReference: {
+          wkid: this.config.val_spatialReference
+      }
+    });
+
+    if (extent.width === 0) {
+      extent.xmin = extent.xmin - 0.15;
+      extent.xmax = extent.xmax + 0.15;
+    }
+    if (extent.height === 0) {
+      extent.ymin = extent.ymin - 0.15;
+      extent.ymax = extent.ymax + 0.15;
+    }
+    this.mapView.extent = extent;
+
+    if (coordinates.length === 1) {
+      this.mapView.zoom = 12;
+    }
   }
 }

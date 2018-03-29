@@ -13,7 +13,7 @@ export interface LayerId {
   clientLayerName?: string;
 }
 
-interface Coordinates {
+export interface Coordinates {
   xcoord: number;
   ycoord: number;
 }

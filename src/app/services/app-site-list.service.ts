@@ -19,6 +19,7 @@ import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriMapService } from '../esri-modules/core/esri-map.service';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
@@ -52,7 +53,8 @@ export class ValSiteListService implements OnDestroy {
               private queryService: EsriQueryService,
               private messageService: MessageService,
               private metricsService: MetricService,
-              private config: AppConfig) {
+              private config: AppConfig,
+              private esriMapService: EsriMapService) {
     this.allLocations$ = this.locationService.storeObservable;
     this.uiModels = [];
     this.currentAnalysisLevel = '';
@@ -118,6 +120,7 @@ export class ValSiteListService implements OnDestroy {
     data.forEach(d => delete d[valGeocodingAttributeKey]);
     this.locationService.add(data);
     this.attributeService.add(attributes);
+    this.esriMapService.zoomOnMap(data);
   }
 
   private determineAllHomeGeos(locations: ImpGeofootprintLocation[]) {
