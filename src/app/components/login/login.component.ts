@@ -11,6 +11,7 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeoFootPrint } from '../../services/geofootprint.service';
 import { AppConfig } from '../../app.config';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
+import { UsageService, UsageTypes } from '../../services/usage.service';
 
 @Component({
   selector: 'val-login',
@@ -28,7 +29,8 @@ export class LoginComponent implements OnInit {
               private userService: UserService,
               private geocoderService: GeocoderService,
               private geoFootPrintService: GeoFootPrint,
-              private config: AppConfig) { }
+              private config: AppConfig,
+              private usageService: UsageService) { }
 
   ngOnInit() {
   }

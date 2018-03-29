@@ -31,6 +31,7 @@ export class UsageTypes {
   static targetingProjectAnalysisLevelChanged: number = 38;
   static targetingTradeareaGeographySelected: number = 39;
   static targetingTradeareaGeographyDeselected: number = 40;
+  static targetingApplicationEntryLogin: number = 41;
 }
 
 @Injectable()
