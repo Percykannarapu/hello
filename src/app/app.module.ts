@@ -161,6 +161,8 @@ import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda';
 import { UsageService } from './services/usage.service';
+import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
+import { AppMessagingService } from './services/app-messaging.service';
 
 @NgModule({
     imports: [
@@ -283,7 +285,8 @@ import { UsageService } from './services/usage.service';
         DemoVariablesComponent,
         LoginComponent,
         UploadTradeAreasComponent,
-        OfflineAudienceTdaComponent
+        OfflineAudienceTdaComponent,
+        SelectedAudiencesComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -300,7 +303,7 @@ import { UsageService } from './services/usage.service';
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
-        ValMetricsService
+        ValMetricsService, AppMessagingService
     ],
     bootstrap: [AppComponent]
 })

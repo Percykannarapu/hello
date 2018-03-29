@@ -3,6 +3,8 @@ import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
 import {Message} from 'primeng/primeng';
+import { Observable } from 'rxjs/Observable';
+import { AppMessagingService } from './services/app-messaging.service';
 
 enum MenuOrientation {
     STATIC,
@@ -73,15 +75,21 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
+    public currentSpinnerMessage$: Observable<string>;
+    public currentSpinnerState$: Observable<boolean>;
+
     constructor(private esriIdentityService: EsriIdentityService,
                 private impDiscoveryService: ImpDiscoveryService,
-                private config: AppConfig) { }
+                private config: AppConfig,
+                private messaging: AppMessagingService) { }
 
 
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
         this.esriIdentityService.authenticate(this.config.esriIdentityParams);
         this.impDiscoveryService.onInit();
+        this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;
+        this.currentSpinnerState$ = this.messaging.spinnerState$;
     }
 
     ngOnDestroy() {

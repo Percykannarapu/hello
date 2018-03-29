@@ -1,0 +1,9 @@
+<div>
+  <span *ngIf="(selectedVars$ | async)?.length > 0">Selected Variables:</span>
+  <ul>
+    <li *ngFor="let variable of selectedVars$ | async">
+      {{variable.fielddescr}}
+    </li>
+  </ul>
+  <button pButton (click)="submitAudiences()" label="Apply Audience Selections"></button>
+</div>

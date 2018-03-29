@@ -82,13 +82,16 @@
         </p-tabPanel>
         <p-tabPanel header="Offline Audience">
           <p-accordion>
-            <p-accordionTab header="TDA">
+            <p-accordionTab header="TDA" [selected]="true">
               <val-offline-audience-tda></val-offline-audience-tda>
             </p-accordionTab>
           </p-accordion>
         </p-tabPanel>
         <p-tabPanel header="Custom">
           <span>Coming Soon</span>
+        </p-tabPanel>
+        <p-tabPanel header="Selected Audiences">
+          <val-selected-audiences></val-selected-audiences>
         </p-tabPanel>
         <p-tabPanel header="Variable Shading">
           <val-demo-variables></val-demo-variables>

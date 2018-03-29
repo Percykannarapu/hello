@@ -7,6 +7,7 @@ import { Subject } from 'rxjs/Subject';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
+import { UsageService, UsageTypes } from './usage.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 
@@ -63,7 +64,8 @@ export class AuthService implements CanActivate {
     private httpClient: HttpClient,
     private config: AppConfig,
     private cookieService: CookieService,
-    private userService: UserService) { }
+    private userService: UserService,
+    private usageService: UsageService) { }
 
   /**
    * Determine whether the requested route can be activated or not
@@ -75,13 +77,27 @@ export class AuthService implements CanActivate {
     if (!this.authenticated) {
       //attempt to load oauth data saved in cookies
       if (this.loadOAuthData()) {
+        this.collectLoginEvent();
         //if the load of oauth data was successfull then refresh the token
         return this.refreshToken(true);
       }
       this.router.navigate(['/login']);
       return false;
     }
+    this.collectLoginEvent();
     return true;
+  }
+
+  /**
+   * Create a usage metric for a user accessing the application
+   */
+  private collectLoginEvent() {
+    if (this.userService.getUser() == null ) {
+      console.warn('unable to retrieve user information');
+      return;
+    }
+    const user: User = this.userService.getUser();
+    this.usageService.createCounterMetric(UsageTypes.targetingApplicationEntryLogin, user.username + '~' + user.userId, 1);
   }
 
   /**

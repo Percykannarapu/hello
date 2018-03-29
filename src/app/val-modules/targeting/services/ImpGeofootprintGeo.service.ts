@@ -23,6 +23,7 @@ import { MessageService } from 'primeng/components/common/messageservice';
 // Imports for exporting CSVs
 import { encode } from 'punycode';
 import * as $ from 'jquery';
+import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -37,7 +38,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
-   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService, impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService)
+   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
+               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService,
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService)
    {
       super(restDataService, dataUrl);
 
@@ -161,7 +164,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         varValue = null;
             }
             break;
-
+        case '#V-ATTRIBUTES':
+          const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
+          const attributeNames = Array.from(new Set(allExportAttributes.map(att => att.attributeCode)));
+          attributeNames.sort();
+          if (rowData == null) {
+            varValue = attributeNames.join(',');
+          } else {
+            const currentAttributes = allExportAttributes.filter(att => att.impGeofootprintGeo === geo);
+            const values = [];
+            attributeNames.forEach(name => {
+              const index = currentAttributes.findIndex(a => a.attributeCode === name);
+              values.push(index > -1 ? currentAttributes[index].attributeValue : '');
+            });
+            varValue = values.join(',');
+          }
+          break;
          default:
             varValue = null;
             break;
@@ -299,13 +317,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         'Site City,Site State,Zip,' +
                         'Site Address,Market,Market Code,' +
                         'Passes Filter,Distance,Is User Home Geocode,Is Final Home Geocode,Is Must Cover,' +
-                        'Owner Trade Area,EST GEO IP ADDRESSES,Owner Site,Include in Deduped Footprint,Base Count';
+                        'Owner Trade Area,EST GEO IP ADDRESSES,#V-ATTRIBUTES,Owner Site,Include in Deduped Footprint,Base Count';
             else
                result = 'geocode,impGeofootprintLocation.locationName,null,impGeofootprintLocation.locAddress,' +
                         'impGeofootprintLocation.locCity,impGeofootprintLocation.locState,#V-TRUNCATE_ZIP,' +
                         '#V-STREETADDRESS,impGeofootprintLocation.marketName,null,' +
                         '#D-1,distance,#V-IS_HOME_GEOCODE,#V-IS_HOME_GEOCODE,#D-0,' +
-                        '#V-OWNER_TRADE_AREA,null,impGeofootprintLocation.locationNumber,#D-1,null';
+                        '#V-OWNER_TRADE_AREA,null,#V-ATTRIBUTES,impGeofootprintLocation.locationNumber,#D-1,null';
          break;
       }
 

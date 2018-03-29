@@ -1,10 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { ValLayerService } from './app-layer.service';
-import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { UsageService, UsageTypes } from './usage.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ValGeoService } from './app-geo.service';
+import { Subscription } from 'rxjs/Subscription';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { combineLatest } from 'rxjs/observable/combineLatest';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { AppMessagingService } from './app-messaging.service';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -37,6 +44,13 @@ export interface CategoryVariable {
 export interface DemographicVariable {
   fieldName: string;
   label: string;
+}
+
+interface GeoVariableData {
+  variableFormat: string;
+  variableName: string;
+  variableType: string;
+  variableValue: number;
 }
 
 const data: DemographicVariable[] = [
@@ -212,14 +226,43 @@ const data: DemographicVariable[] = [
 ];
 
 @Injectable()
-export class TopVarService {
+export class TopVarService implements OnDestroy {
+  private readonly subscription: Subscription;
+  private readonly spinnerKey: string = 'TopVarServiceKey';
 
   private allTopVars: BehaviorSubject<DemographicVariable[]> = new BehaviorSubject<DemographicVariable[]>([]);
   private selectedTopVar: BehaviorSubject<DemographicVariable> = new BehaviorSubject<DemographicVariable>(null);
+  private appliedTdaAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
+  private previousGeocodes: Set<string> = new Set();
+  private previousVariables: Set<CategoryVariable> = new Set();
+  private selectedTdaAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
 
   public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
+  public appliedTdaAudience$: Observable<CategoryVariable[]> = this.appliedTdaAudience.asObservable();
+  public selectedTdaAudience$: Observable<CategoryVariable[]> = this.selectedTdaAudience.asObservable();
 
-  constructor(private http: HttpClient, private usageService: UsageService) { }
+  constructor(private restService: RestDataService, private geoService: ValGeoService,
+              private discoveryService: ImpDiscoveryService, private attributeService: ImpGeofootprintGeoAttribService,
+              private usageService: UsageService, private messagingService: AppMessagingService) {
+    this.subscription = combineLatest(this.appliedTdaAudience$, this.geoService.uniqueSelectedGeocodes$, this.discoveryService.storeObservable)
+      .subscribe(([variables, geocodes, disc]) => this.setGeoVariables(variables, geocodes, disc[0]));
+  }
+
+  private static mapGeoAttributes(fuseData: any) : Map<string, Map<number, GeoVariableData>> {
+    const result = new Map();
+    for (const [geocode, variables] of Object.entries(fuseData)) {
+      const geoMap = new Map();
+      for (const [pk, varData] of Object.entries(variables)) {
+        geoMap.set(Number(pk), varData);
+      }
+      result.set(geocode, geoMap);
+    }
+    return result;
+  }
+
+  public ngOnDestroy() : void {
+    if (this.subscription) this.subscription.unsubscribe();
+  }
 
   public getAllTopVars() : Observable<DemographicVariable[]> {
     if (this.allTopVars.getValue().length === 0) {
@@ -250,16 +293,92 @@ export class TopVarService {
     }
   }
 
+  public applyAudienceSelection() : void {
+    this.appliedTdaAudience.next(this.selectedTdaAudience.getValue());
+  }
+
+  public selectTdaVariable(variable: CategoryVariable) : void {
+    const dataSet = new Set(this.selectedTdaAudience.getValue());
+    dataSet.add(variable);
+    this.selectedTdaAudience.next(Array.from(dataSet));
+  }
+
+  public removeTdaVariable(variable: CategoryVariable) : void {
+    const dataSet = new Set(this.selectedTdaAudience.getValue());
+    dataSet.delete(variable);
+    this.selectedTdaAudience.next(Array.from(dataSet));
+  }
+
   public getDemographicCategories() : Observable<DemographicCategory[]> {
-    return this.http.get('https://servicesdev.valassislab.com/services/v1/targeting/base/amtabledesc/search?q=amtabledesc').pipe(
+    return this.restService.get('v1/targeting/base/amtabledesc/search?q=amtabledesc').pipe(
       map((result: any) => result.payload.rows as DemographicCategory[])
     );
   }
 
   public getVariablesByCategory(categoryName: string) : Observable<CategoryVariable[]> {
-    const url = `https://servicesdev.valassislab.com/services/v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${categoryName}`;
-    return this.http.get(url).pipe(
+    return this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${categoryName}`).pipe(
       map((result: any) => result.payload.rows as CategoryVariable[])
     );
+  }
+
+  public getGeoData(analysisLevel: string, geocodes: string[], tdaPks: string[]) : Observable<any> {
+    const inputData = {
+      geoType: analysisLevel,
+      geocodes: geocodes,
+      variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
+    };
+    this.messagingService.startSpinnerDialog(this.spinnerKey, 'Retrieving data');
+    return this.restService.post('v1/mediaexpress/base/geoinfo/lookup', inputData);
+  }
+
+  private setGeoVariables(variables: CategoryVariable[], geocodes: string[], discElement: ImpDiscoveryUI) : void {
+    if (discElement == null) return; //startup condition
+    const addedGeos = geocodes.filter(g => !this.previousGeocodes.has(g));
+    const addedVars = Array.from(variables).filter(v => !this.previousVariables.has(v));
+    this.previousGeocodes = new Set(geocodes);
+    this.previousVariables = new Set(variables);
+    if (addedGeos.length > 0 && this.previousVariables.size > 0) {
+      const pks = Array.from(this.previousVariables).map(v => v.pk);
+      const geoSub = this.getGeoData(discElement.analysisLevel, addedGeos, pks).pipe(
+        map(response => response.payload.data)
+      ).subscribe(
+        resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
+        err => console.error(err),
+        () => {
+          geoSub.unsubscribe();
+          this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        });
+    }
+    if (addedVars.length > 0 && this.previousGeocodes.size > 0) {
+      const geos = Array.from(this.previousGeocodes);
+      const varSub = this.getGeoData(discElement.analysisLevel, geos, addedVars.map(v => v.pk)).pipe(
+        map(response => response.payload.data)
+      ).subscribe(
+        resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
+        err => console.error(err),
+        () => {
+          varSub.unsubscribe();
+          this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        });
+    }
+  }
+
+  private persistGeoAttributes(geoDataMap: Map<string, Map<number, GeoVariableData>>) : void {
+    const geoKeys = Array.from(geoDataMap.keys());
+    let allAttributes = [];
+    for (const geo of geoKeys) {
+      const dataKeys = Array.from(geoDataMap.get(geo).keys());
+      for (const dataKey of dataKeys) {
+        const variable = geoDataMap.get(geo).get(dataKey);
+        const attribute = new ImpGeofootprintGeoAttrib({
+          attributeCode: variable.variableName,
+          attributeValue: variable.variableValue,
+          attributeType: 'Geofootprint Variable'
+        });
+        allAttributes = allAttributes.concat(this.geoService.createAttributesForGeos(geo, attribute));
+      }
+    }
+    console.log('Geo Data Attributes being added to store:', allAttributes);
+    this.attributeService.add(allAttributes);
   }
 }

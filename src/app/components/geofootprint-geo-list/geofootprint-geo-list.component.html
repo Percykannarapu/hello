@@ -19,17 +19,15 @@
       <ng-template let-site pTemplate="rowexpansion">
          <div class="ui-grid ui-grid-responsive ui-fluid" style="width:45%;font-size:14px;padding: 0 0 0 2.68em">
             <div class="ui-grid-row">
-
-               <p-dataTable [value]="filterGeosBySite(site.glId)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
+               <p-dataTable [value]="filterGeosBySite(site)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
                               resizableColumns="true" columnResizeMode="expand" responsive="true"
                               [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
-
                   <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column>
                   <p-column *ngFor="let col of geoGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
                      <ng-template *ngIf="col.value.field=='geocode'" let-row="rowData" pTemplate="body">
                         <div class="ui-g-11" style="vertical-align:inherit">
                            {{row['geocode']}}
-                        </div>   
+                        </div>
                         <div class="ui-g-1" style="vertical-align:inherit">
                            <button (click)="onZoomToGeo(geocode)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
                         </div>
@@ -40,6 +38,7 @@
                         </div>
                      </ng-template>
                   </p-column>
+                  <p-column *ngFor="let addCol of geoGridAdditionalColumns" [field]="addCol" [header]="addCol"></p-column>
                </p-dataTable>
             </div>
          </div>

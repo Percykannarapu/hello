@@ -44,7 +44,8 @@ export class EsriModules {
     'esri/views/2d/draw/PolygonDrawAction',
     'esri/geometry/Point',
     'esri/geometry/Multipoint',
-    'esri/tasks/support/Query'
+    'esri/tasks/support/Query',
+    'esri/geometry/Extent'
 ];
 
   private static config: typeof __esri.config;
@@ -79,6 +80,7 @@ export class EsriModules {
   public static Point: typeof __esri.Point;
   public static Multipoint: typeof __esri.Multipoint;
   public static Query: typeof __esri.Query;
+  public static Extent: typeof __esri.Extent;
 
   public static widgets: EsriWidgets;
 
@@ -134,7 +136,8 @@ export class EsriModules {
       EsriModules.PolygonDrawAction,
       EsriModules.Point,
       EsriModules.Multipoint,
-      EsriModules.Query
+      EsriModules.Query,
+      EsriModules.Extent
     ] = modules;
 
     EsriModules.widgets = new EsriWidgets();

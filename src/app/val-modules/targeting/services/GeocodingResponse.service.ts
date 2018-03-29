@@ -489,16 +489,16 @@ export class GeocodingResponseService {
                 gridMap['Longitude'] = currentLoc.xcoord;
                 gridMap['City'] = currentLoc.origCity;
                 gridMap['State'] = currentLoc.origState;
-                gridMap['Orginal ZIP'] = currentLoc.origPostalCode;
+                gridMap['Original ZIP'] = currentLoc.origPostalCode;
                 gridMap['Original Address'] = currentLoc.origAddress1;
                 gridMap['ZIP'] = currentLoc.locZip;
                 gridMap['Address'] = currentLoc.locAddress;
                 gridMap[locAttr.attributeCode] = locAttr.attributeValue;
                // this.impGeofootprintLocList[locAttr.attributeCode] = locAttr.attributeValue;
-       
+
             }
             result.push(gridMap);
-        }   
+        }
         return result;
     }
 

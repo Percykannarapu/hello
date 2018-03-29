@@ -31,6 +31,7 @@ export class UsageTypes {
   static targetingProjectAnalysisLevelChanged: number = 38;
   static targetingTradeareaGeographySelected: number = 39;
   static targetingTradeareaGeographyDeselected: number = 40;
+  static targetingApplicationEntryLogin: number = 41;
 }
 
 @Injectable()
@@ -60,7 +61,7 @@ export class UsageService {
     // Send the counter data to Fuse for persistence
     this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter))
       .subscribe(res => {
-        console.log(res);
+        // don't do anything with the response for now
       }, err => {
         console.warn('Unable to persist metric data');
       });

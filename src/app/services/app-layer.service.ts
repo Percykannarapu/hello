@@ -90,7 +90,7 @@ export class ValLayerService {
         id: 'show-shading'
       });
       listItem.actionsSections = <any>[[action]]; // have to any-fy this object to make TS happy
-    }
+    }    
   }
 
   private onActionClicked(event: any) : void {
