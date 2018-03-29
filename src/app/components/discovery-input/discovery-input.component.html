@@ -1,8 +1,14 @@
 <div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
+   <div class="ui-g-12">
+      <span class="md-inputfield">
+         <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+         <label> Project Tracker Id</label>         
+      </span>
+   </div>
    <div class="ui-g-3">
       <span class="md-inputfield">
-         <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" pInputText>
-         <label> Project Id</label>         
+         <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+         <label> IMPower Id</label>         
       </span>
    </div>
    <div class="ui-g-9">
@@ -16,7 +22,7 @@
          <label>Project Name</label>
       </span>
    </div>
-   
+
    <div class="ui-g-12 val-flush-to-edges">
       <div class="ui-g-6">
                <p-dropdown #productSelector

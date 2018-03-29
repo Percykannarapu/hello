@@ -5,8 +5,8 @@
   "angular-cli": {},
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --env=local",
-    "build": "ng build --env=local",
+    "start": "ng serve --env=dev",
+    "build": "ng build --env=dev",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
