@@ -220,12 +220,6 @@ export class DashboardDemoComponent implements OnInit {
                 }
             ]
         };
-
-        this.userService.userObservable.subscribe(user => this.recordUser());
-    }
-
-    private recordUser() {
-        this.userService.buildLoginDtls();
     }
 
     showSideBar($event) {
