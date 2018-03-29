@@ -161,6 +161,7 @@ import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda';
 import { UsageService } from './services/usage.service';
+import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 
 @NgModule({
     imports: [
@@ -283,7 +284,8 @@ import { UsageService } from './services/usage.service';
         DemoVariablesComponent,
         LoginComponent,
         UploadTradeAreasComponent,
-        OfflineAudienceTdaComponent
+        OfflineAudienceTdaComponent,
+        SelectedAudiencesComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},

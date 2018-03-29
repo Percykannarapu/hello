@@ -15,6 +15,8 @@ import { ImpGeofootprintLocationService } from './../../val-modules/targeting/se
 import { ImpGeofootprintGeoService } from './../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Console } from '@angular/core/src/console';
 import { AppConfig } from '../../app.config';
+import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -25,6 +27,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
    private siteSubscription: ISubscription;
    private geosSubscription: ISubscription;
+   private attributeSubscription: ISubscription;
 
    public  impGeofootprintLocations: ImpGeofootprintLocation[];
    public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
@@ -32,7 +35,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeos: ImpGeofootprintGeo[];
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
-   public myStyles = {
+   public impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
+
+
+  public myStyles = {
       'background-color': 'lime',
       'text-align': 'right'
       };
@@ -50,7 +56,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                            /*{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '29%', styleClass: ''}},*/
                                            {label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '30%', styleClass: ''}},
                                            {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '20%', styleClass: 'val-text-right'}},
-                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '40%', styleClass: 'val-text-right'}}
+                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right'}}
                                           ];
 
    // public  geoGridColumns: SelectItem[] = [{label: 'site',     value: {field: 'impGeofootprintLocation.locationName', header: 'Site', width: '60%', style: '{\'width\':\'60%\'}'}, styleClass: ''},
@@ -61,12 +67,16 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public  selectAllGeos: boolean;
 
+   public geoGridAdditionalColumns: string[] = [];
+   public geoGridCache: Map<ImpGeofootprintLocation, any[]> = new Map();
+
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
    constructor(public  config: AppConfig,
                private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                public  mapService: MapService,
                private appState: AppState) { }
 
@@ -78,11 +88,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Subscribe to the geos data store
       this.geosSubscription = this.impGeofootprintGeoService.storeObservable.subscribe(storeData => this.onChangeGeos(storeData));
 
+      this.attributeSubscription = this.impGeofootprintGeoAttribService.storeObservable.subscribe(storeData => this.onChangeGeoAttributes(storeData));
+
       // For now, sub out some data
       //this.stubLocations();
       //this.stubGeos();
 
-      console.log('filtered geos: ', this.filterGeosBySite(202193));
+      //console.log('filtered geos: ', this.filterGeosBySite(202193));
    }
 
    ngOnDestroy()
@@ -123,9 +135,20 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       console.log('----------------------------------------------------------------------------------------');
       console.log('onChangeLocation - Before: ', this.impGeofootprintLocations);
       this.impGeofootprintLocations = Array.from(impGeofootprintLocation);
+      this.geoGridCache.clear();
       console.log('onChangeLocation - After:  ', this.impGeofootprintLocations);
       console.log('----------------------------------------------------------------------------------------');
       this.assignSite();
+   }
+
+   private onChangeGeoAttributes(geoAttributes: ImpGeofootprintGeoAttrib[]) : void
+   {
+      console.log('----------------------------------------------------------------------------------------');
+      console.log('onChangeGeoAttributes - Before: ', this.impGeofootprintGeoAttributes);
+      this.impGeofootprintGeoAttributes = Array.from(geoAttributes);
+      this.geoGridCache.clear();
+      console.log('onChangeGeoAttributes - After:  ', this.impGeofootprintGeoAttributes);
+      console.log('----------------------------------------------------------------------------------------');
    }
 
    // -----------------------------------------------------------
@@ -202,12 +225,31 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * Returns a sub-set of the ImpGeofootprintGeos belonging to the
     * provided parent location, via glId.
     *
-    * @param locationId The glId of the parent location to filter on
+    * @param location The parent location to filter on
     */
-   filterGeosBySite(locationId: number) : ImpGeofootprintGeo[]
+   filterGeosBySite(location: ImpGeofootprintLocation) : any[]
    {
-      return this.impGeofootprintGeos.filter(
-         geo => (geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.glId === locationId : null);
+     if (!this.geoGridCache.has(location)) {
+       const geos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation === location);
+       const geoSet = new Set(geos);
+       const attributes = this.impGeofootprintGeoAttributes.filter(attribute => attribute.attributeType === 'Geofootprint Variable' && geoSet.has(attribute.impGeofootprintGeo));
+       const result = geos.map(geo => Object.assign({}, geo));
+       const attributeSet = new Set(this.geoGridAdditionalColumns);
+       result.forEach(geo => {
+         const currentAttrs = attributes.filter(att => att.impGeofootprintGeo.geocode === geo.geocode);
+         if (currentAttrs.length > 0) {
+           currentAttrs.forEach(att => {
+             geo[att.attributeCode] = att.attributeValue;
+             if (!attributeSet.has(att.attributeCode)) {
+               this.geoGridAdditionalColumns.push(att.attributeCode);
+               attributeSet.add(att.attributeCode);
+             }
+           });
+         }
+       });
+       this.geoGridCache.set(location, result);
+     }
+     return this.geoGridCache.get(location);
    }
 
    compare(compareTo: ImpGeofootprintGeo) : boolean
@@ -334,5 +376,4 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       this.impGeofootprintGeoService.add(geos);
    }
-
 }

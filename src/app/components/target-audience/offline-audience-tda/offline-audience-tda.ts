@@ -24,7 +24,8 @@ export class OfflineAudienceTdaComponent implements OnInit {
       data: category,
       expandedIcon: 'ui-icon-folder-open',
       collapsedIcon: 'ui-icon-folder',
-      leaf: false
+      leaf: false,
+      selectable: false
     };
   }
 
@@ -77,5 +78,13 @@ export class OfflineAudienceTdaComponent implements OnInit {
         }
       });
     }
+  }
+
+  public selectVariable(event: TreeNode) : void {
+    this.varService.selectTdaVariable(event.data);
+  }
+
+  public removeVariable(event: TreeNode) : void {
+    this.varService.removeTdaVariable(event.data);
   }
 }

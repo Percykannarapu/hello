@@ -171,24 +171,19 @@ export class ValTradeAreaService implements OnDestroy {
     const geocodes = Array.from(geocodesSet);
     //console.log('length of home geocodes filtered::', geocodes);
     let customIndex: number = 0;
-    const tas = tradeAreasForInsert.map(tradeareas => {
-      return tradeareas.taRadius;
-    });
+    const tas = tradeAreasForInsert.map(ta => ta.taRadius);
     const maxRadius = Math.max(...tas);
     const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true).subscribe(graphics => {
       const geosToAdd: ImpGeofootprintGeo[] = [];
       graphics.forEach(graphic => {
-        let geocodeDistance = null;
          currentLocations.forEach(loc => {
-          if (loc.homeGeocode === graphic.attributes['geocode']){
-            geocodeDistance =  EsriUtils.getDistance(graphic.geometry['x'], graphic.geometry['y'], loc.xcoord, loc.ycoord);
-           // console.log('geocode not selected::', graphic.attributes['geocode']);
-            //console.log('geocodeDistance::', geocodeDistance, ':tas distance', maxRadius);
-
-            if (geocodeDistance > maxRadius){
+          if (loc.homeGeocode === graphic.attributes['geocode'] && EsriUtils.geometryIsPoint(graphic.geometry)){
+            const geocodeDistance =  EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
+            if (geocodeDistance > maxRadius) {
               customIndex++;
               //console.log('geocode selected::', graphic.attributes['geocode']);
-              geosToAdd.push(this.addGeofootprintgeos(geocodeDistance, graphic, loc, customIndex));
+              geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc));
+              tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true));
             }
           }
         });
@@ -197,17 +192,14 @@ export class ValTradeAreaService implements OnDestroy {
     });
   }
 
-  public  addGeofootprintgeos(geocodeDistance: number, graphic: __esri.Graphic, loc: ImpGeofootprintLocation, customIndex: number) : ImpGeofootprintGeo {
-    //const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
+  public  createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-    impGeofootprintGeo.geocode = graphic.attributes['geocode'];
+    impGeofootprintGeo.geocode = loc.homeGeocode;
     impGeofootprintGeo.isActive = 1;
     impGeofootprintGeo.impGeofootprintLocation = loc;
-    impGeofootprintGeo.distance = geocodeDistance;
-    //impGeofootprintGeos.push(impGeofootprintGeo);
-    //this.impGeoService.add(impGeofootprintGeos);
-    //create trade area
-    this.tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true));
+    impGeofootprintGeo.distance = distance;
+    impGeofootprintGeo.xCoord = point.x;
+    impGeofootprintGeo.yCoord = point.y;
     return impGeofootprintGeo;
   }
 }
