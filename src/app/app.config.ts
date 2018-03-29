@@ -45,6 +45,7 @@ export class AppConfig implements EsriLoaderConfig {
    public maxBufferRadius = 50;
    public maxPointsPerBufferQuery = 25;
    public maxPointsPerAttributeQuery = 50;
+   public maxGeosPerGeoInfoQuery = 400;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
    public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;
 

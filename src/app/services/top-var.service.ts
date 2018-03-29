@@ -12,6 +12,9 @@ import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { AppMessagingService } from './app-messaging.service';
+import { chunkArray } from '../app.utils';
+import { AppConfig } from '../app.config';
+import { concat } from 'rxjs/observable/concat';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -243,7 +246,8 @@ export class TopVarService implements OnDestroy {
 
   constructor(private restService: RestDataService, private geoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private attributeService: ImpGeofootprintGeoAttribService,
-              private usageService: UsageService, private messagingService: AppMessagingService) {
+              private usageService: UsageService, private messagingService: AppMessagingService,
+              private config: AppConfig) {
     this.subscription = combineLatest(this.appliedTdaAudience$, this.geoService.uniqueSelectedGeocodes$, this.discoveryService.storeObservable)
       .subscribe(([variables, geocodes, disc]) => this.setGeoVariables(variables, geocodes, disc[0]));
   }
@@ -322,13 +326,19 @@ export class TopVarService implements OnDestroy {
   }
 
   public getGeoData(analysisLevel: string, geocodes: string[], tdaPks: string[]) : Observable<any> {
-    const inputData = {
-      geoType: analysisLevel,
-      geocodes: geocodes,
-      variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
-    };
+    const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
+    const observables = [];
     this.messagingService.startSpinnerDialog(this.spinnerKey, 'Retrieving data');
-    return this.restService.post('v1/mediaexpress/base/geoinfo/lookup', inputData);
+    for (const chunk of chunks) {
+      const inputData = {
+        geoType: analysisLevel,
+        geocodes: chunk,
+        variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
+      };
+      console.log('Sending geoinfo chunk to Fuse');
+      observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/lookup', inputData));
+    }
+    return concat(...observables);
   }
 
   private setGeoVariables(variables: CategoryVariable[], geocodes: string[], discElement: ImpDiscoveryUI) : void {
@@ -343,7 +353,7 @@ export class TopVarService implements OnDestroy {
         map(response => response.payload.data)
       ).subscribe(
         resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
-        err => console.error(err),
+        err => this.handleFuseError(err),
         () => {
           geoSub.unsubscribe();
           this.messagingService.stopSpinnerDialog(this.spinnerKey);
@@ -355,7 +365,7 @@ export class TopVarService implements OnDestroy {
         map(response => response.payload.data)
       ).subscribe(
         resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
-        err => console.error(err),
+        err => this.handleFuseError(err),
         () => {
           varSub.unsubscribe();
           this.messagingService.stopSpinnerDialog(this.spinnerKey);
@@ -380,5 +390,11 @@ export class TopVarService implements OnDestroy {
     }
     console.log('Geo Data Attributes being added to store:', allAttributes);
     this.attributeService.add(allAttributes);
+  }
+
+  private handleFuseError(err) {
+    console.error(err);
+    this.messagingService.showGrowlError('Error', 'There was an error retrieving data');
+    this.messagingService.stopSpinnerDialog(this.spinnerKey);
   }
 }
