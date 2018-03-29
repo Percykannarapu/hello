@@ -11,6 +11,7 @@ import { combineLatest } from 'rxjs/observable/combineLatest';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { AppMessagingService } from './app-messaging.service';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -227,6 +228,7 @@ const data: DemographicVariable[] = [
 @Injectable()
 export class TopVarService implements OnDestroy {
   private readonly subscription: Subscription;
+  private readonly spinnerKey: string = 'TopVarServiceKey';
 
   private allTopVars: BehaviorSubject<DemographicVariable[]> = new BehaviorSubject<DemographicVariable[]>([]);
   private selectedTopVar: BehaviorSubject<DemographicVariable> = new BehaviorSubject<DemographicVariable>(null);
@@ -241,7 +243,7 @@ export class TopVarService implements OnDestroy {
 
   constructor(private restService: RestDataService, private geoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private attributeService: ImpGeofootprintGeoAttribService,
-              private usageService: UsageService) {
+              private usageService: UsageService, private messagingService: AppMessagingService) {
     this.subscription = combineLatest(this.appliedTdaAudience$, this.geoService.uniqueSelectedGeocodes$, this.discoveryService.storeObservable)
       .subscribe(([variables, geocodes, disc]) => this.setGeoVariables(variables, geocodes, disc[0]));
   }
@@ -325,7 +327,7 @@ export class TopVarService implements OnDestroy {
       geocodes: geocodes,
       variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
     };
-    console.log('Requesting geo level data for variables::', JSON.stringify(inputData));
+    this.messagingService.startSpinnerDialog(this.spinnerKey, 'Retrieving data');
     return this.restService.post('v1/mediaexpress/base/geoinfo/lookup', inputData);
   }
 
@@ -342,7 +344,10 @@ export class TopVarService implements OnDestroy {
       ).subscribe(
         resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
         err => console.error(err),
-        () => geoSub.unsubscribe());
+        () => {
+          geoSub.unsubscribe();
+          this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        });
     }
     if (addedVars.length > 0 && this.previousGeocodes.size > 0) {
       const geos = Array.from(this.previousGeocodes);
@@ -351,7 +356,10 @@ export class TopVarService implements OnDestroy {
       ).subscribe(
         resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
         err => console.error(err),
-        () => varSub.unsubscribe());
+        () => {
+          varSub.unsubscribe();
+          this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        });
     }
   }
 
