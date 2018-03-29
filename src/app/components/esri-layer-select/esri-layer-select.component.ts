@@ -13,6 +13,7 @@ import { MetricService } from '../../val-modules/common/services/metric.service'
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -39,7 +40,8 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private metricService: MetricService,
               private esriMapService: EsriMapService,
               private modules: EsriModules,
-              public impDiscoveryService: ImpDiscoveryService) {
+              public impDiscoveryService: ImpDiscoveryService,
+              public esriLayerService: EsriLayerService ) {
       this.mapView = this.mapService.getMapView();
     }
 
@@ -118,43 +120,31 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
         }
     }
 
-    async onClearAllSelections(){
+    onClearAllSelections(){
       console.log(' fired Clear selections:::');
-      let fLyrList: __esri.FeatureLayer[] = [];
-      await this.mapService.getAllFeatureLayers().then(list => {
-          fLyrList = list;
-      });
 
-      for (const lyr of fLyrList) {
-        if ((lyr.portalItem != null) &&
-        (lyr.portalItem.id === this.config.layerIds.zip.topVars.id ||
-        lyr.portalItem.id === this.config.layerIds.atz.topVars.id ||
-        lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)) {
-          let layername = null;
-          if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id)
-              layername = 'Selected Geography - ZIP';
-          else if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id)
-              layername = 'Selected Geography - ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id)
-              layername = 'Selected Geography - Digital ATZ';
-          else if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id)
-              layername = 'Selected Geography - PCR';
+      const disCoveryUI: ImpDiscoveryUI[] =  this.impDiscoveryService.get();
+      let layerName = null;
+      if (disCoveryUI[0].analysisLevel === 'ATZ'){
+        layerName = 'Selected Geography - ATZ';
+      }
+      if (disCoveryUI[0].analysisLevel === 'ZIP'){
+        layerName = 'Selected Geography - ZIP';
+      }
+      if (disCoveryUI[0].analysisLevel === 'Digital ATZ'){
+        layerName = 'Selected Geography - Digital ATZ';
+      }
+      if (disCoveryUI[0].analysisLevel === 'PCR'){
+        layerName = 'Selected Geography - PCR';
+      }
 
+      if (layerName !== null){
+        this.esriLayerService.removeLayer(layerName);
+        this.metricService.add('CAMPAIGN', 'Household Count', '0');
+        this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+        this.metricService.add('CAMPAIGN', 'Total Investment', '0');
+        this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
 
-              await this.mapService.removeSubLayer(layername, MapService.SitesGroupLayer);
-              MapService.selectedCentroidObjectIds = [];
-              MapService.hhDetails = 0;
-              MapService.hhIpAddress = 0;
-              MapService.medianHHIncome = '0';
-              MapService.hhChildren = 0;
-              MapService.proBudget = 0;
-              this.metricService.add('CAMPAIGN', 'Household Count', MapService.hhDetails.toString());
-              this.metricService.add('CAMPAIGN', 'IP Address Count', MapService.hhIpAddress.toString());
-              this.metricService.add('CAMPAIGN', 'Total Investment', MapService.totInvestment.toString());
-              this.metricService.add('CAMPAIGN', 'Progress to Budget', MapService.proBudget.toString());
-              this.impGeofootprintGeoService.clearAll();
-
-        }
       }
     }
 
