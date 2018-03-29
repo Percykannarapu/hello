@@ -43,6 +43,12 @@ export class ImpProject extends BaseModel
    public isRunAvail:                  boolean;                       /// Global Flag to check if MAA run Avails should occur
    public isHardPdi:                   boolean;                       /// Is hard pdi, 0=false, 1=true
    public isActive:                    boolean;                       /// 1 = Active, 0 = Inactive
+   public isIncludeValassis:           boolean;                       /// 1 = include valassis geographies, 0 = do not
+   public isIncludeAnne:               boolean;                       /// 1 = include anne geographies, 0 = do not
+   public isIncludeSolo:               boolean;                       /// 1 = include solo geographies, 0 = do not
+   public isIncludeNonWeekly:          boolean;                       /// 1 = include non weekly geographies, 0 = do not
+   public projectTrackerId:            number;                        /// fk to ims.ims_projects.project_id
+      
 
    // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------------------
@@ -105,6 +111,12 @@ export class ImpProject extends BaseModel
       this.isRunAvail               = null;
       this.isHardPdi                = null;
       this.isActive                 = null;
+      this.isIncludeValassis        = null;
+      this.isIncludeAnne            = null;
+      this.isIncludeSolo            = null;
+      this.isIncludeNonWeekly       = null;
+      this.projectTrackerId         = null;
+         
    
       // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
       // -------------------------------------------------------
@@ -157,7 +169,12 @@ export class ImpProject extends BaseModel
          ['isCircBudget',                 'number'],
          ['isRunAvail',                   'number'],
          ['isHardPdi',                    'number'],
-         ['isActive',                     'number']
+         ['isActive',                     'number'],
+         ['isIncludeValassis',            'number'],
+         ['isIncludeAnne',                'number'],
+         ['isIncludeSolo',                'number'],
+         ['isIncludeNonWeekly',           'number'],
+         ['projectTrackerId',             'number'],
          ]);
    }
 
