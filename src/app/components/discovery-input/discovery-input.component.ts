@@ -239,7 +239,8 @@ export class DiscoveryInputComponent implements OnInit
       this.impProject.isExcludePob       = (this.impDiscoveryUI.includePob)       ? false : true;
       this.impProject.isIncludeAnne      = (this.impDiscoveryUI.includeAnne)      ? true  : false;
       this.impProject.isIncludeSolo      = (this.impDiscoveryUI.includeSolo)      ? true  : false;
-
+      this.impProject.projectTrackerId   = this.impDiscoveryUI.projectTrackerId;
+      
       // TODO: This needs to be in product allocations, hijacking description for product code for now
       this.impProject.description    = this.impDiscoveryUI.productCode;
    }
@@ -278,6 +279,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includePob       = !this.impProject.isExcludePob;
       this.impDiscoveryUI.includeAnne      = this.impProject.isIncludeAnne;
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
+      this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
 
       console.log ('discovery-input.component - mapFromProject - finished');
    }
