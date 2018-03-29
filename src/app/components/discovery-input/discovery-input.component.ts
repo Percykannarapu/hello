@@ -192,37 +192,53 @@ export class DiscoveryInputComponent implements OnInit
    // TODO: This component's controls should either be mapped right from the project or a UI composite model
    public mapToProject()
    {
-      if (this.impProject == null)
+      // If there is nothing to map, bail early
+      if (this.impDiscoveryUI == null)
+      {
+         console.log ('discovery-input.component - fired, but impDiscoveryUI was null, exiting');
          return;
+      }
+      else
+         console.log ('discovery-input.component - mapToProject - fired');
 
-      console.log ('discovery-input.component - mapToProject - fired');
+      // If there is no project, create one
+      if (this.impProject == null)
+         this.impProject = new ImpProject();
+
+      // Set persistence flags
       this.impProject.dirty = true;
       this.impProject.baseStatus = (this.impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+
+      // Update audit columns
       if (this.impProject.createUser == null)
          this.impProject.createUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
       if (this.impProject.createDate == null)
          this.impProject.createDate = new Date(Date.now());
       this.impProject.modifyUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
       this.impProject.modifyDate = new Date(Date.now());
+
+      // Populate the ImpProject model
       this.impProject.clientIdentifierTypeCode = 'CAR_LIST';
-      this.impProject.consumerPurchFreqCode = 'REMINDER';
-      this.impProject.goalCode = 'ACQUISITION';
-      this.impProject.objectiveCode = 'INCREASE_PENETRATION';
-      this.impProject.industryCategoryCode = this.impDiscoveryUI.industryCategoryCode,
-//      this.impProject.projectName    = 'Whee Look at me!  I\'m Angie Dickenson';
-//      this.impProject.description    = 'Yep, this is a project description';
-      this.impProject.methAnalysis   = this.impDiscoveryUI.analysisLevel;
-      this.impProject.totalBudget    = (this.impDiscoveryUI.totalBudget != null) ? this.impDiscoveryUI.totalBudget : this.impDiscoveryUI.circBudget;
-      this.impProject.isValidated    = true;
-      this.impProject.isCircBudget   = (this.impDiscoveryUI.totalBudget != null) ? false : true;
-      this.impProject.isSingleDate   = true;
-      this.impProject.isExcludePob   = (this.impDiscoveryUI.includePob) ? true : false;
-      this.impProject.isActive       = true;
-      this.impProject.isSingleDate   = true;
-      this.impProject.isMustCover    = true;
-      this.impProject.isDollarBudget = true;
-      this.impProject.isRunAvail     = true;
-      this.impProject.isHardPdi      = true;
+      this.impProject.consumerPurchFreqCode    = 'REMINDER';
+      this.impProject.goalCode                 = 'ACQUISITION';
+      this.impProject.objectiveCode            = 'INCREASE_PENETRATION';
+      this.impProject.industryCategoryCode     = this.impDiscoveryUI.industryCategoryCode,
+
+      this.impProject.methAnalysis       = this.impDiscoveryUI.analysisLevel;
+      this.impProject.totalBudget        = (this.impDiscoveryUI.totalBudget != null) ? this.impDiscoveryUI.totalBudget : this.impDiscoveryUI.circBudget;
+      this.impProject.isValidated        = true;
+      this.impProject.isCircBudget       = (this.impDiscoveryUI.totalBudget != null) ? false : true;
+      this.impProject.isActive           = true;
+      this.impProject.isSingleDate       = true;
+      this.impProject.isMustCover        = true;
+      this.impProject.isDollarBudget     = !this.impProject.isCircBudget;
+      this.impProject.isRunAvail         = true;
+      this.impProject.isHardPdi          = true;
+      this.impProject.isIncludeNonWeekly = (this.impDiscoveryUI.includeNonWeekly) ? true  : false;
+      this.impProject.isIncludeValassis  = (this.impDiscoveryUI.includeValassis)  ? true  : false;
+      this.impProject.isExcludePob       = (this.impDiscoveryUI.includePob)       ? false : true;
+      this.impProject.isIncludeAnne      = (this.impDiscoveryUI.includeAnne)      ? true  : false;
+      this.impProject.isIncludeSolo      = (this.impDiscoveryUI.includeSolo)      ? true  : false;
 
       // TODO: This needs to be in product allocations, hijacking description for product code for now
       this.impProject.description    = this.impDiscoveryUI.productCode;
@@ -255,8 +271,14 @@ export class DiscoveryInputComponent implements OnInit
          this.impDiscoveryUI.circBudget = null;
          this.impDiscoveryUI.totalBudget = this.impProject.totalBudget;
       }
-      
-      this.impDiscoveryUI.includePob = this.impProject.isExcludePob;
+
+      // Map flags
+      this.impDiscoveryUI.includeNonWeekly = this.impProject.isIncludeNonWeekly;
+      this.impDiscoveryUI.includeValassis  = this.impProject.isIncludeValassis;
+      this.impDiscoveryUI.includePob       = !this.impProject.isExcludePob;
+      this.impDiscoveryUI.includeAnne      = this.impProject.isIncludeAnne;
+      this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
+
       console.log ('discovery-input.component - mapFromProject - finished');
    }
 

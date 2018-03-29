@@ -12,6 +12,7 @@ export class ImpDiscoveryUI
    public totalBudget:          number;                        /// Total budget populated into opt_i_trade_areas
    public circBudget:           number;
    public includeNonWeekly:     boolean;
+   public includeValassis:      boolean;
    public includePob:           boolean;
    public includeAnne:          boolean;
    public includeSolo:          boolean;
@@ -38,6 +39,7 @@ export class ImpDiscoveryUI
          ['totalBudget',          'number'],
          ['circBudget',           'number'],
          ['includeNonWeekly',     'boolean'],
+         ['includeValassis',      'boolean'],
          ['includePob',           'boolean'],
          ['includeAnne',          'boolean'],
          ['includeSolo',          'boolean']
