@@ -48,7 +48,7 @@ export class EsriModules {
     'esri/geometry/Extent'
 ];
 
-  private static config: typeof __esri.config;
+  public static config: typeof __esri.config;
   public static Map: typeof __esri.Map;
   public static BaseMap: typeof __esri.Basemap;
   public static MapView: typeof __esri.MapView;

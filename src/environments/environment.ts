@@ -144,7 +144,7 @@ export class EnvironmentData {
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
+        minScale: 500000,
         popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
       }
     },

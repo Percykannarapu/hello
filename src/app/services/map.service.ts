@@ -792,6 +792,8 @@ export class MapService {
                         this.setupMapGroup(MapService.PcrGroupLayer, Object.values(this.config.layerIds.pcr));
                         break;
                     case 'WRAP':
+                        //config
+                        EsriModules.config.request.timeout = 600000;
                         this.setupMapGroup(MapService.WrapGroupLayer, Object.values(this.config.layerIds.wrap));
                         break;
                     case 'HH':
