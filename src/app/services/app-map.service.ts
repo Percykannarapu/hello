@@ -168,11 +168,6 @@ export class ValMapService implements OnDestroy {
         width: 2
       }
     });
-    if (this.currentBufferLayerNames.has(locationType)) {
-      for (const layer of this.currentBufferLayerNames.get(locationType)) {
-        this.layerService.removeLayer(layer);
-      }
-    }
     for (const [radius, points] of Array.from(pointMap.entries())) {
       const radii = Array(points.length).fill(radius);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
@@ -185,11 +180,7 @@ export class ValMapService implements OnDestroy {
         });
         const groupName = `${locationType}s`;
         const layerName = `${locationType} - ${radius} Mile Trade Area`;
-        if (this.currentBufferLayerNames.has(locationType)) {
-          this.currentBufferLayerNames.get(locationType).push(layerName);
-        } else {
-          this.currentBufferLayerNames.set(locationType, [layerName]);
-        }
+        this.layerService.removeLayer(layerName);
         this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon');
       });
     }

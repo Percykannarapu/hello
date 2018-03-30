@@ -9,15 +9,11 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
-//import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ValMapService } from '../../services/app-map.service';
 import { ValLayerService } from '../../services/app-layer.service';
-import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
 import { ValGeoService } from '../../services/app-geo.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
-
-
-
+import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 
 @Component({
   selector: 'val-site-list',
@@ -59,8 +55,9 @@ export class SiteListComponent implements OnInit {
               private locationService: ImpGeofootprintLocationService,
               private attributeService: ImpGeofootprintLocAttribService,
               private confirmationService: ConfirmationService,
-              private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-              private impGeofootprintGeoService:  ImpGeofootprintGeoService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private geoService:  ImpGeofootprintGeoService,
+              private geoAttributeService: ImpGeofootprintGeoAttribService,
               private impDiscoveryService: ImpDiscoveryService,
               private appMapService: ValMapService,
               private appLayerService: ValLayerService,
@@ -88,8 +85,7 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowSelect(event: any, isSelected: boolean) {
-    (event.data as ImpGeofootprintLocation).isActive = isSelected ? true : false;
-    this.locationService.update(event.data, event.data);
+    this.setLocationHierarchyActiveFlag((event.data as ImpGeofootprintLocation), isSelected);
   }
 
   public onRowDelete(row: ImpGeofootprintLocation) {
@@ -98,18 +94,8 @@ export class SiteListComponent implements OnInit {
       header: 'Delete Confirmation',
       icon: 'fa fa-trash',
       accept: () => {
-        const location  =  this.locationService.get().filter(loc => loc = row);
-        const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation = row);
-        const tas = this.impGeofootprintTradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation = row);
-        const geos = this.impGeofootprintGeoService.get().filter(geo => row === geo.impGeofootprintLocation);
-        
-        console.log('list of geos on the map', geos);
-        this.impGeofootprintTradeAreaService.remove(tas);
-        this.attributeService.remove(attributes);
-        this.locationService.remove(row);
-        this.impGeofootprintGeoService.remove(geos);
+        this.removeLocationHierarchy(row);
         console.log('remove successful');
-             
       },
       reject: () => {
         console.log('cancelled remove');
@@ -134,6 +120,37 @@ export class SiteListComponent implements OnInit {
       result[attr.attributeCode] = attr.attributeValue;
     }
     return [result];
+  }
+
+  public removeLocationHierarchy(location: ImpGeofootprintLocation) {
+    const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation === location);
+    const tas = this.tradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation === location);
+    const geos = this.geoService.get().filter(geo => geo.impGeofootprintLocation === location);
+    const geoSet = new Set(geos);
+    const geoAttributes = this.geoAttributeService.get().filter(att => geoSet.has(att.impGeofootprintGeo));
+    this.geoAttributeService.remove(geoAttributes);
+    this.geoService.remove(geos);
+    this.tradeAreaService.remove(tas);
+    this.attributeService.remove(attributes);
+    this.locationService.remove(location);
+  }
+
+  public setLocationHierarchyActiveFlag(location: ImpGeofootprintLocation, isActive: boolean) {
+    const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation === location);
+    const tas = this.tradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation === location);
+    const geos = this.geoService.get().filter(geo => geo.impGeofootprintLocation === location);
+    const geoSet = new Set(geos);
+    const geoAttributes = this.geoAttributeService.get().filter(att => geoSet.has(att.impGeofootprintGeo));
+    location.isActive = isActive;
+    attributes.forEach(att => att.isActive = isActive ? 1 : 0);
+    tas.forEach(area => area.isActive = isActive ? 1 : 0);
+    geos.forEach(geo => geo.isActive = isActive ? 1 : 0);
+    geoAttributes.forEach(att => att.isActive = isActive ? 1 : 0);
+    this.geoAttributeService.update(null, null);
+    this.geoService.update(null, null);
+    this.tradeAreaService.update(null, null);
+    this.attributeService.update(null, null);
+    this.locationService.update(null, null);
   }
 
   private setCounts() {
