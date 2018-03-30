@@ -14,6 +14,7 @@ import { ValMapService } from '../../services/app-map.service';
 import { ValLayerService } from '../../services/app-layer.service';
 import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
 import { ValGeoService } from '../../services/app-geo.service';
+import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
 
 
@@ -63,7 +64,8 @@ export class SiteListComponent implements OnInit {
               private impDiscoveryService: ImpDiscoveryService,
               private appMapService: ValMapService,
               private appLayerService: ValLayerService,
-              private valGeoService: ValGeoService) { }
+              private valGeoService: ValGeoService,
+              private esriMapService: EsriMapService) { }
 
   ngOnInit() {
     this.onListTypeChange('Site');
@@ -117,6 +119,9 @@ export class SiteListComponent implements OnInit {
 
   public onRowZoom(row: ImpGeofootprintLocation) {
     // TODO: Map Stuff
+   const locList: ImpGeofootprintLocation[] = [];
+   locList.push(row);
+    this.esriMapService.zoomOnMap(locList);
   }
 
   public getRowAttributes(row: ImpGeofootprintLocation) {
