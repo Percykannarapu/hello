@@ -15,6 +15,8 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { AppConfig } from '../app.config';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppMessagingService } from './app-messaging.service';
 
 @Injectable()
 export class ValGeoService implements OnDestroy {
@@ -30,6 +32,7 @@ export class ValGeoService implements OnDestroy {
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService, private discoveryService: ImpDiscoveryService,
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
+              private locationService: ImpGeofootprintLocationService, private messagingService: AppMessagingService,
               private queryService: EsriQueryService, private config: AppConfig) {
     this.currentTradeAreas = [];
     this.currentAnalysisLevel = '';
@@ -47,13 +50,13 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onTradeAreaChange(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-    const newTradeAres = tradeAreas || [];
+    const newTradeAreas = tradeAreas.filter(ta => ta.isActive === 1 && ta.taType === 'RADIUS') || [];
     const currentSet = new Set(this.currentTradeAreas);
-    const newSet = new Set(newTradeAres);
+    const newSet = new Set(newTradeAreas);
     const adds: ImpGeofootprintTradeArea[] = [];
     const updates: ImpGeofootprintTradeArea[] = [];
     const deletes: ImpGeofootprintTradeArea[] = this.currentTradeAreas.filter(ta => !newSet.has(ta));
-    newTradeAres.forEach(ta => {
+    newTradeAreas.forEach(ta => {
       if (currentSet.has(ta)) {
         updates.push(ta);
       } else {
@@ -62,7 +65,7 @@ export class ValGeoService implements OnDestroy {
     });
 
     this.selectAndPersistGeos(adds, updates, deletes, this.currentAnalysisLevel);
-    this.currentTradeAreas = Array.from(newTradeAres);
+    this.currentTradeAreas = Array.from(newTradeAreas);
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
@@ -91,19 +94,23 @@ export class ValGeoService implements OnDestroy {
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, false);
       const queryMap = this.createTradeAreaQueryMap(adds);
       const radii = Array.from(queryMap.keys());
+      const maxRadius = Math.max(...radii);
       let geosToPersist: ImpGeofootprintGeo[] = [];
-      radii.forEach(radius => {
-        const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(radius), radius, true, ['geocode']);
-        const sub = query$.subscribe(
-          selections => {
+      const spinnerKey = 'selectAndPersistGeos';
+      this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+      const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(maxRadius), maxRadius, true, ['geocode']);
+      const sub = query$.subscribe(
+        selections => {
+          radii.forEach(radius => {
             geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), selections));
-          },
-          err => console.error(err),
-          () => {
-            this.geoService.add(geosToPersist);
-            sub.unsubscribe();
           });
-      });
+        },
+        err => console.error(err),
+        () => {
+          this.geoService.add(geosToPersist);
+          sub.unsubscribe();
+          this.messagingService.stopSpinnerDialog(spinnerKey);
+        });
     }
   }
 
@@ -189,5 +196,60 @@ export class ValGeoService implements OnDestroy {
       result.push(newAttribute);
     }
     return result;
+  }
+
+  public deleteGeosByGeocode(geocode: string) : void {
+    const geosToDelete = this.geoService.get().filter(geo => geo.geocode === geocode);
+    const deleteSet = new Set(geosToDelete);
+    const attribsToDelete = this.attributeService.get().filter(att => deleteSet.has(att.impGeofootprintGeo));
+    this.attributeService.remove(attribsToDelete);
+    this.geoService.remove(geosToDelete);
+  }
+
+  public addGeoToCustomTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
+    const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
+    let minDistance = Number.MAX_VALUE;
+    const closestLocation = locations.reduce((previous, current) => {
+      const currentDistance = EsriUtils.getDistance(current.xcoord, current.ycoord, geometry.x, geometry.y);
+      if (currentDistance < minDistance) {
+        minDistance = currentDistance;
+        return current;
+      } else {
+        return previous;
+      }
+    }, null);
+    let tradeArea: ImpGeofootprintTradeArea;
+    const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintLocation === closestLocation && ta.isActive === 1);
+    if (tradeAreas.length === 0) {
+      tradeArea = new ImpGeofootprintTradeArea({
+        impGeofootprintLocation: closestLocation,
+        taType: 'CUSTOM',
+        taName: 'Custom Trade Area',
+        taNumber: 0,
+        isActive: 1
+      });
+      this.tradeAreaService.add([tradeArea]);
+    } else {
+      tradeArea = tradeAreas[0];
+    }
+    const newGeo = new ImpGeofootprintGeo({
+      geocode: geocode,
+      xCoord: geometry.x,
+      yCoord: geometry.y,
+      distance: minDistance,
+      impGeofootprintLocation: closestLocation,
+      impGeofootprintTradeArea: tradeArea,
+      isActive: 1
+    });
+    this.geoService.add([newGeo]);
+  }
+
+  public geoSelected(geocode: string, geometry: { x: number, y: number }) {
+    const geoSet = new Set(this.uniqueSelectedGeocodes.getValue());
+    if (geoSet.has(geocode)) {
+      this.deleteGeosByGeocode(geocode);
+    } else {
+      this.addGeoToCustomTradeArea(geocode, geometry);
+    }
   }
 }

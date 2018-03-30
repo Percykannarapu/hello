@@ -163,6 +163,7 @@ import { OfflineAudienceTdaComponent } from './components/target-audience/offlin
 import { UsageService } from './services/usage.service';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { AppMessagingService } from './services/app-messaging.service';
+import { AppRendererService } from './services/app-renderer.service';
 
 @NgModule({
     imports: [
@@ -303,7 +304,7 @@ import { AppMessagingService } from './services/app-messaging.service';
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
-        ValMetricsService, AppMessagingService
+        ValMetricsService, AppMessagingService, AppRendererService
     ],
     bootstrap: [AppComponent]
 })

@@ -20,6 +20,7 @@ import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/servic
 import { LayerDefinition } from '../../environments/environment';
 import { ValMapService } from './app-map.service';
 import { UsageService, UsageTypes } from './usage.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 
 @Injectable()
 export class MapService {
@@ -227,11 +228,8 @@ export class MapService {
 
     // Execute each time the "select-this" action is clicked
     public selectThis() {
-        console.log('fired popup action select-this()');
-        const objectID: number = ValLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'OBJECTID');
-        const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
-        console.log('-- objectID = ' + objectID);
-        this.selectSinglePolygon(null, geom, objectID);
+      const geocode: string = ValLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'geocode');
+      this.appMapService.selectSingleGeocode(geocode);
     }
 
     // create the MapView
@@ -737,7 +735,7 @@ export class MapService {
                 }
 
                 // register a listener for this layer to collect usage metrics
-                EsriModules.watchUtils.watch(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer)); 
+                EsriModules.watchUtils.watch(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
             });
         });
         if (!this.map.layers.some(l => l === group)) {
@@ -770,7 +768,7 @@ export class MapService {
         MapService.HHGroupLayer.visible = false;
         MapService.WrapGroupLayer.visible = false;
         MapService.CountyGroupLayer.visible = false;
-        
+
         // Analysis Levels
         if (analysisLevels.length !== 0) {
             // Loop through each of the selected analysisLevels
@@ -924,7 +922,7 @@ export class MapService {
         for (const point of this.impGeofootprintLocationService.get()) {
 //          if (point.impClientLocationType.toString() == 'Site' && selector === 'Site') {
             if (point.clientLocationTypeCode == 'Site' && selector === 'Site') {
-               
+
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
@@ -932,7 +930,7 @@ export class MapService {
                 });
                 pointList.push(p);
 //          } else if (point.impClientLocationTypeCode == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
-            } else if (point.clientLocationTypeCode == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors               
+            } else if (point.clientLocationTypeCode == 'Competitor' && selector === 'Competitor') { //set different colors for rings for competitors
                 const p = new Point({
                     x: point.xcoord,
                     y: point.ycoord,
@@ -1980,7 +1978,7 @@ export class MapService {
             }
         } */
 
-  /*      
+  /*
   // requires webGL enabled revisit after 4.6+ upgrade
   public enableHighlightOnPointerMove() {
 
@@ -1989,9 +1987,9 @@ export class MapService {
     if (impDiscoveryUI[0].analysisLevel != '') {
       const analysisLevel: string = impDiscoveryUI[0].analysisLevel;
       const portalLayerId: string = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-      console.log('my_analysisLevel = ' + analysisLevel); 
-      const layer: __esri.FeatureLayer = this.layerService.getPortalLayerById(portalLayerId);       
-      
+      console.log('my_analysisLevel = ' + analysisLevel);
+      const layer: __esri.FeatureLayer = this.layerService.getPortalLayerById(portalLayerId);
+
       this.mapView.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
       this.mapView.on('pointer-move', (event) => {
       this.mapView.hitTest(event)
@@ -2032,7 +2030,7 @@ export class MapService {
         });
     });
   });
-} // END IF  
+} // END IF
 }
 */
 
