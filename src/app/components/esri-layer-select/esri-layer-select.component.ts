@@ -123,7 +123,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
     onClearAllSelections(){
       console.log(' fired Clear selections:::');
 
-      const disCoveryUI: ImpDiscoveryUI[] =  this.impDiscoveryService.get();
+     /* const disCoveryUI: ImpDiscoveryUI[] =  this.impDiscoveryService.get();
       let layerName = null;
       if (disCoveryUI[0].analysisLevel === 'ATZ'){
         layerName = 'Selected Geography - ATZ';
@@ -136,16 +136,20 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
       }
       if (disCoveryUI[0].analysisLevel === 'PCR'){
         layerName = 'Selected Geography - PCR';
-      }
+      }*/
 
-      if (layerName !== null){
-        this.esriLayerService.removeLayer(layerName);
+     // if (layerName !== null){
+       // this.esriLayerService.removeLayer(layerName);
         this.metricService.add('CAMPAIGN', 'Household Count', '0');
         this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
         this.metricService.add('CAMPAIGN', 'Total Investment', '0');
         this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
 
-      }
+    //  }
+
+      this.impGeofootprintGeoService.clearAll();
+
+     
     }
 
     onRevertToTradeArea(){
