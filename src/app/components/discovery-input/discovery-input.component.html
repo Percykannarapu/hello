@@ -26,7 +26,7 @@
    <div class="ui-g-12 val-flush-to-edges">
       <div class="ui-g-6">
                <p-dropdown #productSelector
-               [options]="products" [(ngModel)]="impDiscoveryUI.productCode" optionLabel="productName"
+               [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName"
                placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
                (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
                [style]="{'width':'250px'}"></p-dropdown>   

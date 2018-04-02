@@ -77,13 +77,13 @@ export class ValTradeAreaService implements OnDestroy {
     });
   }
 
-  private static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean, radius?: number) : ImpGeofootprintTradeArea {
+  public static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean,  taType: string, radius?: number) : ImpGeofootprintTradeArea {
     return new ImpGeofootprintTradeArea({
       gtaId: ValTradeAreaService.id++,
       taNumber: index + 1,
       taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
       taRadius: (radius !== null ? radius : 0),
-      taType: 'CUSTOM',
+      taType: taType,
       impGeofootprintLocation: location,
       isActive: (isActive ? 1 : 0)
     });
@@ -180,7 +180,7 @@ export class ValTradeAreaService implements OnDestroy {
             if (geocodeDistance > maxRadius) {
               customIndex++;
               geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc));
-              tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true));
+              tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO CUSTOM'));
             }
           }
         });

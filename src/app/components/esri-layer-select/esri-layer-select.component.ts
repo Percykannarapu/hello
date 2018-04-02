@@ -14,6 +14,8 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ValGeoService } from '../../services/app-geo.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -41,7 +43,9 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private esriMapService: EsriMapService,
               private modules: EsriModules,
               public impDiscoveryService: ImpDiscoveryService,
-              public esriLayerService: EsriLayerService ) {
+              public esriLayerService: EsriLayerService,
+              private attributeService: ImpGeofootprintGeoAttribService ,
+              private valGeoService: ValGeoService) {
       this.mapView = this.mapService.getMapView();
     }
 
@@ -123,30 +127,12 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
     onClearAllSelections(){
       console.log(' fired Clear selections:::');
 
-     /* const disCoveryUI: ImpDiscoveryUI[] =  this.impDiscoveryService.get();
-      let layerName = null;
-      if (disCoveryUI[0].analysisLevel === 'ATZ'){
-        layerName = 'Selected Geography - ATZ';
-      }
-      if (disCoveryUI[0].analysisLevel === 'ZIP'){
-        layerName = 'Selected Geography - ZIP';
-      }
-      if (disCoveryUI[0].analysisLevel === 'Digital ATZ'){
-        layerName = 'Selected Geography - Digital ATZ';
-      }
-      if (disCoveryUI[0].analysisLevel === 'PCR'){
-        layerName = 'Selected Geography - PCR';
-      }*/
 
-     // if (layerName !== null){
-       // this.esriLayerService.removeLayer(layerName);
-        this.metricService.add('CAMPAIGN', 'Household Count', '0');
-        this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
-        this.metricService.add('CAMPAIGN', 'Total Investment', '0');
-        this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
-
-    //  }
-
+      this.metricService.metrics.clear();
+      this.metricService.add('CAMPAIGN', 'Household Count', '0');
+      this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+      this.metricService.add('CAMPAIGN', 'Total Investment', '0');
+      this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
       this.impGeofootprintGeoService.clearAll();
 
      
@@ -154,7 +140,26 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
 
     onRevertToTradeArea(){
       console.log(' fired onRevertToTradeArea:::');
-      this.mapService.callTradeArea();
+      const geos = this.impGeofootprintGeoService.get(true);
+      const filteredGeos = geos.filter(geo => {
+        console.log('taTypes for all the locations:::', geo.impGeofootprintTradeArea.taType);
+        //geo.impGeofootprintTradeArea.taType != null && geo.impGeofootprintTradeArea.taType === 'CUSTOM'
+        if  (geo.impGeofootprintTradeArea.taType === 'CUSTOM')
+            return geo;
+      });
+     /* const deleteSet = new Set(filteredGeos);
+      //filteredGeos[0].geocode
+      const attribsToDelete = this.attributeService.get().filter(att => deleteSet.has(att.impGeofootprintGeo));
+      this.attributeService.remove(attribsToDelete);
+      this.impGeofootprintGeoService.remove(filteredGeos);*/
+
+      //valGeoService
+      filteredGeos.forEach(geo => {
+          console.log('geocode to remove::', geo.geocode);
+          this.valGeoService.deleteGeosByGeocode(geo.geocode);
+      });
+
+
     }
 
 }

@@ -347,12 +347,15 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------   
    public onChangeField(event: SelectItem)
    {
-      if (this.selectedCategory)
-         this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
+      if (this.selectedCategory){
+            this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
+            this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
+      }
+        
 
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);    
 
-      this.impRadLookupService.storeObservable.subscribe(res => {
+     /* this.impRadLookupService.storeObservable.subscribe(res => {
             //console.log('good:', res);
             let isvalid = false;
             res.forEach(radLookup => {
@@ -368,7 +371,7 @@ export class DiscoveryInputComponent implements OnInit
                         }
                   }
             });
-      });
+      });*/
    }
 
    public onChangeProjectId(event: SelectItem)
@@ -391,9 +394,10 @@ export class DiscoveryInputComponent implements OnInit
          this.radDisabled = true;
          this.selectedRadLookup = null;
       }
-
-      this.radDataCalc();
+      
       this.onChangeField(event);
+      this.radDataCalc();
+     
    }
 
    public onChangeCategory(event: SelectItem){
@@ -508,7 +512,7 @@ export class DiscoveryInputComponent implements OnInit
             res.forEach(radLookup => {
                   if (!isvalid){
                      if (this.impDiscoveryUI.industryCategoryCode !== '' && this.impDiscoveryUI.productCode !== ''){
-                        if (this.impDiscoveryUI.industryCategoryCode['name'] === radLookup['category'] &&  this.impDiscoveryUI.productCode['productCode'] ===  radLookup['product']){
+                        if (this.impDiscoveryUI.industryCategoryName === radLookup['category'] &&  this.impDiscoveryUI.productCode ===  radLookup['product']){
                               this.calcProductCatRadData = '';
                               isvalid = true;
                          }

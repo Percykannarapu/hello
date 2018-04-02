@@ -37,10 +37,10 @@ export class RadService {
   /**
    * get the discovery data from the ImpDiscoveryService
    */
-  private getDiscoveryData(): any {
+  private getDiscoveryData() : any {
     const discoveryData: Array<ImpDiscoveryUI> = this.impDiscoveryService.get();
     if (discoveryData && discoveryData[0]) {
-      return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryCode };
+      return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryName };
     }
     return null;
   }
@@ -55,7 +55,9 @@ export class RadService {
 
     //filter down the RAD data based on the current product and category
     if (this.radData != null && discoveryData != null) {
-      this.filteredRadData = this.radData.filter(f => f.category === discoveryData.category.name && f.product === discoveryData.product.productCode);
+      this.filteredRadData = this.radData.filter(f => 
+         f.category === discoveryData.category
+         && f.product === discoveryData.product);
     }
 
     //If we have valid RAD data and a household count available then we can recalculate the performance metrics
