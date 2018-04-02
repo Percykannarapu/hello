@@ -95,18 +95,20 @@ export class ValGeoService implements OnDestroy {
       const queryMap = this.createTradeAreaQueryMap(adds);
       const radii = Array.from(queryMap.keys());
       const maxRadius = Math.max(...radii);
-      let geosToPersist: ImpGeofootprintGeo[] = [];
+      let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
       const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(maxRadius), maxRadius, true, ['geocode']);
       const sub = query$.subscribe(
         selections => {
-          radii.forEach(radius => {
-            geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), selections));
-          });
+          allSelectedData = allSelectedData.concat(selections);
         },
         err => console.error(err),
         () => {
+          let geosToPersist: ImpGeofootprintGeo[] = [];
+          radii.forEach(radius => {
+            geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), allSelectedData));
+          });
           this.geoService.add(geosToPersist);
           sub.unsubscribe();
           this.messagingService.stopSpinnerDialog(spinnerKey);
@@ -126,23 +128,24 @@ export class ValGeoService implements OnDestroy {
     return result;
   }
 
-  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], selections: __esri.Graphic[]) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
     const locationSet = new Set(locations);
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
     const geosToSave: ImpGeofootprintGeo[] = [];
-    selections.forEach(selection => {
+    const centroidMap = new Map(centroids.map<[string, __esri.Geometry]>(g => [g.attributes.geocode, g.geometry]));
+    centroidMap.forEach((geometry, geocode) => {
       locations.forEach(loc => {
-        if (EsriUtils.geometryIsPoint(selection.geometry)) {
-          const currentDistance = EsriUtils.getDistance(selection.geometry, loc.xcoord, loc.ycoord);
+        if (EsriUtils.geometryIsPoint(geometry)) {
+          const currentDistance = EsriUtils.getDistance(geometry, loc.xcoord, loc.ycoord);
           if (currentDistance <= radius) {
             const currentTradeAreas = tradeAreaMap.get(loc);
             if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
             if (currentTradeAreas.length === 1) {
               geosToSave.push(new ImpGeofootprintGeo({
-                xCoord: selection.geometry.x,
-                yCoord: selection.geometry.y,
-                geocode: selection.attributes.geocode,
+                xCoord: geometry.x,
+                yCoord: geometry.y,
+                geocode: geocode,
                 distance: currentDistance,
                 impGeofootprintTradeArea: currentTradeAreas[0],
                 impGeofootprintLocation: loc,
@@ -254,7 +257,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   public clearCache(){
-    //const 
+    //const
     this.currentTradeAreas = [];
   }
 }
