@@ -71,6 +71,7 @@ export class ValMapService implements OnDestroy {
   }
 
   private onSiteListChanged(sites: LocationUiModel[], siteType: string) {
+
     const oldSites = new Set(this.currentLocationList.get(siteType));
     const newSites = new Set(sites);
     const addedPoints = sites.filter(s => !oldSites.has(s)).map(s => s.point);
@@ -207,7 +208,7 @@ export class ValMapService implements OnDestroy {
       () => {
         sub.unsubscribe();
       });
-  }
+   }
 
   private setupSelectionRenderer(currentAnalysisLevel: string) {
     if (currentAnalysisLevel == null || currentAnalysisLevel === '') return;
