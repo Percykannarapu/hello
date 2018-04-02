@@ -7,6 +7,7 @@ import { map } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import * as utils from '../../app.utils';
 import { merge } from 'rxjs/observable/merge';
+import { EsriUtils } from '../core/esri-utils.service';
 
 export interface LayerId {
   portalLayerId?: string;
@@ -37,14 +38,15 @@ export class EsriQueryService {
     layer.queryFeatures(query).then(featureSet => {
       paginationSubject.next(featureSet);
       if (featureSet.exceededTransferLimit) {
-        query.num = featureSet.features.length;
-        query.start = (query.start || 0) + query.num;
-        this.paginateQuery(layer, query, paginationSubject, errorCount);
+        const newQuery = EsriUtils.clone(query);
+        newQuery.num = featureSet.features.length;
+        newQuery.start = (query.start || 0) + query.num;
+        this.paginateQuery(layer, newQuery, paginationSubject, errorCount);
       } else {
         paginationSubject.complete();
       }
     }, err => {
-      if (err && err.message && err.message.toLowerCase().includes('timeout') && errorCount < 500) {
+      if (err && err.message && err.message.toLowerCase().includes('timeout') && errorCount < 5) {
         console.warn(`Retrying due to error condition. Attempt ${errorCount + 1}.`, err);
         this.paginateQuery(layer, query, paginationSubject, errorCount + 1);
       } else {
@@ -77,8 +79,7 @@ export class EsriQueryService {
     });
   }
 
-  private queryMultipointChunk(layer: __esri.FeatureLayer, queryParams: __esri.Query,
-                               data: Coordinates[],
+  private queryMultipointChunk(layer: __esri.FeatureLayer, queryParams: __esri.Query, data: Coordinates[],
                                index: number, chunkSize: number, subject: Subject<__esri.FeatureSet>) : void {
     const currentPoints = data.slice(index, index + chunkSize);
     queryParams.geometry = this.createMultipoint(currentPoints);
@@ -89,8 +90,9 @@ export class EsriQueryService {
         const nextIndex = index + chunkSize;
         sub.unsubscribe();
         if (nextIndex < data.length) {
+          const newQuery = EsriUtils.clone(queryParams);
           console.log(`Preparing next multipoint chunk starting at index ${nextIndex}`);
-          this.queryMultipointChunk(layer, queryParams, data, nextIndex, chunkSize, subject);
+          this.queryMultipointChunk(layer, newQuery, data, nextIndex, chunkSize, subject);
         } else {
           subject.complete();
         }
