@@ -68,6 +68,8 @@ export class MapService {
     public displayDBSpinner: boolean = false;
     public displaySpinnerMessage: string ;
 
+    private pausableWatches: Array<__esri.PausableWatchHandle> = new Array<__esri.PausableWatchHandle>();
+
     constructor(private metricService: MetricService,
         private layerService: ValLayerService,
         private esriMapService: EsriMapService,
@@ -91,83 +93,84 @@ export class MapService {
     // Initialize Group Layers
     public initGroupLayers() : void {
         console.log('fired initGroupLayers()');
-
+        this.pauseLayerWatch(this.pausableWatches);
         MapService.EsriGroupLayer = new EsriModules.GroupLayer({
             title: 'ESRI',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.EsriGroupLayer, 'visible', e => this.collectLayerUsage(MapService.EsriGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.EsriGroupLayer, 'visible', e => this.collectLayerUsage(MapService.EsriGroupLayer)));
 
         MapService.ZipGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis ZIP',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.ZipGroupLayer, 'visible', e => this.collectLayerUsage(MapService.ZipGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.ZipGroupLayer, 'visible', e => this.collectLayerUsage(MapService.ZipGroupLayer)));
 
         MapService.DmaGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis DMA',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.DmaGroupLayer, 'visible', e => this.collectLayerUsage(MapService.DmaGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.DmaGroupLayer, 'visible', e => this.collectLayerUsage(MapService.DmaGroupLayer)));
 
         MapService.AtzGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis ATZ',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.AtzGroupLayer, 'visible', e => this.collectLayerUsage(MapService.AtzGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.AtzGroupLayer, 'visible', e => this.collectLayerUsage(MapService.AtzGroupLayer)));
 
         MapService.DigitalAtzGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis Digital ATZ',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.DigitalAtzGroupLayer, 'visible', e => this.collectLayerUsage(MapService.DigitalAtzGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.DigitalAtzGroupLayer, 'visible', e => this.collectLayerUsage(MapService.DigitalAtzGroupLayer)));
 
         MapService.PcrGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis PCR',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.PcrGroupLayer, 'visible', e => this.collectLayerUsage(MapService.PcrGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.PcrGroupLayer, 'visible', e => this.collectLayerUsage(MapService.PcrGroupLayer)));
 
         MapService.WrapGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis WRAP',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.WrapGroupLayer, 'visible', e => this.collectLayerUsage(MapService.WrapGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.WrapGroupLayer, 'visible', e => this.collectLayerUsage(MapService.WrapGroupLayer)));
 
         MapService.HHGroupLayer = new EsriModules.GroupLayer({
             title: 'Valassis Households',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.HHGroupLayer, 'visible', e => this.collectLayerUsage(MapService.HHGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.HHGroupLayer, 'visible', e => this.collectLayerUsage(MapService.HHGroupLayer)));
 
         MapService.CountyGroupLayer = new EsriModules.GroupLayer({
             title: 'Counties',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.CountyGroupLayer, 'visible', e => this.collectLayerUsage(MapService.CountyGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.CountyGroupLayer, 'visible', e => this.collectLayerUsage(MapService.CountyGroupLayer)));
 
         MapService.SitesGroupLayer = new EsriModules.GroupLayer({
             title: 'Sites',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.SitesGroupLayer, 'visible', e => this.collectLayerUsage(MapService.SitesGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.SitesGroupLayer, 'visible', e => this.collectLayerUsage(MapService.SitesGroupLayer)));
 
         MapService.CompetitorsGroupLayer = new EsriModules.GroupLayer({
             title: 'Competitors',
             listMode: 'show-children',
-            visible: true
+            visible: false
         });
-        EsriModules.watchUtils.watch(MapService.CompetitorsGroupLayer, 'visible', e => this.collectLayerUsage(MapService.CompetitorsGroupLayer));
+        this.pausableWatches.push(EsriModules.watchUtils.pausable(MapService.CompetitorsGroupLayer, 'visible', e => this.collectLayerUsage(MapService.CompetitorsGroupLayer)));
+        this.resumeLayerWatch(this.pausableWatches);
     }
 
     // Execute each time the "Measure Length" action is clicked
@@ -607,14 +610,38 @@ export class MapService {
     // Hide MapLayers
     public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
+        
         // Toggle all layers
         this.mapView.map.layers.forEach((layer, i) => {
             if (layer.visible === true) {
                 //console.log (i + '. layer visible: ' + this.mapView.map.layers.getItemAt(i).visible);
+                this.pauseLayerWatch(this.pausableWatches);
                 this.mapView.map.layers.getItemAt(i).visible = false;
+                this.resumeLayerWatch(this.pausableWatches);
             }
         });
+        
         return { val: this.mapView };
+    }
+
+    /**
+     * Stop the ESRI watchUtils from watching the visible property on a layer
+     * @argument pausableWatches An array of __esri.PausableWatchHandle
+     */
+    private pauseLayerWatch(pausableWatches: Array<__esri.PausableWatchHandle>) {
+        for (const watch of pausableWatches) {
+            watch.pause();
+        }
+    }
+
+    /**
+     * Resume watching the visible property on layers with the ESRI watch utils
+     * @argument pausableWatches An array of __esri.PausableWatchHandle
+     */
+    private resumeLayerWatch(pausableWatches: Array<__esri.PausableWatchHandle>) {
+        for (const watch of pausableWatches) {
+            watch.resume();
+        }
     }
 
     // Physically Remove All MapLayers
@@ -675,6 +702,7 @@ export class MapService {
     }
 
     private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {
+        this.pauseLayerWatch(this.pausableWatches);
         // Add this action to the popup so it is always available in this view
         const measureThisAction = {
             title: 'Measure Length',
@@ -735,7 +763,7 @@ export class MapService {
                 }
 
                 // register a listener for this layer to collect usage metrics
-                EsriModules.watchUtils.watch(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
+                EsriModules.watchUtils.pausable(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
             });
         });
         if (!this.map.layers.some(l => l === group)) {
@@ -743,6 +771,7 @@ export class MapService {
             MapService.layers.add(group);
         }
         group.visible = true;
+        this.resumeLayerWatch(this.pausableWatches);
     }
 
     /**
@@ -759,6 +788,7 @@ export class MapService {
 
     public setMapLayers(analysisLevels: string[]) : void {
         console.log('fired setMapLayers() in MapService');
+        this.pauseLayerWatch(this.pausableWatches);
         // Remove ESRI Group Layer Sublayers (will be reloaded from checkboxes)
         MapService.DmaGroupLayer.visible = false;
         MapService.ZipGroupLayer.visible = false;
@@ -805,6 +835,7 @@ export class MapService {
                 }
             }); // End forEach analysisLevels
         }
+        this.resumeLayerWatch(this.pausableWatches);
     }
 
     public async drawCircle(lat: number, lon: number, pointColor, miles: number, title: string, outlineColor, selector, parentId?: number) {
