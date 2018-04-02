@@ -84,7 +84,7 @@ export class ValMapService implements OnDestroy {
       this.layerService.updateGraphicAttributes(layerName, updatedPoints);
       this.layerService.setGraphicVisibility(layerName, updatedPoints);
     } else {
-      this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point');
+      this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point', true);
     }
     this.currentLocationList.set(siteType, Array.from(sites));
   }
@@ -187,7 +187,7 @@ export class ValMapService implements OnDestroy {
         const groupName = `${locationType}s`;
         const layerName = `${locationType} - ${radius} Mile Trade Area`;
         this.layerService.removeLayer(layerName);
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon');
+        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
       });
     }
   }

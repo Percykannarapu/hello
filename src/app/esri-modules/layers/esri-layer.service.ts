@@ -56,7 +56,7 @@ export class EsriLayerService {
     this.groupRefs.set(groupName, group);
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], layerType: layerGeometryType) : __esri.FeatureLayer {
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], layerType: layerGeometryType, popupEnabled: boolean, popupContent?: string) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
@@ -77,8 +77,8 @@ export class EsriLayerService {
       fields: fields,
       geometryType: layerType,
       spatialReference: { wkid: 4326 },
-      popupEnabled: true,
-      popupTemplate: new EsriModules.PopupTemplate({ content: '{*}' }),
+      popupEnabled: popupEnabled,
+      popupTemplate: new EsriModules.PopupTemplate({ content: (popupContent == null ? '{*}' : popupContent) }),
       title: layerName
     });
 
