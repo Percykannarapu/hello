@@ -157,6 +157,7 @@ export class ValTradeAreaService implements OnDestroy {
 
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(this.tradeAreasForInsert);
+    console.log('Inserting Trade Areas', this.tradeAreasForInsert);
   }
 
   public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]){

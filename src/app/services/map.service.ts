@@ -65,7 +65,7 @@ export class MapService {
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
     //public sideBarToggle: boolean = false;
-    public displayDBSpinner: boolean = false;
+    public displayDBSpinner: boolean;
     public displaySpinnerMessage: string ;
 
     private pausableWatches: Array<__esri.PausableWatchHandle> = new Array<__esri.PausableWatchHandle>();
@@ -904,7 +904,7 @@ export class MapService {
             symbol: sym
         });
         //hide the spinner after drawing buffer
-         this.displayDBSpinner = false;
+         //this.displayDBSpinner = false;
         // If a parentId was provided, set it as an attribute
         if (parentId != null)
             g.setAttribute('parentId', parentId);
@@ -1586,6 +1586,7 @@ export class MapService {
     public async selectCentroid(graphicList: __esri.Graphic[]) {
         console.log('selectCentroid fired::::');
         this.displayDBSpinner = true;
+        console.log('inside map service');
         this.displaySpinnerMessage = 'Displaying Selections ...';
         const loader = EsriLoaderWrapperService.esriLoader;
         const [FeatureLayer, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
@@ -1669,6 +1670,7 @@ export class MapService {
                 });
             }
             await this.selectPoly(centroidGraphics);
+            
         }
     }
 

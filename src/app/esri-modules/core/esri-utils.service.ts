@@ -40,4 +40,8 @@ export class EsriUtils {
     const line = new EsriModules.PolyLine({ paths: [[[xA, yA], [xB, yB]]] });
     return EsriModules.geometryEngine.geodesicLength(line, 'miles');
   }
+
+  public static clone<T>(original: T) : T {
+    return EsriModules.lang.clone(original);
+  }
 }
