@@ -36,8 +36,7 @@
         "dev": "environments/environment.ts",
         "agol": "environments/environment.agol.ts",
         "qa": "environments/environment.qa.ts",
-        "prod": "environments/environment.prod.ts",
-        "local": "environments/environment.local.ts"
+        "prod": "environments/environment.prod.ts"
       }
     }
   ],
