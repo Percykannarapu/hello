@@ -252,4 +252,9 @@ export class ValGeoService implements OnDestroy {
       this.addGeoToCustomTradeArea(geocode, geometry);
     }
   }
+
+  public clearCache(){
+    //const 
+    this.currentTradeAreas = [];
+  }
 }

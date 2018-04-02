@@ -16,6 +16,7 @@ import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ValGeoService } from '../../services/app-geo.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -45,7 +46,8 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               public impDiscoveryService: ImpDiscoveryService,
               public esriLayerService: EsriLayerService,
               private attributeService: ImpGeofootprintGeoAttribService ,
-              private valGeoService: ValGeoService) {
+              private valGeoService: ValGeoService,
+              private tradeAreaSevice: ImpGeofootprintTradeAreaService) {
       this.mapView = this.mapService.getMapView();
     }
 
@@ -140,24 +142,19 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
 
     onRevertToTradeArea(){
       console.log(' fired onRevertToTradeArea:::');
-      const geos = this.impGeofootprintGeoService.get(true);
-      const filteredGeos = geos.filter(geo => {
-        console.log('taTypes for all the locations:::', geo.impGeofootprintTradeArea.taType);
-        //geo.impGeofootprintTradeArea.taType != null && geo.impGeofootprintTradeArea.taType === 'CUSTOM'
-        if  (geo.impGeofootprintTradeArea.taType === 'CUSTOM')
-            return geo;
-      });
+      
+      this.impGeofootprintGeoService.clearAll();
+      this.attributeService.clearAll();
+      this.valGeoService.clearCache();
+      this.tradeAreaSevice.update(null, null);
+
      /* const deleteSet = new Set(filteredGeos);
       //filteredGeos[0].geocode
       const attribsToDelete = this.attributeService.get().filter(att => deleteSet.has(att.impGeofootprintGeo));
       this.attributeService.remove(attribsToDelete);
       this.impGeofootprintGeoService.remove(filteredGeos);*/
 
-      //valGeoService
-      filteredGeos.forEach(geo => {
-          console.log('geocode to remove::', geo.geocode);
-          this.valGeoService.deleteGeosByGeocode(geo.geocode);
-      });
+     
 
 
     }
