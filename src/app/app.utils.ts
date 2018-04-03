@@ -5,3 +5,7 @@ export function chunkArray<T, U>(arr: T[] | U[], chunkSize: number) : (T[] | U[]
   }
   return groups;
 }
+
+export function isNumber(value: any) : boolean {
+  return value != null && value != '' && !Number.isNaN(Number(value));
+}
