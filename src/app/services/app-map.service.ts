@@ -18,6 +18,9 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { tap } from 'rxjs/operators';
 import { AppRendererService } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { UsageService, UsageTypes } from './usage.service';
+import { UserService } from './user.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -43,7 +46,9 @@ export class ValMapService implements OnDestroy {
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
               private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService,
-              private messageService: MessageService, private rendererService: AppRendererService) {
+              private messageService: MessageService, private rendererService: AppRendererService,
+              private usageService: UsageService, private userService: UserService,
+              private impGeoService: ImpGeofootprintGeoService) {
     this.currentAnalysisLevel = '';
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
@@ -122,12 +127,49 @@ export class ValMapService implements OnDestroy {
     const query = layer.createQuery();
     query.geometry = event.mapPoint;
     query.outFields = ['geocode'];
+    const discoData = this.discoveryService.get();
+    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
+      query.outFields.push('hhld_w');
+    } else {
+      query.outFields.push('hhld_s');
+    }
     const sub = this.queryService.executeQuery(layer, query).subscribe(featureSet => {
       if (featureSet && featureSet.features && featureSet.features.length === 1) {
         const geocode = featureSet.features[0].attributes.geocode;
+        this.collectSelectionUsage(featureSet);
         this.selectSingleGeocode(geocode);
       }
     }, err => console.error('Error getting geocode for map click event', err), () => sub.unsubscribe());
+  }
+
+  /**
+   * This method will create usage metrics each time a user selects/deselects geos manually on the map
+   * @param feature A feature set containing the features the user manually selected on the map
+   */
+  private collectSelectionUsage(featureSet: __esri.FeatureSet) {
+    const discoData = this.discoveryService.get();
+    let hhc: number;
+    const geocode = featureSet.features[0].attributes.geocode;
+    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
+      hhc = Number(featureSet.features[0].attributes.hhld_w);
+    } else {
+      hhc = Number(featureSet.features[0].attributes.hhld_s);
+    }
+    const currentGeocodes = new Set(this.currentGeocodeList);
+    if (discoData[0].cpm != null) {
+      const amount: number = hhc * discoData[0].cpm / 1000;
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);        
+      } else {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+      }
+    } else {
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      } else {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      }
+    }
   }
 
   public selectSingleGeocode(geocode: string) {
