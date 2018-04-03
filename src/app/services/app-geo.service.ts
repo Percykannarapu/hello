@@ -63,16 +63,20 @@ export class ValGeoService implements OnDestroy {
         adds.push(ta);
       }
     });
-
-    this.selectAndPersistGeos(adds, updates, deletes, this.currentAnalysisLevel);
+    console.log('New Trade Area count: ' + adds.length);
+    console.log('Updated Trade Area count: ' + updates.length);
+    console.log('Removed Trade Area count: ' + deletes.length);
+    this.clearTradeAreas(deletes);
+    this.selectAndPersistGeos(adds);
     this.currentTradeAreas = Array.from(newTradeAreas);
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
     if (discovery && discovery[0] && discovery[0].analysisLevel && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.geoService.clearAll();
-      this.selectAndPersistGeos(this.currentTradeAreas, null, null, discovery[0].analysisLevel);
+      this.attributeService.clearAll();
       this.currentAnalysisLevel = discovery[0].analysisLevel;
+      this.selectAndPersistGeos(this.currentTradeAreas);
     }
   }
 
@@ -82,17 +86,10 @@ export class ValGeoService implements OnDestroy {
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
 
-  private selectAndPersistGeos(adds: ImpGeofootprintTradeArea[], updates: ImpGeofootprintTradeArea[], deletes: ImpGeofootprintTradeArea[], analysisLevel: string) : void {
-    const allGeos: ImpGeofootprintGeo[] = this.geoService.get();
-
-    if (deletes != null && deletes.length > 0) {
-      const deletedSet: Set<ImpGeofootprintTradeArea> = new Set(deletes);
-      const deletedGeos = allGeos.filter(g => deletedSet.has(g.impGeofootprintTradeArea));
-      this.geoService.remove(deletedGeos);
-    }
-    if (adds != null && adds.length > 0) {
-      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, false);
-      const queryMap = this.createTradeAreaQueryMap(adds);
+  private selectAndPersistGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+    if (tradeAreas != null && tradeAreas.length > 0) {
+      const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
+      const queryMap = this.createTradeAreaQueryMap(tradeAreas);
       const radii = Array.from(queryMap.keys());
       const maxRadius = Math.max(...radii);
       let allSelectedData: __esri.Graphic[] = [];
@@ -126,6 +123,15 @@ export class ValGeoService implements OnDestroy {
       }
     });
     return result;
+  }
+
+  private clearTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+    const deletedSet: Set<ImpGeofootprintTradeArea> = new Set(tradeAreas);
+    const deletedGeos = this.geoService.get().filter(g => deletedSet.has(g.impGeofootprintTradeArea));
+    const deletedGeoSet = new Set(deletedGeos);
+    const deletedAttributes = this.attributeService.get().filter(att => deletedGeoSet.has(att.impGeofootprintGeo));
+    this.geoService.remove(deletedGeos);
+    this.attributeService.remove(deletedAttributes);
   }
 
   private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
@@ -209,7 +215,8 @@ export class ValGeoService implements OnDestroy {
     this.geoService.remove(geosToDelete);
   }
 
-  public addGeoToCustomTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
+  public addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
+    const tradeAreaName = 'Manual Selection';
     const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     let minDistance = Number.MAX_VALUE;
     const closestLocation = locations.reduce((previous, current) => {
@@ -222,12 +229,13 @@ export class ValGeoService implements OnDestroy {
       }
     }, null);
     let tradeArea: ImpGeofootprintTradeArea;
-    const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintLocation === closestLocation && ta.isActive === 1);
+    const tradeAreas = this.tradeAreaService.get()
+      .filter(ta => ta.taType === 'CUSTOM' && ta.taName === tradeAreaName && ta.impGeofootprintLocation === closestLocation && ta.isActive === 1);
     if (tradeAreas.length === 0) {
       tradeArea = new ImpGeofootprintTradeArea({
         impGeofootprintLocation: closestLocation,
         taType: 'CUSTOM',
-        taName: 'Custom Trade Area',
+        taName: tradeAreaName,
         taNumber: 0,
         isActive: 1
       });
@@ -247,12 +255,12 @@ export class ValGeoService implements OnDestroy {
     this.geoService.add([newGeo]);
   }
 
-  public geoSelected(geocode: string, geometry: { x: number, y: number }) {
+  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
     const geoSet = new Set(this.uniqueSelectedGeocodes.getValue());
     if (geoSet.has(geocode)) {
       this.deleteGeosByGeocode(geocode);
     } else {
-      this.addGeoToCustomTradeArea(geocode, geometry);
+      this.addGeoToManualTradeArea(geocode, geometry);
     }
   }
 

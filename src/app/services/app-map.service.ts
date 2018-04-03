@@ -19,8 +19,6 @@ import { tap } from 'rxjs/operators';
 import { AppRendererService } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService, UsageTypes } from './usage.service';
-import { UserService } from './user.service';
-import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -47,8 +45,7 @@ export class ValMapService implements OnDestroy {
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
               private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService,
               private messageService: MessageService, private rendererService: AppRendererService,
-              private usageService: UsageService, private userService: UserService,
-              private impGeoService: ImpGeofootprintGeoService) {
+              private usageService: UsageService) {
     this.currentAnalysisLevel = '';
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
@@ -159,7 +156,7 @@ export class ValMapService implements OnDestroy {
     if (discoData[0].cpm != null) {
       const amount: number = hhc * discoData[0].cpm / 1000;
       if (currentGeocodes.has(geocode)) {
-        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);        
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
       } else {
         this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
       }
@@ -177,7 +174,7 @@ export class ValMapService implements OnDestroy {
     const centroidSub = this.queryService.queryAttributeIn({ portalLayerId: centroidLayerId }, 'geocode', [geocode], true).subscribe(graphics => {
       if (graphics && graphics.length > 0) {
         const point = graphics[0].geometry;
-        if (EsriUtils.geometryIsPoint(point)) this.appGeoService.geoSelected(geocode, point);
+        if (EsriUtils.geometryIsPoint(point)) this.appGeoService.toggleGeoSelection(geocode, point);
       }
     }, err => console.error(err), () => centroidSub.unsubscribe());
   }
@@ -217,7 +214,9 @@ export class ValMapService implements OnDestroy {
         width: 2
       }
     });
-    for (const [radius, points] of Array.from(pointMap.entries())) {
+    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name.startsWith(locationType) && name.endsWith('Trade Area'));
+    layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
+    pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
@@ -232,7 +231,7 @@ export class ValMapService implements OnDestroy {
         this.layerService.removeLayer(layerName);
         this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
       });
-    }
+    });
   }
 
   public getGeoAttributes(geocodes: string[], analysisLevel: string) {

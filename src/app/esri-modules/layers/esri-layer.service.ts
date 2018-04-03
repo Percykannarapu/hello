@@ -130,4 +130,8 @@ export class EsriLayerService {
   public getLayer(layerName: string) : __esri.FeatureLayer {
     return this.layerRefs.get(layerName);
   }
+
+  public getAllLayerNames() : string[] {
+    return this.mapService.map.allLayers.map(l => l.title).toArray();
+  }
 }
