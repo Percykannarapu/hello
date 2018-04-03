@@ -130,12 +130,17 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
       console.log(' fired Clear selections:::');
 
 
-      this.metricService.metrics.clear();
+      console.log('metrics need to delete:::', this.metricService.getMetrics());
+      /*this.metricService.update('AUDIENCE', 'Median Household Income', '0');
+      this.metricService.remove('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs');
+      this.metricService.remove('AUDIENCE', '% \'17 Pop Hispanic or Latino');
+      this.metricService.remove('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days');
       this.metricService.add('CAMPAIGN', 'Household Count', '0');
       this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
       this.metricService.add('CAMPAIGN', 'Total Investment', '0');
-      this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
+      this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');*/
       this.impGeofootprintGeoService.clearAll();
+      this.attributeService.clearAll();
 
      
     }

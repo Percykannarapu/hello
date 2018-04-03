@@ -147,7 +147,7 @@ export class UploadTradeAreasComponent implements OnInit {
                   const geocodeDistance =  EsriUtils.getDistance(graphic.geometry['centroid'].longitude, graphic.geometry['centroid'].latitude,
                                                                  geoLoc.loc.xcoord, geoLoc.loc.ycoord);
                   const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-                  geosToAdd.push(this.tradeAreaService.createGeo(geocodeDistance, point, geoLoc.loc));
+                  geosToAdd.push(this.createGeo(geocodeDistance, point, geoLoc.loc, graphic.attributes['geocode']));
                   tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, geoLoc.loc, true, 'UPLOADGEO CUSTOM'));
                 }
             });
@@ -179,16 +179,16 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   //Create a custom trade area 
-  public createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean, radius?: number) : ImpGeofootprintTradeArea {
-    return new ImpGeofootprintTradeArea({
-      //gtaId: ValTradeAreaService.id++,
-      taNumber: index + 1,
-      taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
-      taRadius: (radius !== null ? radius : 0),
-      taType: 'CUSTOM',
-      impGeofootprintLocation: location,
-      isActive: (isActive ? 1 : 0)
-    });
+  public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, geocode: string) : ImpGeofootprintGeo {
+    const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
+    impGeofootprintGeo.geocode = geocode;
+    impGeofootprintGeo.isActive = 1;
+    impGeofootprintGeo.impGeofootprintLocation = loc;
+    impGeofootprintGeo.distance = distance;
+    impGeofootprintGeo.xCoord = point.x;
+    impGeofootprintGeo.yCoord = point.y;
+    return impGeofootprintGeo;
+
   }
 
   private handleError(message: string) : void {

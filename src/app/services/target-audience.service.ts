@@ -17,8 +17,8 @@ export class TargetAudienceService {
 
     //Subscribe to the ImpGeofootprintGeoAttribService
     this.impGeofootprintGeoAttribService.storeObservable
-      .filter(attrs => attrs[0] != null)
-      .delay(2000)
+     // .filter(attrs => attrs[0] != null)
+      //.delay(2000)
       .subscribe(attrs => this.calculateMetrics(attrs));
   }
 
