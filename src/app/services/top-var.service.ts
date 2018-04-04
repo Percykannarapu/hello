@@ -305,12 +305,14 @@ export class TopVarService implements OnDestroy {
     const dataSet = new Set(this.selectedTdaAudience.getValue());
     dataSet.add(variable);
     this.selectedTdaAudience.next(Array.from(dataSet));
+    this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineChecked, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
   public removeTdaVariable(variable: CategoryVariable) : void {
     const dataSet = new Set(this.selectedTdaAudience.getValue());
     dataSet.delete(variable);
     this.selectedTdaAudience.next(Array.from(dataSet));
+    this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineChecked, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
   public getDemographicCategories() : Observable<DemographicCategory[]> {
