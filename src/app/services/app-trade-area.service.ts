@@ -119,7 +119,6 @@ export class ValTradeAreaService implements OnDestroy {
   }
 
   private drawTradeAreaBuffers(tradeAreas: ImpGeofootprintTradeArea[]) {
-    if (tradeAreas.length === 0) return;
     const tradeAreasWithBuffer = tradeAreas.filter(ta => ta.taType === 'RADIUS');
     const taMap: Map<ImpGeofootprintLocation, ImpGeofootprintTradeArea[]> = ValTradeAreaService.createLocationTradeAreaMap(tradeAreasWithBuffer);
     const clientBufferMap = new Map<ImpGeofootprintLocation, number[]>();

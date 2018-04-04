@@ -92,7 +92,7 @@ export class SiteListComponent implements OnInit {
     this.confirmationService.confirm({
       message: 'Do you want to delete this record?',
       header: 'Delete Confirmation',
-      icon: 'fa fa-trash',
+      icon: 'ui-icon-trash',
       accept: () => {
         this.removeLocationHierarchy(row);
         console.log('remove successful');

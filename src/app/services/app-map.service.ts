@@ -181,7 +181,6 @@ export class ValMapService implements OnDestroy {
 
   public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
     const locationKeys = Array.from(locationBuffers.keys());
-    if (locationKeys.length === 0) return;
     console.log('drawing buffers', locationBuffers);
     const radiusSet = Array.from(new Set([].concat(...Array.from(locationBuffers.values())))); // this gets a unique list of radii
     const pointMap: Map<number, __esri.Point[]> = new Map<number, __esri.Point[]>();
