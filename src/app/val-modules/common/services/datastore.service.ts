@@ -1,3 +1,4 @@
+import { ImpGeofootprintGeo } from './../../targeting/models/ImpGeofootprintGeo';
 import { RestResponse } from './../../../models/RestResponse';
 import { RestDataService } from './../../common/services/restdata.service';
 import { HttpClient} from '@angular/common/http';
@@ -15,6 +16,10 @@ type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an
 type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
 type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
 
+type headerHandlerType<T> = (state: any) => any;         // Register export variable handlers
+type variableHandlerType<T> = (state: any, data: T, header: string|number) => any;         // Register export variable handlers
+//type variableHandlerType<T> = (data: T, externalData: Map<string, any>) => void;         // Register export variable handlers
+
 /**
  * Data store configuration, holds the oauth token for communicating with Fuse
  */
@@ -22,6 +27,11 @@ export class DataStoreServiceConfiguration {
       public oauthToken: string;
       public tokenExpiration: number;
       public tokenRefreshFunction: Function;
+}
+
+export interface ColumnDefinition<T> {
+   header: number | string | headerHandlerType<T>;
+   row:    number | string | variableHandlerType<T>;
 }
 
 export class DataStore<T>
@@ -32,8 +42,7 @@ export class DataStore<T>
    // Private data store, exposed publicly as an observable
    private _dataStore = new Array<T>();
    private _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
-
-
+   
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
 
@@ -437,4 +446,68 @@ export class DataStore<T>
    {
       return (this._dataStore != null) ? this._dataStore.length : 0;
    }
+
+   //
+   //  EXPORT METHODS
+   //
+   public prepareCSV(columns: ColumnDefinition<T>[]) : string[]
+   {
+      console.log('datastore.service.prepareCSV fired - with ' + this._dataStore.length + ' rows of store data');
+
+      if (this._dataStore == null || this._dataStore.length < 1) {
+         // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
+         throw new Error('prepareCSV - No data provided to export');
+      }
+
+      // Initialize Output Array
+      const csvData: string[] = new Array<string>();
+      let row: string = '';
+      let field: any;
+
+      // Write Headers
+      for (let column of columns)
+      {            
+         field = column.header;
+         // Add the header surround in double quotes if not already
+         row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
+      }
+
+      // If we have built headers, push it to the result
+      if (row != '')
+         csvData.push(row);      
+
+      // For every row of data in the data store
+      for (const data of this._dataStore)
+      {
+         // Begin a new line for every row of data
+         row = '';
+
+         // Loop through each column determining its final value
+         for (let column of columns)
+         {
+            if (typeof(column.row) === 'string' || typeof(column.row) === 'number' || column.row == null)
+               field = column.row;
+            else
+            if (typeof(column.row) === 'function')
+               field = column.row(this, data, column.header.toString());
+            else
+            {
+               console.warn('column: ' + column.header + ' = ' + column.row + ' (Unrecognized Type: ' + typeof(column.row) + ')');
+               field = column.row;
+            }
+
+            // If we have a string, enclose it with double quotes if it isn't already
+            if (field != null && typeof(field) === 'string')
+               field = (field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"');
+         // console.log('column: ' + column.header + ' = ' + field + ' (' + typeof(column.row) + ')');
+
+            // Add the final value in field to the row
+            row += (field != null) ? field + ',' : ',';
+         }
+         // If we have built a row, push it to the result
+         if (row != '')
+            csvData.push(row);            
+      }
+      return csvData;
+   }  
 }
