@@ -17,6 +17,7 @@ export class ImpDiscoveryUI
    public includeAnne:          boolean;
    public includeSolo:          boolean;
    public projectTrackerId:     number;
+   public industryCategoryName: string;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpDiscoveryUI | {} = {}) {

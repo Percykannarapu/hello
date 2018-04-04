@@ -14,6 +14,17 @@ import { EsriQueryService } from '../../esri-modules/layers/esri-query.service';
 import { ValTradeAreaService } from '../../services/app-trade-area.service';
 import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { EsriModules } from '../../esri-modules/core/esri-modules.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+
+class GeoLocations {
+
+  constructor(private geocode: string, private location:  ImpGeofootprintLocation){}
+  geocode1: string = this.geocode;
+  loc: ImpGeofootprintLocation = this.location;
+}
 
 @Component({
   selector: 'val-upload-tradeareas',
@@ -33,13 +44,15 @@ export class UploadTradeAreasComponent implements OnInit {
     private impDiscoveryService: ImpDiscoveryService, private appConfig: AppConfig,
     private esriQueryService: EsriQueryService,
     private tradeAreaService: ValTradeAreaService,
-    private impGeofootprintLocationService: ImpGeofootprintLocationService) { }
+    private impGeofootprintLocationService: ImpGeofootprintLocationService,
+    private impGeoService: ImpGeofootprintGeoService,
+    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) { }
 
   ngOnInit() {
   }
 
   //upload tradearea rings with site numbers and geos: US6879
-  public onUploadClick(event: any): void {
+  public onUploadClick(event: any) : void {
     console.log('Inside Upload TradeAreas:::');
     const reader = new FileReader();
     const name: String = event.files[0].name;
@@ -59,7 +72,7 @@ export class UploadTradeAreasComponent implements OnInit {
       };
     }
   }
-  public parseExcelFile(event: any): void {
+  public parseExcelFile(event: any) : void {
     console.log('process excel data::');
 
     const target: DataTransfer = <DataTransfer>(event);
@@ -84,40 +97,67 @@ export class UploadTradeAreasComponent implements OnInit {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     try {
-      // if (data.failedRows.length > 0) {
-      //   console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-      //   this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
-      // }
-      // const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
-      // this.displayGcSpinner = true;
       const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
       let customIndex: number = 0;
       const analysisLevel = discoveryUI[0].analysisLevel;
-      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
+      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, true);
+
+      const filteredLocations: ImpGeofootprintLocation[] = [];
+      const geoLocList: GeoLocations[] = [];
+
 
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
       const headerCheck: string[] = header.split(/,/);
 
+
       if (headerCheck.length == 2) {
 
-        for (let i = 0; i < data.parsedData.length; i++) {
-          if (data.parsedData[i].STORE == this.impGeofootprintLocationService.get()[i].locationNumber) {
-            console.log('this.impGeofootprintLocations::', this.impGeofootprintLocationService.get()[i]);
-            //draw the tradearea selection points for the geos given in the xls/csv
+        const geocodes = [] ;
 
-            const impGeofootprintLocations = this.impGeofootprintLocationService.get()[i];
-            const geocodesList = data.parsedData[i];
+        data.parsedData.forEach(valGeo => {
+          this.impGeofootprintLocationService.get().forEach(loc => {
+            if (valGeo.STORE == loc.locationNumber){
+               geocodes.push(`${valGeo.Geo}`);
+               filteredLocations.push(loc);
+               geoLocList.push(new GeoLocations(valGeo.Geo, loc));
+              
+            }
+          });
+        });
 
-            customIndex++;
+        console.log('number of geocodes:::', geocodes);
+        const outfields = [];
+        const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
+       // tradeAreasForInsert = this.impGeofootprintTradeAreaService.get();
+        outfields.push('geocode');
+        const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true, outfields).subscribe(graphics => {
+          const geosToAdd: ImpGeofootprintGeo[] = [];
+          console.log('graphic:::::', graphics);
+          graphics.forEach(graphic => {
+            console.log('test', graphic);
+            //customIndex++;
+              geoLocList.forEach(geoLoc => {
+                if (geoLoc.geocode1 == graphic.attributes['geocode']){
+                  customIndex++;
+                  //console.log('centroid:::::', graphic.geometry['centroid']);
+                  //console.log('centroid x val:::::', graphic.geometry['centroid'].longitude);
+                  //console.log('centroid y val:::::', graphic.geometry['centroid'].latitude);
+                  const latitude = graphic.geometry['centroid'].latitude;
+                  const longitude = graphic.geometry['centroid'].longitude;
+                  const geocodeDistance =  EsriUtils.getDistance(graphic.geometry['centroid'].longitude, graphic.geometry['centroid'].latitude,
+                                                                 geoLoc.loc.xcoord, geoLoc.loc.ycoord);
+                  const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
+                  geosToAdd.push(this.createGeo(geocodeDistance, point, geoLoc.loc, graphic.attributes['geocode']));
+                  tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, geoLoc.loc, true, 'UPLOADGEO CUSTOM'));
+                }
+            });
+          });
+          console.log('geos added:::', geosToAdd);
+          this.impGeoService.add(geosToAdd);
+          this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
+        });
 
-            //this.impGeofootprintLocations.push(this.impGeofootprintLocationService.get()[i]);
-            console.log('AnalysisLevel  ::', impGeofootprintLocations);
-            console.log('Rows ::', data.parsedData[i]);
-          }
-
-        }
-        //const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodesList, true);
-        //this.uploadTradeAreas(data.parsedData);
+        
       } else {
         this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
         console.log('Set A validation message', header);
@@ -139,19 +179,19 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   //Create a custom trade area 
-  public createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean, radius?: number): ImpGeofootprintTradeArea {
-    return new ImpGeofootprintTradeArea({
-      //gtaId: ValTradeAreaService.id++,
-      taNumber: index + 1,
-      taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
-      taRadius: (radius !== null ? radius : 0),
-      taType: 'CUSTOM',
-      impGeofootprintLocation: location,
-      isActive: (isActive ? 1 : 0)
-    });
+  public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, geocode: string) : ImpGeofootprintGeo {
+    const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
+    impGeofootprintGeo.geocode = geocode;
+    impGeofootprintGeo.isActive = 1;
+    impGeofootprintGeo.impGeofootprintLocation = loc;
+    impGeofootprintGeo.distance = distance;
+    impGeofootprintGeo.xCoord = point.x;
+    impGeofootprintGeo.yCoord = point.y;
+    return impGeofootprintGeo;
+
   }
 
-  private handleError(message: string): void {
+  private handleError(message: string) : void {
     //this.displayGcSpinner = false;
     this.messageService.add({ severity: 'error', summary: 'Geocoding Error', detail: message });
   }

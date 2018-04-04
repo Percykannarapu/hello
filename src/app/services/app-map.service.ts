@@ -16,6 +16,9 @@ import { ValTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { tap } from 'rxjs/operators';
+import { AppRendererService } from './app-renderer.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { UsageService, UsageTypes } from './usage.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -33,17 +36,16 @@ export class ValMapService implements OnDestroy {
 
   private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
-  private currentBufferLayerNames = new Map<string, string[]>();
   private currentGeocodeList: string[] = [];
-
-  private defaultRenderers = new Map<string, __esri.Renderer>();
+  private layerSelectionRefresh: () => void;
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
               private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
               private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService,
-              private messageService: MessageService) {
+              private messageService: MessageService, private rendererService: AppRendererService,
+              private usageService: UsageService) {
     this.currentAnalysisLevel = '';
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
@@ -71,6 +73,7 @@ export class ValMapService implements OnDestroy {
   }
 
   private onSiteListChanged(sites: LocationUiModel[], siteType: string) {
+
     const oldSites = new Set(this.currentLocationList.get(siteType));
     const newSites = new Set(sites);
     const addedPoints = sites.filter(s => !oldSites.has(s)).map(s => s.point);
@@ -84,7 +87,7 @@ export class ValMapService implements OnDestroy {
       this.layerService.updateGraphicAttributes(layerName, updatedPoints);
       this.layerService.setGraphicVisibility(layerName, updatedPoints);
     } else {
-      this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point');
+      this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point', true);
     }
     this.currentLocationList.set(siteType, Array.from(sites));
   }
@@ -92,18 +95,18 @@ export class ValMapService implements OnDestroy {
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
     if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
+      this.setupSelectionRenderer(this.currentAnalysisLevel);
     }
   }
 
   private onGeocodeListChanged(geocodes: string[]) {
     const currentGeocodes = new Set(this.currentGeocodeList);
-    const newGeocodes = new Set(geocodes);
     const adds = geocodes.filter(g => !currentGeocodes.has(g));
-    const deletes = this.currentGeocodeList.filter(g => !newGeocodes.has(g));
     this.currentGeocodeList = Array.from(geocodes);
-    //this.setRendererInfo(newGeocodes, this.currentAnalysisLevel);
-    if (adds.length > 0) this.addToSelection(adds, this.currentAnalysisLevel);
-    if (deletes.length > 0) this.removeFromSelection(deletes, this.currentAnalysisLevel);
+    if (adds.length > 0) {
+      this.getGeoAttributes(adds, this.currentAnalysisLevel);
+    }
+    if (this.layerSelectionRefresh) this.layerSelectionRefresh();
   }
 
   private onTradeAreaBufferChange(buffer: Map<ImpGeofootprintLocation, number[]>, siteType: string) {
@@ -116,26 +119,68 @@ export class ValMapService implements OnDestroy {
   }
 
   public handleClickEvent(event:  __esri.MapViewClickEvent) {
-    // still need to figure out how add these geos to the data model
-    console.log('NO SOUP FOR YOU');
-    return;
+    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
+    const layer = this.layerService.getPortalLayerById(boundaryLayerId);
+    const query = layer.createQuery();
+    query.geometry = event.mapPoint;
+    query.outFields = ['geocode'];
+    const discoData = this.discoveryService.get();
+    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
+      query.outFields.push('hhld_w');
+    } else {
+      query.outFields.push('hhld_s');
+    }
+    const sub = this.queryService.executeQuery(layer, query).subscribe(featureSet => {
+      if (featureSet && featureSet.features && featureSet.features.length === 1) {
+        const geocode = featureSet.features[0].attributes.geocode;
+        this.collectSelectionUsage(featureSet);
+        this.selectSingleGeocode(geocode);
+      }
+    }, err => console.error('Error getting geocode for map click event', err), () => sub.unsubscribe());
+  }
 
-    // const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
-    // const layer = this.layerService.getPortalLayerById(layerId);
-    // const query = layer.createQuery();
-    // query.geometry = event.mapPoint;
-    // query.outFields = ['geocode'];
-    // const sub = this.queryService.executeQuery(layer, query).subscribe(featureSet => {
-    //   console.log('query Map point result', featureSet);
-    //   if (featureSet && featureSet.features && featureSet.features.length === 1) {
-    //     this.addToSelection([featureSet.features[0].attributes.geocode], this.currentAnalysisLevel);
-    //   }
-    // }, err => console.error('Error getting geocode for map click event', err), () => sub.unsubscribe());
+  /**
+   * This method will create usage metrics each time a user selects/deselects geos manually on the map
+   * @param feature A feature set containing the features the user manually selected on the map
+   */
+  private collectSelectionUsage(featureSet: __esri.FeatureSet) {
+    const discoData = this.discoveryService.get();
+    let hhc: number;
+    const geocode = featureSet.features[0].attributes.geocode;
+    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
+      hhc = Number(featureSet.features[0].attributes.hhld_w);
+    } else {
+      hhc = Number(featureSet.features[0].attributes.hhld_s);
+    }
+    const currentGeocodes = new Set(this.currentGeocodeList);
+    if (discoData[0].cpm != null) {
+      const amount: number = hhc * discoData[0].cpm / 1000;
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+      } else {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+      }
+    } else {
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      } else {
+        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      }
+    }
+  }
+
+  public selectSingleGeocode(geocode: string) {
+    const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
+    const centroidSub = this.queryService.queryAttributeIn({ portalLayerId: centroidLayerId }, 'geocode', [geocode], true).subscribe(graphics => {
+      if (graphics && graphics.length > 0) {
+        const point = graphics[0].geometry;
+        if (EsriUtils.geometryIsPoint(point)) this.appGeoService.toggleGeoSelection(geocode, point);
+      }
+    }, err => console.error(err), () => centroidSub.unsubscribe());
   }
 
   public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
     const locationKeys = Array.from(locationBuffers.keys());
-    if (locationKeys.length === 0) return;
     console.log('drawing buffers', locationBuffers);
     const radiusSet = Array.from(new Set([].concat(...Array.from(locationBuffers.values())))); // this gets a unique list of radii
     const pointMap: Map<number, __esri.Point[]> = new Map<number, __esri.Point[]>();
@@ -168,12 +213,9 @@ export class ValMapService implements OnDestroy {
         width: 2
       }
     });
-    if (this.currentBufferLayerNames.has(locationType)) {
-      for (const layer of this.currentBufferLayerNames.get(locationType)) {
-        this.layerService.removeLayer(layer);
-      }
-    }
-    for (const [radius, points] of Array.from(pointMap.entries())) {
+    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name.startsWith(locationType) && name.endsWith('Trade Area'));
+    layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
+    pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
@@ -185,85 +227,39 @@ export class ValMapService implements OnDestroy {
         });
         const groupName = `${locationType}s`;
         const layerName = `${locationType} - ${radius} Mile Trade Area`;
-        if (this.currentBufferLayerNames.has(locationType)) {
-          this.currentBufferLayerNames.get(locationType).push(layerName);
-        } else {
-          this.currentBufferLayerNames.set(locationType, [layerName]);
-        }
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon');
+        this.layerService.removeLayer(layerName);
+        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
       });
-    }
+    });
   }
 
-  public addToSelection(geocodes: string[], analysisLevel: string) {
-    if (geocodes == null || geocodes.length === 0) return;
-
-    const layerName = `Selected Geography - ${analysisLevel}`;
-    const highlightColor = new EsriModules.Color([0, 255, 0, 0.1]);
-    const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
-    const highlightSymbol = new EsriModules.SimpleFillSymbol({
-      color: highlightColor,
-      outline: { color: outlineColor, style: 'solid', width: 2},
-      style: 'solid'
-    });
+  public getGeoAttributes(geocodes: string[], analysisLevel: string) {
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const outFields = this.metricsService.getLayerAttributes();
-
-    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, true, outFields).subscribe(
+    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, false, outFields).subscribe(
       graphics => {
-        const newGraphics = graphics.map(f => {
-          return new EsriModules.Graphic({
-            symbol: highlightSymbol,
-            geometry: f.geometry,
-            attributes: f.attributes
-          });
-        });
         const attributesForUpdate = graphics.map(g => g.attributes);
         this.appGeoService.updatedGeoAttributes(attributesForUpdate);
-        if (this.layerService.layerExists(layerName)) {
-          this.layerService.addGraphicsToLayer(layerName, newGraphics);
-        } else {
-          this.layerService.createClientLayer('Sites', layerName, newGraphics, 'polygon');
-        }
       },
       err => {
         console.error(err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'There was an error during geo selection' });
       },
       () => {
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Geo selection is complete' });
         sub.unsubscribe();
       });
-  }
+   }
 
-  public removeFromSelection(geocodes: string[], analysisLevel: string) {
-    const layerName = `Selected Geography - ${analysisLevel}`;
-    const sourceLayer = this.layerService.getClientLayerByName(layerName);
-    const geocodeSet = new Set(geocodes);
-    const localGraphics = sourceLayer.source.filter(g => geocodeSet.has(g.attributes.geocode));
-    sourceLayer.source.removeMany(localGraphics);
-  }
-
-  private setRendererInfo(newGeocodes: Set<string>, currentAnalysisLevel: string) {
-    if (newGeocodes.size === 0) return;
-    const selectedGeo = (feature: __esri.Graphic) => newGeocodes.has(feature.attributes.geocode) ? 'Selected Geo' : 'Unselected Geo';
-    const highlightColor = new EsriModules.Color([0, 255, 0, 0.1]);
-    const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
-    const highlightSymbol = new EsriModules.SimpleFillSymbol({
-      color: highlightColor,
-      outline: { color: outlineColor, style: 'solid', width: 2},
-      style: 'solid'
-    });
+  private setupSelectionRenderer(currentAnalysisLevel: string) {
+    if (currentAnalysisLevel == null || currentAnalysisLevel === '') return;
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(portalId);
-    if (!this.defaultRenderers.has(currentAnalysisLevel)) {
-      this.defaultRenderers.set(currentAnalysisLevel, layer.renderer);
+    if (EsriUtils.rendererIsSimple(layer.renderer)) {
+      const symbol = layer.renderer.symbol;
+      layer.renderer = this.rendererService.createSelectionRenderer(symbol);
+      this.layerSelectionRefresh = () => {
+        layer.renderer = (layer.renderer as __esri.UniqueValueRenderer).clone();
+      };
     }
-    const newRenderer = new EsriModules.UniqueValueRenderer({
-      defaultSymbol: (this.defaultRenderers.get(currentAnalysisLevel) as __esri.SimpleRenderer).symbol,
-      field: selectedGeo
-    });
-    newRenderer.addUniqueValueInfo('Selected Geo', highlightSymbol);
-    layer.renderer = newRenderer;
   }
 }

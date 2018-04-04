@@ -16,10 +16,10 @@ export class TargetAudienceService {
     private metricService: MetricService) {
 
     //Subscribe to the ImpGeofootprintGeoAttribService
-    // this.impGeofootprintGeoAttribService.storeObservable
-    //   .filter(attrs => attrs[0] != null)
-    //   .delay(2000)
-    //   .subscribe(attrs => this.calculateMetrics(attrs));
+    this.impGeofootprintGeoAttribService.storeObservable
+     // .filter(attrs => attrs[0] != null)
+      //.delay(2000)
+      .subscribe(attrs => this.calculateMetrics(attrs));
   }
 
   /**
@@ -59,10 +59,10 @@ export class TargetAudienceService {
   /**
   * Calculate a single target audience metric
   * @param geoAttributes An array of ImpGeofootprintGeoAttrib that contains the data to update the metrics with
-  * @param geos The currently selected geographies
   * @param attributeCode The parameter that the metric will be calculated for
+  * @param precision The number of decimal places to keep on the metric value
   */
-  private calculateSingleMetric(geoAttributes: ImpGeofootprintGeoAttrib[], attributeCode: string, precision: number): number {
+  private calculateSingleMetric(geoAttributes: ImpGeofootprintGeoAttrib[], attributeCode: string, precision: number) : number {
     if (geoAttributes.length < 1) {
       return 0;
     }
@@ -73,11 +73,11 @@ export class TargetAudienceService {
       if (geo.hhc == null) {
         continue;
       }
-      hhc += geo.hhc;
-      for (const geoAttribute of geoAttributes) {
-        if (geoAttribute.attributeCode === attributeCode && geoAttribute.impGeofootprintGeo.geocode === geo.geocode) {
-          metricVal = (Number(geoAttribute.attributeValue) * geo.hhc) + metricVal;
-        }
+      hhc += geo.hhc; 
+    }
+    for (const geoAttribute of geoAttributes) {
+      if (geoAttribute.attributeCode === attributeCode) {
+        metricVal = (Number(geoAttribute.attributeValue) * geoAttribute.impGeofootprintGeo.hhc) + metricVal;
       }
     }
     //return Math.round(metricVal / hhc, precision);
