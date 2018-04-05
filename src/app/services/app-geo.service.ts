@@ -95,7 +95,7 @@ export class ValGeoService implements OnDestroy {
       let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
-      const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(maxRadius), maxRadius, true, ['geocode']);
+      const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(maxRadius), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
       const sub = query$.subscribe(
         selections => {
           allSelectedData = allSelectedData.concat(selections);
@@ -139,18 +139,29 @@ export class ValGeoService implements OnDestroy {
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
     const geosToSave: ImpGeofootprintGeo[] = [];
-    const centroidMap = new Map(centroids.map<[string, __esri.Geometry]>(g => [g.attributes.geocode, g.geometry]));
-    centroidMap.forEach((geometry, geocode) => {
+    const latestDiscovery = this.discoveryService.get();
+    const includeValassis = latestDiscovery[0].includeValassis;
+    const includeAnne = latestDiscovery[0].includeAnne;
+    const includeSolo = latestDiscovery[0].includeSolo;
+    const includePob = latestDiscovery[0].includePob;
+    const filteredCentroids = centroids.filter(c => {
+                                      return (c.attributes.is_pob_only === includePob)
+                                    || (c.attributes.owner_group_primary === 'ANNE' && includeAnne) 
+                                    || (c.attributes.owner_group_primary === 'VALASSIS' && includeValassis)
+                                    || (c.attributes.cov_frequency === 'SOLO' && includeSolo) ;
+                                    } );
+    const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
+    centroidMap.forEach((graphic, geocode) => {
       locations.forEach(loc => {
-        if (EsriUtils.geometryIsPoint(geometry)) {
-          const currentDistance = EsriUtils.getDistance(geometry, loc.xcoord, loc.ycoord);
+        if (EsriUtils.geometryIsPoint(graphic.geometry)) {
+          const currentDistance = EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
           if (currentDistance <= radius) {
             const currentTradeAreas = tradeAreaMap.get(loc);
             if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
-            if (currentTradeAreas.length === 1) {
+              if (currentTradeAreas.length === 1) {
               geosToSave.push(new ImpGeofootprintGeo({
-                xCoord: geometry.x,
-                yCoord: geometry.y,
+                xCoord: graphic.geometry.x,
+                yCoord: graphic.geometry.y,
                 geocode: geocode,
                 distance: currentDistance,
                 impGeofootprintTradeArea: currentTradeAreas[0],
