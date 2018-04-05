@@ -11,7 +11,8 @@ import { GeocoderService } from '../../services/geocoder.service';
 import { GeoFootPrint } from '../../services/geofootprint.service';
 import { AppConfig } from '../../app.config';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
-import { UsageService, UsageTypes } from '../../services/usage.service';
+import { UsageService } from '../../services/usage.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 
 @Component({
   selector: 'val-login',

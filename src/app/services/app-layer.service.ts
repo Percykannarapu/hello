@@ -11,7 +11,7 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { UserService } from './user.service';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 
@@ -110,7 +110,8 @@ export class ValLayerService {
       if (currentState.customShadingVisible()) {
         const discoveryData: ImpDiscoveryUI[] = this.discoveryService.get();
         const usageText: string = discoveryData[0].analysisLevel + '~' + currentLayer.title;
-        this.usageService.createCounterMetric(UsageTypes.targetingMapThematicShadingActivated, usageText, 1);
+        const usageMetricName: ImpMetricName = new ImpMetricName({namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated'});
+        this.usageService.createCounterMetric(usageMetricName, usageText, 1);
       }
       //event.action.className = currentState.customShadingVisible() ? 'esri-icon-maps' : 'esri-icon-layers';
       //console.log(`Current icon class should be ${event.action.className}`);

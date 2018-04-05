@@ -18,7 +18,8 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import { tap } from 'rxjs/operators';
 import { AppRendererService } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 export interface Coordinates {
   xcoord: number;
@@ -153,18 +154,20 @@ export class ValMapService implements OnDestroy {
       hhc = Number(featureSet.features[0].attributes.hhld_s);
     }
     const currentGeocodes = new Set(this.currentGeocodeList);
+    const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
+    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (discoData[0].cpm != null) {
       const amount: number = hhc * discoData[0].cpm / 1000;
       if (currentGeocodes.has(geocode)) {
-        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
       } else {
-        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
       }
     } else {
       if (currentGeocodes.has(geocode)) {
-        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographyDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
       } else {
-        this.usageService.createCounterMetric(UsageTypes.targetingTradeareaGeographySelected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
       }
     }
   }

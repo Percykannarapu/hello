@@ -19,8 +19,9 @@ import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LayerDefinition } from '../../environments/environment';
 import { ValMapService } from './app-map.service';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 @Injectable()
 export class MapService {
@@ -649,10 +650,12 @@ export class MapService {
      * @param layer The layer to collect uage metrics on
      */
     private collectLayerUsage(layer: __esri.Layer) {
+        const layerActivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'activated' });
+        const layerDeactivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'deactivated' });
         if (layer.visible) {
-          this.usageService.createCounterMetric(UsageTypes.targetingMapLayerVisibilityActivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerActivated, layer.title, 1);
         } else {
-          this.usageService.createCounterMetric(UsageTypes.targetingMapLayerVisibilityDeactivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerDeactivated, layer.title, 1);
         }
       }
 

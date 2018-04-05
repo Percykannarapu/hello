@@ -164,6 +164,7 @@ import { UsageService } from './services/usage.service';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { AppMessagingService } from './services/app-messaging.service';
 import { AppRendererService } from './services/app-renderer.service';
+import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
 
 @NgModule({
     imports: [
@@ -304,7 +305,7 @@ import { AppRendererService } from './services/app-renderer.service';
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
-        ValMetricsService, AppMessagingService, AppRendererService
+        ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService
     ],
     bootstrap: [AppComponent]
 })

@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeoService } from './app-geo.service';
 import { Subscription } from 'rxjs/Subscription';
@@ -15,6 +15,7 @@ import { AppMessagingService } from './app-messaging.service';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
 import { concat } from 'rxjs/observable/concat';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -290,7 +291,8 @@ export class TopVarService implements OnDestroy {
       });
       if (candidates && candidates.length > 0) {
         this.selectedTopVar.next(candidates[0]);
-        this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineChecked, candidates[0].fieldName + '~' + candidates[0].label, 1);
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'checked' });
+        this.usageService.createCounterMetric(usageMetricName, candidates[0].fieldName + '~' + candidates[0].label, 1);
       } else {
         // TODO: error handling?
       }
@@ -305,14 +307,16 @@ export class TopVarService implements OnDestroy {
     const dataSet = new Set(this.selectedTdaAudience.getValue());
     dataSet.add(variable);
     this.selectedTdaAudience.next(Array.from(dataSet));
-    this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineChecked, variable.fieldname + '~' + variable.fielddescr, 1);
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'checked' });
+    this.usageService.createCounterMetric(usageMetricName, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
   public removeTdaVariable(variable: CategoryVariable) : void {
     const dataSet = new Set(this.selectedTdaAudience.getValue());
     dataSet.delete(variable);
     this.selectedTdaAudience.next(Array.from(dataSet));
-    this.usageService.createCounterMetric(UsageTypes.targetingAudienceOfflineUnchecked, variable.fieldname + '~' + variable.fielddescr, 1);
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'checked' });
+    this.usageService.createCounterMetric(usageMetricName, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
   public getDemographicCategories() : Observable<DemographicCategory[]> {

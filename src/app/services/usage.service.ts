@@ -3,41 +3,92 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
+import { RestResponse } from '../models/RestResponse';
 import { UserService } from './user.service';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
 
-
-export class UsageTypes {
-  static targetingMapThematicShadingActivated: number = 1;
-  static targetingAudienceOfflineChecked: number = 2;
-  static targetingAudienceOfflineUnchecked: number = 3;
-  static targetingMapLayerVisibilityActivated: number = 4;
-  static targetingMapLayerVisibilityDeactivated: number = 5;
-  static targetingAudienceOnlineChecked: number = 22;
-  static targetingAudienceOnlineUnchecked: number = 23;
-  static targetingAudienceCustomDataFileUpload: number = 24;
-  static targetingLocationSiteDataFileUpload: number = 25;
-  static targetingLocationCompetitorDataFileUpload: number = 26;
-  static targetingLocationBusinessSearchImport: number = 27;
-  static targetingLocationBusinessSearchSearch: number = 28;
-  static targetingLocationSingleLocationAdd: number = 29;
-  static targetingLocationSingleLocationDelete: number = 30;
-  static targetingLocationGeofootprintExport: number = 31;
-  static targetingLocationSiteListExport: number = 32;
-  static targetingLocationCompetitorListExport: number = 33;
-  static targetingProjectProjectSave: number = 34;
-  static targetingProjectProjectLoad: number = 35;
-  static targetingTradeareaRadiusApplied: number = 36;
-  static targetingTradeareaCustomDataFileUpload: number = 37;
-  static targetingProjectAnalysisLevelChanged: number = 38;
-  static targetingTradeareaGeographySelected: number = 39;
-  static targetingTradeareaGeographyDeselected: number = 40;
-  static targetingApplicationEntryLogin: number = 41;
-}
 
 @Injectable()
 export class UsageService {
 
-  constructor(private userService: UserService, private restClient: RestDataService) { }
+  // A counter to avoid infinite recursion on fetch operations from Fuse
+  private fetchRetries: number = 0;
+
+  constructor(private userService: UserService,
+    private restClient: RestDataService,
+    private impMetricNameService: ImpMetricNameService) {
+     }
+
+  /**
+   * Create a new usage metric for an even that happened in the imPower application
+   * @param metricName The object of type UsageMetricName containing the namepsace, section, target, and action
+   * @param metricText The data that will be saved with this counter
+   * @param metricValue The number of times a particular event has occurred for this metric
+   */
+  public createCounterMetric(metricName: ImpMetricName, metricText: string, metricValue: number) {
+    if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
+      console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
+      return;
+    }
+
+    //If the data store is empty load it up from Fuse and then call this function again
+    if (this.impMetricNameService.get().length === 0 && this.fetchRetries < 3) {
+      this.impMetricNameService.get(true).subscribe(res => {
+        this.fetchRetries++;
+        this.createCounterMetric(metricName, metricText, metricValue);
+      }, err => {
+        console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+      });
+      return;
+    }
+
+    const impMetricName = this.impMetricNameService.get().filter(item => item.namespace === metricName.namespace && item.section === metricName.section && item.target === metricName.target && item.action === metricName.action);
+    if (impMetricName.length === 0) {
+      this.createMetricName(metricName, 'COUNTER')
+        .map(res => res.payload)
+        .mergeMap(res => this._createCounterMetric(Number(res), metricText, metricValue))
+        .subscribe(res => {
+          // do nothing with the response for now
+        }, err => {
+          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        });
+    } else {
+      this._createCounterMetric(impMetricName[0].metricId, metricText, metricValue)
+        .subscribe(res => {
+          // do nothing with the response for now
+        }, err => {
+          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        });
+    }
+  }
+
+  /**
+   * Create a new ImpMetricName and persist it in the database using the Fuse service
+   * @param metricName The object of type UsageMetricName containing the namepsace, section, target, and action
+   * @param metricTypeCode The type of ImpMetricName to create; COUNTER, TIMER, HISTOGRAM
+   */
+  private createMetricName(metricName: ImpMetricName, metricTypeCode: string) : Observable<RestResponse> {
+    const impMetricName: ImpMetricName = new ImpMetricName();
+    const now = new Date(Date.now());
+    impMetricName['dirty'] = true;
+    impMetricName['baseStatus'] = 'INSERT';
+    impMetricName.action = metricName.action;
+    impMetricName.createDate = now;
+    impMetricName.createUser = this.userService.getUser().userId;
+    impMetricName.isActive = 1;
+    impMetricName.metricTypeCode = metricTypeCode;
+    impMetricName.modifyDate = now;
+    impMetricName.modifyUser = this.userService.getUser().userId;
+    impMetricName.namespace = metricName.namespace;
+    impMetricName.section = metricName.section;
+    impMetricName.target = metricName.target;
+
+    // send the new metric name to Fuse for persistence
+    return this.restClient.post('v1/metrics/base/impmetricname/save', JSON.stringify(impMetricName));
+  }
 
   /**
    * Create a new usage record in the IMP_METRIC_COUNTERS table using the Fuse service
@@ -45,7 +96,7 @@ export class UsageService {
    * @param metricText The data that will be saved with this counter
    * @param metricValue The number that will be saved on this counter
    */
-  public createCounterMetric(metricName: number, metricText: string, metricValue: number) {
+  private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();  
     impMetricCounter['dirty'] = true;
@@ -59,12 +110,7 @@ export class UsageService {
     impMetricCounter.modifyUser = this.userService.getUser().userId;
 
     // Send the counter data to Fuse for persistence
-    this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter))
-      .subscribe(res => {
-        // don't do anything with the response for now
-      }, err => {
-        console.warn('Unable to persist metric data');
-      });
+    return this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter));
 
   }
 
