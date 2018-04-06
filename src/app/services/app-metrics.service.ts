@@ -138,10 +138,10 @@ export class ValMetricsService implements OnDestroy {
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
     this.useCircBudget = (isNumber(this.currentDiscoveryVar.circBudget) && this.currentDiscoveryVar.circBudget !== 0);
     this.useTotalBudget = (isNumber(this.currentDiscoveryVar.totalBudget) && this.currentDiscoveryVar.totalBudget !== 0);
-    const uniqueGeos = new Set();
+    const uniqueGeoAttrCombo = new Set();
     const attributesUniqueByGeo = attributes.reduce((prev, curr) => {
-      if (!uniqueGeos.has(curr.impGeofootprintGeo.geocode)){
-        uniqueGeos.add(curr.impGeofootprintGeo.geocode);
+      if (!uniqueGeoAttrCombo.has(curr.impGeofootprintGeo.geocode + curr.attributeCode)){
+        uniqueGeoAttrCombo.add(curr.impGeofootprintGeo.geocode + curr.attributeCode);
         prev.push(curr);
       }
       return prev;
