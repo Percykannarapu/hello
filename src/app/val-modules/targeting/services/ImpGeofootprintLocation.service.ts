@@ -66,7 +66,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       }
    }
 
-   public getGeocodeAs(geocode: string, includeZip: boolean, includeAtz: boolean, includePlus4: boolean, includeCarrierRt: boolean)
+   /**
+    * Takes a well formed geocode and returns a string that is a combination of its requested parts
+    * @param geocode The source geocode to parse
+    * @param includeZip If true, include the ZIP portion of the geocode
+    * @param includeAtz If true, include the ATZ portion of the geocode
+    * @param includeCarrierRt If true, include the PCR portion of the geocode
+    * @param includePlus4 If true, include the PLUS4 portion of the geocode
+    */
+   public getGeocodeAs(geocode: string, includeZip: boolean, includeAtz: boolean, includeCarrierRt: boolean, includePlus4: boolean)
    {
       // Regex to take a well formed geocode and break it into ZIP, ATZ, PCR and PLUS4
       const regex = /^(\d{1,5})(?:(?=[A-Z]\d{1})(?:(?=[A-Z]\d{3})()|([A-Z]\d{1}))(?:(?=[A-Z]\d{3})([A-Z]\d{3})?|()))?(?:(?:\-)(\d{4}))?/g;
@@ -200,14 +208,14 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, false, false)});
             exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, true, false, false)});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
-            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, false, false, true)});
+            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, true, false)});
             exportColumns.push({ header: 'Home Geocode Issue', row: (state, data) => null});
-            exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, false, true)});
+            exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
             exportColumns.push({ header: 'ATZ',                row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, true, false, false)});
             exportColumns.push({ header: 'Block Group',        row: (state, data) => null});
             exportColumns.push({ header: 'Unit',               row: (state, data) => null});
-            exportColumns.push({ header: 'ZIP4',               row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
-            exportColumns.push({ header: 'Market',             row: (state, data) => null});
+            exportColumns.push({ header: 'ZIP4',               row: (state, data) => state.getGeocodeAs(data.locZip, false, false, false, true)});
+            exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
             exportColumns.push({ header: 'Market Code',        row: (state, data) => null});
             exportColumns.push({ header: 'Map Group',          row: (state, data) => null});
             exportColumns.push({ header: 'STDLINXSCD',         row: (state, data) => null});

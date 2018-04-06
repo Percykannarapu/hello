@@ -1,56 +1,58 @@
 <div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-         <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-         <label> Project Tracker Id</label>         
-      </span>
-   </div>
-   <div class="ui-g-3">
-      <span class="md-inputfield">
-         <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-         <label> IMPower Id</label>         
-      </span>
-   </div>
-   <div class="ui-g-9">
-      <div *ngIf="showLoadBtn">
-         <button (click)="loadProject()">Load Project</button>
+   <div class="card">
+      <div class="ui-g-12">
+         <span class="md-inputfield">
+            <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+            <label> Project Tracker Id</label>         
+         </span>
+      </div>
+      <div class="ui-g-3">
+         <span class="md-inputfield">
+            <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+            <label> IMPower Id</label>         
+         </span>
+      </div>
+      <div class="ui-g-9">
+         <div *ngIf="showLoadBtn">
+            <button (click)="loadProject()">Load Project</button>
+         </div>
+      </div>
+      <div class="ui-g-12">
+         <span class="md-inputfield">
+            <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
+            <label>Project Name</label>
+         </span>
+      </div>
+
+      <div class="ui-g-12 val-flush-to-edges">
+         <div class="ui-g-6">
+                  <p-dropdown #productSelector
+                  [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName"
+                  placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                  (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
+                  [style]="{'width':'250px'}"></p-dropdown>   
+         </div> 
+         <div class="ui-g-6"><label>{{calcProductCatRadData}}</label></div>   
+      </div>
+      
+      <div class="ui-g-12 val-flush-to-edges">
+         <p-dropdown #categorySelector
+                     [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
+                     (onChange)="onChangeCategory($event)"
+                     placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
+                     [style]="{'width':'250px'}"></p-dropdown>
+      </div>
+
+      <div class="ui-g-12 val-flush-to-edges">
+         <p-dropdown #analysisLevelSelector
+                     [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
+                     (ngModelChange)="onAnalysisSelectType($event)"
+                     placeholder="Select an Analysis Level"
+                     [style]="{'width':'250px'}"></p-dropdown>
       </div>
    </div>
-   <div class="ui-g-12">
-      <span class="md-inputfield">
-         <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
-         <label>Project Name</label>
-      </span>
-   </div>
 
-   <div class="ui-g-12 val-flush-to-edges">
-      <div class="ui-g-6">
-               <p-dropdown #productSelector
-               [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName"
-               placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-               (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
-               [style]="{'width':'250px'}"></p-dropdown>   
-      </div> 
-      <div class="ui-g-6"><label>{{calcProductCatRadData}}</label></div>   
-   </div>
-   
-   <div class="ui-g-12 val-flush-to-edges">
-      <p-dropdown #categorySelector
-                  [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
-                  (onChange)="onChangeCategory($event)"
-                  placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
-                  [style]="{'width':'250px'}"></p-dropdown>
-   </div>
-
-   <div class="ui-g-12 val-flush-to-edges">
-      <p-dropdown #analysisLevelSelector
-                  [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
-                  (ngModelChange)="onAnalysisSelectType($event)"
-                  placeholder="Select an Analysis Level"
-                  [style]="{'width':'250px'}"></p-dropdown>
-   </div>
-
-   <div class="ui-g-5 val-grid-no-pad-left">
+   <div class="card ui-g-5 val-grid-no-pad-left">
       <div class="ui-g-12 val-flush-to-edges">
          <div class="ui-placeholder">
             <label>Counts</label>
@@ -80,7 +82,7 @@
       </div>
    </div>
 
-   <div class="ui-g-7">
+   <div class="card ui-g-7">
       <div class="ui-g-9">
          <label>Include POBs?</label>
       </div>

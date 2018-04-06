@@ -8476,3 +8476,7 @@ body .ui-terminal .ui-terminal-input {
   overflow-x: hidden !important;
   overflow-y: auto;
 }
+
+.valTabViewPaleBlue div.ui-tabview-panels {
+   background: #e7eff6;
+}
