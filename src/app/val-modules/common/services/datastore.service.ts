@@ -46,6 +46,7 @@ export class DataStore<T>
    // Private data store, exposed publicly as an observable
    private _dataStore = new Array<T>();
    private _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
+   private fetchSubject: Subject<T[]> = new Subject<T[]>();
    
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
@@ -131,7 +132,8 @@ export class DataStore<T>
 
          // Notify observers
          this._storeSubject.next(this._dataStore);
-         
+         this.fetchSubject.next(this._dataStore);
+
          if (postOperation)
             postOperation(this._dataStore);
       },
@@ -153,7 +155,10 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire prior to the fetch
     * @param postOperation - A callback delegate that will fire after the fetch
     */
-   public get(forceRefresh?: boolean, forceClear: boolean = false, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[]
+   public get(forceRefresh?: false) : T[];
+   public get(forceRefresh: true) : Observable<T[]>;
+   public get(forceRefresh: boolean, forceClear?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
+   public get(forceRefresh?: boolean, forceClear: boolean = false, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
 //    console.log('DataStore.get fired');
       if (preOperation)
@@ -166,7 +171,10 @@ export class DataStore<T>
       }
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
+      {
          this.fetch(postOperation);
+         return this.fetchSubject;
+      }
 
 //      if (postOperation)
 //          postOperation(this._dataStore);
@@ -322,7 +330,7 @@ export class DataStore<T>
     *     store instance of storeGeos[10] is returned
     * @param search An object that you wish to find in the data store
     */
-   public find(search: any)
+   public find(search: any) : T
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
       const match = this._dataStore.find(item => keys.some(key => item[key] == search[key]));

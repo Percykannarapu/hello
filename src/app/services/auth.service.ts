@@ -7,7 +7,9 @@ import { Subject } from 'rxjs/Subject';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 
@@ -97,7 +99,8 @@ export class AuthService implements CanActivate {
       return;
     }
     const user: User = this.userService.getUser();
-    this.usageService.createCounterMetric(UsageTypes.targetingApplicationEntryLogin, user.username + '~' + user.userId, 1);
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'application', target: 'entry', action: 'login' });
+    this.usageService.createCounterMetric(usageMetricName, user.username + '~' + user.userId, 1);
   }
 
   /**

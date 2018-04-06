@@ -19,8 +19,9 @@ import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LayerDefinition } from '../../environments/environment';
 import { ValMapService } from './app-map.service';
-import { UsageService, UsageTypes } from './usage.service';
+import { UsageService } from './usage.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 @Injectable()
 export class MapService {
@@ -55,16 +56,12 @@ export class MapService {
     //TODO we need to remove pointsArray after adi's uploadfunction.
     public static pointsArray: Points[] = []; // --> will keep track of all the poins on the map
 
-    //public static analysisLevlDiscInput: string;
-
     private map: __esri.Map;
     private mapView: __esri.MapView;
-    //private highlight: __esri.Graphic[] = null;
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups;
     public sketchViewModel: __esri.SketchViewModel;
-    //public sideBarToggle: boolean = false;
     public displayDBSpinner: boolean;
     public displaySpinnerMessage: string ;
 
@@ -185,49 +182,6 @@ export class MapService {
             '<div style="background-color:DarkBlue;color:white"><b>' +
             'Length: ' + distanceStr + ' miles.<br>Area: ' + areaStr + ' square-miles.</b></div>';
     }
-
-    // Execute each time the "Buffer" action is clicked
-    public bufferThis() {
-        // TODO: This method does nothing, do we need it?
-        // load required modules for this method
-        // const loader = EsriLoaderWrapperService.esriLoader;
-        // const [geometryEngine] = await loader.loadModules([
-        //     'esri/geometry/geometryEngine'
-        // ]);
-
-        const geom: __esri.Geometry = this.mapView.popup.selectedFeature.geometry;
-    }
-
-    // // Select polygon using either a MapPoint (click) or passed Geometery (popup-action)
-    // public selectPolyClick(evt:  __esri.MapViewClickEvent, geom?: __esri.Geometry, objectID?: number) {
-    //     console.log('fired selectPolyClick');
-    //     const color = {
-    //             a: 1,
-    //             r: 35,
-    //             g: 93,
-    //             b: 186
-    //           };
-    //     let layers: __esri.Layer[] = [];
-    //     let i: number = 0;
-    //     if (i === 0){
-    //             i++;
-    //             this.map.layers.forEach(function(layer: __esri.Layer) {
-    //               layers.push(layer);
-    //             });
-    //             let fLyrList: __esri.FeatureLayer[] = [];
-    //             this.getAllFeatureLayers().then(list => {
-    //               fLyrList = list;
-    //             });
-    //
-    //             for (const lyr of layers){
-    //               if (lyr.title === 'Valassis ZIP' || lyr.title === 'Valassis ATZ'){
-    //                 this.selectSinglePolygon(null, geom, objectID);
-    //                 break;
-    //               }
-    //             }
-    //     }
-    //     layers = [];
-    // }
 
     // Execute each time the "select-this" action is clicked
     public selectThis() {
@@ -396,11 +350,6 @@ export class MapService {
                 this.selectThis();
             }
 
-            // Execute the measureThis() function if the measure-this action is clicked
-            if (event.action.id === 'buffer-this') {
-                this.bufferThis();
-            }
-
         });
 
         // -----------------------------------------------------------------------------------
@@ -526,36 +475,6 @@ export class MapService {
         this.toggleFeatureLayerPopups();
     }
 
-    // Toggle Labels
-    // public labelsButton(event: MouseEvent) {
-    //     this.mapFunction = mapFunctions.Labels;
-    //     this.setActiveButton(event);
-    // }
-    //
-    // // activate the sketch to create a point
-    // public drawPointButton(event: MouseEvent) {
-    //     this.mapFunction = mapFunctions.DrawPoint;
-    //     this.setActiveButton(event);
-    //     // set the sketch to create a point geometry
-    //     this.sketchViewModel.create('point');
-    // }
-    //
-    // // activate the sketch to create a polyline
-    // public drawLineButton(event: MouseEvent) {
-    //     this.mapFunction = mapFunctions.DrawLine;
-    //     this.setActiveButton(event);
-    //     // set the sketch to create a polyline geometry
-    //     this.sketchViewModel.create('polyline');
-    // }
-    //
-    // // activate the sketch to create a polygon
-    // public drawPolygonButton(event: MouseEvent) {
-    //     this.mapFunction = mapFunctions.DrawPoly;
-    //     this.setActiveButton(event);
-    //     // set the sketch to create a polygon geometry
-    //     this.sketchViewModel.create('polygon');
-    // }
-
     // activate the sketch to create a "Measure" polyline
     public measureLineButton(event: MouseEvent) {
         this.mapFunction = mapFunctions.MeasureLine;
@@ -572,35 +491,6 @@ export class MapService {
         this.sketchViewModel.reset();
     }
 
-    /*
-    public async createSceneView(element: HTMLDivElement): Promise<EsriWrapper<__esri.SceneView>> {
-        const loader = EsriLoaderWrapperService.esriLoader;
-        const theMap = await this.getMap();
-        const [SceneView] = await loader.loadModules(['esri/views/SceneView']);
-        const opts: __esri.SceneViewProperties = {
-            container: element,
-            map: theMap,
-            center: { longitude: -83.4096256, latitude: 42.4087785 },
-            zoom: 12
-        };
-        const sceneView: __esri.SceneView = new SceneView(opts);
-        return { val: sceneView };
-    }
-*/
-
-    // plotMarker
-    // public plotMarker(lat: number, lon: number, pointColor, popupTemplate?: __esri.PopupTemplate, parentId?: number) : EsriWrapper<__esri.MapView> {
-    //
-    //     console.log('fired plotMarker() in MapService');
-    //     this.createGraphic(lat, lon, pointColor, popupTemplate, parentId).then(graphic => {
-    //         if (parentId != null)
-    //             graphic.setAttribute('parentId', parentId);
-    //         this.mapView.graphics.add(graphic);
-    //     });
-    //
-    //     return { val: this.mapView };
-    // }
-
     // Get MapView
     public getMapView() : __esri.MapView {
         // to return Mapview
@@ -610,7 +500,7 @@ export class MapService {
     // Hide MapLayers
     public hideMapLayers() : EsriWrapper<__esri.MapView> {
         console.log('fired hideMapLayers() in MapService');
-        
+
         // Toggle all layers
         this.mapView.map.layers.forEach((layer, i) => {
             if (layer.visible === true) {
@@ -620,7 +510,7 @@ export class MapService {
                 this.resumeLayerWatch(this.pausableWatches);
             }
         });
-        
+
         return { val: this.mapView };
     }
 
@@ -644,15 +534,6 @@ export class MapService {
         }
     }
 
-    // Physically Remove All MapLayers
-    // public removeMapLayers() : EsriWrapper<__esri.MapView> {
-    //     console.log('fired removeMapLayers() in MapService');
-    //
-    //     // remove all layers
-    //     this.mapView.map.layers.removeAll();
-    //     return { val: this.mapView };
-    // }
-
     // Physically Remove MapLayer (or GroupLayer)
     public removeLayer(layer: __esri.Layer) : EsriWrapper<__esri.MapView> {
         // console.log('fired removeLayer() in MapService');
@@ -670,16 +551,6 @@ export class MapService {
             return layer.title === title;
         });
     }
-
-    // Returns a sublayer instance from the map based on its title property
-    // public findSubLayerByTitle(GroupLayer: __esri.GroupLayer, title: string) : __esri.Layer {
-    //     return GroupLayer.layers.find(function (layer) {
-    //         if (layer.title === title) {
-    //             console.log('findSubLayerByTitle found: ' + layer.title);
-    //             return layer.title === title;
-    //         }
-    //     });
-    // }
 
     // Toggle FeatureLayer popups
     public toggleFeatureLayerPopups() {
@@ -779,10 +650,12 @@ export class MapService {
      * @param layer The layer to collect uage metrics on
      */
     private collectLayerUsage(layer: __esri.Layer) {
+        const layerActivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'activated' });
+        const layerDeactivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'deactivated' });
         if (layer.visible) {
-          this.usageService.createCounterMetric(UsageTypes.targetingMapLayerVisibilityActivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerActivated, layer.title, 1);
         } else {
-          this.usageService.createCounterMetric(UsageTypes.targetingMapLayerVisibilityDeactivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerDeactivated, layer.title, 1);
         }
       }
 
@@ -1115,144 +988,6 @@ export class MapService {
             console.log('Did not find layer: ' + layerTitle + ' to clear');
     }
 
-    // public clearFeatureLayerAt(layerTitle: string, lat: number, lon: number) {
-    //     // If there are no layers, there is nothing to do
-    //     if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-    //         console.log('fired clearFeatureLayerAt() in MapService, but there were no feature layers to clear');
-    //         return;
-    //     }
-    //     else
-    //         console.log('fired clearFeatureLayerAt() in MapService');
-    //
-    //     let layerCleared: boolean = false;
-    //
-    //     // loop through the existing layers to see if we can find one to clear
-    //     MapService.layers.forEach(currentLayer => {
-    //         console.log('Skipping layer: ' + currentLayer.title);
-    //         if (layerTitle === currentLayer.title) {
-    //             console.log('Clearing layer: ' + layerTitle);
-    //             const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
-    //             const src: __esri.Collection<__esri.Graphic> = currLayer.source;
-    //
-    //             for (let i: number = 0; i < src.length; i++) {
-    //                 console.log('Clearing graphic ' + i + ' / ' + src.length);
-    //                 const graphic: __esri.Graphic = src.getItemAt(i);
-    //                 const point: __esri.Point = (<__esri.Point>graphic.geometry);
-    //                 console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
-    //                 if (point.latitude === lat && point.longitude === lon) {
-    //                     console.log('found graphic at lat: ' + lat + ', lon: ' + lon);
-    //                     src.remove(graphic);
-    //                     layerCleared = true;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     });
-    //
-    //     if (!layerCleared)
-    //         console.log('Did not find layer: ' + layerTitle + ' to clear');
-    // }
-
-    // public clearAllFeatureLayersAt(lat: number, lon: number) {
-    //     // If there are no layers, there is nothing to do
-    //     if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-    //         console.log('fired clearAllFeatureLayersAt() in MapService, but there were no feature layers to clear');
-    //         return;
-    //     }
-    //     else
-    //         console.log('fired clearAllFeatureLayersAt() in MapService');
-    //
-    //     // loop through the existing layers to see if we can find one to clear
-    //     MapService.layers.forEach(currentLayer => {
-    //         console.log('Clearing layer: ' + currentLayer.title);
-    //         this.clearFeatureLayerAt(currentLayer.title, lat, lon);
-    //     });
-    // }
-
-    // public aproximatelyEqual(valueA: number, valueB: number, epsilon: number) {
-    //     if (epsilon == null) {
-    //         epsilon = 0.001;
-    //     }
-    //     return Math.abs(valueA - valueB) < epsilon;
-    // }
-
-    /* Technically this worked as transpiled javascript, but typescript threw errors
-       error TS2339: Property 'centroid' does not exist on type 'Geometry'.
-       Wanted to save a version of this work just in case.
-
-    public clearGraphicsAt(lat: number, lon: number)
-    {
-       // If there are no layers, there is nothing to do
-       if (MapService.layers.size === 0 && MapService.layerNames.size === 0) {
-          console.log('fired clearGraphicsAt() in MapService, but there were no feature layers to clear');
-          return;
-       }
-       else
-          console.log('fired clearGraphicsAt() in MapService');
-
-       let layerCleared: boolean = false;
-
-       // loop through the existing layers to see if we can find one to clear
-       MapService.layers.forEach(currentLayer => {
-          console.log('Clearing layer: '  + currentLayer.title);
-          const currLayer: __esri.FeatureLayer = (<__esri.FeatureLayer>currentLayer);
-          const src: __esri.Collection<__esri.Graphic> = currLayer.source;
-
-          if (src != null)
-          {
-             for (let i: number = 0; i < src.length; i++ )
-             {
-                console.log('Clearing graphic ' + i + ' / ' + src.length);
-                const graphic: __esri.Graphic = src.getItemAt(i);
-                console.log ('graphic: ' + graphic.toJSON());
-                const point: __esri.Point = (<__esri.Point> graphic.geometry);
-                console.log('long: ' + point.longitude + ', lat: ' + point.latitude + ' vs ' + lon + ', ' + lat);
-                if (point.latitude == lat && point.longitude == lon)
-                {
-                   console.log ('Clearing graphic at lat: ' + lat + ', lon: ' + lon);
-                   src.remove(graphic);
-                   layerCleared = true;
-                   break;
-                }
-                else
-                {
-                   console.log ('NOT clearing graphic at lat: ' + point.latitude + ', lon: ' + point.longitude);
-                   const centroid = graphic.geometry.spatialReference;
-                   console.log('centroid.lat: ' + graphic.geometry.centroid.latitude);
-                   console.log('compare lat:  ' + lat);
- //                  if (Number((graphic.geometry.centroid.latitude).toFixed(6)) == lat && Number((graphic.geometry.centroid.longitude).toFixed(6)) == lon)
-                   if (this.aproximatelyEqual(graphic.geometry.centroid.latitude, lat, 0.001) &&
-                       this.aproximatelyEqual(graphic.geometry.centroid.longitude, lon, 0.001))
-                   {
-                      console.log('Found centroid at lat: ' + graphic.geometry.centroid.latitude + ', lon: ' + graphic.geometry.centroid.longitude);
-                      src.remove(graphic);
-                   }
-                   else
-                      console.log('Did NOT find centroid at lat: ' + graphic.geometry.centroid.latitude + ', lon: ' + graphic.geometry.centroid.longitude);
-
-                   if (graphic.attributes != null)
-                   {
-                      console.log('graphic.attributes: ' + graphic.attributes);
-                      for (const key of graphic.attributes)
-                      {
-                         console.log('key: ' + key + ', value: ' + graphic.attributes[key]);
-                      }
-                   }
-                   else
-                   {
-                      console.log('Graphic attributes was null');
-                      console.log('... setting a test attribute');
-                      this.setGraphicAttribute(graphic, 'Test', 'Duffman!');
-                      console.log('attribute - test = ' + graphic.getAttribute('Test'));
-                   }
-                }
-             }
-          }
-          else
-             console.log('Layer ' + currLayer.title + ' has no source graphics');
-       });
-    }*/
-
     public clearGraphicsForParent(parentId: number) {
         // this.setGraphicAttribute (graphic, 'parentId', parentId);
         // If there are no layers, there is nothing to do
@@ -1295,10 +1030,6 @@ export class MapService {
                 console.log('Layer ' + currLayer.title + ' has no source graphics');
         });
     }
-
-    // public setGraphicAttribute(graphic: __esri.Graphic, name: string, value: any) {
-    //     graphic.setAttribute(name, value);
-    // }
 
     public updateFeatureLayer(graphics: __esri.Graphic[], layerTitle: string, showPopup: boolean = false) {
         // console.log('fired updateFeatureList() in MapService');
@@ -1670,20 +1401,9 @@ export class MapService {
                 });
             }
             await this.selectPoly(centroidGraphics);
-            
+
         }
     }
-
-    // public async queryByAttr(layerView: __esri.FeatureLayerView, key: string, value: any) {
-    //     console.log('queryByAttr fired view: ', layerView, 'key: ' + key + ', value: ' + value);
-    //     let results: Array<__esri.Graphic>;
-    //
-    //     return layerView.queryFeatures().then(qryResults => {
-    //         console.log('queryFeatures returned: ', qryResults);
-    //         console.log('queryResults filtered: ', qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value));
-    //         results = qryResults.filter(graphic => graphic.attributes && graphic.attributes[key] === value);
-    //     });
-    // }
 
     public getDistanceBetween(x1: number, y1: number, x2: number, y2: number) : number {
         // Construct a polyline to get the geodesic distance between geo and site
@@ -1919,7 +1639,6 @@ export class MapService {
         // }
     }
 
-
     /**
      * Create a new ImpGeofootprintGeoAttrib and add it to the data store
      * @param searchAttribute the attribute to search for
@@ -1941,77 +1660,7 @@ export class MapService {
         return null;
     }
 
-    // to select based on featureLayerView
-    /*    public async selectPoly(centroidGraphics: __esri.Graphic[]){
-            console.log('fired selectPoly');
-
-            const loader = EsriLoaderWrapperService.esriLoader;
-            const [Query, geometryEngine, FeatureLayer, Point, Extent, Graphic, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color]
-             = await loader.loadModules([
-                'esri/tasks/support/Query',
-                'esri/geometry/geometryEngine',
-                'esri/layers/FeatureLayer',
-                'esri/geometry/Point',
-                'esri/geometry/Extent',
-                'esri/Graphic',
-                'esri/symbols/SimpleFillSymbol',
-                'esri/symbols/SimpleLineSymbol',
-                'esri/symbols/SimpleMarkerSymbol',
-                'esri/Color', 'dojo/domReady!'
-            ]);
-
-            const geometries: __esri.Geometry[] = new Array<__esri.Geometry>();
-            for (const centroid of centroidGraphics) {
-                geometries.push(centroid.geometry);
-            }
-
-            console.log('centroidGraphics length:::' + centroidGraphics.length);
-            const symbol123 = new SimpleFillSymbol(
-                SimpleFillSymbol.STYLE_SOLID,
-                new SimpleLineSymbol(
-                  SimpleLineSymbol.STYLE_SOLID,
-                  new Color([0, 255, 0, 0.65]), 2
-                ),
-                new Color([0, 255, 0, 0.10])
-            );
-            let fLyrList: __esri.FeatureLayer[] = [];
-             await this.getAllFeatureLayers().then(list => {
-                fLyrList = list;
-            });
-           MapService.selectedCentroidObjectIds = [];
-
-            for (const lyr of fLyrList){
-                if (lyr.title === 'ZIP_Top_Vars' || lyr.title === 'ATZ_Top_Vars'){
-                    const polyGraphics: __esri.Graphic[] = [];
-                    //for (const centroidGraphic of centroidGraphics){
-                        const qry1 = new Query();
-                        const unionGeos = geometryEngine.union(geometries)
-                        qry1.geometry = unionGeos.extent;
-                        qry1.spatialRelationship = "intersects";
-                        //qry1.geometry = centroidGraphic.geometry;
-                        //qry1.outSpatialReference = this.mapView.spatialReference;
-                        let featureLayerView = null;
-                        await this.mapView.whenLayerView(lyr).then(view => {featureLayerView = view;})
-                         .then(res => featureLayerView.queryFeatures(qry1).then(function(polyFeatureSet){
-                            for (let i = 0 ; i < polyFeatureSet.length ; i++){
-
-                                   if (MapService.selectedCentroidObjectIds.length < 0 || !MapService.selectedCentroidObjectIds.includes(polyFeatureSet[i].attributes.OBJECTID) ){
-                                        MapService.hhDetails = MapService.hhDetails + polyFeatureSet[i].attributes.HHLD_W;
-                                        MapService.hhIpAddress = MapService.hhIpAddress + polyFeatureSet[i].attributes.NUM_IP_ADDRS;
-
-                                        polyGraphics.push(new Graphic(polyFeatureSet[i].geometry, symbol123, polyFeatureSet[i].attributes.OBJECTID));
-                                        MapService.selectedCentroidObjectIds.push( polyFeatureSet[i].attributes.OBJECTID) ;
-                                   }
-                                  //lyr.applyEdits({updateFeatures : [new Graphic(polyFeatureSet.features[i].geometry,symbol123)]});
-                            }
-                        }));
-                    //}
-                     this.mapView.graphics.addMany(polyGraphics);
-                }
-            }
-        } */
-
-  /*
+    /*
   // requires webGL enabled revisit after 4.6+ upgrade
   public enableHighlightOnPointerMove() {
 
@@ -2311,9 +1960,6 @@ export class MapService {
         }
     }
 
-    // public removePoint(point: Points) {
-    // }
-
     // just for reference we are not using it
     async multiHomeGeocode(lyrList: __esri.FeatureLayer[],
         geometryList: __esri.Geometry[], extent: __esri.Extent) {
@@ -2378,168 +2024,6 @@ export class MapService {
         //  return polyFeatureSetList;
     }
 
-    // async getHomeGeocode(lyr: __esri.FeatureLayer, gra: __esri.Graphic) : Promise<Map<String, Object>> {
-    //     const loader = EsriLoaderWrapperService.esriLoader;
-    //     const [FeatureLayer, Graphic, PopupTemplate]
-    //         = await loader.loadModules([
-    //             'esri/layers/FeatureLayer', 'esri/Graphic', 'esri/PopupTemplate']);
-    //     //if (layer.title === 'ZIP_Top_Vars' || layer.title === 'ATZ_Top_Vars' || layer.title === 'DIG_ATZ_Top_Vars') {
-    //     const graphic: __esri.Graphic = gra;
-    //     //         console.log('getHomeGeocode fired');
-    //
-    //     const qry = lyr.createQuery();
-    //     qry.geometry = graphic.geometry;
-    //     if (this.config.layerIds.counties.boundaries.id !== lyr.portalItem.id &&
-    //         this.config.layerIds.dma.boundaries.id !== lyr.portalItem.id) {
-    //         qry.outFields = ['geocode'];
-    //     }
-    //
-    //     if (this.config.layerIds.counties.boundaries.id === lyr.portalItem.id) {
-    //         qry.outFields = ['county_nam'];
-    //     }
-    //
-    //     if (this.config.layerIds.dma.boundaries.id === lyr.portalItem.id) {
-    //         qry.outFields = ['dma_name'];
-    //     }
-    //
-    //     const homeGeocodeMap: Map<String, Object> = new Map<String, Object>();
-    //     await lyr.queryFeatures(qry).then(polyFeatureSet => {
-    //         let homeGeocode = null;
-    //         let countyName = null;
-    //         let dmaName = null;
-    //         //  let
-    //         if (polyFeatureSet.features.length > 0) {
-    //             homeGeocode = polyFeatureSet.features[0].attributes.geocode;
-    //             dmaName = polyFeatureSet.features[0].attributes.dma_name;
-    //             countyName = polyFeatureSet.features[0].attributes.county_nam;
-    //         }
-    //         if (lyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
-    //             homeGeocodeMap.set('home_geo', homeGeocode);
-    //         }
-    //         if (lyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
-    //             homeGeocodeMap.set('home_geo', homeGeocode);
-    //         }
-    //         if (lyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
-    //             homeGeocodeMap.set('home_geo', homeGeocode);
-    //         }
-    //
-    //         if (lyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
-    //             homeGeocodeMap.set('home_geo', homeGeocode);
-    //         }
-    //         /* if (this.config.layerIds.dma.counties === lyr.portalItem.id){
-    //              homeGeocodeMap.set('home_geo' , countyName);
-    //          }
-    //          if (this.config.layerIds.dma.boundaries === lyr.portalItem.id){
-    //              homeGeocodeMap.set('home_geo' , dmaName);
-    //          }*/
-    //
-    //     });
-    //     return homeGeocodeMap;
-    // }
-
-    //Calculate home geos for the response list
-    // async calculateHomeGeo(siteList: GeocodingResponse[]) {
-    //     console.log('calculateHomeGeo::');
-    //     const color = {
-    //         a: 1,
-    //         r: 35,
-    //         g: 93,
-    //         b: 186
-    //
-    //     };
-    //
-    //     const fLyrList: __esri.FeatureLayer[] = [];
-    //     await this.getAllFeatureLayers().then(list => {
-    //         if (list.length > 0) {
-    //             for (const layer of list) {
-    //                 if ((layer.portalItem != null) && (layer.portalItem.id === this.config.layerIds.zip.topVars.id ||
-    //                     layer.portalItem.id === this.config.layerIds.atz.topVars.id ||
-    //                     layer.portalItem.id === this.config.layerIds.pcr.topVars.id ||
-    //                     layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id
-    //         /*|| layer.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars ||
-    //         layer.portalItem.id === this.config.layerIds.dma.counties ||
-    //       layer.portalItem.id === this.config.layerIds.dma.boundaries*/)) {
-    //                     fLyrList.push(layer);
-    //                 }
-    //             }
-    //         }
-    //     });
-    //
-    //     let siteNumber: number = 0;
-    //     const geoCodedSiteList: GeocodingResponse[] = [];
-    //     for (const site of siteList) {
-    //         let geoAttr: GeocodingAttributes;
-    //         let home_geo_issue: string = 'N';
-    //         siteNumber++;
-    //         //this.displaySpinnerMessage = 'Calculating Home Geocodes';
-    //         try {
-    //             for (const llyr of fLyrList) {
-    //                 let home_geo = null;
-    //                 geoAttr = new GeocodingAttributes();
-    //                 let graphic: __esri.Graphic;
-    //                 await this.createGraphic(site.latitude, site.longitude, color).then(res => {
-    //                     graphic = res;
-    //                 });
-    //                 await this.getHomeGeocode(llyr, graphic).then(res => {
-    //                     home_geo = res.get('home_geo');
-    //
-    //
-    //                     if (llyr.portalItem.id === this.config.layerIds.zip.topVars.id) {
-    //                         geoAttr.attributeName = 'Home ZIP';
-    //                         geoAttr.attributeValue = home_geo;
-    //                         site.geocodingAttributesList.push(geoAttr);
-    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'ZIP') {
-    //                             site.homeGeocode = home_geo;
-    //                         }
-    //                     }
-    //                     if (llyr.portalItem.id === this.config.layerIds.atz.topVars.id) {
-    //                         geoAttr.attributeName = 'Home ATZ';
-    //                         geoAttr.attributeValue = home_geo;
-    //                         site.geocodingAttributesList.push(geoAttr);
-    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'ATZ') {
-    //                             site.homeGeocode = home_geo;
-    //                         }
-    //                     }
-    //                     if (llyr.portalItem.id === this.config.layerIds.pcr.topVars.id) {
-    //                         geoAttr.attributeName = 'HOME PCR';
-    //                         geoAttr.attributeValue = home_geo;
-    //                         site.geocodingAttributesList.push(geoAttr);
-    //                         if (this.impDiscoveryService.get()[0].analysisLevel === 'PCR') {
-    //                             site.homeGeocode = home_geo;
-    //                         }
-    //                     }
-    //                     if (llyr.portalItem.id === this.config.layerIds.digital_atz.digitalTopVars.id) {
-    //                         geoAttr.attributeName = 'Home DIGITAL ATZ';
-    //                         geoAttr.attributeValue = home_geo;
-    //                         site.geocodingAttributesList.push(geoAttr);
-    //                     }
-    //                     /* if (llyr.portalItem.id === this.config.layerIds.dma.counties) {
-    //                         geoAttr.attributeName = 'HOME COUNTY';
-    //                         geoAttr.attributeValue = home_geo;
-    //                         site.geocodingAttributesList.push(geoAttr);
-    //                      }
-    //                      if (llyr.portalItem.id === this.config.layerIds.dma.boundaries) {
-    //                        geoAttr.attributeName = 'HOME DMA';
-    //                        geoAttr.attributeValue = home_geo;
-    //                        site.geocodingAttributesList.push(geoAttr);
-    //                      }*/
-    //                 });
-    //             }
-    //
-    //         }
-    //         catch (ex) {
-    //             home_geo_issue = 'Y';
-    //             console.error(ex);
-    //         }
-    //
-    //         geoAttr = new GeocodingAttributes();
-    //         geoAttr.attributeName = 'HOME GEOCODE ISSUE';
-    //         geoAttr.attributeValue = home_geo_issue;
-    //         site.geocodingAttributesList.push(geoAttr);
-    //         geoCodedSiteList.push(site);
-    //     }
-    //     return geoCodedSiteList;
-    // }
 }
 
 export interface EsriWrapper<T> {

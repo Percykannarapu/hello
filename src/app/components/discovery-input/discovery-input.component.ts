@@ -302,7 +302,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log('filterRadLookups by ' + productCode);
 
       this.radData = new Array();
-      for (let i: number = 0; i < this.impRadLookupService.get(true).length; i++)
+      for (let i: number = 0; i < this.impRadLookupService.get().length; i++)
       {
          console.log (this.impRadLookupService.storeObservable[i].product + ' vs ' + this.selectedProduct.productCode);
          if (this.impRadLookupService.storeObservable[i].product == this.selectedProduct.productCode)

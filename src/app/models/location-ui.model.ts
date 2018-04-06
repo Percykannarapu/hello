@@ -8,6 +8,23 @@ export class LocationUiModel {
   private static red = [255, 0, 0];
   private static blue = [35, 93, 186];
 
+  private static defaultPopupFields = [
+    { fieldName: 'locationNumber', label: 'Location Number' },
+    { fieldName: 'locAddress', label: 'Address' },
+    { fieldName: 'locCity', label: 'City' },
+    { fieldName: 'locState', label: 'State' },
+    { fieldName: 'locZip', label: 'Zip' },
+    { fieldName: 'recordStatusCode', label: 'Geocode Status' },
+    { fieldName: 'ycoord', label: 'Latitude' },
+    { fieldName: 'xcoord', label: 'Longitude' },
+    { fieldName: 'geocoderMatchCode', label: 'Match Code' },
+    { fieldName: 'geocoderLocationCode', label: 'Match Quality' },
+    { fieldName: 'origAddress1', label: 'Original Address' },
+    { fieldName: 'origCity', label: 'Original City' },
+    { fieldName: 'origState', label: 'Original State' },
+    { fieldName: 'origPostalCode', label: 'Original Zip' },
+  ];
+
   public point: __esri.Graphic;
 
   constructor(public location: ImpGeofootprintLocation, public attributes?: ImpGeofootprintLocAttrib[], private popupTemplate?: string, private popupTitle?: string, ) {
@@ -28,17 +45,24 @@ export class LocationUiModel {
       x: this.location.xcoord,
       y: this.location.ycoord
     });
-    const popupTemplate: __esri.PopupTemplate = new EsriModules.PopupTemplate({
-      title: (this.popupTitle == null ? this.location.locationName : this.popupTitle),
-      content: (this.popupTemplate == null ? '{*}' : this.popupTemplate)
+    const defaultFields = Array.from(LocationUiModel.defaultPopupFields);
+    const defaultTitle: string = `${this.location.clientLocationTypeCode}: ${this.location.locationName}`;
+    const popup = new EsriModules.PopupTemplate({
+      title: (this.popupTitle == null ? defaultTitle : this.popupTitle),
+      content: (this.popupTemplate == null ? [{ type: 'fields' }] : this.popupTemplate),
+      fieldInfos: (this.popupTemplate == null ? defaultFields : [])
     });
     this.point = new EsriModules.Graphic({
       geometry: point,
       symbol: symbol,
-      popupTemplate: popupTemplate,
-      visible: (this.location.isActive === true)
+      popupTemplate: popup,
+      visible: (this.location.isActive === true),
+      attributes: { parentId: this.location.locationNumber }
     });
-    this.setAttributes(this.attributes);
+    for (const [field, value] of Object.entries(this.location)) {
+      this.point.attributes[field] = value;
+    }
+
   }
 
   public setPointVisibility(flag: boolean) : void {
@@ -46,12 +70,12 @@ export class LocationUiModel {
   }
 
   public setAttributes(newAttributes: ImpGeofootprintLocAttrib[]) : void {
+    const currentAttributes = new Set(this.attributes);
+    const adds = newAttributes.filter(att => !currentAttributes.has(att));
     this.attributes = Array.from(newAttributes);
-    this.point.attributes = {
-      parentId: this.location.locationNumber
-    };
-    for (const attribute of newAttributes) {
+    for (const attribute of adds) {
       this.point.attributes[attribute.attributeCode] = attribute.attributeValue;
+      this.point.popupTemplate.fieldInfos.push({ fieldName: attribute.attributeCode, label: attribute.attributeCode });
     }
   }
 }

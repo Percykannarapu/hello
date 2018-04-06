@@ -1,20 +1,15 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
-import { AppService } from '../../services/app.service';
-import { DropdownModule } from 'primeng/primeng';
-import { MapService } from '../../services/map.service';
-import { GrowlModule } from 'primeng/primeng';
-import { SelectItem } from 'primeng/components/common/api';
-import { Message } from 'primeng/components/common/api';
-import { MessageService } from 'primeng/components/common/messageservice';
-import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-import { DefaultLayers } from '../../models/DefaultLayers';
-import { forEach } from '@angular/router/src/utils/collection';
-import { GeocodingResponse } from '../../models/GeocodingResponse';
-import { GeocodingAttributes } from '../../models/GeocodingAttributes';
-import { GeocoderService } from '../../services/geocoder.service';
-import { GeocodingResponseService } from '../../val-modules/targeting/services/GeocodingResponse.service';
-import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { AppService, BusinessSearchResult } from '../../services/app.service';
+import { AppMessagingService } from '../../services/app-messaging.service';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
+interface SelectableSearchResult {
+  data: BusinessSearchResult;
+  friendlyName: string;
+  friendlyDescription: string;
+  selected: boolean;
+}
 
 @Component({
   selector: 'val-business-search',
@@ -23,47 +18,29 @@ import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 })
 export class BusinessSearchComponent implements OnInit {
 
+  public searchResults: SelectableSearchResult[] = [];
+
   @Input() disableShowBusiness;
   @Output()
   showSideBar: EventEmitter<any> = new EventEmitter<any>();
 
   public name: string;  // Used by parent as a header
-  public numFound: number;
-  public mapView: __esri.MapView;
   public color: any;
   items: any = [];
   dropdownList: any[];
   selectedCategory: any;
   selector: any;
-  searchDatageos: any = []; //
-  msgs: Message[] = [];
-  // As we wire the component up to real sources, we can remove the below
-  selectedCity: string;
   model: any = {};
   sourceCategories: any = [];
   targetCategories: any = [];
   filteredCategories: any = [];
-  geofootprintGeos: any;
   competitors: any = [];
   sites: any;
   businessCategories: any;
 
-  public plottedPoints: any;
-  showLoader: boolean = false;
-
-  //private layerRefs = new Map<string, __esri.FeatureLayer>();
-
-
-  constructor(private geocoderService: GeocoderService,
-    private appService: AppService,
-    private mapService: MapService,
-    private geocodingRespService: GeocodingResponseService,
-    private messageService: MessageService,
-   private esriLayerService: EsriLayerService) {
-    //Dropdown data
-
+  constructor(private appService: AppService, private messagingService: AppMessagingService,
+              private locationService: ImpGeofootprintLocationService) {
     this.dropdownList = [
-      { label: 'Select SIC Category (optional)', value: { name: 'Select SIC Category (optional)'} },
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
       { label: 'Automotive Dealers & Service Stations', value: { name: 'Automotive Dealers & Service Stations', category: 55 } },
@@ -80,7 +57,20 @@ export class BusinessSearchComponent implements OnInit {
       { label: 'Personal Services', value: { name: 'Personal Services', category: 72 } },
       { label: 'Schools & Universities', value: { name: 'Schools & Universities', category: 82 } }
     ];
+  }
 
+  private static createSiteFromSearchResult(searchResult: BusinessSearchResult, siteType: string) : ImpGeofootprintLocation {
+    return new ImpGeofootprintLocation({
+      clientLocationTypeCode: siteType,
+      locationName: searchResult.firm,
+      locAddress: searchResult.address,
+      locCity: searchResult.city,
+      locState: searchResult.state,
+      locZip: searchResult.zip,
+      xcoord: searchResult.x,
+      ycoord: searchResult.y,
+      isActive: true
+    });
   }
 
   ngOnInit() {
@@ -100,27 +90,23 @@ export class BusinessSearchComponent implements OnInit {
     console.log('this.businessCategories', this.businessCategories);
     this.sourceCategories = this.businessCategories.sort(this.sortOn('name'));
   }
+
   assignCopy() {
     this.sourceCategories = Object.assign([], this.businessCategories);
   }
+
   filterCategory(value) {
     if (!value) {
       this.assignCopy();
     } else if (value.length > 2) {
       this.sourceCategories = Object.assign([], this.filteredCategories.sort(this.sortOn('name'))).filter((item) => {
-        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;  
+        return item.name ? (item.name.toLowerCase().indexOf(value.toLowerCase()) > -1) : false;
       });
     }
-
   }
 
-  //nallana: Searchbusiness with the parameter obj
-  async onSearchBusiness() {
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [Collection] = await loader.loadModules(['esri/core/Collection']);
-    this.showLoader = true;
+  public onSearchBusiness() {
     const paramObj = {
-
       'radius': this.model.radius,
       'name': this.model.name,
       'city': this.model.city,
@@ -131,64 +117,36 @@ export class BusinessSearchComponent implements OnInit {
       'siteLimit': '2000'
     };
 
-    this.mapView = this.mapService.getMapView();
-    /*let sites = this.mapView.graphics.map((obj) => {
-
-      return {
-        x: obj.geometry['x'],
-        y: obj.geometry['y']
-      }
-    });*/
-
-    //get the coordinates for all sites from the sites layer
-    const sites: __esri.Collection<{ x: any; y: any; }> = new Collection();
-    const layer = this.esriLayerService.getLayer(DefaultLayers.SITES);
-        (<__esri.FeatureLayer>layer).source.forEach(graphic => {
-          sites.add({
-            x: graphic.geometry['x'],
-            y: graphic.geometry['y']
-          });
-        });
-
-    paramObj['sites'] = sites['items'];
-
-    paramObj['sics'] = this.targetCategories.map((obj) => {
-
-      return {
-        'sic': obj.sic
-      };
-    });
-    this.msgs = [];
-
+    const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
+    paramObj['sites'] = currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord }));
+    paramObj['sics'] = this.targetCategories.map(category => ({ sic: category.sic}));
+    let hasError = false;
     if (paramObj['sites'].length === 0) {
-      this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Sites cannot be empty' });
-      this.showLoader = false;
+      this.messagingService.showGrowlError('Business Search Error', 'You must have at least one Client Site specified');
+      hasError = true;
     }
     if (paramObj['sics'].length === 0) {
-      this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'There should be atleast one selection of SIC"s' });
-      this.showLoader = false;
+      this.messagingService.showGrowlError('Business Search Error', 'You must have at least one SIC specified');
+      hasError = true;
     }
     if (paramObj['radius'] === undefined || paramObj['radius'] === '') {
-      this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Radius cannot be left blank' });
-      this.showLoader = false;
+      this.messagingService.showGrowlError('Business Search Error', 'Please enter a radius');
+      hasError = true;
     }
 
-    console.log('request to business search', paramObj);
-
-    //Using TypeScript would help for code optimization : reverting to original code
-    this.appService.getBusinesses(paramObj).subscribe((res) => {
-      this.showLoader = false;
-      const data = res.payload;
-
-      //console.log("In Business Search  componenet GOT ROWS : " + JSON.stringify(data.rows, null, 4));
-      this.searchDatageos = data.rows;
-      this.searchDatageos.forEach((obj) => {
-        //Building label to show adresses
-        obj['checked'] = false;
-        obj['businessLabel'] = `${obj.firm} (${Math.round(obj.dist_to_site * 100) / 100} miles)`;
-      });
-    });
-
+    if (!hasError) {
+      this.messagingService.startSpinnerDialog('businessSearchKey', 'Searching...');
+      this.appService.getBusinesses(paramObj).subscribe(responseData => {
+        responseData.forEach(fuseResult => {
+          this.searchResults.push({
+            data: fuseResult,
+            friendlyName: `${fuseResult.firm} (${Math.round(fuseResult.dist_to_site * 100) / 100} miles)`,
+            friendlyDescription: `${fuseResult.address}, ${fuseResult.city}, ${fuseResult.state} ${fuseResult.zip}`,
+            selected: false
+          });
+        });
+      }, err => console.error(err), () => this.messagingService.stopSpinnerDialog('businessSearchKey'));
+    }
   }
 
   private sortOn(property) {
@@ -203,150 +161,16 @@ export class BusinessSearchComponent implements OnInit {
     };
   }
 
-  private parseCsvResponse(restResponses: any[]) : GeocodingResponse[] {
-    const geocodingResponseList: GeocodingResponse[] = [];
-    const geocodingResponse: GeocodingResponse[] = restResponses;
-    for (const restResponse of geocodingResponse) {
-
-      const geocodingAttrList: GeocodingAttributes[] = [];
-
-      let geocodingAttr = null;
-      for (const [k, v] of Object.entries(restResponse)) {
-        geocodingAttr = new GeocodingAttributes();
-        geocodingAttr.attributeName = k;
-        geocodingAttr.attributeValue = v;
-        geocodingAttrList.push(geocodingAttr);
-      }
-      restResponse.geocodingAttributesList = geocodingAttrList;
-      geocodingResponseList.push(restResponse);
-
-    }
-    console.log('geocodingresponselist', geocodingResponseList);
-    return geocodingResponseList;
+  public onSelectAll(e: boolean) : void {
+    this.searchResults.forEach(result => result.selected = e);
   }
 
-  // For Enabling selectall functionality for the business found
-  onSelectAll(e) {
-    this.plottedPoints = [];
-    this.searchDatageos.forEach((cat) => {
-      cat['checked'] = e;
-      if (cat.checked) {
-        const objname = {
-          fipscountyCode: cat.sdm_id,
-          name: cat.firm,
-          addressline: cat.address,
-          city: cat.city,
-          state: cat.state,
-          zip: cat.zip,
-          latitude: cat.y,
-          longitude: cat.x,
-          number: this.geocodingRespService.getNewSitePk().toString(),
-          status: 'PROVIDED'
-        };
-
-        this.plottedPoints.push(objname);
-      }
+  public onAddToProject(siteType: string) : void {
+    const locationsForinsert: ImpGeofootprintLocation[] = [];
+    this.searchResults.filter(sr => sr.selected).forEach(result => {
+      locationsForinsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
     });
-  }
-
-  //Count the number of checked addressess: US6475
-  onSelectSD() {
-    this.plottedPoints = [];
-    this.searchDatageos.forEach((obj) => {
-      if (obj.checked) {
-        const objname = {
-          fipscountyCode: obj.sdm_id,
-          name: obj.firm,
-          addressline: obj.address,
-          city: obj.city,
-          state: obj.state,
-          zip: obj.zip,
-          latitude: obj.y,
-          longitude: obj.x,
-          number: this.geocodingRespService.getNewSitePk().toString(),
-          status: 'PROVIDED'
-        };
-        // console.log('Obj', obj);
-        // console.log('Obj', objname);
-        this.plottedPoints.push(objname);
-        //geocodingResponseList.push(this.plottedPoints);
-      }
-    });
-  }
-
-  //adding points on the map
-  async onAddToProject(selector) {
-    console.log('selector: ', selector);
-    //Giving color to the point on the map
-    if (selector === 'Site') {
-      this.color = {
-        a: 1,
-        r: 35,
-        g: 93,
-        b: 186
-      };
-      //Close the sidebar after we select the points to be mapped
-      //this.showSideBar.emit(false);
-    } else if (selector === 'Competitor') {
-      this.color = {
-        a: 1,
-        r: 255,
-        g: 0,
-        b: 0
-      };
-    } else {
-      this.msgs.push({ severity: 'error', summary: 'Error Message', detail: 'Please select Sites/Competitors' });
-    }
-    const loader = EsriLoaderWrapperService.esriLoader;
-    const [PopupTemplate, Graphic] = await loader.loadModules(['esri/PopupTemplate', 'esri/Graphic']);
-    const graphics: __esri.Graphic[] = new Array<__esri.Graphic>();
-
-    //await this.searchDatageos.forEach(async business => {
-    //Create a popup for the point clicked on the map
-    for (const business of this.searchDatageos) {
-      if (business.checked) {
-        const popupTemplate: __esri.PopupTemplate = new PopupTemplate();
-        console.log('long: x', business.x + 'lat: y', business.y);
-        popupTemplate.title = `${selector}`,
-          popupTemplate.content =
-          `<table>
-          <tbody>
-          <tr><th>Name:</th><td>${business.firm ? business.firm : ''}</td></tr>
-          <tr><th>Number:</th><td>${business.abino ? business.abino : ''}</td></tr>
-          <tr><th>Street:</th><td>${business.address}</td></tr>
-          <tr><th>City:</th><td>${business.city}</td></tr>
-          <tr><th>State:</th><td>${business.state}</td></tr>
-          <tr><th>Zip:</th><td>${business.zip}</td></tr>
-          <tr><th>Latitude</th><td>${business.y}</td></tr>
-          <tr><th>Longitude</th><td>${business.x}</td></tr>
-          </tbody>
-          </table>`;
-
-        // <tr><th>Wrap Zone:</th><td>${business.wrap_name}</td></tr>
-        // <tr><th>ATZ:</th><td>${business.atz_name}</td></tr>
-        // <tr><th>Carrier Route:</th><td>${business.carrier_route_name}</td></tr>
-
-        await this.mapService.createGraphic(business.y, business.x, this.color, popupTemplate, null)
-          .then(res => {
-            graphics.push(res);
-          });
-      }
-    }
-    this.plottedPoints = this.parseCsvResponse(this.plottedPoints);
-    //console.log('this.plottedpoints', this.plottedPoints);
-    this.geocoderService.addSitesToMap(this.plottedPoints, selector); // addsitestoMap handles all the metric addition as well as points on the map with seperate logic for sites/competitors
+    if (locationsForinsert.length > 0) this.locationService.add(locationsForinsert);
     this.appService.closeOverLayPanel.next(true);
-    // if (selector === 'Competitor') {
-    //   //this.appService.updateColorBoxValue.emit({type: 'Competitors', countCompetitors: this.plottedPoints.length});
-    //   console.log('Adding competitors from store search');
-    //   await this.mapService.updateFeatureLayer(graphics, DefaultLayers.COMPETITORS, true);
-    //   this.appService.closeOverLayPanel.next(true);
-    // } else if (selector === 'Site') {
-    //   //this.geocoderService.addSitesToMap(this.parseCsvResponse(this.plottedPoints), selector);
-    //   //this.appService.updateColorBoxValue.emit({type: 'Sites', countSites: this.plottedPoints.length});
-    //   console.log('adding sites from store search');
-    //   await this.mapService.updateFeatureLayer(graphics, DefaultLayers.SITES, true);
-    //   this.appService.closeOverLayPanel.next(true);
-    // }
   }
 }

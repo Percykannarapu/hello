@@ -7,7 +7,7 @@ import { AppService } from '../../services/app.service';
   providers: [AppService]
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
-  @ViewChild('op') overlayPanel; 
+  @ViewChild('op') overlayPanel;
    @Input() header:         string = 'Header';
    @Input() boxStyle:       string = 'colorbox-1';
    @Input() popupStyle:     string = 'green-panel';
@@ -31,26 +31,13 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
     }
 
    ngOnInit(){
-    // //US6475: Attach the # of Sites and Competitors; nallana
-    // this.appService.updateColorBoxValue.subscribe((data) => {
-    //   const modelvalue = this.model;
-    //   const plottedData = data;
-    //   if (plottedData.type === 'Competitors'){
-    //     modelvalue.set('# of Competitors', (plottedData.countCompetitors).toString());
-    //   }else{
-    //     const count = + modelvalue.get('# of Sites');
-    //     const sitesCount = (count + plottedData.countSites).toString();
-    //     modelvalue.set('# of Sites', sitesCount);
-    //   }
-    //   this.generateColorBoxValues();
-    //  });
      this.generateColorBoxValues();
    }
 
    public onShowOverlay(event: any) {
      if (this.displayOverlay === 'true') {
        this.overlayPanel.toggle(event);
-     } 
+     }
    }
 
    private generateColorBoxValues(){
@@ -78,7 +65,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
       this.model.set(key, value);
       this.updateModel(this.model);
    }
- 
+
    public delete(key: string){
       this.model.delete(key);
       this.updateModel(this.model);
@@ -86,7 +73,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    onClick(direction: string){
       if (this.model == null) {
-         console.log('model is null'); 
+         console.log('model is null');
       }
 
       const keys = Array.from(this.model.keys());
@@ -94,7 +81,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
       console.log('0 - ' + keys[0] + ' = ' + vals[0]);
 
-      if (direction === 'Up'){  
+      if (direction === 'Up'){
          if (this.model != null){
             this.index--;
             if (this.index < 0) {
