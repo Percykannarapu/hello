@@ -16,6 +16,11 @@ export class ValGeocodingRequest {
     Object.assign(this, initializer);
   }
 
+  public canBeGeocoded() : boolean {
+    const notEmpty = (s: string) => s != null && s.trim() !== '';
+    return this.hasLatAndLong() || notEmpty(this.zip) || (notEmpty(this.state) && notEmpty(this.city));
+  }
+
   public hasLatAndLong() : boolean {
     return this.hasOwnProperty('longitude') && this.hasOwnProperty('latitude') && this.longitude != null && this.latitude != null;
   }
@@ -46,7 +51,6 @@ export class ValGeocodingRequest {
       }
     }
     return result;
-
   }
 
 }

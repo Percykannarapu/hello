@@ -166,11 +166,13 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onAddToProject(siteType: string) : void {
-    const locationsForinsert: ImpGeofootprintLocation[] = [];
+    const locationsForInsert: ImpGeofootprintLocation[] = [];
     this.searchResults.filter(sr => sr.selected).forEach(result => {
-      locationsForinsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
+      locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
     });
-    if (locationsForinsert.length > 0) this.locationService.add(locationsForinsert);
-    this.appService.closeOverLayPanel.next(true);
+    if (locationsForInsert.length > 0) {
+      this.locationService.add(locationsForInsert);
+      this.appService.closeOverLayPanel.next(true);
+    }
   }
 }
