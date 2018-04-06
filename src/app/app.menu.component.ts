@@ -4,7 +4,7 @@ import {MenuItem} from 'primeng/primeng';
 import {AppComponent} from './app.component';
 import {GeocodingResponseService} from './val-modules/targeting/services/GeocodingResponse.service';
 import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
-
+import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     selector: 'app-menu',
@@ -18,7 +18,10 @@ export class AppMenuComponent implements OnInit {
 
     model: any[];
 
-    constructor(public app: AppComponent, public impGeofootprintGeoService: ImpGeofootprintGeoService, public geocodingRespService: GeocodingResponseService) {}
+    constructor(public app: AppComponent
+               ,public impGeofootprintGeoService: ImpGeofootprintGeoService
+               ,public impGeofootprintLocationService: ImpGeofootprintLocationService
+               ,public geocodingRespService: GeocodingResponseService) {}
 
     ngOnInit() {
         this.model = [
@@ -45,7 +48,8 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx)},
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Site'), 'Site')},
+                    {label: 'Export Sites New', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx)},
+                    {label: 'Export Sites Old', value: 'Site', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Site'), 'Site')},
                     {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Competitor'), 'Competitor')}
                 ]
             },

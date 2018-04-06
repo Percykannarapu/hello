@@ -49,8 +49,8 @@ export class ImpGeofootprintLocation extends BaseModel
    
    // IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
    // ---------------------------------------------------------------------
-   public impGeofootprintLocAttribs:   Set<ImpGeofootprintLocAttrib>; /// Set of impGeofootprintLocAttribs related to this ImpGeofootprintLocation
-   public impGeofootprintTradeAreas:   Set<ImpGeofootprintTradeArea>; /// Set of impGeofootprintTradeAreas related to this ImpGeofootprintLocation
+   public impGeofootprintLocAttribs:   Array<ImpGeofootprintLocAttrib>; /// Set of impGeofootprintLocAttribs related to this ImpGeofootprintLocation
+   public impGeofootprintTradeAreas:   Array<ImpGeofootprintTradeArea>; /// Set of impGeofootprintTradeAreas related to this ImpGeofootprintLocation
    
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintLocation>) {

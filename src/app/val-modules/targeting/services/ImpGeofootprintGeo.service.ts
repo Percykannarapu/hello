@@ -68,35 +68,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
-   public exportCSV(filename:string, csvData: string[])
-   {
-      // Trap potential errors
-      if (filename == null) {
-         throw  Error('exportCSV requires a filename');
-      }
-
-      if (csvData == null || csvData.length == 0) {
-         console.log('csvData:', csvData);
-         throw Error('exportCsv requires csvData to continue');
-      }
-
-      // Encode the csvData into a gigantic string
-      let csvString: string = '';
-      for (const row of csvData) {
-         csvString += encode(row) + '\n';
-      }
-
-      // Use jquery to create and autoclick a link that downloads the CSV file
-      const link = $('<a/>', {
-         style: 'display:none',
-         href: 'data:application/octet-stream;base64;charset=utf-8,' + btoa(csvString),
-         download: filename
-      }).appendTo('body');
-      link[0].click();
-      link.remove();
-   }
-
-
+   
    // -----------------------------------------------------------
    // SUBSCRIPTION CALLBACK METHODS
    // -----------------------------------------------------------
@@ -112,7 +84,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
 
    // -----------------------------------------------------------
-   // EXPORT VARIABLE HANDLER METHODS
+   // EXPORT COLUMN HANDLER METHODS
    // -----------------------------------------------------------   
    public exportVarGeoHeader<ImpGeofootprintGeo> (state: ImpGeofootprintGeoService)
    {
@@ -243,7 +215,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (filename == null)
          filename = this.getFileName();
 
-      this.exportCSV(filename, this.prepareCSV(exportColumns));
+      this.downloadExport(filename, this.prepareCSV(exportColumns));      
    }
 
    private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO): ColumnDefinition<ImpGeofootprintGeo>[]

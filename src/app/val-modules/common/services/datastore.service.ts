@@ -8,6 +8,10 @@ import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 
+// Imports for exporting CSVs
+import { encode } from 'punycode';
+import * as $ from 'jquery';
+
 // ---------------------------------------------
 // Callback method signatures
 // ---------------------------------------------
@@ -509,5 +513,33 @@ export class DataStore<T>
             csvData.push(row);            
       }
       return csvData;
-   }  
+   }
+
+   public downloadExport(filename:string, csvData: string[])
+   {
+      // Trap potential errors
+      if (filename == null)
+         throw  Error('datastore.service.downloadExport requires a filename');
+
+      if (csvData == null || csvData.length == 0) {
+         console.log('csvData:', csvData);
+         throw Error('exportCsv requires csvData to continue');
+      }
+
+      // Encode the csvData into a gigantic string
+      let csvString: string = '';
+      for (const row of csvData) {
+         csvString += encode(row) + '\n';
+      }
+
+      // Use jquery to create and autoclick a link that downloads the CSV file
+      const link = $('<a/>', {
+         style: 'display:none',
+         href: 'data:application/octet-stream;base64;charset=utf-8,' + btoa(csvString),
+         download: filename
+      }).appendTo('body');
+      link[0].click();
+      link.remove();
+   }
+
 }
