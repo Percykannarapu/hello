@@ -1,5 +1,3 @@
-<!--Added nallana: US6087 -->
-
 <div class="ui-g business-search">
   <div class="ui-g-7 card card-w-title">
     <div class="ui-g">
@@ -9,7 +7,7 @@
         </div>
       <div class="ui-g-12 p-t-15">
         <span class="md-inputfield">
-          <input #searchModel type="text" pInputText name="search" (input)="filterCategory(searchModel.value)" />
+          <input #searchModel type="text" pInputText id="search" (input)="filterCategory(searchModel.value)" />
           <label for="search">Search SIC codes</label>
         </span>
       </div>
@@ -78,11 +76,6 @@
     </div>
   </div>
   <div class="ui-g-5 card card-w-title">
-    <!-- div class="ui-g-12">
-      <span class="md-inputfield">
-        <label>Businesses found (#)</label>
-      </span>
-    </div -->
     <div class="ui-g-12">
       <div class="card colorboxPicker colorboxPicker-green header">
         <span class="colorboxPicker-name">Businesses found</span></div>
@@ -93,7 +86,7 @@
         <div class="ui-g-8">
           <span class="colorbox-name" style="margin:0px">Businesses found</span>
           <span style="font-size: 12px;color: #ffffff;">(Maximum 2000)</span><br>
-          <span class="colorbox-count">{{searchDatageos.length}}</span>
+          <span class="colorbox-count">{{searchResults.length}}</span>
         </div>
       </div>
     </div>
@@ -101,22 +94,16 @@
     <div class="ui-g-12 businesses-found">
       <p-panel header="Businesses">
         <ul style="list-style: none;padding:0px">
-          <!-- <val-businessFound>loading......</val-businessFound> -->
-          <!-- <li *ngIf="showLoader">Searching...</li> -->
-          <li *ngIf="searchDatageos.length > 0">
+          <li *ngIf="searchResults.length > 0">
               <div style="padding: 1px">
-                <p-checkbox binary="true" (onChange)="onSelectAll($event)"
-                 label="Select All"
-                [(ngModel)]="selectAll"></p-checkbox>
-                <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchDatageos = [];"></button>
+                <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All" [(ngModel)]="selectAll"></p-checkbox>
+                <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchResults = [];"></button>
               </div>
-
           </li>
-          <li *ngFor="let x of searchDatageos">
+          <li *ngFor="let x of searchResults">
             <div style="padding: 1px;">
-              <p-checkbox binary="true" (onChange)="onSelectSD()"
-              label="{{x.businessLabel}}" [(ngModel)]="x.checked"></p-checkbox>
-              <div style="margin-left: 24px">{{x.address}}, {{x.city}}, {{x.state}}, {{x.zip}}</div>
+              <p-checkbox binary="true" label="{{x.friendlyName}}" [(ngModel)]="x.selected"></p-checkbox>
+              <div style="margin-left: 24px">{{x.friendlyDescription}}</div>
             </div>
           </li>
         </ul>
@@ -136,14 +123,3 @@
     </div>
   </div>
 </div>
-  <!-- Modal window for GP spinner -->
-  <div class="ui-g ui-fluid">
-      <p-dialog #dialog2 [closable]="true" header="Searching..." [(visible)]="showLoader" [contentStyle]="{'overflow':'visible'}"
-        width="300">
-        <div class="ui-g-3"></div>
-        <div class="ui-g-5">
-          <p-progressSpinner></p-progressSpinner>
-        </div>
-        <div class="ui-g-4"></div>
-      </p-dialog>
-    </div>

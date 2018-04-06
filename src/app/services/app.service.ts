@@ -1,4 +1,3 @@
-// Added nallana: US6087
 import { Subject } from 'rxjs/Subject';
 import { Injectable, EventEmitter } from '@angular/core';
 import { Http, Response } from '@angular/http';
@@ -8,44 +7,70 @@ import { RestResponse } from '../models/RestResponse';
 import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
 import { MapService } from './map.service';
 import { AppConfig } from '../app.config';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
+
+export interface BusinessSearchResult {
+  firm: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  zip4: string;
+  cart: string;
+  atz: string;
+  atz_name: string;
+  carrier_route_name: string;
+  x: number;
+  y: number;
+  location_type: string;
+  primarysic: string;
+  primarylob: string;
+  fran_1: string;
+  fran_2: string;
+  sic2: string;
+  sic_name2: string;
+  sic3: string;
+  sic_name3: string;
+  sic4: string;
+  sic_name4: string;
+  abino: string;
+  match_code: string;
+  cbsa_code: string;
+  cbsa_name: string;
+  dma_code: string;
+  dma_name: string;
+  county_code: string;
+  county_name: string;
+  wrap_id: number;
+  wrap_name: string;
+  wrap_secondary_id: number;
+  wrap_secondary_name: string;
+  sdm_id: number;
+  sdm_name: string;
+  pricing_market_id: number;
+  pricing_market_name: string;
+  fk_site: number;
+  site_name: string;
+  dist_to_site: number;
+}
 
 @Injectable()
 export class AppService {
-    private static mapView: __esri.MapView;
-    // updateColorBoxValue: EventEmitter<any> = new EventEmitter<any>();
-    closeOverLayPanel: Subject<any> = new Subject<any>();
-    public categoryList = './assets/demo/data/categories.json';
+  private readonly businessSearch = 'v1/targeting/base/targetingsearch/search';
+  private readonly categoryList = './assets/demo/data/categories.json';
 
-    /* saveTargetingProfile(targetingprofile : TargetingProfile){
+  public closeOverLayPanel: Subject<any> = new Subject<any>();
 
-                 console.log("fired GeoFootPrint saveTarhetingProfile Service "+JSON.stringify(targetingprofile,null,4));
+  constructor(private http: HttpClient, private config: AppConfig) { }
+  //load values from the json
+  public getList() : Observable<any> {
+    return this.http.get(this.categoryList);
+  }
 
-                 return this.http.post("http://servicesdev.valassislab.com/services/v1/targeting/base/targetingprofile/save", targetingprofile).map(res => res.json() as RestResponse);
-
-             } */
-    private readonly searchbusiness = 'v1/targeting/base/targetingsearch/search';
-
-    constructor(private http: Http, private config: AppConfig, private mapService: MapService) { }
-    //load values from the json
-    public getList() : Observable<any> {
-        return this.http.get(`${this.categoryList}`)
-            .map((resp: Response) => resp.json());
-    }
-
-    //use the getbusiness method to get the data from the service
-    public getBusinesses(paramObj) : Observable<any> {
-
-        console.log('Fired getbusiness');
-        // TODO: clean up the url concat - this isn't very pretty
-        return this.http.post(this.config.valServiceBase + this.searchbusiness, paramObj)
-            .map((resp: Response) => resp.json() as RestResponse);
-
-    }
-
-    // businessSearch(paramObj){
-    //     console.log("Fired business Search Api")
-    //     return this.http.post("https://servicesdev.valassislab.com/services/v1/targeting/base/targetingsearch/search",paramObj).map(res => res.json() as RestResponse);
-    // }
-
-
+  public getBusinesses(paramObj) : Observable<BusinessSearchResult[]> {
+    return this.http.post(this.config.valServiceBase + this.businessSearch, paramObj).pipe(
+      map(result => result['payload'].rows as BusinessSearchResult[])
+    );
+  }
 }
