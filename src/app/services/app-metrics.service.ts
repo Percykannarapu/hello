@@ -14,24 +14,22 @@ import { isNumber } from '../app.utils';
 export interface MetricDefinition {
   metricValue: number;
   metricDefault: number;
-  metricCode: () => string;
+  metricCode: () => string | string[];
   metricFriendlyName: string;
   metricCategory: string;
+  compositePreCalc?: (attributes: ImpGeofootprintGeoAttrib[]) => number;
   metricAccumulator: (prevValue: number, currentValue: number) => number;
   metricFormatter: (value: number) => string;
 }
 
 @Injectable()
 export class ValMetricsService implements OnDestroy {
-  private metricSub: Subscription;
+  private readonly metricSub: Subscription;
   private metricDefinitions: MetricDefinition[] = [];
   private currentDiscoveryVar: ImpDiscoveryUI;
   private isWinter: boolean;
   private useCircBudget: boolean;
   private useTotalBudget: boolean;
-
-  // private currentHH: string;
-  // private temp: number;
 
   public metrics$: Observable<MetricDefinition[]>;
 
@@ -44,9 +42,8 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  ngOnDestroy() : void {
+  public ngOnDestroy() : void {
     if (this.metricSub) this.metricSub.unsubscribe();
-
   }
 
   private onMetricsChanged(metrics: MetricDefinition[]) {
@@ -54,29 +51,6 @@ export class ValMetricsService implements OnDestroy {
     for (const metric of metrics) {
       this.metricService.add(metric.metricCategory, metric.metricFriendlyName, metric.metricFormatter(metric.metricValue));
     }
-  }
-
-  private onDiscoveryChange(discovery: ImpDiscoveryUI) : void {
-    console.log('inside discovery');
-
-    // if (discovery[0].selectedSeason != null && discovery[0].selectedSeason === 'WINTER'){
-    //   this.currentHH = 'hhld_w';
-    //   console.log('currentHH:::', this.currentHH);
-    // }
-    // else{
-    //   this.currentHH = 'hhld_s';
-    // }
-    // if (discovery && discovery[0] && discovery[0].circBudget != null && (discovery[0].totalBudget == 0 || discovery[0].totalBudget == null)){
-    //   this.temp = discovery[0].circBudget;
-    // }
-    // if (discovery && discovery[0] && discovery[0].totalBudget != null && discovery[0].totalBudget != 0 && (discovery[0].circBudget == 0 || this.currentDiscoveryVar.circBudget == null) ){
-    //     this.temp = discovery[0].totalBudget;
-    // }
-    // // if both Circ Budget and dollar budget were provided, calculate based on the dollar budget
-    // if (discovery && discovery[0] && discovery[0].circBudget && discovery[0].totalBudget != null && discovery[0].circBudget != 0 && discovery[0].totalBudget != 0){
-    //     this.temp = discovery[0].totalBudget;
-    // }
-
   }
 
   private registerMetrics() : void {
@@ -164,17 +138,39 @@ export class ValMetricsService implements OnDestroy {
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
     this.useCircBudget = (isNumber(this.currentDiscoveryVar.circBudget) && this.currentDiscoveryVar.circBudget !== 0);
     this.useTotalBudget = (isNumber(this.currentDiscoveryVar.totalBudget) && this.currentDiscoveryVar.totalBudget !== 0);
-
+    const uniqueGeos = new Set();
+    const attributesUniqueByGeo = attributes.reduce((prev, curr) => {
+      if (!uniqueGeos.has(curr.impGeofootprintGeo.geocode)){
+        uniqueGeos.add(curr.impGeofootprintGeo.geocode);
+        prev.push(curr);
+      }
+      return prev;
+    }, [] as ImpGeofootprintGeoAttrib[]);
     for (const definition of this.metricDefinitions) {
-      const usedGeocodes = new Set();
       const values: number[] = [];
       definition.metricValue = definition.metricDefault;
-      attributes.filter(a => a.attributeCode === definition.metricCode()).forEach(attribute => {
-        if (!usedGeocodes.has(attribute.impGeofootprintGeo.geocode)) {
-          values.push(Number(attribute.attributeValue));
-          usedGeocodes.add(attribute.impGeofootprintGeo.geocode);
-        }
-      });
+      const code: string | string[] = definition.metricCode();
+      if (Array.isArray(code)) {
+        if (definition.compositePreCalc == null) throw new Error(`The metric '${definition.metricFriendlyName}' has multiple attributes identified, but no pre-calculator.`);
+        const codeSet = new Set(code);
+        attributesUniqueByGeo
+          .filter(a => codeSet.has(a.attributeCode))
+          .reduce((previous, current) => {
+            if (previous.has(current.impGeofootprintGeo.geocode)) {
+              previous.get(current.impGeofootprintGeo.geocode).push(current);
+            } else {
+              previous.set(current.impGeofootprintGeo.geocode, [current]);
+            }
+            return previous;
+          }, new Map<string, ImpGeofootprintGeoAttrib[]>())
+          .forEach(uniqueAttributes => {
+            values.push(definition.compositePreCalc(uniqueAttributes));
+          });
+      } else {
+        attributesUniqueByGeo
+          .filter(a => a.attributeCode === code)
+          .forEach(attribute => values.push(Number(attribute.attributeValue)));
+      }
       definition.metricValue = values.reduce(definition.metricAccumulator, definition.metricDefault);
     }
     return this.metricDefinitions;
@@ -184,7 +180,8 @@ export class ValMetricsService implements OnDestroy {
     if (this.config.maxPointsPerBufferQuery < 0) return []; // noop to force Angular into injecting this. will go away when the class has more code to it
     return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode'];
   }
-  public getCentroidLayerAttributes() : string[]{
+
+  public getCentroidLayerAttributes() : string[] {
     return ['geocode', 'is_pob_only', 'owner_group_primary', 'cov_frequency'];
   }
 }
