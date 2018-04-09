@@ -50,7 +50,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onTradeAreaChange(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-    const newTradeAreas = tradeAreas.filter(ta => ta.isActive === 1 && ta.taType === 'RADIUS') || [];
+    const newTradeAreas = tradeAreas.filter(ta => ta.isActive === 1 && ta.taType === 'RADIUS' && ta.impGeofootprintLocation.clientLocationTypeCode === 'Site') || [];
     const currentSet = new Set(this.currentTradeAreas);
     const newSet = new Set(newTradeAreas);
     const adds: ImpGeofootprintTradeArea[] = [];
