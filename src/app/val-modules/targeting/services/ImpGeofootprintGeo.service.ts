@@ -276,7 +276,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          return 0;
       },
       (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) => {
-         return false;
+         //return false;
          console.log ('IN PARTITION BY! - P1: ' + p1[0].impGeofootprintLocation.locationNumber + ', P2: ' + p2[0].impGeofootprintLocation.locationNumber);
          // console.log('p1', p1);
          // console.log('p1:  ' + p1.toString());
