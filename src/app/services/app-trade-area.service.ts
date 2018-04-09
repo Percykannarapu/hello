@@ -4,9 +4,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { Subscription } from 'rxjs/Subscription';
-import { ValMapService } from './app-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
@@ -30,18 +28,17 @@ export class RadialTradeAreaDefaults {
   }
 }
 
-
 @Injectable()
 export class ValTradeAreaService implements OnDestroy {
 
   private static id: number = 0;
 
+  private readonly locationSubscription: Subscription;
+  private readonly tradeAreaSubscription: Subscription;
+
   private currentDefaults = new Map<string, RadialTradeAreaDefaults>();
   private currentLocations: ImpGeofootprintLocation[];
-  private locationSubscription: Subscription;
-  private tradeAreaSubscription: Subscription;
   private tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];
-
   private clientBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
   private competitorBuffers = new BehaviorSubject<Map<ImpGeofootprintLocation, number[]>>(new Map<ImpGeofootprintLocation, number[]>());
 
@@ -104,6 +101,7 @@ export class ValTradeAreaService implements OnDestroy {
 
   ngOnDestroy() : void {
     if (this.locationSubscription) this.locationSubscription.unsubscribe();
+    if (this.tradeAreaSubscription) this.tradeAreaSubscription.unsubscribe();
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {

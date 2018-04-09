@@ -160,17 +160,19 @@ export class ValSiteListService implements OnDestroy {
         })
       ));
     }
-    const sub = merge(...observables).subscribe(
-      newAttributes => this.attributeService.add(newAttributes),
-      err => {
-        console.error('There was an error retrieving the home geos', err);
-        this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
-      },
-      () => {
-        sub.unsubscribe();
-        this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
-      }
-    );
+    if (observables.length > 0) {
+      const sub = merge(...observables).subscribe(
+        newAttributes => this.attributeService.add(newAttributes),
+        err => {
+          console.error('There was an error retrieving the home geos', err);
+          this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
+        },
+        () => {
+          sub.unsubscribe();
+          this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
+        }
+      );
+    }
   }
 
   private setPrimaryGeocode(analysisLevel: string) {

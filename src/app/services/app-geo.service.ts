@@ -82,7 +82,13 @@ export class ValGeoService implements OnDestroy {
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
     console.log('Geo Service onGeoChange. Creating unique list of geocodes...');
-    const uniqueGeos: Set<string> = new Set(geos.filter(g => g.isActive === 1).map(g => g.geocode));
+    const uniqueGeos: Set<string> = new Set();
+    const length = geos.length;
+    for (let i = 0; i < length; ++i) {
+      if (geos[i].isActive === 1) {
+        uniqueGeos.add(geos[i].geocode);
+      }
+    }
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
 
@@ -146,7 +152,7 @@ export class ValGeoService implements OnDestroy {
     const includePob = latestDiscovery[0].includePob;
     const filteredCentroids = centroids.filter(c => {
                                       return ((c.attributes.is_pob_only === includePob)
-                                    || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne) 
+                                    || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
                                     || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
                                     || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)) ;
                                     } );
