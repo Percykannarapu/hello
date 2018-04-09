@@ -313,6 +313,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
+   testRank()
+   {
+      console.log('--------------------------------------------------');
+      console.log('testRank');
+      console.log('--------------------------------------------------');
+      this.impGeofootprintGeoService.assignGeocodeRank();
+   }
+
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
