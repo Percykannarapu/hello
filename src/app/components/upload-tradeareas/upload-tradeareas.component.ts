@@ -88,7 +88,7 @@ export class UploadTradeAreasComponent implements OnInit {
       this.onFileUpload(csvData);
       this.fileUploadEl1.clear();
       // workaround for https://github.com/primefaces/primeng/issues/4816
-      this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+     // this.fileUploadEl1.basicFileInput.nativeElement.value = '';
 
     };
   }
@@ -164,9 +164,11 @@ export class UploadTradeAreasComponent implements OnInit {
       }
 
       this.fileUploadEl1.clear();
-      this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+      //this.fileUploadEl1.basicFileInput.nativeElement.value = '';
 
     } catch (e) {
+      this.fileUploadEl1.clear();
+     // this.fileUploadEl1.basicFileInput.nativeElement.value = '';
       this.handleError(`${e}`);
     }
   }
