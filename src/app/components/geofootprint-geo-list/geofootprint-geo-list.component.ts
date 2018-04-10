@@ -349,6 +349,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // DEBUG METHODS
    // -----------------------------------------------------------
+   /*
    private stubLocations()
    {
       const sites: ImpGeofootprintLocation[] =
@@ -383,5 +384,5 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       ];
 
       this.impGeofootprintGeoService.add(geos);
-   }
+   }*/
 }

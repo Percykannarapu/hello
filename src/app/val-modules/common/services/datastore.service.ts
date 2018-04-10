@@ -270,8 +270,9 @@ export class DataStore<T>
    {
       console.log ('datastore.replace - fired');
       this.clearAll(false);
-      console.log ('datastore.replace - adding data');
+      console.log ('datastore.replace - adding data - ', (dataArray != null) ? dataArray.length : 0, ' rows.');
       this.add(dataArray, preOperation, postOperation);
+      console.log ('dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
    
    public removeAt (index: number)
@@ -462,15 +463,25 @@ export class DataStore<T>
    //
    //  EXPORT METHODS
    //
-   public prepareCSV(columns: ColumnDefinition<T>[]) : string[]
+   // So there is more work to do here to utilize sourceData.
+   // The export variable handlers would have no access to this sourcedata parameter.
+   // Would need to make it a member of the service.  Not sure how I feel about that.
+   // Multiple exports at the same time could clobber both of them.
+   // Add additional state that can be passed to them?  Is that even possible?
+   public prepareCSV(columns: ColumnDefinition<T>[], sourceData?:Array<T>) : string[]
    {
-      console.log('datastore.service.prepareCSV fired - with ' + this._dataStore.length + ' rows of store data');
+      // Set the input Array
+      let csvSource: Array<T> = (sourceData == null) ? this._dataStore : sourceData;
 
-      if (this._dataStore == null || this._dataStore.length < 1) {
-         // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
+//      console.log('datastore.service.prepareCSV fired - with ' + this._dataStore.length + ' rows of store data');
+      console.log('datastore.service.prepareCSV fired - with ' + csvSource.length + ' rows of store data');
+
+//    if (this._dataStore == null || this._dataStore.length < 1) {
+      if (csvSource == null || csvSource.length < 1) {
+            // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
          throw new Error('prepareCSV - No data provided to export');
       }
-
+         
       // Initialize Output Array
       const csvData: string[] = new Array<string>();
       let row: string = '';
@@ -489,7 +500,7 @@ export class DataStore<T>
          csvData.push(row);      
 
       // For every row of data in the data store
-      for (const data of this._dataStore)
+      for (const data of csvSource) // this._dataStore)
       {
          // Begin a new line for every row of data
          row = '';

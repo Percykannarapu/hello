@@ -19,6 +19,10 @@ export class ImpGeofootprintGeo
    public distance:                     number;                        /// Geocodes distance to the location
    public isActive:                     number;
 
+   // Transient fields
+   public rank:                         number;
+   public isDeduped:                    number;
+
    // IMPOWER.IMP_GEOFOOTPRINT_GEOS - MANY TO ONE RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------
    public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
