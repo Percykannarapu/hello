@@ -20,6 +20,7 @@ import { AppRendererService } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { MapService } from './map.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -94,10 +95,41 @@ export class ValMapService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
+   
     if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
+      this.setDefaultLayers(this.currentAnalysisLevel);
       this.setupSelectionRenderer(this.currentAnalysisLevel);
+
     }
+  }
+
+  private setDefaultLayers(currentAnalysisLevel) : void {
+    MapService.DmaGroupLayer.visible = false;
+    MapService.ZipGroupLayer.visible = false;
+    MapService.AtzGroupLayer.visible = false;
+    MapService.DigitalAtzGroupLayer.visible = false;
+    MapService.PcrGroupLayer.visible = false;
+    MapService.WrapGroupLayer.visible = false;
+    MapService.CountyGroupLayer.visible = false;
+
+    switch (currentAnalysisLevel) {
+      case 'Digital ATZ':
+         MapService.DigitalAtzGroupLayer.visible = true;
+         break;
+      case 'ATZ':
+         MapService.AtzGroupLayer.visible = true;
+         break;
+      case 'ZIP':
+         MapService.ZipGroupLayer.visible = true;
+         break;
+      case 'PCR':
+         MapService.PcrGroupLayer.visible = true;
+         break;
+      default:
+          console.error(`ValMapService.setDefaultLayers - Unknown Analysis Level selected: ${currentAnalysisLevel}`);
+     }
+
   }
 
   private onGeocodeListChanged(geocodes: string[]) {
