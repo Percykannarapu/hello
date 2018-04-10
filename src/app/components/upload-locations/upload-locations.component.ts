@@ -8,6 +8,8 @@ import { FileUpload } from 'primeng/primeng';
 import { ValSiteListService } from '../../services/app-site-list.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import * as XLSX from 'xlsx';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 @Component({
   selector: 'val-upload-locations',
@@ -27,7 +29,8 @@ export class UploadLocationsComponent {
 
   constructor(private messagingService: AppMessagingService,
               public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService) { }
+              private siteListService: ValSiteListService,
+              private usageService: UsageService) { }
 
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
@@ -74,6 +77,8 @@ export class UploadLocationsComponent {
       const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
       this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
       this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
+       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-data-file', action: 'upload' });
+       this.usageService.createCounterMetric(usageMetricName, null + '~' + null, rows.length);
         this.messagingService.stopSpinnerDialog(this.spinnerKey);
       });
     } catch (e) {
