@@ -3,6 +3,8 @@ import { AppService, BusinessSearchResult } from '../../services/app.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 interface SelectableSearchResult {
   data: BusinessSearchResult;
@@ -39,7 +41,7 @@ export class BusinessSearchComponent implements OnInit {
   businessCategories: any;
 
   constructor(private appService: AppService, private messagingService: AppMessagingService,
-              private locationService: ImpGeofootprintLocationService) {
+              private locationService: ImpGeofootprintLocationService, private usageService: UsageService) {
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -170,6 +172,8 @@ export class BusinessSearchComponent implements OnInit {
     this.searchResults.filter(sr => sr.selected).forEach(result => {
       locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
     });
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
+    this.usageService.createCounterMetric(usageMetricName, 'Import as Sites  or Import as Competitors', locationsForInsert.length);
     if (locationsForInsert.length > 0) {
       this.locationService.add(locationsForInsert);
       this.appService.closeOverLayPanel.next(true);
