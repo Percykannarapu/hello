@@ -22,6 +22,7 @@ import { Observable } from 'rxjs/Observable';
 // Imports for exporting CSVs
 import { encode } from 'punycode';
 import * as $ from 'jquery';
+import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -39,8 +40,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    private currentTD:  number;      // Remove when TAs are children of Locations
    private tradeAreas: ImpGeofootprintTradeArea[];
 
-   constructor(private restDataService: RestDataService
-              ,private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) //, impProjectService: ImpProjectService)
+   constructor(private restDataService: RestDataService,
+               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+               private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService) //, impProjectService: ImpProjectService)
    {
       super(restDataService, dataUrl);
 
@@ -86,7 +88,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          // Avoid infinite loops with zero-width matches
          if (m.index === regex.lastIndex)
             regex.lastIndex++;
-          
+
          // TODO: handle the wandering groups
          m.forEach((match, groupIndex) => {
 //          console.log(`Found match, group ${groupIndex}: ${match}`);
@@ -153,14 +155,19 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       state.tradeAreas =  state.impGeofootprintTradeAreaService.get();
       const tradeArea:  ImpGeofootprintTradeArea = (state.tradeAreas != null) ? state.tradeAreas[state.currentTD] : null;
       const result = (tradeArea != null) ? ((tradeArea.taNumber-1 === state.currentTD) ? 'RADIUS' + (state.currentTD+1) : null) : null;
-      
+
       // Cycle the currentTD from 0 to 3
       state.currentTD = (state.currentTD + 1) % 3;
-      
+
       return result; // (tradeArea != null) ? 'RADIUS' + state.currentTD : null;
    };
 
-   
+   public exportHomeGeoAttribute(loc: ImpGeofootprintLocation, homeGeoType: string) : string {
+      const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === `Home ${homeGeoType}`);
+      if (attributes.length > 0) return attributes[0].attributeValue;
+      return '';
+   }
+
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
@@ -205,10 +212,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'TRADE_DESC1',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 1) ? 'RADIUS1' : null});
             exportColumns.push({ header: 'TRADE_DESC2',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 2) ? 'RADIUS2' : null});
             exportColumns.push({ header: 'TRADE_DESC3',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 3) ? 'RADIUS3' : null});
-            exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, false, false)});
-            exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, true, false, false)});
+            exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
+            exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
-            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, true, false)});
+            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.exportHomeGeoAttribute(data, 'PCR')});
             exportColumns.push({ header: 'Home Geocode Issue', row: (state, data) => null});
             exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
             exportColumns.push({ header: 'ATZ',                row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, true, false, false)});
