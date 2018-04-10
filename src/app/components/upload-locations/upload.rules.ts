@@ -16,7 +16,7 @@ export const siteListUploadRules: ParseRule[] = [
   { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor },
   { headerIdentifier: [/\bname\b/i, /\bfirm\b/i], outputFieldName: 'name', required: true },
   { headerIdentifier: [/\bnumber\b/i, /\bnbr\b/i, /\bid\b/i, /\bnum\b/i, /#/], outputFieldName: 'number', required: true },
-  { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)'], outputFieldName: 'Market'}
+  { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)'], outputFieldName: 'market'}
 ];
 
 export const siteUploadHeaderValidator = (foundHeaders: ParseRule[]) : boolean => {
