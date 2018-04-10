@@ -51,7 +51,7 @@ export class UploadTradeAreasComponent implements OnInit {
   ngOnInit() {
   }
 
-  //upload tradearea rings with site numbers and geos: US6879
+  //upload tradearea rings with site numbers and geos: US6879 tradeAreaUpload
   public onUploadClick(event: any) : void {
     console.log('Inside Upload TradeAreas:::');
     const reader = new FileReader();
@@ -88,7 +88,7 @@ export class UploadTradeAreasComponent implements OnInit {
       this.onFileUpload(csvData);
       this.fileUploadEl1.clear();
       // workaround for https://github.com/primefaces/primeng/issues/4816
-      //this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+      this.fileUploadEl1.basicFileInput.nativeElement.value = '';
 
     };
   }
@@ -125,14 +125,14 @@ export class UploadTradeAreasComponent implements OnInit {
           });
         });
 
-        console.log('number of geocodes:::', geocodes);
+        //console.log('number of geocodes:::', geocodes);
         const outfields = [];
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
        // tradeAreasForInsert = this.impGeofootprintTradeAreaService.get();
         outfields.push('geocode');
         const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true, outfields).subscribe(graphics => {
           const geosToAdd: ImpGeofootprintGeo[] = [];
-          console.log('graphic:::::', graphics);
+         // console.log('graphic:::::', graphics);
           graphics.forEach(graphic => {
             console.log('test', graphic);
             //customIndex++;
@@ -152,7 +152,7 @@ export class UploadTradeAreasComponent implements OnInit {
                 }
             });
           });
-          console.log('geos added:::', geosToAdd);
+          //console.log('geos added:::', geosToAdd);
           this.impGeoService.add(geosToAdd);
           this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
         });
@@ -163,9 +163,9 @@ export class UploadTradeAreasComponent implements OnInit {
         console.log('Set A validation message', header);
       }
 
-      // this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
-      //   this.displayGcSpinner = false;
-      // });
+      this.fileUploadEl1.clear();
+      this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+
     } catch (e) {
       this.handleError(`${e}`);
     }
