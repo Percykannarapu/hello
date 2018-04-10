@@ -179,23 +179,32 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const geos: ImpGeofootprintLocation[] = this.get();
 
-      let exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
+      const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
       if (filename == null)
          filename = this.getFileName();
 
-         // update the metric count when export Sites
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
-      this.usageService.createCounterMetric(usageMetricName, null + '~' + null, geos.length);
+        
 
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {
-        this.downloadExport(filename, this.prepareCSV(exportColumns, this.get().filter(filter)));
+            const locations = this.get().filter(filter);
+            if (locations[0].clientLocationTypeCode != null && locations[0].clientLocationTypeCode === 'Site' ){
+                   // update the metric count when export Sites
+                   const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
+                  this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+            }
+            if (locations[0].clientLocationTypeCode != null && locations[0].clientLocationTypeCode === 'Competitor' ){
+                  // update the metric count when export Competitor
+                  const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
+                 this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+           }
+        this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
       }
    }
 
-   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION): ColumnDefinition<ImpGeofootprintLocation>[]
+   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION) : ColumnDefinition<ImpGeofootprintLocation>[]
    {
       let result: string = '';
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = [];
