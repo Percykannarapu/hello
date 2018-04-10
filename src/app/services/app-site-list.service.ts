@@ -160,8 +160,8 @@ export class ValSiteListService implements OnDestroy {
         })
       ));
     }
-    this.messageService.startSpinnerDialog('HomeGeoCalcKey', 'Calculating Home Geos');
     if (observables.length > 0) {
+      this.messageService.startSpinnerDialog('HomeGeoCalcKey', 'Calculating Home Geos');
       const sub = merge(...observables).subscribe(
         newAttributes => this.attributeService.add(newAttributes),
         err => {
