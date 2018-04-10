@@ -151,11 +151,19 @@ export class ValGeoService implements OnDestroy {
     const includeSolo = latestDiscovery[0].includeSolo;
     const includePob = latestDiscovery[0].includePob;
     const filteredCentroids = centroids.filter(c => {
-                                      return ((c.attributes.is_pob_only === includePob)
-                                    || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
-                                    || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
-                                    || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)) ;
-                                    } );
+                                    if (includePob === true){
+                                        return ((c.attributes.is_pob_only === 1 || c.attributes.is_pob_only === 0) 
+                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne) 
+                                          || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
+                                          || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
+                                    }else {
+                                      return ((c.attributes.is_pob_only === 0) 
+                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne) 
+                                          || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
+                                          || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
+                                      } 
+                                  }
+                                  );
     const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
     centroidMap.forEach((graphic, geocode) => {
       locations.forEach(loc => {
