@@ -3,7 +3,7 @@ import { ValGeocodingResponse } from './val-geocoding-response.model';
 export class ValGeocodingRequest {
   name: string;
   number: string;
-  market: string;
+  Market: string;
   street: string;
   city: string;
   state: string;
@@ -32,10 +32,10 @@ export class ValGeocodingRequest {
   }
 
   public toGeocodingResponse() : ValGeocodingResponse {
-    const nonAttributeProps = ['name', 'number', 'market', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
+    const nonAttributeProps = ['name', 'number', 'Market', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
     const result = new ValGeocodingResponse({
       Name: this.name,
-      Market: this.market,
+      Market: this.Market,
       Number: this.number,
       Address: this.street,
       City: this.city,
