@@ -315,7 +315,7 @@ export class TopVarService implements OnDestroy {
     const dataSet = new Set(this.selectedTdaAudience.getValue());
     dataSet.delete(variable);
     this.selectedTdaAudience.next(Array.from(dataSet));
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'checked' });
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'unchecked' });
     this.usageService.createCounterMetric(usageMetricName, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
