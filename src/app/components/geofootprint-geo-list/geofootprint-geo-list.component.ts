@@ -326,7 +326,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
-   public async onZoomToGeo(geo: ImpGeofootprintGeo)
+   public onZoomToGeo(geo: ImpGeofootprintGeo)
    {
       // console.log('onZoomToGeo - geo: ', geo);
       if (geo != null)
