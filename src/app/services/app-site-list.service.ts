@@ -160,6 +160,7 @@ export class ValSiteListService implements OnDestroy {
         })
       ));
     }
+    this.messageService.startSpinnerDialog('HomeGeoCalcKey', 'Calculating Home Geos');
     if (observables.length > 0) {
       const sub = merge(...observables).subscribe(
         newAttributes => this.attributeService.add(newAttributes),
@@ -169,6 +170,7 @@ export class ValSiteListService implements OnDestroy {
         },
         () => {
           sub.unsubscribe();
+          this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
           this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
         }
       );
