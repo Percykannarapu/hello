@@ -23,6 +23,8 @@ import { Observable } from 'rxjs/Observable';
 import { encode } from 'punycode';
 import * as $ from 'jquery';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
+import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -42,7 +44,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
 
    constructor(private restDataService: RestDataService,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-               private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService) //, impProjectService: ImpProjectService)
+               private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
+               private usageService: UsageService   ) //, impProjectService: ImpProjectService)
    {
       super(restDataService, dataUrl);
 
@@ -180,6 +183,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
 
       if (filename == null)
          filename = this.getFileName();
+
+         // update the metric count when export Sites
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
+      this.usageService.createCounterMetric(usageMetricName, null + '~' + null, geos.length);
 
       this.downloadExport(filename, this.prepareCSV(exportColumns));
    }

@@ -26,6 +26,8 @@ import { encode } from 'punycode';
 import * as $ from 'jquery';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
+import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -43,7 +45,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService)
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService, private usageService: UsageService)
    {
       super(restDataService, dataUrl);
 
@@ -649,6 +651,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();
+
+      // update the metric count when export geos
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+       this.usageService.createCounterMetric(usageMetricName, null + '~' + null, geos.length);
 
       this.downloadExport(filename, this.prepareCSV(exportColumns));      
    }

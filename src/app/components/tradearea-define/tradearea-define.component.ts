@@ -8,6 +8,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { map } from 'rxjs/operators';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -37,7 +39,7 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
 
   constructor(private tradeAreaService: ValTradeAreaService, private config: AppConfig,
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
-              private discoveryService: ImpDiscoveryService) {
+              private discoveryService: ImpDiscoveryService, private usageService: UsageService) {
     this.tradeAreaMergeTypes = [
       { label: 'No Merge', value: 'No Merge' },
       { label: 'Merge Each', value: 'Merge Each' },
@@ -90,6 +92,12 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
       const tradeAreas: TradeAreaUIModel[] = this.currentTradeAreas.filter(ta => ta.isShowing) || [];
       const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
       this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'radius', action: 'applied' });
+      const TA1 = tradeAreas[0] != null ? 'TA1 ' + tradeAreas[0].tradeArea + ' Miles ~' : '';
+      const TA2 = tradeAreas[1] != null ? 'TA2 ' + tradeAreas[1].tradeArea + ' Miles ~' : '';
+      const TA3 = tradeAreas[2] != null ? 'TA3 ' + tradeAreas[2].tradeArea + ' Miles' : '';
+      this.usageService.createCounterMetric(usageMetricName, TA1 + TA2 + TA3, null);
+
     }
   }
 
