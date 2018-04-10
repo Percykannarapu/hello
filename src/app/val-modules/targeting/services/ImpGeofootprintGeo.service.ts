@@ -208,19 +208,25 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public partitionGeos (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo): boolean
    {
-      console.log ('IN PARTITION BY 2! - P1: ' + p1.impGeofootprintLocation.locationName + ', P2: ' + p2.impGeofootprintLocation.locationName);
-      console.log('locationName 1: ' + ((p1 != null && p1.impGeofootprintLocation != null) ? p1.impGeofootprintLocation.locationName : null)
-              + ', locationName 2: ' + ((p2 != null && p2.impGeofootprintLocation != null) ? p2.impGeofootprintLocation.locationName : null)
-              + ' break?: ' + ((p1 == null || p1.impGeofootprintLocation == null ||
-                                p2 == null || p2.impGeofootprintLocation == null) ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName)));
+      // console.log ('IN PARTITION BY 2! - P1: ' + p1.impGeofootprintLocation.locationName + ', P2: ' + p2.impGeofootprintLocation.locationName);
+      // console.log('locationName 1: ' + ((p1 != null && p1.impGeofootprintLocation != null) ? p1.impGeofootprintLocation.locationName : null)
+      //         + ', locationName 2: ' + ((p2 != null && p2.impGeofootprintLocation != null) ? p2.impGeofootprintLocation.locationName : null)
+      //         + ' break?: ' + ((p1 == null || p1.impGeofootprintLocation == null ||
+      //                           p2 == null || p2.impGeofootprintLocation == null) ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName)));
       if (p1 == null || p2 == null)
       {
-         console.log ((p1 == null) ? 'p1 was null' : 'p2 was null');
+//       console.log ('ImpGeofootprintGeo.service.partitionGeos - ', (p1 == null) ? 'p1 was null' : 'p2 was null');
          return false
       }
-      return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null) 
-             ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName
-                    || p1.geocode != p2.geocode);
+
+      // Partition within Geocode
+      return (p1 == null || p2 == null) 
+             ? null : (p1.geocode != p2.geocode);
+
+      // Partition within Site / Geocode
+      // return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null) 
+      //        ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName
+      //               || p1.geocode != p2.geocode);
    }
 
    /*
