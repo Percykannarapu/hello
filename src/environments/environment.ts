@@ -72,7 +72,7 @@ export class EnvironmentData {
         name: 'ZIP Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 5000000,
+        minScale: 1155600,
         popUpFields: []
       },
       topVars: { // ZIP Top Vars
@@ -80,7 +80,7 @@ export class EnvironmentData {
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
+        minScale: 1155600,
         popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
@@ -90,7 +90,7 @@ export class EnvironmentData {
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 5000000,
+        minScale: 577790,
         popUpFields: []
       },
       topVars: { // ATZ_Top_Vars
@@ -98,7 +98,7 @@ export class EnvironmentData {
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
+        minScale: 577790,
         popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
@@ -108,7 +108,7 @@ export class EnvironmentData {
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 5000000,
+        minScale: 577790,
         popUpFields: []
       },
       digitalTopVars: { // DIG_ATZ_Top_Vars
@@ -116,7 +116,7 @@ export class EnvironmentData {
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
+        minScale: 577790,
         popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
       }
     },
@@ -134,7 +134,7 @@ export class EnvironmentData {
         name: 'PCR Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 600000,
+        minScale: 577790,
         popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
