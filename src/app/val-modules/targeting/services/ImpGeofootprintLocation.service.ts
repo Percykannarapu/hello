@@ -174,7 +174,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const geos: ImpGeofootprintLocation[] = this.get();
@@ -188,7 +188,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
       this.usageService.createCounterMetric(usageMetricName, null + '~' + null, geos.length);
 
-      this.downloadExport(filename, this.prepareCSV(exportColumns));
+      if (filter == null) {
+        this.downloadExport(filename, this.prepareCSV(exportColumns));
+      } else {
+        this.downloadExport(filename, this.prepareCSV(exportColumns, this.get().filter(filter)));
+      }
    }
 
    private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION): ColumnDefinition<ImpGeofootprintLocation>[]
@@ -255,6 +259,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Original City',      row: (state, data) => data.origCity});
             exportColumns.push({ header: 'Original State',     row: (state, data) => data.origState});
             exportColumns.push({ header: 'Original ZIP',       row: (state, data) => data.origPostalCode});
+            exportColumns.push({ header: 'Home Digital ATZ',   row: (state, data) => state.exportHomeGeoAttribute(data, 'Digital ATZ')});
             break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
