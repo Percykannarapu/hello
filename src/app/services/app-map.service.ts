@@ -120,6 +120,7 @@ export class ValMapService implements OnDestroy {
   }
 
   public handleClickEvent(event:  __esri.MapViewClickEvent) {
+    if (this.currentAnalysisLevel == null || this.currentAnalysisLevel === '') return;
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
     const query = layer.createQuery();

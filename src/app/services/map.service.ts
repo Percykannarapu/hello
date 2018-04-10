@@ -396,6 +396,7 @@ export class MapService {
                 const el: any = document.getElementById('popupsButton');
                 el.classList.add('active');
                 this.mapFunction = mapFunctions.Popups;
+                this.toggleFeatureLayerPopups();
             }
             // ----------------------------------------------------------------------------------------
         });
@@ -481,6 +482,7 @@ export class MapService {
         this.setActiveButton(event);
         // set the sketch to create a polyline geometry
         this.sketchViewModel.create('polyline');
+        this.toggleFeatureLayerPopups();
     }
 
     // remove all graphics
@@ -554,22 +556,13 @@ export class MapService {
 
     // Toggle FeatureLayer popups
     public toggleFeatureLayerPopups() {
-        console.log('fired: toggleFeatureLayerPopups');
-        const layersWithPopups = [this.config.layerIds.atz.topVars, this.config.layerIds.digital_atz.digitalTopVars,
-        this.config.layerIds.pcr.topVars, this.config.layerIds.wrap.topVars, this.config.layerIds.zip.topVars,
-        this.config.layerIds.counties.boundaries, this.config.layerIds.dma.boundaries];
-        this.mapView.map.allLayers.forEach((x: __esri.FeatureLayer) => {
-            //console.log('title: ' + x.title + ' type: ' + x.type);
-            if (x.type === 'feature') {
-                if (this.mapFunction === mapFunctions.Popups) {
-                    x.popupEnabled = (x.portalItem && layersWithPopups.some(layerDef => layerDef.id === x.portalItem.id)) || x.title === DefaultLayers.COMPETITORS || x.title === DefaultLayers.SITES;
-                    //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
-                } else {
-                    x.popupEnabled = false;
-                    //console.log(x.title + 'popupEnabled = ' + x.popupEnabled);
-                }
-            }
-        });
+      this.map.allLayers.forEach(layer => {
+        if (EsriUtils.layerIsFeature(layer)) {
+          if (layer.portalItem != null) {
+            layer.popupEnabled = (this.mapFunction === mapFunctions.Popups);
+          }
+        }
+      });
     }
 
     private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {

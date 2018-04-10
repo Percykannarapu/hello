@@ -5,6 +5,8 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { MetricService, MetricOperations, MetricMessage } from '../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { Observable } from 'rxjs/Observable';
+import { combineLatest } from 'rxjs/observable/combineLatest';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/delay';
 
@@ -14,24 +16,25 @@ export class TargetAudienceService {
   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
     private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
     private metricService: MetricService) {
-
-    //Subscribe to the ImpGeofootprintGeoAttribService
-    this.impGeofootprintGeoAttribService.storeObservable
-     // .filter(attrs => attrs[0] != null)
-      //.delay(2000)
-      .subscribe(attrs => this.calculateMetrics(attrs));
+    const attributes$: Observable<ImpGeofootprintGeoAttrib[]> = this.impGeofootprintGeoAttribService.storeObservable;
+    const geos$: Observable<ImpGeofootprintGeo[]> = this.impGeofootprintGeoService.storeObservable;
+    combineLatest(attributes$, geos$).subscribe(([attributes, geos]) => {
+      this.calculateMetrics(attributes, geos);
+    });
   }
 
   /**
   * Invoke the methods to calculate metrics and use the MetricService to set them in the color box on the dahsboard
   * @param geoAttributes An array of ImpGeofootprintGeoAttrib that contains the data to update the metrics with
   */
-  private calculateMetrics(geoAttributes: ImpGeofootprintGeoAttrib[]) {
-    const geos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get();
-    const hhIncome = this.calculateSingleMetric(geoAttributes, 'cl2i00', 0);
-    const popFamilies = this.calculateSingleMetric(geoAttributes, 'cl0c00', 2);
-    const popHispanic = this.calculateSingleMetric(geoAttributes, 'cl2prh', 2);
-    const casualDining = this.calculateSingleMetric(geoAttributes, 'tap049', 0);
+  private calculateMetrics(geoAttributes: ImpGeofootprintGeoAttrib[], geos: ImpGeofootprintGeo[]) {
+    if (!geoAttributes || !geos) {
+      return;
+    }
+    const hhIncome = this.calculateSingleMetric(geoAttributes, 'cl2i00', 0, geos);
+    const popFamilies = this.calculateSingleMetric(geoAttributes, 'cl0c00', 2, geos);
+    const popHispanic = this.calculateSingleMetric(geoAttributes, 'cl2prh', 2, geos);
+    const casualDining = this.calculateSingleMetric(geoAttributes, 'tap049', 0, geos);
 
     if (Number.isNaN(hhIncome)) {
       this.metricService.add('AUDIENCE', 'Median Household Income', '0');
@@ -62,11 +65,10 @@ export class TargetAudienceService {
   * @param attributeCode The parameter that the metric will be calculated for
   * @param precision The number of decimal places to keep on the metric value
   */
-  private calculateSingleMetric(geoAttributes: ImpGeofootprintGeoAttrib[], attributeCode: string, precision: number) : number {
+  private calculateSingleMetric(geoAttributes: ImpGeofootprintGeoAttrib[], attributeCode: string, precision: number, geos: ImpGeofootprintGeo[]) : number {
     if (geoAttributes.length < 1) {
       return 0;
     }
-    const geos = this.impGeofootprintGeoService.get();
     let hhc: number = 0;
     let metricVal: number = 0;
     for (const geo of geos) {

@@ -9,7 +9,6 @@ import { ValGeocodingService } from './app-geocoding.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { LocationUiModel } from '../models/location-ui.model';
@@ -20,6 +19,8 @@ import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { merge } from 'rxjs/observable/merge';
+import { AppMessagingService } from './app-messaging.service';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
@@ -51,7 +52,7 @@ export class ValSiteListService implements OnDestroy {
               private discoveryService: ImpDiscoveryService,
               private geocodingService: ValGeocodingService,
               private queryService: EsriQueryService,
-              private messageService: MessageService,
+              private messageService: AppMessagingService,
               private metricsService: MetricService,
               private config: AppConfig,
               private esriMapService: EsriMapService) {
@@ -127,7 +128,7 @@ export class ValSiteListService implements OnDestroy {
     if (locations.length === 0) return;
     const locationSet = new Set(locations);
     const attributes = this.attributeService.get().filter(a => locationSet.has(a.impGeofootprintLocation));
-    const subscriptions = {};
+    const observables: Observable<ImpGeofootprintLocAttrib[]>[] = [];
     for (const analysisLevel of this.homeGeos) {
       const homeGeoKey = `Home ${analysisLevel}`;
       const locationsWithHomeGeos = new Set(attributes.filter(a => a.attributeCode === homeGeoKey && a.attributeValue != null).map(a => a.impGeofootprintLocation));
@@ -135,29 +136,42 @@ export class ValSiteListService implements OnDestroy {
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      subscriptions[analysisLevel] = this.queryService.queryPoint({ portalLayerId: layerId }, locationsNeedingHomeGeo, true, ['geocode']).subscribe(graphics => {
-        const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
-        for (const loc of locationsNeedingHomeGeo) {
-          const locationPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
-          for (const graphic of graphics) {
-            if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
-              if (graphic.geometry.contains(locationPoint)) {
-                const realAttribute = new ImpGeofootprintLocAttrib({
-                  attributeCode: homeGeoKey,
-                  attributeValue: graphic.attributes.geocode,
-                  impGeofootprintLocation: loc,
-                  isActive: 1
-                });
-                attributesToAdd.push(realAttribute);
-                if (analysisLevel === this.currentAnalysisLevel) loc.homeGeocode = graphic.attributes.geocode;
+      observables.push(this.queryService.queryPoint({ portalLayerId: layerId }, locationsNeedingHomeGeo, true, ['geocode']).pipe(
+        map(graphics => {
+          const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
+          for (const loc of locationsNeedingHomeGeo) {
+            const locationPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
+            for (const graphic of graphics) {
+              if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
+                if (graphic.geometry.contains(locationPoint)) {
+                  const realAttribute = new ImpGeofootprintLocAttrib({
+                    attributeCode: homeGeoKey,
+                    attributeValue: graphic.attributes.geocode,
+                    impGeofootprintLocation: loc,
+                    isActive: 1
+                  });
+                  attributesToAdd.push(realAttribute);
+                  if (analysisLevel === this.currentAnalysisLevel) loc.homeGeocode = graphic.attributes.geocode;
+                }
               }
             }
           }
+          return attributesToAdd;
+        })
+      ));
+    }
+    if (observables.length > 0) {
+      const sub = merge(...observables).subscribe(
+        newAttributes => this.attributeService.add(newAttributes),
+        err => {
+          console.error('There was an error retrieving the home geos', err);
+          this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
+        },
+        () => {
+          sub.unsubscribe();
+          this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
         }
-        this.attributeService.add(attributesToAdd);
-      },
-          err => console.error('There was an error determining the Home Geocode.', err),
-        () => subscriptions[analysisLevel].unsubscribe());
+      );
     }
   }
 

@@ -2,6 +2,10 @@ import { EsriModules } from './esri-modules.service';
 
 export class EsriUtils {
 
+  public static layerIsFeature(l: __esri.Layer) : l is __esri.FeatureLayer {
+    return l != null && l.type === 'feature';
+  }
+
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
     return g != null && g.type === 'point';
   }
