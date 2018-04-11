@@ -8,8 +8,8 @@ const AtzZipProcessor = (data: string) => {
 };
 
 export const siteListUploadRules: ParseRule[] = [
-    { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'STORE', required: true, dataProcess: AtzZipProcessor},
-    { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'Geo', required: true, dataProcess: AtzZipProcessor},
+    { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'STORE', required: true},
+    { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'Geo', required: true},
     
   ];
 
