@@ -173,7 +173,8 @@ export class BusinessSearchComponent implements OnInit {
       locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
     });
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
-    this.usageService.createCounterMetric(usageMetricName, 'Import as Sites  or Import as Competitors', locationsForInsert.length);
+    const metricName = 'Import as ' + siteType;
+    this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
     if (locationsForInsert.length > 0) {
       this.locationService.add(locationsForInsert);
       this.appService.closeOverLayPanel.next(true);
