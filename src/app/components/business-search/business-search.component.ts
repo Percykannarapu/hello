@@ -119,6 +119,10 @@ export class BusinessSearchComponent implements OnInit {
       'siteLimit': '2000'
     };
 
+    
+
+    
+
     const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     paramObj['sites'] = currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord }));
     paramObj['sics'] = this.targetCategories.map(category => ({ sic: category.sic}));
@@ -136,9 +140,21 @@ export class BusinessSearchComponent implements OnInit {
       hasError = true;
     }
 
+    
+    let sic = paramObj['sites'] != null ? 'SIC=' + paramObj['sics'].map(sic3 =>  sic3['sic'] ) + '~' : '';
+    sic = sic.length > 100 ? sic.substring(0, 100) : sic;
+    const miles = paramObj['radius'] != null ? 'Miles=' + paramObj['radius'] + '~' : '';
+    const businessName = paramObj['name'] != null ? 'BusinessName=' + paramObj['name'] + '~' : '';
+    const city = paramObj['city'] != null ? 'City=' + paramObj['city'] : '';
+    const metricText = sic + miles + businessName + city;
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'search' });
+    
+
+
     if (!hasError) {
       this.messagingService.startSpinnerDialog('businessSearchKey', 'Searching...');
       this.appService.getBusinesses(paramObj).subscribe(responseData => {
+        this.usageService.createCounterMetric(usageMetricName, metricText, responseData.length);
         responseData.forEach(fuseResult => {
           this.searchResults.push({
             data: fuseResult,

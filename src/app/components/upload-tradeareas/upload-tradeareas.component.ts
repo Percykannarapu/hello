@@ -140,8 +140,7 @@ export class UploadTradeAreasComponent implements OnInit {
           const geosToAdd: ImpGeofootprintGeo[] = [];
          // console.log('graphic:::::', graphics);
           graphics.forEach(graphic => {
-            console.log('test', graphic);
-            //customIndex++;
+            //console.log('test', graphic);
               geoLocList.forEach(geoLoc => {
                 if (geoLoc.geocode1 == graphic.attributes['geocode']){
                   customIndex++;
