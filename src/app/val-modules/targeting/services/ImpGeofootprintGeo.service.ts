@@ -169,7 +169,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
-         console.warn('sort criteria is null - a:', a, ', b: ', b)
+         console.warn('sort criteria is null - a:', a, ', b: ', b);
          return 0;
       }
 
@@ -186,20 +186,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                      return -1;
                   else
                      return  1;
-            }
-            else
-            {
+            } else {
                if (a.distance > b.distance)
-                  return 1;
-               else
                   return -1;
+               else
+                  return 1;
             }
-         }
-         else
+         } else
             if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
-               return 1;
-            else
                return -1;
+            else
+               return 1;
          }
       else
          if (a.geocode > b.geocode)
@@ -218,7 +215,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (p1 == null || p2 == null)
       {
 //       console.log ('ImpGeofootprintGeo.service.partitionGeos - ', (p1 == null) ? 'p1 was null' : 'p2 was null');
-         return false
+         return false;
       }
 
       // Partition within Geocode
