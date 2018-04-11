@@ -175,9 +175,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (a.geocode === b.geocode)
       {
-         if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
-         {
-            if (a.distance === b.distance)
+      //    if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
+      //    {
+       if (a.distance === b.distance)
             {
                if (a.hhc === b.hhc)
                   return 0;
@@ -192,11 +192,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                else
                   return -1;
             }
-         } else
+        /* } else
             if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
                return -1;
             else
-               return 1;
+               return 1;*/
          }
       else
          if (a.geocode > b.geocode)
