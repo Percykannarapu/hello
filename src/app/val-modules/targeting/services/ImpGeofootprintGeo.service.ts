@@ -651,7 +651,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // update the metric count when export geos
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
-       this.usageService.createCounterMetric(usageMetricName, null + '~' + null, geos.length);
+       this.usageService.createCounterMetric(usageMetricName, null, geos.length);
 
       this.downloadExport(filename, this.prepareCSV(exportColumns));      
    }

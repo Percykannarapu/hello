@@ -194,12 +194,12 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           if (locations[0].clientLocationTypeCode === 'Site' ){
             // update the metric count when export Sites
             const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
-            this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
           }
           if (locations[0].clientLocationTypeCode === 'Competitor' ){
             // update the metric count when export Competitor
             const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
-            this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
           }
           const attributeCodeBlackList = new Set(['Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ']); //ugly hack for now
           const locationSet = new Set(locations);
