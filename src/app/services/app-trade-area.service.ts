@@ -149,9 +149,9 @@ export class ValTradeAreaService implements OnDestroy {
         this.tradeAreasForInsert.push(ValTradeAreaService.createTradeArea(radial.radius, i, loc, radial.displayed));
       });
     }
-
+    if (siteType === 'Site'){
     this.calculateHomegeocodeBuffer(this.tradeAreasForInsert, siteType, currentLocations);
-
+    }
     this.tradeAreaService.remove(removals);
     this.tradeAreaService.add(this.tradeAreasForInsert);
     console.log('Inserting Trade Areas', this.tradeAreasForInsert);
