@@ -147,7 +147,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // Cycle the currentTA from 0 to 3
       state.currentTA = (state.currentTA + 1) % 3;
       return result;
-   };
+   }
 
    // This will be rendered obsolete when tradeareas are slotted under locations
    public exportTradeAreaDesc(state: ImpGeofootprintLocationService, loc: ImpGeofootprintLocation)
@@ -163,12 +163,16 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       state.currentTD = (state.currentTD + 1) % 3;
 
       return result; // (tradeArea != null) ? 'RADIUS' + state.currentTD : null;
-   };
+   }
 
    public exportHomeGeoAttribute(loc: ImpGeofootprintLocation, homeGeoType: string) : string {
-      const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === `Home ${homeGeoType}`);
-      if (attributes.length > 0) return attributes[0].attributeValue;
-      return '';
+      return this.exportAttribute(loc, `Home ${homeGeoType}`);
+   }
+
+   public exportAttribute(loc: ImpGeofootprintLocation, attributeCode: string) : string {
+     const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === attributeCode);
+     if (attributes.length > 0) return attributes[0].attributeValue;
+     return '';
    }
 
    // -----------------------------------------------------------
@@ -177,30 +181,37 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      const geos: ImpGeofootprintLocation[] = this.get();
-
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
       if (filename == null)
          filename = this.getFileName();
 
-        
-
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {
-            const locations = this.get().filter(filter);
-            if (locations[0].clientLocationTypeCode != null && locations[0].clientLocationTypeCode === 'Site' ){
-                   // update the metric count when export Sites
-                   const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
-                  this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+        const locations = this.get().filter(filter);
+        if (locations.length > 0) {
+          if (locations[0].clientLocationTypeCode === 'Site' ){
+            // update the metric count when export Sites
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
+            this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+          }
+          if (locations[0].clientLocationTypeCode === 'Competitor' ){
+            // update the metric count when export Competitor
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
+            this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
+          }
+          const attributeCodeBlackList = new Set(['Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ']); //ugly hack for now
+          const locationSet = new Set(locations);
+          const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
+          const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
+          attributeCodes.forEach(code => {
+            if (code != null && !attributeCodeBlackList.has(code)) {
+              exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
             }
-            if (locations[0].clientLocationTypeCode != null && locations[0].clientLocationTypeCode === 'Competitor' ){
-                  // update the metric count when export Competitor
-                  const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
-                 this.usageService.createCounterMetric(usageMetricName, null + '~' + null, locations.length);
-           }
-        this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+          });
+          this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+        }
       }
    }
 
