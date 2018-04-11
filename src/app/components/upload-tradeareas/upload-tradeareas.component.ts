@@ -18,6 +18,8 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 class GeoLocations {
 
@@ -46,7 +48,8 @@ export class UploadTradeAreasComponent implements OnInit {
     private tradeAreaService: ValTradeAreaService,
     private impGeofootprintLocationService: ImpGeofootprintLocationService,
     private impGeoService: ImpGeofootprintGeoService,
-    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) { }
+    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+    private usageService: UsageService) { }
 
   ngOnInit() {
   }
@@ -104,6 +107,9 @@ export class UploadTradeAreasComponent implements OnInit {
 
       const filteredLocations: ImpGeofootprintLocation[] = [];
       const geoLocList: GeoLocations[] = [];
+
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
+       this.usageService.createCounterMetric(usageMetricName, null, rows.length - 1);
 
 
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);

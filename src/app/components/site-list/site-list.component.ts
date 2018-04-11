@@ -14,6 +14,8 @@ import { ValLayerService } from '../../services/app-layer.service';
 import { ValGeoService } from '../../services/app-geo.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 @Component({
   selector: 'val-site-list',
@@ -62,7 +64,8 @@ export class SiteListComponent implements OnInit {
               private appMapService: ValMapService,
               private appLayerService: ValLayerService,
               private valGeoService: ValGeoService,
-              private esriMapService: EsriMapService) { }
+              private esriMapService: EsriMapService,
+              private usageService: UsageService) { }
 
   ngOnInit() {
     this.onListTypeChange('Site');
@@ -89,12 +92,26 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowDelete(row: ImpGeofootprintLocation) {
+    const number = row.locationNumber != null ? 'Number=' + row.locationNumber + '~' : '';
+    const name =   row.locationName   != null ? 'Name=' + row.locationName + '~'     : '';
+    const street = row.locAddress     != null ? 'Street=' + row.locAddress + '~'     : '';
+    const city =   row.locCity        != null ? 'City=' + row.locCity + '~'          : '';
+    const state =  row.locState       != null ? 'State=' + row.locState + '~'        : '';
+    const zip =    row.locZip         != null ? 'ZIP=' + row.locZip + '~'            : '';
+    const market = row.marketName     != null ? 'market=' + row.marketName + '~'     : '';
+    const x =      row.xcoord         != null ? 'X=' + row.xcoord + '~'              : '';
+    const y =     row.ycoord          != null ? 'Y=' + row.ycoord                    : '';
+
+    const metricText = number + name + street + city + state + zip + market + x + y;
     this.confirmationService.confirm({
       message: 'Do you want to delete this record?',
       header: 'Delete Confirmation',
       icon: 'ui-icon-trash',
       accept: () => {
         this.removeLocationHierarchy(row);
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', 
+                                                  target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
+       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
         console.log('remove successful');
       },
       reject: () => {

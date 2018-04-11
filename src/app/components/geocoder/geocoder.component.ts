@@ -4,6 +4,8 @@ import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingService } from '../../services/app-geocoding.service';
 import { ValSiteListService } from '../../services/app-site-list.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 @Component({
   selector: 'val-geocoder',
@@ -22,7 +24,8 @@ export class GeocoderComponent implements OnInit {
   constructor(public  config: AppConfig,
               public geocodingService: ValGeocodingService,
               private siteListService: ValSiteListService,
-              private messageService: AppMessagingService ) { }
+              private messageService: AppMessagingService,
+              private usageService: UsageService ) { }
 
   public ngOnInit() : void {
     this.siteModel = new ValGeocodingRequest({});
@@ -54,8 +57,20 @@ export class GeocoderComponent implements OnInit {
   }
 
   public onGeocode() {
+    const number = this.currentModel.number != null ? 'Number=' + this.currentModel.number + '~' : '';
+    const name =   this.currentModel.name   != null ? 'Name=' + this.currentModel.name + '~'     : '';
+    const street = this.currentModel.street != null ? 'Street=' + this.currentModel.street + '~' : '';
+    const city =   this.currentModel.city   != null ? 'City=' + this.currentModel.city + '~'     : '';
+    const state =  this.currentModel.state  != null ? 'State=' + this.currentModel.state + '~'   : '';
+    const zip =    this.currentModel.zip    != null ? 'ZIP=' + this.currentModel.zip + '~'       : '';
+    const market = this.currentModel.Market != null ? 'market=' + this.currentModel.Market + '~' : '';
+    const x =     this.currentModel.longitude != null ? 'X=' + this.currentModel.longitude + '~' : '';
+    const y =     this.currentModel.latitude  != null ? 'Y=' + this.currentModel.latitude        : '';            
+    const metricText = number + name + street + city + state + zip + market + x + y;
     if (this.currentModel.canBeGeocoded()) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
+       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
       this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
         this.messageService.stopSpinnerDialog(this.messagingKey);
       });
