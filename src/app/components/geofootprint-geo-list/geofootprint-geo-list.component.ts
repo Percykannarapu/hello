@@ -17,6 +17,9 @@ import { Console } from '@angular/core/src/console';
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
+import { ValMapService } from '../../services/app-map.service';
+import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -77,8 +80,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
-               public  mapService: MapService,
-               private appState: AppState) { }
+               private mapService: EsriMapService) { }
 
    ngOnInit()
    {
@@ -184,7 +186,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Comparing each site to the geo parameter
          for (let s = 0; s < this.impGeofootprintLocations.length; s++)
          {
-            dist = this.mapService.getDistanceBetween(geo.xCoord, geo.yCoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
+            dist = EsriUtils.getDistance(geo.xCoord, geo.yCoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
 
             // If closer to this location, record the lat / lon
             if (dist < closestDistance)
@@ -324,15 +326,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
-   public async onZoomToGeo(geo: ImpGeofootprintGeo)
+   public onZoomToGeo(geo: ImpGeofootprintGeo)
    {
       // console.log('onZoomToGeo - geo: ', geo);
       if (geo != null)
       {
-         const color = {a: 1, r: 35, g: 93, b: 186}; // Because the darn map service requires it
-         await this.mapService.createGraphic(geo.yCoord, geo.xCoord, color, null).then(graphic => {
-            this.mapService.zoomOnMap([graphic]);
-         });
+         this.mapService.zoomOnMap([{ xcoord: geo.xCoord, ycoord: geo.yCoord }]);
       }
    }
 

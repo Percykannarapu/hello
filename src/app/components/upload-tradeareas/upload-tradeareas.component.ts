@@ -18,6 +18,8 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 class GeoLocations {
 
@@ -46,12 +48,13 @@ export class UploadTradeAreasComponent implements OnInit {
     private tradeAreaService: ValTradeAreaService,
     private impGeofootprintLocationService: ImpGeofootprintLocationService,
     private impGeoService: ImpGeofootprintGeoService,
-    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) { }
+    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+    private usageService: UsageService) { }
 
   ngOnInit() {
   }
 
-  //upload tradearea rings with site numbers and geos: US6879
+  //upload tradearea rings with site numbers and geos: US6879 tradeAreaUpload
   public onUploadClick(event: any) : void {
     console.log('Inside Upload TradeAreas:::');
     const reader = new FileReader();
@@ -88,7 +91,7 @@ export class UploadTradeAreasComponent implements OnInit {
       this.onFileUpload(csvData);
       this.fileUploadEl1.clear();
       // workaround for https://github.com/primefaces/primeng/issues/4816
-      //this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+     // this.fileUploadEl1.basicFileInput.nativeElement.value = '';
 
     };
   }
@@ -104,6 +107,9 @@ export class UploadTradeAreasComponent implements OnInit {
 
       const filteredLocations: ImpGeofootprintLocation[] = [];
       const geoLocList: GeoLocations[] = [];
+
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
+       this.usageService.createCounterMetric(usageMetricName, null, rows.length - 1);
 
 
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
@@ -125,26 +131,25 @@ export class UploadTradeAreasComponent implements OnInit {
           });
         });
 
-        console.log('number of geocodes:::', geocodes);
+        //console.log('number of geocodes:::', geocodes);
         const outfields = [];
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
        // tradeAreasForInsert = this.impGeofootprintTradeAreaService.get();
         outfields.push('geocode');
         const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true, outfields).subscribe(graphics => {
           const geosToAdd: ImpGeofootprintGeo[] = [];
-          console.log('graphic:::::', graphics);
+         // console.log('graphic:::::', graphics);
           graphics.forEach(graphic => {
-            console.log('test', graphic);
-            //customIndex++;
+            //console.log('test', graphic);
               geoLocList.forEach(geoLoc => {
                 if (geoLoc.geocode1 == graphic.attributes['geocode']){
                   customIndex++;
                   //console.log('centroid:::::', graphic.geometry['centroid']);
                   //console.log('centroid x val:::::', graphic.geometry['centroid'].longitude);
                   //console.log('centroid y val:::::', graphic.geometry['centroid'].latitude);
-                  const latitude = graphic.geometry['centroid'].latitude;
-                  const longitude = graphic.geometry['centroid'].longitude;
-                  const geocodeDistance =  EsriUtils.getDistance(graphic.geometry['centroid'].longitude, graphic.geometry['centroid'].latitude,
+                  const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
+                  const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
+                  const geocodeDistance =  EsriUtils.getDistance(longitude, latitude,
                                                                  geoLoc.loc.xcoord, geoLoc.loc.ycoord);
                   const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
                   geosToAdd.push(this.createGeo(geocodeDistance, point, geoLoc.loc, graphic.attributes['geocode']));
@@ -152,7 +157,7 @@ export class UploadTradeAreasComponent implements OnInit {
                 }
             });
           });
-          console.log('geos added:::', geosToAdd);
+          //console.log('geos added:::', geosToAdd);
           this.impGeoService.add(geosToAdd);
           this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
         });
@@ -163,10 +168,12 @@ export class UploadTradeAreasComponent implements OnInit {
         console.log('Set A validation message', header);
       }
 
-      // this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
-      //   this.displayGcSpinner = false;
-      // });
+      this.fileUploadEl1.clear();
+      //this.fileUploadEl1.basicFileInput.nativeElement.value = '';
+
     } catch (e) {
+      this.fileUploadEl1.clear();
+     // this.fileUploadEl1.basicFileInput.nativeElement.value = '';
       this.handleError(`${e}`);
     }
   }

@@ -26,6 +26,8 @@ import { encode } from 'punycode';
 import * as $ from 'jquery';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
+import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -43,7 +45,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService)
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService, private usageService: UsageService)
    {
       super(restDataService, dataUrl);
 
@@ -167,15 +169,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
-         console.warn('sort criteria is null - a:', a, ', b: ', b)
+         console.warn('sort criteria is null - a:', a, ', b: ', b);
          return 0;
       }
 
       if (a.geocode === b.geocode)
       {
-         if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
-         {
-            if (a.distance === b.distance)
+      //    if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
+      //    {
+       if (a.distance === b.distance)
             {
                if (a.hhc === b.hhc)
                   return 0;
@@ -184,20 +186,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                      return -1;
                   else
                      return  1;
-            }
-            else
-            {
+            } else {
                if (a.distance > b.distance)
                   return 1;
                else
                   return -1;
             }
-         }
-         else
+        /* } else
             if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
-               return 1;
-            else
                return -1;
+            else
+               return 1;*/
          }
       else
          if (a.geocode > b.geocode)
@@ -216,7 +215,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (p1 == null || p2 == null)
       {
 //       console.log ('ImpGeofootprintGeo.service.partitionGeos - ', (p1 == null) ? 'p1 was null' : 'p2 was null');
-         return false
+         return false;
       }
 
       // Partition within Geocode
@@ -649,6 +648,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();
+
+      // update the metric count when export geos
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+       this.usageService.createCounterMetric(usageMetricName, null, geos.length);
 
       this.downloadExport(filename, this.prepareCSV(exportColumns));      
    }

@@ -22,6 +22,9 @@ import { Observable } from 'rxjs/Observable';
 // Imports for exporting CSVs
 import { encode } from 'punycode';
 import * as $ from 'jquery';
+import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
+import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -41,8 +44,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    
    public  removes: ImpGeofootprintLocation[];
 
-   constructor(private restDataService: RestDataService
-              ,private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) //, impProjectService: ImpProjectService)
+   constructor(private restDataService: RestDataService,
+               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+               private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
+               private usageService: UsageService   ) //, impProjectService: ImpProjectService)
    {
       super(restDataService, dataUrl);
 
@@ -119,7 +124,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          // Avoid infinite loops with zero-width matches
          if (m.index === regex.lastIndex)
             regex.lastIndex++;
-          
+
          // TODO: handle the wandering groups
          m.forEach((match, groupIndex) => {
 //          console.log(`Found match, group ${groupIndex}: ${match}`);
@@ -175,7 +180,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // Cycle the currentTA from 0 to 3
       state.currentTA = (state.currentTA + 1) % 3;
       return result;
-   };
+   }
 
    // This will be rendered obsolete when tradeareas are slotted under locations
    public exportTradeAreaDesc(state: ImpGeofootprintLocationService, loc: ImpGeofootprintLocation)
@@ -186,31 +191,64 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       state.tradeAreas =  state.impGeofootprintTradeAreaService.get();
       const tradeArea:  ImpGeofootprintTradeArea = (state.tradeAreas != null) ? state.tradeAreas[state.currentTD] : null;
       const result = (tradeArea != null) ? ((tradeArea.taNumber-1 === state.currentTD) ? 'RADIUS' + (state.currentTD+1) : null) : null;
-      
+
       // Cycle the currentTD from 0 to 3
       state.currentTD = (state.currentTD + 1) % 3;
-      
-      return result; // (tradeArea != null) ? 'RADIUS' + state.currentTD : null;
-   };
 
-   
+      return result; // (tradeArea != null) ? 'RADIUS' + state.currentTD : null;
+   }
+
+   public exportHomeGeoAttribute(loc: ImpGeofootprintLocation, homeGeoType: string) : string {
+      return this.exportAttribute(loc, `Home ${homeGeoType}`);
+   }
+
+   public exportAttribute(loc: ImpGeofootprintLocation, attributeCode: string) : string {
+     const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === attributeCode);
+     if (attributes.length > 0) return attributes[0].attributeValue;
+     return '';
+   }
+
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      const geos: ImpGeofootprintLocation[] = this.get();
-
-      let exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
+      const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
       if (filename == null)
          filename = this.getFileName();
 
-      this.downloadExport(filename, this.prepareCSV(exportColumns));
+      if (filter == null) {
+        this.downloadExport(filename, this.prepareCSV(exportColumns));
+      } else {
+        const locations = this.get().filter(filter);
+        if (locations.length > 0) {
+          if (locations[0].clientLocationTypeCode === 'Site' ){
+            // update the metric count when export Sites
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
+            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
+          }
+          if (locations[0].clientLocationTypeCode === 'Competitor' ){
+            // update the metric count when export Competitor
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
+            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
+          }
+          const attributeCodeBlackList = new Set(['Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ']); //ugly hack for now
+          const locationSet = new Set(locations);
+          const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
+          const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
+          attributeCodes.forEach(code => {
+            if (code != null && !attributeCodeBlackList.has(code)) {
+              exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
+            }
+          });
+          this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+        }
+      }
    }
 
-   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION): ColumnDefinition<ImpGeofootprintLocation>[]
+   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION) : ColumnDefinition<ImpGeofootprintLocation>[]
    {
       let result: string = '';
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = [];
@@ -238,10 +276,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'TRADE_DESC1',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 1) ? 'RADIUS1' : null});
             exportColumns.push({ header: 'TRADE_DESC2',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 2) ? 'RADIUS2' : null});
             exportColumns.push({ header: 'TRADE_DESC3',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 3) ? 'RADIUS3' : null});
-            exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, false, false)});
-            exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, true, false, false)});
+            exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
+            exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
-            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.getGeocodeAs(data.homeGeocode, true, false, true, false)});
+            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.exportHomeGeoAttribute(data, 'PCR')});
             exportColumns.push({ header: 'Home Geocode Issue', row: (state, data) => null});
             exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
             exportColumns.push({ header: 'ATZ',                row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, true, false, false)});
@@ -274,6 +312,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Original City',      row: (state, data) => data.origCity});
             exportColumns.push({ header: 'Original State',     row: (state, data) => data.origState});
             exportColumns.push({ header: 'Original ZIP',       row: (state, data) => data.origPostalCode});
+            exportColumns.push({ header: 'Home Digital ATZ',   row: (state, data) => state.exportHomeGeoAttribute(data, 'Digital ATZ')});
             break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT

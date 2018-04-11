@@ -17,11 +17,12 @@ export class AppRendererService {
 
   public createSelectionRenderer(defaultSymbol: __esri.Symbol) : __esri.Renderer {
     const selectedGeo = (feature: __esri.Graphic) => this.currentGeocodes.has(feature.attributes.geocode) ? 'Selected Geo' : 'Unselected Geo';
-    const highlightColor = new EsriModules.Color([0, 255, 0, 0.1]);
-    const outlineColor = new EsriModules.Color([0, 255, 0, 0.65]);
+    // 53, 157, 163
+    const highlightColor = new EsriModules.Color([0, 255, 0, 0.25]);
+    const outlineColor = new EsriModules.Color([0, 0, 0, 1]);
     const highlightSymbol = new EsriModules.SimpleFillSymbol({
       color: highlightColor,
-      outline: { color: outlineColor, style: 'solid', width: 2},
+      outline: { color: outlineColor, style: 'solid', width: 1},
       style: 'solid'
     });
     const newRenderer = new EsriModules.UniqueValueRenderer({

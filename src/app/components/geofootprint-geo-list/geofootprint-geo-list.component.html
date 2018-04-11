@@ -30,7 +30,7 @@
                            {{row['geocode']}}
                         </div>
                         <div class="ui-g-1" style="vertical-align:inherit">
-                           <button (click)="onZoomToGeo(geocode)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
+                           <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
                         </div>
                      </ng-template>
                      <ng-template *ngIf="col.value.field=='distance'" let-row="rowData" pTemplate="body">

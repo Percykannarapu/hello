@@ -48,16 +48,16 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx)},
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx)},
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site')},
 //                  {label: 'Export Sites Old', value: 'Site', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Site'), 'Site')},
-                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Competitor'), 'Competitor')}
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor')}
                 ]
             },
             /*{
 
-            
+
             Removing the demo content
-            We need to keep this content for enhancements, 
+            We need to keep this content for enhancements,
             if we want to use the additional functionality : US6650 nallana
 
                 label: 'Customization', icon: 'settings_application',

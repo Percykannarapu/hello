@@ -3,6 +3,8 @@ import { AppService, BusinessSearchResult } from '../../services/app.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 interface SelectableSearchResult {
   data: BusinessSearchResult;
@@ -39,7 +41,7 @@ export class BusinessSearchComponent implements OnInit {
   businessCategories: any;
 
   constructor(private appService: AppService, private messagingService: AppMessagingService,
-              private locationService: ImpGeofootprintLocationService) {
+              private locationService: ImpGeofootprintLocationService, private usageService: UsageService) {
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -117,6 +119,10 @@ export class BusinessSearchComponent implements OnInit {
       'siteLimit': '2000'
     };
 
+    
+
+    
+
     const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     paramObj['sites'] = currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord }));
     paramObj['sics'] = this.targetCategories.map(category => ({ sic: category.sic}));
@@ -134,9 +140,21 @@ export class BusinessSearchComponent implements OnInit {
       hasError = true;
     }
 
+    
+    let sic = paramObj['sites'] != null ? 'SIC=' + paramObj['sics'].map(sic3 =>  sic3['sic'] ) + '~' : '';
+    sic = sic.length > 100 ? sic.substring(0, 100) : sic;
+    const miles = paramObj['radius'] != null ? 'Miles=' + paramObj['radius'] + '~' : '';
+    const businessName = paramObj['name'] != null ? 'BusinessName=' + paramObj['name'] + '~' : '';
+    const city = paramObj['city'] != null ? 'City=' + paramObj['city'] : '';
+    const metricText = sic + miles + businessName + city;
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'search' });
+    
+
+
     if (!hasError) {
       this.messagingService.startSpinnerDialog('businessSearchKey', 'Searching...');
       this.appService.getBusinesses(paramObj).subscribe(responseData => {
+        this.usageService.createCounterMetric(usageMetricName, metricText, responseData.length);
         responseData.forEach(fuseResult => {
           this.searchResults.push({
             data: fuseResult,
@@ -170,6 +188,9 @@ export class BusinessSearchComponent implements OnInit {
     this.searchResults.filter(sr => sr.selected).forEach(result => {
       locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
     });
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
+    const metricName = 'Import as ' + siteType;
+    this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
     if (locationsForInsert.length > 0) {
       this.locationService.add(locationsForInsert);
       this.appService.closeOverLayPanel.next(true);
