@@ -30,7 +30,9 @@ export class EsriQueryService {
   constructor(private layerService: EsriLayerService, private config: AppConfig) { }
 
   public executeQuery(layer: __esri.FeatureLayer, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    return this.queryWithRetry(layer, query);
+    const result = new Subject<__esri.FeatureSet>();
+    this.paginateQuery(layer, query, result);
+    return result.asObservable();
   }
 
   private queryWithRetry(layer: __esri.FeatureLayer, query: __esri.Query) : Observable<__esri.FeatureSet> {
