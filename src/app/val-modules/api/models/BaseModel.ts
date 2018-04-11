@@ -16,6 +16,6 @@ export class BaseModel
 
    BaseModel() {
       this.dirty = true;
-      this.baseStatus = DAOBaseStatus.INSERT;
+      this.baseStatus = DAOBaseStatus.UNCHANGED;
    }
 }

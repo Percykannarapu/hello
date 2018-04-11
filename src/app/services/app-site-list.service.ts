@@ -200,6 +200,11 @@ export class ValSiteListService implements OnDestroy {
     const newSites = new Set(locations.filter(l => !uiSet.has(l)));
     const newAttributes = localAttributes.filter(a => newSites.has(a.impGeofootprintLocation));
     const updatedAttributes = localAttributes.filter(a => uiSet.has(a.impGeofootprintLocation) && !newSites.has(a.impGeofootprintLocation));
+
+    for (const location of Array.from(locationSet))
+       if (location.clientIdentifierTypeCode == null)
+          location.clientIdentifierTypeCode = 'PROJECT_ID';
+
     // adds
     for (const site of Array.from(newSites)) {
       const newModel = new LocationUiModel(site, newAttributes.filter(a => a.impGeofootprintLocation === site));

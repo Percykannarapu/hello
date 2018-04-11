@@ -14,7 +14,7 @@
       </div>
       <div class="ui-g-9">
          <div *ngIf="showLoadBtn">
-            <button (click)="loadProject()">Load Project</button>
+            <button label="Load Project" pButton (click)="loadProject()"></button>
          </div>
       </div>
       <div class="ui-g-12">
@@ -112,7 +112,7 @@
       </div>            
 
       <div class="ui-g-12">
-            <button label="Save Project" pButton (click)="saveProject()"></button>
+         <button label="Save Project" pButton (click)="saveProject()"></button>
       </div>
    </div>
 

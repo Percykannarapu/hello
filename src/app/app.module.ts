@@ -132,6 +132,7 @@ import {GeocoderService} from './services/geocoder.service';
 import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
 import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
 import {ImpClientLocationService} from './val-modules/client/services/ImpClientLocation.service';
+import {ImpGeofootprintMasterService} from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import {ImpGeofootprintLocationService} from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import {ImpGeofootprintTradeAreaService} from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import {ImpGeofootprintGeoService} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -297,7 +298,7 @@ import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricNa
         GfGeoService, MapService, RestDataService,
         MetricService, EsriModules, ValLayerService,
         AppState, GeocoderService, GeocodingResponseService,
-        ImpProjectService, ImpProjectPrefService, ImpClientLocationService,
+        ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, GeoFootPrint, EsriLayerService,

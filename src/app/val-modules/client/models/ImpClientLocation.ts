@@ -1,3 +1,4 @@
+import { BaseModel } from './../../api/models/BaseModel';
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOCATIONS
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
@@ -6,7 +7,7 @@
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ImpClientLocationType } from './ImpClientLocationType';
 
-export class ImpClientLocation
+export class ImpClientLocation extends BaseModel
 {
    public clientLocationId:             number;                       /// Primary Key
    public createUser:                   number;
@@ -64,6 +65,7 @@ export class ImpClientLocation
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpClientLocation>) {
+      super();
       Object.assign(this, data);
    }
 

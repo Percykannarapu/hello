@@ -409,7 +409,7 @@ export class DiscoveryInputComponent implements OnInit
    public loadProject()
    {
       console.log('discovery-input.component - loadProject fired');
-
+      
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
    }
@@ -420,7 +420,7 @@ export class DiscoveryInputComponent implements OnInit
       this.mapToProject();
 
       // Save the project
-      this.impProjectService.saveProject();      
+      this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
    }
 

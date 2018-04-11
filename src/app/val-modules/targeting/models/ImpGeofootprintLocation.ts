@@ -62,7 +62,7 @@ export class ImpGeofootprintLocation extends BaseModel
    public clear() 
    {
       this.dirty                    = true;
-      this.baseStatus               = DAOBaseStatus.INSERT;
+      this.baseStatus               = null; // DAOBaseStatus.INSERT;
       this.glId                     = null;
       this.cgmId                    = null;
       this.projectId                = null;

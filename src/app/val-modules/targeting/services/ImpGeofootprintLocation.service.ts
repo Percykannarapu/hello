@@ -38,6 +38,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    private currentTA:  number;      // Remove when TAs are children of Locations
    private currentTD:  number;      // Remove when TAs are children of Locations
    private tradeAreas: ImpGeofootprintTradeArea[];
+   
+   public  removes: ImpGeofootprintLocation[];
 
    constructor(private restDataService: RestDataService
               ,private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService) //, impProjectService: ImpProjectService)
@@ -51,6 +53,37 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
+   public hasMandatory(impGeofootprintLocation: ImpGeofootprintLocation)
+   {
+      let hasMandatoryCols = [true, ''];
+
+      if (impGeofootprintLocation == null)
+         return [false, 'All columns missing'];
+
+      if (impGeofootprintLocation.clientIdentifierTypeCode == null)
+      {
+         hasMandatoryCols[0] = false;
+         hasMandatoryCols[1] = (hasMandatoryCols[1] == '') ? 'Missing: ' : ', ' + 'clientIdentifierTypeCode';
+      }
+
+      if (impGeofootprintLocation.clientLocationTypeCode == null)
+      {
+         hasMandatoryCols[0] = false;
+         hasMandatoryCols[1] = (hasMandatoryCols[1] == '') ? 'Missing: ' : ', ' + 'clientIdentifierTypeCode';
+      }
+
+      if (impGeofootprintLocation.locationNumber == null)
+      {
+         hasMandatoryCols[0] = false;
+         hasMandatoryCols[1] = (hasMandatoryCols[1] == '') ? 'Missing: ' : ', ' + 'clientIdentifierTypeCode';
+      }
+      // CLIENT_IDENTIFIER_ID       -- Can't default a primary or foreign key
+      // FK_CGM_ID                  -- Can't default a primary or foreign key
+      // FK_CLIENT_LOCATION_ID      -- Can't default a primary or foreign key
+      // FK_PROJECT_ID              -- Can't default a primary or foreign key
+      // GL_ID                      -- Can't default a primary or foreign key      
+   }
+
    public getFileName()
    {
       try

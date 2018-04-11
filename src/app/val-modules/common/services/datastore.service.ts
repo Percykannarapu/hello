@@ -1,3 +1,4 @@
+import { DAOBaseStatus } from './../../api/models/BaseModel';
 import { ImpGeofootprintGeo } from './../../targeting/models/ImpGeofootprintGeo';
 import { RestResponse } from './../../../models/RestResponse';
 import { RestDataService } from './../../common/services/restdata.service';
@@ -42,15 +43,16 @@ export class DataStore<T>
 {
    private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
    private transientId: number = 0;
+   public  dbRemoves: Array<T> = new Array<T>();
 
    // Private data store, exposed publicly as an observable
    private _dataStore = new Array<T>();
-   private _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
+   protected _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
    private fetchSubject: Subject<T[]> = new Subject<T[]>();
    
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
-
+   
    constructor(private rest: RestDataService, public dataUrl: string) { }
 
    // ---------------------------------------------
@@ -156,18 +158,20 @@ export class DataStore<T>
     * @param postOperation - A callback delegate that will fire after the fetch
     */
    public get(forceRefresh?: false) : T[];
-   public get(forceRefresh: true) : Observable<T[]>;
+   public get(forceRefresh: true, forceClear?: boolean) : Observable<T[]>;
    public get(forceRefresh: boolean, forceClear?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
    public get(forceRefresh?: boolean, forceClear: boolean = false, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
-//    console.log('DataStore.get fired');
+      console.log('DataStore.get fired - this.dataUrl: ', this.dataUrl);
+
       if (preOperation)
          preOperation(this._dataStore);
 
       if (forceClear)
       {
-         this._dataStore.length = 0;
-         this._dataStore = new Array<T>();
+         this.clearAll(false);
+         //this._dataStore.length = 0;
+         //this._dataStore = new Array<T>();
       }
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
@@ -274,13 +278,44 @@ export class DataStore<T>
       this.add(dataArray, preOperation, postOperation);
       console.log ('dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
-   
+
+   private setDbRemove(removeData: T)
+   {
+      if (removeData != null)
+      {
+         console.log('registered for db removal: ', removeData);
+         removeData['dirty'] = true;
+         removeData['baseStatus'] = DAOBaseStatus.DELETE;
+         if (this.dbRemoves == null)
+            this.dbRemoves = new Array<T>();
+         this.dbRemoves.push(removeData);
+      }
+   }
+
+   // For database removals
+   public addDbRemove(removeData: T | T[])
+   {
+      if (Array.isArray(removeData))
+         for (let removeElement of removeData)
+            this.setDbRemove(removeElement);
+      else
+         this.setDbRemove(removeData);
+   }
+
+   public clearDbRemoves()
+   {
+      this.dbRemoves = new Array<T>();
+   }
+
    public removeAt (index: number)
    {
       console.log('delete at index: ' + index);
 
-      if (this._dataStore.length === 0)
+      if (this._dataStore.length === 0 || index < 0 || index >= this._dataStore.length)
          return;
+
+      // For database removals
+      this.addDbRemove(this._dataStore[index]);
 
       // Remove the element from the array at the index
       if (this._dataStore.length > 1)
@@ -301,15 +336,26 @@ export class DataStore<T>
 
    public remove (data: T | T[])
    {
-     if (Array.isArray(data)) {
-       const removals = new Set(data);
-       this._dataStore = this._dataStore.filter(t => !removals.has(t));
-       this._storeSubject.next(this._dataStore);
-     } else {
-       // Remove the element from the array
-       const index = this._dataStore.indexOf(data);
-       this.removeAt(index);
-     }
+      if (data == null)
+         return;
+
+      if (Array.isArray(data))
+      {
+         // Add database removal
+         this.addDbRemove(data);
+
+         const arrayRemovals = new Set(data);
+         this._dataStore = this._dataStore.filter(t => !arrayRemovals.has(t));
+         this._storeSubject.next(this._dataStore);
+      }
+      else
+      {
+         // Remove the element from the array
+         const index = this._dataStore.indexOf(data);
+         if (index != null)
+            this.addDbRemove(this._dataStore[index]);
+         this.removeAt(index);
+      }
    }
 
    // TODO: loop until no search results found
@@ -442,8 +488,11 @@ export class DataStore<T>
 
    public clearAll(notifySubscribers = true)
    {
+      console.log('clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
+
+      this.debugLogStore('Store after clearAll');
 
       // There are times where you want to clear as part of transaction and notify at the end
       if (notifySubscribers)

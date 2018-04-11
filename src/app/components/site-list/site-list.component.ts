@@ -132,6 +132,7 @@ export class SiteListComponent implements OnInit {
     this.geoService.remove(geos);
     this.tradeAreaService.remove(tas);
     this.attributeService.remove(attributes);
+    this.locationService.addDbRemove(location);  // For database removal 
     this.locationService.remove(location);
   }
 
