@@ -148,9 +148,9 @@ export class UploadTradeAreasComponent implements OnInit {
                   //console.log('centroid:::::', graphic.geometry['centroid']);
                   //console.log('centroid x val:::::', graphic.geometry['centroid'].longitude);
                   //console.log('centroid y val:::::', graphic.geometry['centroid'].latitude);
-                  const latitude = graphic.geometry['centroid'].latitude;
-                  const longitude = graphic.geometry['centroid'].longitude;
-                  const geocodeDistance =  EsriUtils.getDistance(graphic.geometry['centroid'].longitude, graphic.geometry['centroid'].latitude,
+                  const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
+                  const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
+                  const geocodeDistance =  EsriUtils.getDistance(longitude, latitude,
                                                                  geoLoc.loc.xcoord, geoLoc.loc.ycoord);
                   const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
                   geosToAdd.push(this.createGeo(geocodeDistance, point, geoLoc.loc, graphic.attributes['geocode']));
