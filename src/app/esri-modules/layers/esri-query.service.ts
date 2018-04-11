@@ -3,11 +3,12 @@ import { EsriLayerService } from './esri-layer.service';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 import { EsriModules } from '../core/esri-modules.service';
-import { map } from 'rxjs/operators';
+import { expand, map, retry, retryWhen, scan } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import * as utils from '../../app.utils';
 import { merge } from 'rxjs/observable/merge';
 import { EsriUtils } from '../core/esri-utils.service';
+import { empty } from 'rxjs/observable/empty';
 
 export interface LayerId {
   portalLayerId?: string;
@@ -29,9 +30,48 @@ export class EsriQueryService {
   constructor(private layerService: EsriLayerService, private config: AppConfig) { }
 
   public executeQuery(layer: __esri.FeatureLayer, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    const result = new Subject<__esri.FeatureSet>();
-    this.paginateQuery(layer, query, result);
-    return result.asObservable();
+    return this.queryWithRetry(layer, query);
+  }
+
+  private queryWithRetry(layer: __esri.FeatureLayer, query: __esri.Query) : Observable<__esri.FeatureSet> {
+    return Observable.create(observer => {
+      try {
+        layer.queryFeatures(query).then(
+          featureSet => {
+            observer.next(featureSet);
+            observer.complete();
+          },
+          errReason => observer.error(errReason));
+      } catch (ex) {
+        observer.error(ex);
+      }
+    }).pipe(retryWhen(errors => {
+      return errors.pipe(
+        scan<any, number>((errorCount, err) => {
+          if (err && err.message && err.message.toLowerCase().includes('timeout') && errorCount < 5) {
+            console.warn(`Retrying due to timeout. Attempt ${errorCount + 1}.`, err);
+            return errorCount + 1;
+          } else {
+            throw err;
+          }
+        }, 0)
+      );
+    }));
+  }
+
+  private paginateEsriQuery(layer: __esri.FeatureLayer, query: __esri.Query) : Observable<__esri.FeatureSet> {
+    return this.queryWithRetry(layer, query).pipe(
+      expand(featureSet => {
+        if (featureSet.exceededTransferLimit) {
+          const newQuery = EsriUtils.clone(query);
+          newQuery.num = featureSet.features.length;
+          newQuery.start = (query.start || 0) + query.num;
+          return this.queryWithRetry(layer, newQuery);
+        } else {
+          return empty();
+        }
+      }),
+    );
   }
 
   private paginateQuery(layer: __esri.FeatureLayer, query: __esri.Query, paginationSubject: Subject<__esri.FeatureSet>, errorCount: number = 0) : void {
