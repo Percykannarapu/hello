@@ -188,9 +188,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                      return  1;
             } else {
                if (a.distance > b.distance)
-                  return -1;
-               else
                   return 1;
+               else
+                  return -1;
             }
          } else
             if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
