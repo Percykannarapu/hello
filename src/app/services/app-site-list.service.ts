@@ -1,3 +1,4 @@
+import { ImpClientLocationService } from './../val-modules/client/services/ImpClientLocation.service';
 import { Injectable, OnDestroy } from '@angular/core';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -118,7 +119,12 @@ export class ValSiteListService implements OnDestroy {
       return previous;
     };
     const attributes: ImpGeofootprintLocAttrib[] = data.map(l => l[valGeocodingAttributeKey]).reduce(flatten, []);
-    data.forEach(d => delete d[valGeocodingAttributeKey]);
+    data.forEach(d => { delete d[valGeocodingAttributeKey];
+                        // Temp code until we are populating these mandatory fields
+                        if (d.locationNumber     == null) d.locationNumber = this.locationService.getNextStoreId();
+                        if (d.clientIdentifierId == null) d.clientIdentifierId = d.locationNumber
+                        if (d.clientLocationId   == null) d.clientLocationId = d.locationNumber;
+                     });
     this.locationService.add(data);
     this.attributeService.add(attributes);
     this.esriMapService.zoomOnMap(data);

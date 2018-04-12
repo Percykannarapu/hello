@@ -70,6 +70,12 @@ export class ImpProjectService extends DataStore<ImpProject>
       // Clear out the decentralized data stores
       this.impGeofootprintLocationService.clearAll(true);
       this.impGeofootprintMasterService.clearAll(true);      
+      let project: ImpProject = this.get()[0];
+      if (project != null && project.impGeofootprintMasters != null)
+      {
+         project.impGeofootprintMasters[0].impGeofootprintLocations = null;
+         project.impGeofootprintMasters = null;
+      }
 
       this.get(true, true).subscribe(res => {
          this.populateLocations(res);
@@ -110,6 +116,7 @@ export class ImpProjectService extends DataStore<ImpProject>
 //         console.log('projects[0].impGeofootprintMasters = ', JSON.stringify(projects[0].impGeofootprintMasters));
 //         console.log('projects[0].impGeofootprintMasters.locations = ', JSON.stringify(projects[0].impGeofootprintMasters[0].impGeofootprintLocations));
 //         console.log('###### About to print data store');
+//       this.impGeofootprintLocationService.debugLogStore('Locations data store before populateLocations');
          if (this == null)
             console.log('this is null');
          else
@@ -119,8 +126,9 @@ export class ImpProjectService extends DataStore<ImpProject>
             else
                console.log('Apparently, nothing is null');
 //            this.impGeofootprintLocationService.replace(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
-               this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
-            }
+            this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
+//          this.impGeofootprintLocationService.debugLogStore('Locations data store after populateLocations');
+         }
          return projects;
       }
       else

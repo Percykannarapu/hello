@@ -11,6 +11,8 @@ export class ValGeocodingRequest {
   latitude?: string | null;
   longitude?: string | null;
   [key: string] : any;
+  clientIdentifierId: string;  // Mandatory DB field
+  clientLocationId: number;    // Mandatory DB field
 
   constructor(initializer: any) {
     Object.assign(this, initializer);

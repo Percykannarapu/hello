@@ -52,7 +52,10 @@ export class DataStore<T>
    
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
-   
+
+   public storeLength: number = 0;  // Publically expose number of rows in the _dataStore
+   public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
+
    constructor(private rest: RestDataService, public dataUrl: string) { }
 
    // ---------------------------------------------
@@ -75,9 +78,11 @@ export class DataStore<T>
 
    /**
     * Log the store to the console.  Also an example of two ways to iterate through it
+    * @param storeTitle Must provide a header since there is no way to differentiate dataStores
+    * @param useFirstMethod If false, it will show the row index next to the data
     */
-    public debugLogStore(storeTitle: string, useFirstMethod: boolean = false)
-    {
+   public debugLogStore(storeTitle: string, useFirstMethod: boolean = false)
+   {
       try
       {
          console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '') + 'STORE CONTENTS #----------------');
@@ -99,6 +104,15 @@ export class DataStore<T>
       {
          console.log('** Empty **');
       }
+   }
+
+    /**
+     * Returns an incrementing ID number that is unique within this dataStore
+     * Useful for stubbing IDs
+     */
+    public getNextStoreId(): number
+    {
+       return this.currStoreId++
     }
 
    // ---------------------------------------------
@@ -486,12 +500,16 @@ export class DataStore<T>
       this._storeSubject.next(this._dataStore);
    }
 
+   /**
+    * Will empty the dataStore, reset the currStoreId and optionally notify observers
+    * @param notifySubscribers If false it won't notify observers; allowing a clear and load to be observed as one transaction
+    */
    public clearAll(notifySubscribers = true)
    {
       console.log('clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
-
+      this.currStoreId = 1;
       this.debugLogStore('Store after clearAll');
 
       // There are times where you want to clear as part of transaction and notify at the end
