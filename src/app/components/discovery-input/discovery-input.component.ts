@@ -27,6 +27,8 @@ import { Objective } from '../../val-modules/mediaexpress/models/Objective';
 import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
 import { RestResponse } from '../../models/RestResponse';
 import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 interface Product {
    productName: string;
@@ -87,7 +89,8 @@ export class DiscoveryInputComponent implements OnInit
                public userService: UserService,
                private http: HttpClient,
                private appState: AppState,
-               private mapservice: MapService)
+               private mapservice: MapService,
+               private usageService: UsageService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -286,9 +289,12 @@ export class DiscoveryInputComponent implements OnInit
 
    public onAnalysisSelectType(event: SelectItem) {
          console.log('Analysis level:::' , event);
+         const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.analysisLevel;
          this.selectedAnalysisLevel = event;
          this.impDiscoveryUI.analysisLevel = event.value;
          this.onChangeField(null);
+         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'analysis-level', action: 'changed' });
+         this.usageService.createCounterMetric(usageMetricName, metricsText, 1);
    }
 
    private handleError (error: any) {
@@ -412,6 +418,8 @@ export class DiscoveryInputComponent implements OnInit
       
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
    }
 
    public saveProject()
@@ -422,6 +430,7 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
+      
    }
 
    fetchRadData() {
