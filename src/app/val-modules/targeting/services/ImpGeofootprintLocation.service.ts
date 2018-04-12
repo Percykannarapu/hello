@@ -104,6 +104,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       }
    }
 
+   public getNextLocationNumber(): number
+   {
+      return this.getNextStoreId();
+   }
+
    /**
     * Takes a well formed geocode and returns a string that is a combination of its requested parts
     * @param geocode The source geocode to parse
