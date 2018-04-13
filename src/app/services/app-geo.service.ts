@@ -101,7 +101,7 @@ export class ValGeoService implements OnDestroy {
       let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
-      const query$ = this.queryService.queryPointWithBuffer({ portalLayerId: layerId }, queryMap.get(maxRadius), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
+      const query$ = this.queryService.queryPointWithBuffer(layerId, queryMap.get(maxRadius), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
       const sub = query$.subscribe(
         selections => {
           allSelectedData = allSelectedData.concat(selections);
@@ -152,16 +152,16 @@ export class ValGeoService implements OnDestroy {
     const includePob = latestDiscovery[0].includePob;
     const filteredCentroids = centroids.filter(c => {
                                     if (includePob === true){
-                                        return ((c.attributes.is_pob_only === 1 || c.attributes.is_pob_only === 0) 
-                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne) 
+                                        return ((c.attributes.is_pob_only === 1 || c.attributes.is_pob_only === 0)
+                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
                                           || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
                                           || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
                                     }else {
-                                      return ((c.attributes.is_pob_only === 0) 
-                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne) 
+                                      return ((c.attributes.is_pob_only === 0)
+                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
                                           || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
                                           || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
-                                      } 
+                                      }
                                   }
                                   );
     const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));

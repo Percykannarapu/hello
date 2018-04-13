@@ -95,7 +95,7 @@ export class ValMapService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
-   
+
     if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
       this.setDefaultLayers(this.currentAnalysisLevel);
@@ -164,7 +164,7 @@ export class ValMapService implements OnDestroy {
     } else {
       query.outFields.push('hhld_s');
     }
-    const sub = this.queryService.executeQuery(layer, query).subscribe(featureSet => {
+    const sub = this.queryService.executeQuery(boundaryLayerId, query).subscribe(featureSet => {
       if (featureSet && featureSet.features && featureSet.features.length === 1) {
         const geocode = featureSet.features[0].attributes.geocode;
         this.collectSelectionUsage(featureSet);
@@ -207,7 +207,7 @@ export class ValMapService implements OnDestroy {
 
   public selectSingleGeocode(geocode: string) {
     const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
-    const centroidSub = this.queryService.queryAttributeIn({ portalLayerId: centroidLayerId }, 'geocode', [geocode], true).subscribe(graphics => {
+    const centroidSub = this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], true).subscribe(graphics => {
       if (graphics && graphics.length > 0) {
         const point = graphics[0].geometry;
         if (EsriUtils.geometryIsPoint(point)) this.appGeoService.toggleGeoSelection(geocode, point);
@@ -272,7 +272,7 @@ export class ValMapService implements OnDestroy {
   public getGeoAttributes(geocodes: string[], analysisLevel: string) {
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const outFields = this.metricsService.getLayerAttributes();
-    const sub = this.queryService.queryAttributeIn({ portalLayerId: portalId }, 'geocode', geocodes, false, outFields).subscribe(
+    const sub = this.queryService.queryAttributeIn(portalId, 'geocode', geocodes, false, outFields).subscribe(
       graphics => {
         const attributesForUpdate = graphics.map(g => g.attributes);
         this.appGeoService.updatedGeoAttributes(attributesForUpdate);

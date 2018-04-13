@@ -126,7 +126,7 @@ export class UploadTradeAreasComponent implements OnInit {
                geocodes.push(`${valGeo.Geo}`);
                filteredLocations.push(loc);
                geoLocList.push(new GeoLocations(valGeo.Geo, loc));
-              
+
             }
           });
         });
@@ -136,7 +136,7 @@ export class UploadTradeAreasComponent implements OnInit {
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
        // tradeAreasForInsert = this.impGeofootprintTradeAreaService.get();
         outfields.push('geocode');
-        const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true, outfields).subscribe(graphics => {
+        const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true, outfields).subscribe(graphics => {
           const geosToAdd: ImpGeofootprintGeo[] = [];
          // console.log('graphic:::::', graphics);
           graphics.forEach(graphic => {
@@ -162,7 +162,7 @@ export class UploadTradeAreasComponent implements OnInit {
           this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
         });
 
-        
+
       } else {
         this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
         console.log('Set A validation message', header);
@@ -185,7 +185,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   }
 
-  //Create a custom trade area 
+  //Create a custom trade area
   public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, geocode: string) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = geocode;
