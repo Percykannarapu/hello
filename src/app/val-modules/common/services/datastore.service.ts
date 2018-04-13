@@ -626,21 +626,8 @@ export class DataStore<T>
          href:  url,
          download: filename
       }).appendTo('body');
-      link[0].click();
+      link[0].click();   
       link.remove();
    }
-
-   public downloadExport1(filename, text) {
-      const element = document.createElement('a');
-      element.setAttribute('href', 'data:application/csv;charset=utf-8,' + encodeURIComponent(text));
-      element.setAttribute('download', filename);
-    
-      element.style.display = 'none';
-      document.body.appendChild(element);
-    
-      element.click();
-    
-      document.body.removeChild(element);
-    }
 
 }
