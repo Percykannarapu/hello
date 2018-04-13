@@ -67,7 +67,7 @@ export class EsriQueryService {
 
   private queryWithRetry(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {
     return Observable.create(observer => {
-      this.mapService.onReady$.subscribe(ready => {
+      const sub = this.mapService.onReady$.subscribe(ready => {
         if (ready) {
           try {
             const layer = this.layerService.getPortalLayerById(layerId);
@@ -82,6 +82,7 @@ export class EsriQueryService {
           }
         }
       });
+      return () => sub.unsubscribe();
     }).pipe(
       map((featureSet: __esri.FeatureSet) => ({
         result: featureSet,
