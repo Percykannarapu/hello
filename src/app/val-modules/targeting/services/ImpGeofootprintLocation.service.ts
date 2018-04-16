@@ -26,6 +26,7 @@ import * as $ from 'jquery';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { ImpMetricName } from '../../metrics/models/ImpMetricName';
 import { UsageService } from '../../../services/usage.service';
+import { AppMessagingService } from '../../../services/app-messaging.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -49,7 +50,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
                private projectTransactionManager: TransactionManager,
-               private usageService: UsageService   ) //, impProjectService: ImpProjectService)
+               private usageService: UsageService,
+               private messageService: AppMessagingService   ) //, impProjectService: ImpProjectService)
    {
       super(restDataService, dataUrl, projectTransactionManager);
 
@@ -251,6 +253,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             }
           });
           this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+        } else {
+          // DE1742: display an error message if attempting to export an empty data store
+          this.messageService.showGrowlError('Error exporting location list', 'Please create sites or competitors before attempting to export location lists');
         }
       }
    }

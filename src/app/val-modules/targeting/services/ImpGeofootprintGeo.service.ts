@@ -18,7 +18,6 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { ColumnDefinition } from './../../common/services/datastore.service';
 
 // Imports for exporting CSVs
@@ -28,6 +27,7 @@ import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribServi
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpMetricName } from '../../metrics/models/ImpMetricName';
 import { UsageService } from '../../../services/usage.service';
+import { AppMessagingService } from '../../../services/app-messaging.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -44,7 +44,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
    constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
-               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService,
+               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: AppMessagingService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService, private usageService: UsageService)
    {
       super(restDataService, dataUrl);
@@ -637,6 +637,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const geos: ImpGeofootprintGeo[] = this.get();
+
+      // DE1742: display an error message if attempting to export an empty data store
+      if (geos.length === 0) {
+            this.messageService.showGrowlError('Error exporting geofootprint', 'Please make sure you have created locations and selected geographies');
+            return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
+      }
 
       let exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
