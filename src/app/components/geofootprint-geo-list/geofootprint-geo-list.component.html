@@ -4,14 +4,14 @@
 </div>
 
 <div class="ui-g-12">
-   <p-dataTable #locGrid [value]="impGeofootprintLocations" expandableRows="true"
+   <p-dataTable #locGrid [value]="impGeofootprintLocations" [expandableRows]="true"
       [(selection)]="selectedImpGeofootprintLocations" selectionMode ="multiple"
       [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
-      resizableColumns="true" columnResizeMode="expand" responsive="true"
+      [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
       (onRowSelect)="toggleGeocode($event)">
       <!-- <p-header pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}">Locations / Geographies</p-header> -->
       <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['location']}}</ng-template> -->
-      <p-column expander="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
+      <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
       <p-column selectionMode="multiple" [style]="{'width':'35px'}" (click)="toggleGeocode($event)"></p-column>
 
       <p-column *ngFor="let col of locGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}"
@@ -21,7 +21,7 @@
          <div class="ui-grid ui-grid-responsive ui-fluid" style="width:45%;font-size:14px;padding: 0 0 0 2.68em">
             <div class="ui-grid-row">
                <p-dataTable [value]="filterGeosBySite(site)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
-                              resizableColumns="true" columnResizeMode="expand" responsive="true"
+                              [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
                               [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
                   <p-column [style]="{'width':'1%'}" selectionMode="multiple" [styleClass]="val-table-select-row-checkbox"></p-column>
                   <p-column *ngFor="let col of geoGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">

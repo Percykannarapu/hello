@@ -1,14 +1,8 @@
-import { EventEmitter, Inject, Injectable, InjectionToken } from '@angular/core';
+import { EventEmitter, Inject, Injectable } from '@angular/core';
 import * as esriLoader from 'esri-loader';
 import { EsriWidgets } from './esri-widgets';
-import { ILoadScriptOptions } from 'esri-loader/src/esri-loader';
 import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
-
-export interface EsriLoaderConfig {
-  esriConfig: ILoadScriptOptions | __esri.config;
-}
-
-export const EsriLoaderToken = new InjectionToken<EsriLoaderConfig>('esri-config-options');
+import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
 @Injectable()
 export class EsriModules {
@@ -84,17 +78,15 @@ export class EsriModules {
 
   public static widgets: EsriWidgets;
 
-  private esriConfig: ILoadScriptOptions | __esri.config;
   private isLoaded = new EventEmitter();
   private deferredLoad: Promise<any>;
   public isReady = false;
 
-  constructor(@Inject(EsriLoaderToken) config: EsriLoaderConfig) {
+  constructor(@Inject(EsriLoaderToken) private config: EsriLoaderConfig) {
     console.log('Constructing esri-modules');
-    this.esriConfig = config.esriConfig;
     // todo: remove when this wrapper is no longer needed
     EsriLoaderWrapperService.esriLoader = this;
-    esriLoader.loadScript(this.esriConfig as ILoadScriptOptions).then(() => {
+    esriLoader.loadScript(this.config.esriConfig).then(() => {
       this.deferredLoad = esriLoader.loadModules(EsriModules.names.concat(EsriWidgets.moduleNames));
       this.deferredLoad
         .then(m => this.cacheModules(m))
@@ -143,14 +135,14 @@ export class EsriModules {
     EsriModules.widgets = new EsriWidgets();
     EsriModules.widgets.loadModules(modules);
 
-    EsriModules.config.portalUrl = (this.esriConfig as any).portalUrl;
+    EsriModules.config.portalUrl = this.config.esriConfig.portalUrl;
 
     this.isReady = true;
     this.isLoaded.emit();
   }
 
   public loadModules(modules: string[]) : Promise<any[]> {
-    return esriLoader.loadModules(modules, this.esriConfig as ILoadScriptOptions);
+    return esriLoader.loadModules(modules, this.config.esriConfig);
   }
 
   public onReady(initializer: () => void) : void {

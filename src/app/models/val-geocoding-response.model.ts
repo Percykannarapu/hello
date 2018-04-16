@@ -1,7 +1,6 @@
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from './val-geocoding-request.model';
-import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLocationType';
 
 export const valGeocodingAttributeKey = '_attributes';
 

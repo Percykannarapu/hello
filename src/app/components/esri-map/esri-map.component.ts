@@ -4,6 +4,14 @@ import { Input, Output, EventEmitter } from '@angular/core';
 import { mapFunctions } from '../../app.component';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
+import { ValMapService } from '../../services/app-map.service';
+import { MapDispatchService } from '../../services/map-dispatch.service';
+
+const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
+const CENTER_LONG_KEY = 'IMPOWER-MAP-CENTER-LONGITUDE';
+const CENTER_LAT_KEY = 'IMPOWER-MAP-CENTER-LATITUDE';
+const ZOOM_KEY = 'IMPOWER-MAP-ZOOM';
+const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 
 @Component({
   selector: 'app-esri-map',
@@ -11,8 +19,7 @@ import { EsriModules } from '../../esri-modules/core/esri-modules.service';
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
-
-  // map container dim
+  // map container dimensions
   public width: number;
   public height: number = 400;
   public highlight = null;
@@ -27,9 +34,11 @@ export class EsriMapComponent implements OnInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
   @ViewChild('esriMapContainer') private mapContainerEl: ElementRef;
+  private mapView: __esri.MapView;
 
-  constructor(public mapService: MapService, private esriMapService: EsriMapService,
-               private modules: EsriModules) {
+  constructor(public mapService: MapService, private mapDispatch: MapDispatchService,
+               private modules: EsriModules, private newMapService: ValMapService,
+              private esriMapService: EsriMapService) {
     console.log('Constructing esri-map-component');
   }
 
@@ -39,97 +48,6 @@ export class EsriMapComponent implements OnInit {
     if (el && el.length > 0 && el[0]) {
       const existingAttribution: string = el[0].innerHTML;
       el[0].innerHTML = (new Date()).toDateString() + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + existingAttribution ;
-    }
-  }
-
-  // save and reset view viewpoint
-  private setMapViewPoint() {
-
-    const { whenFalse } = EsriModules.watchUtils;
-    const KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
-    const vpString = localStorage.getItem(KEY);
-
-    let vp = {};
-    if (vpString) {
-      vp = JSON.parse(vpString);
-    }
-    this.esriMapService.mapView.viewpoint = EsriModules.Viewpoint.fromJSON(vp);
-
-    whenFalse(this.esriMapService.mapView, 'updating', () => {
-      const currPoint = this.esriMapService.mapView.viewpoint.toJSON();
-      localStorage.setItem(KEY, JSON.stringify(currPoint));
-    });
-  }
-
-  // save and reset map zoom
-  private setMapCenter() {
-
-    const { whenFalse } = EsriModules.watchUtils;
-    const KEY1 = 'IMPOWER-MAP-CENTER-LONGITUDE';
-    const KEY2 = 'IMPOWER-MAP-CENTER-LATITUDE';
-    const vpString1 = localStorage.getItem(KEY1);
-    const vpString2 = localStorage.getItem(KEY2);
-
-    let vp1 = {};
-    if (vpString1) {
-      vp1 = JSON.parse(vpString1);
-    } else {
-      this.esriMapService.mapView.center.longitude = -98.5795;
-    }
-
-    let vp2 = {};
-    if (vpString2) {
-      vp2 = JSON.parse(vpString2);
-    } else {
-      this.esriMapService.mapView.center.latitude = 39.8282;
-    }
-
-    whenFalse(this.esriMapService.mapView, 'updating', () => {
-      localStorage.setItem(KEY1, JSON.stringify(this.esriMapService.mapView.center.longitude));
-      localStorage.setItem(KEY2, JSON.stringify(this.esriMapService.mapView.center.latitude));
-    });
-  }
-
-    // save and reset map zoom
-    private setMapZoom() {
-
-      const { whenFalse } = EsriModules.watchUtils;
-      const KEY = 'IMPOWER-MAP-ZOOM';
-      const vpString = localStorage.getItem(KEY);
-
-      let vp = {};
-      if (vpString) {
-        vp = JSON.parse(vpString);
-      } else {
-        this.esriMapService.mapView.zoom = 4;
-      }
-
-      whenFalse(this.esriMapService.mapView, 'updating', () => {
-        localStorage.setItem(KEY, JSON.stringify(this.esriMapService.mapView.zoom));
-      });
-    }
-
-  // save and reset map height
-  private setMapHeight(el: ElementRef) {
-
-    if (el){
-      console.log ('mapContainerEl (clientHeight) = ' + el.nativeElement.clientHeight);
-
-      const { whenFalse } = EsriModules.watchUtils;
-      const KEY = 'IMPOWER-MAP-HEIGHT';
-      const mapString = localStorage.getItem(KEY);
-
-      let mapHeight: number;
-
-      if (mapString) {
-        mapHeight = <number> JSON.parse(mapString);
-        console.log ('local storage (' + KEY + ') = ' + mapHeight);
-        this.height = mapHeight;
-        console.log ('AFTER: mapContainerEl (clientHeight) = ' + el.nativeElement.clientHeight);
-      }
-      whenFalse(this.esriMapService.mapView, 'updating', () => {
-        localStorage.setItem(KEY, JSON.stringify(el.nativeElement.clientHeight));
-      });
     }
   }
 
@@ -146,42 +64,81 @@ export class EsriMapComponent implements OnInit {
     const viewParams = {
       center: { longitude: -98.5795, latitude: 39.8282 },
       zoom: 4,
-      /*
-      extent: {
-        xmin: -178.227822,
-        ymin: 18.910787,
-        xmax: -66.95000499999999,
-        ymax: 71.39048199999999,
-        spatialReference: {
-          wkid: 4326
-        }
-      }, */
       spatialReference: {
         wkid: 102100
       }
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
-    this.mapService.createMapView();
-    this.esriMapService.onReady$.subscribe(ready => {
-      if (ready) {
-        this.esriMapService.onClick$.subscribe(e => this.clickHandler(e));
-      }
-    });
-
-    EsriModules.watchUtils.once(this.esriMapService.mapView, 'ready', () => {
+    this.mapDispatch.onMapReady.then(() => {
+      this.mapView = this.mapDispatch.getMapView();
+      this.mapService.createMapView();
+      this.mapService.setMapLayers(['PCR', 'DIG_ATZ', 'ATZ', 'ZIP', 'WRAP', 'COUNTY', 'DMA']);
+      this.mapService.hideMapLayers();
+      this.mapDispatch.onMapViewClick().subscribe(location => this.clickHandler(location));
       EsriMapComponent.replaceCopyrightElement();
-      this.setMapHeight(this.mapContainerEl);
+      this.setMapHeight();
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
-      this.disableNavigation(this.esriMapService.mapView);
-      //this.enableHighlightOnPointerMove(this.esriMapService.mapView);
+      this.disableNavigation(this.mapView);
+      this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
     });
   }
 
-  private clickHandler(evt: __esri.MapViewClickEvent){
+  private saveMapViewData(el: ElementRef) {
+    localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(this.mapView.viewpoint.toJSON()));
+    localStorage.setItem(CENTER_LONG_KEY, JSON.stringify(this.mapView.center.longitude));
+    localStorage.setItem(CENTER_LAT_KEY, JSON.stringify(this.mapView.center.latitude));
+    localStorage.setItem(ZOOM_KEY, JSON.stringify(this.mapView.zoom));
+    localStorage.setItem(HEIGHT_KEY, JSON.stringify(el.nativeElement.clientHeight));
+  }
+
+  // save and reset view viewpoint
+  private setMapViewPoint() {
+    const vpString = localStorage.getItem(VIEWPOINT_KEY);
+    if (vpString) {
+      const vp = JSON.parse(vpString);
+      this.mapView.viewpoint = EsriModules.Viewpoint.fromJSON(vp);
+    }
+  }
+
+  // save and reset map zoom
+  private setMapCenter() {
+    const vpString1 = localStorage.getItem(CENTER_LONG_KEY);
+    const vpString2 = localStorage.getItem(CENTER_LAT_KEY);
+    if (vpString1) {
+      this.mapView.center.longitude = JSON.parse(vpString1);
+    } else {
+      this.mapView.center.longitude = -98.5795;
+    }
+    if (vpString2) {
+      this.mapView.center.latitude = JSON.parse(vpString2);
+    } else {
+      this.mapView.center.latitude = 39.8282;
+    }
+  }
+
+    // save and reset map zoom
+    private setMapZoom() {
+      const vpString = localStorage.getItem(ZOOM_KEY);
+      if (vpString) {
+        this.mapView.zoom = JSON.parse(vpString);
+      } else {
+        this.mapView.zoom = 4;
+      }
+    }
+
+  // save and reset map height
+  private setMapHeight() {
+    const mapString = localStorage.getItem(HEIGHT_KEY);
+    if (mapString) {
+      this.height = JSON.parse(mapString) as number;
+    }
+  }
+
+  private clickHandler(location: __esri.Point){
     if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
-      this.mapService.selectSinglePolygon(evt);
+      this.newMapService.handleClickEvent(location);
     }
   }
 

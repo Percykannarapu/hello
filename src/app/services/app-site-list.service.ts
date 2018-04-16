@@ -22,6 +22,7 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { merge } from 'rxjs/observable/merge';
 import { AppMessagingService } from './app-messaging.service';
+import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
@@ -122,12 +123,14 @@ export class ValSiteListService implements OnDestroy {
     data.forEach(d => { delete d[valGeocodingAttributeKey];
                         // Temp code until we are populating these mandatory fields
                         if (d.locationNumber     == null) d.locationNumber = this.locationService.getNextStoreId();
-                        if (d.clientIdentifierId == null) d.clientIdentifierId = d.locationNumber
+                        if (d.clientIdentifierId == null) d.clientIdentifierId = d.locationNumber;
                         if (d.clientLocationId   == null) d.clientLocationId = d.locationNumber;
                      });
     this.locationService.add(data);
     this.attributeService.add(attributes);
-    this.esriMapService.zoomOnMap(data);
+    const xStats = calculateStatistics(data.map(d => d.xcoord));
+    const yStats = calculateStatistics(data.map(d => d.ycoord));
+    this.esriMapService.zoomOnMap(xStats, yStats, data.length);
   }
 
   private determineAllHomeGeos(locations: ImpGeofootprintLocation[]) {
@@ -142,7 +145,7 @@ export class ValSiteListService implements OnDestroy {
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      observables.push(this.queryService.queryPoint(layerId, locationsNeedingHomeGeo, true, ['geocode']).pipe(
+      observables.push(this.queryService.queryPoint(layerId, toUniversalCoordinates(locationsNeedingHomeGeo), true, ['geocode']).pipe(
         map(graphics => {
           const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
           for (const loc of locationsNeedingHomeGeo) {

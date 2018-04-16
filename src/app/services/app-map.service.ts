@@ -75,7 +75,6 @@ export class ValMapService implements OnDestroy {
   }
 
   private onSiteListChanged(sites: LocationUiModel[], siteType: string) {
-
     const oldSites = new Set(this.currentLocationList.get(siteType));
     const newSites = new Set(sites);
     const addedPoints = sites.filter(s => !oldSites.has(s)).map(s => s.point);
@@ -95,12 +94,10 @@ export class ValMapService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
-
     if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
       this.setDefaultLayers(this.currentAnalysisLevel);
       this.setupSelectionRenderer(this.currentAnalysisLevel);
-
     }
   }
 
@@ -151,12 +148,12 @@ export class ValMapService implements OnDestroy {
 
   }
 
-  public handleClickEvent(event:  __esri.MapViewClickEvent) {
+  public handleClickEvent(location:  __esri.Point) {
     if (this.currentAnalysisLevel == null || this.currentAnalysisLevel === '') return;
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
     const query = layer.createQuery();
-    query.geometry = event.mapPoint;
+    query.geometry = location;
     query.outFields = ['geocode'];
     const discoData = this.discoveryService.get();
     if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
@@ -175,7 +172,7 @@ export class ValMapService implements OnDestroy {
 
   /**
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
-   * @param feature A feature set containing the features the user manually selected on the map
+   * @param featureSet A feature set containing the features the user manually selected on the map
    */
   private collectSelectionUsage(featureSet: __esri.FeatureSet) {
     const discoData = this.discoveryService.get();

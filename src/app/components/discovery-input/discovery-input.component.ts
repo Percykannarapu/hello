@@ -1,32 +1,21 @@
 import { AppConfig } from '../../app.config';
-import { ImpProjectService } from './../../val-modules/targeting/services/ImpProject.service';
-import { UserService } from './../../services/user.service';
-import { AuthService } from './../../services/auth.service';
-import { GeofootprintMaster } from './../../models/GeofootprintMaster';
-import { ImpProductService } from './../../val-modules/mediaplanning/services/ImpProduct.service';
-import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocation } from './../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpDiscoveryUI } from './../../models/ImpDiscoveryUI';
-import { ImpDiscoveryService } from './../../services/ImpDiscoveryUI.service';
-import { AppState } from './../../app.state';
-import { ImpRadLookupService } from './../../val-modules/targeting/services/ImpRadLookup.service';
-import { ImpRadLookupStore } from './../../val-modules/targeting/services/ImpRadLookup.store';
-
+import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
+import { UserService } from '../../services/user.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpDiscoveryUI } from '../../models/ImpDiscoveryUI';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { AppState } from '../../app.state';
+import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
+import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLookup.store';
 import { Observable } from 'rxjs/Observable';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
-import { ImpProduct } from './../../val-modules/mediaplanning/models/ImpProduct';
-import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
-import { SelectItem } from 'primeng/primeng';
-import { ImpRadLookup } from './../../val-modules/targeting/models/ImpRadLookup';
+
+import { Component, OnInit,  Input } from '@angular/core';
+import {SelectItem} from 'primeng/primeng';
+import {ImpRadLookup} from '../../val-modules/targeting/models/ImpRadLookup';
 import { MapService } from '../../services/map.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ClientIdentifierType } from '../../val-modules/mediaexpress/models/ClientIdentifierType';
-import { ConsumerPurchasingFreq } from '../../val-modules/mediaexpress/models/ConsumerPurchasingFreq';
-import { Goal } from '../../val-modules/mediaexpress/models/Goal';
-import { Objective } from '../../val-modules/mediaexpress/models/Objective';
-import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
-import { RestResponse } from '../../models/RestResponse';
 import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -72,10 +61,10 @@ export class DiscoveryInputComponent implements OnInit
 
    public calcProductCatRadData: string;
    public productCategoryTooltip: string;
-  
+
 
    summer: boolean = true;
-   
+
    showLoadBtn: boolean = false;
 
    // -----------------------------------------------------------
@@ -141,7 +130,7 @@ export class DiscoveryInputComponent implements OnInit
          {label: 'Summer', value: 'SUMMER'},
          {label: 'Winter', value: 'WINTER'}
       ];
-     
+
       // Get a reference to the project
       if (this.impProjectService.length() === 0)
       // TODO: Should the service do this?
@@ -167,7 +156,7 @@ export class DiscoveryInputComponent implements OnInit
      // MapService.analysisLevlDiscInput = this.selectedAnalysisLevel.value;
      this.calcProductCatRadData = '';
      this.productCategoryTooltip = 'Used to calculate Performance metrics';
-     
+
 
       // If the current date + 28 days is summer
       if (this.isSummer())
@@ -186,7 +175,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impRadLookupService.fetchData().subscribe(data => {
          console.log('DiscoveryInputComponent - impRadLookupService.fetchData returned: ' + data);
          console.log('DiscoveryInputComponent - impRadLookupService.impRadLookups.length: ' + this.impRadLookupService.impRadLookups.length);
-         }) ; */   
+         }) ; */
    }
 
    // -----------------------------------------------------------
@@ -243,7 +232,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impProject.isIncludeAnne      = (this.impDiscoveryUI.includeAnne)      ? true  : false;
       this.impProject.isIncludeSolo      = (this.impDiscoveryUI.includeSolo)      ? true  : false;
       this.impProject.projectTrackerId   = this.impDiscoveryUI.projectTrackerId;
-      
+
       // TODO: This needs to be in product allocations, hijacking description for product code for now
       this.impProject.description    = this.impDiscoveryUI.productCode;
    }
@@ -253,7 +242,7 @@ export class DiscoveryInputComponent implements OnInit
       // Bail if there is no project to map from
       if (this.impProject == null || this.impProject.projectId == null)
          return;
-      
+
       console.log ('discovery-input.component - mapFromProject - fired');
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
@@ -350,16 +339,16 @@ export class DiscoveryInputComponent implements OnInit
 
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
-   // -----------------------------------------------------------   
+   // -----------------------------------------------------------
    public onChangeField(event: SelectItem)
    {
       if (this.selectedCategory){
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
-        
 
-      this.impDiscoveryService.updateAt(this.impDiscoveryUI);    
+
+      this.impDiscoveryService.updateAt(this.impDiscoveryUI);
 
      /* this.impRadLookupService.storeObservable.subscribe(res => {
             //console.log('good:', res);
@@ -400,10 +389,10 @@ export class DiscoveryInputComponent implements OnInit
          this.radDisabled = true;
          this.selectedRadLookup = null;
       }
-      
+
       this.onChangeField(event);
       this.radDataCalc();
-     
+
    }
 
    public onChangeCategory(event: SelectItem){
@@ -416,11 +405,11 @@ export class DiscoveryInputComponent implements OnInit
    {
       this.impProjectService.transactionManager.stopTransaction();
    }
-   
+
    public loadProject()
    {
       console.log('discovery-input.component - loadProject fired');
-      
+
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
@@ -435,7 +424,7 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
-      
+
    }
 
    fetchRadData() {
@@ -532,8 +521,8 @@ export class DiscoveryInputComponent implements OnInit
                          }
                          else{
                                this.calcProductCatRadData = 'Performance data is not available for the selected Product and Industry Category.';
-                         }     
-                     }   
+                         }
+                     }
                   }
             });
       });

@@ -109,7 +109,7 @@ export class SiteListComponent implements OnInit {
       icon: 'ui-icon-trash',
       accept: () => {
         this.removeLocationHierarchy(row);
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', 
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                                                   target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
        this.usageService.createCounterMetric(usageMetricName, metricText, 1);
         console.log('remove successful');
@@ -121,10 +121,7 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowZoom(row: ImpGeofootprintLocation) {
-    // TODO: Map Stuff
-   const locList: ImpGeofootprintLocation[] = [];
-   locList.push(row);
-    this.esriMapService.zoomOnMap(locList);
+    this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
   }
 
   public getRowAttributes(row: ImpGeofootprintLocation) {
@@ -149,7 +146,7 @@ export class SiteListComponent implements OnInit {
     this.geoService.remove(geos);
     this.tradeAreaService.remove(tas);
     this.attributeService.remove(attributes);
-    this.locationService.addDbRemove(location);  // For database removal 
+    this.locationService.addDbRemove(location);  // For database removal
     this.locationService.remove(location);
   }
 

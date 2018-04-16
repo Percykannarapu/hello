@@ -1,0 +1,39 @@
+<div class="ui-g">
+   <div class="ui-g-12">
+      <div class="card">
+         <h1>Proof of Concept Page</h1>
+         <p>Use this page to incubate new components and services.</p>
+      </div>
+   </div>
+
+   <div class="ui-g-12">
+      <p-accordion>
+         <p-accordionTab header="val-discovery-input">
+            <val-discovery-input debugMode="true"></val-discovery-input>
+         </p-accordionTab>
+      </p-accordion>
+   </div>
+
+   <div class="ui-g-12">
+      <h1>Geography Table</h1>
+      <p-dataTable expandableRows="true" [value]="model1">
+         <p-column expander="true" styleClass="col-icon"></p-column>
+         <p-column field="id" header="id"></p-column>
+         <p-column field="attr1" header="attr1"></p-column>
+         <p-column field="attr2" header="attr2"></p-column>
+         <p-column field="attr3" header="attr3"></p-column>
+         <p-column field="attr4" header="attr4"></p-column>
+         <ng-template let-model1 pTemplate="rowexpansion">
+               <h2>Extra Geo Attributtes</h2>
+               <p-dataTable [value]="model2">
+                  <p-column field="id" header="id"></p-column>
+                  <p-column field="attr1" header="attr1"></p-column>
+                  <p-column field="attr2" header="attr2"></p-column>
+                  <p-column field="attr3" header="attr3"></p-column>
+                  <p-column field="attr4" header="attr4"></p-column>
+               </p-dataTable>
+         </ng-template>
+      </p-dataTable>
+   </div>
+   <val-geofootprint-geo-list></val-geofootprint-geo-list>
+</div>
