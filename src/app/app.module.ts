@@ -128,6 +128,7 @@ import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
 import {RestDataService} from './val-modules/common/services/restdata.service';
+import {TransactionManager} from './val-modules/common/services/TransactionManager.service';
 import {GeocoderService} from './services/geocoder.service';
 import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
 import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
@@ -293,7 +294,7 @@ import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricNa
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
-        AppService, AppConfig, MessageService,
+        AppService, AppConfig, MessageService, TransactionManager,
         CountryService, EventService, NodeService,
         GfGeoService, MapService, RestDataService,
         MetricService, EsriModules, ValLayerService,

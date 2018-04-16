@@ -1,3 +1,4 @@
+import { TransactionManager } from './TransactionManager.service';
 import { DAOBaseStatus } from './../../api/models/BaseModel';
 import { ImpGeofootprintGeo } from './../../targeting/models/ImpGeofootprintGeo';
 import { RestResponse } from './../../../models/RestResponse';
@@ -39,6 +40,11 @@ export interface ColumnDefinition<T> {
    row:    number | string | variableHandlerType<T>;
 }
 
+export enum InTransaction {
+   true,
+   false
+}
+
 export class DataStore<T>
 {
    private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
@@ -56,7 +62,7 @@ export class DataStore<T>
    public storeLength: number = 0;  // Publically expose number of rows in the _dataStore
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
-   constructor(private rest: RestDataService, public dataUrl: string) { }
+   constructor(private rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager) { }
 
    // ---------------------------------------------
    // Utility / Non-Essential Methods
@@ -123,7 +129,7 @@ export class DataStore<T>
     * Private method accessed publicly through get, which will fetch
     * data into the store from this.dataUrl.
     */
-   private fetch(postOperation?: callbackMutationType<T>)
+   private fetch(postOperation?: callbackMutationType<T>, inTransaction: InTransaction = InTransaction.true)
    {
       console.log('DataStore.fetch fired for ' + this.dataUrl);
 //    console.trace('fetch trace');
@@ -143,12 +149,19 @@ export class DataStore<T>
             this._dataStore.push(restResponse.payload);
          }
 
-//       console.log('DataStore.fetched ' + this._storeSubject.getValue().length + ' rows, notifying subscribers');
-         console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
-
-         // Notify observers
-         this._storeSubject.next(this._dataStore);
-         this.fetchSubject.next(this._dataStore);
+         // Notify observers if not participating in the transaction or there is no transaction or TransactionManager
+         if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+         {
+            console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
+            this._storeSubject.next(this._dataStore);
+            this.fetchSubject.next(this._dataStore);
+         }
+         else
+         {
+            console.log('DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
+            this.transactionManager.push(this._storeSubject, this._dataStore);
+            this.transactionManager.push(this.fetchSubject, this._dataStore);
+         }
 
          if (postOperation)
             postOperation(this._dataStore);
@@ -171,10 +184,10 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire prior to the fetch
     * @param postOperation - A callback delegate that will fire after the fetch
     */
-   public get(forceRefresh?: false) : T[];
-   public get(forceRefresh: true, forceClear?: boolean) : Observable<T[]>;
-   public get(forceRefresh: boolean, forceClear?: boolean, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
-   public get(forceRefresh?: boolean, forceClear: boolean = false, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
+   public get(forceRefresh?: false,   forceClear?: false,           inTransaction?: InTransaction) : T[];
+   public get(forceRefresh:  true,    forceClear?: boolean,         inTransaction?: InTransaction) : Observable<T[]>;
+   public get(forceRefresh:  boolean, forceClear?: boolean,         inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
+   public get(forceRefresh?: boolean, forceClear:  boolean = false, inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
       console.log('DataStore.get fired - this.dataUrl: ', this.dataUrl);
 
@@ -190,7 +203,7 @@ export class DataStore<T>
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
       {
-         this.fetch(postOperation);
+         this.fetch(postOperation, (inTransaction == null) ? InTransaction.false : inTransaction);
          return this.fetchSubject;
       }
 
@@ -214,7 +227,7 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire for each element just before it is added
     * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist
     */
-   public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
+   public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
       if(DataStore.dataStoreServiceConfiguration != null) {
          console.log('the oauth token in the data store is: ', DataStore.dataStoreServiceConfiguration.oauthToken);
@@ -265,8 +278,16 @@ export class DataStore<T>
       // Register data store change and notify observers
       if (success)
       {
-         console.log('DataStore.service.add - success, alerting subscribers');
-         this._storeSubject.next(this._dataStore);
+         if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+         {         
+            console.log('DataStore.service.add - success, alerting subscribers');
+            this._storeSubject.next(this._dataStore);
+         }
+         else
+         {
+            console.log('DataStore.service.add - success, in transaction, holding notification for transaction');
+            this.transactionManager.push(this._storeSubject, this._dataStore);
+         }
       }
    }
 
@@ -284,12 +305,12 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire for each element just before it is added
     * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist
     */
-   public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>)
+   public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
       console.log ('datastore.replace - fired');
       this.clearAll(false);
       console.log ('datastore.replace - adding data - ', (dataArray != null) ? dataArray.length : 0, ' rows.');
-      this.add(dataArray, preOperation, postOperation);
+      this.add(dataArray, preOperation, postOperation, inTransaction);
       console.log ('dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
 
@@ -321,7 +342,7 @@ export class DataStore<T>
       this.dbRemoves = new Array<T>();
    }
 
-   public removeAt (index: number)
+   public removeAt (index: number, inTransaction: InTransaction = InTransaction.true)
    {
       console.log('delete at index: ' + index);
 
@@ -345,10 +366,13 @@ export class DataStore<T>
          this._dataStore = this._dataStore.slice(0, 0);
 
       // Register data store change and notify observers
-      this._storeSubject.next(this._dataStore);
+      if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+         this._storeSubject.next(this._dataStore);
+      else
+         this.transactionManager.push(this._storeSubject, this._dataStore);
    }
 
-   public remove (data: T | T[])
+   public remove (data: T | T[], inTransaction: InTransaction = InTransaction.true)
    {
       if (data == null)
          return;
@@ -360,7 +384,10 @@ export class DataStore<T>
 
          const arrayRemovals = new Set(data);
          this._dataStore = this._dataStore.filter(t => !arrayRemovals.has(t));
-         this._storeSubject.next(this._dataStore);
+         if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+            this._storeSubject.next(this._dataStore);
+         else
+            this.transactionManager.push(this._storeSubject, this._dataStore);
       }
       else
       {
@@ -471,7 +498,7 @@ export class DataStore<T>
       return index;
    }
 
-   public update (oldData: T, newData: T)
+   public update (oldData: T, newData: T, inTransaction: InTransaction = InTransaction.true)
    {
      if (oldData != null && newData != null && oldData !== newData) {
        const index = this._dataStore.indexOf(oldData);
@@ -481,10 +508,13 @@ export class DataStore<T>
      }
 
       // Register data store change and notify observers
-      this._storeSubject.next(this._dataStore);
+      if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+         this._storeSubject.next(this._dataStore);
+      else
+         this.transactionManager.push(this._storeSubject, this._dataStore);
    }
 
-   public updateAt (newData: T, index: number = 0)
+   public updateAt (newData: T, index: number = 0, inTransaction: InTransaction = InTransaction.true)
    {
 //    console.log ('datastore updateAt - index: ' + index + ', data: ', newData);
       if (index == 0)
@@ -497,14 +527,17 @@ export class DataStore<T>
 
 //    console.log('datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
       // Register data store change and notify observers
-      this._storeSubject.next(this._dataStore);
+      if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+         this._storeSubject.next(this._dataStore);
+      else
+         this.transactionManager.push(this._storeSubject, this._dataStore);
    }
 
    /**
     * Will empty the dataStore, reset the currStoreId and optionally notify observers
     * @param notifySubscribers If false it won't notify observers; allowing a clear and load to be observed as one transaction
     */
-   public clearAll(notifySubscribers = true)
+   public clearAll(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
    {
       console.log('clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
@@ -514,7 +547,12 @@ export class DataStore<T>
 
       // There are times where you want to clear as part of transaction and notify at the end
       if (notifySubscribers)
-         this._storeSubject.next(this._dataStore);
+      {
+         if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+            this._storeSubject.next(this._dataStore);
+         else
+            this.transactionManager.push(this._storeSubject, this._dataStore);
+      }
    }
 
    public jsonp(url: string, callbackParam: string)

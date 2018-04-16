@@ -2,12 +2,12 @@
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
  **/
-
+import { BaseModel } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
 
-export class ImpGeofootprintLocAttrib
+export class ImpGeofootprintLocAttrib extends BaseModel
 {
    public locAttributeId:              number;                        /// Primary Key
    public createUser:                  number;
@@ -28,6 +28,7 @@ export class ImpGeofootprintLocAttrib
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintLocAttrib>) {
+      super();
       Object.assign(this, data);
    }
 

@@ -1,3 +1,7 @@
+import { TransactionManager } from './../../common/services/TransactionManager.service';
+import { InTransaction } from './../../common/services/datastore.service'
+import { ImpGeofootprintLocAttrib } from './../models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { AppMessagingService } from './../../../services/app-messaging.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpClientLocationType } from './../../client/models/ImpClientLocationType';
@@ -15,7 +19,7 @@ import { ImpClientLocationService } from './../../client/services/ImpClientLocat
  **
  ** ImpProject.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-
+import { AppConfig } from '../../../app.config';
 import { ImpProject } from '../models/ImpProject';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
@@ -46,11 +50,14 @@ export class ImpProjectService extends DataStore<ImpProject>
                public impProjectPrefService: ImpProjectPrefService,
                public impGeofootprintMasterService: ImpGeofootprintMasterService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
                public impDiscoveryService: ImpDiscoveryService,
                public userService: UserService,
+               public appConfig: AppConfig,
                private http: HttpClient,
                private restDataService: RestDataService,
-               private appMessagingService: AppMessagingService) {super(restDataService, dataUrl); }
+               private projectTransactionManager: TransactionManager,
+               private appMessagingService: AppMessagingService) {super(restDataService, dataUrl, projectTransactionManager); }
 
    private handleError(error: Response)
    {
@@ -62,8 +69,10 @@ export class ImpProjectService extends DataStore<ImpProject>
    loadProject(projectId: number, clearStore: boolean = false)
    {
       console.log('ImpProject.service.loadProject - fired');
+      this.projectTransactionManager.startTransaction();
       this.debugLogStore('PROJECTS');
 
+      // Indicate to the user that the project is loading
       this.appMessagingService.startSpinnerDialog('PROJECTLOAD', 'Loading project ' + projectId);
       this.dataUrl = restUrl + 'load/' + projectId;
 
@@ -77,17 +86,20 @@ export class ImpProjectService extends DataStore<ImpProject>
          project.impGeofootprintMasters = null;
       }
 
-      this.get(true, true).subscribe(res => {
+      this.get(true, true, InTransaction.false).subscribe(res => {
          this.populateLocations(res);
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
-         this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully!');         
+         this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully!');
+         this.projectTransactionManager.stopTransaction();
       }, err =>
       {
          // Alert the user to the failed load
          this.appMessagingService.showGrowlError('Project Load', 'Project failed to load.');
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
+         this.projectTransactionManager.stopTransaction();
          console.warn('Error loading project', err);
       });
+
 
       // TODO: Should we handle onBeforeLoad?
       // this.get(true,true, p => this.onBeforeLoadProject(p), p => this.populateLocations(p));
@@ -101,34 +113,18 @@ export class ImpProjectService extends DataStore<ImpProject>
 
    populateLocations(projects: ImpProject[]) //: ImpProject[]
    {
-      if (projects && projects.length > 0)
+      if (projects != null && projects.length > 0)
       {
-         console.log('#######  ImpProject.service.populateLocations - fired', projects);
-         console.log('projects = null: ' + (projects) ? true : false);
-         console.log('projects.length = ' + projects.length);
-         console.log('ImpProject.service.populateLocations - Project loaded successfully');
-         // const impProject: ImpProject = this.get(true,true)[0];
+         console.log('ImpProject.service.populateLocations - fired', projects);
 
-         // // Put the locations into the location service
-         console.log('projects == null: ' + (projects == null) ? true : false);
-         console.log('projects.length = ', projects.length);
-//         console.log('projects[0] = ', JSON.stringify(projects[0]));
-//         console.log('projects[0].impGeofootprintMasters = ', JSON.stringify(projects[0].impGeofootprintMasters));
-//         console.log('projects[0].impGeofootprintMasters.locations = ', JSON.stringify(projects[0].impGeofootprintMasters[0].impGeofootprintLocations));
-//         console.log('###### About to print data store');
-//       this.impGeofootprintLocationService.debugLogStore('Locations data store before populateLocations');
-         if (this == null)
-            console.log('this is null');
+         // Put the locations into the location service
+         this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
+         console.log('--[ TEST LOCATION ATTRIBUTE PRINT FOR SITE 0 ]------------------------')
+         if (projects[0].impGeofootprintMasters[0].impGeofootprintLocations != null &&
+             projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs != null)
+            console.log(projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs.toString());
          else
-         {
-            if (this.impGeofootprintLocationService == null)
-               console.log('this.impGeofootprintLocationService is null');
-            else
-               console.log('Apparently, nothing is null');
-//            this.impGeofootprintLocationService.replace(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
-            this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
-//          this.impGeofootprintLocationService.debugLogStore('Locations data store after populateLocations');
-         }
+            console.log('projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs was null');
          return projects;
       }
       else
@@ -213,6 +209,13 @@ export class ImpProjectService extends DataStore<ImpProject>
       console.log('ImpProject.service - populating locations');
       impProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impGeofootprintLocationService.get();
 
+      const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get();
+      this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
+      for (let locationAttrib of impGeofootprintLocAttribs)
+      {
+         let location = impProject.impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l == locationAttrib.impGeofootprintLocation)
+      }
+
       // Problem is, we need trade areas under the locations
       // TODO: This should be coming from the ImpGeofootprintTradeAreaService
 
@@ -220,6 +223,21 @@ export class ImpProjectService extends DataStore<ImpProject>
       let locNumber: number = 1000;
       for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
       {
+         location.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(l => l.impGeofootprintLocation == location);
+         // Remove the circular reference
+         location.impGeofootprintLocAttribs.forEach(attrib => {
+            delete attrib["impGeofootprintLocation"];            
+            attrib.dirty = true;
+            attrib.baseStatus    = (attrib.locAttributeId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+            attrib.createUser    = this.userService.getUser().userId;
+            attrib.createDate    = (attrib.createDate == null) ? new Date(Date.now()) : attrib.createDate;
+            attrib.modifyUser    = this.userService.getUser().userId;
+            attrib.modifyDate    = new Date(Date.now());
+            attrib.attributeType = 'PUMPKIN_SPICE_LATTE'
+            attrib.formatMask	   = null;
+            attrib.isActive      = 1;
+         });
+
          console.log('location glId: ', location.glId, ' setting baseStatus to: ', (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT);
          location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
 //       location.isActive = true;
@@ -348,7 +366,8 @@ export class ImpProjectService extends DataStore<ImpProject>
       impProject.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
 
       // TODO: Need to implement save in the data store
-      this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
+//    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
+      this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
          console.log ('result: ', result);
          if (result.returnCode === 200)
          {

@@ -15,6 +15,7 @@ import { ImpProjectService } from './ImpProject.service';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore, ColumnDefinition } from '../../common/services/datastore.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
@@ -47,9 +48,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    constructor(private restDataService: RestDataService,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
+               private projectTransactionManager: TransactionManager,
                private usageService: UsageService   ) //, impProjectService: ImpProjectService)
    {
-      super(restDataService, dataUrl);
+      super(restDataService, dataUrl, projectTransactionManager);
 
       //impProjectService.storeObservable.subscribe(impProject => this.onChangeProject(impProject[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(impGeofootprintTradeAreas => this.onChangeTradeAreas(impGeofootprintTradeAreas));

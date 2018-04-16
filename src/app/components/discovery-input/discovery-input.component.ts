@@ -1,3 +1,4 @@
+import { AppConfig } from '../../app.config';
 import { ImpProjectService } from './../../val-modules/targeting/services/ImpProject.service';
 import { UserService } from './../../services/user.service';
 import { AuthService } from './../../services/auth.service';
@@ -14,10 +15,10 @@ import { ImpRadLookupStore } from './../../val-modules/targeting/services/ImpRad
 import { Observable } from 'rxjs/Observable';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-import {ImpProduct} from './../../val-modules/mediaplanning/models/ImpProduct';
+import { ImpProduct } from './../../val-modules/mediaplanning/models/ImpProduct';
 import { Component, OnInit, Pipe, PipeTransform, Input } from '@angular/core';
-import {SelectItem} from 'primeng/primeng';
-import {ImpRadLookup} from './../../val-modules/targeting/models/ImpRadLookup';
+import { SelectItem } from 'primeng/primeng';
+import { ImpRadLookup } from './../../val-modules/targeting/models/ImpRadLookup';
 import { MapService } from '../../services/map.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ClientIdentifierType } from '../../val-modules/mediaexpress/models/ClientIdentifierType';
@@ -48,8 +49,6 @@ interface Category {
 })
 export class DiscoveryInputComponent implements OnInit
 {
-   @Input() debugMode: boolean = false;
-
    public impDiscoveryUI: ImpDiscoveryUI;
    public impProject: ImpProject = new ImpProject();
 
@@ -82,11 +81,12 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(public impDiscoveryService: ImpDiscoveryService,
-               public impProjectService: ImpProjectService,
-               public impRadLookupService: ImpRadLookupService,
-               public impGeofootprintLocationService: ImpGeofootprintLocationService,
-               public userService: UserService,
+   constructor(public  config: AppConfig,
+               public  impDiscoveryService: ImpDiscoveryService,
+               public  impProjectService: ImpProjectService,
+               public  impRadLookupService: ImpRadLookupService,
+               public  impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public  userService: UserService,
                private http: HttpClient,
                private appState: AppState,
                private mapservice: MapService,
@@ -412,6 +412,11 @@ export class DiscoveryInputComponent implements OnInit
       //this.impDiscoveryUI.industryCategoryCode
    }
 
+   public onStopTransaction()
+   {
+      this.impProjectService.transactionManager.stopTransaction();
+   }
+   
    public loadProject()
    {
       console.log('discovery-input.component - loadProject fired');
@@ -535,12 +540,8 @@ export class DiscoveryInputComponent implements OnInit
 
    }
 
-   debugLogStore() {
-      this.impRadLookupService.debugLogStore("RAD LOOKUP");
-   }
-
    // -----------------------------------------------------------
-   // UNIT TEST METHODS (MOVE SOMEWHERE ELSE)
+   // UNIT TEST METHODS (MOVE TO SPEC.TS)
    // -----------------------------------------------------------
    testIsSummer(aDate: Date = new Date(), numDays: number = 28)
    {
