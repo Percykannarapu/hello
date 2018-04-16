@@ -169,7 +169,7 @@ export class ValTradeAreaService implements OnDestroy {
     let customIndex: number = 0;
     const tas = tradeAreasForInsert.map(ta => ta.taRadius);
     const maxRadius = Math.max(...tas);
-    const sub = this.esriQueryService.queryAttributeIn({ portalLayerId: portalLayerId }, 'geocode', geocodes, true).subscribe(graphics => {
+    const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true).subscribe(graphics => {
       const geosToAdd: ImpGeofootprintGeo[] = [];
       graphics.forEach(graphic => {
          currentLocations.forEach(loc => {

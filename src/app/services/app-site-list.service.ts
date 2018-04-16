@@ -142,7 +142,7 @@ export class ValSiteListService implements OnDestroy {
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      observables.push(this.queryService.queryPoint({ portalLayerId: layerId }, locationsNeedingHomeGeo, true, ['geocode']).pipe(
+      observables.push(this.queryService.queryPoint(layerId, locationsNeedingHomeGeo, true, ['geocode']).pipe(
         map(graphics => {
           const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
           for (const loc of locationsNeedingHomeGeo) {

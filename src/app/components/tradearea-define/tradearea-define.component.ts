@@ -10,6 +10,8 @@ import { AppMessagingService } from '../../services/app-messaging.service';
 import { map } from 'rxjs/operators';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -39,7 +41,8 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
 
   constructor(private tradeAreaService: ValTradeAreaService, private config: AppConfig,
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
-              private discoveryService: ImpDiscoveryService, private usageService: UsageService) {
+              private discoveryService: ImpDiscoveryService, private usageService: UsageService,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService) {
     this.tradeAreaMergeTypes = [
       { label: 'No Merge', value: 'No Merge' },
       { label: 'Merge Each', value: 'Merge Each' },
@@ -89,6 +92,8 @@ export class TradeareaDefineComponent implements OnInit, OnDestroy {
       isValid = false;
     }
     if (isValid) {
+      this.impGeofootprintGeoService.clearAll();
+      this.attributeService.clearAll();
       const tradeAreas: TradeAreaUIModel[] = this.currentTradeAreas.filter(ta => ta.isShowing) || [];
       const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
       this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);

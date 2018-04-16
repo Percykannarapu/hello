@@ -639,7 +639,7 @@ export class DataStore<T>
       return csvData;
    }
 
-   public downloadExport(filename:string, csvData: string[])
+   public downloadExport(filename: string, csvData: string[])
    {
       // Trap potential errors
       if (filename == null)
@@ -656,13 +656,15 @@ export class DataStore<T>
          csvString += encode(row) + '\n';
       }
 
+      const blob = new Blob(['\ufeff', csvString]);
+      const url = URL.createObjectURL(blob);
       // Use jquery to create and autoclick a link that downloads the CSV file
       const link = $('<a/>', {
          style: 'display:none',
-         href: 'data:application/octet-stream;base64;charset=utf-8,' + btoa(csvString),
+         href:  url,
          download: filename
       }).appendTo('body');
-      link[0].click();
+      link[0].click();   
       link.remove();
    }
 

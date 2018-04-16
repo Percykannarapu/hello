@@ -85,7 +85,7 @@ export class EnvironmentData {
         name: 'ATZ Centroids',
         defaultVisibility: false,
         popupTitleSuffix: '',
-        minScale: 577790,
+        minScale: 1155600,
         popUpFields: []
       },
       topVars: { // ATZ_Top_Vars
@@ -93,7 +93,7 @@ export class EnvironmentData {
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         popupTitleSuffix: ': {GEOCODE}',
-        minScale: 600000,
+        minScale: 1155600,
         popUpFields: []
       }
     },
