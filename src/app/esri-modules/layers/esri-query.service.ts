@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
 import { Observable } from 'rxjs/Observable';
 import { EsriModules } from '../core/esri-modules.service';
-import { expand, map, retryWhen, scan } from 'rxjs/operators';
+import { expand, filter, map, retryWhen, scan, take } from 'rxjs/operators';
 import * as utils from '../../app.utils';
 import { merge } from 'rxjs/observable/merge';
 import { EsriUtils } from '../core/esri-utils.service';
@@ -88,6 +88,28 @@ export class EsriQueryService {
 
   public executeQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
     return this.paginateEsriQuery(layerId, query);
+  }
+
+  public executeObjectIdQuery(layerId: string, query: __esri.Query) : Observable<number[]> {
+    return Observable.create(observer => {
+      this.mapService.onReady$.pipe(
+        filter(ready => ready),
+        take(1)
+      ).subscribe(() => {
+        try {
+          const layer = this.layerService.getPortalLayerById(layerId);
+          layer.queryObjectIds(query).then(
+            ids => {
+              observer.next(ids);
+              observer.complete();
+            },
+            err => observer.error(err)
+          );
+        } catch (ex) {
+          observer.error(ex);
+        }
+      });
+    });
   }
 
   private queryWithRetry(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {

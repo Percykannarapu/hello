@@ -41,6 +41,8 @@ export class ValMapService implements OnDestroy {
   private currentGeocodeList: string[] = [];
   private layerSelectionRefresh: () => void;
 
+  private currentObjectIds: number[] = [];
+
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
               private appLayerService: ValLayerService, private appGeoService: ValGeoService,
@@ -134,6 +136,7 @@ export class ValMapService implements OnDestroy {
     const adds = geocodes.filter(g => !currentGeocodes.has(g));
     this.currentGeocodeList = Array.from(geocodes);
     if (adds.length > 0) {
+      //this.getObjectIds(adds, this.currentAnalysisLevel);
       this.getGeoAttributes(adds, this.currentAnalysisLevel);
     }
     if (this.layerSelectionRefresh) this.layerSelectionRefresh();
@@ -294,5 +297,23 @@ export class ValMapService implements OnDestroy {
         layer.renderer = (layer.renderer as __esri.UniqueValueRenderer).clone();
       };
     }
+  }
+
+  private getObjectIds(geocodes: string[], currentAnalysisLevel: string) {
+    console.log('Querying Object Ids');
+    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const layer = this.layerService.getPortalLayerById(boundaryLayerId);
+    const query = new EsriModules.Query({
+      where: `geocode in ('${geocodes.join(`','`)}')`
+    });
+    const sub = this.queryService.executeObjectIdQuery(boundaryLayerId, query).subscribe(ids => {
+      console.log('Object Ids query returned', ids);
+      this.currentObjectIds = this.currentObjectIds.concat(ids);
+      this.mapService.mapView.whenLayerView(layer).then((lv: __esri.FeatureLayerView) => {
+        console.log('Highlighting');
+        lv.highlight(this.currentObjectIds);
+        if (sub) sub.unsubscribe();
+      });
+    });
   }
 }
