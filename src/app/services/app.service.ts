@@ -58,7 +58,7 @@ export interface BusinessSearchResult {
 @Injectable()
 export class AppService {
   private readonly businessSearch = 'v1/targeting/base/targetingsearch/search';
-  private readonly categoryList = './assets/demo/data/categories.json';
+  private readonly categoryList = './assets/data/categories.json';
 
   public closeOverLayPanel: Subject<any> = new Subject<any>();
 

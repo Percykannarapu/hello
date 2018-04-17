@@ -19,7 +19,7 @@ export class AppMessagingService {
   constructor(private growlService: MessageService) { }
 
   public showGrowlError(title: string, message: string) : void {
-    this.growlService.add({ severity: 'error', summary: title, detail: message});
+    this.growlService.add({ severity: 'error', summary: title, detail: message });
   }
 
   public showGrowlWarning(title: string, message: string) : void {
@@ -27,7 +27,7 @@ export class AppMessagingService {
   }
 
   public showGrowlSuccess(title: string, message: string) : void {
-    this.growlService.add({ severity: 'success', summary: title, detail: message});
+    this.growlService.add({ severity: 'success', summary: title, detail: message });
   }
 
   public showGrowlInfo(title: string, message: string) : void {

@@ -2,12 +2,13 @@ import {Component, Input, OnInit} from '@angular/core';
 import {trigger, state, style, transition, animate} from '@angular/animations';
 import {MenuItem} from 'primeng/primeng';
 import {AppComponent} from './app.component';
-import {GeocodingResponseService} from './val-modules/targeting/services/GeocodingResponse.service';
 import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
+    /* tslint:disable:component-selector */
     selector: 'app-menu',
+    /* tslint:enable:component-selector */
     template: `
         <ul app-submenu [item]="model" root="true" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
     `
@@ -18,10 +19,9 @@ export class AppMenuComponent implements OnInit {
 
     model: any[];
 
-    constructor(public app: AppComponent
-               ,public impGeofootprintGeoService: ImpGeofootprintGeoService
-               ,public impGeofootprintLocationService: ImpGeofootprintLocationService
-               ,public geocodingRespService: GeocodingResponseService) {}
+    constructor(public app: AppComponent,
+               public impGeofootprintGeoService: ImpGeofootprintGeoService,
+               public impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
     ngOnInit() {
         this.model = [
@@ -48,9 +48,8 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx)},
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site')},
-//                  {label: 'Export Sites Old', value: 'Site', icon: 'store', command: () => this.geocodingRespService.exportCSV(this.geocodingRespService.createCSV('Site'), 'Site')},
-                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor')}
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS')}
                 ]
             },
             /*{
@@ -201,9 +200,9 @@ export class AppMenuComponent implements OnInit {
 }
 
 @Component({
-	/* tslint:disable:component-selector */
+    /* tslint:disable:component-selector */
     selector: '[app-submenu]',
-	/* tslint:enable:component-selector */
+    /* tslint:enable:component-selector */
     template: `
         <ng-template ngFor let-child let-i="index" [ngForOf]="(root ? item : item.items)">
             <li [ngClass]="{'active-menuitem': isActive(i)}" [class]="child.badgeStyleClass" *ngIf="child.visible === false ? false : true">
@@ -293,10 +292,7 @@ export class AppSubMenuComponent {
 
         // hide menu
         if (!item.items) {
-            if (this.app.isHorizontal() || this.app.isSlim()) {
-                this.app.resetMenu = true; } else {
-                this.app.resetMenu = false; }
-
+            this.app.resetMenu = this.app.isHorizontal() || this.app.isSlim();
             this.app.overlayMenuActive = false;
             this.app.staticMenuMobileActive = false;
             this.app.menuHoverActive = !this.app.menuHoverActive;
@@ -309,11 +305,11 @@ export class AppSubMenuComponent {
         }
     }
 
-    isActive(index: number): boolean {
+    isActive(index: number) : boolean {
         return this.activeIndex === index;
     }
 
-    @Input() get reset(): boolean {
+    @Input() get reset() : boolean {
         return this._reset;
     }
 

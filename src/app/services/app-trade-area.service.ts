@@ -157,7 +157,8 @@ export class ValTradeAreaService implements OnDestroy {
     console.log('Inserting Trade Areas', this.tradeAreasForInsert);
   }
 
-  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]){
+  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]) {
+    if (siteType === 'Competitor') return;
     const impDiscoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
     const analysisLevel = impDiscoveryUI[0].analysisLevel;
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);

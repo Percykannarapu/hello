@@ -1,19 +1,18 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { TopVarService, DemographicVariable } from './top-var.service';
+import { TopVarService } from './top-var.service';
 import { LayerState, SmartMappingTheme } from '../models/LayerState';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { AppConfig } from '../app.config';
-import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { UserService } from './user.service';
 import { UsageService } from './usage.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { MapDispatchService } from './map-dispatch.service';
 
 @Injectable()
 export class ValLayerService {
@@ -32,6 +31,7 @@ export class ValLayerService {
   constructor(private modules: EsriModules,
       private topVars: TopVarService,
       private mapService: EsriMapService,
+      private dispatchService: MapDispatchService,
       private config: AppConfig,
       private restClient: RestDataService,
       private userService: UserService,
@@ -90,7 +90,7 @@ export class ValLayerService {
         id: 'show-shading'
       });
       listItem.actionsSections = <any>[[action]]; // have to any-fy this object to make TS happy
-    }    
+    }
   }
 
   private onActionClicked(event: any) : void {
@@ -100,7 +100,7 @@ export class ValLayerService {
     if (id === 'show-shading') {
       let currentState = this.featureLayers.get(currentLayer.title);
       if (currentState == null) {
-        currentState = new LayerState(currentLayer as __esri.FeatureLayer, this.mapService.onBaseMapChange$,
+        currentState = new LayerState(currentLayer as __esri.FeatureLayer, this.dispatchService.onBaseMapChange(),
                                     this.topVars.selectedTopVar$, this.currentSmartTheme$,
                                     this.currentThemeOpacity$, this.sliderElementId);
         this.featureLayers.set(currentLayer.title, currentState);

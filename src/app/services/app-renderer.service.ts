@@ -33,8 +33,7 @@ export class AppRendererService {
     return newRenderer;
   }
 
-  public createSmartShadingRenderer() : __esri.Renderer {
-    // TODO: move the smart shading renderer generation here
+  public createUnifiedRenderer() : __esri.Renderer {
     return null;
   }
 }

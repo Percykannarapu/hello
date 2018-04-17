@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs/Observable';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { map } from 'rxjs/operators';
-import { RestResponse } from '../models/RestResponse';
-import { merge } from 'rxjs/observable/merge';
+import { AppMessagingService } from './app-messaging.service';
 
 @Injectable()
 export class ValGeocodingService {
@@ -18,7 +16,7 @@ export class ValGeocodingService {
   public failureCount$: Observable<number> = this.geocodingFailures$.pipe(map(failures => failures.length));
   public hasFailures$: Observable<boolean> = this.failureCount$.pipe(map(c => c > 0));
 
-  constructor(private messageService: MessageService, private restService: RestDataService) { }
+  constructor(private messageService: AppMessagingService, private restService: RestDataService) { }
 
   public removeFailedGeocode(data: ValGeocodingResponse) : void {
     const failures = this.failures.getValue();
@@ -31,10 +29,8 @@ export class ValGeocodingService {
 
   public geocodeLocations(sites: ValGeocodingRequest[]) : Promise<ValGeocodingResponse[]> {
     let geocoderPromise: Promise<ValGeocodingResponse[]>;
-   // geocoderPromise = null;
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
-      const index: number = 0;
       const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
       const requestData = this.chunkArray(cleanRequestData, 50);
       const observables: Observable<ValGeocodingResponse[]>[] = [];
@@ -79,15 +75,15 @@ export class ValGeocodingService {
 
   private showCompletedMessage() : void {
     if (this.failures.getValue().length === 0) {
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: `Geocoding Success` });
+      this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
     } else {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: `Geocoding Error` });
+      this.messageService.showGrowlError('Error', 'Geocoding Error');
     }
   }
 
-  public chunkArray(data: ValGeocodingRequest[], size: number){
+  private chunkArray(data: ValGeocodingRequest[], size: number) {
     return Array.from({length: Math.ceil(data.length / size)})
-                      .map((_, i) => Array.from({length: size})
-                      .map((_ , j) => data[i * size + j]));
-  } 
+                .map((_, i) => Array.from({length: size})
+                                              .map((_ , j) => data[i * size + j]));
+  }
 }

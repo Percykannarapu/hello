@@ -3,10 +3,8 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { User } from '../models/User';
-import { TargetingProfile } from '../models/TargetingProfile';
 import { AppConfig } from '../app.config';
-import { GeoFootPrint } from '../services/geofootprint.service';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RestResponse } from '../models/RestResponse';
 import { CookieService } from 'ngx-cookie-service';
 
@@ -22,7 +20,6 @@ export class UserService {
   public userObservable: Observable<User> = this._userSubject.asObservable();
 
   constructor(private config: AppConfig,
-    private geoFootPrintService: GeoFootPrint,
     private httpClient: HttpClient,
     private cookieService: CookieService) { }
 

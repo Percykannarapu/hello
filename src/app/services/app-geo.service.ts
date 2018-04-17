@@ -17,6 +17,7 @@ import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeo
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppMessagingService } from './app-messaging.service';
+import { toUniversalCoordinates } from '../app.utils';
 
 @Injectable()
 export class ValGeoService implements OnDestroy {
@@ -101,7 +102,7 @@ export class ValGeoService implements OnDestroy {
       let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
-      const query$ = this.queryService.queryPointWithBuffer(layerId, queryMap.get(maxRadius), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
+      const query$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(queryMap.get(maxRadius)), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
       const sub = query$.subscribe(
         selections => {
           allSelectedData = allSelectedData.concat(selections);

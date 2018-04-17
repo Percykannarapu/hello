@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { EsriLoaderConfig } from './esri-modules/core/esri-modules.service';
 import { AuthenticationParams } from './services/esri-identity.service';
 import { EnvironmentData } from '../environments/environment';
+import { EsriConfigOptions, EsriLoaderConfig } from './esri-modules/configuration';
 
 @Injectable()
 export class AppConfig implements EsriLoaderConfig {
@@ -12,19 +12,22 @@ export class AppConfig implements EsriLoaderConfig {
   // This controls whether or not the user is currently authenticated and will have to log in
   public authenticated: boolean = EnvironmentData.authenticated;
 
-   esriConfig = {
-     url: 'https://js.arcgis.com/4.5/',
-     // Set the hostname to the on-premise portal
-     portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
-       dojoConfig: {
-        has: {
+  public esriConfig: EsriConfigOptions = {
+    url: 'https://js.arcgis.com/4.5/',
+    portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
+    dojoConfig: {
+      has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
         //'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-        //'esri-featurelayer-webgl': 1
-        }
+        // 'esri-featurelayer-webgl': 1
       }
-   };
+    },
+    defaultSpatialRef: 4326,
+    maxPointsPerBufferQuery: 25,
+    maxPointsPerAttributeQuery: 50
+  };
+
    esriIdentityParams: AuthenticationParams = {
      // for valvcshad001vm
      // generatorUrl: 'https://valvcshad001vm.val.vlss.local/portal/sharing/rest/generateToken',
@@ -39,15 +42,12 @@ export class AppConfig implements EsriLoaderConfig {
    };
    oAuthParams = EnvironmentData.oAuth;
 
-   public val_spatialReference = 4326; //3857; //4326;
+   public val_spatialReference = this.esriConfig.defaultSpatialRef;
    public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
-   public maxPointsPerBufferQuery = 25;
-   public maxPointsPerAttributeQuery = 50;
    public maxGeosPerGeoInfoQuery = 400;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
-   public esriRestApiBase = `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/Hosted/`;
 
    public layerIds = EnvironmentData.layerIds;
 

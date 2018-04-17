@@ -85,37 +85,15 @@ import {AppTopbarComponent} from './app.topbar.component';
 import {AppFooterComponent} from './app.footer.component';
 import {AppRightpanelComponent} from './app.rightpanel.component';
 import {AppInlineProfileComponent} from './app.profile.component';
-import {DashboardDemoComponent} from './demo/view/dashboarddemo.component';
-import {SampleDemoComponent} from './demo/view/sampledemo.component';
-import {FormsDemoComponent} from './demo/view/formsdemo.component';
-import {DataDemoComponent} from './demo/view/datademo.component';
-import {PanelsDemoComponent} from './demo/view/panelsdemo.component';
-import {OverlaysDemoComponent} from './demo/view/overlaysdemo.component';
-import {MenusDemoComponent} from './demo/view/menusdemo.component';
-import {MessagesDemoComponent} from './demo/view/messagesdemo.component';
-import {MiscDemoComponent} from './demo/view/miscdemo.component';
-import {EmptyDemoComponent} from './demo/view/emptydemo.component';
-import {ChartsDemoComponent} from './demo/view/chartsdemo.component';
-import {FileDemoComponent} from './demo/view/filedemo.component';
-import {UtilsDemoComponent} from './demo/view/utilsdemo.component';
-import {DocumentationComponent} from './demo/view/documentation.component';
-import {PocComponent} from './demo/view/poc.component';
-import {PocMapComponent} from './demo/view/poc.map';
-import {ParkedComponent} from './demo/view/parked.component';
-import {GfGeoService} from './models/gf-geo/gf-geo.service';
-import {MetricService} from './val-modules/common/services/metric.service';
-import {CountryService} from './demo/service/countryservice';
-import {EventService} from './demo/service/eventservice';
-import {NodeService} from './demo/service/nodeservice';
+import {DashboardComponent} from './components/dashboard/dashboard.component';
 import {ValLayerService} from './services/app-layer.service';
-import {EsriModules, EsriLoaderToken} from './esri-modules/core/esri-modules.service';
+import {EsriModules} from './esri-modules/core/esri-modules.service';
 import {UserService} from './services/user.service';
 import {EsriMapComponent} from './components/esri-map/esri-map.component';
 import {TargetingModule} from './val-modules/targeting/targeting.module';
 import {GeofootprintGeoListComponent} from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import {GeocoderComponent} from './components/geocoder/geocoder.component';
 import {BusinessSearchComponent} from './components/business-search/business-search.component';
-import {GeofootprintComponent} from './components/geofootprint/geofootprint.component';
 import {EsriLayerSelectComponent} from './components/esri-layer-select/esri-layer-select.component';
 import {EsriMapToolsComponent} from './components/esri-map-tools/esri-map-tools.component';
 import {MapService} from './services/map.service';
@@ -124,12 +102,11 @@ import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import {AppService} from './services/app.service';
 import {RaddataComponent} from './components/raddata/raddata.component';
-import {TradeareaDefineComponent} from './components/tradearea-define/tradearea-define.component';
+import {TradeAreaDefineComponent} from './components/tradearea-define/trade-area-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
 import {RestDataService} from './val-modules/common/services/restdata.service';
 import {TransactionManager} from './val-modules/common/services/TransactionManager.service';
-import {GeocoderService} from './services/geocoder.service';
 import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
 import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
 import {ImpClientLocationService} from './val-modules/client/services/ImpClientLocation.service';
@@ -145,9 +122,7 @@ import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
 import { TopVarService } from './services/top-var.service';
 import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
-import { GeocodingResponseService } from './val-modules/targeting/services/GeocodingResponse.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
-import { GeoFootPrint } from './services/geofootprint.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { ValGeocodingService } from './services/app-geocoding.service';
@@ -167,6 +142,11 @@ import { SelectedAudiencesComponent } from './components/target-audience/selecte
 import { AppMessagingService } from './services/app-messaging.service';
 import { AppRendererService } from './services/app-renderer.service';
 import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
+import { EsriLoaderToken } from './esri-modules/configuration';
+import { PocComponent } from './poc/poc.component';
+import { PocMapComponent } from './poc/poc.map';
+import { MetricService } from './val-modules/common/services/metric.service';
+import { MapDispatchService } from './services/map-dispatch.service';
 
 @NgModule({
     imports: [
@@ -254,28 +234,13 @@ import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricNa
         AppFooterComponent,
         AppRightpanelComponent,
         AppInlineProfileComponent,
-        DashboardDemoComponent,
-        EsriMapComponent,
-        SampleDemoComponent,
-        FormsDemoComponent,
-        GeofootprintGeoListComponent,
-        GeocoderComponent,
-        GeofootprintComponent,
-        DataDemoComponent,
-        PanelsDemoComponent,
-        OverlaysDemoComponent,
-        MenusDemoComponent,
+        DashboardComponent,
         PocComponent,
         PocMapComponent,
-        ParkedComponent,
+        EsriMapComponent,
+        GeofootprintGeoListComponent,
+        GeocoderComponent,
         MessageComponent,
-        MessagesDemoComponent,
-        MiscDemoComponent,
-        ChartsDemoComponent,
-        EmptyDemoComponent,
-        FileDemoComponent,
-        UtilsDemoComponent,
-        DocumentationComponent,
         BusinessSearchComponent,
         EsriLayerSelectComponent,
         EsriMapToolsComponent,
@@ -283,7 +248,7 @@ import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricNa
         ColorBoxComponent,
         SiteListComponent,
         RaddataComponent,
-        TradeareaDefineComponent,
+        TradeAreaDefineComponent,
         DiscoveryInputComponent,
         UploadLocationsComponent,
         DemoVariablesComponent,
@@ -295,19 +260,18 @@ import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricNa
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
         AppService, AppConfig, MessageService, TransactionManager,
-        CountryService, EventService, NodeService,
-        GfGeoService, MapService, RestDataService,
-        MetricService, EsriModules, ValLayerService,
-        AppState, GeocoderService, GeocodingResponseService,
+        MapService, RestDataService, MetricService,
+        EsriModules, ValLayerService, AppState,
         ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
         ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
-        ImpDiscoveryService, GeoFootPrint, EsriLayerService,
+        ImpDiscoveryService, EsriLayerService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
         TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
-        ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService
+        ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService,
+        MapDispatchService
     ],
     bootstrap: [AppComponent]
 })

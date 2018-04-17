@@ -1,24 +1,14 @@
-import { MapService } from './../../services/map.service';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Subscription, ISubscription } from 'rxjs/Subscription';
-
-// Import UI Components
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ISubscription } from 'rxjs/Subscription';
 import { SelectItem } from 'primeng/components/common/selectitem';
-
-// Import Custom Models
-import { AppState } from '../../app.state';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-
-// Import Data Services
-import { ImpGeofootprintLocationService } from './../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintGeoService } from './../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Console } from '@angular/core/src/console';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
-import { ValMapService } from '../../services/app-map.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
 @Component({
@@ -328,10 +318,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    public onZoomToGeo(geo: ImpGeofootprintGeo)
    {
-      // console.log('onZoomToGeo - geo: ', geo);
       if (geo != null)
       {
-         this.mapService.zoomOnMap([{ xcoord: geo.xCoord, ycoord: geo.yCoord }]);
+         this.mapService.zoomOnMap({ min: geo.xCoord, max: geo.xCoord }, { min: geo.yCoord, max: geo.yCoord }, 1);
       }
    }
 

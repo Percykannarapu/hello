@@ -1,18 +1,11 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule, NgForm } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
-import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
-import { GeofootprintMaster } from '../../models/GeofootprintMaster';
-import { GeocoderService } from '../../services/geocoder.service';
-import { GeoFootPrint } from '../../services/geofootprint.service';
-import { AppConfig } from '../../app.config';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
-import { UsageService } from '../../services/usage.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { AppMessagingService } from '../../services/app-messaging.service';
 
 @Component({
   selector: 'val-login',
@@ -21,17 +14,13 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 })
 export class LoginComponent implements OnInit {
 
-  public displayLoginSpinner: boolean = false;
-  public growlMessages: string[] = new Array<string>();
+  private spinnerKey = 'LoginComponentKey';
+  private spinnerMessage = 'Authenticating';
 
   constructor(private router: Router,
               private authService: AuthService,
-              private messageService: MessageService,
-              private userService: UserService,
-              private geocoderService: GeocoderService,
-              private geoFootPrintService: GeoFootPrint,
-              private config: AppConfig,
-              private usageService: UsageService) { }
+              private messageService: AppMessagingService,
+              private userService: UserService) { }
 
   ngOnInit() {
   }
@@ -42,21 +31,17 @@ export class LoginComponent implements OnInit {
    */
   public onSubmit(loginForm: NgForm) {
     if (loginForm.value.username === '' || loginForm.value.password === '') {
-      this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'You must enter both a username and password'});
+      this.messageService.showGrowlError('Login Error', 'You must enter both a username and password');
       return;
     }
-    this.displayLoginSpinner = true;
+    this.messageService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
-//        this.displayLoginSpinner = false;
-//        this.createUser(loginForm.value.username);
-//        this.bootstrapDataStore();
-//        this.router.navigate(['/']);
           this.fetchUserInfo(loginForm.value.username);
       }
       else {
-        this.displayLoginSpinner = false;
-        this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Please check your username and password and try again'});
+        this.messageService.stopSpinnerDialog(this.spinnerKey);
+        this.messageService.showGrowlError('Login Error', 'Please check your username and password and try again');
       }
     });
 
@@ -64,22 +49,22 @@ export class LoginComponent implements OnInit {
 
   /**
    * Lookup the AM_USER record from the Fuse service
-   * @param username 
+   * @param username
    */
   private fetchUserInfo(username: string) {
     this.userService.fetchUserRecord(username).subscribe(user => {
       if (user != null) {
         this.createUser(username, user);
         this.bootstrapDataStore();
-        this.displayLoginSpinner = false;
+        this.messageService.stopSpinnerDialog(this.spinnerKey);
         this.router.navigate(['/']);
       } else {
-        this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Unable to look up user info'});
-        this.displayLoginSpinner = false;
+        this.messageService.showGrowlError('Login Error', 'Unable to look up user info');
+        this.messageService.stopSpinnerDialog(this.spinnerKey);
       }
     }, err => {
-      this.messageService.add({ severity: 'error', summary: 'Login Error', detail: 'Unable to look up user info'});
-      this.displayLoginSpinner = false;
+      this.messageService.showGrowlError('Login Error', 'Unable to look up user info');
+      this.messageService.stopSpinnerDialog(this.spinnerKey);
     });
   }
 

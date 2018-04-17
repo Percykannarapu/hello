@@ -30,8 +30,7 @@
         <p-growl [sticky]="true"></p-growl>
         <p-confirmDialog appendTo="body" icon="fa fa-question-circle" width="500"></p-confirmDialog>
         <div class="ui-g ui-fluid">
-          <p-dialog [closable]="true" [header]="currentSpinnerMessage$ | async" [visible]="currentSpinnerState$ | async" [contentStyle]="{'overflow':'visible'}"
-                    width="300">
+          <p-dialog [closable]="true" [header]="currentSpinnerMessage$ | async" [visible]="currentSpinnerState$ | async" [contentStyle]="{'overflow':'visible'}" width="300">
             <div class="ui-g-3"></div>
             <div class="ui-g-5">
               <p-progressSpinner></p-progressSpinner>
