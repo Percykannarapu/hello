@@ -8,7 +8,7 @@
  **
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
 import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
@@ -44,10 +44,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
    constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
+               private projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: MessageService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService, private usageService: UsageService)
    {
-      super(restDataService, dataUrl);
+      super(restDataService, dataUrl, projectTransactionManager);
 
       impDiscoveryService.storeObservable.subscribe(discoveryData => this.onChangeDiscovery(discoveryData[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
@@ -115,7 +116,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       .reduce((a, x, i, s) => (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]] : i + 1, a), []);
    }
 
-   public denseRank(a, f, p) {
+   public XXXdenseRank(a, f, p) {
       return a
       .sort((a, b) => f(a, b))
       .reduce((a, x, i, s, b = p) => {

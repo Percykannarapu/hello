@@ -8,7 +8,7 @@
  **
  ** ImpProjectPref.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpProjectPref } from '../models/ImpProjectPref';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
@@ -20,7 +20,11 @@ const dataUrl = 'v1/targeting/base/impprojectpref/search?q=impProjectPref';
 @Injectable()
 export class ImpProjectPrefService extends DataStore<ImpProjectPref>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService
+              ,private projectTransactionManager: TransactionManager)
+   {
+      super(restDataService, dataUrl);
+   }
 
    private handleError(error: Response)
    {

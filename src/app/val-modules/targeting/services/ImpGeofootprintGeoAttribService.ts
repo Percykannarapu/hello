@@ -8,7 +8,7 @@
  **
  ** ImpGeofootprintGeoAttrib.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
@@ -20,7 +20,11 @@ const dataUrl = 'v1/targeting/base/impgeofootprintgeoattrib/search?q=impGeofootp
 @Injectable()
 export class ImpGeofootprintGeoAttribService extends DataStore<ImpGeofootprintGeoAttrib>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService
+              ,private projectTransactionManager: TransactionManager)
+   {
+      super(restDataService, dataUrl, projectTransactionManager);
+   }
 
    private handleError(error: Response)
    {

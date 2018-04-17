@@ -121,6 +121,37 @@ export class DataStore<T>
        return this.currStoreId++
     }
 
+    public denseRank(a, f, p)
+    {
+      return a.sort((a, b) => f(a, b))
+              .reduce((a, x, i, s, b = p) => {
+                 // If this is the first row processed, initialize rank to 0
+                 if (i == 0)
+                 {
+                    a[i] = s[i];
+                    a[i].rank = 0;
+                 }
+                 else
+                 {
+                    // If we have encountered a break in the sorted data, reset the rank
+                    if (b(s[i], s[i-1]))
+                    {
+                       a[i] = s[i];
+                       a[i].rank = 0;
+                    }
+                    // Otherwise increment the rank
+                    else
+                    {
+                       a[i] = s[i];
+                       a[i].rank = a[i-1].rank+1;
+                    }
+                 }
+                 return a;
+              }
+              // Indicate that we are returning an array
+              , []);
+   }
+    
    // ---------------------------------------------
    // Private Data Store Methods
    // ---------------------------------------------

@@ -8,7 +8,7 @@
  **
  ** ImpGeofootprintTradeArea.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
@@ -20,7 +20,11 @@ const dataUrl = 'v1/targeting/base/impgeofootprinttradearea/search?q=impGeofootp
 @Injectable()
 export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTradeArea>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService
+              ,private projectTransactionManager: TransactionManager)
+   {
+      super(restDataService, dataUrl);
+   }
 
    private handleError(error: Response)
    {

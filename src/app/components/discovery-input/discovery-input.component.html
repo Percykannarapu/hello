@@ -15,7 +15,6 @@
       <div class="ui-g-9">
          <div *ngIf="showLoadBtn">
             <button label="Load Project" pButton (click)="loadProject()"></button>
-            <!-- <button *ngIf="config.debugMode" label="Stop Transaction" pButton (click)="onStopTransaction()" pTooltip="Finish Project Load (DEBUG)"></button> -->
          </div>
       </div>
       <div class="ui-g-12">
@@ -114,6 +113,7 @@
 
       <div class="ui-g-12">
          <button label="Save Project" pButton (click)="saveProject()"></button>
+         <button *ngIf="config.debugMode" label="Stop Transaction" pButton (click)="onStopTransaction()" pTooltip="Resume Load/Save (DEBUG)"></button>
       </div>
    </div>
 </div>

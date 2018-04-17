@@ -1,3 +1,4 @@
+import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { TransactionManager } from './../../common/services/TransactionManager.service';
 import { InTransaction } from './../../common/services/datastore.service'
 import { ImpGeofootprintLocAttrib } from './../models/ImpGeofootprintLocAttrib';
@@ -51,6 +52,7 @@ export class ImpProjectService extends DataStore<ImpProject>
                public impGeofootprintMasterService: ImpGeofootprintMasterService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
                public impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
+               public impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                public impDiscoveryService: ImpDiscoveryService,
                public userService: UserService,
                public appConfig: AppConfig,
@@ -90,7 +92,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          this.populateLocations(res);
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
          this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully!');
-         this.projectTransactionManager.stopTransaction();
+//         this.projectTransactionManager.stopTransaction();
       }, err =>
       {
          // Alert the user to the failed load
@@ -168,256 +170,301 @@ export class ImpProjectService extends DataStore<ImpProject>
 //    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save'
    }
 
-   // Test Persisting the Project
-   //   This is just proving out converting the typescript models
-   //   to a JSON string and posting to the back end save endpoint
-   //   will persist to the database
-   // TODO: if we allow for more than one project loaded, specify the project to save
    saveProject()
    {
-      console.log('discovery-input-component - saveProject fired');
-
-      // Retrieve the project from the datastore (Right now assuming only 1)
-      let impProject: ImpProject = this.get()[0];
-      console.log ('Saving project: ', impProject.toString());
-
-      // Retrieve the discovery data
-      let impDiscoveryUI: ImpDiscoveryUI =  this.impDiscoveryService.get()[0];
-
-      // Create Geofootprint Array if needed
-      console.log('ImpProject.service - populating geofootprint master');
-      if (!impProject.impGeofootprintMasters)
-         impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
-
-      // Create ImpGeofootprintMaster if needed
-      if (impProject.impGeofootprintMasters.length === 0)
+      console.log('ImpProject.service.saveProject fired');
+      this.projectTransactionManager.startTransaction();
+      try
       {
-         let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
-         newCGM.dirty = true;
-         newCGM.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-         newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
-         newCGM.status = 'SUCCESS';
-         newCGM.summaryInd = 0;
-         newCGM.createdDate = new Date(Date.now());
-         newCGM.isMarketBased = false;
-         newCGM.isActive = true;
-         newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
-         impProject.impGeofootprintMasters.push(newCGM);
-      }
+         // Retrieve the project from the datastore (Right now assuming only 1)
+         let impProject: ImpProject = this.get()[0];
+         console.log ('Saving project: ', impProject.toString());
 
-      // TODO: Really the project service should be utilized and as locations are added, they become children of the project
-      console.log('ImpProject.service - populating locations');
-      impProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impGeofootprintLocationService.get();
+         // Retrieve the discovery data
+         let impDiscoveryUI: ImpDiscoveryUI =  this.impDiscoveryService.get()[0];
 
-      const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get();
-      this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
-      for (let locationAttrib of impGeofootprintLocAttribs)
-      {
-         let location = impProject.impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l == locationAttrib.impGeofootprintLocation)
-      }
+         // Create Geofootprint Array if needed
+         console.log('ImpProject.service - populating geofootprint master');
+         if (!impProject.impGeofootprintMasters)
+            impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
 
-      // Problem is, we need trade areas under the locations
-      // TODO: This should be coming from the ImpGeofootprintTradeAreaService
-
-      // Loop through locations, setting missing mandatory fields and setting baseStatus
-      let locNumber: number = 1000;
-      for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
-      {
-         location.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(l => l.impGeofootprintLocation == location);
-         // Remove the circular reference
-         location.impGeofootprintLocAttribs.forEach(attrib => {
-            delete attrib["impGeofootprintLocation"];            
-            attrib.dirty = true;
-            attrib.baseStatus    = (attrib.locAttributeId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
-            attrib.createUser    = this.userService.getUser().userId;
-            attrib.createDate    = (attrib.createDate == null) ? new Date(Date.now()) : attrib.createDate;
-            attrib.modifyUser    = this.userService.getUser().userId;
-            attrib.modifyDate    = new Date(Date.now());
-            attrib.attributeType = 'PUMPKIN_SPICE_LATTE'
-            attrib.formatMask	   = null;
-            attrib.isActive      = 1;
-         });
-
-         console.log('location glId: ', location.glId, ' setting baseStatus to: ', (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT);
-         location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-//       location.isActive = true;
-//       location.locationNumber = locNumber++;            // Mandatory field, stubbing
-         location.clientIdentifierId = location.locationNumber; // Mandatory field, stubbing
-         location.clientLocationId = location.locationNumber;   // Mandatory field, stubbing
-         location.marketName = 'Test Market ' + locNumber; // Mandatory field, stubbing
-         console.log('location: ', location);
-      }
-
-      // Add database removals
-      if (this.impGeofootprintLocationService.dbRemoves != null && this.impGeofootprintLocationService.dbRemoves.length > 0)
-      {
-         console.log('impGeofootprintLocationService has ' + this.impGeofootprintLocationService.dbRemoves.length + ' removes');
-         for (let removeLocation of this.impGeofootprintLocationService.dbRemoves)
-            impProject.impGeofootprintMasters[0].impGeofootprintLocations.push(removeLocation);
-      }
-      else
-         console.log('impGeofootprintLocationService had no database removes');
-
-// TODO:
-// We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
-// need to alter the typescript models to emit booleans for the "is" variables
-// The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys
-// from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
-// See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity
-// But we are going to let that slide for now.   It will persist fine without these IDs, but NEED to fix down the road.
-// Update: Can make base services request the pks explicitly, then they will transfer to the children
-
-      // Prepare HTTP Headers
-      const headers = new HttpHeaders().set('Content-Type', 'application/json');
-
-      // TODO: Create typescript versions of clientIdentifierType and clientLocationType as we don't use these yet, but they are mandatory
-      let clientIdentifierType = new ClientIdentifierType({clientIdentifierTypeCode: 'PROJECT_ID'
-                                                          ,createUser:               -1
-                                                          ,createDate:               new Date(Date.now())
-                                                          ,modifyUser:               -1
-                                                          ,modifyDate:               new Date(Date.now())
-                                                          ,clientIdentifierType:     'Project ID'
-                                                          ,description:              'Project Id'
-                                                          ,sortOrder:                2
-                                                          ,isActive:                 1
-                                                          });
-      let impClientLocationType = new ImpClientLocationType({clientLocationTypeCode: 'Site'
-                                                            ,createUser:             -1
-                                                            ,createDate:             new Date(Date.now())
-                                                            ,modifyUser:             -1
-                                                            ,modifyDate:             new Date(Date.now())
-                                                            ,clientLocationType:     'Site'
-                                                            ,sortOrder:              1
-                                                            ,isDefault:              1
-                                                            ,isActive:               1
-                                                            });
-
-/* Reinstate with constraint IMP_GEOFOOTPRINT_LOCATIONS_U01
-
-      // We know we are creating client locations every time.  This is temporary
-      let clientLocations = new Array<ImpClientLocation>();
-      for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
-      {
-         clientLocations.push (new ImpClientLocation({dirty: true
-                                                     ,baseStatus: DAOBaseStatus.INSERT
-                                                     ,clientLocationId:      null
-                                                     ,clientIdentifierId:    location.locationNumber
-                                                     ,clientIdentifierType:  clientIdentifierType
-                                                     ,impClientLocationType: impClientLocationType
-                                                     }));
-      }
-
-//      this._createClientLocations(clientLocations)
-
-      // TEMPORARY: Create a ImpClientLocation row
-      for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
-      {
-         if (location.clientLocationId == null)
+         // Create ImpGeofootprintMaster if needed
+         if (impProject.impGeofootprintMasters.length === 0)
          {
-            // ({fieldA: 'xyz', fieldB: 123});
-            // let clientLocation = new ImpClientLocation({
-            //    clientLocationId:      null
-            //   ,clientIdentifierId:    location.locationNumber
-            //   ,clientIdentifierType:  clientIdentifierType
-            //   ,impClientLocationType: impClientLocationType
-            // });
+            let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
+            newCGM.dirty = true;
+            newCGM.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+            newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
+            newCGM.status = 'SUCCESS';
+            newCGM.summaryInd = 0;
+            newCGM.createdDate = new Date(Date.now());
+            newCGM.isMarketBased = false;
+            newCGM.isActive = true;
+            newCGM.impGeofootprintLocations = new Array<ImpGeofootprintLocation>();
+            impProject.impGeofootprintMasters.push(newCGM);
+         }
 
-            //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })      
-            //      .map(res => this.parseRegistrationResponse(res))
-            //      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
-            this._createClientLocation(location.locationNumber, clientIdentifierType, impClientLocationType).subscribe(res =>
+         console.log('ImpProject.service - Adding locations to the geofootprint master');
+         impProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impGeofootprintLocationService.get();
+
+         const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get();
+
+         // Dedupe the location attributes
+         this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
+         
+//         this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
+/*          
+         for (let locationAttrib of impGeofootprintLocAttribs)
+         {
+            // filter out loc attributes that are null
+//            let location = impProject.impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l == locationAttrib.impGeofootprintLocation && locationAttrib.attributeValue != null)
+            let location: ImpGeofootprintLocation[] = impProject.impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.locationNumber == locationAttrib.impGeofootprintLocation.locationNumber && locationAttrib.attributeValue != null)
+         }
+*/
+         // Problem is, we need trade areas under the locations
+         // TODO: This should be coming from the ImpGeofootprintTradeAreaService
+
+         if (impProject == null)
+            console.error ('impProject is null');
+         else
+            if (impProject.impGeofootprintMasters == null)
+               console.error ('impProject.impGeofootprintMasters is null');
+         
+         // Loop through locations, setting missing mandatory fields and setting baseStatus
+         for (let impLocation of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+         {
+            // Get the attributes for the current location
+//            location.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(l => l.impGeofootprintLocation == location);
+            try
             {
-               // Assign clientLocation ids to the location
+               console.log('processing location: ', location);
+               // Todo:  Is this filter filtering impGeofootprintLocAttributes or giving back a new array?
+               //        The code below is not pulling back the rank 0s
 
-               // Persist the project
-               this._createProject(impProject).subscribe(res =>
+               impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
+               impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(attrib =>
+//                                                                                                attrib.impGeofootprintLocation.locationNumber == impLocation.locationNumber
+                                                                                                attrib.impGeofootprintLocation != null
+                                                                                             && attrib.impGeofootprintLocation == impLocation
+                                                                                             && attrib.attributeValue != null
+                                                                                             && attrib['rank'] === 0
+                                                                                       );
+
+               if (impLocation.impGeofootprintLocAttribs != null)
                {
-                  // Load the project to get the IDs
+                  // Remove the circular references and stub mandatory fields
+                  impLocation.impGeofootprintLocAttribs.forEach(attrib => {
+                     delete attrib["impGeofootprintLocation"];  
+                     delete attrib["impGeofootprintMaster"];  
+                     delete attrib["impProject"];                                       
+                     attrib.dirty = true;
+                     attrib.baseStatus    = (attrib.locAttributeId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+                     attrib.createUser    = this.userService.getUser().userId;
+                     attrib.createDate    = (attrib.createDate == null) ? new Date(Date.now()) : attrib.createDate;
+                     attrib.modifyUser    = this.userService.getUser().userId;
+                     attrib.modifyDate    = new Date(Date.now());
+                     attrib.attributeType = 'PUMPKIN_SPICE_LATTE'
+                     attrib.formatMask	   = null;
+                     attrib.isActive      = 1;
+                  });
+               }
+               else
+                  console.log('location: ', impLocation.locationNumber, ' did not have any attributes');
 
+            }
+            catch(err)
+            {
+               console.log('ERROR: ', err);
+            }
+
+            console.log('location: ', impLocation.locationNumber, ' setting baseStatus to: ', (impLocation.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT);
+            impLocation.baseStatus = (impLocation.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+   //       location.isActive = true;
+   //       impLocation.locationNumber = locNumber++;            // Mandatory field, stubbing
+            impLocation.clientIdentifierId = impLocation.locationNumber; // Mandatory field, stubbing
+            impLocation.clientLocationId = impLocation.locationNumber;   // Mandatory field, stubbing
+            impLocation.marketName = (impLocation.marketName == null) ? 'Market ' + impLocation.locationNumber : impLocation.marketName; // Mandatory field, stubbing
+            console.log('location: ', impLocation);
+         }
+
+         // Add database removals
+         if (this.impGeofootprintLocationService.dbRemoves != null && this.impGeofootprintLocationService.dbRemoves.length > 0)
+         {
+            console.log('impGeofootprintLocationService has ' + this.impGeofootprintLocationService.dbRemoves.length + ' removes');
+            for (let removeLocation of this.impGeofootprintLocationService.dbRemoves)
+               impProject.impGeofootprintMasters[0].impGeofootprintLocations.push(removeLocation);
+         }
+         else
+            console.log('impGeofootprintLocationService had no database removes');
+
+   // TODO:
+   // We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
+   // need to alter the typescript models to emit booleans for the "is" variables
+   // The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys
+   // from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
+   // See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity
+   // But we are going to let that slide for now.   It will persist fine without these IDs, but NEED to fix down the road.
+   // Update: Can make base services request the pks explicitly, then they will transfer to the children
+
+         // Prepare HTTP Headers
+         const headers = new HttpHeaders().set('Content-Type', 'application/json');
+
+         // TODO: Create typescript versions of clientIdentifierType and clientLocationType as we don't use these yet, but they are mandatory
+         let clientIdentifierType = new ClientIdentifierType({clientIdentifierTypeCode: 'PROJECT_ID'
+                                                            ,createUser:               -1
+                                                            ,createDate:               new Date(Date.now())
+                                                            ,modifyUser:               -1
+                                                            ,modifyDate:               new Date(Date.now())
+                                                            ,clientIdentifierType:     'Project ID'
+                                                            ,description:              'Project Id'
+                                                            ,sortOrder:                2
+                                                            ,isActive:                 1
+                                                            });
+         let impClientLocationType = new ImpClientLocationType({clientLocationTypeCode: 'Site'
+                                                               ,createUser:             -1
+                                                               ,createDate:             new Date(Date.now())
+                                                               ,modifyUser:             -1
+                                                               ,modifyDate:             new Date(Date.now())
+                                                               ,clientLocationType:     'Site'
+                                                               ,sortOrder:              1
+                                                               ,isDefault:              1
+                                                               ,isActive:               1
+                                                               });
+
+   /* Reinstate with constraint IMP_GEOFOOTPRINT_LOCATIONS_U01
+
+         // We know we are creating client locations every time.  This is temporary
+         let clientLocations = new Array<ImpClientLocation>();
+         for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+         {
+            clientLocations.push (new ImpClientLocation({dirty: true
+                                                      ,baseStatus: DAOBaseStatus.INSERT
+                                                      ,clientLocationId:      null
+                                                      ,clientIdentifierId:    location.locationNumber
+                                                      ,clientIdentifierType:  clientIdentifierType
+                                                      ,impClientLocationType: impClientLocationType
+                                                      }));
+         }
+
+   //      this._createClientLocations(clientLocations)
+
+         // TEMPORARY: Create a ImpClientLocation row
+         for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+         {
+            if (location.clientLocationId == null)
+            {
+               // ({fieldA: 'xyz', fieldB: 123});
+               // let clientLocation = new ImpClientLocation({
+               //    clientLocationId:      null
+               //   ,clientIdentifierId:    location.locationNumber
+               //   ,clientIdentifierType:  clientIdentifierType
+               //   ,impClientLocationType: impClientLocationType
+               // });
+
+               //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })      
+               //      .map(res => this.parseRegistrationResponse(res))
+               //      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
+               this._createClientLocation(location.locationNumber, clientIdentifierType, impClientLocationType).subscribe(res =>
+               {
+                  // Assign clientLocation ids to the location
+
+                  // Persist the project
+                  this._createProject(impProject).subscribe(res =>
+                  {
+                     // Load the project to get the IDs
+
+                  }
+                  ,err => {
+                     console.warn('Error clientLocation ', clientLocation);
+                  });                     
                }
                ,err => {
                   console.warn('Error clientLocation ', clientLocation);
-               });                     
-            }
-            ,err => {
-               console.warn('Error clientLocation ', clientLocation);
-            });
-         }
-         else
-         // Handle case where client location exists, but need to persist the locations / project
-         {
-
-         }
-      }
-      console.log('ImpProject.service - pushing new geofootprint');
-*/
-
-      // .map(res => {
-      //    this.clientId = registrationResponse.clientId;
-      //    this.clientSecret = registrationResponse.clientSecret;
-      //    return new HttpHeaders().set('Authorization', 'Basic ' + btoa(registrationResponse.clientId + ':' + registrationResponse.clientSecret));
-      //    }
-      //    .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
-
-      // Convert the Typescript models into a JSON string
-      const payload: string = JSON.stringify(impProject);
-      console.log('ImpProject payload', payload);
-
-      impProject.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-
-      // TODO: Need to implement save in the data store
-//    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
-      this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
-         console.log ('result: ', result);
-         if (result.returnCode === 200)
-         {
-//            if (impProject.projectId == null)
-            {
-               impProject.projectId = result.payload;
-               console.log('saveProject - created new projectId: ' + impProject.projectId);
-
-               this.clearAll(false);
-               this.setDataUrl ('load/' + impProject.projectId);
-               console.log('## RELOADING THE PROJECT');
-               this.get(true).subscribe(res => {
-                  console.log('Project Reloaded - Ok to save again: ');
-                  this.debugLogStore('After Reload');
-                  console.log('project point in time: ', res[0].toString());
-                  impProject = res[0];
-                  for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
-                  {
-                     location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-                     console.log('location: ' + location.locationNumber + ', baseStatus: ', location.baseStatus);
-                  }
-
-                  console.log('loaded project: ', JSON.stringify(impProject));
-                  console.log('Loaded masters: ', (impProject != null && impProject.impGeofootprintMasters != null) ? JSON.stringify(impProject.impGeofootprintMasters) : null);
-                  console.log('Loaded locations: ', (impProject != null && impProject.impGeofootprintMasters != null && impProject.impGeofootprintMasters[0].impGeofootprintLocations != null) ? JSON.stringify(impProject.impGeofootprintMasters[0].impGeofootprintLocations) : null);
-
-                  // Database removals are applied, clear the list
-                  this.impGeofootprintLocationService.clearDbRemoves();
-
-                  // Deconstruct the project data into the separate data stores
-                  this.impGeofootprintMasterService.replace(impProject.impGeofootprintMasters);
-                  this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations);
-
-                  // Alert the user to the successful save
-                  this.appMessagingService.showGrowlSuccess('Project Save', 'Project ' + impProject.projectId + ' saved successfully!');
-
-                  this._storeSubject.next(this.get());
-                  // TODO: Need to update the ImpLocation subscribers that data has changed to pick up the ids                  
-               }, err =>
-               {
-                  // Alert the user to the failed save
-                  this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
-                  console.warn('Error loading project', err);
                });
+            }
+            else
+            // Handle case where client location exists, but need to persist the locations / project
+            {
 
             }
-//            else
-//               console.log('saveProject - updated projectId: ' + result.payload);
          }
-      });
+         console.log('ImpProject.service - pushing new geofootprint');
+   */
+
+         // .map(res => {
+         //    this.clientId = registrationResponse.clientId;
+         //    this.clientSecret = registrationResponse.clientSecret;
+         //    return new HttpHeaders().set('Authorization', 'Basic ' + btoa(registrationResponse.clientId + ':' + registrationResponse.clientSecret));
+         //    }
+         //    .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
+
+         // Set the base status
+         impProject.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+
+         // Convert the Typescript models into a JSON string
+         const payload: string = JSON.stringify(impProject);
+         console.log('ImpProject payload', payload);
+         console.log('posting to: ', this.appConfig.valServiceBase, 'v1/targeting/base/impproject/save');
+
+         this.impGeofootprintTradeAreaService.debugLogStore('TRADE AREAS');
+         // TODO: Need to implement save in the data store
+   //    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
+         this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
+            console.log ('result: ', result);
+            if (result.returnCode === 200)
+            {
+   //            if (impProject.projectId == null)
+               {
+                  impProject.projectId = result.payload;
+                  console.log('saveProject - created new projectId: ' + impProject.projectId);
+
+                  this.clearAll(false);
+                  this.setDataUrl ('load/' + impProject.projectId);
+                  console.log('## RELOADING THE PROJECT');
+                  this.get(true).subscribe(res => {
+                     console.log('Project Reloaded - Ok to save again: ');
+                     this.debugLogStore('After Reload');
+                     console.log('project point in time: ', res[0].toString());
+                     impProject = res[0];
+                     for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+                     {
+                        location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+                        console.log('location: ' + location.locationNumber + ', baseStatus: ', location.baseStatus);
+                     }
+
+                     console.log('loaded project: ', JSON.stringify(impProject));
+                     console.log('Loaded masters: ', (impProject != null && impProject.impGeofootprintMasters != null) ? JSON.stringify(impProject.impGeofootprintMasters) : null);
+                     console.log('Loaded locations: ', (impProject != null && impProject.impGeofootprintMasters != null && impProject.impGeofootprintMasters[0].impGeofootprintLocations != null) ? JSON.stringify(impProject.impGeofootprintMasters[0].impGeofootprintLocations) : null);
+
+                     // Database removals are applied, clear the list
+                     this.impGeofootprintLocationService.clearDbRemoves();
+
+                     // Deconstruct the project data into the separate data stores
+                     this.impGeofootprintMasterService.replace(impProject.impGeofootprintMasters);
+                     this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations);
+
+                     // Alert the user to the successful save
+                     this.appMessagingService.showGrowlSuccess('Project Save', 'Project ' + impProject.projectId + ' saved successfully!');
+
+                     this._storeSubject.next(this.get());
+               //    this.projectTransactionManager.stopTransaction();
+                  }, err =>
+                  {
+                     // Alert the user to the failed save
+                     this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
+                     console.warn('Error loading project', err);
+                     this.projectTransactionManager.stopTransaction();
+                  });
+               }
+   //            else
+   //               console.log('saveProject - updated projectId: ' + result.payload);
+            }
+         });
+      }
+      catch(error)
+      {
+         console.log('ImpProject.service.saveProject - Error saving project: ', error);
+         this.transactionManager.stopTransaction();
+      }
    }
-   
 }
