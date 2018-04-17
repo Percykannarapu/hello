@@ -220,7 +220,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
@@ -254,8 +254,14 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           });
           this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
         } else {
+
           // DE1742: display an error message if attempting to export an empty data store
-          this.messageService.showGrowlError('Error exporting location list', 'Please create sites or competitors before attempting to export location lists');
+          if (exportType && exportType.toLocaleUpperCase() === 'SITES') {
+            this.messageService.showGrowlError('Error exporting sites list', 'You must first add site locations');
+          } else if (exportType && exportType.toLocaleUpperCase() === 'COMPETITORS' ) {
+            this.messageService.showGrowlError('Error exporting competitors list', 'You must first add competitor locations');
+          }
+          
         }
       }
    }
