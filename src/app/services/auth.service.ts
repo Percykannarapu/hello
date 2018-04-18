@@ -9,6 +9,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { DataStoreServiceConfiguration, DataStore } from '../val-modules/common/services/datastore.service';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -67,7 +68,10 @@ export class AuthService implements CanActivate {
     private config: AppConfig,
     private cookieService: CookieService,
     private userService: UserService,
-    private usageService: UsageService) { }
+    private usageService: UsageService) {
+      this.clientId = this.config.clientId;
+      this.clientSecret = this.config.clientSecret;
+     }
 
   /**
    * Determine whether the requested route can be activated or not
@@ -80,8 +84,15 @@ export class AuthService implements CanActivate {
       //attempt to load oauth data saved in cookies
       if (this.loadOAuthData()) {
         this.collectLoginEvent();
-        //if the load of oauth data was successfull then refresh the token
-        return this.refreshToken(true);
+        const now: Date = new Date(Date.now());
+        const te: Date = new Date(this.tokenExpiration);
+        
+        //if the token is expired try to refresh it 
+        if (te <= now) {
+          console.log('AARON: REFRESHING TOKEN IN ROUTE GUARD');
+          return this.refreshToken(true);
+        }
+        return true;
       }
       this.router.navigate(['/login']);
       return false;
@@ -94,7 +105,7 @@ export class AuthService implements CanActivate {
    * Create a usage metric for a user accessing the application
    */
   private collectLoginEvent() {
-    if (this.userService.getUser() == null ) {
+    if (this.userService.getUser() == null) {
       console.warn('unable to retrieve user information');
       return;
     }
@@ -199,6 +210,15 @@ export class AuthService implements CanActivate {
       this.clientId != null &&
       this.clientSecret != null &&
       this.user != null) {
+
+      //boostrap the data store with the OAuth tokens
+      const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+      config.oauthToken = this.oauthToken;
+      config.tokenExpiration = this.tokenExpiration;
+      DataStore.bootstrap(config);
+      config.tokenRefreshFunction = () => this.refreshToken();
+      
+
       return true;
     }
     return false;
@@ -237,9 +257,11 @@ export class AuthService implements CanActivate {
       .set('scope', 'apim:api_view');
 
     // Send the request to the API gateway to get the client id and secret
-    return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
+    /*return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
       .map(res => this.parseRegistrationResponse(res))
-      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
+      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));*/
+    const tokenHeaders: HttpHeaders = new HttpHeaders().set('Authorization', 'Basic ' + btoa(this.clientId + ':' + this.clientSecret));
+    return this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders });
   }
 
   /**
@@ -258,11 +280,20 @@ export class AuthService implements CanActivate {
    * @returns An Observable<boolean> which will indicate whether the refresh operation was successfull or not
    */
   public refreshToken(forceLoginOnFailure?: boolean) : Observable<boolean> {
+    this.tokenStartDate = Date.now();
     this._refreshToken().subscribe(refreshResponse => {
       if (refreshResponse.access_token != null) {
         this.parseTokenResponse(refreshResponse);
         this.refreshSubject.next(true);
         this.saveOAuthData(this.userService.getUser().username);
+        
+        //populate the data store with the new token
+        const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+        config.oauthToken = this.oauthToken;
+        config.tokenExpiration = this.tokenExpiration;
+        DataStore.bootstrap(config);
+        config.tokenRefreshFunction = () => this.refreshToken();
+
       } else {
         this.refreshSubject.next(false);
       }

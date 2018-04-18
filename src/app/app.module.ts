@@ -105,7 +105,8 @@ import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeAreaDefineComponent} from './components/tradearea-define/trade-area-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
-import {RestDataService} from './val-modules/common/services/restdata.service';
+import {RestDataService, RestDataInterceptor} from './val-modules/common/services/restdata.service';
+//import {GeocoderService} from './services/geocoder.service';
 import {TransactionManager} from './val-modules/common/services/TransactionManager.service';
 import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
 import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
@@ -142,6 +143,7 @@ import { SelectedAudiencesComponent } from './components/target-audience/selecte
 import { AppMessagingService } from './services/app-messaging.service';
 import { AppRendererService } from './services/app-renderer.service';
 import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { EsriLoaderToken } from './esri-modules/configuration';
 import { PocComponent } from './poc/poc.component';
 import { PocMapComponent } from './poc/poc.map';
@@ -271,6 +273,7 @@ import { MapDispatchService } from './services/map-dispatch.service';
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
         ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService,
+        {provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true},
         MapDispatchService
     ],
     bootstrap: [AppComponent]

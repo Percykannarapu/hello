@@ -9,6 +9,10 @@ export class AppConfig implements EsriLoaderConfig {
   // The name of the environment
   public environmentName = EnvironmentData.environmentName;
 
+  // OAuth information
+  public clientId = EnvironmentData.clientId;
+  public clientSecret = EnvironmentData.clientSecret;
+
   // This controls whether or not the user is currently authenticated and will have to log in
   public authenticated: boolean = EnvironmentData.authenticated;
 
@@ -43,7 +47,7 @@ export class AppConfig implements EsriLoaderConfig {
    oAuthParams = EnvironmentData.oAuth;
 
    public val_spatialReference = this.esriConfig.defaultSpatialRef;
-   public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
+   public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
    public maxGeosPerGeoInfoQuery = 400;

@@ -6,9 +6,11 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
 import { RestResponse } from '../models/RestResponse';
 import { UserService } from './user.service';
+import { DataStore } from '../val-modules/common/services/datastore.service';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
+import { HttpHeaders } from '@angular/common/http';
 
 
 @Injectable()
@@ -43,6 +45,11 @@ export class UsageService {
         console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
       });
       return;
+    }
+
+    //If there is no OAuth token available yet wait a few seconds and try again
+    if (DataStore.getConfig().oauthToken == null) {
+      setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
     }
 
     const impMetricName = this.impMetricNameService.get().filter(item => item.namespace === metricName.namespace && item.section === metricName.section && item.target === metricName.target && item.action === metricName.action);
@@ -108,6 +115,8 @@ export class UsageService {
     impMetricCounter.metricValue = metricValue;
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
+
+    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
 
     // Send the counter data to Fuse for persistence
     return this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter));
