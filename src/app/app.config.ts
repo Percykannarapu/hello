@@ -18,7 +18,7 @@ export class AppConfig implements EsriLoaderConfig {
     dojoConfig: {
       has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
-        //'esri-promise-compatibility': 1,
+        // 'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
         // 'esri-featurelayer-webgl': 1
       }
@@ -55,6 +55,8 @@ export class AppConfig implements EsriLoaderConfig {
 
    // Can be used to hide/show debugging info
    public debugMode: boolean = EnvironmentData.debugMode;
+
+   public webGLIsAvailable: () => boolean = () => this.esriConfig.dojoConfig['has'] && (this.esriConfig.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
 
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
     switch (analysisLevel.toLowerCase()) {
