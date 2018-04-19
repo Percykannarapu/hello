@@ -89,7 +89,6 @@ export class AuthService implements CanActivate {
         
         //if the token is expired try to refresh it 
         if (te <= now) {
-          console.log('AARON: REFRESHING TOKEN IN ROUTE GUARD');
           return this.refreshToken(true);
         }
         return true;

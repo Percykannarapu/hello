@@ -27,7 +27,7 @@ export class EnvironmentData {
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
-  public static fuseBaseUrl = 'http://vallomwso002vm.val.vlss.local:8280/services-qa/';
+  public static fuseBaseUrl = 'https://services.valassislab.com/services/';
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
 
   public static esri = {
