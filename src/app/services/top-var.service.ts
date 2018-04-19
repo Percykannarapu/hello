@@ -360,7 +360,7 @@ export class TopVarService implements OnDestroy {
         map(response => response.payload)
       ).subscribe(
         resData => 
-        this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
+        this.persistGeoAttributes(resData),
         err => this.handleFuseError(err),
         () => {
           geoSub.unsubscribe();
@@ -382,6 +382,7 @@ export class TopVarService implements OnDestroy {
   }
 
   private persistGeoAttributes(geoDataMap: any) : void {
+    console.log('geoDataMap::::::', geoDataMap);
     let allAttributes = [];
     const categoryVariableMap: Map<string, string> = new Map<string, string>();
     const sub =  this.appliedTdaAudience.subscribe(res => {
