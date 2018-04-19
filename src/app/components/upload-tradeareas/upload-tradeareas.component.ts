@@ -41,6 +41,7 @@ export class UploadTradeAreasComponent implements OnInit {
   private csvParseRules: ParseRule[] = siteListUploadRules;
   public failedGeoLocList: GeoLocations[] = [];
   public analysisLevel: string = null;
+  public  geoLocList: GeoLocations[] = [];
   //private csvHeaderValidator: (foundHeaders: ParseRule[]) => boolean = siteUploadHeaderValidator;
 
   @ViewChild('tradeAreaUpload') private fileUploadEl1: FileUpload;
@@ -109,7 +110,7 @@ export class UploadTradeAreasComponent implements OnInit {
       const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.analysisLevel, true);
 
       //const filteredLocations: ImpGeofootprintLocation[] = [];
-      const geoLocList: GeoLocations[] = [];
+      
       
       //const successGeoLocMap:  Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
       const geoLocMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
@@ -133,7 +134,7 @@ export class UploadTradeAreasComponent implements OnInit {
         data.parsedData.forEach(valGeo => {
           if (impGeofootprintLocationMap.has(valGeo.STORE)){
             geocodes.push(`${valGeo.Geo}`);
-            geoLocList.push(new GeoLocations(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE)));
+            this.geoLocList.push(new GeoLocations(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE)));
             geoLocMap.set(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE));
           }
           else{
@@ -168,15 +169,12 @@ export class UploadTradeAreasComponent implements OnInit {
           //console.log('geos added:::', geosToAdd);
           this.impGeoService.add(geosToAdd);
           this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
-        
-          
-         
          
         }, null, () => {
             const failedGeocodeSet: Set<string> = new Set<string>();
             const failedGeocodeList = Array.from(geoLocMap.keys()).filter(geocode => !geocodeResultSet.has(geocode));
             failedGeocodeList.filter(geo => failedGeocodeSet.add(geo));
-            geoLocList.forEach(geoLoc => {
+            this.geoLocList.forEach(geoLoc => {
               if (failedGeocodeSet.has(geoLoc.geocode1)){
                 this.failedGeoLocList.push(new GeoLocations(geoLoc.geocode1, geoLoc.loc, `${this.analysisLevel}  ${geoLoc.geocode1}   not found`));
               }

@@ -254,6 +254,7 @@ export class TopVarService implements OnDestroy {
   }
 
   private static mapGeoAttributes(fuseData: any) : Map<string, Map<number, GeoVariableData>> {
+    console.log('restdata::::', fuseData);
     const result = new Map();
     for (const [geocode, variables] of Object.entries(fuseData)) {
       const geoMap = new Map();
@@ -342,7 +343,7 @@ export class TopVarService implements OnDestroy {
         variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
       };
       console.log('Sending geoinfo chunk to Fuse');
-      observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/lookup', inputData));
+      observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData));
     }
     return concat(...observables);
   }
@@ -356,9 +357,10 @@ export class TopVarService implements OnDestroy {
     if (addedGeos.length > 0 && this.previousVariables.size > 0) {
       const pks = Array.from(this.previousVariables).map(v => v.pk);
       const geoSub = this.getGeoData(discElement.analysisLevel, addedGeos, pks).pipe(
-        map(response => response.payload.data)
+        map(response => response.payload)
       ).subscribe(
-        resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
+        resData => 
+        this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
         err => this.handleFuseError(err),
         () => {
           geoSub.unsubscribe();
@@ -368,9 +370,9 @@ export class TopVarService implements OnDestroy {
     if (addedVars.length > 0 && this.previousGeocodes.size > 0) {
       const geos = Array.from(this.previousGeocodes);
       const varSub = this.getGeoData(discElement.analysisLevel, geos, addedVars.map(v => v.pk)).pipe(
-        map(response => response.payload.data)
+        map(response => response.payload)
       ).subscribe(
-        resData => this.persistGeoAttributes(TopVarService.mapGeoAttributes(resData)),
+        resData => this.persistGeoAttributes(resData),
         err => this.handleFuseError(err),
         () => {
           varSub.unsubscribe();
@@ -379,7 +381,30 @@ export class TopVarService implements OnDestroy {
     }
   }
 
-  private persistGeoAttributes(geoDataMap: Map<string, Map<number, GeoVariableData>>) : void {
+  private persistGeoAttributes(geoDataMap: any) : void {
+    let allAttributes = [];
+    const categoryVariableMap: Map<string, string> = new Map<string, string>();
+    const sub =  this.appliedTdaAudience.subscribe(res => {
+        res.forEach(categoryVar => {
+         categoryVariableMap.set(categoryVar.pk , categoryVar.fielddescr);
+        });
+    }, null, () =>  sub.unsubscribe());
+   
+    for (const record of geoDataMap){
+      const attribute = new ImpGeofootprintGeoAttrib({
+          attributeCode: categoryVariableMap.get(record['variablePk']),
+          attributeValue: record['score'],
+          attributeType: 'Geofootprint Variable'    
+      });
+      allAttributes = allAttributes.concat(this.geoService.createAttributesForGeos(record['geocode'], attribute));
+    }
+
+    console.log('Geo Data Attributes being added to store:', allAttributes);
+    this.attributeService.add(allAttributes);
+    
+  }
+
+  private persistGeoAttributes1(geoDataMap: Map<string, Map<number, GeoVariableData>>) : void {
     const geoKeys = Array.from(geoDataMap.keys());
     let allAttributes = [];
     for (const geo of geoKeys) {
