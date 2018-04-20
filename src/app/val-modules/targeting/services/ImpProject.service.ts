@@ -163,16 +163,53 @@ export class ImpProjectService extends DataStore<ImpProject>
          // Populate the trade areas data store
          projects[0].impGeofootprintMasters[0].impGeofootprintLocations.forEach(location =>
          {
+            // Set reverse hierarchy (Remove after refactor)
+            if (location.impGeofootprintLocAttribs != null)
+               location.impGeofootprintLocAttribs.forEach(attrib =>
+               {
+                  attrib.impGeofootprintLocation = location;
+                  attrib.impGeofootprintMaster = projects[0].impGeofootprintMasters[0];
+                  attrib.impProject = projects[0];
+               });
             // Populate the location Attributes
             this.impGeofootprintLocAttribService.add(location.impGeofootprintLocAttribs);
 
+            // Set reverse hierarchy (Remove after refactor)
+            if (location.impGeofootprintTradeAreas != null)
+               location.impGeofootprintTradeAreas.forEach(ta =>
+               {
+                  ta.impGeofootprintLocation = location;
+                  ta.impGeofootprintMaster = projects[0].impGeofootprintMasters[0];
+                  ta.impProject = projects[0];
+               });
             // Populate the trade areas data store
             this.impGeofootprintTradeAreaService.add(location.impGeofootprintTradeAreas);
 
             // Populate the geos and vars data stores
             location.impGeofootprintTradeAreas.forEach(tradeArea =>
             {
+               // Set reverse hierarchy (Remove after refactor)
+               if (tradeArea.impGeofootprintGeos != null)
+                  tradeArea.impGeofootprintGeos.forEach(geo =>
+                  {
+                     geo.impGeofootprintTradeArea = tradeArea;
+                     geo.impGeofootprintLocation = tradeArea.impGeofootprintLocation;
+                     geo.impGeofootprintMaster = tradeArea.impGeofootprintMaster;
+                     geo.impProject = projects[0];
+                  });
+               // Populate the geos data store
                this.impGeofootprintGeoService.add(tradeArea.impGeofootprintGeos);
+            
+               // Set reverse hierarchy (Remove after refactor)
+               if (tradeArea.impGeofootprintVars != null)
+                  tradeArea.impGeofootprintVars.forEach(geoVar =>
+                  {
+                     geoVar.impGeofootprintTradeArea = tradeArea;
+                     geoVar.impGeofootprintLocation = tradeArea.impGeofootprintLocation;
+                     geoVar.impGeofootprintMaster = tradeArea.impGeofootprintMaster;
+                     geoVar.impProject = projects[0];
+                  });
+               // Populate the vars data store
                this.impGeofootprintVarService.add(tradeArea.impGeofootprintVars);
             });
          });
