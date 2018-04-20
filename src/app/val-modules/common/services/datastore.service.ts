@@ -102,10 +102,12 @@ export class DataStore<T>
                console.log('** Empty **');
          }
          else
-            if (this._storeSubject && this._storeSubject.getValue())
+            if (this._storeSubject && this._storeSubject.getValue() && this._storeSubject.getValue().length > 0)
                for (let i = 0; i < this._storeSubject.getValue().length; i++)
                   console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
-      }
+            else
+               console.log('** Empty **');
+         }
       catch (e)
       {
          console.log('** Empty **');

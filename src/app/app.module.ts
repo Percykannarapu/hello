@@ -147,6 +147,7 @@ import { PocComponent } from './poc/poc.component';
 import { PocMapComponent } from './poc/poc.map';
 import { MetricService } from './val-modules/common/services/metric.service';
 import { MapDispatchService } from './services/map-dispatch.service';
+import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 
 @NgModule({
     imports: [
@@ -263,7 +264,7 @@ import { MapDispatchService } from './services/map-dispatch.service';
         MapService, RestDataService, MetricService,
         EsriModules, ValLayerService, AppState,
         ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
-        ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
+        ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, EsriLayerService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,

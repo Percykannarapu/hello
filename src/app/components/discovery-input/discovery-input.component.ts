@@ -1,3 +1,4 @@
+import { ImpGeofootprintTradeAreaService } from './../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppConfig } from '../../app.config';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { UserService } from '../../services/user.service';
@@ -75,6 +76,7 @@ export class DiscoveryInputComponent implements OnInit
                public  impProjectService: ImpProjectService,
                public  impRadLookupService: ImpRadLookupService,
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public  impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                public  userService: UserService,
                private http: HttpClient,
                private appState: AppState,
@@ -406,6 +408,11 @@ export class DiscoveryInputComponent implements OnInit
       this.impProjectService.transactionManager.stopTransaction();
    }
 
+   public onLogTradeAreas()
+   {
+      this.impGeofootprintTradeAreaService.debugLogStore('TRADE AREAS');
+   }
+
    public loadProject()
    {
       console.log('discovery-input.component - loadProject fired');
@@ -424,7 +431,6 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
-
    }
 
    fetchRadData() {

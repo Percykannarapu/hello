@@ -1,21 +1,21 @@
-/** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
+/** A IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
  **
- ** Generated from VAL_ENTITY_GEN - v2.01
+ ** Generated from VAL_BASE_GEN - v1.02
  **/
-
+import { BaseModel } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpProject } from './ImpProject';
 
-export class ImpGeofootprintGeo
+export class ImpGeofootprintGeo extends BaseModel
 {
    public ggId:                         number;                        /// Primary key uniquely identifying a geofootprint row
    public geocode:                      string;                        /// The geography
    public geoSortOrder:                 number;                        /// Geography sort order
    public hhc:                          number;                        /// Household count
-   public xCoord:                       number;                        /// x_coord is longitude
-   public yCoord:                       number;                        /// y_coord is latitude
+   public xcoord:                       number;                        /// x_coord is longitude
+   public ycoord:                       number;                        /// y_coord is latitude
    public distance:                     number;                        /// Geocodes distance to the location
    public isActive:                     number;
 
@@ -31,7 +31,8 @@ export class ImpGeofootprintGeo
    public impProject:                   ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpGeofootprintGeo>) {
+   constructor(data?: Partial<ImpGeofootprintGeo>) {
+      super();
       Object.assign(this, data);
    }
 
@@ -48,8 +49,8 @@ export class ImpGeofootprintGeo
          ['geocode',                       'string'],
          ['geoSortOrder',                  'number'],
          ['hhc',                           'number'],
-         ['xCoord',                        'number'],
-         ['yCoord',                        'number'],
+         ['xcoord',                        'number'],
+         ['ycoord',                        'number'],
          ['distance',                      'number'],
          ['isActive',                      'number']
          ]);
