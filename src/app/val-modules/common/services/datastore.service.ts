@@ -573,7 +573,7 @@ export class DataStore<T>
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
       this.currStoreId = 1;
-      this.debugLogStore('Store after clearAll');
+//    this.debugLogStore('Store after clearAll');
 
       // There are times where you want to clear as part of transaction and notify at the end
       if (notifySubscribers)

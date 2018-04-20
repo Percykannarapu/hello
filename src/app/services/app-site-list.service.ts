@@ -213,7 +213,7 @@ export class ValSiteListService implements OnDestroy {
     const updatedAttributes = localAttributes.filter(a => uiSet.has(a.impGeofootprintLocation) && !newSites.has(a.impGeofootprintLocation));
 
     for (const location of Array.from(locationSet))
-       if (location.clientIdentifierTypeCode == null)
+       if (location != null && location.clientIdentifierTypeCode == null)
           location.clientIdentifierTypeCode = 'PROJECT_ID';
 
     // adds

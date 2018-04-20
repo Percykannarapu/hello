@@ -122,10 +122,12 @@ export class ValTradeAreaService implements OnDestroy {
     const clientBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     const competitorBufferMap = new Map<ImpGeofootprintLocation, number[]>();
     for (const [k, v] of Array.from(taMap.entries())) {
-      if (k.clientLocationTypeCode === 'Site') {
-        clientBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
-      } else {
-        competitorBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
+      if (k != null) {
+         if (k.clientLocationTypeCode === 'Site') {
+         clientBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
+         } else {
+         competitorBufferMap.set(k, v.filter(ta => ta.isActive === 1).map(ta => ta.taRadius));
+         }
       }
     }
     this.clientMergeFlag = this.currentDefaults.has('Site') && this.currentDefaults.get('Site').merge;
