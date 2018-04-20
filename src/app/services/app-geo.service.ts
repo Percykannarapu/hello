@@ -110,8 +110,14 @@ export class ValGeoService implements OnDestroy {
         err => console.error(err),
         () => {
           let geosToPersist: ImpGeofootprintGeo[] = [];
+          let count: number = 0;
           radii.forEach(radius => {
-            geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), allSelectedData));
+            if (radii.length > 1 && count > 0) {
+              geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), allSelectedData, radii[count - 1]));
+            } else {
+              geosToPersist = geosToPersist.concat(this.createGeosToPersist(radius, queryMap.get(radius), allSelectedData));
+            }
+            count++;
           });
           this.geoService.add(geosToPersist);
           sub.unsubscribe();
@@ -141,7 +147,8 @@ export class ValGeoService implements OnDestroy {
     this.attributeService.remove(deletedAttributes);
   }
 
-  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[], previousRadius?: number) : ImpGeofootprintGeo[] {
+    if (!previousRadius) previousRadius = 0;
     const locationSet = new Set(locations);
     const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
     const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
@@ -170,7 +177,7 @@ export class ValGeoService implements OnDestroy {
       locations.forEach(loc => {
         if (EsriUtils.geometryIsPoint(graphic.geometry)) {
           const currentDistance = EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
-          if (currentDistance <= radius) {
+          if (currentDistance <= radius && currentDistance > previousRadius) {
             const currentTradeAreas = tradeAreaMap.get(loc);
             if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
               if (currentTradeAreas.length === 1) {

@@ -39,9 +39,10 @@ export class ValMapService implements OnDestroy {
   private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
   private currentGeocodeList: string[] = [];
-  private layerSelectionRefresh: () => void;
 
-  private currentObjectIds: number[] = [];
+  private useWebGLHighlighting: boolean;
+  private layerSelectionRefresh: () => void;
+  private highlightHandler: any;
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
@@ -51,6 +52,7 @@ export class ValMapService implements OnDestroy {
               private messageService: MessageService, private rendererService: AppRendererService,
               private usageService: UsageService) {
     this.currentAnalysisLevel = '';
+    this.useWebGLHighlighting = this.config.webGLIsAvailable();
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.siteSubscription = this.siteService.allClientSites$.pipe(
@@ -132,13 +134,14 @@ export class ValMapService implements OnDestroy {
   }
 
   private onGeocodeListChanged(geocodes: string[]) {
+    if ((geocodes == null || geocodes.length === 0) && this.currentGeocodeList.length === 0) return;
     const currentGeocodes = new Set(this.currentGeocodeList);
     const adds = geocodes.filter(g => !currentGeocodes.has(g));
     this.currentGeocodeList = Array.from(geocodes);
     if (adds.length > 0) {
-      //this.getObjectIds(adds, this.currentAnalysisLevel);
       this.getGeoAttributes(adds, this.currentAnalysisLevel);
     }
+    this.setHighlight(this.currentGeocodeList, this.currentAnalysisLevel);
     if (this.layerSelectionRefresh) this.layerSelectionRefresh();
   }
 
@@ -287,7 +290,7 @@ export class ValMapService implements OnDestroy {
    }
 
   private setupSelectionRenderer(currentAnalysisLevel: string) {
-    if (currentAnalysisLevel == null || currentAnalysisLevel === '') return;
+    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(portalId);
     if (EsriUtils.rendererIsSimple(layer.renderer)) {
@@ -299,8 +302,8 @@ export class ValMapService implements OnDestroy {
     }
   }
 
-  private getObjectIds(geocodes: string[], currentAnalysisLevel: string) {
-    console.log('Querying Object Ids');
+  private setHighlight(geocodes: string[], currentAnalysisLevel: string) {
+    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || !this.useWebGLHighlighting) return;
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
     const query = new EsriModules.Query({
@@ -308,10 +311,10 @@ export class ValMapService implements OnDestroy {
     });
     const sub = this.queryService.executeObjectIdQuery(boundaryLayerId, query).subscribe(ids => {
       console.log('Object Ids query returned', ids);
-      this.currentObjectIds = this.currentObjectIds.concat(ids);
       this.mapService.mapView.whenLayerView(layer).then((lv: __esri.FeatureLayerView) => {
         console.log('Highlighting');
-        lv.highlight(this.currentObjectIds);
+        if (this.highlightHandler != null) this.highlightHandler.remove();
+        this.highlightHandler = lv.highlight(ids);
         if (sub) sub.unsubscribe();
       });
     });

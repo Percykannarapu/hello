@@ -9,6 +9,10 @@ export class AppConfig implements EsriLoaderConfig {
   // The name of the environment
   public environmentName = EnvironmentData.environmentName;
 
+  // OAuth information
+  public clientId = EnvironmentData.clientId;
+  public clientSecret = EnvironmentData.clientSecret;
+
   // This controls whether or not the user is currently authenticated and will have to log in
   public authenticated: boolean = EnvironmentData.authenticated;
 
@@ -18,7 +22,7 @@ export class AppConfig implements EsriLoaderConfig {
     dojoConfig: {
       has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
-        //'esri-promise-compatibility': 1,
+        // 'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
         // 'esri-featurelayer-webgl': 1
       }
@@ -43,7 +47,7 @@ export class AppConfig implements EsriLoaderConfig {
    oAuthParams = EnvironmentData.oAuth;
 
    public val_spatialReference = this.esriConfig.defaultSpatialRef;
-   public valServiceBase = `${EnvironmentData.fuseBaseUrl}services/`;
+   public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
    public maxGeosPerGeoInfoQuery = 400;
@@ -55,6 +59,8 @@ export class AppConfig implements EsriLoaderConfig {
 
    // Can be used to hide/show debugging info
    public debugMode: boolean = EnvironmentData.debugMode;
+
+   public webGLIsAvailable: () => boolean = () => this.esriConfig.dojoConfig['has'] && (this.esriConfig.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
 
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
     switch (analysisLevel.toLowerCase()) {

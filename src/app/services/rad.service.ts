@@ -10,6 +10,8 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { AuthService } from './auth.service';
+import { UserService } from './user.service';
 
 @Injectable()
 export class RadService {
@@ -25,13 +27,18 @@ export class RadService {
     private metricService: MetricService,
     private httpClient: HttpClient,
     private locationService: ImpGeofootprintLocationService,
-    private geoService: ImpGeofootprintGeoService) {
+    private geoService: ImpGeofootprintGeoService,
+    private authService: AuthService,
+    private userService: UserService) {
 
     //Subscribe to the impDiscoveryService
     this.impDiscoveryService.storeObservable.subscribe(discoveryData => this.filterRad(), error => this.handleError(error));
 
     //Subscribe to the metrics service
     this.metricService.observeMetrics().subscribe(message => this.calculateMetrics(message));
+
+    // load the RAD data after the user has been logged in
+    this.userService.userObservable.take(1).subscribe(res => this.fetchRadData(res));
   }
 
   /**
@@ -128,9 +135,11 @@ export class RadService {
   /**
    * Fetch the RAD data from the Fuse service and store it locally in memory
    */
-  public fetchRadData() {
+  public fetchRadData(user: any) {
+    //const token: string = this.authService.getOauthToken();
+    //console.log('AARON: FETCHING RAD DATA', token);
+    //const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + token);
     this.httpClient.get<RestResponse>(this.radUrl).subscribe(resp => this.parseResponse(resp), error => this.handleError(error));
-
   }
 
   private parseResponse(resp: RestResponse) {
@@ -151,6 +160,7 @@ export class RadService {
   }
 
   private handleError(error: Error) {
+    console.log('AARON: FAILED TO GET RAD DATA');
     console.error(error);
   }
 

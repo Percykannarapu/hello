@@ -16,6 +16,10 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'QA';
 
+  // OAuth information
+  public static clientId = 'cm246JqFF4EU5rbBlkftIf6olI8a';
+  public static clientSecret = 'MnfaK8NczJl884o0DpxRKWG0D_Ua';
+
   // Can be used to hide/show debugging info
   public static debugMode: boolean = false;
 
@@ -23,7 +27,7 @@ export class EnvironmentData {
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
-  public static fuseBaseUrl = 'https://services.valassislab.com/';
+  public static fuseBaseUrl = 'https://services.valassislab.com/services/';
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
 
   public static esri = {

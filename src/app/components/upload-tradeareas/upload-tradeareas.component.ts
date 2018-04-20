@@ -23,9 +23,10 @@ import { UsageService } from '../../services/usage.service';
 
 class GeoLocations {
 
-  constructor(private geocode: string, private location:  ImpGeofootprintLocation){}
+  constructor(private geocode: string, private location:  ImpGeofootprintLocation, private message?: string){}
   geocode1: string = this.geocode;
   loc: ImpGeofootprintLocation = this.location;
+  msg: string = this.message;
 }
 
 @Component({
@@ -39,6 +40,8 @@ export class UploadTradeAreasComponent implements OnInit {
   public impGeofootprintLocations: ImpGeofootprintLocation[];
   private csvParseRules: ParseRule[] = siteListUploadRules;
   public failedGeoLocList: GeoLocations[] = [];
+  public analysisLevel: string = null;
+  public  geoLocList: GeoLocations[] = [];
   //private csvHeaderValidator: (foundHeaders: ParseRule[]) => boolean = siteUploadHeaderValidator;
 
   @ViewChild('tradeAreaUpload') private fileUploadEl1: FileUpload;
@@ -103,13 +106,13 @@ export class UploadTradeAreasComponent implements OnInit {
     try {
       const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
       let customIndex: number = 0;
-      const analysisLevel = discoveryUI[0].analysisLevel;
-      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, true);
+      this.analysisLevel = discoveryUI[0].analysisLevel;
+      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.analysisLevel, true);
 
-      const filteredLocations: ImpGeofootprintLocation[] = [];
-      const geoLocList: GeoLocations[] = [];
+      //const filteredLocations: ImpGeofootprintLocation[] = [];
       
-      const successGeoLocMap:  Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
+      
+      //const successGeoLocMap:  Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
       const geoLocMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
 
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
@@ -123,43 +126,41 @@ export class UploadTradeAreasComponent implements OnInit {
       if (headerCheck.length == 2) {
 
         const geocodes = [] ;
-
-        data.parsedData.forEach(valGeo => {
-          this.impGeofootprintLocationService.get().forEach(loc => {
-            if (valGeo.STORE == loc.locationNumber){
-               geocodes.push(`${valGeo.Geo}`);
-               filteredLocations.push(loc);
-               geoLocList.push(new GeoLocations(valGeo.Geo, loc));
-               geoLocMap.set(valGeo.Geo, loc);
-
-            }
-          });
+        const impGeofootprintLocationMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
+        this.impGeofootprintLocationService.get().forEach(loc => {
+          impGeofootprintLocationMap.set(loc.locationNumber.toString(), loc);
         });
 
-        //console.log('number of geocodes:::', geocodes);
+        data.parsedData.forEach(valGeo => {
+          if (impGeofootprintLocationMap.has(valGeo.STORE)){
+            geocodes.push(`${valGeo.Geo}`);
+            this.geoLocList.push(new GeoLocations(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE)));
+            geoLocMap.set(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE));
+          }
+          else{
+            this.failedGeoLocList.push(new GeoLocations(valGeo.Geo, null, `$Site Number ${valGeo.STORE}  not found`));
+          }
+        });
+
         const outfields = [];
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
-       // tradeAreasForInsert = this.impGeofootprintTradeAreaService.get();
+        const geosToAdd: ImpGeofootprintGeo[] = [];
+        const geocodeResultSet: Set<string> = new Set<string>();
+        //let failedGeocodeList = null;
+        
         outfields.push('geocode');
         const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true, outfields).subscribe(graphics => {
-          const geosToAdd: ImpGeofootprintGeo[] = [];
-         // console.log('graphic:::::', graphics);
-         if (graphics.length === 0)
-              this.failedGeoLocList = geoLocList;
-         const geocodeResultSet: Set<string> = new Set<string>();
-          graphics.forEach(graphic => {
-            //console.log('test', graphic);
+        graphics.forEach(graphic => {
                 if (geoLocMap.has(graphic.attributes['geocode'])){
                   const geocode = graphic.attributes['geocode'];
                   const loc: ImpGeofootprintLocation = geoLocMap.get(geocode);
                   geocodeResultSet.add(geocode);
                   
                   customIndex++;
-                  successGeoLocMap.set(geocode, loc);
+                  //successGeoLocMap.set(geocode, loc);
                   const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
                   const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
-                  const geocodeDistance =  EsriUtils.getDistance(longitude, latitude,
-                                                                 loc.xcoord, loc.ycoord);
+                  const geocodeDistance =  EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
                   const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
                   geosToAdd.push(this.createGeo(geocodeDistance, point, loc, graphic.attributes['geocode']));
                   tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'UPLOADGEO CUSTOM'));
@@ -168,14 +169,24 @@ export class UploadTradeAreasComponent implements OnInit {
           //console.log('geos added:::', geosToAdd);
           this.impGeoService.add(geosToAdd);
           this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
-          const failedGeocodeList = Array.from(geoLocMap.keys()).filter(geocode => !geocodeResultSet.has(geocode));
-          this.failedGeoLocList = geoLocList.filter(geocode => failedGeocodeList.includes(geocode.geocode1));
+         
+        }, null, () => {
+            const failedGeocodeSet: Set<string> = new Set<string>();
+            const failedGeocodeList = Array.from(geoLocMap.keys()).filter(geocode => !geocodeResultSet.has(geocode));
+            failedGeocodeList.filter(geo => failedGeocodeSet.add(geo));
+            this.geoLocList.forEach(geoLoc => {
+              if (failedGeocodeSet.has(geoLoc.geocode1)){
+                this.failedGeoLocList.push(new GeoLocations(geoLoc.geocode1, geoLoc.loc, `${this.analysisLevel}  ${geoLoc.geocode1}   not found`));
+              }
+            });
+            if (sub)
+                sub.unsubscribe();
         });
       } else {
         this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
         console.log('Set A validation message', header);
       }
-
+     
       this.fileUploadEl1.clear();
       //this.fileUploadEl1.basicFileInput.nativeElement.value = '';
 

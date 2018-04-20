@@ -21,10 +21,11 @@
     </div>
     <div *ngIf="failedGeoLocList.length > 0" class="ui-g-7">
       <p-dataTable [value]="failedGeoLocList" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-        <p-header>Detected {{(failedGeoLocList.length) || 0}} geoLocation failures</p-header>
+        <p-header>Detected {{(failedGeoLocList.length) || 0}} {{analysisLevel}} upload failures out of {{geoLocList.length}} rows</p-header>
         <!-- <p-column field="Number" [hidden]="true"></p-column> -->
         <p-column field="geocode" header="Geocode" [editable]="true"></p-column>
         <p-column field="loc.locationNumber" header="Number" [editable]="true"></p-column>
+        <p-column field="message" header="Status" [editable]="false"></p-column>
        
         <p-column header="Resubmit">
           <ng-template let-h="rowData" pTemplate="body">

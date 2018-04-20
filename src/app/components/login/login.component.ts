@@ -37,6 +37,11 @@ export class LoginComponent implements OnInit {
     this.messageService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
+//        this.displayLoginSpinner = false;
+//        this.createUser(loginForm.value.username);
+//        this.bootstrapDataStore();
+//        this.router.navigate(['/']);
+          this.bootstrapDataStore();
           this.fetchUserInfo(loginForm.value.username);
       }
       else {
@@ -55,7 +60,6 @@ export class LoginComponent implements OnInit {
     this.userService.fetchUserRecord(username).subscribe(user => {
       if (user != null) {
         this.createUser(username, user);
-        this.bootstrapDataStore();
         this.messageService.stopSpinnerDialog(this.spinnerKey);
         this.router.navigate(['/']);
       } else {
@@ -75,7 +79,7 @@ export class LoginComponent implements OnInit {
     const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
     config.oauthToken = this.authService.getOauthToken();
     config.tokenExpiration = this.authService.getTokenExpiration();
-    config.tokenRefreshFunction = this.authService.refreshToken;
+    config.tokenRefreshFunction = () => this.authService.refreshToken();
     DataStore.bootstrap(config);
   }
 

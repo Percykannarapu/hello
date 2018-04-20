@@ -262,9 +262,6 @@ export class DataStore<T>
     */
    public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
-      if(DataStore.dataStoreServiceConfiguration != null) {
-         console.log('the oauth token in the data store is: ', DataStore.dataStoreServiceConfiguration.oauthToken);
-      }
       let success: boolean = true;
       let localCache: T[];
       let numSuccesses: number = 0;

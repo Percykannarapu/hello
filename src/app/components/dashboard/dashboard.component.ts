@@ -9,6 +9,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { RadService } from '../../services/rad.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { UserService } from '../../services/user.service';
+import 'rxjs/add/operator/take';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -49,10 +50,7 @@ export class DashboardComponent implements OnInit {
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
     ngOnInit() {
-
-        // load the RAD data
-        this.radService.fetchRadData();
-
+      
         // Load models
         this.metricMapGreen = new Map([
             ['# of Sites', '0'],

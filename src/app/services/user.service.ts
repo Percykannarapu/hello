@@ -7,7 +7,7 @@ import { AppConfig } from '../app.config';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RestResponse } from '../models/RestResponse';
 import { CookieService } from 'ngx-cookie-service';
-
+import { DataStore } from '../val-modules/common/services/datastore.service';
 @Injectable()
 export class UserService {
 
@@ -88,7 +88,7 @@ export class UserService {
    * @returns An Observable<RestResponse>
    */
   private _fetchUserRecord(username: string) : Observable<RestResponse> {
-    const headers: HttpHeaders = new HttpHeaders().set('username', username);
+    const headers: HttpHeaders = new HttpHeaders().set('username', username).set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
     const url: string = this.config.valServiceBase + 'v1/targeting/base/targetingcatalogquery/lookupCrossbowUserByLoginName/' + username;
     return this.httpClient.get<RestResponse>(url, {headers: headers});
   }
