@@ -1,8 +1,16 @@
-import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
+import { ImpGeofootprintMaster } from './../models/ImpGeofootprintMaster';
+import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttrib } from './../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeArea } from './../models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintGeo } from './../models/ImpGeofootprintGeo';
+import { ImpGeofootprintGeoService } from './ImpGeofootprintGeo.service';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
+import { TransactionManager } from './../../common/services/TransactionManager.service';
+import { InTransaction } from './../../common/services/datastore.service'
 import { AppMessagingService } from './../../../services/app-messaging.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpClientLocationType } from './../../client/models/ImpClientLocationType';
@@ -28,9 +36,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { UserService } from '../../../services/user.service';
-import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
-import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.service';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { RestResponse } from '../../../models/RestResponse';
 import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
@@ -53,6 +58,8 @@ export class ImpProjectService extends DataStore<ImpProject>
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
                public impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
                public impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+               public impGeofootprintGeoService: ImpGeofootprintGeoService,
+               public impGeofootprintVarService: ImpGeofootprintVarService,
                public impDiscoveryService: ImpDiscoveryService,
                public userService: UserService,
                public appConfig: AppConfig,
@@ -79,9 +86,15 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.dataUrl = restUrl + 'load/' + projectId;
 
       // Clear out the decentralized data stores
-      this.impGeofootprintLocationService.clearAll(true);
-      this.impGeofootprintMasterService.clearAll(true);      
+      this.impGeofootprintVarService.clearAll(false);
+      this.impGeofootprintGeoService.clearAll(false);
+      this.impGeofootprintTradeAreaService.clearAll(false);
+      this.impGeofootprintLocAttribService.clearAll(false);
+      this.impGeofootprintLocationService.clearAll(false);
+      this.impGeofootprintMasterService.clearAll(false);
+      
       let project: ImpProject = this.get()[0];
+
       if (project != null && project.impGeofootprintMasters != null)
       {
          project.impGeofootprintMasters[0].impGeofootprintLocations = null;
@@ -89,19 +102,36 @@ export class ImpProjectService extends DataStore<ImpProject>
       }
 
       this.get(true, true, InTransaction.false).subscribe(res => {
-         this.populateLocations(res);
+         this.populateDataStores(res);
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
          this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully!');
-//         this.projectTransactionManager.stopTransaction();
-      }, err =>
+
+         // Debug print the data stores
+         this.impGeofootprintVarService.debugLogStore('LOADED VARS');
+         this.impGeofootprintGeoService.debugLogStore('LOADED GEOS');
+         this.impGeofootprintTradeAreaService.debugLogStore('LOADED TRADE AREAS');
+         this.impGeofootprintLocAttribService.debugLogStore('LOADED LOCATION ATTRIBUTES');
+         this.impGeofootprintLocationService.debugLogStore('LOADED LOCATIONS');
+         this.impGeofootprintMasterService.debugLogStore('LOADED MASTERS');
+
+         this.projectTransactionManager.stopTransaction();         
+      },
+      err =>
       {
+         // Clear all data stores
+         this.impGeofootprintVarService.clearAll(false);
+         this.impGeofootprintGeoService.clearAll(false);
+         this.impGeofootprintTradeAreaService.clearAll(false);
+         this.impGeofootprintLocAttribService.clearAll(false);
+         this.impGeofootprintLocationService.clearAll(false);
+         this.impGeofootprintMasterService.clearAll(false);
+         
          // Alert the user to the failed load
          this.appMessagingService.showGrowlError('Project Load', 'Project failed to load.');
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
          this.projectTransactionManager.stopTransaction();
          console.warn('Error loading project', err);
       });
-
 
       // TODO: Should we handle onBeforeLoad?
       // this.get(true,true, p => this.onBeforeLoadProject(p), p => this.populateLocations(p));
@@ -113,20 +143,76 @@ export class ImpProjectService extends DataStore<ImpProject>
       return true;
    }
 
-   populateLocations(projects: ImpProject[]) //: ImpProject[]
+   /**
+    * Performed after a load to rehydrate the decentralized data stores
+    * 
+    * @param projects Projects to rehydrate the data stores with
+    */
+   populateDataStores(projects: ImpProject[]) //: ImpProject[]
    {
       if (projects != null && projects.length > 0)
       {
          console.log('ImpProject.service.populateLocations - fired', projects);
 
-         // Put the locations into the location service
+         // Populate the geofootprint master
+         this.impGeofootprintMasterService.add(projects[0].impGeofootprintMasters);
+
+         // Populate the locations data store
          this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
-         console.log('--[ TEST LOCATION ATTRIBUTE PRINT FOR SITE 0 ]------------------------')
-         if (projects[0].impGeofootprintMasters[0].impGeofootprintLocations != null &&
-             projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs != null)
-            console.log(projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs.toString());
-         else
-            console.log('projects[0].impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintLocAttribs was null');
+
+         // Populate the trade areas data store
+         projects[0].impGeofootprintMasters[0].impGeofootprintLocations.forEach(location =>
+         {
+            // Set reverse hierarchy (Remove after refactor)
+            if (location.impGeofootprintLocAttribs != null)
+               location.impGeofootprintLocAttribs.forEach(attrib =>
+               {
+                  attrib.impGeofootprintLocation = location;
+                  attrib.impGeofootprintMaster = projects[0].impGeofootprintMasters[0];
+                  attrib.impProject = projects[0];
+               });
+            // Populate the location Attributes
+            this.impGeofootprintLocAttribService.add(location.impGeofootprintLocAttribs);
+
+            // Set reverse hierarchy (Remove after refactor)
+            if (location.impGeofootprintTradeAreas != null)
+               location.impGeofootprintTradeAreas.forEach(ta =>
+               {
+                  ta.impGeofootprintLocation = location;
+                  ta.impGeofootprintMaster = projects[0].impGeofootprintMasters[0];
+                  ta.impProject = projects[0];
+               });
+            // Populate the trade areas data store
+            this.impGeofootprintTradeAreaService.add(location.impGeofootprintTradeAreas);
+
+            // Populate the geos and vars data stores
+            location.impGeofootprintTradeAreas.forEach(tradeArea =>
+            {
+               // Set reverse hierarchy (Remove after refactor)
+               if (tradeArea.impGeofootprintGeos != null)
+                  tradeArea.impGeofootprintGeos.forEach(geo =>
+                  {
+                     geo.impGeofootprintTradeArea = tradeArea;
+                     geo.impGeofootprintLocation = tradeArea.impGeofootprintLocation;
+                     geo.impGeofootprintMaster = tradeArea.impGeofootprintMaster;
+                     geo.impProject = projects[0];
+                  });
+               // Populate the geos data store
+               this.impGeofootprintGeoService.add(tradeArea.impGeofootprintGeos);
+            
+               // Set reverse hierarchy (Remove after refactor)
+               if (tradeArea.impGeofootprintVars != null)
+                  tradeArea.impGeofootprintVars.forEach(geoVar =>
+                  {
+                     geoVar.impGeofootprintTradeArea = tradeArea;
+                     geoVar.impGeofootprintLocation = tradeArea.impGeofootprintLocation;
+                     geoVar.impGeofootprintMaster = tradeArea.impGeofootprintMaster;
+                     geoVar.impProject = projects[0];
+                  });
+               // Populate the vars data store
+               this.impGeofootprintVarService.add(tradeArea.impGeofootprintVars);
+            });
+         });
          return projects;
       }
       else
@@ -138,7 +224,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.dataUrl = restUrl + newDataUrl;
    }
 
-     /**
+   /**
    * Parse the response from the registration request that was sent to the API gateway
    * @returns A HTTP Authorization header that can be used in the token request to the API gateway
    */
@@ -173,6 +259,7 @@ export class ImpProjectService extends DataStore<ImpProject>
    saveProject()
    {
       console.log('ImpProject.service.saveProject fired');
+      
       this.projectTransactionManager.startTransaction();
       try
       {
@@ -184,7 +271,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          let impDiscoveryUI: ImpDiscoveryUI =  this.impDiscoveryService.get()[0];
 
          // Create Geofootprint Array if needed
-         console.log('ImpProject.service - populating geofootprint master');
+         console.log('ImpProject.service.saveProject - populating geofootprint master');
          if (!impProject.impGeofootprintMasters)
             impProject.impGeofootprintMasters = new Array<ImpGeofootprintMaster>();
 
@@ -204,10 +291,14 @@ export class ImpProjectService extends DataStore<ImpProject>
             impProject.impGeofootprintMasters.push(newCGM);
          }
 
-         console.log('ImpProject.service - Adding locations to the geofootprint master');
+         console.log('ImpProject.service.saveProject - Adding locations to the geofootprint master');
          impProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impGeofootprintLocationService.get();
 
-         const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get();
+         const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get().filter(attrib => attrib.attributeValue != null
+                                                                                                                                     && attrib.attributeValue != "");
+         const impGeofootprintTradeAreas: Array<ImpGeofootprintTradeArea> = this.impGeofootprintTradeAreaService.get();
+         const impGeofootprintGeos:       Array<ImpGeofootprintGeo>       = this.impGeofootprintGeoService.get();
+         const impGeofootprintVars:       Array<ImpGeofootprintVar>       = this.impGeofootprintVarService.get();
 
          // Dedupe the location attributes
          this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
@@ -221,9 +312,7 @@ export class ImpProjectService extends DataStore<ImpProject>
             let location: ImpGeofootprintLocation[] = impProject.impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.locationNumber == locationAttrib.impGeofootprintLocation.locationNumber && locationAttrib.attributeValue != null)
          }
 */
-         // Problem is, we need trade areas under the locations
          // TODO: This should be coming from the ImpGeofootprintTradeAreaService
-
          if (impProject == null)
             console.error ('impProject is null');
          else
@@ -238,25 +327,19 @@ export class ImpProjectService extends DataStore<ImpProject>
             try
             {
                console.log('processing location: ', location);
-               // Todo:  Is this filter filtering impGeofootprintLocAttributes or giving back a new array?
-               //        The code below is not pulling back the rank 0s
-
                impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
-               impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(attrib =>
-//                                                                                                attrib.impGeofootprintLocation.locationNumber == impLocation.locationNumber
-                                                                                                attrib.impGeofootprintLocation != null
-                                                                                             && attrib.impGeofootprintLocation == impLocation
-                                                                                             && attrib.attributeValue != null
-                                                                                             && attrib['rank'] === 0
-                                                                                       );
+               impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(attrib => attrib.impGeofootprintLocation != null
+                                                                                               && attrib.impGeofootprintLocation == impLocation
+                                                                                               && attrib.attributeValue != null
+                                                                                               && attrib['rank'] === 0);
 
                if (impLocation.impGeofootprintLocAttribs != null)
                {
                   // Remove the circular references and stub mandatory fields
                   impLocation.impGeofootprintLocAttribs.forEach(attrib => {
-                     delete attrib["impGeofootprintLocation"];  
-                     delete attrib["impGeofootprintMaster"];  
-                     delete attrib["impProject"];                                       
+                     delete attrib["impGeofootprintLocation"];
+                     delete attrib["impGeofootprintMaster"];
+                     delete attrib["impProject"];
                      attrib.dirty = true;
                      attrib.baseStatus    = (attrib.locAttributeId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
                      attrib.createUser    = this.userService.getUser().userId;
@@ -271,6 +354,73 @@ export class ImpProjectService extends DataStore<ImpProject>
                else
                   console.log('location: ', impLocation.locationNumber, ' did not have any attributes');
 
+               // Map in Trade Areas
+               impLocation.impGeofootprintTradeAreas = impGeofootprintTradeAreas.filter(tradeArea => tradeArea.impGeofootprintLocation != null
+                                                                                                  && tradeArea.impGeofootprintLocation == impLocation);
+
+               if (impLocation.impGeofootprintTradeAreas != null)
+               {
+                  console.log('location: ', impLocation.locationNumber, ' has ', impLocation.impGeofootprintTradeAreas.length, ' trade areas');
+                  // Remove the circular references and stub mandatory fields
+                  impLocation.impGeofootprintTradeAreas.forEach(tradeArea =>
+                  {
+                     delete tradeArea["impGeofootprintLocation"];  
+                     delete tradeArea["impGeofootprintMaster"];  
+                     delete tradeArea["impProject"];                                       
+                     tradeArea.dirty = true;
+
+                     // Remove stubbed gtaIds
+                     if (tradeArea.gtaId < 1000)
+                        tradeArea.gtaId = null;
+
+                     tradeArea.baseStatus = (tradeArea.gtaId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+                     tradeArea.isActive   = 1;
+
+                     // Map in geos
+                     tradeArea.impGeofootprintGeos = impGeofootprintGeos.filter(geo => geo.impGeofootprintTradeArea != null
+                                                                                    && geo.impGeofootprintTradeArea == tradeArea);
+
+                     tradeArea.impGeofootprintGeos.forEach(geo =>
+                     {
+                        delete geo["impGeofootprintLocation"];
+                        delete geo["impGeofootprintMaster"];
+                        delete geo["impGeofootprintTradeArea"];
+                        delete geo["impProject"];
+                                             
+                        geo.dirty = true;
+   
+                        // Remove stubbed ggIds
+                        if (geo.ggId < 1000)
+                           geo.ggId = null;
+   
+                        geo.baseStatus = (geo.ggId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+                        geo.isActive   = 1;                        
+                     });
+/*
+                     // Map in vars
+                     tradeArea.impGeofootprintVars = impGeofootprintVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null
+                                                                                       && geoVar.impGeofootprintTradeArea == tradeArea);
+
+                     tradeArea.impGeofootprintVars.forEach(geoVar =>
+                     {
+                        delete geoVar["impGeofootprintLocation"];
+                        delete geoVar["impGeofootprintMaster"];
+                        delete geoVar["impGeofootprintTradeArea"];
+                        delete geoVar["impProject"];
+
+                        geoVar.dirty = true;
+
+                        // Remove stubbed ggIds
+                        if (geoVar.gvId < 1000)
+                           geoVar.gvId = null;
+
+                        geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+                        geoVar.isActive   = 1;                        
+                     });*/
+                  });
+               }
+               else
+                  console.log('location: ', impLocation.locationNumber, ' has no trade areas');
             }
             catch(err)
             {
@@ -406,7 +556,8 @@ export class ImpProjectService extends DataStore<ImpProject>
          console.log('ImpProject payload', payload);
          console.log('posting to: ', this.appConfig.valServiceBase, 'v1/targeting/base/impproject/save');
 
-         this.impGeofootprintTradeAreaService.debugLogStore('TRADE AREAS');
+         this.impGeofootprintTradeAreaService.debugLogStore('TRADE AREAS 9');
+
          // TODO: Need to implement save in the data store
    //    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
          this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save', payload, { headers: headers }).subscribe(result => {
@@ -426,23 +577,25 @@ export class ImpProjectService extends DataStore<ImpProject>
                      this.debugLogStore('After Reload');
                      console.log('project point in time: ', res[0].toString());
                      impProject = res[0];
-                     for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+                     if (impProject != null && impProject.impGeofootprintMasters != null)
                      {
-                        location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-                        console.log('location: ' + location.locationNumber + ', baseStatus: ', location.baseStatus);
+                        for (let location of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
+                        {
+                           location.baseStatus = (location.glId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
+                           console.log('location: ' + location.locationNumber + ', baseStatus: ', location.baseStatus);
+                        }
+
+                        console.log('loaded project: ', JSON.stringify(impProject));
+                        console.log('Loaded masters: ', (impProject != null && impProject.impGeofootprintMasters != null) ? JSON.stringify(impProject.impGeofootprintMasters) : null);
+                        console.log('Loaded locations: ', (impProject != null && impProject.impGeofootprintMasters != null && impProject.impGeofootprintMasters[0].impGeofootprintLocations != null) ? JSON.stringify(impProject.impGeofootprintMasters[0].impGeofootprintLocations) : null);
+
+                        // Database removals are applied, clear the list
+                        this.impGeofootprintLocationService.clearDbRemoves();
+
+                        // Deconstruct the project data into the separate data stores
+                        this.impGeofootprintMasterService.replace(impProject.impGeofootprintMasters);
+                        this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations);
                      }
-
-                     console.log('loaded project: ', JSON.stringify(impProject));
-                     console.log('Loaded masters: ', (impProject != null && impProject.impGeofootprintMasters != null) ? JSON.stringify(impProject.impGeofootprintMasters) : null);
-                     console.log('Loaded locations: ', (impProject != null && impProject.impGeofootprintMasters != null && impProject.impGeofootprintMasters[0].impGeofootprintLocations != null) ? JSON.stringify(impProject.impGeofootprintMasters[0].impGeofootprintLocations) : null);
-
-                     // Database removals are applied, clear the list
-                     this.impGeofootprintLocationService.clearDbRemoves();
-
-                     // Deconstruct the project data into the separate data stores
-                     this.impGeofootprintMasterService.replace(impProject.impGeofootprintMasters);
-                     this.impGeofootprintLocationService.replace(impProject.impGeofootprintMasters[0].impGeofootprintLocations);
-
                      // Alert the user to the successful save
                      this.appMessagingService.showGrowlSuccess('Project Save', 'Project ' + impProject.projectId + ' saved successfully!');
 

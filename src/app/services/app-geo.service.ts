@@ -182,8 +182,8 @@ export class ValGeoService implements OnDestroy {
             if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
               if (currentTradeAreas.length === 1) {
               geosToSave.push(new ImpGeofootprintGeo({
-                xCoord: graphic.geometry.x,
-                yCoord: graphic.geometry.y,
+                xcoord: graphic.geometry.x,
+                ycoord: graphic.geometry.y,
                 geocode: geocode,
                 distance: currentDistance,
                 impGeofootprintTradeArea: currentTradeAreas[0],
@@ -278,8 +278,8 @@ export class ValGeoService implements OnDestroy {
     }
     const newGeo = new ImpGeofootprintGeo({
       geocode: geocode,
-      xCoord: geometry.x,
-      yCoord: geometry.y,
+      xcoord: geometry.x,
+      ycoord: geometry.y,
       distance: minDistance,
       impGeofootprintLocation: closestLocation,
       impGeofootprintTradeArea: tradeArea,

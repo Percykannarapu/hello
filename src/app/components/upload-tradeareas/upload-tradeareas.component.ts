@@ -211,8 +211,8 @@ export class UploadTradeAreasComponent implements OnInit {
     impGeofootprintGeo.isActive = 1;
     impGeofootprintGeo.impGeofootprintLocation = loc;
     impGeofootprintGeo.distance = distance;
-    impGeofootprintGeo.xCoord = point.x;
-    impGeofootprintGeo.yCoord = point.y;
+    impGeofootprintGeo.xcoord = point.x;
+    impGeofootprintGeo.ycoord = point.y;
     return impGeofootprintGeo;
 
   }

@@ -176,7 +176,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Comparing each site to the geo parameter
          for (let s = 0; s < this.impGeofootprintLocations.length; s++)
          {
-            dist = EsriUtils.getDistance(geo.xCoord, geo.yCoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
+            dist = EsriUtils.getDistance(geo.xcoord, geo.ycoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
 
             // If closer to this location, record the lat / lon
             if (dist < closestDistance)
@@ -320,7 +320,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       if (geo != null)
       {
-         this.mapService.zoomOnMap({ min: geo.xCoord, max: geo.xCoord }, { min: geo.yCoord, max: geo.yCoord }, 1);
+         this.mapService.zoomOnMap({ min: geo.xcoord, max: geo.xcoord }, { min: geo.ycoord, max: geo.ycoord }, 1);
       }
    }
 

@@ -2,13 +2,14 @@
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
  **/
-
+import { BaseModel } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
-import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
+//import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
+import { ImpGeofootprintMaster } from '../../targeting/models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpProject } from './ImpProject';
 
-export class ImpGeofootprintVar
+export class ImpGeofootprintVar extends BaseModel
 {
    public gvId:                         number;                        /// Primary key, uniquely identifying a geofootprint variable row
    public geocode:                      string;                        /// The geography the variable applies to
@@ -37,6 +38,7 @@ export class ImpGeofootprintVar
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?:Partial<ImpGeofootprintVar>) {
+      super();
       Object.assign(this, data);
    }
 

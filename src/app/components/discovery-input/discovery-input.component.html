@@ -114,6 +114,7 @@
       <div class="ui-g-12">
          <button label="Save Project" pButton (click)="saveProject()"></button>
          <button *ngIf="config.debugMode" label="Stop Transaction" pButton (click)="onStopTransaction()" pTooltip="Resume Load/Save (DEBUG)"></button>
+         <button *ngIf="config.debugMode" label="Log TradeAreas" pButton (click)="onLogTradeAreas()"></button>
       </div>
    </div>
 </div>
