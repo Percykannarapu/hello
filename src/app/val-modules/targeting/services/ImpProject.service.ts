@@ -15,7 +15,7 @@ import { AppMessagingService } from './../../../services/app-messaging.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpClientLocationType } from './../../client/models/ImpClientLocationType';
 import { ImpClientLocation } from './../../client/models/ImpClientLocation';
-import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
+//import { ImpDiscoveryService } from './../../../services/ImpDiscoveryUI.service';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpClientLocationService } from './../../client/services/ImpClientLocation.service';
 /** A TARGETING domain data service representing the table: IMPOWER.IMP_PROJECTS
@@ -38,7 +38,7 @@ import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { UserService } from '../../../services/user.service';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { RestResponse } from '../../../models/RestResponse';
-import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
+//import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 
 import 'rxjs/add/operator/map';
@@ -60,7 +60,7 @@ export class ImpProjectService extends DataStore<ImpProject>
                public impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
                public impGeofootprintVarService: ImpGeofootprintVarService,
-               public impDiscoveryService: ImpDiscoveryService,
+//               public impDiscoveryService: ImpDiscoveryService,
                public userService: UserService,
                public appConfig: AppConfig,
                private http: HttpClient,
@@ -268,7 +268,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          console.log ('Saving project: ', impProject.toString());
 
          // Retrieve the discovery data
-         let impDiscoveryUI: ImpDiscoveryUI =  this.impDiscoveryService.get()[0];
+//         let impDiscoveryUI: ImpDiscoveryUI =  this.impDiscoveryService.get()[0];
 
          // Create Geofootprint Array if needed
          console.log('ImpProject.service.saveProject - populating geofootprint master');
@@ -281,7 +281,8 @@ export class ImpProjectService extends DataStore<ImpProject>
             let newCGM: ImpGeofootprintMaster = new ImpGeofootprintMaster();
             newCGM.dirty = true;
             newCGM.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-            newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
+//            newCGM.methAnalysis = (impDiscoveryUI.analysisLevel) ? impDiscoveryUI.analysisLevel : 'ZIP';  // Mandatory field
+            newCGM.methAnalysis = (impProject.methAnalysis != null) ? impProject.methAnalysis : 'ZIP'; // Mandatory field
             newCGM.status = 'SUCCESS';
             newCGM.summaryInd = 0;
             newCGM.createdDate = new Date(Date.now());

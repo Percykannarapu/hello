@@ -1,3 +1,4 @@
+import { ImpGeofootprintTradeAreaService } from './../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { SelectItem } from 'primeng/primeng';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AppConfig } from '../../app.config';
@@ -11,6 +12,7 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { Subscription } from 'rxjs/Subscription';
 import { AppMessagingService } from '../../services/app-messaging.service';
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -41,6 +43,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   constructor(private tradeAreaService: ValTradeAreaService, private config: AppConfig,
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
               private discoveryService: ImpDiscoveryService, private usageService: UsageService,
+              private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService) {
     this.tradeAreaMergeTypes = [
       { label: 'No Merge', value: 'No Merge' },
@@ -74,7 +77,9 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
     this.analysisLevelSub = this.discoveryService.storeObservable.pipe(
       map(disco => disco && disco.length > 0 ? disco[0].analysisLevel : null)
     ).subscribe(al => this.currentAnalysisLevel = al);
-  }
+
+    this.impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
+   }
 
   public ngOnDestroy() : void {
     if (this.analysisLevelSub) this.analysisLevelSub.unsubscribe();
@@ -110,6 +115,39 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
         this.currentMergeType = this.competitorMergeType;
     }
   }
+
+   public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
+   {
+      if (impGeofootprintTradeAreas == null || impGeofootprintTradeAreas.length <= 0)
+         return;
+      console.log('trade-area-define.component.onChangeTradeArea - fired', impGeofootprintTradeAreas);
+      const ta1: ImpGeofootprintTradeArea[] = impGeofootprintTradeAreas.filter(ta => ta.taNumber === 1 && ta.taType === 'RADIUS');
+      const ta2: ImpGeofootprintTradeArea[] = impGeofootprintTradeAreas.filter(ta => ta.taNumber === 2 && ta.taType === 'RADIUS');
+      const ta3: ImpGeofootprintTradeArea[] = impGeofootprintTradeAreas.filter(ta => ta.taNumber === 3 && ta.taType === 'RADIUS');
+
+      const radius1: number = (ta1 != null && ta1.length > 0) ? ta1[0].taRadius : null;
+      const radius2: number = (ta2 != null && ta2.length > 0) ? ta2[0].taRadius : null;
+      const radius3: number = (ta3 != null && ta3.length > 0) ? ta3[0].taRadius : null;
+
+      this.siteTradeAreas[0].tradeArea = radius1;
+      this.siteTradeAreas[0].isShowing = (ta1 != null && ta1.length > 0) ? ((ta1[0].isActive === 1) ? true : false) : null;
+      this.siteTradeAreas[0].isValid   = true;
+
+      this.siteTradeAreas[1].tradeArea = radius2;
+      this.siteTradeAreas[1].isShowing = (ta2 != null && ta1.length > 0) ? ((ta2[0].isActive === 1) ? true : false) : null;
+      this.siteTradeAreas[1].isValid   = true;
+
+      this.siteTradeAreas[2].tradeArea = radius3;
+      this.siteTradeAreas[2].isShowing = (ta3 != null && ta3.length > 0) ? ((ta3[0].isActive === 1) ? true : false) : null;
+      this.siteTradeAreas[2].isValid   = true;
+
+      // TODO: Should redraw trade areas
+      // this.impGeofootprintGeoService.clearAll();
+      // this.attributeService.clearAll();
+      // const tradeAreas: TradeAreaUIModel[] = this.siteTradeAreas.filter(ta => ta.isShowing) || [];
+      // const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
+      // this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);      
+   }
 
   applyDisabled() : boolean {
     return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null);

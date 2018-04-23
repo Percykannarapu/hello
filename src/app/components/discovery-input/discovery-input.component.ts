@@ -335,6 +335,9 @@ export class DiscoveryInputComponent implements OnInit
 //    console.log('----------------------------------------------------------------------------------------');
 //    console.log('discovery-input.component - onChangeDiscovery - Before: ', this.impDiscoveryUI);
       this.impDiscoveryUI = impDiscoveryUI[0]; // Array.from(impDiscoveryUI);
+
+      // Keep the project updated
+      this.mapToProject();
 //    console.log('discovery-input.component - onChangeDiscovery - After:  ', this.impDiscoveryUI);
 //    console.log('----------------------------------------------------------------------------------------');
    }
