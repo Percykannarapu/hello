@@ -342,7 +342,8 @@ export class TopVarService implements OnDestroy {
         geocodes: chunk,
         variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
       };
-      console.log('Sending geoinfo chunk to Fuse');
+     // console.log('Sending geoinfo chunk to Fuse::  ', JSON.stringify(inputData));
+     console.log('Sending geoinfo chunk to Fuse::  ');
       observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData));
     }
     return concat(...observables);
@@ -381,28 +382,27 @@ export class TopVarService implements OnDestroy {
     }
   }
 
-  private persistGeoAttributes(geoDataMap: any) : void {
-    console.log('geoDataMap::::::', geoDataMap);
+  private persistGeoAttributes(geoDataMap: any) {
+    //console.log('geoDataMap::::::', geoDataMap);
     let allAttributes = [];
-    const categoryVariableMap: Map<string, string> = new Map<string, string>();
-    const sub =  this.appliedTdaAudience.subscribe(res => {
-        res.forEach(categoryVar => {
-         categoryVariableMap.set(categoryVar.pk , categoryVar.fielddescr);
-        });
-    }, null, () =>  sub.unsubscribe());
-   
-    for (const record of geoDataMap){
-      const attribute = new ImpGeofootprintGeoAttrib({
-          attributeCode: categoryVariableMap.get(record['variablePk']),
-          attributeValue: record['score'],
-          attributeType: 'Geofootprint Variable'    
-      });
-      allAttributes = allAttributes.concat(this.geoService.createAttributesForGeos(record['geocode'], attribute));
-    }
+    const categoryVariableSet = new Set(this.appliedTdaAudience.getValue());
+    //console.log('categoryVariableSet::::', categoryVariableSet);
 
-    console.log('Geo Data Attributes being added to store:', allAttributes);
-    this.attributeService.add(allAttributes);
-    
+    for (const record of geoDataMap){
+      const  categoryVarObj: CategoryVariable = record['variablePk'];
+      categoryVariableSet.forEach(catVar => {
+        if (catVar.pk === record['variablePk']){
+            const attribute = new ImpGeofootprintGeoAttrib({
+            attributeCode: catVar.fielddescr,
+            attributeValue: record['score'],
+            attributeType: 'Geofootprint Variable'    
+            });
+        allAttributes = allAttributes.concat(this.geoService.createAttributesForGeos(record['geocode'], attribute));  
+        }
+      });
+      console.log('Geo Data Attributes being added to store:', allAttributes);
+      this.attributeService.add(allAttributes);
+    } 
   }
 
   private persistGeoAttributes1(geoDataMap: Map<string, Map<number, GeoVariableData>>) : void {
