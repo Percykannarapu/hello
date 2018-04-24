@@ -625,6 +625,12 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
    //            else
    //               console.log('saveProject - updated projectId: ' + result.payload);
             }
+         }, err =>
+         {
+            // Alert the user to the failed save
+            this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
+            console.warn('Error Saving project', err);
+            this.projectTransactionManager.stopTransaction();
          });
       }
       catch(error)

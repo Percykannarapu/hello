@@ -59,7 +59,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
       }
 
       // Partition within location, attributeCode
-      return (p1 == null || p2 == null) 
+      return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null) 
              ? null : (p1.impGeofootprintLocation.locationNumber != p2.impGeofootprintLocation.locationNumber
                     || p1.attributeCode != p2.attributeCode);
    }
