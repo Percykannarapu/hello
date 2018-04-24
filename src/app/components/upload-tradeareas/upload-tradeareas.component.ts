@@ -110,29 +110,33 @@ export class UploadTradeAreasComponent implements OnInit {
       const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.analysisLevel, true);
 
       //const filteredLocations: ImpGeofootprintLocation[] = [];
-      
-      
       //const successGeoLocMap:  Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
+
+      // Create a Map to associate a geocode with an ImpGeofootprintLocation
       const geoLocMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
 
+      // Create a counter metric
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
        this.usageService.createCounterMetric(usageMetricName, null, rows.length - 1);
 
-
+      // Parse the data into headers and rows
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
       const headerCheck: string[] = header.split(/,/);
 
-
+      // Continue if there are two header columns
       if (headerCheck.length == 2) {
-
+        // Create a map of ImpGeofootprintLocations keyed by locationNumber
         const geocodes = [] ;
         const impGeofootprintLocationMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
         this.impGeofootprintLocationService.get().forEach(loc => {
           impGeofootprintLocationMap.set(loc.locationNumber.toString(), loc);
         });
 
+        // For every geocode in the data
         data.parsedData.forEach(valGeo => {
+          // that has an associated ImpGeofootprintLocation
           if (impGeofootprintLocationMap.has(valGeo.STORE)){
+            // Push the geocode into the geocodes array, geocode locations list and geo locations map
             geocodes.push(`${valGeo.Geo}`);
             this.geoLocList.push(new GeoLocations(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE)));
             geoLocMap.set(valGeo.Geo, impGeofootprintLocationMap.get(valGeo.STORE));
@@ -162,8 +166,10 @@ export class UploadTradeAreasComponent implements OnInit {
                   const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
                   const geocodeDistance =  EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
                   const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-                  geosToAdd.push(this.createGeo(geocodeDistance, point, loc, graphic.attributes['geocode']));
-                  tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'UPLOADGEO CUSTOM'));
+
+                  const newTA: ImpGeofootprintTradeArea = ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'UPLOADGEO CUSTOM');
+                  geosToAdd.push(this.createGeo(geocodeDistance, point, loc, newTA, graphic.attributes['geocode']));
+                  tradeAreasForInsert.push(newTA);
                 }
             });
           //console.log('geos added:::', geosToAdd);
@@ -205,11 +211,12 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   //Create a custom trade area
-  public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, geocode: string) : ImpGeofootprintGeo {
+  public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, ta: ImpGeofootprintTradeArea, geocode: string) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = geocode;
     impGeofootprintGeo.isActive = 1;
     impGeofootprintGeo.impGeofootprintLocation = loc;
+    impGeofootprintGeo.impGeofootprintTradeArea = ta;
     impGeofootprintGeo.distance = distance;
     impGeofootprintGeo.xcoord = point.x;
     impGeofootprintGeo.ycoord = point.y;

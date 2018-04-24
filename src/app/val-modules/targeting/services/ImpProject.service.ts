@@ -313,7 +313,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          const impGeofootprintTradeAreas: Array<ImpGeofootprintTradeArea> = this.impGeofootprintTradeAreaService.get();
          const impGeofootprintGeos:       Array<ImpGeofootprintGeo>       = this.impGeofootprintGeoService.get();
          const impGeofootprintVars:       Array<ImpGeofootprintVar>       = this.impGeofootprintVarService.get();
-
+console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofootprintGeos.toString());
          // Dedupe the location attributes
          this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
          
