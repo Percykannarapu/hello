@@ -434,6 +434,8 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
+      this.impProjectService.loadProject(this.impProject.projectId);
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'Save' });
    }
 
    fetchRadData() {
