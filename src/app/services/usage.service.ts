@@ -59,14 +59,14 @@ export class UsageService {
     if (impMetricName.length === 0) {
       this.createMetricName(metricName, 'COUNTER')
         .map(res => res.payload)
-        .mergeMap(res => this._createCounterMetric(Number(res), metricText, metricValue, projectId))
+        .mergeMap(res => this._createCounterMetric(Number(res), metricText, metricValue))
         .subscribe(res => {
           // do nothing with the response for now
         }, err => {
           console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
         });
     } else {
-      this._createCounterMetric(impMetricName[0].metricId, metricText, metricValue, projectId)
+      this._createCounterMetric(impMetricName[0].metricId, metricText, metricValue)
         .subscribe(res => {
           // do nothing with the response for now
         }, err => {
@@ -106,10 +106,10 @@ export class UsageService {
    * @param metricText The data that will be saved with this counter
    * @param metricValue The number that will be saved on this counter
    */
-  private _createCounterMetric(metricName: number, metricText: string, metricValue: number, projectId?: string) : Observable<RestResponse> {
+  private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     const impProject: ImpProject = this.impProjectService.get()[0];
-    const projectid: string = impProject.projectId != null ? impProject.projectId.toString() : '';
-    console.log('impProject obj:::', impProject);
+    const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
+   
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();  
     impMetricCounter['dirty'] = true;
