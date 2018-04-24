@@ -134,7 +134,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       this.siteTradeAreas[0].isValid   = true;
 
       this.siteTradeAreas[1].tradeArea = radius2;
-      this.siteTradeAreas[1].isShowing = (ta2 != null && ta1.length > 0) ? ((ta2[0].isActive === 1) ? true : false) : null;
+      this.siteTradeAreas[1].isShowing = (ta2 != null && ta2.length > 0) ? ((ta2[0].isActive === 1) ? true : false) : null;
       this.siteTradeAreas[1].isValid   = true;
 
       this.siteTradeAreas[2].tradeArea = radius3;
