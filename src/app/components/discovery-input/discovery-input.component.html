@@ -1,29 +1,114 @@
-<div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
-   <div class="card">
-      <div class="ui-g-12">
-         <span class="md-inputfield">
-            <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-            <label> Project Tracker Id</label>         
-         </span>
-      </div>
-      <div class="ui-g-3">
-         <span class="md-inputfield">
-            <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-            <label> imPower Id</label>         
-         </span>
-      </div>
-      <div class="ui-g-9">
-         <div *ngIf="showLoadBtn">
-            <button label="Load Project" pButton (click)="loadProject()"></button>
-         </div>
-      </div>
-      <div class="ui-g-12">
-         <span class="md-inputfield">
-            <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
-            <label>Project Name</label>
-         </span>
-      </div>
+    <div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
+        <div class="card ui-g-12">
+                <div class="ui-g-7">
+                        <span class="md-inputfield">
+                            <input id="projectId" type="text" [(ngModel)]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+                            <label> imPower Id</label>         
+                        </span>
+                    </div>
+            <div class="ui-g-5">
+            <button pButton type="button" style="float: right;" (onClick)="saveProject()" label="Save Project"></button>
+            </div>
+            <div class="ui-g-3">
+                    <span class="md-inputfield">
+                        <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
+                        <label> Project Tracker Id</label>         
+                    </span>
+                </div>
+            <div class="ui-g-9">
+                <div *ngIf="showLoadBtn">
+                    <button label="Load Project" pButton (click)="loadProject()"></button>
+                    <!-- <button *ngIf="config.debugMode" label="Stop Transaction" pButton (click)="onStopTransaction()" pTooltip="Finish Project Load (DEBUG)"></button> -->
+                </div>
+            </div>
+            <div class="ui-g-12">
+                <span class="md-inputfield">
+                    <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
+                    <label>Project Name</label>
+                </span>
+            </div>
+            
+                <div class="ui-g-12 val-flush-to-edges">
+                    <div class="ui-g-6">
+                            <p-dropdown #productSelector
+                            [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName"
+                            placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
+                            (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
+                            [style]="{'width':'250px'}"></p-dropdown>   
+                    </div> 
+                    <div class="ui-g-6"><label>{{calcProductCatRadData}}</label></div>   
+                </div>
+                
+                <div class="ui-g-12 val-flush-to-edges">
+                    <p-dropdown #categorySelector
+                                [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
+                                (onChange)="onChangeCategory($event)"
+                                placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
+                                [style]="{'width':'250px'}"></p-dropdown>
+                </div>
+            
+                <div class="ui-g-12 val-flush-to-edges">
+                    <p-dropdown #analysisLevelSelector
+                                [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
+                                (ngModelChange)="onAnalysisSelectType($event)"
+                                placeholder="Select an Analysis Level"
+                                [style]="{'width':'250px'}"></p-dropdown>
+                </div>
+        </div>
+            
+        <div class="card ui-g-6 val-grid-no-pad-left">
+            <div class="ui-g-12 val-flush-to-edges">
+                <div class="ui-placeholder">
+                    <label>Counts</label>
+                </div>
+                <div>
+                    <p-selectButton id="seasonsSelect" [options]="seasons" placeholder="Counts" [(ngModel)]="impDiscoveryUI.selectedSeason" (onChange)="onChangeField($event)"></p-selectButton>
+                </div>
+            </div>
+            <div class="ui-g-12">
+                    <label>Apply Geography Filters</label>
+                </div>  
+                <div class= "ui-g-1 "> </div>
+     
+            <div class="ui-g-11">
+            <div class="ui-g-8">
+                    <label>Include POBs?</label>
+                </div>
+                <div class="ui-g-4">
+                    <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
+                </div> 
+            
+                <div class="ui-g-8">
+                    <label>Include Valassis geographies?</label>
+                </div>
+                <div class="ui-g-4">
+                    <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeValassis" (onChange)="onChangeField($event)"></p-inputSwitch>
+                </div>
+            
+                <div class="ui-g-8">
+                    <label>Include ANNE geographies?</label>
+                </div>
+                <div class="ui-g-4">
+                    <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeAnne" (onChange)="onChangeField($event)"></p-inputSwitch>
+                </div>
+            
+                <div class="ui-g-8">
+                    <label>Include Solo geographies?</label>
+                </div>
+                <div class="ui-g-4">
+                        <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeSolo" (onChange)="onChangeField($event)"></p-inputSwitch>
+                </div> 
+            </div>
+        </div>
+              
+        <div class="card ui-g-6">
+                <div class="ui-g-12">
+                        <label>Budget</label>
+                    </div>
+                <div class= "ui-g-1 "> </div>
+                <div class="ui-g-11">
 
+<<<<<<< Updated upstream
       <div class="ui-g-12 val-flush-to-edges">
          <div class="ui-g-6">
                   <p-dropdown #productSelector
@@ -118,3 +203,64 @@
       </div>
    </div>
 </div>
+=======
+                <div class="ui-g-12 val-grid-no-pad-left">
+                        <span class="md-inputfield">
+                        <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (change)="onChangeField($event)" pInputText>
+                        <label> Dollar Budget</label>
+                        </span>
+                    </div>
+                    <div class="ui-g-12 val-grid-no-pad-left">
+                            <span class="md-inputfield">
+                            <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (change)="onChangeField($event)" pInputText>
+                            <label> Circ Budget</label>
+                            </span>
+                    </div>
+                 </div>      
+            <div class="ui-g-12">
+                <label>Select CPM Type</label>
+            </div>
+            <div class= "ui-g-1 "> </div>
+            <div class="ui-g-11">
+                <div class="ui-g-12 val-grid-no-pad-left"> 
+                    <p-radioButton name="selectCPM" ng-model="checked"value="isBlended" label="Blended"[(ngModel)]="impDiscoveryUI.isBlended" (change)="onChangeField($event)"></p-radioButton>
+                </div>
+            <div class= "ui-g-1 "> </div>
+            <div class="ui-g-11">
+                <div class="ui-g-8">
+                <span class="md-inputfield">
+                    <input id="cpm" type="text" [(ngModel)]="impDiscoveryUI.cpm" (change)="onChangeField($event)" pInputText>
+                    <label>CPM</label>
+                </span>
+                </div>
+        </div>
+                <div class="ui-g-12 val-grid-no-pad-left"> 
+                    <p-radioButton name="selectCPM" value="isDefinedbyOwnerGroup" label="Defined By Owner Group"[(ngModel)]="impDiscoveryUI.isDefinedbyOwnerGroup" (change)="onChangeField($event)"></p-radioButton>
+                </div>
+                <div class="ui-g-1"> </div>
+                <div class="ui-g-11"> 
+                    <div class="ui-g-12">
+                        <span class="md-inputfield">
+                            <input id="includeValassisSM" type="text" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
+                            <label> Valassis CPM</label>
+                        </span>
+                    </div>
+                
+                    <div class="ui-g-12">
+                        <span class="md-inputfield">
+                            <input id="includeAnneSM" type="text" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
+                            <label>Anne CPM</label>
+                        </span>
+                    </div> 
+                    <div class="ui-g-12">
+                        <span class="md-inputfield">
+                        <input id="includeSoloSM" type="text" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
+                        <label>Solo CPM</label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+                
+>>>>>>> Stashed changes
