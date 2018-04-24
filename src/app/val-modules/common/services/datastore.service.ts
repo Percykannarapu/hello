@@ -164,12 +164,12 @@ export class DataStore<T>
     */
    private fetch(postOperation?: callbackMutationType<T>, inTransaction: InTransaction = InTransaction.true)
    {
-      console.log('DataStore.fetch fired for ' + this.dataUrl);
+//    console.log('DataStore.fetch fired for ' + this.dataUrl);
 //    console.trace('fetch trace');
 
       this.rest.get(this.dataUrl).subscribe(restResponse => {
          // Log and test the response
-         console.log('DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
+//       console.log('DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
 
          // Populate data store
          if (restResponse.payload && restResponse.payload.rows)
@@ -185,13 +185,13 @@ export class DataStore<T>
          // Notify observers if not participating in the transaction or there is no transaction or TransactionManager
          if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
          {
-            console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
+//          console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
             this._storeSubject.next(this._dataStore);
             this.fetchSubject.next(this._dataStore);
          }
          else
          {
-            console.log('DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
+//          console.log('DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
             this.transactionManager.push(this._storeSubject, this._dataStore);
             this.transactionManager.push(this.fetchSubject, this._dataStore);
          }
@@ -222,7 +222,7 @@ export class DataStore<T>
    public get(forceRefresh:  boolean, forceClear?: boolean,         inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
    public get(forceRefresh?: boolean, forceClear:  boolean = false, inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
-      console.log('DataStore.get fired - this.dataUrl: ', this.dataUrl);
+//    console.log('DataStore.get fired - this.dataUrl: ', this.dataUrl);
 
       if (preOperation)
          preOperation(this._dataStore);
