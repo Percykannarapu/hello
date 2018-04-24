@@ -428,6 +428,7 @@ export class DiscoveryInputComponent implements OnInit
 
    public saveProject()
    {
+      console.log('discovery-input.component.saveProject - fired');
       // Map the discovery data to the project
       this.mapToProject();
       // Save the project
