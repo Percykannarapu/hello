@@ -430,7 +430,6 @@ export class DiscoveryInputComponent implements OnInit
    {
       // Map the discovery data to the project
       this.mapToProject();
-
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];

@@ -4,6 +4,8 @@ import {MenuItem} from 'primeng/primeng';
 import {AppComponent} from './app.component';
 import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './services/usage.service';
 
 @Component({
     /* tslint:disable:component-selector */
@@ -21,7 +23,8 @@ export class AppMenuComponent implements OnInit {
 
     constructor(public app: AppComponent,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
-               public impGeofootprintLocationService: ImpGeofootprintLocationService) {}
+               public impGeofootprintLocationService: ImpGeofootprintLocationService,
+               public usageService: UsageService) {}
 
     ngOnInit() {
         this.model = [
@@ -44,12 +47,13 @@ export class AppMenuComponent implements OnInit {
                     {label: 'Grey - Deep Orange', icon: 'brush', command: (event) => {this.changeTheme('grey'); }}
                 ]
             },*/
+            // {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
             {
                 label: 'Export', icon: 'file_download',
                 items: [
-                    {label: 'Export Geofootprint', icon: 'map', command: () => this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx)},
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
-                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS')}
+                    {label: 'Export Geofootprint', icon: 'map', command: () => this.getGeofootprint() },
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => {this.getSites(); } },
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => {this.getCompetitor(); }}
                 ]
             },
             /*{
@@ -197,6 +201,24 @@ export class AppMenuComponent implements OnInit {
         themeLink.href = 'assets/theme/theme-' + theme + '.css';
         layoutLink.href = 'assets/layout/css/layout-' + theme + '.css';
     }
+
+    public getSites(){
+        this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
+            this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
+    }
+    public getCompetitor(){
+       this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
+       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
+       this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Competitor').length);
+    }
+    public getGeofootprint(){
+      this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx);
+        // update the metric count when export geos
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+
+    }
 }
 
 @Component({
@@ -320,4 +342,6 @@ export class AppSubMenuComponent {
             this.activeIndex = null;
         }
     }
+
+    
 }
