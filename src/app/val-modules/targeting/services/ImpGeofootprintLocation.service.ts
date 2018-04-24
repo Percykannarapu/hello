@@ -24,8 +24,6 @@ import { Observable } from 'rxjs/Observable';
 import { encode } from 'punycode';
 import * as $ from 'jquery';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
-import { ImpMetricName } from '../../metrics/models/ImpMetricName';
-import { UsageService } from '../../../services/usage.service';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
@@ -50,7 +48,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
                private projectTransactionManager: TransactionManager,
-               private usageService: UsageService,
                private messageService: AppMessagingService   ) //, impProjectService: ImpProjectService)
    {
       super(restDataService, dataUrl, projectTransactionManager);
@@ -233,16 +230,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       } else {
         const locations = this.get().filter(filter);
         if (locations.length > 0) {
-          if (locations[0].clientLocationTypeCode === 'Site' ){
-            // update the metric count when export Sites
-            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
-            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
-          }
-          if (locations[0].clientLocationTypeCode === 'Competitor' ){
-            // update the metric count when export Competitor
-            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
-            this.usageService.createCounterMetric(usageMetricName, null, locations.length);
-          }
           const attributeCodeBlackList = new Set(['Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ']); //ugly hack for now
           const locationSet = new Set(locations);
           const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));

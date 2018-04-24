@@ -37,7 +37,12 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             includePob:           true,
             includeValassis:      true,
             includeAnne:          true,
-            includeSolo:          true //removed US6606 
+            includeSolo:          true, //removed US6606 
+            isBlended:            false,
+            isDefinedbyOwnerGroup: null,
+            includeValassisSM:     null,
+            includeAnneSM:         null,
+            includeSoloSM:         null
          }
       );
       this.add([discoveryDefaults]);
