@@ -386,23 +386,20 @@ export class TopVarService implements OnDestroy {
     //console.log('geoDataMap::::::', geoDataMap);
     let allAttributes = [];
     const categoryVariableSet = new Set(this.appliedTdaAudience.getValue());
-    //console.log('categoryVariableSet::::', categoryVariableSet);
-
+    
+    console.log('categoryVariableSet::::', this.appliedTdaAudience.getValue());
+    
     for (const record of geoDataMap){
-      const  categoryVarObj: CategoryVariable = record['variablePk'];
-      categoryVariableSet.forEach(catVar => {
-        if (catVar.pk === record['variablePk']){
+      const catvar = this.appliedTdaAudience.getValue().filter(catVar => catVar.pk === record['variablePk']);
             const attribute = new ImpGeofootprintGeoAttrib({
-            attributeCode: catVar.fielddescr,
+            attributeCode: catvar[0].fielddescr,
             attributeValue: record['score'],
             attributeType: 'Geofootprint Variable'    
             });
         allAttributes = allAttributes.concat(this.geoService.createAttributesForGeos(record['geocode'], attribute));  
-        }
-      });
-      console.log('Geo Data Attributes being added to store:', allAttributes);
-      this.attributeService.add(allAttributes);
     } 
+    console.log('Geo Data Attributes being added to store:', allAttributes);
+    this.attributeService.add(allAttributes);
   }
 
   private persistGeoAttributes1(geoDataMap: Map<string, Map<number, GeoVariableData>>) : void {
