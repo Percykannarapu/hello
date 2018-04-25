@@ -26,7 +26,7 @@ export class SelectedAudiencesComponent implements OnInit, AfterViewInit {
 
   ngOnInit() : void {
     this.selectedVars$ = this.varService.selectedTdaAudience$.pipe(
-      map(selections => selections.map(audience => ({ isMapped: false, isOnGrid: true, isExported: true, audienceName: audience.fielddescr, audienceData: audience })))
+      map(selections => selections.map((audience, index) => ({ isMapped: index === 0, isOnGrid: true, isExported: true, audienceName: audience.fielddescr, audienceData: audience })))
     );
   }
 
