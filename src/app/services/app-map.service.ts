@@ -324,17 +324,17 @@ export class ValMapService implements OnDestroy {
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
       this.defaultSymbol = layer.renderer.symbol;
     }
-    const setup: CustomRendererSetup = {
+    const setup: SmartRendererSetup = {
       rampLabel: '',
       outline: {
         defaultWidth: this.defaultSymbol.outline.width,
         selectedWidth: 4,
         selectedColor: [86, 231, 247, 1.0]
       },
-      // smartTheme: {
-      //   baseMap: this.mapService.map.basemap,
-      //   theme: SmartMappingTheme.HighToLow
-      // }
+      smartTheme: {
+        baseMap: this.mapService.map.basemap,
+        theme: SmartMappingTheme.HighToLow
+      }
     };
     layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
     this.layerSelectionRefresh = () => {
