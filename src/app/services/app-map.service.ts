@@ -16,11 +16,12 @@ import { ValTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { tap } from 'rxjs/operators';
-import { AppRendererService } from './app-renderer.service';
+import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { MapService } from './map.service';
+import { SmartMappingTheme } from '../models/LayerState';
 
 export interface Coordinates {
   xcoord: number;
@@ -35,6 +36,7 @@ export class ValMapService implements OnDestroy {
   private discoverySubscription: Subscription;
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
+  private rendererSubscription: Subscription;
 
   private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
@@ -43,6 +45,8 @@ export class ValMapService implements OnDestroy {
   private useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
   private highlightHandler: any;
+
+  private defaultSymbol: __esri.SimpleFillSymbol;
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
@@ -65,6 +69,7 @@ export class ValMapService implements OnDestroy {
         this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
         this.clientTradeAreaSubscription = this.tradeAreaService.clientBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Site'));
         this.competitorTradeAreaSubscription = this.tradeAreaService.competitorBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Competitor'));
+        this.rendererSubscription = this.rendererService.readyForRender$.subscribe(() => this.setupDataRenderer(this.currentAnalysisLevel));
       }
     });
   }
@@ -291,15 +296,50 @@ export class ValMapService implements OnDestroy {
 
   private setupSelectionRenderer(currentAnalysisLevel: string) {
     if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
+    console.log('setting renderer');
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(portalId);
-    if (EsriUtils.rendererIsSimple(layer.renderer)) {
-      const symbol = layer.renderer.symbol;
-      layer.renderer = this.rendererService.createSelectionRenderer(symbol);
-      this.layerSelectionRefresh = () => {
-        layer.renderer = (layer.renderer as __esri.UniqueValueRenderer).clone();
-      };
+    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
+      this.defaultSymbol = layer.renderer.symbol;
     }
+    const setup: CustomRendererSetup = {
+      rampLabel: '',
+      outline: {
+        defaultWidth: this.defaultSymbol.outline.width,
+        selectedWidth: this.defaultSymbol.outline.width,
+        selectedColor: this.defaultSymbol.outline.color
+      }
+    };
+    layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
+    this.layerSelectionRefresh = () => {
+      layer.renderer = EsriUtils.clone(layer.renderer);
+    };
+  }
+
+  private setupDataRenderer(currentAnalysisLevel: string) {
+    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
+    console.log('setting renderer');
+    const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const layer = this.layerService.getPortalLayerById(portalId);
+    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
+      this.defaultSymbol = layer.renderer.symbol;
+    }
+    const setup: CustomRendererSetup = {
+      rampLabel: '',
+      outline: {
+        defaultWidth: this.defaultSymbol.outline.width,
+        selectedWidth: 4,
+        selectedColor: [86, 231, 247, 1.0]
+      },
+      // smartTheme: {
+      //   baseMap: this.mapService.map.basemap,
+      //   theme: SmartMappingTheme.HighToLow
+      // }
+    };
+    layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
+    this.layerSelectionRefresh = () => {
+      layer.renderer = EsriUtils.clone(layer.renderer);
+    };
   }
 
   private setHighlight(geocodes: string[], currentAnalysisLevel: string) {

@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { Observable } from 'rxjs/Observable';
-import { filter, map, take } from 'rxjs/operators';
+import { filter, map, take, mergeMap } from 'rxjs/operators';
+import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 
 @Injectable()
 export class MapDispatchService {
 
   public onMapReady: Promise<any>;
 
-  constructor(private mapService: EsriMapService) {
+  constructor(private mapService: EsriMapService, private queryService: EsriQueryService) {
     this.init();
   }
 
@@ -36,10 +37,18 @@ export class MapDispatchService {
     );
   }
 
-  public afterMapViewUpdate() : Observable<boolean> {
+  public afterMapViewUpdate() : Observable<__esri.MapView> {
     console.log('afterMapViewUpdate subscribed');
     return this.mapService.createMapViewFieldHandler<boolean>('updating').pipe(
-      filter(result => !result)
+      filter(result => !result),
+      map(() => this.mapService.mapView)
+    );
+  }
+
+  public featuresInViewExtent(layerId: string) : Observable<__esri.Graphic[]> {
+    console.log(`featuresInViewExtent subscribed with layerId "${layerId}"`);
+    return this.afterMapViewUpdate().pipe(
+      mergeMap(mapView => this.queryService.queryLayerView(layerId))
     );
   }
 }

@@ -17,6 +17,10 @@ export class EsriUtils {
     return r != null && r.hasOwnProperty('type') && r['type'] === 'simple';
   }
 
+  public static symbolIsSimpleFill(s: __esri.Symbol) : s is __esri.SimpleFillSymbol {
+    return s != null && s.type === 'simple-fill';
+  }
+
   public static getDistance(a: __esri.Point, b: __esri.Point) : number;
   public static getDistance(a: __esri.Point, x: number, y: number) : number;
   public static getDistance(x1: number, y1: number, x2: number, y2: number) : number;

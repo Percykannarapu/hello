@@ -14,6 +14,7 @@ export class EsriModules {
     'esri/support/Action',
     'esri/core/Collection',
     'esri/renderers/smartMapping/creators/color',
+    'esri/renderers/smartMapping/symbology/color',
     'esri/renderers/smartMapping/statistics/histogram',
     'esri/renderers/UniqueValueRenderer',
     'esri/core/lang',
@@ -49,6 +50,7 @@ export class EsriModules {
   public static Action: typeof __esri.Action;
   public static Collection: __esri.Collection;
   public static colorRendererCreator: typeof __esri.color;
+  public static symbologyColor: typeof __esri.symbologyColor;
   public static histogram: typeof __esri.histogram;
   public static UniqueValueRenderer: typeof __esri.UniqueValueRenderer;
   public static lang: typeof __esri.lang;
@@ -104,6 +106,7 @@ export class EsriModules {
       EsriModules.Action,
       EsriModules.Collection,
       EsriModules.colorRendererCreator,
+      EsriModules.symbologyColor,
       EsriModules.histogram,
       EsriModules.UniqueValueRenderer,
       EsriModules.lang,

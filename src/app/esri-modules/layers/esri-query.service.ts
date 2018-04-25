@@ -200,4 +200,32 @@ export class EsriQueryService {
     const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
     return this.query(layerId, queries, transform);
   }
+
+  public queryLayerView(layerId: string, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
+    return Observable.create(observer => {
+      const layer = this.layerService.getPortalLayerById(layerId);
+      this.mapService.mapView.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
+        const query = new EsriModules.Query({
+          geometry: this.mapService.mapView.extent,
+          returnGeometry: returnGeometry
+        });
+        const queryCall = () => {
+          layerView.queryFeatures(query).then(results => {
+            observer.next(results);
+            observer.complete();
+          });
+        };
+
+        if (layerView.updating) {
+          layerView.watch('updating', updating => {
+            if (!updating) {
+              queryCall();
+            }
+          });
+        } else {
+          queryCall();
+        }
+      });
+    });
+  }
 }

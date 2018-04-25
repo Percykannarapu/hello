@@ -1,9 +1,25 @@
 <div>
-  <span *ngIf="(selectedVars$ | async)?.length > 0">Selected Variables:</span>
-  <ul>
-    <li *ngFor="let variable of selectedVars$ | async">
-      {{variable.fielddescr}}
-    </li>
-  </ul>
-  <button pButton (click)="submitAudiences()" label="Apply Audience Selections"></button>
+  <p-dataTable *ngIf="(selectedVars$ | async)?.length > 0"
+               [value]="selectedVars$ | async"
+               [resizableColumns]="true"
+               [rows]="10" [paginator]="true"
+               columnResizeMode="expand">
+    <p-column header="Show on Map" field="isMapped" [style]="{ width: '15%' }">
+      <ng-template let-col let-audience="rowData" pTemplate="body">
+        <p-checkbox [(ngModel)]="audience[col.field]" binary="true"></p-checkbox>
+      </ng-template>
+    </p-column>
+    <p-column header="Show on Geo Grid" field="isOnGrid" [style]="{ width: '15%' }">
+      <ng-template let-col let-audience="rowData" pTemplate="body">
+        <p-checkbox [(ngModel)]="audience[col.field]" binary="true"></p-checkbox>
+      </ng-template>
+    </p-column>
+    <p-column header="Include in Export" field="isExported" [style]="{ width: '15%' }">
+      <ng-template let-col let-audience="rowData" pTemplate="body">
+        <p-checkbox [(ngModel)]="audience[col.field]" binary="true"></p-checkbox>
+      </ng-template>
+    </p-column>
+    <p-column header="Audience Name" field="audienceName" [style]="{ width: '55%' }"></p-column>
+  </p-dataTable>
+  <button #applyButton pButton label="Apply Audience Selections"></button>
 </div>
