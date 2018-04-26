@@ -102,7 +102,7 @@ export class ValGeoService implements OnDestroy {
       let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
-      const query$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(queryMap.get(maxRadius)), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
+      const query$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(queryMap.get(maxRadius)), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
       const sub = query$.subscribe(
         selections => {
           allSelectedData = allSelectedData.concat(selections);
