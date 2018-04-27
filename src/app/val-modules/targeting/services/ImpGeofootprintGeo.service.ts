@@ -43,6 +43,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
+   // this is intended to be a cache of the attrobutes and geos used for the geoffotprint export
+   private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
+
    constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
                private projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: AppMessagingService,
@@ -619,9 +622,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    };*/
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
-      const allExportAttributes = state.impGeofootprintGeoAttribService.get();
-      const attr: ImpGeofootprintGeoAttrib = allExportAttributes.find(i => i.impGeofootprintGeo === geo && i.attributeCode === header);
-      return attr != null ? attr.attributeValue : '';
+      if (state.attributeCache.has(geo)) {
+            const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
+            const attr = attrs.find(i => i.attributeCode === header);
+            return attr != null ? attr.attributeValue : '';
+      }
+      console.warn('Variable not found in attributes when exporting geofootprint:', header);
+      return '';
    }
 
    public addVarAttributeExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
@@ -644,6 +651,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const geos: ImpGeofootprintGeo[] = this.get();
+
+      // Populate the attribute cache
+      this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
+      for (const attr of this.impGeofootprintGeoAttribService.get()) {
+            if (this.attributeCache.has(attr.impGeofootprintGeo)) {
+                  this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
+            } else {
+                  this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
+            }
+      }
 
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
