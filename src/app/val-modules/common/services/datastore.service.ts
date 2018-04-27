@@ -666,6 +666,7 @@ export class DataStore<T>
          if (row != '')
             csvData.push(row);            
       }
+      console.log('AARON: prepareCSV() finished');
       return csvData;
    }
 

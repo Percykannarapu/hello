@@ -27,6 +27,7 @@ import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribServi
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { AppConfig } from '../../../app.config';
+import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -594,7 +595,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    // TODO: This used to create a csv of the attributes, but now needs to return just the one matching the header.
    //       It is currently doing that, but is pretty inefficient, but its working.  Future me, forgive me.
-   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string)
+   /*public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string)
    {
    // console.log('exportVar handler for #V-ATTRIBUTES fired');
       let varValue: any;
@@ -615,7 +616,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         varValue = values.join('');
       }
       return varValue;
-   };
+   };*/
+
+   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
+      //console.log('AARON: fired exportVarAttributes()', state, geo, header);
+      //let varValue: string;
+      //const allExportAttributes: Set<ImpGeofootprintGeoAttrib> = new Set(state.impGeofootprintGeoAttribService.get());
+      ///const attr: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib({attributeCode: header, impGeofootprintGeo: geo, isActive: 1});
+      //if (allExportAttributes.has(attr)) {
+      //      console.log('AARON: IT\'S A CHRISTMAS MIRACLE');
+      //} else {
+      //      console.log('AARON: EXACTLY WHAT YOU THOUGHT WOULD HAPPEN DID HAPPEN');
+      //}
+      const allExportAttributes = state.impGeofootprintGeoAttribService.get();
+      const attr: ImpGeofootprintGeoAttrib = allExportAttributes.find(i => i.impGeofootprintGeo === geo && i.attributeCode === header);
+      return attr != null ? attr.attributeValue : '';
+   }
 
    public addVarAttributeExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
