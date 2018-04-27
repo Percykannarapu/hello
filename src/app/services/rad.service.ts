@@ -137,7 +137,6 @@ export class RadService {
    */
   public fetchRadData(user: any) {
     //const token: string = this.authService.getOauthToken();
-    //console.log('AARON: FETCHING RAD DATA', token);
     //const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + token);
     this.httpClient.get<RestResponse>(this.radUrl).subscribe(resp => this.parseResponse(resp), error => this.handleError(error));
   }
@@ -160,7 +159,6 @@ export class RadService {
   }
 
   private handleError(error: Error) {
-    console.log('AARON: FAILED TO GET RAD DATA');
     console.error(error);
   }
 

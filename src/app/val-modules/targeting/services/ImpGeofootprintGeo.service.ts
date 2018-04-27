@@ -619,15 +619,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    };*/
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
-      //console.log('AARON: fired exportVarAttributes()', state, geo, header);
-      //let varValue: string;
-      //const allExportAttributes: Set<ImpGeofootprintGeoAttrib> = new Set(state.impGeofootprintGeoAttribService.get());
-      ///const attr: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib({attributeCode: header, impGeofootprintGeo: geo, isActive: 1});
-      //if (allExportAttributes.has(attr)) {
-      //      console.log('AARON: IT\'S A CHRISTMAS MIRACLE');
-      //} else {
-      //      console.log('AARON: EXACTLY WHAT YOU THOUGHT WOULD HAPPEN DID HAPPEN');
-      //}
       const allExportAttributes = state.impGeofootprintGeoAttribService.get();
       const attr: ImpGeofootprintGeoAttrib = allExportAttributes.find(i => i.impGeofootprintGeo === geo && i.attributeCode === header);
       return attr != null ? attr.attributeValue : '';
