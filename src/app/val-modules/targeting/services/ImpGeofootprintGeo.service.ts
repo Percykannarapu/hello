@@ -596,38 +596,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return varValue;
    };
 
-   // TODO: This used to create a csv of the attributes, but now needs to return just the one matching the header.
-   //       It is currently doing that, but is pretty inefficient, but its working.  Future me, forgive me.
-   /*public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string)
-   {
-   // console.log('exportVar handler for #V-ATTRIBUTES fired');
-      let varValue: any;
-      const allExportAttributes = state.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const attributeNames = Array.from(new Set(allExportAttributes.map(att => att.attributeCode)));
-      attributeNames.sort();
-      if (geo == null) {
-         varValue = attributeNames.map(s => s.replace(',', '')).join(',');
-      }
-      else
-      {
-        const currentAttributes = allExportAttributes.filter(att => att.impGeofootprintGeo === geo);
-        const values = [];
-        attributeNames.forEach(name => {
-          const index = currentAttributes.findIndex(a => a.attributeCode === name && name === header);
-          values.push(index > -1 ? currentAttributes[index].attributeValue : '');
-        });
-        varValue = values.join('');
-      }
-      return varValue;
-   };*/
-
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
       if (state.attributeCache.has(geo)) {
             const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
             const attr = attrs.find(i => i.attributeCode === header);
             return attr != null ? attr.attributeValue : '';
       }
-      console.warn('Variable not found in attributes when exporting geofootprint:', header);
+      console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
       return '';
    }
 
