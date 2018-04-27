@@ -20,9 +20,9 @@ export class ImpDiscoveryUI
    public industryCategoryName:     string;
    public isBlended:                boolean;
    public isDefinedbyOwnerGroup:    boolean;
-   public valassisCPM:        number;
-   public anneCPM:            number;
-   public soloCPM:            number;
+   public valassisCPM:              number;
+   public anneCPM:                  number;
+   public soloCPM:                  number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpDiscoveryUI | {} = {}) {
