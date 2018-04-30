@@ -1,25 +1,26 @@
 <div>
-  <p-dataTable *ngIf="(selectedVars$ | async)?.length > 0"
-               [value]="selectedVars$ | async"
+  <p-dataTable *ngIf="selectedVars.length > 0"
+               [value]="selectedVars"
                [resizableColumns]="true"
                [rows]="10" [paginator]="true"
+               [immutable]="false"
                columnResizeMode="expand">
-    <p-column header="Show on Map" field="isMapped" [style]="{ width: '15%' }">
+    <p-column header="Map" field="isMapped" [style]="{ width: '7%' }">
+      <ng-template let-col let-audience="rowData" pTemplate="body">
+        <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onMapped(audience.audienceData.pk)"></p-checkbox>
+      </ng-template>
+    </p-column>
+    <p-column header="Grid" field="isOnGrid" [style]="{ width: '7%' }">
       <ng-template let-col let-audience="rowData" pTemplate="body">
         <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
       </ng-template>
     </p-column>
-    <p-column header="Show on Geo Grid" field="isOnGrid" [style]="{ width: '15%' }">
+    <p-column header="Export" field="isExported" [style]="{ width: '7%' }">
       <ng-template let-col let-audience="rowData" pTemplate="body">
         <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
       </ng-template>
     </p-column>
-    <p-column header="Include in Export" field="isExported" [style]="{ width: '15%' }">
-      <ng-template let-col let-audience="rowData" pTemplate="body">
-        <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
-      </ng-template>
-    </p-column>
-    <p-column header="Audience Name" field="audienceName" [style]="{ width: '55%' }"></p-column>
+    <p-column header="Audience Name" field="audienceName" [style]="{ width: '79%' }"></p-column>
   </p-dataTable>
   <button #applyButton pButton label="Apply Audience Selections"></button>
 </div>

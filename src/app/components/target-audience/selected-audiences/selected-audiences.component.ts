@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CategoryVariable, TopVarService } from '../../../services/top-var.service';
 import { Observable } from 'rxjs/Observable';
-import { map, switchMap, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
+import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/operator/switch';
 
 interface ViewModel {
   isMapped: boolean;
@@ -19,27 +19,40 @@ interface ViewModel {
 })
 export class SelectedAudiencesComponent implements OnInit, AfterViewInit {
 
+  private selectedVarSubscription: Subscription;
+
   @ViewChild('applyButton') applyButton: ElementRef;
-  selectedVars$: Observable<ViewModel[]>;
+  selectedVars: ViewModel[] = [];
 
   constructor(private varService: TopVarService) { }
 
   ngOnInit() : void {
-    this.selectedVars$ = this.varService.selectedTdaAudience$.pipe(
-      map(selections => selections.map((audience, index) => ({ isMapped: index === 0, isOnGrid: true, isExported: true, audienceName: audience.fielddescr, audienceData: audience })))
-    );
+    this.selectedVarSubscription = this.varService.selectedTdaAudience$.pipe(
+      map(selections => selections.map(audience => ({ isMapped: false, isOnGrid: true, isExported: true, audienceName: audience.fielddescr, audienceData: audience })))
+    ).subscribe(vars => this.updateVars(vars));
   }
 
   ngAfterViewInit() : void {
-    Observable.fromEvent(this.applyButton.nativeElement, 'click').pipe(
-      switchMap(() => this.selectedVars$.pipe(take(1)))
-    ).subscribe(audience => this.processData(audience));
+    Observable.fromEvent(this.applyButton.nativeElement, 'click')
+      .subscribe(() => this.processData(this.selectedVars));
+  }
+
+  public onMapped(pk: string) : void {
+    const otherSelected = this.selectedVars.filter(v => v.audienceData.pk !== pk && v.isMapped);
+    otherSelected.forEach(o => o.isMapped = false);
   }
 
   private processData(audience: ViewModel[]) {
     this.varService.applyAudienceSelection();
     const renderedData = audience.filter(a => a.isMapped === true)[0];
-    //this.varService.setRenderedData(renderedData ? renderedData.audienceData : null);
-    this.varService.setRenderedData(audience[0].audienceData);
+    this.varService.setRenderedData(renderedData ? renderedData.audienceData : null);
+  }
+
+  private updateVars(vars: ViewModel[]) : void {
+    const currentPks = new Set(this.selectedVars.map(v => v.audienceData.pk));
+    const newPks = new Set(vars.map(v => v.audienceData.pk));
+    const addedVars = vars.filter(v => !currentPks.has(v.audienceData.pk));
+    this.selectedVars.push(...addedVars);
+    this.selectedVars = this.selectedVars.filter(v => newPks.has(v.audienceData.pk));
   }
 }

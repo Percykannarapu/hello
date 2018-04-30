@@ -528,21 +528,19 @@ export class MapService {
             id: 'select-this',
             className: 'esri-icon-plus-circled'
         };
-        const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
-        //const currentLayer = (layerDef) => (layer: __esri.FeatureLayer) => curren = (layerDef => {EsriModules.Layer.fromPortalItem(<any>{portalItem: { id: layerDef.id}});
+        // const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
+        // const currentLayer = (layerDef) => (layer: __esri.FeatureLayer) => curren = (layerDef => {EsriModules.Layer.fromPortalItem(<any>{portalItem: { id: layerDef.id}});
 
         // if (layerDefinitions.filter(i => i != null && i.id != null)){
         //     for (let i: number = 0; i < layerDefinitions.length; i++) {
         //         const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
         // }
 
-        layerDefinitions.filter(i => i != null && i.id != null).forEach(layerDef => {
-            EsriModules.Layer.fromPortalItem(<any>{
-                portalItem: {
-                    id: layerDef.id
-                }
-            }).then((currentLayer: __esri.FeatureLayer) => {
-
+        layerDefinitions.filter(i => i != null && i.id != null ).forEach(layerDef => {
+          const isUrlRequest = layerDef.id.toLowerCase().startsWith('http');
+          const loader: (spec: any) => IPromise<__esri.Layer> = isUrlRequest ? EsriModules.Layer.fromArcGISServerUrl : EsriModules.Layer.fromPortalItem;
+          const itemLoadSpec = isUrlRequest ? { url: layerDef.id } : { portalItem: {id: layerDef.id } };
+          loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
                 const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
                 const localPopUpFields = new Set(layerDef.popUpFields);
                 currentLayer.visible = layerDef.defaultVisibility;
@@ -571,18 +569,18 @@ export class MapService {
                     currentLayer.popupEnabled = false;
                 }
                 // Add Layer to Group Layer if it does not already exist
-                if (!group.layers.some(groupContainsLayer(layerDef))) {
+                // if (!group.layers.some(groupContainsLayer(layerDef))) {
                     group.add(currentLayer);
-                }
+                // }
 
                 // register a listener for this layer to collect usage metrics
                 EsriModules.watchUtils.pausable(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
             });
         });
-        if (!this.map.layers.some(l => l === group)) {
+        //if (!this.map.layers.some(l => l === group)) {
             this.map.layers.add(group);
             MapService.layers.add(group);
-        }
+        //}
         group.visible = true;
         this.resumeLayerWatch(this.pausableWatches);
     }

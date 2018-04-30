@@ -281,6 +281,16 @@ export class TopVarService implements OnDestroy {
       switchMap(([geocodes, variable, analysisLevel]) => this.getGeoData(analysisLevel, geocodes, [variable.pk])),
       map<any, GeoVariableData[]>(response => response.payload)
     ).subscribe(fuseData => this.setMapData(fuseData), d => console.log('mapData$ error', d), () => console.log('mapData$ complete'));
+
+    this.renderedData$.pipe(
+      filter(variable => variable == null)
+    ).subscribe(() => this.clearMapData());
+  }
+
+  private clearMapData() : void {
+    const current = this.mapData.getValue();
+    current.clear();
+    this.mapData.next(current);
   }
 
   private setMapData(inputData: GeoVariableData[]) : void {
@@ -372,7 +382,9 @@ export class TopVarService implements OnDestroy {
         geocodes: chunk,
         variablePks: tdaPks.map(pk => Number(pk)).filter(pk => !Number.isNaN(pk))
       };
-      observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData));
+      if (inputData.geocodes.length > 0 && inputData.variablePks.length > 0) {
+        observables.push(this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData));
+      }
     }
     return merge(...observables, 3).pipe(
       finalize(() => this.messagingService.stopSpinnerDialog(this.spinnerKey))
