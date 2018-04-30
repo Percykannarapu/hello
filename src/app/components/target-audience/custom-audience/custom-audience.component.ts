@@ -1,0 +1,78 @@
+import { Component, ViewChild } from '@angular/core';
+import { AppMessagingService } from '../../../services/app-messaging.service';
+import { FileUpload } from 'primeng/primeng';
+import * as XLSX from 'xlsx';
+import { FileService, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
+import { audienceUploadRules, headerCache } from './upload.rules';
+import { TopVarService } from '../../../services/top-var.service';
+
+interface CustomAudienceData {
+  geocode: string;
+  data: string;
+}
+
+@Component({
+  selector: 'val-custom-audience',
+  templateUrl: './custom-audience.component.html'
+})
+export class CustomAudienceComponent {
+
+  private csvParseRules: ParseRule[] = audienceUploadRules;
+
+  @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
+
+  constructor(private messagingService: AppMessagingService, private dataService: TopVarService) { }
+
+  public uploadFile(event: any) : void {
+    const reader = new FileReader();
+    const name: String = event.files[0].name;
+    if (name.includes('.xlsx') || name.includes('.xls') ) {
+      reader.readAsBinaryString(event.files[0]);
+      reader.onload = () => {
+        try {
+          const wb: XLSX.WorkBook = XLSX.read(reader.result, {type: 'binary'});
+          const worksheetName: string = wb.SheetNames[0];
+          const ws: XLSX.WorkSheet = wb.Sheets[worksheetName];
+          const csvData  = XLSX.utils.sheet_to_csv(ws);
+          this.parseFile(csvData);
+        } catch (e) {
+          this.handleError(`${e}`);
+        }
+      };
+    } else {
+      reader.readAsText(event.files[0]);
+      reader.onload = () => {
+        this.parseFile(reader.result);
+      };
+    }
+
+    this.audienceUploadEl.clear();
+    // workaround for https://github.com/primefaces/primeng/issues/4816
+    this.audienceUploadEl.basicFileInput.nativeElement.value = '';
+  }
+
+  private parseFile(dataBuffer: string) {
+    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const header: string = rows.shift();
+    try {
+      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
+      if (data.failedRows.length > 0) {
+        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+        this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
+      }
+      const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
+      if (uniqueGeos.size !== data.parsedData.length) {
+        this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
+      } else {
+        this.dataService.setCustomData(headerCache.variableName, data.parsedData);
+        this.messagingService.showGrowlSuccess('Audience Upload Success', 'Upload Complete');
+      }
+    } catch (e) {
+      this.handleError(`${e}`);
+    }
+  }
+
+  private handleError(message: string) : void {
+    this.messagingService.showGrowlError('Audience Upload Error', message);
+  }
+}

@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CategoryVariable, TopVarService } from '../../../services/top-var.service';
 import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/observable/fromEvent';
 import { SmartMappingTheme } from '../../../models/LayerState';
@@ -12,6 +12,7 @@ interface ViewModel {
   isMapped: boolean;
   isOnGrid: boolean;
   isExported: boolean;
+  isCustom: boolean;
   audienceName: string;
   audienceData: CategoryVariable;
 }
@@ -22,9 +23,6 @@ interface ViewModel {
   styleUrls: ['./selected-audiences.component.css']
 })
 export class SelectedAudiencesComponent implements OnInit {
-
-  private selectedVarSubscription: Subscription;
-
   @ViewChild('applyButton') applyButton: ElementRef;
   selectedVars: ViewModel[] = [];
   allThemes: SelectItem[] = [];
@@ -45,9 +43,34 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   ngOnInit() : void {
-    this.selectedVarSubscription = this.varService.selectedTdaAudience$.pipe(
-      map(selections => selections.map(audience => ({ isMapped: false, isOnGrid: true, isExported: true, audienceName: audience.fielddescr, audienceData: audience })))
-    ).subscribe(vars => this.updateVars(vars));
+    this.varService.selectedOfflineAudience$.pipe(
+      map(selections => selections.map(audience => ({ isMapped: false, isOnGrid: true, isExported: true, isCustom: false, audienceName: audience.fielddescr, audienceData: audience })))
+    ).subscribe(vars => this.updateOfflineVars(vars));
+
+    this.varService.customDataTitle$.pipe(
+      filter(title => title != null && title !== ''),
+      map(title => {
+        const customAudience: CategoryVariable = {
+          '@ref': null,
+          avgType: null,
+          decimals: null,
+          fieldconte: null,
+          fielddescr: title,
+          fieldname: null,
+          fieldnum: null,
+          fieldtype: null,
+          includeInCb: null,
+          includeInDatadist: null,
+          natlAvg: null,
+          pk: 'custom',
+          source: 'custom',
+          tablename: 'custom',
+          userAccess: null,
+          varFormat: null
+        };
+        return [{ isMapped: false, isOnGrid: true, isExported: true, isCustom: true, audienceName: title, audienceData: customAudience }];
+      })
+    ).subscribe(vars => this.updateCustomVar(vars));
   }
 
   public onApplyClicked() {
@@ -72,14 +95,20 @@ export class SelectedAudiencesComponent implements OnInit {
   private processData(audience: ViewModel[]) {
     this.varService.applyAudienceSelection();
     const renderedData = audience.filter(a => a.isMapped === true)[0];
+    console.log(renderedData);
     this.varService.setRenderedData(renderedData ? renderedData.audienceData : null);
   }
 
-  private updateVars(vars: ViewModel[]) : void {
+  private updateOfflineVars(vars: ViewModel[]) : void {
     const currentPks = new Set(this.selectedVars.map(v => v.audienceData.pk));
     const newPks = new Set(vars.map(v => v.audienceData.pk));
     const addedVars = vars.filter(v => !currentPks.has(v.audienceData.pk));
     this.selectedVars.push(...addedVars);
-    this.selectedVars = this.selectedVars.filter(v => newPks.has(v.audienceData.pk));
+    this.selectedVars = this.selectedVars.filter(v => newPks.has(v.audienceData.pk) || v.audienceData.pk === 'custom');
+  }
+
+  private updateCustomVar(vars: ViewModel[]) : void {
+    this.selectedVars = this.selectedVars.filter(v => v.audienceData.pk === 'custom');
+    this.selectedVars.push(...vars);
   }
 }

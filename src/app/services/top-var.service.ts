@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { filter, finalize, map, switchMap, tap } from 'rxjs/operators';
+import { filter, finalize, map, switchMap } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeoService } from './app-geo.service';
@@ -236,18 +236,21 @@ export class TopVarService implements OnDestroy {
 
   private allTopVars: BehaviorSubject<DemographicVariable[]> = new BehaviorSubject<DemographicVariable[]>([]);
   private selectedTopVar: BehaviorSubject<DemographicVariable> = new BehaviorSubject<DemographicVariable>(null);
-  private appliedTdaAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
-  private renderedAudience: BehaviorSubject<CategoryVariable> = new BehaviorSubject<CategoryVariable>(null);
+  private appliedOfflineAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
+  private renderedOfflineAudience: BehaviorSubject<CategoryVariable> = new BehaviorSubject<CategoryVariable>(null);
   private previousGeocodes: Set<string> = new Set();
   private previousVariables: Set<CategoryVariable> = new Set();
-  private selectedTdaAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
+  private selectedOfflineAudience: BehaviorSubject<CategoryVariable[]> = new BehaviorSubject<CategoryVariable[]>([]);
   private mapData: BehaviorSubject<Map<string, any>> = new BehaviorSubject<Map<string, any>>(new Map<string, any>());
+  private customData: { geocode: string; data: string; }[];
+  private customDataTitle: BehaviorSubject<string> = new BehaviorSubject<string>(null);
 
   public selectedTopVar$: Observable<DemographicVariable> = this.selectedTopVar.asObservable();
-  public appliedTdaAudience$: Observable<CategoryVariable[]> = this.appliedTdaAudience.asObservable();
-  public selectedTdaAudience$: Observable<CategoryVariable[]> = this.selectedTdaAudience.asObservable();
+  public appliedOfflineAudience$: Observable<CategoryVariable[]> = this.appliedOfflineAudience.asObservable();
+  public selectedOfflineAudience$: Observable<CategoryVariable[]> = this.selectedOfflineAudience.asObservable();
   public mapData$: Observable<Map<string, any>> = this.mapData.asObservable();
-  public renderedData$: Observable<CategoryVariable> = this.renderedAudience.asObservable();
+  public renderedData$: Observable<CategoryVariable> = this.renderedOfflineAudience.asObservable();
+  public customDataTitle$: Observable<string> = this.customDataTitle.asObservable();
 
   private geocodesInExtent$: Observable<string[]>;
   private analysisLevel$: Observable<string>;
@@ -261,8 +264,8 @@ export class TopVarService implements OnDestroy {
       map(disc => disc[0].analysisLevel)
     );
 
-    this.subscription = combineLatest(this.appliedTdaAudience$, this.geoService.uniqueSelectedGeocodes$, this.analysisLevel$).pipe(
-      filter(([geocodes, variable]) => variable != null && geocodes.length > 0)
+    this.subscription = combineLatest(this.appliedOfflineAudience$, this.geoService.uniqueSelectedGeocodes$, this.analysisLevel$).pipe(
+      filter(([variables, geocodes]) => variables.length > 0 && geocodes.length > 0)
     ).subscribe(([variables, geocodes, al]) => this.setGeoVariables(variables, geocodes, al));
 
     this.geocodesInExtent$ = this.analysisLevel$.pipe(
@@ -277,14 +280,18 @@ export class TopVarService implements OnDestroy {
     );
 
     combineLatest(filteredGeos$, this.renderedData$, this.analysisLevel$).pipe(
-      filter(([geocodes, variable]) => variable != null && geocodes.length > 0),
+      filter(([geocodes, variable]) => variable != null && variable.pk !== 'custom' && geocodes.length > 0),
       switchMap(([geocodes, variable, analysisLevel]) => this.getGeoData(analysisLevel, geocodes, [variable.pk])),
       map<any, GeoVariableData[]>(response => response.payload)
-    ).subscribe(fuseData => this.setMapData(fuseData), d => console.log('mapData$ error', d), () => console.log('mapData$ complete'));
+    ).subscribe(fuseData => this.setMapData(fuseData));
 
     this.renderedData$.pipe(
       filter(variable => variable == null)
     ).subscribe(() => this.clearMapData());
+
+    this.renderedData$.pipe(
+      filter(variable => variable != null && variable.pk === 'custom')
+    ).subscribe(() => this.setMapData(this.customData.map<GeoVariableData>(d => ( { variablePk: 'custom', geocode: d.geocode, score: d.data }))));
   }
 
   private clearMapData() : void {
@@ -341,21 +348,24 @@ export class TopVarService implements OnDestroy {
   }
 
   public applyAudienceSelection() : void {
-    this.appliedTdaAudience.next(this.selectedTdaAudience.getValue());
+    this.appliedOfflineAudience.next(this.selectedOfflineAudience.getValue());
+    if (this.customData && this.customData.length > 0) {
+      this.persistCustomAudience();
+    }
   }
 
   public selectTdaVariable(variable: CategoryVariable) : void {
-    const dataSet = new Set(this.selectedTdaAudience.getValue());
+    const dataSet = new Set(this.selectedOfflineAudience.getValue());
     dataSet.add(variable);
-    this.selectedTdaAudience.next(Array.from(dataSet));
+    this.selectedOfflineAudience.next(Array.from(dataSet));
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'checked' });
     this.usageService.createCounterMetric(usageMetricName, variable.fieldname + '~' + variable.fielddescr, 1);
   }
 
   public removeTdaVariable(variable: CategoryVariable) : void {
-    const dataSet = new Set(this.selectedTdaAudience.getValue());
+    const dataSet = new Set(this.selectedOfflineAudience.getValue());
     dataSet.delete(variable);
-    this.selectedTdaAudience.next(Array.from(dataSet));
+    this.selectedOfflineAudience.next(Array.from(dataSet));
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: 'unchecked' });
     this.usageService.createCounterMetric(usageMetricName, variable.fieldname + '~' + variable.fielddescr, 1);
   }
@@ -409,17 +419,27 @@ export class TopVarService implements OnDestroy {
     const sub = this.getGeoData(analysisLevel, requestGeos, requestPks).pipe(
       map(response => response.payload)
     ).subscribe(
-      resData => this.persistGeoAttributes(resData),
+      resData => this.persistOfflineAudience(resData),
       err => this.handleFuseError(err),
       () => {
         if (sub != null) sub.unsubscribe();
       });
   }
 
-  private persistGeoAttributes(geoDataMap: GeoVariableData[]) {
+  private persistOfflineAudience(geoDataMap: GeoVariableData[]) {
+    const appliedMap = new Map<string, CategoryVariable>(this.appliedOfflineAudience.getValue().map<[string, CategoryVariable]>(catVar => [ catVar.pk, catVar ]));
+    this.persistGeoAttributes(geoDataMap, appliedMap);
+  }
+
+  private persistCustomAudience() {
+    const geoDataMap = this.customData.map<GeoVariableData>(d => ( { variablePk: 'custom', geocode: d.geocode, score: d.data }));
+    const appliedMap = new Map<string, Partial<CategoryVariable>>([['custom', {pk: 'custom', fielddescr: this.customDataTitle.getValue() }]]);
+    this.persistGeoAttributes(geoDataMap, appliedMap);
+  }
+
+  private persistGeoAttributes(geoDataMap: GeoVariableData[], appliedMap: Map<string, Partial<CategoryVariable>>) {
     let allAttributes = [];
-    const appliedMap = new Map<string, CategoryVariable>(this.appliedTdaAudience.getValue().map<[string, CategoryVariable]>(catVar => [ catVar.pk, catVar ]));
-    for (const record of geoDataMap){
+    for (const record of geoDataMap) {
       const variableDef = appliedMap.get(record.variablePk);
       if (variableDef) {
         const attribute = new ImpGeofootprintGeoAttrib({
@@ -441,7 +461,14 @@ export class TopVarService implements OnDestroy {
   }
 
   public setRenderedData(audienceData: CategoryVariable) {
-    console.log('setting render data', audienceData);
-    this.renderedAudience.next(audienceData);
+    if (this.renderedOfflineAudience.getValue() != null && audienceData != null && this.renderedOfflineAudience.getValue().pk !== audienceData.pk) {
+      this.clearMapData();
+    }
+    this.renderedOfflineAudience.next(audienceData);
+  }
+
+  setCustomData(variableName: string, parsedData: { geocode: string, data: string }[]) {
+    this.customData = Array.from(parsedData);
+    this.customDataTitle.next(variableName);
   }
 }
