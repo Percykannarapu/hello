@@ -39,6 +39,8 @@ const tacticianDarkPalette = [
 
 @Injectable()
 export class AppRendererService {
+  public static currentDefaultTheme: SmartMappingTheme = SmartMappingTheme.HighToLow;
+
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;
 
@@ -74,10 +76,11 @@ export class AppRendererService {
   private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
     const result = [];
     if (this.rendererIsSmart(rendererSetup)) {
+      const smartTheme = rendererSetup.smartTheme.theme || this.currentDefaultTheme;
       const theme = EsriModules.symbologyColor.getSchemes({
         basemap: rendererSetup.smartTheme.baseMap,
         geometryType: 'polygon',
-        theme: rendererSetup.smartTheme.theme
+        theme: smartTheme
       });
       if (dataLength == null) {
         result.push(...theme.primaryScheme.colors.map(c => {

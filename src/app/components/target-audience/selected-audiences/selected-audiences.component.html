@@ -1,26 +1,55 @@
-<div>
-  <p-dataTable *ngIf="selectedVars.length > 0"
-               [value]="selectedVars"
-               [resizableColumns]="true"
-               [rows]="10" [paginator]="true"
-               [immutable]="false"
-               columnResizeMode="expand">
-    <p-column header="Map" field="isMapped" [style]="{ width: '7%' }">
-      <ng-template let-col let-audience="rowData" pTemplate="body">
-        <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onMapped(audience.audienceData.pk)"></p-checkbox>
-      </ng-template>
-    </p-column>
-    <p-column header="Grid" field="isOnGrid" [style]="{ width: '7%' }">
-      <ng-template let-col let-audience="rowData" pTemplate="body">
-        <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
-      </ng-template>
-    </p-column>
-    <p-column header="Export" field="isExported" [style]="{ width: '7%' }">
-      <ng-template let-col let-audience="rowData" pTemplate="body">
-        <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
-      </ng-template>
-    </p-column>
-    <p-column header="Audience Name" field="audienceName" [style]="{ width: '79%' }"></p-column>
-  </p-dataTable>
-  <button #applyButton pButton label="Apply Audience Selections"></button>
+<div class="ui-g">
+  <div *ngIf="selectedVars.length > 0" class="card ui-g-12">
+    <p-dataTable [value]="selectedVars"
+                 [resizableColumns]="true"
+                 [rows]="10"
+                 [paginator]="true"
+                 [alwaysShowPaginator]="false"
+                 [immutable]="false"
+                 columnResizeMode="expand">
+      <p-column header="Map" field="isMapped" [style]="{ width: '7%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onMapped(audience.audienceData.pk)"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="Grid" field="isOnGrid" [style]="{ width: '7%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="Export" field="isExported" [style]="{ width: '7%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="Audience Name" field="audienceName" [style]="{ width: '79%' }"></p-column>
+    </p-dataTable>
+  </div>
+
+  <div *ngIf="showRenderControls" class="card ui-g-12">
+    <div class="ui-g-6">
+      <div class="ui-g-4"><label>Theme</label></div>
+      <div class="ui-g-8">
+        <p-dropdown [options]="allThemes"
+                    (onChange)="onThemeChange($event)"
+                    [autoWidth]="false"
+                    [style]="{'width':'200px'}"></p-dropdown>
+      </div>
+    </div>
+    <div class="ui-g-6">
+      <!--<div class="ui-g-4"><label>Opacity</label></div>-->
+      <!--<div class="ui-g-8">-->
+        <!--<p class="sliderLabel">{{currentOpacity}} %</p>-->
+        <!--<p-slider [ngModel]="currentOpacity"-->
+                  <!--(ngModelChange)="onOpacityChange($event)"></p-slider>-->
+      <!--</div>-->
+    </div>
+  </div>
+
+  <button *ngIf="selectedVars.length > 0" pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
+
+  <div *ngIf="selectedVars.length === 0" class="ui-g-12">
+    Please select or upload Audience Data from one of the other tabs.
+  </div>
+
 </div>

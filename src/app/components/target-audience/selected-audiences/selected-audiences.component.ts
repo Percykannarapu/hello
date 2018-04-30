@@ -1,9 +1,12 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CategoryVariable, TopVarService } from '../../../services/top-var.service';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/observable/fromEvent';
+import { SmartMappingTheme } from '../../../models/LayerState';
+import { SelectItem } from 'primeng/primeng';
+import { AppRendererService } from '../../../services/app-renderer.service';
 
 interface ViewModel {
   isMapped: boolean;
@@ -15,16 +18,31 @@ interface ViewModel {
 
 @Component({
   selector: 'val-selected-audiences',
-  templateUrl: './selected-audiences.component.html'
+  templateUrl: './selected-audiences.component.html',
+  styleUrls: ['./selected-audiences.component.css']
 })
-export class SelectedAudiencesComponent implements OnInit, AfterViewInit {
+export class SelectedAudiencesComponent implements OnInit {
 
   private selectedVarSubscription: Subscription;
 
   @ViewChild('applyButton') applyButton: ElementRef;
   selectedVars: ViewModel[] = [];
+  allThemes: SelectItem[] = [];
+  currentOpacity: number = 65;
 
-  constructor(private varService: TopVarService) { }
+  showRenderControls: boolean = false;
+
+  constructor(private varService: TopVarService) {
+    // this is how you convert an enum into a list of drop-down values
+    const allThemes = SmartMappingTheme;
+    const keys = Object.keys(allThemes);
+    for (const key of keys) {
+      this.allThemes.push({
+        label: key,
+        value: allThemes[key]
+      });
+    }
+  }
 
   ngOnInit() : void {
     this.selectedVarSubscription = this.varService.selectedTdaAudience$.pipe(
@@ -32,14 +50,23 @@ export class SelectedAudiencesComponent implements OnInit, AfterViewInit {
     ).subscribe(vars => this.updateVars(vars));
   }
 
-  ngAfterViewInit() : void {
-    Observable.fromEvent(this.applyButton.nativeElement, 'click')
-      .subscribe(() => this.processData(this.selectedVars));
+  public onApplyClicked() {
+    this.processData(this.selectedVars);
   }
 
   public onMapped(pk: string) : void {
     const otherSelected = this.selectedVars.filter(v => v.audienceData.pk !== pk && v.isMapped);
     otherSelected.forEach(o => o.isMapped = false);
+    this.showRenderControls = this.selectedVars.some(v => v.isMapped);
+  }
+
+  onThemeChange(event: { value: SmartMappingTheme }) {
+    console.log(event);
+    AppRendererService.currentDefaultTheme = event.value;
+  }
+
+  onOpacityChange(newValue: number) {
+    this.currentOpacity = newValue;
   }
 
   private processData(audience: ViewModel[]) {

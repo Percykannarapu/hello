@@ -333,7 +333,7 @@ export class ValMapService implements OnDestroy {
         },
         smartTheme: {
           baseMap: this.mapService.map.basemap,
-          theme: SmartMappingTheme.HighToLow
+          theme: null
         }
       };
     }
