@@ -448,7 +448,7 @@ export class DiscoveryInputComponent implements OnInit
    {
       if (!this.mapReady && this.loadRetries < 14) {
             this.loadRetries++;
-            setTimeout((() => this.loadProject()), 1000);
+            setTimeout((() => this.loadProject()), 10000);
             return;
       }
       this.loadRetries = 0;
