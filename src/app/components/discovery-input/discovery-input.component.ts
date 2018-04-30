@@ -10,7 +10,7 @@ import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRad
 import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLookup.store';
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
-
+import { AppMessagingService } from '../../services/app-messaging.service';
 
 import { Component, OnInit,  Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
@@ -81,7 +81,8 @@ export class DiscoveryInputComponent implements OnInit
                private http: HttpClient,
                private appState: AppState,
                private mapservice: MapService,
-               private usageService: UsageService)
+               private usageService: UsageService,
+               private messagingService: AppMessagingService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -451,8 +452,20 @@ export class DiscoveryInputComponent implements OnInit
    public saveProject()
    {
       console.log('discovery-input.component.saveProject - fired');
+      let errorString = '';
       // Map the discovery data to the project
       this.mapToProject();
+
+      // check for required fields
+      if (this.impProject.projectName == null || this.impProject.projectName == '')
+            errorString = 'imPower Project Name is required<br>';
+      if (this.impProject.methAnalysis == null || this.impProject.methAnalysis == '')
+            errorString += 'Analysis level is required';
+      if (errorString !== '') {
+            this.messagingService.showGrowlError('Error Saving Project', errorString);
+            return;
+      }
+
       // Save the project
       this.impProjectService.saveProject();
       this.impProject = this.impProjectService.get()[0];
