@@ -41,6 +41,7 @@ export class ValMapService implements OnDestroy {
   private currentAnalysisLevel: string;
   private currentLocationList = new Map<string, LocationUiModel[]>();
   private currentGeocodeList: string[] = [];
+  private currentRendererDataLength = 0;
 
   private useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
@@ -69,7 +70,7 @@ export class ValMapService implements OnDestroy {
         this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
         this.clientTradeAreaSubscription = this.tradeAreaService.clientBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Site'));
         this.competitorTradeAreaSubscription = this.tradeAreaService.competitorBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Competitor'));
-        this.rendererSubscription = this.rendererService.readyForRender$.subscribe(() => this.setupDataRenderer(this.currentAnalysisLevel));
+        this.rendererSubscription = this.rendererService.rendererDataReady$.subscribe(length => this.onRendererChanged(length));
       }
     });
   }
@@ -106,7 +107,16 @@ export class ValMapService implements OnDestroy {
     if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.currentAnalysisLevel = discovery[0].analysisLevel;
       this.setDefaultLayers(this.currentAnalysisLevel);
-      this.setupSelectionRenderer(this.currentAnalysisLevel);
+      this.setupRenderer(this.currentRendererDataLength, this.currentAnalysisLevel);
+    }
+  }
+
+  private onRendererChanged(dataLength: number) {
+    if (this.currentRendererDataLength === 0 && dataLength === 0 && this.layerSelectionRefresh) {
+      this.layerSelectionRefresh();
+    } else {
+      this.currentRendererDataLength = dataLength;
+      this.setupRenderer(this.currentRendererDataLength, this.currentAnalysisLevel);
     }
   }
 
@@ -292,31 +302,9 @@ export class ValMapService implements OnDestroy {
       () => {
         sub.unsubscribe();
       });
-   }
-
-  private setupSelectionRenderer(currentAnalysisLevel: string) {
-    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
-    console.log('setting renderer');
-    const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-    const layer = this.layerService.getPortalLayerById(portalId);
-    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
-      this.defaultSymbol = layer.renderer.symbol;
-    }
-    const setup: CustomRendererSetup = {
-      rampLabel: '',
-      outline: {
-        defaultWidth: this.defaultSymbol.outline.width,
-        selectedWidth: this.defaultSymbol.outline.width,
-        selectedColor: this.defaultSymbol.outline.color
-      }
-    };
-    layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
-    this.layerSelectionRefresh = () => {
-      layer.renderer = EsriUtils.clone(layer.renderer);
-    };
   }
 
-  private setupDataRenderer(currentAnalysisLevel: string) {
+  private setupRenderer(dataLength: number, currentAnalysisLevel: string) : void {
     if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
     console.log('setting renderer');
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
@@ -324,22 +312,39 @@ export class ValMapService implements OnDestroy {
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
       this.defaultSymbol = layer.renderer.symbol;
     }
-    const setup: SmartRendererSetup = {
-      rampLabel: '',
-      outline: {
-        defaultWidth: this.defaultSymbol.outline.width,
-        selectedWidth: 4,
-        selectedColor: [86, 231, 247, 1.0]
-      },
-      smartTheme: {
-        baseMap: this.mapService.map.basemap,
-        theme: SmartMappingTheme.HighToLow
-      }
-    };
+    let setup: CustomRendererSetup | SmartRendererSetup;
+    console.log('data length', dataLength);
+    if (dataLength === 0) {
+      setup = {
+        rampLabel: '',
+        outline: {
+          defaultWidth: this.defaultSymbol.outline.width,
+          selectedWidth: this.defaultSymbol.outline.width,
+          selectedColor: this.defaultSymbol.outline.color
+        }
+      };
+    } else {
+      setup = {
+        rampLabel: '',
+        outline: {
+          defaultWidth: this.defaultSymbol.outline.width,
+          selectedWidth: 4,
+          selectedColor: [86, 231, 247, 1.0]
+        },
+        smartTheme: {
+          baseMap: this.mapService.map.basemap,
+          theme: null
+        }
+      };
+    }
     layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
-    this.layerSelectionRefresh = () => {
-      layer.renderer = EsriUtils.clone(layer.renderer);
-    };
+    if (dataLength === 0) {
+      this.layerSelectionRefresh = () => {
+        layer.renderer = EsriUtils.clone(layer.renderer);
+      };
+    } else {
+      this.layerSelectionRefresh = null;
+    }
   }
 
   private setHighlight(geocodes: string[], currentAnalysisLevel: string) {
