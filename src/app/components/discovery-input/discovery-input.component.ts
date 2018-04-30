@@ -11,7 +11,7 @@ import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLo
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
 import { AppMessagingService } from '../../services/app-messaging.service';
-
+import { ValMapService } from '../../services/app-map.service';
 import { Component, OnInit,  Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from '../../val-modules/targeting/models/ImpRadLookup';
@@ -20,6 +20,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+
 
 interface Product {
    productName: string;
@@ -67,6 +68,8 @@ export class DiscoveryInputComponent implements OnInit
    summer: boolean = true;
 
    showLoadBtn: boolean = false;
+   private loadRetries: number = 0;
+   private mapReady: boolean = false;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -82,7 +85,8 @@ export class DiscoveryInputComponent implements OnInit
                private appState: AppState,
                private mapservice: MapService,
                private usageService: UsageService,
-               private messagingService: AppMessagingService)
+               private messagingService: AppMessagingService,
+               private valMapService: ValMapService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -151,6 +155,7 @@ export class DiscoveryInputComponent implements OnInit
       // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       // console.log('DiscoveryInputComponent constructed');
       this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
+      this.valMapService.onReady$.subscribe(ready => this.mapReady = ready);
    }
 
    /**
@@ -441,6 +446,12 @@ export class DiscoveryInputComponent implements OnInit
 
    public loadProject()
    {
+      if (!this.mapReady && this.loadRetries < 14) {
+            this.loadRetries++;
+            setTimeout((() => this.loadProject()), 1000);
+            return;
+      }
+      this.loadRetries = 0;
       console.log('discovery-input.component - loadProject fired');
 
       // Load the project

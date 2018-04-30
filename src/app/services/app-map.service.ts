@@ -22,6 +22,8 @@ import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { MapService } from './map.service';
 import { SmartMappingTheme } from '../models/LayerState';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
 
 export interface Coordinates {
   xcoord: number;
@@ -48,6 +50,8 @@ export class ValMapService implements OnDestroy {
   private highlightHandler: any;
 
   private defaultSymbol: __esri.SimpleFillSymbol;
+  private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public onReady$: Observable<boolean> = this.isReady.asObservable();
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
@@ -60,6 +64,7 @@ export class ValMapService implements OnDestroy {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
+        this.isReady.next(true);
         this.siteSubscription = this.siteService.allClientSites$.pipe(
           tap(() => { if (!this.currentLocationList.has('Site')) this.currentLocationList.set('Site', []); })
         ).subscribe(sites => this.onSiteListChanged(sites, 'Site'));
