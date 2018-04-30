@@ -153,7 +153,43 @@ export class UploadTradeAreasComponent implements OnInit {
         //let failedGeocodeList = null;
         
         outfields.push('geocode');
-        const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true, outfields).subscribe(graphics => {
+        const sub1 = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true, outfields).subscribe({
+          next: graphics => {
+            graphics.forEach(graphic => {
+              if (geoLocMap.has(graphic.attributes['geocode'])){
+                const geocode = graphic.attributes['geocode'];
+                const loc: ImpGeofootprintLocation = geoLocMap.get(geocode);
+                geocodeResultSet.add(geocode);
+                customIndex++;
+                const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
+                const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
+                const geocodeDistance =  EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
+                const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
+
+                const newTA: ImpGeofootprintTradeArea = ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'UPLOADGEO CUSTOM');
+                geosToAdd.push(this.createGeo(geocodeDistance, point, loc, newTA, graphic.attributes['geocode']));
+                tradeAreasForInsert.push(newTA);
+              }
+            });
+           
+          },
+          error: err => console.log('error:::', err),
+          complete: () => { 
+            this.impGeoService.add(geosToAdd);
+            this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
+            const failedGeocodeSet: Set<string> = new Set<string>();
+            const failedGeocodeList = Array.from(geoLocMap.keys()).filter(geocode => !geocodeResultSet.has(geocode));
+            failedGeocodeList.filter(geo => failedGeocodeSet.add(geo));
+            this.geoLocList.forEach(geoLoc => {
+              if (failedGeocodeSet.has(geoLoc.geocode1)){
+                this.failedGeoLocList.push(new GeoLocations(geoLoc.geocode1, geoLoc.loc, `${this.analysisLevel}  ${geoLoc.geocode1}   not found`));
+              }
+            });
+            if (sub1)
+                sub1.unsubscribe();
+          },
+        });
+       /* const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true, outfields).subscribe(graphics => {
         graphics.forEach(graphic => {
                 if (geoLocMap.has(graphic.attributes['geocode'])){
                   const geocode = graphic.attributes['geocode'];
@@ -187,7 +223,7 @@ export class UploadTradeAreasComponent implements OnInit {
             });
             if (sub)
                 sub.unsubscribe();
-        });
+        });*/
       } else {
         this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
         console.log('Set A validation message', header);
