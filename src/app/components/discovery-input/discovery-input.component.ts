@@ -149,7 +149,18 @@ export class DiscoveryInputComponent implements OnInit
 
       // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       // console.log('DiscoveryInputComponent constructed');
+      this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
    }
+
+   /**
+    * Subscribe to changes in the discovery service to be able to reflect those changes in the UI
+    * @param discoData The data from the discovery service
+    */
+    private onDiscoChange(discoData: ImpDiscoveryUI) {
+          if (discoData[0] == null) return;
+          const selectItem: SelectItem = {value: discoData.analysisLevel, label: discoData.analysisLevel};
+          this.onAnalysisSelectType(null);
+    }
 
    ngOnInit()
    {
