@@ -5,6 +5,8 @@ import * as XLSX from 'xlsx';
 import { FileService, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
 import { audienceUploadRules, headerCache } from './upload.rules';
 import { TopVarService } from '../../../services/top-var.service';
+import { UsageService } from '../../../services/usage.service';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 
 interface CustomAudienceData {
   geocode: string;
@@ -21,7 +23,7 @@ export class CustomAudienceComponent {
 
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
 
-  constructor(private messagingService: AppMessagingService, private dataService: TopVarService) { }
+  constructor(private messagingService: AppMessagingService, private dataService: TopVarService, private usageService: UsageService) { }
 
   public uploadFile(event: any) : void {
     const reader = new FileReader();
@@ -72,6 +74,10 @@ export class CustomAudienceComponent {
       this.handleError(`${e}`);
     } finally {
       this.messagingService.stopSpinnerDialog(this.spinnerId);
+    }
+    if (rows.length > 0) {
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
+      this.usageService.createCounterMetric(usageMetricName, '', rows.length);
     }
   }
 
