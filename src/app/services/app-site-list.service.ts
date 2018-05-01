@@ -65,6 +65,7 @@ export class ValSiteListService implements OnDestroy {
       this.onDiscoveryChange(d[0]);
     });
     this.siteSubscription = this.allLocations$.subscribe(locations => {
+       console.log('app-site-list.service - siteSubscription fired. locations: ', locations);
       this.createOrUpdateUiModels(locations, null);
       this.determineAllHomeGeos(locations);
     });
@@ -138,10 +139,10 @@ export class ValSiteListService implements OnDestroy {
     const locationSet = new Set(locations);
     const attributes = this.attributeService.get().filter(a => locationSet.has(a.impGeofootprintLocation));
     const observables: Observable<ImpGeofootprintLocAttrib[]>[] = [];
-    for (const analysisLevel of this.homeGeos) {
+    for (const analysisLevel of this.homeGeos) {       
       const homeGeoKey = `Home ${analysisLevel}`;
       const locationsWithHomeGeos = new Set(attributes.filter(a => a.attributeCode === homeGeoKey && a.attributeValue != null).map(a => a.impGeofootprintLocation));
-      const locationsNeedingHomeGeo = locations.filter(l => !locationsWithHomeGeos.has(l));
+      const locationsNeedingHomeGeo = locations.filter(l => !locationsWithHomeGeos.has(l));      
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);

@@ -63,6 +63,7 @@ export class AppConfig implements EsriLoaderConfig {
    public webGLIsAvailable: () => boolean = () => this.esriConfig.dojoConfig['has'] && (this.esriConfig.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
 
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+     console.log('app.config.getLayerIdForAnalysisLevel - analysisLevel: ', analysisLevel);
     switch (analysisLevel.toLowerCase()) {
       case 'zip':
         return boundary ? this.layerIds.zip.topVars.id : this.layerIds.zip.centroids.id;

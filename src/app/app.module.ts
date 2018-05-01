@@ -148,6 +148,7 @@ import { PocMapComponent } from './poc/poc.map';
 import { MetricService } from './val-modules/common/services/metric.service';
 import { MapDispatchService } from './services/map-dispatch.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
+import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 
 @NgModule({
@@ -275,7 +276,7 @@ import { CustomAudienceComponent } from './components/target-audience/custom-aud
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
         ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService,
         {provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true},
-        MapDispatchService
+        MapDispatchService, AppProjectService
     ],
     bootstrap: [AppComponent]
 })

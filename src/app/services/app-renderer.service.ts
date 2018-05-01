@@ -54,7 +54,9 @@ export class AppRendererService {
 
   constructor(private geoService: ValGeoService, private dataService: TopVarService) {
     this.geoSubscription = this.geoService.uniqueSelectedGeocodes$.subscribe(geos => {
-      this.currentSelectedGeos.clear();
+      this.currentSelectedGeos.clear();      
+      console.log('app-renderer.service.ctor - # geos', geos.length);
+//    geos.forEach(geo => console.log('  ', geo.toString()));  // Debug print geos
       geos.forEach(geo => this.currentSelectedGeos.add(geo));
     });
 

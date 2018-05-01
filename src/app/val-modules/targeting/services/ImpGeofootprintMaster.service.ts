@@ -23,7 +23,7 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
    constructor(private restDataService: RestDataService
               ,private projectTransactionManager: TransactionManager)
    {
-      super(restDataService, dataUrl);
+      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintMaster');
    }
 
    private handleError(error: Response)

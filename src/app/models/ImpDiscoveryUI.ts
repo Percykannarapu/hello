@@ -58,6 +58,29 @@ export class ImpDiscoveryUI
          ]);
    }
 
+   public static defaults =
+   {
+      productCode:           'Email',
+      industryCategoryCode:  '',
+      industryCategoryName:  '',
+      analysisLevel:         '',
+      selectedSeason:        'WINTER',
+      cpm:                   null,
+      totalBudget:           null,
+      circBudget:            null,
+      includeNonWeekly:      true,
+      includePob:            true,
+      includeValassis:       true,
+      includeAnne:           true,
+      includeSolo:           true,
+      projectTrackerId:      null,
+      isBlended:             true,
+      isDefinedbyOwnerGroup: false,
+      valassisCPM:           null,
+      anneCPM:               null,
+      soloCPM:               null
+   }
+
    /**
     * Produces a map of this classes relationships and data types.
     * Used instead of reflection, which has limitations.

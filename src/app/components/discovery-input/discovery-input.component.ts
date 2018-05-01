@@ -184,7 +184,13 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedSeason = this.seasons[1].value;
 
       // Subscribe to the data stores
-      this.impProjectService.storeObservable.subscribe(impProject => { this.impProject = impProject[0]; this.mapFromProject(); });
+      this.impProjectService.storeObservable.subscribe(impProject => { 
+         if (impProject != null && impProject.length > 0)
+         {
+            this.impProject = impProject[0]; 
+            this.mapFromProject();
+         }
+      });
       this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
       this.impRadLookupService.get(true);
@@ -480,10 +486,7 @@ export class DiscoveryInputComponent implements OnInit
 
       // Save the project
       this.impProjectService.saveProject();
-      this.impProject = this.impProjectService.get()[0];
-      this.impProjectService.loadProject(this.impProject.projectId);
-      
-     
+
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'Save' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
    }
