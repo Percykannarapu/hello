@@ -108,8 +108,10 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
         counter++;
       }
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-      this.impGeofootprintGeoService.clearAll();
-      this.attributeService.clearAll();
+      if (this.currentTradeAreas === this.siteTradeAreas) {
+        this.impGeofootprintGeoService.clearAll();
+        this.attributeService.clearAll();
+      }
       const tradeAreas: TradeAreaUIModel[] = this.currentTradeAreas.filter(ta => ta.isShowing) || [];
       const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
       this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);
