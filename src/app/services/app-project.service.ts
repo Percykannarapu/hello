@@ -472,7 +472,7 @@ export class AppProjectService extends DataStore<ImpProject>
          //       impLocation.locationNumber = locNumber++;            // Mandatory field, stubbing
                   impLocation.clientIdentifierId = impLocation.locationNumber; // Mandatory field, stubbing
                   impLocation.clientLocationId = impLocation.locationNumber;   // Mandatory field, stubbing
-                  impLocation.marketName = (impLocation.marketName == null) ? 'Market ' + impLocation.locationNumber : impLocation.marketName; // Mandatory field, stubbing
+//                impLocation.marketName = (impLocation.marketName == null) ? 'Market ' + impLocation.locationNumber : impLocation.marketName; // Mandatory field, stubbing
                   console.log('location: ', impLocation);
                }
 
