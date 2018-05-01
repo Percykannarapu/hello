@@ -7,6 +7,9 @@ import 'rxjs/add/observable/fromEvent';
 import { SmartMappingTheme } from '../../../models/LayerState';
 import { SelectItem } from 'primeng/primeng';
 import { AppRendererService } from '../../../services/app-renderer.service';
+import { UsageService } from '../../../services/usage.service';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
+import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 
 interface ViewModel {
   isMapped: boolean;
@@ -27,10 +30,11 @@ export class SelectedAudiencesComponent implements OnInit {
   selectedVars: ViewModel[] = [];
   allThemes: SelectItem[] = [];
   currentOpacity: number = 65;
+  currentTheme: string;
 
   showRenderControls: boolean = false;
 
-  constructor(private varService: TopVarService) {
+  constructor(private varService: TopVarService, private usageService: UsageService, private discoService: ImpDiscoveryService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -40,6 +44,7 @@ export class SelectedAudiencesComponent implements OnInit {
         value: allThemes[key]
       });
     }
+    this.currentTheme = this.allThemes[0].value;
   }
 
   ngOnInit() : void {
@@ -74,6 +79,15 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   public onApplyClicked() {
+    for (const selectedVar of this.selectedVars) {
+      if (selectedVar.isMapped === true) {
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
+        const discoData = this.discoService.get()[0];
+        const variableId = selectedVar.audienceData.fieldname == null ? 'custom' : selectedVar.audienceData.fieldname;
+        const metricText = variableId + '~' + selectedVar.audienceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+        this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      }
+    }
     this.processData(this.selectedVars);
   }
 
@@ -86,6 +100,7 @@ export class SelectedAudiencesComponent implements OnInit {
   onThemeChange(event: { value: SmartMappingTheme }) {
     console.log(event);
     AppRendererService.currentDefaultTheme = event.value;
+    this.currentTheme = event.value.toString();
   }
 
   onOpacityChange(newValue: number) {
