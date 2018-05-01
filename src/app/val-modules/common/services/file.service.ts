@@ -81,7 +81,7 @@ export class FileService {
       }
       if (!matched) result.push(FileService.createNullParser(headerColumns[i]));
     }
-   
+
     const reqHeaders = requiredHeaders.filter(p => !p.found);
     if (reqHeaders.length > 0) {
       throw new Error(`"${reqHeaders[0].outputFieldName}" is a required column and was not found in the file.`);
@@ -94,9 +94,10 @@ export class FileService {
   }
 
   private static matchHeader(header: string, parser: ParseRule) : boolean {
-    const matchString = (identifier: string) => header.toUpperCase() === identifier.toUpperCase();
-    const matchRegEx = (identifier: RegExp) => identifier.test(header);
-    const matchFunc = (identifier: (string) => boolean) => identifier(header);
+    const localHeader = header.replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '');
+    const matchString = (identifier: string) => localHeader.toUpperCase() === identifier.toUpperCase();
+    const matchRegEx = (identifier: RegExp) => identifier.test(localHeader);
+    const matchFunc = (identifier: (string) => boolean) => identifier(localHeader);
 
     if (typeof parser.headerIdentifier === 'string') {
       return matchString(parser.headerIdentifier);

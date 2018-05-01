@@ -1,9 +1,8 @@
-import { BaseModel, DAOBaseStatus } from './../../api/models/BaseModel';
-/** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
+/** A IMPTARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
  **
- ** Generated from VAL_ENTITY_GEN - v2.01
+ ** Generated from VAL_BASE_GEN - v1.02
  **/
-
+import { BaseModel, DAOBaseStatus } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
 import { Goal } from '../../mediaexpress/models/Goal';
@@ -34,21 +33,24 @@ export class ImpProject extends BaseModel
    public sfdcRfpName:                 string;                        /// Sdfc Request for Proposal Name
    public sfdcMediaPlanId:             string;                        /// The Salesforce media plan id (18 character UID)
    public sdfcNotificationId:          string;                        /// Sdfc Notification Id
-   public isValidated:                 boolean;                       /// UI validation flag
-   public isSingleDate:                boolean;                       /// Determines if using shared hhc possible (1) or scheduled
-   public isMustCover:                 boolean;                       /// When MBU has a home_geo and UI says is_must_cover, exclude the mbu_score filter
-   public isExcludePob:                boolean;                       /// Indicates if POB is excluded.  Used in meets_var_filter calculation
-   public isDollarBudget:              boolean;                       /// Dollar Budget flag
-   public isCircBudget:                boolean;                       /// Circ Budget flag
-   public isRunAvail:                  boolean;                       /// Global Flag to check if MAA run Avails should occur
-   public isHardPdi:                   boolean;                       /// Is hard pdi, 0=false, 1=true
-   public isActive:                    boolean;                       /// 1 = Active, 0 = Inactive
-   public isIncludeValassis:           boolean;                       /// 1 = include valassis geographies, 0 = do not
-   public isIncludeAnne:               boolean;                       /// 1 = include anne geographies, 0 = do not
-   public isIncludeSolo:               boolean;                       /// 1 = include solo geographies, 0 = do not
-   public isIncludeNonWeekly:          boolean;                       /// 1 = include non weekly geographies, 0 = do not
-   public projectTrackerId:            number;                        /// fk to ims.ims_projects.project_id
-      
+   public isValidated:                 boolean;                      
+   public isSingleDate:                boolean;                      
+   public isMustCover:                 boolean;                      
+   public isExcludePob:                boolean;                      
+   public isDollarBudget:              boolean;                      
+   public isCircBudget:                boolean;                      
+   public isRunAvail:                  boolean;                      
+   public isHardPdi:                   boolean;                      
+   public isActive:                    boolean;                      
+   public isIncludeValassis:           boolean;                      
+   public isIncludeAnne:               boolean;                      
+   public isIncludeSolo:               boolean;                      
+   public isIncludeNonWeekly:          boolean;                      
+   public projectTrackerId:            number;                        /// FK to IMS.ims_projects.project_id
+   public estimatedBlendedCpm:         number;
+   public smValassisCpm:               number;
+   public smAnneCpm:                   number;
+   public smSoloCpm:                   number;
 
    // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------------------
@@ -69,7 +71,7 @@ export class ImpProject extends BaseModel
 //   public impGeofootprintMaster:       ImpGeofootprintMaster;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpProject>) {
+   constructor(data?: Partial<ImpProject>) {
       super();
 //      this.clear();
       Object.assign(this, data);
@@ -161,20 +163,24 @@ export class ImpProject extends BaseModel
          ['sfdcRfpName',                  'string'],
          ['sfdcMediaPlanId',              'string'],
          ['sdfcNotificationId',           'string'],
-         ['isValidated',                  'number'],
-         ['isSingleDate',                 'number'],
-         ['isMustCover',                  'number'],
-         ['isExcludePob',                 'number'],
-         ['isDollarBudget',               'number'],
-         ['isCircBudget',                 'number'],
-         ['isRunAvail',                   'number'],
-         ['isHardPdi',                    'number'],
-         ['isActive',                     'number'],
-         ['isIncludeValassis',            'number'],
-         ['isIncludeAnne',                'number'],
-         ['isIncludeSolo',                'number'],
-         ['isIncludeNonWeekly',           'number'],
+         ['isValidated',                  'boolean'],
+         ['isSingleDate',                 'boolean'],
+         ['isMustCover',                  'boolean'],
+         ['isExcludePob',                 'boolean'],
+         ['isDollarBudget',               'boolean'],
+         ['isCircBudget',                 'boolean'],
+         ['isRunAvail',                   'boolean'],
+         ['isHardPdi',                    'boolean'],
+         ['isActive',                     'boolean'],
+         ['isIncludeValassis',            'boolean'],
+         ['isIncludeAnne',                'boolean'],
+         ['isIncludeSolo',                'boolean'],
+         ['isIncludeNonWeekly',           'boolean'],
          ['projectTrackerId',             'number'],
+         ['estimatedBlendedCpm',          'number'],
+         ['smValassisCpm',                'number'],
+         ['smAnneCpm',                    'number'],
+         ['smSoloCpm',                    'number']
          ]);
    }
 
@@ -202,3 +208,5 @@ export class ImpProject extends BaseModel
     */
    public toString = () => JSON.stringify(this, null, '   ');
 }
+
+

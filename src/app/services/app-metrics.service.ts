@@ -10,6 +10,7 @@ import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { combineLatest } from 'rxjs/observable/combineLatest';
 import { isNumber } from '../app.utils';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 export interface MetricDefinition {
   metricValue: number;
@@ -34,7 +35,7 @@ export class ValMetricsService implements OnDestroy {
   public metrics$: Observable<MetricDefinition[]>;
 
   constructor(private config: AppConfig, private attributeService: ImpGeofootprintGeoAttribService,
-              private metricService: MetricService, private discoveryService: ImpDiscoveryService) {
+              private metricService: MetricService, private discoveryService: ImpDiscoveryService, private messageService: MessageService) {
     this.registerMetrics();
     this.metrics$ = this.getMetricObservable();
     this.metricSub = this.metrics$.subscribe(
@@ -80,25 +81,44 @@ export class ValMetricsService implements OnDestroy {
     const totalInvestment: MetricDefinition = {
       metricValue: 0,
       metricDefault: 0,
-      metricCode: () => this.isWinter ? ['hhld_w'] : ['hhld_s'],
+      metricCode: () => this.isWinter ? ['hhld_w', 'owner_group_primary', 'cov_frequency'] : ['hhld_s', 'owner_group_primary', 'cov_frequency'],
       metricCategory: 'CAMPAIGN',
       metricFriendlyName: 'Est. Total Investment',
       compositePreCalc: t => {
-        if (t[0].attributeCode === totalInvestment.metricCode()[0]) {
-          const currentHH = t[0].attributeValue;
-        if (this.currentDiscoveryVar.isBlended || this.currentDiscoveryVar.isDefinedbyOwnerGroup){
-          if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != 0) {
-          return (Number(currentHH) * this.currentDiscoveryVar.cpm) / 1000 ;
-        }
-      } else {
-          return 0;
-      }
-      }
+        const attributesMap: Map<string, string>  = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s'; 
+        if (attributesMap.has(season)){
+          if (this.currentDiscoveryVar.isBlended || this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
+            if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != null){
+              this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });
+               return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.cpm) / 1000;
+              } 
+            if (this.currentDiscoveryVar.isDefinedbyOwnerGroup && (this.currentDiscoveryVar.valassisCPM || this.currentDiscoveryVar.soloCPM || this.currentDiscoveryVar.anneCPM != null)){
+                if (attributesMap.get('owner_group_primary') != null){
+                  if (this.currentDiscoveryVar.valassisCPM != null && attributesMap.get('owner_group_primary') === 'VALASSIS') {
+                    return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.valassisCPM) / 1000;
+                  } 
+                  if (this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM && attributesMap.get('owner_group_primary') != null
+                          && attributesMap.get('owner_group_primary') === 'ANNE') {
+                      return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.anneCPM) / 1000;
+                  }
+                } else return 0;
+                if (attributesMap.get('cov_frequency') != null){
+                  if (this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null && attributesMap.get('cov_frequency') === 'SOLO') {
+                      return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.soloCPM) / 1000;
+                  }     
+                } else return 0;
+                this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });
+              } else return 0;
+      } else return 0;
+    } else return 0;
       },
       metricAccumulator: (p, c) => p + c,
       metricFormatter: v => {
         if (v != null && v != 0) {
-          return '$' + (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          console.log('v:::', v);
+          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         } else {
           return 'N/A';
         }
@@ -191,7 +211,7 @@ export class ValMetricsService implements OnDestroy {
             return previous;
           }, new Map<string, ImpGeofootprintGeoAttrib[]>())
           .forEach(uniqueAttributes => {
-            values.push(definition.compositePreCalc(uniqueAttributes));
+            values.push(Number(definition.compositePreCalc(uniqueAttributes)));
           });
       } else {
         attributesUniqueByGeo
