@@ -16,7 +16,7 @@ interface CustomAudienceData {
   templateUrl: './custom-audience.component.html'
 })
 export class CustomAudienceComponent {
-
+  private readonly spinnerId = 'CUSTOM_UPLOAD';
   private csvParseRules: ParseRule[] = audienceUploadRules;
 
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
@@ -26,6 +26,7 @@ export class CustomAudienceComponent {
   public uploadFile(event: any) : void {
     const reader = new FileReader();
     const name: String = event.files[0].name;
+    this.messagingService.startSpinnerDialog(this.spinnerId, 'Loading Audience Data');
     if (name.includes('.xlsx') || name.includes('.xls') ) {
       reader.readAsBinaryString(event.files[0]);
       reader.onload = () => {
@@ -69,10 +70,13 @@ export class CustomAudienceComponent {
       }
     } catch (e) {
       this.handleError(`${e}`);
+    } finally {
+      this.messagingService.stopSpinnerDialog(this.spinnerId);
     }
   }
 
   private handleError(message: string) : void {
+    this.messagingService.stopSpinnerDialog(this.spinnerId);
     this.messagingService.showGrowlError('Audience Upload Error', message);
   }
 }
