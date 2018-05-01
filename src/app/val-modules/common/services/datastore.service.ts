@@ -32,7 +32,7 @@ type variableHandlerType<T> = (state: any, data: T, header: string|number) => an
 export class DataStoreServiceConfiguration {
       public oauthToken: string;
       public tokenExpiration: number;
-      public tokenRefreshFunction: Function;      
+      public tokenRefreshFunction: Function;
 }
 
 export interface ColumnDefinition<T> {
@@ -47,7 +47,7 @@ export enum InTransaction {
 
 export class DataStore<T>
 {
-   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;   
+   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
    private transientId: number = 0;
    public  dbRemoves: Array<T> = new Array<T>();
 
@@ -55,7 +55,7 @@ export class DataStore<T>
    private _dataStore = new Array<T>();
    protected _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
    private fetchSubject: Subject<T[]> = new Subject<T[]>();
-   
+
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
    public storeLength: number = 0;  // Publically expose number of rows in the _dataStore
@@ -155,7 +155,7 @@ export class DataStore<T>
               // Indicate that we are returning an array
               , []);
    }
-    
+
    // ---------------------------------------------
    // Private Data Store Methods
    // ---------------------------------------------
@@ -312,7 +312,7 @@ export class DataStore<T>
       if (success)
       {
          if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
-         {         
+         {
 //          console.log(this.storeName, 'DataStore.service.add - success, alerting subscribers');
             this._storeSubject.next(this._dataStore);
          }
@@ -620,7 +620,7 @@ export class DataStore<T>
          // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
          throw new Error('prepareCSV - No data provided to export');
       }
-         
+
       // Initialize Output Array
       const csvData: string[] = new Array<string>();
       let row: string = '';
@@ -628,7 +628,7 @@ export class DataStore<T>
 
       // Write Headers
       for (let column of columns)
-      {            
+      {
          field = column.header;
          // Add the header surround in double quotes if not already
          row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
@@ -636,7 +636,7 @@ export class DataStore<T>
 
       // If we have built headers, push it to the result
       if (row != '')
-         csvData.push(row);      
+         csvData.push(row);
 
       // For every row of data in the data store
       for (const data of csvSource) // this._dataStore)
@@ -668,7 +668,7 @@ export class DataStore<T>
          }
          // If we have built a row, push it to the result
          if (row != '')
-            csvData.push(row);            
+            csvData.push(row);
       }
       return csvData;
    }
@@ -687,7 +687,9 @@ export class DataStore<T>
       // Encode the csvData into a gigantic string
       let csvString: string = '';
       for (const row of csvData) {
-         csvString += encode(row) + '\n';
+         let encodedRow = encode(row);
+         encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
+         csvString += encodedRow + '\n';
       }
 
       const blob = new Blob(['\ufeff', csvString]);
@@ -698,7 +700,7 @@ export class DataStore<T>
          href:  url,
          download: filename
       }).appendTo('body');
-      link[0].click();   
+      link[0].click();
       link.remove();
    }
 
