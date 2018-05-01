@@ -371,13 +371,16 @@ export class DiscoveryInputComponent implements OnInit
    public onClickCPM(radioName: string){
       if (radioName === 'Blended'){
             this.isCpmBlended = true;
+            this.impDiscoveryUI.valassisCPM = null;
+            this.impDiscoveryUI.anneCPM = null;
+            this.impDiscoveryUI.soloCPM = null;
       }
       else{
             this.isCpmBlended = false;
+            this.impDiscoveryUI.cpm =  null;
       }
    }
-   
-   
+
    public onChangeField(event: SelectItem)
    {
       console.log('test', event);
@@ -556,7 +559,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log('discovery-input-component calling imsRadLookupStore.clearAll');
       this.impRadLookupService.clearAll();
    }
-
+ 
    removeRadData() {
       console.log('discovery-input-component calling imsRadLookupStore.remove');
 
