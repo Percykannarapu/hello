@@ -20,6 +20,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 
 interface Product {
@@ -70,7 +71,7 @@ export class DiscoveryInputComponent implements OnInit
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
    private mapReady: boolean = false;
-
+   public validationMessage: string;
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -86,7 +87,8 @@ export class DiscoveryInputComponent implements OnInit
                private mapservice: MapService,
                private usageService: UsageService,
                private messagingService: AppMessagingService,
-               private valMapService: ValMapService)
+               private valMapService: ValMapService,
+               private messageService: MessageService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -388,7 +390,9 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
-
+      if (this.impDiscoveryUI.cpm || this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
+         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });    
+      }
 
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
 

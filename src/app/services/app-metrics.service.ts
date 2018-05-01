@@ -94,17 +94,16 @@ export class ValMetricsService implements OnDestroy {
                return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.cpm) / 1000;
               } 
             if (this.currentDiscoveryVar.isDefinedbyOwnerGroup && (this.currentDiscoveryVar.valassisCPM || this.currentDiscoveryVar.soloCPM || this.currentDiscoveryVar.anneCPM != null)){
-                if (attributesMap.get('owner_group_primary') != null){
-                  if (this.currentDiscoveryVar.valassisCPM != null && attributesMap.get('owner_group_primary') === 'VALASSIS') {
+                if (attributesMap.get('owner_group_primary') != null && (attributesMap.get('owner_group_primary') === 'VALASSIS' || attributesMap.get('owner_group_primary') === 'ANNE')) {
+                  if (this.currentDiscoveryVar.includeValassis && this.currentDiscoveryVar.valassisCPM != null) {
                     return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.valassisCPM) / 1000;
                   } 
-                  if (this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM && attributesMap.get('owner_group_primary') != null
-                          && attributesMap.get('owner_group_primary') === 'ANNE') {
+                  if (this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM && attributesMap.get('owner_group_primary') != null) {
                       return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.anneCPM) / 1000;
                   }
                 } else return 0;
-                if (attributesMap.get('cov_frequency') != null){
-                  if (this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null && attributesMap.get('cov_frequency') === 'SOLO') {
+                if (attributesMap.get('cov_frequency') != null && attributesMap.get('cov_frequency') === 'SOLO'){
+                  if (this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null) {
                       return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.soloCPM) / 1000;
                   }     
                 } else return 0;
