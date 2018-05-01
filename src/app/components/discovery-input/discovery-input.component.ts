@@ -452,6 +452,7 @@ export class DiscoveryInputComponent implements OnInit
 
    public loadProject()
    {
+      this.messagingService.startSpinnerDialog('PROJECTLOAD', 'Loading project ' + this.impProject.projectId);
       if (!this.mapReady && this.loadRetries < 14) {
             this.loadRetries++;
             setTimeout((() => this.loadProject()), 10000);
