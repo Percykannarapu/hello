@@ -13,6 +13,7 @@ import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/ser
 import { Subscription } from 'rxjs/Subscription';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: string; }
@@ -96,6 +97,17 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       isValid = false;
     }
     if (isValid) {
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'radius', action: 'applied' });
+      let metricText = '';
+      let counter = 1;
+      for (const tradeArea of this.currentTradeAreas) {
+        if (!tradeArea.tradeArea) {
+          continue;
+        }
+        metricText += 'TA' + counter + ' ' + tradeArea.tradeArea.toString() + ' Miles ~';
+        counter++;
+      }
+      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
       this.impGeofootprintGeoService.clearAll();
       this.attributeService.clearAll();
       const tradeAreas: TradeAreaUIModel[] = this.currentTradeAreas.filter(ta => ta.isShowing) || [];
