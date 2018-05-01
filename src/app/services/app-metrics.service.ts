@@ -91,7 +91,6 @@ export class ValMetricsService implements OnDestroy {
         if (attributesMap.has(season)){
           if (this.currentDiscoveryVar.isBlended || this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
             if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != null){
-              this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });
                return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.cpm) / 1000;
               } 
             if (this.currentDiscoveryVar.isDefinedbyOwnerGroup && (this.currentDiscoveryVar.valassisCPM || this.currentDiscoveryVar.soloCPM || this.currentDiscoveryVar.anneCPM != null)){
@@ -109,16 +108,14 @@ export class ValMetricsService implements OnDestroy {
                       return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.soloCPM) / 1000;
                   }     
                 } else return 0;
-                this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });
               } else return 0;
       } else return 0;
     } else return 0;
-      },
+    },
       metricAccumulator: (p, c) => p + c,
       metricFormatter: v => {
         if (v != null && v != 0) {
-          console.log('v:::', v);
-          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         } else {
           return 'N/A';
         }
