@@ -169,7 +169,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
 
    // This is written deliberately verbose as I want to eventually genericize this
-   public sortGeos (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo): number
+   public sortGeos (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
@@ -579,19 +579,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else
       {
          const radiuses : Array<number> = [(state.impGeofootprintTradeAreas.length >= 1) ? state.impGeofootprintTradeAreas[0].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
+                                          , (state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
+                                          , (state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
          if (geo.distance < radiuses[0])
-            varValue = 1;
+            varValue = 'Trade Area 1';
          else
             if (geo.distance >= radiuses[0] &&
                geo.distance <= radiuses[1])
-               varValue = 2
+               varValue = 'Trade Area 2';
             else
                if (geo.distance > radiuses[1])
-                  varValue = 3;
+                  varValue = 'Trade Area 3';
                else
-                  varValue = null;
+                  varValue = 'Custom';
       }
       return varValue;
    };
@@ -615,7 +615,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       attributeNames.sort();
 
       attributeNames.forEach(name => {
-         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes})
+         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
    };
 
@@ -681,7 +681,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Must Cover',                row: 0});
             exportColumns.push({ header: 'Owner Trade Area',             row: this.exportVarOwnerTradeArea});
-            exportColumns.push({ header: 'EST GEO IP ADDRESSES',         row: null});
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
