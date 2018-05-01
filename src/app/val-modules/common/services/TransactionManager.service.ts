@@ -1,6 +1,4 @@
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-// import { Observable } from 'rxjs/Observable';
-// import { of } from 'rxjs/observable/of';
 import { Subject } from 'rxjs/Subject';
 
 /**
@@ -70,12 +68,12 @@ export class TransactionManager
     */
    public stopTransaction()
    {
-      console.log('TransactionManager.service.stopTransaction fired - notifyQueue size: ', (this.notifyQueue != null) ? this.notifyQueue.length : null);
+//    console.log('TransactionManager.service.stopTransaction fired - notifyQueue size: ', (this.notifyQueue != null) ? this.notifyQueue.length : null);
       this.notifyQueue.forEach(transactionItem => {
-         console.log('TransactionManager.service typeof transactionItem: ', typeof transactionItem);
+//       console.log('TransactionManager.service typeof transactionItem: ', typeof transactionItem);
          if ((transactionItem instanceof TransactionItem))
          {
-            console.log('TransactionManager.service.stopTransaction - notifying subject:', transactionItem);
+//          console.log('TransactionManager.service.stopTransaction - notifying subject:', transactionItem);
             transactionItem.subject.next(transactionItem.data);
          }
          else
@@ -94,7 +92,7 @@ export class TransactionManager
    public push(subject: any, subjectData: any) 
    {
       this.notifyQueue.push(new TransactionItem(subject, subjectData));
-      console.log ('TransactionManager.service.push - pushed subject: ', subject, ', data: ', subjectData);
+//    console.log ('TransactionManager.service.push - pushed subject: ', subject, ', data: ', subjectData);
    }
 
    /**

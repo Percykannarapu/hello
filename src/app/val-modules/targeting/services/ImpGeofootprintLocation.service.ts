@@ -50,7 +50,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                private projectTransactionManager: TransactionManager,
                private messageService: AppMessagingService   ) //, impProjectService: ImpProjectService)
    {
-      super(restDataService, dataUrl, projectTransactionManager);
+      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocation');
 
       //impProjectService.storeObservable.subscribe(impProject => this.onChangeProject(impProject[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(impGeofootprintTradeAreas => this.onChangeTradeAreas(impGeofootprintTradeAreas));

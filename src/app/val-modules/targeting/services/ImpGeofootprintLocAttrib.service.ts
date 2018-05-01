@@ -23,7 +23,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
    constructor(private restDataService: RestDataService
               ,private projectTransactionManager: TransactionManager)
    {
-      super(restDataService, dataUrl, projectTransactionManager);
+      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocAttrib');
    }
 
    public sort (a: ImpGeofootprintLocAttrib, b: ImpGeofootprintLocAttrib): number

@@ -106,7 +106,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    onChangeGeos(impGeofootprintGeos: ImpGeofootprintGeo[])
    {
-      console.log('onChangeGeos fired', impGeofootprintGeos);
+//    console.log('onChangeGeos fired', impGeofootprintGeos);
       this.impGeofootprintGeos = Array.from(impGeofootprintGeos);
       this.assignSite();
    }
@@ -120,27 +120,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    onChangeLocation(impGeofootprintLocation: ImpGeofootprintLocation[])
    {
-      // const ary: number[];
-      // console.log('Ternary in log with braces: '    + ((ary) ? 'Ternary (with braces) think it has entries' : 'Ternary (with braces) thinks its null'));
-      // console.log('Ternary in log without braces: ' +  (ary) ? 'Ternary (without braces) think it has entries' : 'Ternary (without braces) thinks its null');
-
-      console.log('----------------------------------------------------------------------------------------');
-      console.log('onChangeLocation - Before: ', this.impGeofootprintLocations);
+//    console.log('----------------------------------------------------------------------------------------');
+//    console.log('onChangeLocation - Before: ', this.impGeofootprintLocations);
       this.impGeofootprintLocations = Array.from(impGeofootprintLocation);
       this.geoGridCache.clear();
-      console.log('onChangeLocation - After:  ', this.impGeofootprintLocations);
-      console.log('----------------------------------------------------------------------------------------');
+//    console.log('onChangeLocation - After:  ', this.impGeofootprintLocations);
+//    console.log('----------------------------------------------------------------------------------------');
       this.assignSite();
    }
 
    private onChangeGeoAttributes(geoAttributes: ImpGeofootprintGeoAttrib[]) : void
    {
-      console.log('----------------------------------------------------------------------------------------');
-      console.log('onChangeGeoAttributes - Before: ', this.impGeofootprintGeoAttributes);
+//    console.log('----------------------------------------------------------------------------------------');
+//    console.log('onChangeGeoAttributes - Before: ', this.impGeofootprintGeoAttributes);
       this.impGeofootprintGeoAttributes = Array.from(geoAttributes);
       this.geoGridCache.clear();
-      console.log('onChangeGeoAttributes - After:  ', this.impGeofootprintGeoAttributes);
-      console.log('----------------------------------------------------------------------------------------');
+//    console.log('onChangeGeoAttributes - After:  ', this.impGeofootprintGeoAttributes);
+//    console.log('----------------------------------------------------------------------------------------');
    }
 
    // -----------------------------------------------------------
@@ -205,12 +201,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this.impGeofootprintGeos != null)
       {
          const unassignedGeos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation == null);
-         console.log('assignSite fired - processing ' + unassignedGeos.length + ' geos');
-          for (const geo of unassignedGeos)
-             this.setClosestLocation(geo, idx++);
+         if (unassignedGeos.length > 0)
+         {
+            console.log('assignSite fired - processing ' + unassignedGeos.length + ' geos');
+            for (const geo of unassignedGeos)
+               this.setClosestLocation(geo, idx++);
+         }
+         else
+            console.log('assignSite - no geos to process');
       }
-      else
-         console.log('assignSite - no geos to process');
    }
 
    /**

@@ -42,12 +42,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
-   constructor(private restDataService: RestDataService, impDiscoveryService: ImpDiscoveryService,
+   constructor(private restDataService: RestDataService,
+               private impDiscoveryService: ImpDiscoveryService,
                private projectTransactionManager: TransactionManager,
-               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService, private messageService: AppMessagingService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService, private config: AppConfig)
+               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+               private messageService: AppMessagingService,
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
+               private config: AppConfig)
    {
-      super(restDataService, dataUrl, projectTransactionManager);
+      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
 
       impDiscoveryService.storeObservable.subscribe(discoveryData => this.onChangeDiscovery(discoveryData[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));

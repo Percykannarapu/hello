@@ -23,7 +23,7 @@ export class ImpProjectPrefService extends DataStore<ImpProjectPref>
    constructor(private restDataService: RestDataService
               ,private projectTransactionManager: TransactionManager)
    {
-      super(restDataService, dataUrl);
+      super(restDataService, dataUrl, projectTransactionManager, 'ImpProjectPref');
    }
 
    private handleError(error: Response)

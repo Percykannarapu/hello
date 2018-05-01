@@ -32,7 +32,7 @@ type variableHandlerType<T> = (state: any, data: T, header: string|number) => an
 export class DataStoreServiceConfiguration {
       public oauthToken: string;
       public tokenExpiration: number;
-      public tokenRefreshFunction: Function;
+      public tokenRefreshFunction: Function;      
 }
 
 export interface ColumnDefinition<T> {
@@ -41,13 +41,13 @@ export interface ColumnDefinition<T> {
 }
 
 export enum InTransaction {
-   true,
-   false
+   false,
+   true
 }
 
 export class DataStore<T>
 {
-   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
+   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;   
    private transientId: number = 0;
    public  dbRemoves: Array<T> = new Array<T>();
 
@@ -58,11 +58,13 @@ export class DataStore<T>
    
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
-
    public storeLength: number = 0;  // Publically expose number of rows in the _dataStore
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
-   constructor(private rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager) { }
+   constructor(private rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager, public storeName: string='') {
+      if (storeName != '')
+         storeName += ' ';
+   }
 
    // ---------------------------------------------
    // Utility / Non-Essential Methods
@@ -164,12 +166,12 @@ export class DataStore<T>
     */
    private fetch(postOperation?: callbackMutationType<T>, inTransaction: InTransaction = InTransaction.true)
    {
-//    console.log('DataStore.fetch fired for ' + this.dataUrl);
+//    console.log(this.storeName, 'DataStore.fetch fired for ' + this.dataUrl);
 //    console.trace('fetch trace');
 
       this.rest.get(this.dataUrl).subscribe(restResponse => {
          // Log and test the response
-//       console.log('DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
+//       console.log(this.storeName, 'DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
 
          // Populate data store
          if (restResponse.payload && restResponse.payload.rows)
@@ -185,13 +187,13 @@ export class DataStore<T>
          // Notify observers if not participating in the transaction or there is no transaction or TransactionManager
          if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
          {
-//          console.log('DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
+//          console.log(this.storeName, 'DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
             this._storeSubject.next(this._dataStore);
             this.fetchSubject.next(this._dataStore);
          }
          else
          {
-//          console.log('DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
+//          console.log(this.storeName, 'DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
             this.transactionManager.push(this._storeSubject, this._dataStore);
             this.transactionManager.push(this.fetchSubject, this._dataStore);
          }
@@ -200,7 +202,7 @@ export class DataStore<T>
             postOperation(this._dataStore);
       },
       (error: any) => {
-         console.log ('DataStore.fetch - ERROR:', error);
+         console.error (this.storeName, 'DataStore.fetch - ERROR:', error);
          // TODO: Should we re-raise or throw some other event?
          return Observable.throw(error);
       });
@@ -222,7 +224,7 @@ export class DataStore<T>
    public get(forceRefresh:  boolean, forceClear?: boolean,         inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
    public get(forceRefresh?: boolean, forceClear:  boolean = false, inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
-//    console.log('DataStore.get fired - this.dataUrl: ', this.dataUrl);
+//    console.log(this.storeName, 'DataStore.get fired - this.dataUrl: ', this.dataUrl);
 
       if (preOperation)
          preOperation(this._dataStore);
@@ -276,7 +278,7 @@ export class DataStore<T>
             // Add new element to the data store if there isn't a preOperation or it returns true
             if (!preOperation || (preOperation && preOperation(data)))
             {
-               console.log('add - preOp returned true, pushing: ', data);
+//             console.log(this.storeName, 'add - preOp returned true, pushing: ', data);
                localCache.push(data);
                numSuccesses++;
             }
@@ -284,7 +286,7 @@ export class DataStore<T>
             {
                // Indicate row wasn't added, but it's the applications job to maintain the list of failures
                success = false;
-               console.log('add - preOp returned false, not adding: ', data);
+//             console.log(this.storeName, 'add - preOp returned false, not adding: ', data);
             }
       }
       else
@@ -310,12 +312,12 @@ export class DataStore<T>
       {
          if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
          {         
-            console.log('DataStore.service.add - success, alerting subscribers');
+//          console.log(this.storeName, 'DataStore.service.add - success, alerting subscribers');
             this._storeSubject.next(this._dataStore);
          }
          else
          {
-            console.log('DataStore.service.add - success, in transaction, holding notification for transaction');
+//          console.log(this.storeName, 'DataStore.service.add - success, in transaction, holding notification for transaction');
             this.transactionManager.push(this._storeSubject, this._dataStore);
          }
       }
@@ -337,18 +339,18 @@ export class DataStore<T>
     */
    public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
-      console.log ('datastore.replace - fired');
+      console.log (this.storeName, 'datastore.replace - fired');
       this.clearAll(false);
-      console.log ('datastore.replace - adding data - ', (dataArray != null) ? dataArray.length : 0, ' rows.');
+//    console.log (this.storeName, 'datastore.replace - adding data - ', (dataArray != null) ? dataArray.length : 0, ' rows.');
       this.add(dataArray, preOperation, postOperation, inTransaction);
-      console.log ('dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
+//    console.log (this.storeName, 'dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
 
    private setDbRemove(removeData: T)
    {
       if (removeData != null)
       {
-         console.log('registered for db removal: ', removeData);
+         console.log(this.storeName, 'registered for db removal: ', removeData);
          removeData['dirty'] = true;
          removeData['baseStatus'] = DAOBaseStatus.DELETE;
          if (this.dbRemoves == null)
@@ -374,7 +376,7 @@ export class DataStore<T>
 
    public removeAt (index: number, inTransaction: InTransaction = InTransaction.true)
    {
-      console.log('delete at index: ' + index);
+//    console.log(this.storeName, 'delete at index: ' + index);
 
       if (this._dataStore.length === 0 || index < 0 || index >= this._dataStore.length)
          return;
@@ -443,7 +445,7 @@ export class DataStore<T>
     *
     *  const searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48375C1'});
     *  const foundGeo = this.impGeofootprintGeoService.find(searchGeo);
-    *  console.log('foundGeo', foundGeo);
+    *  console.log(this.storeName, 'foundGeo', foundGeo);
     *
     *     store instance of storeGeos[10] is returned
     * @param search An object that you wish to find in the data store
@@ -546,7 +548,7 @@ export class DataStore<T>
 
    public updateAt (newData: T, index: number = 0, inTransaction: InTransaction = InTransaction.true)
    {
-//    console.log ('datastore updateAt - index: ' + index + ', data: ', newData);
+//    console.log (this.storeName, 'datastore updateAt - index: ' + index + ', data: ', newData);
       if (index == 0)
          this._dataStore = [newData,
                            ...this._dataStore.slice(index + 1)];
@@ -555,7 +557,7 @@ export class DataStore<T>
                            newData,
                            ...this._dataStore.slice(index + 1)];
 
-//    console.log('datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
+//    console.log(this.storeName, 'datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
       // Register data store change and notify observers
       if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
          this._storeSubject.next(this._dataStore);
@@ -566,10 +568,12 @@ export class DataStore<T>
    /**
     * Will empty the dataStore, reset the currStoreId and optionally notify observers
     * @param notifySubscribers If false it won't notify observers; allowing a clear and load to be observed as one transaction
+    * @param inTransaction If true, the clear is participating in a transaction if there is one
     */
    public clearAll(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
    {
-      console.log('clearing datastore of ', this._dataStore.length, ' rows.');
+      if (this._dataStore != null && this._dataStore.length > 0)
+         console.log(this.storeName, 'clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
       this.currStoreId = 1;
@@ -608,12 +612,11 @@ export class DataStore<T>
       // Set the input Array
       let csvSource: Array<T> = (sourceData == null) ? this._dataStore : sourceData;
 
-//      console.log('datastore.service.prepareCSV fired - with ' + this._dataStore.length + ' rows of store data');
-      console.log('datastore.service.prepareCSV fired - with ' + csvSource.length + ' rows of store data');
+      console.log(this.storeName, 'datastore.service.prepareCSV fired - with ' + csvSource.length + ' rows of store data');
 
 //    if (this._dataStore == null || this._dataStore.length < 1) {
       if (csvSource == null || csvSource.length < 1) {
-            // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
+         // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
          throw new Error('prepareCSV - No data provided to export');
       }
          
@@ -657,7 +660,7 @@ export class DataStore<T>
             // If we have a string, enclose it with double quotes if it isn't already
             if (field != null && typeof(field) === 'string')
                field = (field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"');
-         // console.log('column: ' + column.header + ' = ' + field + ' (' + typeof(column.row) + ')');
+         // console.log(this.storeName, 'column: ' + column.header + ' = ' + field + ' (' + typeof(column.row) + ')');
 
             // Add the final value in field to the row
             row += (field != null) ? field + ',' : ',';
@@ -676,7 +679,7 @@ export class DataStore<T>
          throw  Error('datastore.service.downloadExport requires a filename');
 
       if (csvData == null || csvData.length == 0) {
-         console.log('csvData:', csvData);
+         console.log(this.storeName, 'csvData:', csvData);
          throw Error('exportCsv requires csvData to continue');
       }
 

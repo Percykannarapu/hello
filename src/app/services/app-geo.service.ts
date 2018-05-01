@@ -73,6 +73,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
+    console.log('app-geo.service.onDiscoveryChange - discovery analysisLevel', (discovery != null && discovery.length > 0) ? discovery[0].analysisLevel : null, ' currentAnalysisLevel: ', this.currentAnalysisLevel);
     if (discovery && discovery[0] && discovery[0].analysisLevel && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
       this.geoService.clearAll();
       this.attributeService.clearAll();
@@ -82,14 +83,16 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
-    console.log('Geo Service onGeoChange. Creating unique list of geocodes...');
+    console.log('Geo Service onGeoChange. Creating unique list of geocodes from ', (geos != null) ? geos.length : 0, ' geos');   
     const uniqueGeos: Set<string> = new Set();
     const length = geos.length;
     for (let i = 0; i < length; ++i) {
-      if (geos[i].isActive === 1) {
+//    console.log('app-geo.service.onGeoChange - processing geo: ', geos[i], ' isActive: ', geos[i].isActive);
+      if (geos[i].isActive) {
         uniqueGeos.add(geos[i].geocode);
       }
     }
+    console.log('app-geo.service.onGeoChange - # unique geos: ', (uniqueGeos != null) ? uniqueGeos.size : null);
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));
   }
 
