@@ -118,7 +118,7 @@ export class ValMetricsService implements OnDestroy {
       metricFormatter: v => {
         if (v != null && v != 0) {
           console.log('v:::', v);
-          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         } else {
           return 'N/A';
         }
