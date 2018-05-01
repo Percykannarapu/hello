@@ -10,8 +10,8 @@ import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRad
 import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLookup.store';
 import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
-
-
+import { AppMessagingService } from '../../services/app-messaging.service';
+import { ValMapService } from '../../services/app-map.service';
 import { Component, OnInit,  Input } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from '../../val-modules/targeting/models/ImpRadLookup';
@@ -20,6 +20,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+
 
 interface Product {
    productName: string;
@@ -63,10 +64,12 @@ export class DiscoveryInputComponent implements OnInit
    public calcProductCatRadData: string;
    public productCategoryTooltip: string;
 
-
+   public isCpmBlended: boolean = true;
    summer: boolean = true;
 
    showLoadBtn: boolean = false;
+   private loadRetries: number = 0;
+   private mapReady: boolean = false;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -81,7 +84,9 @@ export class DiscoveryInputComponent implements OnInit
                private http: HttpClient,
                private appState: AppState,
                private mapservice: MapService,
-               private usageService: UsageService)
+               private usageService: UsageService,
+               private messagingService: AppMessagingService,
+               private valMapService: ValMapService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -149,7 +154,19 @@ export class DiscoveryInputComponent implements OnInit
 
       // console.log('selectedAnalysisLevel: ' + this.selectedAnalysisLevel);
       // console.log('DiscoveryInputComponent constructed');
+      this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
+      this.valMapService.onReady$.subscribe(ready => this.mapReady = ready);
    }
+
+   /**
+    * Subscribe to changes in the discovery service to be able to reflect those changes in the UI
+    * @param discoData The data from the discovery service
+    */
+    private onDiscoChange(discoData: ImpDiscoveryUI) {
+          if (discoData[0] == null) return;
+          const selectItem: SelectItem = {value: discoData.analysisLevel, label: discoData.analysisLevel};
+          this.onAnalysisSelectType(null);
+    }
 
    ngOnInit()
    {
@@ -351,8 +368,19 @@ export class DiscoveryInputComponent implements OnInit
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
+   public onClickCPM(radioName: string){
+      if (radioName === 'Blended'){
+            this.isCpmBlended = true;
+      }
+      else{
+            this.isCpmBlended = false;
+      }
+   }
+   
+   
    public onChangeField(event: SelectItem)
    {
+      console.log('test', event);
       if (this.selectedCategory){
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
@@ -424,6 +452,12 @@ export class DiscoveryInputComponent implements OnInit
 
    public loadProject()
    {
+      if (!this.mapReady && this.loadRetries < 14) {
+            this.loadRetries++;
+            setTimeout((() => this.loadProject()), 10000);
+            return;
+      }
+      this.loadRetries = 0;
       console.log('discovery-input.component - loadProject fired');
 
       // Load the project
@@ -435,13 +469,25 @@ export class DiscoveryInputComponent implements OnInit
    public saveProject()
    {
       console.log('discovery-input.component.saveProject - fired');
+      let errorString = '';
       // Map the discovery data to the project
       this.mapToProject();
+
+      // check for required fields
+      if (this.impProject.projectName == null || this.impProject.projectName == '')
+            errorString = 'imPower Project Name is required<br>';
+      if (this.impProject.methAnalysis == null || this.impProject.methAnalysis == '')
+            errorString += 'Analysis level is required';
+      if (errorString !== '') {
+            this.messagingService.showGrowlError('Error Saving Project', errorString);
+            return;
+      }
 
       // Save the project
       this.impProjectService.saveProject();
 
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'Save' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
    }
 
    fetchRadData() {

@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit {
         this.metricMapBlue = new Map([
             ['Household Count', '0'],
             ['IP Address Count', '0'],
-            ['Total Investment', '0'],
+            ['Est. Total Investment', '0'],
             ['Progress to Budget', '0']
         ]);
 

@@ -61,7 +61,7 @@ export class ValLayerService {
     this.layerListWidget = new EsriModules.widgets.LayerList({
       view: this.mapService.mapView,
       container: document.createElement('div'),
-      listItemCreatedFunction: (e) => { this.onListItemCreated(e); }
+      //listItemCreatedFunction: (e) => { this.onListItemCreated(e); }
     });
     this.layerListWidget.on('trigger-action', (e) => this.onActionClicked(e));
 

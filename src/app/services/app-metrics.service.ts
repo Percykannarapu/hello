@@ -76,22 +76,49 @@ export class ValMetricsService implements OnDestroy {
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(ipCount);
-
+ 
     const totalInvestment: MetricDefinition = {
       metricValue: 0,
       metricDefault: 0,
-      metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
+      metricCode: () => this.isWinter ? ['hhld_w'] : ['hhld_s'],
       metricCategory: 'CAMPAIGN',
-      metricFriendlyName: 'Total Investment',
-      metricAccumulator: (p, c) => p + (c * this.currentDiscoveryVar.cpm / 1000),
+      metricFriendlyName: 'Est. Total Investment',
+      compositePreCalc: t => {
+        if (t[0].attributeCode === totalInvestment.metricCode()[0]) {
+          const currentHH = t[0].attributeValue;
+        if (this.currentDiscoveryVar.isBlended || this.currentDiscoveryVar.isDefinedbyOwnerGroup){
+          if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != 0) {
+          return (Number(currentHH) * this.currentDiscoveryVar.cpm) / 1000 ;
+        }
+      } else {
+          return 0;
+      }
+      }
+      },
+      metricAccumulator: (p, c) => p + c,
       metricFormatter: v => {
         if (v != null && v != 0) {
           return '$' + (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         } else {
           return 'N/A';
         }
-      }
+       }
     };
+    // const totalInvestment: MetricDefinition = {
+    //   metricValue: 0,
+    //   metricDefault: 0,
+    //   metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
+    //   metricCategory: 'CAMPAIGN',
+    //   metricFriendlyName: 'Total Investment',
+    //   metricAccumulator: (p, c) => p + (c * this.currentDiscoveryVar.cpm / 1000),
+    //   metricFormatter: v => {
+    //     if (v != null && v != 0) {
+    //       return '$' + (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    //     } else {
+    //       return 'N/A';
+    //     }
+    //   }
+    // };
     this.metricDefinitions.push(totalInvestment);
 
     const progressToBudget: MetricDefinition = {
@@ -177,10 +204,7 @@ export class ValMetricsService implements OnDestroy {
   }
 
   public getLayerAttributes() : string[] {
-    return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode'];
+    return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency'];
   }
-
-  public getCentroidLayerAttributes() : string[] {
-    return ['geocode', 'is_pob_only', 'owner_group_primary', 'cov_frequency'];
-  }
+  
 }

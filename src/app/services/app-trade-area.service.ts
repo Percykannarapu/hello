@@ -168,6 +168,10 @@ export class ValTradeAreaService implements OnDestroy {
     //console.log('length of home geocodes::', geocodesList);
     const geocodesSet = new Set(geocodesList);
     const geocodes = Array.from(geocodesSet);
+    if (geocodes[0] == undefined) {
+      console.warn('Attempted to define a trade area for a site without a home geocode');
+      return; // TODO: Is this correct behavior for DE1765? It seems to work
+    }
     //console.log('length of home geocodes filtered::', geocodes);
     let customIndex: number = 0;
     const tas = tradeAreasForInsert.map(ta => ta.taRadius);

@@ -1,4 +1,3 @@
-import {BaseModel} from './val-modules/api/models/BaseModel';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule} from '@angular/http';
@@ -106,7 +105,6 @@ import {TradeAreaDefineComponent} from './components/tradearea-define/trade-area
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
 import {RestDataService, RestDataInterceptor} from './val-modules/common/services/restdata.service';
-//import {GeocoderService} from './services/geocoder.service';
 import {TransactionManager} from './val-modules/common/services/TransactionManager.service';
 import {ImpProjectService} from './val-modules/targeting/services/ImpProject.service';
 import {ImpProjectPrefService} from './val-modules/targeting/services/ImpProjectPref.service';
@@ -151,6 +149,7 @@ import { MetricService } from './val-modules/common/services/metric.service';
 import { MapDispatchService } from './services/map-dispatch.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { AppProjectService } from './services/app-project.service';
+import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 
 @NgModule({
     imports: [
@@ -259,7 +258,8 @@ import { AppProjectService } from './services/app-project.service';
         LoginComponent,
         UploadTradeAreasComponent,
         OfflineAudienceTdaComponent,
-        SelectedAudiencesComponent
+        SelectedAudiencesComponent,
+        CustomAudienceComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},

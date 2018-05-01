@@ -204,6 +204,7 @@ export class DataStore<T>
       (error: any) => {
          console.error (this.storeName, 'DataStore.fetch - ERROR:', error);
          // TODO: Should we re-raise or throw some other event?
+         //this.fetchSubject.error(error);
          return Observable.throw(error);
       });
    }

@@ -126,38 +126,38 @@
             <div class= "ui-g-1 "> </div>
             <div class="ui-g-11">
                 <div class="ui-g-12 val-grid-no-pad-left"> 
-                    <p-radioButton name="selectCPM" ng-model="checked"value="isBlended" label="Blended"[(ngModel)]="impDiscoveryUI.isBlended" (change)="onChangeField($event)"></p-radioButton>
+                    <p-radioButton name="selectCPM" ng-model="checked"value="isBlended" label="Blended"[(ngModel)]="impDiscoveryUI.isBlended"  (onClick) ="onClickCPM('Blended')" (change)="onChangeField($event)"></p-radioButton>
                 </div>
             <div class= "ui-g-1 "> </div>
             <div class="ui-g-11">
                 <div class="ui-g-8">
                 <span class="md-inputfield">
-                    <input id="cpm" type="text" [(ngModel)]="impDiscoveryUI.cpm" (change)="onChangeField($event)" pInputText>
+                    <input id="cpm" type="text" disabled="{{!isCpmBlended}}" [(ngModel)]="impDiscoveryUI.cpm" (change)="onChangeField($event)" pInputText>
                     <label>CPM</label>
                 </span>
                 </div>
         </div>
                 <div class="ui-g-12 val-grid-no-pad-left"> 
-                    <p-radioButton name="selectCPM" value="isDefinedbyOwnerGroup" label="Defined By Owner Group"[(ngModel)]="impDiscoveryUI.isDefinedbyOwnerGroup" (change)="onChangeField($event)"></p-radioButton>
+                    <p-radioButton name="selectCPM" value="isDefinedbyOwnerGroup" label="Defined By Owner Group" (onClick)="onClickCPM('ownerGroup')" [(ngModel)]="impDiscoveryUI.isDefinedbyOwnerGroup" (change)="onChangeField($event)"></p-radioButton>
                 </div>
                 <div class="ui-g-1"> </div>
                 <div class="ui-g-11"> 
                     <div class="ui-g-12">
                         <span class="md-inputfield">
-                            <input id="includeValassisCPM" type="text" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
+                            <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
                             <label> Valassis CPM</label>
                         </span>
                     </div>
                 
                     <div class="ui-g-12">
                         <span class="md-inputfield">
-                            <input id="includeAnneCPM" type="text" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
+                            <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
                             <label>ANNE CPM</label>
                         </span>
                     </div> 
                     <div class="ui-g-12">
                         <span class="md-inputfield">
-                        <input id="includeSoloCPM" type="text" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
+                        <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
                         <label>Solo CPM</label>
                         </span>
                     </div>

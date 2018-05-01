@@ -39,6 +39,8 @@ const tacticianDarkPalette = [
 
 @Injectable()
 export class AppRendererService {
+  public static currentDefaultTheme: SmartMappingTheme = SmartMappingTheme.HighToLow;
+
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;
 
@@ -47,8 +49,8 @@ export class AppRendererService {
   private currentSelectedGeos: Set<string> = new Set<string>();
   private dataTitle: string;
 
-  private readyForRender: Subject<any> = new Subject<any>();
-  public readyForRender$: Observable<any> = this.readyForRender.asObservable();
+  private rendererDataReady: Subject<number> = new Subject<number>();
+  public rendererDataReady$: Observable<number> = this.rendererDataReady.asObservable();
 
   constructor(private geoService: ValGeoService, private dataService: TopVarService) {
     this.geoSubscription = this.geoService.uniqueSelectedGeocodes$.subscribe(geos => {
@@ -57,12 +59,12 @@ export class AppRendererService {
 //    geos.forEach(geo => console.log('  ', geo.toString()));  // Debug print geos
       geos.forEach(geo => this.currentSelectedGeos.add(geo));
     });
+
     this.dataSubscription = this.dataService.mapData$.pipe(
       map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
-    ).subscribe(dataList => {
-      this.updateData(dataList);
-    });
-    this.dataService.renderedData$.pipe(filter(data => data != null)).subscribe(data => this.dataTitle = data.fielddescr);
+    ).subscribe(dataList => this.updateData(dataList));
+
+    this.dataService.renderedData$.subscribe(data => this.dataTitle = (data ? data.fielddescr : ''));
   }
 
   private static objectIsSimpleLine(l: any) : l is __esri.SimpleLineSymbol {
@@ -76,10 +78,11 @@ export class AppRendererService {
   private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
     const result = [];
     if (this.rendererIsSmart(rendererSetup)) {
+      const smartTheme = rendererSetup.smartTheme.theme || this.currentDefaultTheme;
       const theme = EsriModules.symbologyColor.getSchemes({
         basemap: rendererSetup.smartTheme.baseMap,
         geometryType: 'polygon',
-        theme: rendererSetup.smartTheme.theme
+        theme: smartTheme
       });
       if (dataLength == null) {
         result.push(...theme.primaryScheme.colors.map(c => {
@@ -132,9 +135,7 @@ export class AppRendererService {
     } else {
       this.currentStatistics = null;
     }
-    console.log('Current Data', this.currentData);
-    console.log('Calculated Stats', this.currentStatistics);
-    this.readyForRender.next();
+    this.rendererDataReady.next(this.currentData.size);
   }
 
   public createUnifiedRenderer(defaultSymbol: __esri.SimpleFillSymbol, setup: SmartRendererSetup | CustomRendererSetup) : __esri.Renderer {
@@ -162,8 +163,10 @@ export class AppRendererService {
 
   private createClassBreaksRenderer(defaultSymbol: __esri.SimpleFillSymbol, dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRenderer {
     const baseRenderer = this.createBaseRenderer(defaultSymbol, setup.outline, '(No Data)', dataValues.length > 0);
+    // Unshifting so I can keep the data values at the top, and the (no data) values at the bottom
     baseRenderer.uniqueValueInfos.unshift(...this.generateClassBreaks(dataValues, setup));
-    return baseRenderer;
+    // have to clone because the previous op works directly on the UVI array, and doesn't go through .addUniqueValue()
+    return baseRenderer.clone();
   }
 
   private createBaseRenderer(defaultSymbol: __esri.SimpleFillSymbol, outlineSetup: OutlineSetup, noDataSuffix: string = '', hasClassBreaks: boolean = false) : __esri.UniqueValueRenderer {

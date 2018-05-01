@@ -27,6 +27,7 @@ import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribServi
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { AppConfig } from '../../../app.config';
+import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -41,6 +42,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
+
+   // this is intended to be a cache of the attrobutes and geos used for the geoffotprint export
+   private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
 
    constructor(private restDataService: RestDataService,
                private impDiscoveryService: ImpDiscoveryService,
@@ -168,7 +172,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
 
    // This is written deliberately verbose as I want to eventually genericize this
-   public sortGeos (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo): number
+   public sortGeos (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
@@ -578,47 +582,32 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else
       {
          const radiuses : Array<number> = [(state.impGeofootprintTradeAreas.length >= 1) ? state.impGeofootprintTradeAreas[0].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
+                                          , (state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
+                                          , (state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
          if (geo.distance < radiuses[0])
-            varValue = 1;
+            varValue = 'Trade Area 1';
          else
             if (geo.distance >= radiuses[0] &&
                geo.distance <= radiuses[1])
-               varValue = 2
+               varValue = 'Trade Area 2';
             else
                if (geo.distance > radiuses[1])
-                  varValue = 3;
+                  varValue = 'Trade Area 3';
                else
-                  varValue = null;
+                  varValue = 'Custom';
       }
       return varValue;
    };
 
-   // TODO: This used to create a csv of the attributes, but now needs to return just the one matching the header.
-   //       It is currently doing that, but is pretty inefficient, but its working.  Future me, forgive me.
-   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string)
-   {
-   // console.log('exportVar handler for #V-ATTRIBUTES fired');
-      let varValue: any;
-      const allExportAttributes = state.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const attributeNames = Array.from(new Set(allExportAttributes.map(att => att.attributeCode)));
-      attributeNames.sort();
-      if (geo == null) {
-         varValue = attributeNames.map(s => s.replace(',', '')).join(',');
+   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
+      if (state.attributeCache.has(geo)) {
+            const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
+            const attr = attrs.find(i => i.attributeCode === header);
+            return attr != null ? attr.attributeValue : '';
       }
-      else
-      {
-        const currentAttributes = allExportAttributes.filter(att => att.impGeofootprintGeo === geo);
-        const values = [];
-        attributeNames.forEach(name => {
-          const index = currentAttributes.findIndex(a => a.attributeCode === name && name === header);
-          values.push(index > -1 ? currentAttributes[index].attributeValue : '');
-        });
-        varValue = values.join('');
-      }
-      return varValue;
-   };
+      console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
+      return '';
+   }
 
    public addVarAttributeExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -629,7 +618,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       attributeNames.sort();
 
       attributeNames.forEach(name => {
-         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes})
+         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
    };
 
@@ -640,6 +629,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const geos: ImpGeofootprintGeo[] = this.get();
+
+      // Populate the attribute cache
+      this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
+      for (const attr of this.impGeofootprintGeoAttribService.get()) {
+            if (this.attributeCache.has(attr.impGeofootprintGeo)) {
+                  this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
+            } else {
+                  this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
+            }
+      }
 
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
@@ -685,7 +684,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Must Cover',                row: 0});
             exportColumns.push({ header: 'Owner Trade Area',             row: this.exportVarOwnerTradeArea});
-            exportColumns.push({ header: 'EST GEO IP ADDRESSES',         row: null});
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});

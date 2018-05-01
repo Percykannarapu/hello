@@ -105,7 +105,7 @@ export class ValGeoService implements OnDestroy {
       let allSelectedData: __esri.Graphic[] = [];
       const spinnerKey = 'selectAndPersistGeos';
       this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
-      const query$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(queryMap.get(maxRadius)), maxRadius, true, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
+      const query$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(queryMap.get(maxRadius)), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
       const sub = query$.subscribe(
         selections => {
           allSelectedData = allSelectedData.concat(selections);
@@ -178,15 +178,15 @@ export class ValGeoService implements OnDestroy {
     const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
     centroidMap.forEach((graphic, geocode) => {
       locations.forEach(loc => {
-        if (EsriUtils.geometryIsPoint(graphic.geometry)) {
-          const currentDistance = EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
+      //  if (EsriUtils.geometryIsPoint(graphic.geometry)) {
+          const currentDistance = EsriUtils.getDistance(graphic.attributes.longitude, graphic.attributes.latitude, loc.xcoord, loc.ycoord);
           if (currentDistance <= radius && currentDistance > previousRadius) {
             const currentTradeAreas = tradeAreaMap.get(loc);
             if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
               if (currentTradeAreas.length === 1) {
               geosToSave.push(new ImpGeofootprintGeo({
-                xcoord: graphic.geometry.x,
-                ycoord: graphic.geometry.y,
+                xcoord: graphic.attributes.longitude,
+                ycoord: graphic.attributes.latitude,
                 geocode: geocode,
                 distance: currentDistance,
                 impGeofootprintTradeArea: currentTradeAreas[0],
@@ -195,7 +195,7 @@ export class ValGeoService implements OnDestroy {
               }));
             }
           }
-        }
+        //}
       });
     });
     return geosToSave;
