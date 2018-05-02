@@ -6,7 +6,7 @@ import { DemographicVariable } from '../services/top-var.service';
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
   AboveAndBelow = 'above-and-below',
-  CenteredOn = 'centered-on',
+  //CenteredOn = 'centered-on',
   Extremes = 'extremes'
 }
 
