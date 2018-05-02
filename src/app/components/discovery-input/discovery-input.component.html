@@ -108,15 +108,17 @@
             <div class="ui-g-11">
 
             <div class="ui-g-12 val-grid-no-pad-left">
-                    <span class="md-inputfield">
+                    <span class="ui-float-label">
                     <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (change)="onChangeField($event)" pInputText>
                     <label> Dollar Budget</label>
+                    <i *ngIf="impDiscoveryUI.totalBudget === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
                     </span>
                 </div>
                 <div class="ui-g-12 val-grid-no-pad-left">
-                        <span class="md-inputfield">
+                        <span class="ui-float-label">
                         <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (change)="onChangeField($event)" pInputText>
                         <label> Circ Budget</label>
+                        <i *ngIf="impDiscoveryUI.circBudget === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
                         </span>
                 </div>
              </div>      
@@ -130,10 +132,11 @@
             </div>
         <div class= "ui-g-1 "> </div>
         <div class="ui-g-11">
-            <div class="ui-g-8">
-            <span class="md-inputfield">
+            <div class="ui-g-12">
+            <span class="ui-float-label">
                 <input id="cpm" type="text" disabled="{{!isCpmBlended}}" [(ngModel)]="impDiscoveryUI.cpm"  (change)="onChangeField($event)" pInputText>
                 <label>CPM</label>
+                <i *ngIf="impDiscoveryUI.cpm === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
             </span>
             </div>
     </div>
@@ -143,22 +146,25 @@
             <div class="ui-g-1"> </div>
             <div class="ui-g-11"> 
                 <div class="ui-g-12">
-                    <span class="md-inputfield">
+                    <span class="ui-float-label">
                         <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
                         <label> Valassis CPM</label>
+                        <i *ngIf="impDiscoveryUI.valassisCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
                     </span>
                 </div>
             
                 <div class="ui-g-12">
-                    <span class="md-inputfield">
+                    <span class="ui-float-label">
                         <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
                         <label>ANNE CPM</label>
+                        <i *ngIf="impDiscoveryUI.anneCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
                     </span>
                 </div> 
                 <div class="ui-g-12">
-                    <span class="md-inputfield">
+                    <span class="ui-float-label">
                     <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
                     <label>Solo CPM</label>
+                    <i *ngIf="impDiscoveryUI.soloCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i>
                     </span>
                 </div>
             </div>

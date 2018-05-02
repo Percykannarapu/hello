@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { Observable } from 'rxjs/Observable';
-import { map} from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { combineLatest } from 'rxjs/observable/combineLatest';
@@ -35,7 +35,7 @@ export class ValMetricsService implements OnDestroy {
   public metrics$: Observable<MetricDefinition[]>;
 
   constructor(private config: AppConfig, private attributeService: ImpGeofootprintGeoAttribService,
-              private metricService: MetricService, private discoveryService: ImpDiscoveryService, private messageService: MessageService) {
+    private metricService: MetricService, private discoveryService: ImpDiscoveryService, private messageService: MessageService) {
     this.registerMetrics();
     this.metrics$ = this.getMetricObservable();
     this.metricSub = this.metrics$.subscribe(
@@ -43,7 +43,7 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  public ngOnDestroy() : void {
+  public ngOnDestroy(): void {
     if (this.metricSub) this.metricSub.unsubscribe();
   }
 
@@ -54,7 +54,7 @@ export class ValMetricsService implements OnDestroy {
     }
   }
 
-  private registerMetrics() : void {
+  private registerMetrics(): void {
     //TODO: this will be deprecated when user's can specify their own metrics
     const householdCount: MetricDefinition = {
       metricValue: 0,
@@ -77,7 +77,7 @@ export class ValMetricsService implements OnDestroy {
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(ipCount);
- 
+
     const totalInvestment: MetricDefinition = {
       metricValue: 0,
       metricDefault: 0,
@@ -85,32 +85,36 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'CAMPAIGN',
       metricFriendlyName: 'Est. Total Investment',
       compositePreCalc: t => {
-        const attributesMap: Map<string, string>  = new Map<string, string>();
+        const attributesMap: Map<string, string> = new Map<string, string>();
         t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
-        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s'; 
-        if (attributesMap.has(season)){
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        // const valCPM = this.currentDiscoveryVar.valassisCPM || 0;
+        // const 
+
+        if (attributesMap.has(season)) {
           if (this.currentDiscoveryVar.isBlended || this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
-            if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != null){
-               return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.cpm) / 1000;
-              } 
-            if (this.currentDiscoveryVar.isDefinedbyOwnerGroup && (this.currentDiscoveryVar.valassisCPM || this.currentDiscoveryVar.soloCPM || this.currentDiscoveryVar.anneCPM != null)){
-                if (attributesMap.get('owner_group_primary') != null && (attributesMap.get('owner_group_primary') === 'VALASSIS' || attributesMap.get('owner_group_primary') === 'ANNE')) {
-                  if (this.currentDiscoveryVar.includeValassis && this.currentDiscoveryVar.valassisCPM != null) {
-                    return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.valassisCPM) / 1000;
-                  } 
-                  if (this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM && attributesMap.get('owner_group_primary') != null) {
-                      return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.anneCPM) / 1000;
-                  }
-                } else return 0;
-                if (attributesMap.get('cov_frequency') != null && attributesMap.get('cov_frequency') === 'SOLO'){
-                  if (this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null) {
-                      return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.soloCPM) / 1000;
-                  }     
-                } else return 0;
+            if (this.currentDiscoveryVar.isBlended && this.currentDiscoveryVar.cpm != null) {
+              return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.cpm) / 1000;
+            }
+            if (this.currentDiscoveryVar.isDefinedbyOwnerGroup && (this.currentDiscoveryVar.valassisCPM || this.currentDiscoveryVar.soloCPM || this.currentDiscoveryVar.anneCPM != null)) {
+              if (attributesMap.get('owner_group_primary') != null && (attributesMap.get('owner_group_primary') === 'VALASSIS' || attributesMap.get('owner_group_primary') === 'ANNE')) {
+                if (this.currentDiscoveryVar.includeValassis && this.currentDiscoveryVar.valassisCPM != null && attributesMap.get('owner_group_primary') != null) {
+                  return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.valassisCPM) / 1000;
+                }
+                if (this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM && attributesMap.get('owner_group_primary') != null) {
+                  return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.anneCPM) / 1000;
+                }
+                else return 0;
+              }
+              if (attributesMap.get('cov_frequency') != null && attributesMap.get('cov_frequency') === 'SOLO') {
+                if (this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null) {
+                  return (Number(attributesMap.get(season)) * this.currentDiscoveryVar.soloCPM) / 1000;
+                }
               } else return 0;
-      } else return 0;
-    } else return 0;
-    },
+            } else return 0;
+          } else return 0;
+        } else return 0;
+      },
       metricAccumulator: (p, c) => p + c,
       metricFormatter: v => {
         if (v != null && v != 0) {
@@ -118,7 +122,7 @@ export class ValMetricsService implements OnDestroy {
         } else {
           return 'N/A';
         }
-       }
+      }
     };
     // const totalInvestment: MetricDefinition = {
     //   metricValue: 0,
@@ -156,14 +160,14 @@ export class ValMetricsService implements OnDestroy {
         if (v != null && v !== 0) {
           return (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
         } else {
-            return 'N/A';
+          return 'N/A';
         }
       }
     };
     this.metricDefinitions.push(progressToBudget);
   }
 
-  private getMetricObservable() : Observable<MetricDefinition[]> {
+  private getMetricObservable(): Observable<MetricDefinition[]> {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive === 1))
     );
@@ -175,7 +179,7 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI) : MetricDefinition[] {
+  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI): MetricDefinition[] {
     if (discovery == null || attributes == null) return;
     this.currentDiscoveryVar = discovery;
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
@@ -183,7 +187,7 @@ export class ValMetricsService implements OnDestroy {
     this.useTotalBudget = (isNumber(this.currentDiscoveryVar.totalBudget) && this.currentDiscoveryVar.totalBudget !== 0);
     const uniqueGeoAttrCombo = new Set();
     const attributesUniqueByGeo = attributes.reduce((prev, curr) => {
-      if (!uniqueGeoAttrCombo.has(curr.impGeofootprintGeo.geocode + curr.attributeCode)){
+      if (!uniqueGeoAttrCombo.has(curr.impGeofootprintGeo.geocode + curr.attributeCode)) {
         uniqueGeoAttrCombo.add(curr.impGeofootprintGeo.geocode + curr.attributeCode);
         prev.push(curr);
       }
@@ -219,8 +223,8 @@ export class ValMetricsService implements OnDestroy {
     return this.metricDefinitions;
   }
 
-  public getLayerAttributes() : string[] {
+  public getLayerAttributes(): string[] {
     return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency'];
   }
-  
+
 }
