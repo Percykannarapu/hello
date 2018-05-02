@@ -60,7 +60,7 @@ export class ImpDiscoveryUI
 
    public static defaults =
    {
-      productCode:           'Email',
+      productCode:           '',
       industryCategoryCode:  '',
       industryCategoryName:  '',
       analysisLevel:         '',

@@ -434,8 +434,8 @@ export class DiscoveryInputComponent implements OnInit
 
    public onChangeProduct(event: SelectItem)
    {
-      console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');
-      const metricsText = 'New=' + this.selectedProduct + '~Old=' + this.impDiscoveryUI.productCode;
+      console.log('Product was changed - ' + this.selectedProduct + ' (' + event.value.productCode + ')');
+      const metricsText = 'New=' + this.selectedProduct.productName + '~Old=' + this.impDiscoveryUI.productCode;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       if (event.value != null)
