@@ -1,8 +1,4 @@
 <div class="ui-g dashboard no_vertical_space">
-  <div class="ui-g-12 no_vertical_space">
-    <!--<p-messages [(value)]="msgs"></p-messages>-->
-  </div>
-
   <!-- COLORBOX COMPONENTS -->
   <div class="ui-g-12 ui-md-6 ui-lg-3">
     <!-- Home for Green Sites Box Overlay -->
@@ -24,7 +20,7 @@
               <val-geocoder #geoCoder>Loading Geocoder...</val-geocoder>
             </p-accordionTab>
             <p-accordionTab header="Business Search">
-              <val-business-search [disableShowBusiness]="geoCoder.disableshowBusiness" (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
+              <val-business-search (showSideBar) = "showSideBar($event)">Loading business search component...</val-business-search>
             </p-accordionTab>
           </p-accordion>
         </p-tabPanel>
@@ -57,6 +53,7 @@
                    popupWidth="80%"
                    icon="done_all"
                    [model]="metricMapBlue"
+                   [flags]="flagMapBlue"
                    displayOverlay="true"
                    #campaignColorBox>
       <p-tabView styleClass="ui-tabview-panels valTabViewPaleBlue">
@@ -74,6 +71,7 @@
                     popupWidth="60%"
                     icon="tune"
                     [model]="metricMapPurple"
+                    [flags]="flagMapPurple"
                     displayOverlay="true"
                     #audienceColorBox>
       <p-tabView>
@@ -112,6 +110,7 @@
 
                               Predicted Return on Investment is the Predicted Top Line Sales Generated minus the total investment."
                      [model]="metricMapTeal"
+                     [flags]="flagMapTeal"
                      displayOverlay="false"
                      #performanceColorBox>
       <!-- For now we are removing the tab panel since there is no content for it currently

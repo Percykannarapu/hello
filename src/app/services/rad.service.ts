@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
+import { take } from 'rxjs/operators';
 
 @Injectable()
 export class RadService {
@@ -38,7 +39,7 @@ export class RadService {
     this.metricService.observeMetrics().subscribe(message => this.calculateMetrics(message));
 
     // load the RAD data after the user has been logged in
-    this.userService.userObservable.take(1).subscribe(res => this.fetchRadData(res));
+    this.userService.userObservable.pipe(take(1)).subscribe(res => this.fetchRadData(res));
   }
 
   /**
@@ -62,7 +63,7 @@ export class RadService {
 
     //filter down the RAD data based on the current product and category
     if (this.radData != null && discoveryData != null) {
-      this.filteredRadData = this.radData.filter(f => 
+      this.filteredRadData = this.radData.filter(f =>
          f.category === discoveryData.category
          && f.product === discoveryData.product);
     }

@@ -14,11 +14,13 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    @Input() popupWidth:     string = '40%';
    @Input() icon:           string;
    @Input() model:          Map<string, string>;
+   @Input() flags:          Map<string, boolean>;
    @Input() displayOverlay: string;
 
    index: number = 0;
    metric: string = null;
    metricValue: string;
+   isFlagged: boolean;
 
    popupWidthStr: string = '"{\'width\':\'20%\'}"';
 
@@ -28,6 +30,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
         this.overlayPanel.hide();
       }
      });
+     this.flags = new Map<string, boolean>();
     }
 
    ngOnInit(){
@@ -43,26 +46,27 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    private generateColorBoxValues(){
     this.popupWidthStr = '{\'width\':\'' + this.popupWidth + '\'}';
     const keys = Array.from(this.model.keys());
-    const vals = Array.from(this.model.values());
 
     this.index = 0;
     this.metric = keys[this.index];
-    this.metricValue = vals[this.index];
+    this.metricValue = this.model.get(this.metric);
+    this.isFlagged = this.flags.get(this.metric) || false;
    }
    ngOnDestroy(){
    }
 
-   public updateModel(model: Map<string, string>) {
+   private updateModel(model: Map<string, string>) {
      this.model = model;
      const keys = Array.from(this.model.keys());
-     const vals = Array.from(this.model.values());
      this.metric = keys[this.index];
-     this.metricValue = vals[this.index];
+     this.metricValue = this.model.get(this.metric);
+     this.isFlagged = this.flags.get(this.metric) || false;
    }
 
    // Model methods that update the UI
-   public set(key: string, value: string){
+   public set(key: string, value: string, flag: boolean = false){
       this.model.set(key, value);
+      this.flags.set(key, flag);
       this.updateModel(this.model);
    }
 
@@ -75,28 +79,21 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
       if (this.model == null) {
          console.log('model is null');
       }
-
-      const keys = Array.from(this.model.keys());
-      const vals = Array.from(this.model.values());
-
-      console.log('0 - ' + keys[0] + ' = ' + vals[0]);
-
       if (direction === 'Up'){
          if (this.model != null){
             this.index--;
             if (this.index < 0) {
-               this.index = keys.length - 1;
+               this.index = this.model.size - 1;
             }
          }
       }else{
          if (this.model != null){
             this.index++;
-            if (this.index >= keys.length) {
+            if (this.index >= this.model.size) {
                this.index = 0;
             }
          }
       }
-      this.metric = keys[this.index];
-      this.metricValue = vals[this.index];
+      this.updateModel(this.model);
    }
 }
