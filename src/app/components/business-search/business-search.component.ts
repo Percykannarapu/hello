@@ -61,7 +61,8 @@ export class BusinessSearchComponent implements OnInit {
     ];
   }
 
-  private static createSiteFromSearchResult(searchResult: BusinessSearchResult, siteType: string) : ImpGeofootprintLocation {
+  private createSiteFromSearchResult(searchResult: BusinessSearchResult, siteType: string) : ImpGeofootprintLocation {
+    const locationId = this.locationService.getNextLocationNumber();
     return new ImpGeofootprintLocation({
       clientLocationTypeCode: siteType,
       locationName: searchResult.firm,
@@ -71,7 +72,11 @@ export class BusinessSearchComponent implements OnInit {
       locZip: searchResult.zip,
       xcoord: searchResult.x,
       ycoord: searchResult.y,
-      isActive: true
+      isActive: true,
+      locationNumber: locationId,
+      clientIdentifierId: locationId,
+      marketName: searchResult.pricing_market_name,
+      recordStatusCode: 'SUCCESS'
     });
   }
 
@@ -186,7 +191,7 @@ export class BusinessSearchComponent implements OnInit {
   public onAddToProject(siteType: string) : void {
     const locationsForInsert: ImpGeofootprintLocation[] = [];
     this.searchResults.filter(sr => sr.selected).forEach(result => {
-      locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
+      locationsForInsert.push(this.createSiteFromSearchResult(result.data, siteType));
     });
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
     const metricName = 'Import as ' + siteType;
