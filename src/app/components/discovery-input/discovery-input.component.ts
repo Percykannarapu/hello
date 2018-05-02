@@ -301,6 +301,9 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
 
       console.log ('discovery-input.component - mapFromProject - finished');
+      //saving the metric
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
    }
 
    public onAnalysisSelectType(event: SelectItem) {
@@ -494,8 +497,7 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
 
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'Save' });
-      this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
+     
    }
 
    fetchRadData() {
