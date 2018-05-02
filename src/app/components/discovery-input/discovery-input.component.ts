@@ -388,7 +388,6 @@ export class DiscoveryInputComponent implements OnInit
 
    public onChangeField(event: SelectItem)
    {
-      console.log('test', event);
       if (this.selectedCategory){
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;

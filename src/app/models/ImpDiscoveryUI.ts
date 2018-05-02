@@ -74,7 +74,7 @@ export class ImpDiscoveryUI
       includeAnne:           true,
       includeSolo:           true,
       projectTrackerId:      null,
-      isBlended:             true,
+      isBlended:             false,
       isDefinedbyOwnerGroup: false,
       valassisCPM:           null,
       anneCPM:               null,
