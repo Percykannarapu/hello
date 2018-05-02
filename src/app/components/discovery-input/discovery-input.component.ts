@@ -418,6 +418,14 @@ export class DiscoveryInputComponent implements OnInit
       });*/
    }
 
+  /* public onChangeSeason(event: SelectItem){
+      const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.selectedSeason;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'seasonality', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+
+      this.onChangeField(event);
+   }*/
+
    public onChangeProjectId(event: SelectItem)
    {
       // Conditionally display the load button if the projectId has a value
@@ -427,6 +435,9 @@ export class DiscoveryInputComponent implements OnInit
    public onChangeProduct(event: SelectItem)
    {
       console.log('Product was changed - ' + event.value.productName + ' (' + event.value.productCode + ')');
+      const metricsText = 'New=' + this.selectedProduct + '~Old=' + this.impDiscoveryUI.productCode;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       if (event.value != null)
       {
          this.radDisabled = false;
@@ -445,6 +456,10 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    public onChangeCategory(event: SelectItem){
+      const metricsText = 'New=' + this.selectedCategory.name + '~Old=' + this.impDiscoveryUI.industryCategoryName;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      
       this.radDataCalc();
       this.onChangeField(event);
       //this.impDiscoveryUI.industryCategoryCode
