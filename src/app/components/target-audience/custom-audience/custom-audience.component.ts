@@ -77,7 +77,7 @@ export class CustomAudienceComponent {
     }
     if (rows.length > 0) {
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
-      this.usageService.createCounterMetric(usageMetricName, '', rows.length);
+      this.usageService.createCounterMetric(usageMetricName, headerCache.variableName, rows.length);
     }
   }
 
