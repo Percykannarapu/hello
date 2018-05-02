@@ -4,19 +4,19 @@
 <!-- [dismissable]="false" // disables to hide the overlay when outside is clicked. -->
    <ng-content></ng-content>
 </p-overlayPanel>
-  
+
 <div class="ui-g-12 ui-g-nopad colorboxPicker shadow-box ui-shadow-3">
    <div class="ui-g">
       <div class="ui-g-12 card colorboxPicker {{boxStyle}} header">
          <span class="colorboxPicker-name">{{header}}</span>
       </div>
       <div class="ui-g-11 card colorboxPicker {{boxStyle}} ui-clickable" (click)="onShowOverlay($event)">
-               
+
          <div class="ui-g-2 colorboxPicker icon" style="cursor:pointer;">
             <i class="material-icons colorboxPicker icon child">{{icon}}</i>
          </div>
          <div class="ui-g-10" style="cursor:pointer;">
-            <span class="colorboxPicker-name">{{metric}}</span>
+            <span class="colorboxPicker-name">{{metric}}{{isFlagged ? '&nbsp;*' : ''}}</span>
             <span class="colorboxPicker-count">{{metricValue}}</span>
          </div>
 
@@ -33,11 +33,11 @@
    </div>
 </div>
 
-<!-- Home for Green Sites Box Overlay 
+<!-- Home for Green Sites Box Overlay
 <p-overlayPanel #op class="{{popupStyle}}" [style]="{'width':'25%'}">
       <ng-content></ng-content>
    </p-overlayPanel>
-     
+
    <div class="ui-g-12 ui-g-nopad shadow-box ui-shadow-4">
       <div class="ui-g card colorbox {{boxStyle}} ui-clickable">
          <div class="ui-g-8 ui-g-nopad" style="cursor:pointer;" (click)="op.toggle($event)">

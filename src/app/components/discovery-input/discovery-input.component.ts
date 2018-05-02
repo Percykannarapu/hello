@@ -393,7 +393,7 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
-      if (this.impDiscoveryUI.cpm || this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
+      if (this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
          this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });    
       }
 
