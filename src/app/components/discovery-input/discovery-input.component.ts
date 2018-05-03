@@ -260,6 +260,10 @@ export class DiscoveryInputComponent implements OnInit
       this.impProject.isIncludeAnne      = (this.impDiscoveryUI.includeAnne)      ? true  : false;
       this.impProject.isIncludeSolo      = (this.impDiscoveryUI.includeSolo)      ? true  : false;
       this.impProject.projectTrackerId   = this.impDiscoveryUI.projectTrackerId;
+      this.impProject.estimatedBlendedCpm = this.impDiscoveryUI.cpm;
+      this.impProject.smValassisCpm = this.impDiscoveryUI.valassisCPM;
+      this.impProject.smAnneCpm = this.impDiscoveryUI.anneCPM;
+      this.impProject.smSoloCpm = this.impDiscoveryUI.soloCPM;
 
       // TODO: This needs to be in product allocations, hijacking description for product code for now
       this.impProject.description    = this.impDiscoveryUI.productCode;
@@ -300,6 +304,10 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includeAnne      = this.impProject.isIncludeAnne;
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
+      this.impDiscoveryUI.cpm = this.impProject.estimatedBlendedCpm;
+      this.impDiscoveryUI.valassisCPM = this.impProject.smValassisCpm;
+      this.impDiscoveryUI.anneCPM = this.impProject.smAnneCpm;
+      this.impDiscoveryUI.soloCPM = this.impProject.smSoloCpm;
 
       console.log ('discovery-input.component - mapFromProject - finished');
       //saving the metric
