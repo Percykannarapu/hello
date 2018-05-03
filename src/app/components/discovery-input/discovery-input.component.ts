@@ -70,6 +70,7 @@ export class DiscoveryInputComponent implements OnInit
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
+   private analysisLevelRetries = 0;
    private mapReady: boolean = false;
    public validationMessage: string;
    // -----------------------------------------------------------
@@ -307,6 +308,12 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    public onAnalysisSelectType(event: SelectItem) {
+         if (!this.mapReady && this.analysisLevelRetries < 14) {
+            console.log('AARON: WAITING TO SET ANALYSIS LEVEL, MAP NOT READY');
+            this.analysisLevelRetries++;
+            setTimeout((() => this.onAnalysisSelectType(event)), 10000);
+            return;
+         }
          console.log('Analysis level:::' , event);
          const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.analysisLevel;
          this.selectedAnalysisLevel = event;
