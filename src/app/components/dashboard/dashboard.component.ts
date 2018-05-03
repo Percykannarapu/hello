@@ -6,6 +6,9 @@ import { AppService } from '../../services/app.service';
 import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { RadService } from '../../services/rad.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -42,9 +45,15 @@ export class DashboardComponent implements OnInit {
 
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
 
+    // note about "unused" services:
+    // This is the only place these services are being injected, so leave them.
+    // They need to be injected somewhere so they can run properly
     constructor(private mapService: MapService,
                 private appService: AppService,
                 private metricService: MetricService,
+                private radService: RadService,
+                private targetAudienceService: TargetAudienceService,
+                private userService: UserService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
 
