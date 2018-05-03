@@ -95,17 +95,15 @@ export class ValMetricsService implements OnDestroy {
         if (attributesMap.has(season)) {
              if (this.currentDiscoveryVar.isBlended && isNumber(this.currentDiscoveryVar.cpm)){
                    return (currentHH * this.currentDiscoveryVar.cpm) / 1000;
-                  }
-             if (this.currentDiscoveryVar.isDefinedbyOwnerGroup){
+                  } 
+              if (this.currentDiscoveryVar.isDefinedbyOwnerGroup){
                       if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && this.currentDiscoveryVar.valassisCPM != null) {
                         return (currentHH * this.currentDiscoveryVar.valassisCPM) / 1000;
-                      } 
-                      if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM != null) {
+                      } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && this.currentDiscoveryVar.anneCPM != null) {
                           return (currentHH * this.currentDiscoveryVar.anneCPM) / 1000;
-                      }
-                       if ( attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null){
+                      } else if ( attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && this.currentDiscoveryVar.soloCPM != null){
                           return (currentHH * this.currentDiscoveryVar.soloCPM) / 1000;   
-                      } 
+                      } else return 0;
               } else return 0;
         } else return 0;
       },
@@ -146,7 +144,7 @@ export class ValMetricsService implements OnDestroy {
       metricFriendlyName: 'Progress to Budget',
       metricAccumulator: (p, c) => {
         if (this.useTotalBudget) {
-          return p + ((c * this.currentDiscoveryVar.cpm / 1000) / this.currentDiscoveryVar.totalBudget * 100);
+          return p + ( c / this.currentDiscoveryVar.totalBudget) ;
         } else if (this.useCircBudget) {
           return p + (c / this.currentDiscoveryVar.circBudget * 100);
         } else {
