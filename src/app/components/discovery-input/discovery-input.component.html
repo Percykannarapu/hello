@@ -138,34 +138,38 @@
             </span>
             </div>
     </div>
-            <div class="ui-g-12 val-grid-no-pad-left"> 
+            <div class="ui-g-8 val-grid-no-pad-left"> 
                 <p-radioButton name="selectCPM" value="isDefinedbyOwnerGroup" label="Defined By Owner Group" disabled="true" [(ngModel)]="impDiscoveryUI.isDefinedbyOwnerGroup" (onClick)="onClickCPM('ownerGroup')" (change)="onChangeField($event)"></p-radioButton>
             </div>
+            <div class="ui-g-4">
+                <label>(Coming Soon)</label>
+            </div>
             <div class="ui-g-1"> </div>
-            <div class="ui-g-11"> 
+            <!-- Commenting this section for US7450:Disable the Define by Owner Group option in the Discovery tab -->
+            <!-- <div class="ui-g-11"> 
                 <div class="ui-g-12">
                     <span class="ui-float-label">
                         <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
-                        <label> Valassis CPM</label>
+                        <label> Valassis CPM</label> -->
                         <!-- <i *ngIf="impDiscoveryUI.valassisCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
+                    <!-- </span>
                 </div>
             
                 <div class="ui-g-12">
                     <span class="ui-float-label">
                         <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
-                        <label>ANNE CPM</label>
+                        <label>ANNE CPM</label> -->
                         <!-- <i *ngIf="impDiscoveryUI.anneCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
+                    <!-- </span>
                 </div> 
                 <div class="ui-g-12">
                     <span class="ui-float-label">
                     <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
-                    <label>Solo CPM</label>
+                    <label>Solo CPM</label> -->
                     <!-- <i *ngIf="impDiscoveryUI.soloCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
-                </div>
-            </div>
+                    <!-- </span>
+                </div> -->
+            <!-- </div> -->
         </div>
     </div>
 </div>
