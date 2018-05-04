@@ -414,7 +414,7 @@ export class TopVarService implements OnDestroy {
     }
     if (addedVars.length > 0 && this.previousGeocodes.size > 0) {
       requestGeos.push(...Array.from(this.previousGeocodes));
-      requestPks.push(...addedVars);
+      requestPks.push(...addedVars.map(v => v.pk));
     }
     const sub = this.getGeoData(analysisLevel, requestGeos, requestPks).pipe(
       map(response => response.payload)

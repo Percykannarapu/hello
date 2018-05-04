@@ -70,6 +70,7 @@ export class DiscoveryInputComponent implements OnInit
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
+   private analysisLevelRetries = 0;
    private mapReady: boolean = false;
    public validationMessage: string;
    // -----------------------------------------------------------
@@ -259,6 +260,10 @@ export class DiscoveryInputComponent implements OnInit
       this.impProject.isIncludeAnne      = (this.impDiscoveryUI.includeAnne)      ? true  : false;
       this.impProject.isIncludeSolo      = (this.impDiscoveryUI.includeSolo)      ? true  : false;
       this.impProject.projectTrackerId   = this.impDiscoveryUI.projectTrackerId;
+      this.impProject.estimatedBlendedCpm = this.impDiscoveryUI.cpm;
+      this.impProject.smValassisCpm = this.impDiscoveryUI.valassisCPM;
+      this.impProject.smAnneCpm = this.impDiscoveryUI.anneCPM;
+      this.impProject.smSoloCpm = this.impDiscoveryUI.soloCPM;
 
       // TODO: This needs to be in product allocations, hijacking description for product code for now
       this.impProject.description    = this.impDiscoveryUI.productCode;
@@ -299,6 +304,10 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includeAnne      = this.impProject.isIncludeAnne;
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
+      this.impDiscoveryUI.cpm = this.impProject.estimatedBlendedCpm;
+      this.impDiscoveryUI.valassisCPM = this.impProject.smValassisCpm;
+      this.impDiscoveryUI.anneCPM = this.impProject.smAnneCpm;
+      this.impDiscoveryUI.soloCPM = this.impProject.smSoloCpm;
 
       console.log ('discovery-input.component - mapFromProject - finished');
       //saving the metric
@@ -307,6 +316,12 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    public onAnalysisSelectType(event: SelectItem) {
+         if (!this.mapReady && this.analysisLevelRetries < 14) {
+            console.log('AARON: WAITING TO SET ANALYSIS LEVEL, MAP NOT READY');
+            this.analysisLevelRetries++;
+            setTimeout((() => this.onAnalysisSelectType(event)), 10000);
+            return;
+         }
          console.log('Analysis level:::' , event);
          const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.analysisLevel;
          this.selectedAnalysisLevel = event;
@@ -393,7 +408,7 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
       if (this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
-         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: '* Total investment and progress to budget calculations only include geographies with specified CPMs' });    
+         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: 'Total investment and progress to budget calculations only include geographies with specified CPMs' });    
       }
 
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
