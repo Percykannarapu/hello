@@ -164,7 +164,7 @@ export class ValTradeAreaService implements OnDestroy {
     const impDiscoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
     const analysisLevel = impDiscoveryUI[0].analysisLevel;
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
-    const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);
+    const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);    
     //console.log('length of home geocodes::', geocodesList);
     const geocodesSet = new Set(geocodesList);
     const geocodes = Array.from(geocodesSet);
@@ -173,7 +173,7 @@ export class ValTradeAreaService implements OnDestroy {
       return; // TODO: Is this correct behavior for DE1765? It seems to work
     }
     //console.log('length of home geocodes filtered::', geocodes);
-    let customIndex: number = 0;
+    let customIndex: number = tradeAreasForInsert.length + 1; // 0;
     const tas = tradeAreasForInsert.map(ta => ta.taRadius);
     const maxRadius = Math.max(...tas);
     const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true).subscribe(graphics => {
@@ -184,17 +184,23 @@ export class ValTradeAreaService implements OnDestroy {
             const geocodeDistance =  EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
             if (geocodeDistance > maxRadius) {
               customIndex++;
-              geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc));
-              tradeAreasForInsert.push(ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO CUSTOM'));
+              const ta: ImpGeofootprintTradeArea = ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO CUSTOM');
+              geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc, ta));
+              tradeAreasForInsert.push(ta);
             }
           }
-        });
+          console.log (customIndex, ') Custom Trade Areas: ', tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
+         });
       });
-      this.impGeoService.add(geosToAdd);
-    }, null, () => sub.unsubscribe());
+      this.impGeoService.add(geosToAdd.filter(g => g.impGeofootprintTradeArea.taType === 'HOMEGEO CUSTOM'));
+      console.log('tradeAreasForInsert = ', tradeAreasForInsert)
+   }, null, () => {
+      this.tradeAreaService.add(tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
+      sub.unsubscribe()
+      });
   }
 
-  public  createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation) : ImpGeofootprintGeo {
+  public  createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, ta?: ImpGeofootprintTradeArea) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = loc.homeGeocode;
     impGeofootprintGeo.isActive = 1;
@@ -202,6 +208,8 @@ export class ValTradeAreaService implements OnDestroy {
     impGeofootprintGeo.distance = distance;
     impGeofootprintGeo.xcoord = point.x;
     impGeofootprintGeo.ycoord = point.y;
+    if (ta != null)
+       impGeofootprintGeo.impGeofootprintTradeArea = ta;
     return impGeofootprintGeo;
   }
 }
