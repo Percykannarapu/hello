@@ -687,7 +687,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Active?',                   row: (state, data) => data.isActive});
+            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
          break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
@@ -701,7 +701,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
             exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
             exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Active?',                   row: (state, data) => data.isActive});
+            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
          break;
       }
       return exportColumns;
