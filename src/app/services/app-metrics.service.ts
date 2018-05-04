@@ -115,9 +115,9 @@ export class ValMetricsService implements OnDestroy {
           return 'N/A';
         }
       },
-      calcFlagState: d => {
-        return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
-      }
+      // calcFlagState: d => {
+      //   return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
+      // }
     };
     this.metricDefinitions.push(totalInvestment);
 
@@ -139,57 +139,6 @@ export class ValMetricsService implements OnDestroy {
     // this.metricDefinitions.push(totalInvestment);
 
     const progressToBudget: MetricDefinition = {
-      metricValue: 0,
-      metricDefault: 0,
-      metricCode: () => this.isWinter ? ['hhld_w', 'owner_group_primary', 'cov_frequency'] : ['hhld_s', 'owner_group_primary', 'cov_frequency'],
-      metricCategory: 'CAMPAIGN',
-      compositePreCalc: t => {
-        const attributesMap: Map<string, string> = new Map<string, string>();
-        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
-        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
-        const currentHH = Number(attributesMap.get(season)) || 0;
-
-        if (attributesMap.has(season)) {
-          if (this.currentDiscoveryVar.isBlended && isNumber(this.currentDiscoveryVar.cpm)) {
-            return (currentHH * this.currentDiscoveryVar.cpm) / 1000;
-          }
-          if (this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
-            if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
-              return (currentHH * this.currentDiscoveryVar.valassisCPM) / 1000;
-            } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
-              return (currentHH * this.currentDiscoveryVar.anneCPM) / 1000;
-            } else if (attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
-              return (currentHH * this.currentDiscoveryVar.soloCPM) / 1000;
-            } else return 0;
-          } else return 0;
-        } else return 0;
-      },
-
-      metricFriendlyName: 'Progress to Budget',
-      metricAccumulator: (p, c) => {
-        if (this.useTotalBudget) {
-          return p + (c / this.currentDiscoveryVar.totalBudget * 100);
-        } else if (this.useCircBudget) {
-          return p + (c / this.currentDiscoveryVar.circBudget * 100);
-        } else {
-          return null;
-        }
-      },
-      metricFormatter: v => {
-        if (v != null && v !== 0) {
-          return (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
-        } else {
-          return 'N/A';
-        }
-      },
-      calcFlagState: d => {
-        return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
-      }
-    };
-    this.metricDefinitions.push(progressToBudget);
-  }
-
-  /*    const progressToBudget: MetricDefinition = {
         metricValue: 0,
         metricDefault: 0,
         metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
@@ -197,7 +146,7 @@ export class ValMetricsService implements OnDestroy {
         metricFriendlyName: 'Progress to Budget',
         metricAccumulator: (p, c) => {
           if (this.useTotalBudget) {
-            return p + ( c / this.currentDiscoveryVar.totalBudget) ;
+            return p + ((c * this.currentDiscoveryVar.cpm / 1000) / this.currentDiscoveryVar.totalBudget * 100);
           } else if (this.useCircBudget) {
             return p + (c / this.currentDiscoveryVar.circBudget * 100);
           } else {
@@ -211,14 +160,14 @@ export class ValMetricsService implements OnDestroy {
             return 'N/A';
           }
         },
-        calcFlagState: d => {
-          return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
-        }
+        // calcFlagState: d => {
+        //   return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
+        // }
       };
       this.metricDefinitions.push(progressToBudget);
-    } */
+    } 
 
-  private getMetricObservable(): Observable<MetricDefinition[]> {
+  private getMetricObservable() : Observable<MetricDefinition[]> {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive === 1))
     );
