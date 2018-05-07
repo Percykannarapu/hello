@@ -534,9 +534,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       for(let geo of geos) {
          if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
          if (geo.rank === 0)
-           geo.isDeduped = 1;
+            geo.isDeduped = 1;
          else
-           geo.isDeduped = 0;
+            geo.isDeduped = 0;
       }
 
       // Replace the data store with this version
@@ -551,9 +551,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
       varValue = (geo != null && geo.impGeofootprintLocation != null)
                   ? '"' + geo.impGeofootprintLocation.locAddress + ', ' +
-                    geo.impGeofootprintLocation.locCity   + ', ' +
-                    geo.impGeofootprintLocation.locState  + ' ' +
-                    truncZip + '"'
+                          geo.impGeofootprintLocation.locCity    + ', ' +
+                          geo.impGeofootprintLocation.locState   + ' ' +
+                          truncZip + '"'
                   : null;
       return varValue;
    };
@@ -582,8 +582,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else
       {
          const radiuses : Array<number> = [(state.impGeofootprintTradeAreas.length >= 1) ? state.impGeofootprintTradeAreas[0].taRadius : 0
-                                          , (state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
-                                          , (state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
+                                          ,(state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
+                                          ,(state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
          if (geo.distance < radiuses[0])
             varValue = 'Trade Area 1';
          else
@@ -601,9 +601,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
       if (state.attributeCache.has(geo)) {
-            const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
-            const attr = attrs.find(i => i.attributeCode === header);
-            return attr != null ? attr.attributeValue : '';
+         const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
+         const attr = attrs.find(i => i.attributeCode === header);
+         return attr != null ? attr.attributeValue : '';
       }
       console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
       return '';
@@ -633,17 +633,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // Populate the attribute cache
       this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
       for (const attr of this.impGeofootprintGeoAttribService.get()) {
-            if (this.attributeCache.has(attr.impGeofootprintGeo)) {
-                  this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
-            } else {
-                  this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
-            }
+         if (this.attributeCache.has(attr.impGeofootprintGeo)) {
+            this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
+         } else {
+            this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
+         }
       }
 
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
-            this.messageService.showGrowlError('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
-            return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
+         this.messageService.showGrowlError('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
+         return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
       }
 
       let exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
@@ -679,7 +679,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Market',                       row: (state, data) => data.impGeofootprintLocation.marketName});
             exportColumns.push({ header: 'Market Code',                  row: null});
             exportColumns.push({ header: 'Passes Filter',                row: 1});
-            exportColumns.push({ header: 'Distance',                     row: (state, data) => data.distance});
+            exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
             exportColumns.push({ header: 'Is User Home Geocode',         row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Must Cover',                row: 0});

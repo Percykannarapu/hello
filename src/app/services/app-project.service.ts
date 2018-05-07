@@ -80,6 +80,38 @@ export class AppProjectService extends DataStore<ImpProject>
       this.impDiscoveryService.clearAll(notifySubscribers, inTransaction);
    }
 
+   public debugLogStores(headerText: string)
+   {
+      // this.impGeofootprintVarService.debugLogStore('LOADED VARS');
+      // this.impGeofootprintGeoService.debugLogStore('LOADED GEOS');
+      // this.impGeofootprintTradeAreaService.debugLogStore('LOADED TRADE AREAS');
+      // this.impGeofootprintLocAttribService.debugLogStore('LOADED LOCATION ATTRIBUTES');
+      // this.impGeofootprintLocationService.debugLogStore('LOADED LOCATIONS');
+      // this.impGeofootprintMasterService.debugLogStore('LOADED MASTERS');
+      this.impGeofootprintVarService.debugLogStore(headerText);
+      this.impGeofootprintGeoService.debugLogStore(headerText);
+      this.impGeofootprintTradeAreaService.debugLogStore(headerText);
+      this.impGeofootprintLocAttribService.debugLogStore(headerText);
+      this.impGeofootprintLocationService.debugLogStore(headerText);
+      this.impClientLocationService.debugLogStore(headerText);
+      this.impGeofootprintMasterService.debugLogStore(headerText);
+      this.impProjectPrefService.debugLogStore(headerText);
+      this.impDiscoveryService.debugLogStore(headerText);
+   }
+
+   public debugLogStoreCounts()
+   {
+      console.log('impGeofootprintVars:       ', this.impGeofootprintVarService.storeLength);
+      console.log('impGeofootprintGeos:       ', this.impGeofootprintGeoService.storeLength);
+      console.log('impGeofootprintTradeAreas: ', this.impGeofootprintTradeAreaService.storeLength);
+      console.log('impGeofootprintLocAttribs: ', this.impGeofootprintLocAttribService.storeLength);
+      console.log('impGeofootprintLocations:  ', this.impGeofootprintLocationService.storeLength);
+      console.log('impClientLocations:        ', this.impClientLocationService.storeLength);
+      console.log('impGeofootprintMasters:    ', this.impGeofootprintMasterService.storeLength);
+      console.log('impProjectPrefs:           ', this.impProjectPrefService.storeLength);
+      console.log('impDiscoverys:             ', this.impDiscoveryService.storeLength);
+   }
+   
    reloadProject(project: ImpProject, clearStore: boolean, silent: boolean = false) : Observable<ImpProject[]>
    {
       console.log('AppProject.service.reloadProject fired - ', project);
@@ -100,7 +132,8 @@ export class AppProjectService extends DataStore<ImpProject>
 
       if (!inExistingTransaction)
          this.projectTransactionManager.startTransaction();
-      this.debugLogStore('PROJECTS');
+      // this.debugLogStore('PROJECTS');
+      this.debugLogStoreCounts();
 
       // Indicate to the user that the project is loading
       if (!silent)
@@ -132,12 +165,13 @@ export class AppProjectService extends DataStore<ImpProject>
             this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully.');
 
          // Debug print the data stores 
-         this.impGeofootprintVarService.debugLogStore('LOADED VARS');
-         this.impGeofootprintGeoService.debugLogStore('LOADED GEOS');
-         this.impGeofootprintTradeAreaService.debugLogStore('LOADED TRADE AREAS');
-         this.impGeofootprintLocAttribService.debugLogStore('LOADED LOCATION ATTRIBUTES');
-         this.impGeofootprintLocationService.debugLogStore('LOADED LOCATIONS');
-         this.impGeofootprintMasterService.debugLogStore('LOADED MASTERS');
+         // this.impGeofootprintVarService.debugLogStore('LOADED VARS');
+         // this.impGeofootprintGeoService.debugLogStore('LOADED GEOS');
+         // this.impGeofootprintTradeAreaService.debugLogStore('LOADED TRADE AREAS');
+         // this.impGeofootprintLocAttribService.debugLogStore('LOADED LOCATION ATTRIBUTES');
+         // this.impGeofootprintLocationService.debugLogStore('LOADED LOCATIONS');
+         // this.impGeofootprintMasterService.debugLogStore('LOADED MASTERS');
+         this.debugLogStores('RELOADED');
 
          if (!inExistingTransaction)
             this.projectTransactionManager.stopTransaction();
@@ -393,6 +427,19 @@ export class AppProjectService extends DataStore<ImpProject>
                      else
                         console.log('location: ', impLocation.locationNumber, ' did not have any attributes');
 
+                     // Add database removals
+                     if (this.impGeofootprintTradeAreaService.dbRemoves != null && this.impGeofootprintTradeAreaService.dbRemoves.length > 0)
+                     {
+                        console.log('impGeofootprintTradeAreaService has ' + this.impGeofootprintTradeAreaService.dbRemoves.length + ' removes');
+                        for (let removeTA of this.impGeofootprintTradeAreaService.dbRemoves)
+                        {
+                           console.log('TA Removal: ', removeTA);
+                           impGeofootprintTradeAreas.unshift(removeTA);
+                        }
+                     }
+                     else
+                        console.log('impGeofootprintTradeAreaService had no database removes');
+
                      // Map in Trade Areas
                      impLocation.impGeofootprintTradeAreas = impGeofootprintTradeAreas.filter(tradeArea => tradeArea.impGeofootprintLocation != null
                                                                                                         && tradeArea.impGeofootprintLocation == impLocation);
@@ -433,7 +480,7 @@ export class AppProjectService extends DataStore<ImpProject>
                                  geo.ggId = null;
          
                               geo.baseStatus = (geo.ggId == null) ? DAOBaseStatus.INSERT : (geo.baseStatus === DAOBaseStatus.DELETE) ? DAOBaseStatus.DELETE : DAOBaseStatus.UPDATE;
-                              geo.isActive   = 1;                        
+                              geo.isActive   = true;                        
                            });
 
                            // // Map in vars

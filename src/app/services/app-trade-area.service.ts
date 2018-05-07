@@ -107,7 +107,8 @@ export class ValTradeAreaService implements OnDestroy {
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
     // I only want to apply radial defaults to brand new sites after the defaults have been set
     const previousLocations = new Set(this.currentLocations);
-    const adds = locations.filter(l => !previousLocations.has(l));
+    // Only interested in locations that are truely new.  Having a glId that is from the database tells us its not new
+    const adds = locations.filter(l => !previousLocations.has(l) && (l.glId == null || l.glId < 1000));
     const availableSiteTypes = Array.from(this.currentDefaults.keys());
     for (const siteType of availableSiteTypes) {
       const currentLocations = adds.filter(l => l.clientLocationTypeCode === siteType);
@@ -189,11 +190,11 @@ export class ValTradeAreaService implements OnDestroy {
               tradeAreasForInsert.push(ta);
             }
           }
-          console.log (customIndex, ') Custom Trade Areas: ', tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
+//        console.log (customIndex, ') Custom Trade Areas: ', tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
          });
       });
       this.impGeoService.add(geosToAdd.filter(g => g.impGeofootprintTradeArea.taType === 'HOMEGEO CUSTOM'));
-      console.log('tradeAreasForInsert = ', tradeAreasForInsert)
+//      console.log('tradeAreasForInsert = ', tradeAreasForInsert)
    }, null, () => {
       this.tradeAreaService.add(tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
       sub.unsubscribe()
@@ -203,7 +204,7 @@ export class ValTradeAreaService implements OnDestroy {
   public  createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, ta?: ImpGeofootprintTradeArea) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = loc.homeGeocode;
-    impGeofootprintGeo.isActive = 1;
+    impGeofootprintGeo.isActive = true;
     impGeofootprintGeo.impGeofootprintLocation = loc;
     impGeofootprintGeo.distance = distance;
     impGeofootprintGeo.xcoord = point.x;

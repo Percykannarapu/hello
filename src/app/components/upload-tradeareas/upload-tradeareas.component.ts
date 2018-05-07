@@ -250,7 +250,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, ta: ImpGeofootprintTradeArea, geocode: string) : ImpGeofootprintGeo {
     const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
     impGeofootprintGeo.geocode = geocode;
-    impGeofootprintGeo.isActive = 1;
+    impGeofootprintGeo.isActive = true;
     impGeofootprintGeo.impGeofootprintLocation = loc;
     impGeofootprintGeo.impGeofootprintTradeArea = ta;
     impGeofootprintGeo.distance = distance;

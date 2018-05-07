@@ -17,7 +17,7 @@ export class ImpGeofootprintGeo extends BaseModel
    public xcoord:                       number;                        /// x_coord is longitude
    public ycoord:                       number;                        /// y_coord is latitude
    public distance:                     number;                        /// Geocodes distance to the location
-   public isActive:                     number;
+   public isActive:                     boolean;
 
    // Transient fields
    public rank:                         number;

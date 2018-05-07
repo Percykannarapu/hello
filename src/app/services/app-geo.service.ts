@@ -51,6 +51,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onTradeAreaChange(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+    // newTradeAreas are the subset of trade areas from the data store that we are interested in
     const newTradeAreas = tradeAreas.filter(ta => ta.isActive === 1 && ta.taType === 'RADIUS' && ta.impGeofootprintLocation.clientLocationTypeCode === 'Site') || [];
     const currentSet = new Set(this.currentTradeAreas);
     const newSet = new Set(newTradeAreas);
@@ -58,7 +59,8 @@ export class ValGeoService implements OnDestroy {
     const updates: ImpGeofootprintTradeArea[] = [];
     const deletes: ImpGeofootprintTradeArea[] = this.currentTradeAreas.filter(ta => !newSet.has(ta));
     newTradeAreas.forEach(ta => {
-      if (currentSet.has(ta)) {
+       // Trade areas are considered new if they do not have a gtaId or the id is a surrogate id (< 1000; assigned when creating new unsaved trade areas)
+      if (currentSet.has(ta) || (ta.gtaId != null && ta.gtaId > 1000)) {
         updates.push(ta);
       } else {
         adds.push(ta);
@@ -122,7 +124,10 @@ export class ValGeoService implements OnDestroy {
             }
             count++;
           });
+          console.log ('geoService size before: ', this.geoService.storeLength);
+          console.log ('app-geo.service.selectAndPersistGeos: ', (geosToPersist != null) ? geosToPersist.length : 0);
           this.geoService.add(geosToPersist);
+          console.log ('geoService size after: ', this.geoService.storeLength);
           sub.unsubscribe();
           this.messagingService.stopSpinnerDialog(spinnerKey);
         });
@@ -191,7 +196,7 @@ export class ValGeoService implements OnDestroy {
                 distance: currentDistance,
                 impGeofootprintTradeArea: currentTradeAreas[0],
                 impGeofootprintLocation: loc,
-                isActive: 1
+                isActive: true
               }));
             }
           }
@@ -286,7 +291,7 @@ export class ValGeoService implements OnDestroy {
       distance: minDistance,
       impGeofootprintLocation: closestLocation,
       impGeofootprintTradeArea: tradeArea,
-      isActive: 1
+      isActive: true
     });
     this.geoService.add([newGeo]);
   }

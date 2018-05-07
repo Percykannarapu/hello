@@ -290,11 +290,17 @@ export class ImpProjectService extends DataStore<ImpProject>
 saveProject()
 {
    console.log('ImpProject.service.saveProject fired');
+   console.log('BEFORE SAVE');
+   this.appProjectService.debugLogStoreCounts();
    this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
       if (savedProject != null)
       {
          console.log('project saved', savedProject);
+         console.log('BEFORE REPLACE STORE FROM SAVE');
+         this.appProjectService.debugLogStoreCounts();
          this.replace(savedProject);
+         console.log('AFTER SAVE');
+         this.appProjectService.debugLogStoreCounts();
       }
       else
          console.log('project did not save');   

@@ -159,7 +159,7 @@ export class SiteListComponent implements OnInit {
     location.isActive = isActive;
     attributes.forEach(att => att.isActive = isActive ? 1 : 0);
     tas.forEach(area => area.isActive = isActive ? 1 : 0);
-    geos.forEach(geo => geo.isActive = isActive ? 1 : 0);
+//    geos.forEach(geo => geo.isActive = isActive ? 1 : 0);
     geoAttributes.forEach(att => att.isActive = isActive ? 1 : 0);
     this.geoAttributeService.update(null, null);
     this.geoService.update(null, null);

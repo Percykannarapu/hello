@@ -58,7 +58,11 @@ export class DataStore<T>
 
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
-   public storeLength: number = 0;  // Publically expose number of rows in the _dataStore
+
+   get storeLength(): number {
+      return (this._dataStore != null) ? this._dataStore.length : 0;
+   }
+
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
    constructor(private rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager, public storeName: string='') {
@@ -93,7 +97,9 @@ export class DataStore<T>
    {
       try
       {
-         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '') + 'STORE CONTENTS #----------------');
+         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '') 
+                            + ((this.storeName != null) ? this.storeName.toUpperCase() + ' ' : '')
+                            + 'STORE CONTENTS #----------------');
 
          if (useFirstMethod)
          {
@@ -112,6 +118,7 @@ export class DataStore<T>
          }
       catch (e)
       {
+         console.warn(e);
          console.log('** Empty **');
       }
    }
@@ -573,7 +580,7 @@ export class DataStore<T>
     */
    public clearAll(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
    {
-      if (this._dataStore != null && this._dataStore.length > 0)
+      if (this._dataStore != null) // && this._dataStore.length > 0)
          console.log(this.storeName, 'clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
