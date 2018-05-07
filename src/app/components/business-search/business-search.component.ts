@@ -189,24 +189,11 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onAddToProject(siteType: string) : void {
-<<<<<<< Updated upstream
-    const locationsForInsert: ImpGeofootprintLocation[] = [];
-    this.searchResults.filter(sr => sr.selected).forEach(result => {
-      locationsForInsert.push(this.createSiteFromSearchResult(result.data, siteType));
-    });
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
-    const metricName = 'Import as ' + siteType;
-    this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
-    if (locationsForInsert.length > 0) {
-      this.locationService.add(locationsForInsert);
-      this.appService.closeOverLayPanel.next(true);
-    }
-=======
     console.log('test:::',this.selector);
     if(this.selector === 'Site' || this.selector === 'Competitor' ){
       const locationsForInsert: ImpGeofootprintLocation[] = [];
       this.searchResults.filter(sr => sr.selected).forEach(result => {
-        locationsForInsert.push(BusinessSearchComponent.createSiteFromSearchResult(result.data, siteType));
+        locationsForInsert.push(this.createSiteFromSearchResult(result.data, siteType));
       });
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
       const metricName = 'Import as ' + siteType;
@@ -217,7 +204,6 @@ export class BusinessSearchComponent implements OnInit {
       }
   } else {
     this.messagingService.showGrowlError('Error', `Please indicate whether to select Sites or Competitors`);
->>>>>>> Stashed changes
   }
 }
 
