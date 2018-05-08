@@ -19,6 +19,8 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 @Injectable()
 export class MapService {
 
+    private updateSketchGraphic: __esri.Graphic;
+
     // Group Layers
     public static EsriGroupLayer: __esri.GroupLayer;
     public static ZipGroupLayer: __esri.GroupLayer;
@@ -281,87 +283,126 @@ export class MapService {
 
         });
 
-        // create a new sketch view model
-        this.sketchViewModel = new EsriModules.widgets.SketchViewModel({
-            view: this.mapView,
-            pointSymbol: { // symbol used for points
-                style: 'square',
-                color: '#8A2BE2',
-                size: '16px',
-                outline: { // auto casts as new SimpleLineSymbol()
-                    color: [255, 255, 255],
-                    width: 3 // points
-                }
-            },
-            polylineSymbol: { // symbol used for polylines
-                style: 'short-dash',
-                width: 1.25,
-                color: [230, 0, 0, 1]
-            },
-            polygonSymbol: { // symbol used for polygons
-                color: 'rgba(138,43,226, 0.8)',
-                style: 'solid',
-                outline: {
-                    color: 'white',
-                    width: 1
-                }
-            }
-        });
 
-        // the sketchViewModel introduces an empty GraphicsLayer to the map,
-        // even if you specify a local temp layer, so this code is to suppress
-        // this "undefined" layer
-        this.map.allLayers.forEach(l => {
-          if (l.title == null) l.listMode = 'hide';
-        });
+        this.setupSketchViewModel();
+        this.setUpSketchClickHandler();
+    }
 
-        // -----------------------------------------------------------------------------------
-        // SketchViewModel
-        // -----------------------------------------------------------------------------------
-        // ************************************************************
-        // Get the completed graphic from the event and add it to view.
-        // This event fires when user presses
-        //  * "C" key to finish sketching point, polygon or polyline.
-        //  * Double-clicks to finish sketching polyline or polygon.
-        //  * Clicks to finish sketching a point geometry.
-        // ***********************************************************
-        this.sketchViewModel.on('draw-complete', (evt: any) => {
-            // if multipoint geometry is created, then change the symbol
-            // for the graphic
-            if (evt.geometry.type === 'multipoint') {
-                evt.graphic.symbol = {
-                    type: 'simple-marker',
-                    style: 'square',
-                    color: 'green',
-                    size: '16px',
-                    outline: {
-                        color: [255, 255, 255],
-                        width: 3
-                    }
-                };
+    private setUpSketchClickHandler() {
+      this.mapView.on('click', (evt) => {
+        this.mapView.hitTest(evt).then((response) => {
+          const results = response.results;
+          // Found a valid graphic
+          if (results.length && results[results.length - 1].graphic) {
+            // Check if we're already editing a graphic
+            if (!this.updateSketchGraphic) {
+              // Save a reference to the graphic we intend to update
+              this.updateSketchGraphic = results[results.length - 1].graphic;
+              // Remove the graphic from the GraphicsLayer
+              // Sketch will handle displaying the graphic while being updated
+              this.mapView.graphics.remove(this.updateSketchGraphic);
+              this.sketchViewModel.update(this.updateSketchGraphic.geometry);
             }
-            this.mapView.graphics.add(evt.graphic);
-
-            // ----------------------------------------------------------------------------------------
-            // Measure Length of PolyLine
-            if (this.mapFunction === mapFunctions.MeasureLine) {
-                const polyline = evt.graphic.geometry;
-                // calculate the area of the polygon
-                const length: number = EsriModules.geometryEngine.geodesicLength(polyline, 'miles');
-                console.log('drawMeasureLine (length) = ' + length);
-                if (length > 0) {
-                    // start displaying the length of the polyline
-                    this.labelMeasurePolyLine(polyline, length);
-                }
-                this.removeActiveButtons();
-                const el: any = document.getElementById('popupsButton');
-                el.classList.add('active');
-                this.mapFunction = mapFunctions.Popups;
-                this.toggleFeatureLayerPopups();
-            }
-            // ----------------------------------------------------------------------------------------
+          }
         });
-        // -----------------------------------------------------------------------------------
+      });
+    }
+
+    private setupSketchViewModel() {
+      // create a new sketch view model
+      const sketchPoint = new EsriModules.SimpleMarkerSymbol({ // symbol used for points
+        style: 'square',
+        color: '#8A2BE2',
+        size: '16px',
+        outline: {
+          color: [255, 255, 255],
+          width: 3 // points
+        }
+      });
+      const sketchLine = new EsriModules.SimpleLineSymbol({ // symbol used for polylines
+        style: 'short-dash',
+        width: 1.25,
+        color: [230, 0, 0, 1]
+      });
+      const sketchPoly = new EsriModules.SimpleFillSymbol({ // symbol used for polygons
+        color: 'rgba(138,43,226, 0.8)',
+        style: 'solid',
+        outline: {
+          color: 'white',
+          width: 1
+        }
+      });
+      this.sketchViewModel = new EsriModules.widgets.SketchViewModel({
+        view: this.mapView,
+        pointSymbol: sketchPoint,
+        polylineSymbol: sketchLine,
+        polygonSymbol: sketchPoly
+      });
+
+      // the sketchViewModel introduces an empty GraphicsLayer to the map,
+      // even if you specify a local temp layer, so this code is to suppress
+      // this "undefined" layer
+      this.map.allLayers.forEach(l => {
+        if (l.title == null) l.listMode = 'hide';
+      });
+
+      // -----------------------------------------------------------------------------------
+      // SketchViewModel
+      // -----------------------------------------------------------------------------------
+      // ************************************************************
+      // Get the completed graphic from the event and add it to view.
+      // This event fires when user presses
+      //  * "C" key to finish sketching point, polygon or polyline.
+      //  * Double-clicks to finish sketching polyline or polygon.
+      //  * Clicks to finish sketching a point geometry.
+      // ***********************************************************
+      this.sketchViewModel.on('draw-complete', e => this.addSketchGraphic(e));
+      this.sketchViewModel.on('update-complete', e => this.addSketchGraphic(e));
+      this.sketchViewModel.on('update-cancel', e => this.addSketchGraphic(e));
+      // -----------------------------------------------------------------------------------
+    }
+
+    private addSketchGraphic({ geometry }: { geometry: __esri.Geometry}) : void {
+      // if multipoint geometry is created, then change the symbol
+      // for the graphic
+      let symbol: __esri.Symbol;
+      switch (geometry.type) {
+        case 'point':
+          symbol = this.sketchViewModel.pointSymbol;
+          break;
+        case 'polyline':
+          symbol = this.sketchViewModel.polylineSymbol;
+          break;
+        default:
+          symbol = this.sketchViewModel.polygonSymbol;
+          break;
+      }
+
+      const sketchGraphic = new EsriModules.Graphic({
+        geometry: geometry,
+        symbol: symbol
+      });
+      this.mapView.graphics.add(sketchGraphic);
+
+      // ----------------------------------------------------------------------------------------
+      // Measure Length of PolyLine
+      if (this.mapFunction === mapFunctions.MeasureLine) {
+        const polyline = geometry as __esri.Polyline;
+        // calculate the area of the polygon
+        const length: number = EsriModules.geometryEngine.geodesicLength(polyline, 'miles');
+        console.log('drawMeasureLine (length) = ' + length);
+        if (length > 0) {
+          // start displaying the length of the polyline
+          this.labelMeasurePolyLine(polyline, length);
+        }
+        this.removeActiveButtons();
+        const el: any = document.getElementById('popupsButton');
+        el.classList.add('active');
+        this.mapFunction = mapFunctions.Popups;
+        this.toggleFeatureLayerPopups();
+      }
+
+      this.updateSketchGraphic = null;
     }
 
     // set active button
@@ -442,7 +483,7 @@ export class MapService {
         this.mapFunction = mapFunctions.MeasureLine;
         this.setActiveButton(event);
         // set the sketch to create a polyline geometry
-        this.sketchViewModel.create('polyline', { mode: 'click' });
+        this.sketchViewModel.create('polyline', undefined);
         this.toggleFeatureLayerPopups();
     }
 
