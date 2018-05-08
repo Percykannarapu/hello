@@ -13,7 +13,7 @@ import { ImpIface03ZipLevelCount } from '../models/ImpIface03ZipLevelCount';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 const dataUrl = 'v1/targeting/base/impiface03ziplevelcount/search?q=impIface03ZipLevelCount';
 

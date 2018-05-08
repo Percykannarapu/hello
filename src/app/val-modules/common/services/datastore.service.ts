@@ -1,18 +1,12 @@
 import { TransactionManager } from './TransactionManager.service';
 import { DAOBaseStatus } from './../../api/models/BaseModel';
-import { ImpGeofootprintGeo } from './../../targeting/models/ImpGeofootprintGeo';
-import { RestResponse } from './../../../models/RestResponse';
 import { RestDataService } from './../../common/services/restdata.service';
-import { HttpClient} from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
-import { of } from 'rxjs/observable/of';
-import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
 import * as $ from 'jquery';
+import { groupBy } from '../common.utils';
 
 // ---------------------------------------------
 // Callback method signatures
@@ -130,6 +124,16 @@ export class DataStore<T>
     public getNextStoreId(): number
     {
        return this.currStoreId++
+    }
+
+    /**
+     * Groups the data store data by the contents of a field identified by its name
+     * @param {K} fieldName: The name of the field to extract grouping info from
+     * @returns {Map<keyof T, T[]>}
+     */
+    public groupBy<K extends keyof T>(fieldName: K) : Map<keyof T, T[]>
+    {
+      return groupBy(this._dataStore, fieldName);
     }
 
     public denseRank(a, f, p)

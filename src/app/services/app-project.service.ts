@@ -28,16 +28,11 @@ import { RestResponse } from '../models/RestResponse';
 
 import { ClientIdentifierType } from '../val-modules/mediaexpress/models/ClientIdentifierType';
 import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLocationType';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { concat } from 'rxjs/observable/concat';
-import { empty } from 'rxjs/observable/empty';
-import { finalize, catchError, tap, mergeMap, concatMap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable, EMPTY } from 'rxjs';
+import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
-import { MockNgModuleResolver } from '@angular/compiler/testing';
 
-let restUrl = 'v1/targeting/base/impproject/'; 
+let restUrl = 'v1/targeting/base/impproject/';
 let dataUrl = restUrl + 'load';
 
 @Injectable()
@@ -111,7 +106,7 @@ export class AppProjectService extends DataStore<ImpProject>
       console.log('impProjectPrefs:           ', this.impProjectPrefService.storeLength);
       console.log('impDiscoverys:             ', this.impDiscoveryService.storeLength);
    }
-   
+
    reloadProject(project: ImpProject, clearStore: boolean, silent: boolean = false) : Observable<ImpProject[]>
    {
       console.log('AppProject.service.reloadProject fired - ', project);
@@ -148,7 +143,7 @@ export class AppProjectService extends DataStore<ImpProject>
       // this.impGeofootprintLocationService.clearAll(false);
       // this.impGeofootprintMasterService.clearAll(false);
       //this.clearProject(false, InTransaction.false);
-      
+
       let project: ImpProject = this.get()[0];
 
       if (project != null && project.impGeofootprintMasters != null)
@@ -157,14 +152,14 @@ export class AppProjectService extends DataStore<ImpProject>
          project.impGeofootprintMasters = null;
       }
 
-      // TODO: should reload be in transaction?      
+      // TODO: should reload be in transaction?
       this.get(true, true, InTransaction.false).subscribe(res => {
          this.clearProject(false, InTransaction.true);
          this.populateDataStores(res);
          if (!silent)
             this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully.');
 
-         // Debug print the data stores 
+         // Debug print the data stores
          // this.impGeofootprintVarService.debugLogStore('LOADED VARS');
          // this.impGeofootprintGeoService.debugLogStore('LOADED GEOS');
          // this.impGeofootprintTradeAreaService.debugLogStore('LOADED TRADE AREAS');
@@ -193,7 +188,7 @@ export class AppProjectService extends DataStore<ImpProject>
          this.impGeofootprintLocAttribService.clearAll(false);
          this.impGeofootprintLocationService.clearAll(false);
          this.impGeofootprintMasterService.clearAll(false);
-         
+
          // Alert the user to the failed load
          if (!silent)
          {
@@ -221,7 +216,7 @@ export class AppProjectService extends DataStore<ImpProject>
 
    /**
     * Performed after a load to rehydrate the decentralized data stores
-    * 
+    *
     * @param projects Projects to rehydrate the data stores with
     */
    populateDataStores(projects: ImpProject[]) //: ImpProject[]
@@ -240,7 +235,7 @@ export class AppProjectService extends DataStore<ImpProject>
          impDiscovery[0].selectedSeason = (projects[0].impGeofootprintMasters != null) ? ((projects[0].impGeofootprintMasters[0].methSeason == 'W') ? 'WINTER' : 'SUMMER') : null;
          console.log('Created discovery: ', impDiscovery);
          this.impDiscoveryService.replace(impDiscovery);
-         
+
          // Populate the locations data store
          this.impGeofootprintLocationService.add(projects[0].impGeofootprintMasters[0].impGeofootprintLocations);
 
@@ -291,7 +286,7 @@ export class AppProjectService extends DataStore<ImpProject>
 
                      // Populate the geos data store
                      this.impGeofootprintGeoService.add(tradeArea.impGeofootprintGeos);
-                  
+
                      // Set reverse hierarchy (Remove after refactor)
                      if (tradeArea.impGeofootprintVars != null)
                         tradeArea.impGeofootprintVars.forEach(geoVar =>
@@ -317,7 +312,7 @@ export class AppProjectService extends DataStore<ImpProject>
    {
       console.log('AppProject.service.saveProject fired');
       const saveObservable = new Observable<ImpProject[]>((subject) =>
-      {         
+      {
          if (impProject == null)
          {
             console.log ('AppProject.saveProject cannot save a null project');
@@ -327,7 +322,7 @@ export class AppProjectService extends DataStore<ImpProject>
          this.appMessagingService.startSpinnerDialog('PROJECTSAVE', 'Saving project');
 
    //      const saveObservable = new Observable<ImpProject[]>((observer) =>
-         {         
+         {
             this.projectTransactionManager.startTransaction();
             try
             {
@@ -375,9 +370,9 @@ export class AppProjectService extends DataStore<ImpProject>
                console.log('ImpProject.service.saveProject - Deduping location attributes');
                // Dedupe the location attributes
                this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
-               
+
       //         this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
-               
+
       //          for (let locationAttrib of impGeofootprintLocAttribs)
       //          {
       //             // filter out loc attributes that are null
@@ -391,7 +386,7 @@ export class AppProjectService extends DataStore<ImpProject>
                else
                   if (impProject.impGeofootprintMasters == null)
                      console.error ('impProject.impGeofootprintMasters is null');
-               
+
                // Loop through locations, setting missing mandatory fields and setting baseStatus
                for (let impLocation of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
                {
@@ -450,9 +445,9 @@ export class AppProjectService extends DataStore<ImpProject>
                         // Remove the circular references and stub mandatory fields
                         impLocation.impGeofootprintTradeAreas.forEach(tradeArea =>
                         {
-                           delete tradeArea["impGeofootprintLocation"];  
-                           delete tradeArea["impGeofootprintMaster"];  
-                           delete tradeArea["impProject"];                                       
+                           delete tradeArea["impGeofootprintLocation"];
+                           delete tradeArea["impGeofootprintMaster"];
+                           delete tradeArea["impProject"];
                            tradeArea.dirty = true;
 
                            // Remove stubbed gtaIds
@@ -472,15 +467,15 @@ export class AppProjectService extends DataStore<ImpProject>
                               delete geo["impGeofootprintMaster"];
                               delete geo["impGeofootprintTradeArea"];
                               delete geo["impProject"];
-                                                   
+
                               geo.dirty = true;
-         
+
                               // Remove stubbed ggIds
                               if (geo.ggId < 1000)
                                  geo.ggId = null;
-         
+
                               geo.baseStatus = (geo.ggId == null) ? DAOBaseStatus.INSERT : (geo.baseStatus === DAOBaseStatus.DELETE) ? DAOBaseStatus.DELETE : DAOBaseStatus.UPDATE;
-                              geo.isActive   = true;                        
+                              geo.isActive   = true;
                            });
 
                            // // Map in vars
@@ -501,7 +496,7 @@ export class AppProjectService extends DataStore<ImpProject>
                            //       geoVar.gvId = null;
 
                            //    geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
-                           //    geoVar.isActive   = 1;                        
+                           //    geoVar.isActive   = 1;
                            // });
                         });
                      }
@@ -512,7 +507,7 @@ export class AppProjectService extends DataStore<ImpProject>
                   {
                      console.log('ERROR: ', err);
                   }
-                  
+
                   impLocation.baseStatus = (impLocation.glId == null) ? DAOBaseStatus.INSERT : (impLocation.baseStatus === DAOBaseStatus.DELETE) ? DAOBaseStatus.DELETE : DAOBaseStatus.UPDATE;
                   console.log('location: ', impLocation.locationNumber, ' set baseStatus to: ', impLocation.baseStatus);
          //       location.isActive = true;
@@ -597,7 +592,7 @@ export class AppProjectService extends DataStore<ImpProject>
          //             //   ,impClientLocationType: impClientLocationType
          //             // });
 
-         //             //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })      
+         //             //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
          //             //      .map(res => this.parseRegistrationResponse(res))
          //             //      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
          //             this._createClientLocation(location.locationNumber, clientIdentifierType, impClientLocationType).subscribe(res =>
@@ -612,7 +607,7 @@ export class AppProjectService extends DataStore<ImpProject>
          //                }
          //                ,err => {
          //                   console.warn('Error clientLocation ', clientLocation);
-         //                });                     
+         //                });
          //             }
          //             ,err => {
          //                console.warn('Error clientLocation ', clientLocation);
@@ -652,13 +647,13 @@ export class AppProjectService extends DataStore<ImpProject>
                                  console.log('success response');
                               }
                               else
-                              {                              
+                              {
                                  impProject.projectId = null;
                                  console.log('failure response');
                               }
                               subject.next([impProject]);
                            }))
-                           .subscribe(result => {                  
+                           .subscribe(result => {
                                        subject.complete();
                                     }
                            ,err => {
@@ -676,12 +671,12 @@ export class AppProjectService extends DataStore<ImpProject>
                this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
                console.error('ImpProject.service.saveProject - Error saving project: ', error);
                this.transactionManager.stopTransaction();
-               subject.error(error); // Error in subsequent catch               
+               subject.error(error); // Error in subsequent catch
             }
          }//);
          //return null;
       });
-      
+
 //      const loadObservable = this.reloadProject(impProject, true, true);
 
       let success: boolean = true;
@@ -691,13 +686,13 @@ export class AppProjectService extends DataStore<ImpProject>
             return this.reloadProject(result[0], true, true);
          }),
          tap(next => console.log('tap next', next),
-             error => console.log('tap error ', error), 
+             error => console.log('tap error ', error),
              ()=>{ console.log('tap complete')}),
          catchError((err) => {
             console.warn('Error loading project', err);
-            this.appMessagingService.showGrowlError('Project Save', 'Project failed to reload after save.');            
+            this.appMessagingService.showGrowlError('Project Save', 'Project failed to reload after save.');
             success = false; // Let the finalize know that the process failed
-            return empty();  // is same as subject.complete() this way because don't have access to a subject
+            return EMPTY;  // is same as subject.complete() this way because don't have access to a subject
          }),
          finalize<ImpProject[]>(() => {
             console.log('ImpProjectService.saveProject - Reload from AppProject finished');
@@ -709,7 +704,8 @@ export class AppProjectService extends DataStore<ImpProject>
                this.appMessagingService.showGrowlSuccess('Project Save', 'Project ' + impProject.projectId + ' saved successfully.');
                console.log('Project ' + impProject.projectId + ' saved successfully.  Should have seen a growl');
             }
-         })   
+         })
       );
    }
 }
+

@@ -1,9 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CategoryVariable, TopVarService } from '../../../services/top-var.service';
-import { Observable } from 'rxjs/Observable';
 import { filter, map } from 'rxjs/operators';
-import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/observable/fromEvent';
 import { SmartMappingTheme } from '../../../models/LayerState';
 import { SelectItem } from 'primeng/primeng';
 import { AppRendererService } from '../../../services/app-renderer.service';

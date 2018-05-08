@@ -18,7 +18,7 @@ export class EsriWidgets {
   public Expand: typeof __esri.Expand;
   public ColorSlider: typeof __esri.ColorSlider;
   public Home: typeof __esri.Home;
-  public Search: typeof __esri.Search;
+  public Search: typeof __esri.widgetsSearch;
   public Legend: typeof __esri.Legend;
   public ScaleBar: typeof __esri.ScaleBar;
   public Locate: typeof __esri.Locate;

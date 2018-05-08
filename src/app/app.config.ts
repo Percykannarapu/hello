@@ -17,7 +17,7 @@ export class AppConfig implements EsriLoaderConfig {
   public authenticated: boolean = EnvironmentData.authenticated;
 
   public esriConfig: EsriConfigOptions = {
-    url: 'https://js.arcgis.com/4.5/',
+    url: 'https://js.arcgis.com/4.7/',
     portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
     dojoConfig: {
       has: {

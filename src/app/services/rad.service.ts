@@ -1,14 +1,12 @@
-import { Injectable, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { RadData, RADCategory, RadProducts } from '../models/RadData';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { RadData } from '../models/RadData';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { AppConfig } from '../app.config';
-import { MetricService, MetricOperations, MetricMessage } from '../val-modules/common/services/metric.service';
+import { MetricService, MetricMessage } from '../val-modules/common/services/metric.service';
 import { RestResponse } from '../models/RestResponse';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';

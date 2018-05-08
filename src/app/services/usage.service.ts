@@ -1,18 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { ImpMetricType } from '../val-modules/metrics/models/ImpMetricType';
 import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
 import { RestResponse } from '../models/RestResponse';
 import { UserService } from './user.service';
 import { DataStore } from '../val-modules/common/services/datastore.service';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
+import { Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { map, mergeMap } from 'rxjs/operators';
 
 
 @Injectable()
@@ -57,10 +55,10 @@ export class UsageService {
 
     const impMetricName = this.impMetricNameService.get().filter(item => item.namespace === metricName.namespace && item.section === metricName.section && item.target === metricName.target && item.action === metricName.action);
     if (impMetricName.length === 0) {
-      this.createMetricName(metricName, 'COUNTER')
-        .map(res => res.payload)
-        .mergeMap(res => this._createCounterMetric(Number(res), metricText, metricValue))
-        .subscribe(res => {
+      this.createMetricName(metricName, 'COUNTER').pipe(
+        map(res => res.payload),
+        mergeMap(res => this._createCounterMetric(Number(res), metricText, metricValue))
+      ).subscribe(res => {
           // do nothing with the response for now
         }, err => {
           console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
@@ -109,9 +107,9 @@ export class UsageService {
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     const impProject: ImpProject = this.impProjectService.get()[0];
     const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
-   
+
     // Create the new counter to be persisted
-    const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();  
+    const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();
     impMetricCounter['dirty'] = true;
     impMetricCounter['baseStatus'] = 'INSERT';
     impMetricCounter.metricId = metricName;

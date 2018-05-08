@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ValGeoService } from './app-geo.service';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
+import { Subscription, Observable, Subject } from 'rxjs';
 import { calculateStatistics, Statistics } from '../app.utils';
 import { SmartMappingTheme } from '../models/LayerState';
 import { TopVarService } from './top-var.service';
-import { filter, map } from 'rxjs/operators';
-import { Subject } from 'rxjs/Subject';
+import { map } from 'rxjs/operators';
 
 export interface OutlineSetup {
   defaultWidth: number;
@@ -54,7 +52,7 @@ export class AppRendererService {
 
   constructor(private geoService: ValGeoService, private dataService: TopVarService) {
     this.geoSubscription = this.geoService.uniqueSelectedGeocodes$.subscribe(geos => {
-      this.currentSelectedGeos.clear();      
+      this.currentSelectedGeos.clear();
       console.log('app-renderer.service.ctor - # geos', geos.length);
 //    geos.forEach(geo => console.log('  ', geo.toString()));  // Debug print geos
       geos.forEach(geo => this.currentSelectedGeos.add(geo));

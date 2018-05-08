@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DemographicVariable, TopVarService } from '../../../services/top-var.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { SmartMappingTheme } from '../../../models/LayerState';
 import { ValLayerService } from '../../../services/app-layer.service';
 import { SelectItem } from 'primeng/primeng';

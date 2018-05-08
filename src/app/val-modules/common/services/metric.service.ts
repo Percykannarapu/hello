@@ -1,10 +1,5 @@
-import { AccordionModule } from 'primeng/primeng';
 import {Injectable} from '@angular/core';
-import {Message} from '../models/Message';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Observable} from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
-import {of} from 'rxjs/observable/of';
-import {Subject} from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';    // See: https://github.com/ReactiveX/rxjs
 
 export enum MetricOperations {
    ADD,

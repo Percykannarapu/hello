@@ -1,7 +1,7 @@
 import { DataStore } from '../../common/services/datastore.service';
 import { RestDataService } from './../../common/services/restdata.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
@@ -29,7 +29,7 @@ export class ImpRadLookupService extends DataStore<ImpRadLookup>
    // a) Inheritence
    //    Easy, hides code
    //    Makes it hard to overload the methods
-   //    While you get all of the store methods for free, you would have to 
+   //    While you get all of the store methods for free, you would have to
    //    create a new method to add application validation, and there is nothing stopping a developer
    //    Actually probably would need some sort of delegation to accomplish validation
    //    from bypassing that.

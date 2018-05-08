@@ -2,17 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { User } from '../models/User';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { DataStoreServiceConfiguration, DataStore } from '../val-modules/common/services/datastore.service';
-
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
 
 interface RegistrationResponse {
   clientId: string;
@@ -86,8 +82,8 @@ export class AuthService implements CanActivate {
         this.collectLoginEvent();
         const now: Date = new Date(Date.now());
         const te: Date = new Date(this.tokenExpiration);
-        
-        //if the token is expired try to refresh it 
+
+        //if the token is expired try to refresh it
         if (te <= now) {
           return this.refreshToken(true);
         }
@@ -216,7 +212,7 @@ export class AuthService implements CanActivate {
       config.tokenExpiration = this.tokenExpiration;
       DataStore.bootstrap(config);
       config.tokenRefreshFunction = () => this.refreshToken();
-      
+
 
       return true;
     }
@@ -285,7 +281,7 @@ export class AuthService implements CanActivate {
         this.parseTokenResponse(refreshResponse);
         this.refreshSubject.next(true);
         this.saveOAuthData(this.userService.getUser().username);
-        
+
         //populate the data store with the new token
         const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
         config.oauthToken = this.oauthToken;

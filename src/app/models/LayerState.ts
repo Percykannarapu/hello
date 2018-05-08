@@ -1,6 +1,5 @@
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { DemographicVariable } from '../services/top-var.service';
 
 export enum SmartMappingTheme {

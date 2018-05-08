@@ -1,10 +1,8 @@
 import { ElementRef, Inject, Injectable } from '@angular/core';
 import { EsriModules } from './esri-modules.service';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { publish, refCount } from 'rxjs/operators';
 import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
-import { EsriUtils } from './esri-utils.service';
 
 @Injectable()
 export class EsriMapService {
@@ -33,7 +31,7 @@ export class EsriMapService {
     // create the MapView
     console.log('Creating map view with props:: ', newMapViewProps);
     this.mapView = new EsriModules.MapView(newMapViewProps);
-    this.mapView.then(() => {
+    this.mapView.when(() => {
       this.isReady.next(true);
     });
   }

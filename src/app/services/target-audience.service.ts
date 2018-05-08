@@ -2,13 +2,10 @@
 import { Injectable } from '@angular/core';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { MetricService, MetricOperations, MetricMessage } from '../val-modules/common/services/metric.service';
+import { MetricService } from '../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { Observable } from 'rxjs/Observable';
-import { combineLatest } from 'rxjs/observable/combineLatest';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/delay';
+import { Observable, combineLatest } from 'rxjs';
 
 @Injectable()
 export class TargetAudienceService {
@@ -75,7 +72,7 @@ export class TargetAudienceService {
       if (geo.hhc == null) {
         continue;
       }
-      hhc += geo.hhc; 
+      hhc += geo.hhc;
     }
     for (const geoAttribute of geoAttributes) {
       if (geoAttribute.attributeCode === attributeCode) {

@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription, BehaviorSubject, Observable } from 'rxjs';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -9,8 +9,6 @@ import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/servic
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValTradeAreaService } from './app-trade-area.service';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
@@ -85,7 +83,7 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
-    console.log('Geo Service onGeoChange. Creating unique list of geocodes from ', (geos != null) ? geos.length : 0, ' geos');   
+    console.log('Geo Service onGeoChange. Creating unique list of geocodes from ', (geos != null) ? geos.length : 0, ' geos');
     const uniqueGeos: Set<string> = new Set();
     const length = geos.length;
     for (let i = 0; i < length; ++i) {

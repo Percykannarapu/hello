@@ -1,16 +1,7 @@
-import { RestResponse } from './../../../models/RestResponse';
 import { RestDataService } from './../../common/services/restdata.service';
-import { HttpClient, HttpHeaders, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';    // See: https://github.com/ReactiveX/rxjs
-import { of } from 'rxjs/observable/of';
-import { Subject } from 'rxjs/Subject';
-import { Response } from '@angular/http/src/static_response';
-
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/throw';
-
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
@@ -32,7 +23,7 @@ export class ImpRadLookupStore
 
    public storeObservable: Observable<ImpRadLookup[]> = this._storeSubject.asObservable();
 
-   constructor(public http: HttpClient, private rest: RestDataService) { }  
+   constructor(public http: HttpClient, private rest: RestDataService) { }
 
    private fetch()
    {
@@ -51,14 +42,14 @@ export class ImpRadLookupStore
          console.log('fetched ' + this._storeSubject.getValue().length + ' rows.');
          this.debugLogStore();
       },
-      (error: any) => { 
+      (error: any) => {
          console.log ('ImpRadLookupStore.fetch - ERROR:', error);
-         // TODO: Should we re-raise or throw some other event? 
+         // TODO: Should we re-raise or throw some other event?
          return Observable.throw(error);
       });
    }
 
-   // 
+   //
    public get(forceRefresh?: boolean, preOperation?: callbackType, postOperation?: callbackMutationType)
    {
       if (preOperation)
@@ -116,7 +107,7 @@ export class ImpRadLookupStore
       // If postOperation has determined that the add as a whole was a success and we have used a preOperation
       if (success && preOperation)
          this._dataStore = localCache;
-         
+
       // Register data store change and notify observers
       if (success)
          this._storeSubject.next(this._dataStore);
@@ -128,8 +119,8 @@ export class ImpRadLookupStore
 
       if (this._dataStore.length === 0)
          return;
-      
-      // Remove the element from the array at the index      
+
+      // Remove the element from the array at the index
       if (this._dataStore.length > 1)
       {
          if (index >= 0)
@@ -138,7 +129,7 @@ export class ImpRadLookupStore
          else
             this._dataStore = [...this._dataStore.slice(0, this._dataStore.length + index),
                                ...this._dataStore.slice(this._dataStore.length + index + 1)];
-      }   
+      }
       else
          this._dataStore = this._dataStore.slice(0, 0);
 
@@ -152,7 +143,7 @@ export class ImpRadLookupStore
       const index = this._dataStore.indexOf(impRadLookup);
       this.removeAt(index);
    }
-    
+
    public update (oldImpRadLookup: ImpRadLookup, newImpRadLookup: ImpRadLookup)
    {
       const index = this._dataStore.indexOf(oldImpRadLookup);
@@ -163,7 +154,7 @@ export class ImpRadLookupStore
       // Register data store change and notify observers
       this._storeSubject.next([newImpRadLookup]);
    }
-   
+
    public jsonp(url: string, callbackParam: string)
    {
       this.rest.jsonp(url, callbackParam);
@@ -180,6 +171,6 @@ export class ImpRadLookupStore
             console.log(impRadLookup);
       else
          for (let i = 0; i < this._storeSubject.getValue().length; i++)
-            console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]); 
+            console.log('Store[' + i + '] = ', this._storeSubject.getValue()[i]);
    }
 }

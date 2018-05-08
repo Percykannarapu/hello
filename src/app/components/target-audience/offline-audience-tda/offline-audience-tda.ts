@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
 import { CategoryVariable, DemographicCategory, TopVarService } from '../../../services/top-var.service';
 import { map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'val-offline-audience-tda',

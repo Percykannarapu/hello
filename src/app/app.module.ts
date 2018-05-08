@@ -8,7 +8,6 @@ import {LocationStrategy, HashLocationStrategy, CommonModule } from '@angular/co
 import {AppConfig} from './app.config';
 import {AppRoutes} from './app.routes';
 import {AppState} from './app.state';
-import 'rxjs/add/operator/toPromise';
 import {AccordionModule} from 'primeng/primeng';
 import {AutoCompleteModule} from 'primeng/primeng';
 import {BreadcrumbModule} from 'primeng/primeng';
@@ -96,11 +95,9 @@ import {BusinessSearchComponent} from './components/business-search/business-sea
 import {EsriLayerSelectComponent} from './components/esri-layer-select/esri-layer-select.component';
 import {EsriMapToolsComponent} from './components/esri-map-tools/esri-map-tools.component';
 import {MapService} from './services/map.service';
-import {GeoprocessingComponent} from './components/geoprocessing/geoprocessing.component';
 import {ColorBoxComponent} from './components/color-box/color-box.component';
 import {MessageComponent} from './val-modules/common/components/message.component';
 import {AppService} from './services/app.service';
-import {RaddataComponent} from './components/raddata/raddata.component';
 import {TradeAreaDefineComponent} from './components/tradearea-define/trade-area-define.component';
 import {DiscoveryInputComponent} from './components/discovery-input/discovery-input.component';
 import {UploadLocationsComponent} from './components/upload-locations/upload-locations.component';
@@ -247,10 +244,8 @@ import { CustomAudienceComponent } from './components/target-audience/custom-aud
         BusinessSearchComponent,
         EsriLayerSelectComponent,
         EsriMapToolsComponent,
-        GeoprocessingComponent,
         ColorBoxComponent,
         SiteListComponent,
-        RaddataComponent,
         TradeAreaDefineComponent,
         DiscoveryInputComponent,
         UploadLocationsComponent,

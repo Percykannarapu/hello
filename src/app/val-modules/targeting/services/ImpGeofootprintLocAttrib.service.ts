@@ -13,7 +13,7 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocattrib/search?q=impGeofootprintLocAttrib';
 
@@ -59,7 +59,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
       }
 
       // Partition within location, attributeCode
-      return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null) 
+      return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null)
              ? null : (p1.impGeofootprintLocation.locationNumber != p2.impGeofootprintLocation.locationNumber
                     || p1.attributeCode != p2.attributeCode);
    }

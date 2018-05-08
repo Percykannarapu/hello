@@ -1,13 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
 import { filter, finalize, map, switchMap } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeoService } from './app-geo.service';
-import { Subscription } from 'rxjs/Subscription';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
-import { combineLatest } from 'rxjs/observable/combineLatest';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { AppMessagingService } from './app-messaging.service';
@@ -15,8 +12,6 @@ import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { MapDispatchService } from './map-dispatch.service';
-import 'rxjs/add/observable/of';
-import { merge } from 'rxjs/observable/merge';
 
 export interface DemographicCategory {
   '@ref': number;
@@ -416,14 +411,11 @@ export class TopVarService implements OnDestroy {
       requestGeos.push(...Array.from(this.previousGeocodes));
       requestPks.push(...addedVars.map(v => v.pk));
     }
-    const sub = this.getGeoData(analysisLevel, requestGeos, requestPks).pipe(
+    this.getGeoData(analysisLevel, requestGeos, requestPks).pipe(
       map(response => response.payload)
     ).subscribe(
       resData => this.persistOfflineAudience(resData),
-      err => this.handleFuseError(err),
-      () => {
-        if (sub != null) sub.unsubscribe();
-      });
+      err => this.handleFuseError(err));
   }
 
   private persistOfflineAudience(geoDataMap: GeoVariableData[]) {

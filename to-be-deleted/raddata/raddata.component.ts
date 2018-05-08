@@ -153,7 +153,7 @@ export class RaddataComponent {
         };
         const geoprocessor: __esri.Geoprocessor = new Geoprocessor();
         geoprocessor.url = this.config.radDataService;
-        await geoprocessor.submitJob(params, null).then(async response => {
+        await geoprocessor.submitJob(params, null).then(response => {
             await geoprocessor.getResultData((<GpResponse>response).jobId, 'Predicted_Response', null).then(result => {
                 let pv = result as __esri.ParameterValue;
                 predictedResponse = pv.value;

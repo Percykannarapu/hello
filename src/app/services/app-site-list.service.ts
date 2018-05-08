@@ -1,4 +1,3 @@
-import { ImpClientLocationService } from './../val-modules/client/services/ImpClientLocation.service';
 import { Injectable, OnDestroy } from '@angular/core';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -7,20 +6,17 @@ import { valGeocodingAttributeKey, ValGeocodingResponse } from '../models/val-ge
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ValGeocodingService } from './app-geocoding.service';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
+import { Subscription, Observable, BehaviorSubject, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { LocationUiModel } from '../models/location-ui.model';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
-import { merge } from 'rxjs/observable/merge';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 
@@ -139,10 +135,10 @@ export class ValSiteListService implements OnDestroy {
     const locationSet = new Set(locations);
     const attributes = this.attributeService.get().filter(a => locationSet.has(a.impGeofootprintLocation));
     const observables: Observable<ImpGeofootprintLocAttrib[]>[] = [];
-    for (const analysisLevel of this.homeGeos) {       
+    for (const analysisLevel of this.homeGeos) {
       const homeGeoKey = `Home ${analysisLevel}`;
       const locationsWithHomeGeos = new Set(attributes.filter(a => a.attributeCode === homeGeoKey && a.attributeValue != null).map(a => a.impGeofootprintLocation));
-      const locationsNeedingHomeGeo = locations.filter(l => !locationsWithHomeGeos.has(l));      
+      const locationsNeedingHomeGeo = locations.filter(l => !locationsWithHomeGeos.has(l));
       if (locationsNeedingHomeGeo.length === 0) continue;
       console.log(`Recalculating "${homeGeoKey}" for ${locationsNeedingHomeGeo.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);

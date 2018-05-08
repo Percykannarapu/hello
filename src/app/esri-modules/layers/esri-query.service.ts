@@ -1,12 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable, merge, EMPTY } from 'rxjs';
 import { EsriModules } from '../core/esri-modules.service';
 import { expand, filter, map, retryWhen, scan, take } from 'rxjs/operators';
 import * as utils from '../../app.utils';
-import { merge } from 'rxjs/observable/merge';
 import { EsriUtils } from '../core/esri-utils.service';
-import { empty } from 'rxjs/observable/empty';
 import { EsriMapService } from '../core/esri-map.service';
 import { EsriConfigOptions, EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
@@ -156,7 +154,7 @@ export class EsriQueryService {
         if (next) {
           return this.queryWithRetry(layerId, next);
         } else {
-          return empty();
+          return EMPTY;
         }
       }),
       map(({ result }) => result)

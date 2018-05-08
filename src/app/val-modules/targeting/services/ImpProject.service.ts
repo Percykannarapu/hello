@@ -35,18 +35,12 @@ import { ImpProject } from '../models/ImpProject';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { Observable } from 'rxjs';
 import { UserService } from '../../../services/user.service';
-import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { RestResponse } from '../../../models/RestResponse';
+import { HttpClient } from '@angular/common/http';
 
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/observable/forkJoin';
-import { MockNgModuleResolver } from '@angular/compiler/testing';
 
-let restUrl = 'v1/targeting/base/impproject/'; 
+let restUrl = 'v1/targeting/base/impproject/';
 let dataUrl = restUrl + 'load';
 // let dataUrl = restUrl + 'search?q=impProject';
 
@@ -89,7 +83,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       //this.replace(this.appProjectService.get());
       });
    }
-/*      
+/*
    loadProject(projectId: number, clearStore: boolean = false)
    {
       // Prevent a load of a null projectId
@@ -111,7 +105,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.impGeofootprintLocAttribService.clearAll(false);
       this.impGeofootprintLocationService.clearAll(false);
       this.impGeofootprintMasterService.clearAll(false);
-      
+
       let project: ImpProject = this.get()[0];
 
       if (project != null && project.impGeofootprintMasters != null)
@@ -133,7 +127,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          this.impGeofootprintLocationService.debugLogStore('LOADED LOCATIONS');
          this.impGeofootprintMasterService.debugLogStore('LOADED MASTERS');
 
-         this.projectTransactionManager.stopTransaction();         
+         this.projectTransactionManager.stopTransaction();
       },
       err =>
       {
@@ -144,7 +138,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          this.impGeofootprintLocAttribService.clearAll(false);
          this.impGeofootprintLocationService.clearAll(false);
          this.impGeofootprintMasterService.clearAll(false);
-         
+
          // Alert the user to the failed load
          this.appMessagingService.showGrowlError('Project Load', 'Project failed to load.');
          this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
@@ -161,10 +155,10 @@ export class ImpProjectService extends DataStore<ImpProject>
       console.log('########  ImpProject.service.onBeforeLoadProjectFired', projects);
       return true;
    }
-*/   
+*/
    /**
     * Performed after a load to rehydrate the decentralized data stores
-    * 
+    *
     * @param projects Projects to rehydrate the data stores with
     */
 /*
@@ -226,7 +220,7 @@ export class ImpProjectService extends DataStore<ImpProject>
 
                      // Populate the geos data store
                      this.impGeofootprintGeoService.add(tradeArea.impGeofootprintGeos);
-                  
+
                      // Set reverse hierarchy (Remove after refactor)
                      if (tradeArea.impGeofootprintVars != null)
                         tradeArea.impGeofootprintVars.forEach(geoVar =>
@@ -280,7 +274,7 @@ export class ImpProjectService extends DataStore<ImpProject>
 //   private _createLocation(impGeofootprintLocation: ImpGeofootprintLocation) : Observable<RestResponse> {
 //      return this.restDataService.post('v1/targeting/base/impGeofootprintlocation/save', JSON.stringify(impGeofootprintLocation));
 //   }
-   
+
    private _createProject(impProject: ImpProject) : Observable<RestResponse> {
       return this.restDataService.post('v1/targeting/base/impproject/save', JSON.stringify(impProject));
 //    this.http.post<RestResponse>('https://servicesdev.valassislab.com/services/v1/targeting/base/impproject/save'
@@ -303,14 +297,14 @@ saveProject()
          this.appProjectService.debugLogStoreCounts();
       }
       else
-         console.log('project did not save');   
+         console.log('project did not save');
    });
 }
 /*
    saveProject()
    {
       console.log('ImpProject.service.saveProject fired');
-      
+
       this.projectTransactionManager.startTransaction();
       try
       {
@@ -350,7 +344,7 @@ saveProject()
 console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofootprintGeos.toString());
          // Dedupe the location attributes
          this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
-         
+
 //         this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
 //          for (let locationAttrib of impGeofootprintLocAttribs)
 //          {
@@ -365,7 +359,7 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
          else
             if (impProject.impGeofootprintMasters == null)
                console.error ('impProject.impGeofootprintMasters is null');
-         
+
          // Loop through locations, setting missing mandatory fields and setting baseStatus
          for (let impLocation of impProject.impGeofootprintMasters[0].impGeofootprintLocations)
          {
@@ -411,9 +405,9 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
                   // Remove the circular references and stub mandatory fields
                   impLocation.impGeofootprintTradeAreas.forEach(tradeArea =>
                   {
-                     delete tradeArea["impGeofootprintLocation"];  
-                     delete tradeArea["impGeofootprintMaster"];  
-                     delete tradeArea["impProject"];                                       
+                     delete tradeArea["impGeofootprintLocation"];
+                     delete tradeArea["impGeofootprintMaster"];
+                     delete tradeArea["impProject"];
                      tradeArea.dirty = true;
 
                      // Remove stubbed gtaIds
@@ -433,15 +427,15 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
                         delete geo["impGeofootprintMaster"];
                         delete geo["impGeofootprintTradeArea"];
                         delete geo["impProject"];
-                                             
+
                         geo.dirty = true;
-   
+
                         // Remove stubbed ggIds
                         if (geo.ggId < 1000)
                            geo.ggId = null;
-   
+
                         geo.baseStatus = (geo.ggId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
-                        geo.isActive   = 1;                        
+                        geo.isActive   = 1;
                      });
 
                      // Map in vars
@@ -462,7 +456,7 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
                      //       geoVar.gvId = null;
 
                      //    geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
-                     //    geoVar.isActive   = 1;                        
+                     //    geoVar.isActive   = 1;
                      // });
                   });
                }
@@ -558,7 +552,7 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
    //             //   ,impClientLocationType: impClientLocationType
    //             // });
 
-   //             //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })      
+   //             //     return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
    //             //      .map(res => this.parseRegistrationResponse(res))
    //             //      .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));
    //             this._createClientLocation(location.locationNumber, clientIdentifierType, impClientLocationType).subscribe(res =>
@@ -573,7 +567,7 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
    //                }
    //                ,err => {
    //                   console.warn('Error clientLocation ', clientLocation);
-   //                });                     
+   //                });
    //             }
    //             ,err => {
    //                console.warn('Error clientLocation ', clientLocation);
@@ -586,7 +580,7 @@ console.log('ImpProject.service.saveProject - impGeofootprintGeos: ', impGeofoot
    //          }
    //       }
    //       console.log('ImpProject.service - pushing new geofootprint');
-   // 
+   //
 
          // .map(res => {
          //    this.clientId = registrationResponse.clientId;

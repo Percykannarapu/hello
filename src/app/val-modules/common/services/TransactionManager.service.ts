@@ -1,5 +1,4 @@
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 /**
  * TransactionItems are the combination of data needed to
@@ -11,7 +10,7 @@ class TransactionItem<T>
    subject: BehaviorSubject<T> | Subject<T>;
    data: T;
 
-   constructor(subject: BehaviorSubject<T> | Subject<T>, data: T) 
+   constructor(subject: BehaviorSubject<T> | Subject<T>, data: T)
    {
       this.subject = subject;
       this.data = data;
@@ -85,11 +84,11 @@ export class TransactionManager
 
    /**
     * Allows data stores to push notifications into the queue
-    * 
+    *
     * @param subject The Subject or BehaviorSubject
     * @param subjectData  The data the subject would notify with
     */
-   public push(subject: any, subjectData: any) 
+   public push(subject: any, subjectData: any)
    {
       this.notifyQueue.push(new TransactionItem(subject, subjectData));
 //    console.log ('TransactionManager.service.push - pushed subject: ', subject, ', data: ', subjectData);

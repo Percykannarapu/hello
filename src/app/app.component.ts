@@ -3,7 +3,7 @@ import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
 import {Message} from 'primeng/primeng';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
 
 enum MenuOrientation {

@@ -9,7 +9,7 @@ import { AppProjectService } from './app-project.service';
 import { RestDataService } from '../../../src/app/val-modules/common/services/restdata.service';
 import { DataStore } from '../../../src/app/val-modules/common/services/datastore.service';
 import { Injectable, OnInit } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectService } from './../val-modules/targeting/services/ImpProject.service';
@@ -24,7 +24,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 //              private appProjectService: AppProjectService
             ) {
       super(restDataService, dataUrl, null, 'ImpDiscovery');
-//      impProjectService.storeObservable.subscribe(discoveryData => this.onChangeProject()); 
+//      impProjectService.storeObservable.subscribe(discoveryData => this.onChangeProject());
    }
 
    public onInit()
@@ -32,13 +32,13 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
       console.log('ImpDiscoveryService - onInit - fired');
 
       let defaultDiscovery: ImpDiscoveryUI = new ImpDiscoveryUI(ImpDiscoveryUI.defaults);
-      this.add([defaultDiscovery]);      
+      this.add([defaultDiscovery]);
    }
 
    private onChangeProject()
    {
       console.log('ImpDiscoveryService.onChangeProject - fired');
-      
+
    }
 
    public mapDiscoveryFromProject(impProject: ImpProject): ImpDiscoveryUI
@@ -91,7 +91,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
       console.log ('ImpDiscoveryUI.service.mapDiscoveryFromProject - finished ', impDiscoveryUI);
       return impDiscoveryUI;
    }
-   
+
    private handleError(error: Response)
    {
       const errorMsg = `Status code: ${error.status} on url ${error.url}`;

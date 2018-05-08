@@ -18,7 +18,7 @@ import { DataStore, ColumnDefinition } from '../../common/services/datastore.ser
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
@@ -41,7 +41,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    private currentTA:  number;      // Remove when TAs are children of Locations
    private currentTD:  number;      // Remove when TAs are children of Locations
    private tradeAreas: ImpGeofootprintTradeArea[];
-   
+
    public  removes: ImpGeofootprintLocation[];
 
    constructor(private restDataService: RestDataService,
@@ -87,7 +87,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // FK_CGM_ID                  -- Can't default a primary or foreign key
       // FK_CLIENT_LOCATION_ID      -- Can't default a primary or foreign key
       // FK_PROJECT_ID              -- Can't default a primary or foreign key
-      // GL_ID                      -- Can't default a primary or foreign key      
+      // GL_ID                      -- Can't default a primary or foreign key
    }
 
    public getFileName()
@@ -248,7 +248,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           } else if (exportType && exportType.toLocaleUpperCase() === 'COMPETITORS' ) {
             this.messageService.showGrowlError('Error exporting competitors list', 'You must first add competitor locations');
           }
-          
+
         }
       }
    }

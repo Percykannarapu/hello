@@ -13,7 +13,7 @@ import { ImpClientIdentifierType } from '../models/ImpClientIdentifierType';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 const dataUrl = 'v1/client/base/impclientidentifiertype/search?q=impClientIdentifierType';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { filter, map, take, mergeMap } from 'rxjs/operators';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 

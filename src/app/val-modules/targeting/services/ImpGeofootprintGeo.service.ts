@@ -17,7 +17,7 @@ import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.serv
 import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { ColumnDefinition } from './../../common/services/datastore.service';
 
 // Imports for exporting CSVs

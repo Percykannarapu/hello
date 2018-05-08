@@ -181,12 +181,11 @@ export class MapService {
             view: this.mapView
         });
 
-        /*
         // Create an instance of the Search widget
         const search = new EsriModules.widgets.Search({
-            view: this.mapView
+          view: this.mapView,
+          container: document.createElement('div')
         });
-        */
 
         // Create an instance of the Legend widget
         const legend = new EsriModules.widgets.Legend({
@@ -206,13 +205,9 @@ export class MapService {
             container: document.createElement('div')
         });
 
-        // Create an instance of the BasemapGallery widget
-        const search = new EsriModules.widgets.Search({
-            view: this.mapView,
-            container: document.createElement('div')
-        });
+
         /*
-        // Create an instance of the BasemapGallery widget
+        // Create an instance of the print widget
         const print = new EsriModules.widgets.Print({
             view: this.mapView,
             printServiceUrl: this.config.valPrintServiceURL,
@@ -271,37 +266,39 @@ export class MapService {
 
         this.esriMapService.addWidget(scaleBar, 'bottom-left');
 
+        // Event handler that fires each time a popup action is clicked.
+        this.mapView.popup.on('trigger-action', (event) => {
 
-        // GraphicsLayer to hold graphics created via sketch view model
-        // const tempGraphicsLayer = new GraphicsLayer();
-        // console.log('tempGraphicsLayer =' + tempGraphicsLayer);
+          // Execute the measureThis() function if the measure-this action is clicked
+          if (event.action.id === 'measure-this') {
+            this.measureThis();
+          }
+
+          // Execute the selectThis() function if the select-this action is clicked
+          if (event.action.id === 'select-this') {
+            this.selectThis();
+          }
+
+        });
+
         // create a new sketch view model
-        this.sketchViewModel = new EsriModules.widgets.SketchViewModel(<any>{
+        this.sketchViewModel = new EsriModules.widgets.SketchViewModel({
             view: this.mapView,
             pointSymbol: { // symbol used for points
-                type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
                 style: 'square',
                 color: '#8A2BE2',
                 size: '16px',
-                outline: { // autocasts as new SimpleLineSymbol()
+                outline: { // auto casts as new SimpleLineSymbol()
                     color: [255, 255, 255],
                     width: 3 // points
                 }
             },
             polylineSymbol: { // symbol used for polylines
-                /*
-                type: 'simple-line', // autocasts as new SimpleMarkerSymbol()
-                color: '#8A2BE2',
-                width: '4',
-                style: 'dash'
-                */
-                type: 'simple-line',
                 style: 'short-dash',
                 width: 1.25,
                 color: [230, 0, 0, 1]
             },
             polygonSymbol: { // symbol used for polygons
-                type: 'simple-fill', // autocasts as new SimpleMarkerSymbol()
                 color: 'rgba(138,43,226, 0.8)',
                 style: 'solid',
                 outline: {
@@ -311,25 +308,16 @@ export class MapService {
             }
         });
 
-        // Event handler that fires each time a popup action is clicked.
-        this.mapView.popup.on('trigger-action', (event) => {
-
-            // Execute the measureThis() function if the measure-this action is clicked
-            if (event.action.id === 'measure-this') {
-                this.measureThis();
-            }
-
-            // Execute the selectThis() function if the select-this action is clicked
-            if (event.action.id === 'select-this') {
-                this.selectThis();
-            }
-
+        // the sketchViewModel introduces an empty GraphicsLayer to the map,
+        // even if you specify a local temp layer, so this code is to suppress
+        // this "undefined" layer
+        this.map.allLayers.forEach(l => {
+          if (l.title == null) l.listMode = 'hide';
         });
 
         // -----------------------------------------------------------------------------------
         // SketchViewModel
         // -----------------------------------------------------------------------------------
-        // mapView.then(function(evt) {
         // ************************************************************
         // Get the completed graphic from the event and add it to view.
         // This event fires when user presses
@@ -338,7 +326,6 @@ export class MapService {
         //  * Clicks to finish sketching a point geometry.
         // ***********************************************************
         this.sketchViewModel.on('draw-complete', (evt: any) => {
-
             // if multipoint geometry is created, then change the symbol
             // for the graphic
             if (evt.geometry.type === 'multipoint') {
@@ -455,7 +442,7 @@ export class MapService {
         this.mapFunction = mapFunctions.MeasureLine;
         this.setActiveButton(event);
         // set the sketch to create a polyline geometry
-        this.sketchViewModel.create('polyline');
+        this.sketchViewModel.create('polyline', { mode: 'click' });
         this.toggleFeatureLayerPopups();
     }
 
@@ -636,7 +623,6 @@ export class MapService {
                         break;
                     case 'WRAP':
                         //config
-                        EsriModules.config.request.timeout = 600000;
                         this.setupMapGroup(MapService.WrapGroupLayer, Object.values(this.config.layerIds.wrap));
                         break;
                     case 'HH':

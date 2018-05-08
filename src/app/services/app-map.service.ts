@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { ValSiteListService } from './app-site-list.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription, BehaviorSubject, Observable } from 'rxjs';
 import { LocationUiModel } from '../models/location-ui.model';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
@@ -21,9 +21,6 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { MapService } from './map.service';
-import { SmartMappingTheme } from '../models/LayerState';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
 
 export interface Coordinates {
   xcoord: number;
@@ -272,7 +269,7 @@ export class ValMapService implements OnDestroy {
         width: 2
       }
     });
-    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name.startsWith(locationType) && name.endsWith('Trade Area'));
+    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(locationType) && name.endsWith('Trade Area'));
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
     pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);

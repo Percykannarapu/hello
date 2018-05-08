@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { FileUpload } from 'primeng/primeng';
-import * as XLSX from 'xlsx';
+import * as xlsx from 'xlsx';
 import { FileService, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
 import { audienceUploadRules, headerCache } from './upload.rules';
 import { TopVarService } from '../../../services/top-var.service';
@@ -27,28 +27,29 @@ export class CustomAudienceComponent {
 
   public uploadFile(event: any) : void {
     const reader = new FileReader();
-    const name: String = event.files[0].name;
-    this.messagingService.startSpinnerDialog(this.spinnerId, 'Loading Audience Data');
-    if (name.includes('.xlsx') || name.includes('.xls') ) {
-      reader.readAsBinaryString(event.files[0]);
-      reader.onload = () => {
-        try {
-          const wb: XLSX.WorkBook = XLSX.read(reader.result, {type: 'binary'});
-          const worksheetName: string = wb.SheetNames[0];
-          const ws: XLSX.WorkSheet = wb.Sheets[worksheetName];
-          const csvData  = XLSX.utils.sheet_to_csv(ws);
-          this.parseFile(csvData);
-        } catch (e) {
-          this.handleError(`${e}`);
-        }
-      };
-    } else {
-      reader.readAsText(event.files[0]);
-      reader.onload = () => {
-        this.parseFile(reader.result);
-      };
+    const name: String = event.files[0].name ? event.files[0].name.toLowerCase() : null;
+    if (name != null) {
+      this.messagingService.startSpinnerDialog(this.spinnerId, 'Loading Audience Data');
+      if (name.includes('.xlsx') || name.includes('.xls')) {
+        reader.readAsBinaryString(event.files[0]);
+        reader.onload = () => {
+          try {
+            const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
+            const worksheetName: string = wb.SheetNames[0];
+            const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
+            const csvData  = xlsx.utils.sheet_to_csv(ws);
+            this.parseFile(csvData);
+          } catch (e) {
+            this.handleError(`${e}`);
+          }
+        };
+      } else {
+        reader.readAsText(event.files[0]);
+        reader.onload = () => {
+          this.parseFile(reader.result);
+        };
+      }
     }
-
     this.audienceUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.audienceUploadEl.basicFileInput.nativeElement.value = '';
@@ -59,9 +60,10 @@ export class CustomAudienceComponent {
     const header: string = rows.shift();
     try {
       const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
-      if (data.failedRows.length > 0) {
+      const failCount = data.failedRows.length;
+      if (failCount > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-        this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
+        this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
       }
       const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
       if (uniqueGeos.size !== data.parsedData.length) {

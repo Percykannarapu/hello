@@ -8,11 +8,11 @@ import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppState } from '../../app.state';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
 import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLookup.store';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ValMapService } from '../../services/app-map.service';
-import { Component, OnInit,  Input } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {SelectItem} from 'primeng/primeng';
 import {ImpRadLookup} from '../../val-modules/targeting/models/ImpRadLookup';
 import { MapService } from '../../services/map.service';
@@ -187,10 +187,10 @@ export class DiscoveryInputComponent implements OnInit
          this.selectedSeason = this.seasons[1].value;
 
       // Subscribe to the data stores
-      this.impProjectService.storeObservable.subscribe(impProject => { 
+      this.impProjectService.storeObservable.subscribe(impProject => {
          if (impProject != null && impProject.length > 0)
          {
-            this.impProject = impProject[0]; 
+            this.impProject = impProject[0];
             this.mapFromProject();
          }
       });
@@ -408,7 +408,7 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
       if (this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
-         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: 'Total investment and progress to budget calculations only include geographies with specified CPMs' });    
+         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: 'Total investment and progress to budget calculations only include geographies with specified CPMs' });
       }
 
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
@@ -473,7 +473,7 @@ export class DiscoveryInputComponent implements OnInit
       const metricsText = 'New=' + this.selectedCategory.name + '~Old=' + this.impDiscoveryUI.industryCategoryName;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
-      
+
       this.radDataCalc();
       this.onChangeField(event);
       //this.impDiscoveryUI.industryCategoryCode
@@ -526,7 +526,7 @@ export class DiscoveryInputComponent implements OnInit
       // Save the project
       this.impProjectService.saveProject();
 
-     
+
    }
 
    fetchRadData() {
@@ -594,7 +594,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log('discovery-input-component calling imsRadLookupStore.clearAll');
       this.impRadLookupService.clearAll();
    }
- 
+
    removeRadData() {
       console.log('discovery-input-component calling imsRadLookupStore.remove');
 

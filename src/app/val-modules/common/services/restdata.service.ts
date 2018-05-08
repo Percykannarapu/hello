@@ -1,12 +1,8 @@
 import { RestResponse } from './../../../models/RestResponse';
 import { AppConfig } from './../../../app.config';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
-import { concat } from 'rxjs/observable/concat';
 import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject, concat } from 'rxjs';
 import { DataStore } from './datastore.service';
 
 @Injectable()
@@ -63,10 +59,10 @@ export class RestDataInterceptor implements HttpInterceptor
    constructor(private appConfig: AppConfig) {}
 
    /**
-    * Intercept all HTTP calls being made from the imPower application, if the request is going 
+    * Intercept all HTTP calls being made from the imPower application, if the request is going
     * to a Fuse service we need to append the OAuth token in an Authorization header
-    * @param req 
-    * @param next 
+    * @param req
+    * @param next
     */
    intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
    {
@@ -74,7 +70,7 @@ export class RestDataInterceptor implements HttpInterceptor
 
         // check to see if the current oauth token is expired
         const refresh: any = this.refreshOauthToken();
-        
+
         req = req.clone({ headers: req.headers.set('Accept', 'application/json')
           .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
           .set('Content-Type', 'application/json')

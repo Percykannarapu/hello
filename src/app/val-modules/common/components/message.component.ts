@@ -1,6 +1,6 @@
 import {Component, OnInit } from '@angular/core';
 import {FormBuilder} from '@angular/forms';
-import {Observable } from 'rxjs/Observable';
+import {Observable } from 'rxjs';
 import {Message } from '../models/Message';
 
 @Component({

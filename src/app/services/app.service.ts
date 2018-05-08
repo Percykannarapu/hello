@@ -1,11 +1,5 @@
-import { Subject } from 'rxjs/Subject';
-import { Injectable, EventEmitter } from '@angular/core';
-import { Http, Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
-import { RestResponse } from '../models/RestResponse';
-import { EsriLoaderWrapperService } from './esri-loader-wrapper.service';
-import { MapService } from './map.service';
+import { Subject, Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';

@@ -10,7 +10,7 @@ import { map } from 'rxjs/operators';
 import { UsageService } from '../../services/usage.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
@@ -160,7 +160,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       // this.attributeService.clearAll();
       // const tradeAreas: TradeAreaUIModel[] = this.siteTradeAreas.filter(ta => ta.isShowing) || [];
       // const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
-      // this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);      
+      // this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);
    }
 
   applyDisabled() : boolean {

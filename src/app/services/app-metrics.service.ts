@@ -1,14 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription, Observable, combineLatest } from 'rxjs';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
-import { combineLatest } from 'rxjs/observable/combineLatest';
 import { isNumber } from '../app.utils';
 import { MessageService } from 'primeng/components/common/messageservice';
 

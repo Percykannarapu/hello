@@ -1,4 +1,5 @@
-import {Component, trigger, state, transition, style, animate} from '@angular/core';
+import { Component } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 @Component({
     selector: 'app-inline-profile',

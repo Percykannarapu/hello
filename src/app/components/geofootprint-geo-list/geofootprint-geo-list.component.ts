@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ISubscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -18,9 +18,9 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
-   private siteSubscription: ISubscription;
-   private geosSubscription: ISubscription;
-   private attributeSubscription: ISubscription;
+   private siteSubscription: Subscription;
+   private geosSubscription: Subscription;
+   private attributeSubscription: Subscription;
 
    public  impGeofootprintLocations: ImpGeofootprintLocation[];
    public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
