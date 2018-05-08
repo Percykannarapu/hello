@@ -35,7 +35,7 @@
     "nanoscroller": "0.8.7",
     "ngx-cookie-service": "^1.0.10",
     "primeng": "5.0.0",
-    "xlsx": "^0.12.11"
+    "xlsx": "^0.12.12"
   },
   "devDependencies": {
     "@types/arcgis-js-api": "4.7.0",
