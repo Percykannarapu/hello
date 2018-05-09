@@ -120,7 +120,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   private updateCustomVar(vars: ViewModel[]) : void {
-    this.selectedVars = this.selectedVars.filter(v => v.audienceData.pk === 'custom');
+    this.selectedVars = this.selectedVars.filter(v => v.audienceData.pk !== 'custom');
     this.selectedVars.push(...vars);
   }
 }

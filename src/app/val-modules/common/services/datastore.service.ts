@@ -1,7 +1,7 @@
 import { TransactionManager } from './TransactionManager.service';
 import { DAOBaseStatus } from './../../api/models/BaseModel';
 import { RestDataService } from './../../common/services/restdata.service';
-import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
@@ -216,7 +216,7 @@ export class DataStore<T>
          console.error (this.storeName, 'DataStore.fetch - ERROR:', error);
          // TODO: Should we re-raise or throw some other event?
          //this.fetchSubject.error(error);
-         return Observable.throw(error);
+         return throwError(error);
       });
    }
 
