@@ -7,7 +7,7 @@ import { MetricService, MetricOperations } from '../../val-modules/common/servic
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { RadService } from '../../services/rad.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
+import { TargetAudienceMetricService } from '../../services/target-audience-metric.service';
 import { UserService } from '../../services/user.service';
 
 @Component({
@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit {
                 private appService: AppService,
                 private metricService: MetricService,
                 private radService: RadService,
-                private targetAudienceService: TargetAudienceService,
+                private targetAudienceService: TargetAudienceMetricService,
                 private userService: UserService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }

@@ -8,7 +8,7 @@ import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeo
 import { Observable, combineLatest } from 'rxjs';
 
 @Injectable()
-export class TargetAudienceService {
+export class TargetAudienceMetricService {
 
   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
     private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,

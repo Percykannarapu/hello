@@ -38,7 +38,6 @@
             <p-accordionTab header="Custom">
               <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
             </p-accordionTab>
-
         </p-accordion>
         </p-tabPanel>
       </p-tabView>
@@ -74,27 +73,7 @@
                     [flags]="flagMapPurple"
                     displayOverlay="true"
                     #audienceColorBox>
-      <p-tabView>
-        <p-tabPanel header="Online Audience">
-          <span>Coming Soon</span>
-        </p-tabPanel>
-        <p-tabPanel header="Offline Audience">
-          <p-accordion>
-            <p-accordionTab header="TDA" [selected]="true">
-              <val-offline-audience-tda></val-offline-audience-tda>
-            </p-accordionTab>
-          </p-accordion>
-        </p-tabPanel>
-        <p-tabPanel header="Custom">
-          <val-custom-audience></val-custom-audience>
-        </p-tabPanel>
-        <p-tabPanel header="Selected Audiences">
-          <val-selected-audiences></val-selected-audiences>
-        </p-tabPanel>
-        <!--<p-tabPanel header="Variable Shading">-->
-          <!--<val-demo-variables></val-demo-variables>-->
-        <!--</p-tabPanel>-->
-      </p-tabView>
+      <val-target-audience></val-target-audience>
     </val-color-box>
   </div>
 

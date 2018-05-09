@@ -117,10 +117,9 @@ import { AuthService } from './services/auth.service';
 import {EsriMapService} from './esri-modules/core/esri-map.service';
 import {EsriIdentityService} from './services/esri-identity.service';
 import { TopVarService } from './services/top-var.service';
-import { DemoVariablesComponent } from './components/target-audience/demo-variables/demo-variables.component';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { RadService } from './services/rad.service';
-import { TargetAudienceService } from './services/target-audience.service';
+import { TargetAudienceMetricService } from './services/target-audience-metric.service';
 import { ValGeocodingService } from './services/app-geocoding.service';
 import { SiteListComponent } from './components/site-list/site-list.component';
 import { ValSiteListService } from './services/app-site-list.service';
@@ -147,6 +146,7 @@ import { MapDispatchService } from './services/map-dispatch.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
+import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
 
 @NgModule({
     imports: [
@@ -249,12 +249,12 @@ import { CustomAudienceComponent } from './components/target-audience/custom-aud
         TradeAreaDefineComponent,
         DiscoveryInputComponent,
         UploadLocationsComponent,
-        DemoVariablesComponent,
         LoginComponent,
         UploadTradeAreasComponent,
         OfflineAudienceTdaComponent,
         SelectedAudiencesComponent,
-        CustomAudienceComponent
+        CustomAudienceComponent,
+        TargetAudienceComponent
     ],
     providers: [
         {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -266,7 +266,7 @@ import { CustomAudienceComponent } from './components/target-audience/custom-aud
         EsriMapService, EsriIdentityService, ImpGeofootprintLocAttribService,
         ImpDiscoveryService, EsriLayerService,
         {provide: EsriLoaderToken, useClass: AppConfig}, AuthService, ConfirmationService,
-        TopVarService, RadService, TargetAudienceService, ImpGeofootprintGeoAttribService,
+        TopVarService, RadService, TargetAudienceMetricService, ImpGeofootprintGeoAttribService,
         UserService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
         CookieService, ValMapService, ValGeoService, EsriQueryService, UsageService,
         ValMetricsService, AppMessagingService, AppRendererService, ImpMetricNameService,

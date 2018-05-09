@@ -1,0 +1,18 @@
+<p-tabView>
+  <p-tabPanel header="Online Audience">
+    <span>Coming Soon</span>
+  </p-tabPanel>
+  <p-tabPanel header="Offline Audience">
+    <p-accordion>
+      <p-accordionTab header="TDA" [selected]="true">
+        <val-offline-audience-tda></val-offline-audience-tda>
+      </p-accordionTab>
+    </p-accordion>
+  </p-tabPanel>
+  <p-tabPanel header="Custom">
+    <val-custom-audience></val-custom-audience>
+  </p-tabPanel>
+  <p-tabPanel header="Selected Audiences">
+    <val-selected-audiences></val-selected-audiences>
+  </p-tabPanel>
+</p-tabView>
