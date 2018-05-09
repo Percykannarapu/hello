@@ -18,9 +18,6 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 
 @Injectable()
 export class MapService {
-
-    private updateSketchGraphic: __esri.Graphic;
-
     // Group Layers
     public static EsriGroupLayer: __esri.GroupLayer;
     public static ZipGroupLayer: __esri.GroupLayer;
@@ -283,61 +280,39 @@ export class MapService {
 
         });
 
-
         this.setupSketchViewModel();
-        this.setUpSketchClickHandler();
-    }
-
-    private setUpSketchClickHandler() {
-      this.mapView.on('click', (evt) => {
-        this.mapView.hitTest(evt).then((response) => {
-          const results = response.results;
-          // Found a valid graphic
-          if (results.length && results[results.length - 1].graphic) {
-            // Check if we're already editing a graphic
-            if (!this.updateSketchGraphic) {
-              // Save a reference to the graphic we intend to update
-              this.updateSketchGraphic = results[results.length - 1].graphic;
-              // Remove the graphic from the GraphicsLayer
-              // Sketch will handle displaying the graphic while being updated
-              this.mapView.graphics.remove(this.updateSketchGraphic);
-              this.sketchViewModel.update(this.updateSketchGraphic.geometry);
-            }
-          }
-        });
-      });
     }
 
     private setupSketchViewModel() {
       // create a new sketch view model
-      const sketchPoint = new EsriModules.SimpleMarkerSymbol({ // symbol used for points
-        style: 'square',
-        color: '#8A2BE2',
-        size: '16px',
-        outline: {
-          color: [255, 255, 255],
-          width: 3 // points
-        }
-      });
-      const sketchLine = new EsriModules.SimpleLineSymbol({ // symbol used for polylines
-        style: 'short-dash',
-        width: 1.25,
-        color: [230, 0, 0, 1]
-      });
-      const sketchPoly = new EsriModules.SimpleFillSymbol({ // symbol used for polygons
-        color: 'rgba(138,43,226, 0.8)',
-        style: 'solid',
-        outline: {
-          color: 'white',
-          width: 1
-        }
-      });
       this.sketchViewModel = new EsriModules.widgets.SketchViewModel({
         view: this.mapView,
-        pointSymbol: sketchPoint,
-        polylineSymbol: sketchLine,
-        polygonSymbol: sketchPoly
-      });
+        pointSymbol: {
+          type: 'simple-marker',
+          style: 'square',
+          color: '#8A2BE2',
+          size: '16px',
+          outline: {
+            color: [255, 255, 255],
+            width: 3 // points
+          }
+        },
+        polylineSymbol: {
+          type: 'simple-line',
+          style: 'short-dash',
+          width: 1.25,
+          color: [230, 0, 0, 1]
+        },
+        polygonSymbol: {
+          type: 'simple-fill',
+          color: 'rgba(138,43,226, 0.8)',
+          style: 'solid',
+          outline: {
+            color: 'white',
+            width: 1
+          }
+        }
+      } as any);
 
       // the sketchViewModel introduces an empty GraphicsLayer to the map,
       // even if you specify a local temp layer, so this code is to suppress
@@ -357,8 +332,6 @@ export class MapService {
       //  * Clicks to finish sketching a point geometry.
       // ***********************************************************
       this.sketchViewModel.on('draw-complete', e => this.addSketchGraphic(e));
-      this.sketchViewModel.on('update-complete', e => this.addSketchGraphic(e));
-      this.sketchViewModel.on('update-cancel', e => this.addSketchGraphic(e));
       // -----------------------------------------------------------------------------------
     }
 
@@ -401,8 +374,6 @@ export class MapService {
         this.mapFunction = mapFunctions.Popups;
         this.toggleFeatureLayerPopups();
       }
-
-      this.updateSketchGraphic = null;
     }
 
     // set active button
@@ -461,6 +432,7 @@ export class MapService {
             symbol: textSym
         };
 
+        //this.sketchViewModel.layer.add(graphic);
         this.mapView.graphics.add(graphic);
     }
 
@@ -500,11 +472,11 @@ export class MapService {
         console.log('fired hideMapLayers() in MapService');
 
         // Toggle all layers
-        this.map.layers.forEach((layer, i) => {
-            if (layer.visible === true) {
-                //console.log (i + '. layer visible: ' + this.mapView.map.layers.getItemAt(i).visible);
+        this.map.layers.forEach(layer => {
+            // we only want to hide map layers that are showing in the layer list widget, so the users can turn them back on
+            if (layer.visible === true && layer.listMode !== 'hide') {
                 this.pauseLayerWatch(this.pausableWatches);
-                this.map.layers.getItemAt(i).visible = false;
+                layer.visible = false;
                 this.resumeLayerWatch(this.pausableWatches);
             }
         });
