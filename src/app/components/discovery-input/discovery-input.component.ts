@@ -66,6 +66,7 @@ export class DiscoveryInputComponent implements OnInit
    public productCategoryTooltip: string;
 
    public isCpmBlended: boolean = true;
+   public selectCpmType: string;
    summer: boolean = true;
 
    showLoadBtn: boolean = false;
@@ -304,6 +305,12 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includeAnne      = this.impProject.isIncludeAnne;
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
+      
+      if (this.impProject.estimatedBlendedCpm != null){
+            this.impDiscoveryUI.selectCpmType = 'isBlended';
+      } else this.impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
+      
+      
       this.impDiscoveryUI.cpm = this.impProject.estimatedBlendedCpm;
       this.impDiscoveryUI.valassisCPM = this.impProject.smValassisCpm;
       this.impDiscoveryUI.anneCPM = this.impProject.smAnneCpm;
@@ -391,6 +398,7 @@ export class DiscoveryInputComponent implements OnInit
    public onClickCPM(radioName: string){
       if (radioName === 'Blended'){
             this.isCpmBlended = true;
+            this.selectCpmType = 'Blended';
             this.impDiscoveryUI.valassisCPM = null;
             this.impDiscoveryUI.anneCPM = null;
             this.impDiscoveryUI.soloCPM = null;
@@ -398,6 +406,7 @@ export class DiscoveryInputComponent implements OnInit
       else{
             this.isCpmBlended = false;
             this.impDiscoveryUI.cpm =  null;
+            this.selectCpmType = 'isDefinedbyOwnerGroup';
       }
    }
 
@@ -407,10 +416,7 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
             this.impDiscoveryUI.industryCategoryName = this.selectedCategory.name;
       }
-      if (this.impDiscoveryUI.valassisCPM || this.impDiscoveryUI.anneCPM || this.impDiscoveryUI.soloCPM != null){
-         this.messageService.add({ severity: 'warn', summary: 'Warn', detail: 'Total investment and progress to budget calculations only include geographies with specified CPMs' });
-      }
-
+      
       this.impDiscoveryService.updateAt(this.impDiscoveryUI);
 
      /* this.impRadLookupService.storeObservable.subscribe(res => {

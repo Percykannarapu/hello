@@ -18,15 +18,29 @@ export class ImpDiscoveryUI
    public includeSolo:              boolean;
    public projectTrackerId:         number;
    public industryCategoryName:     string;
-   public isBlended:                boolean;
-   public isDefinedbyOwnerGroup:    boolean;
    public valassisCPM:              number;
    public anneCPM:                  number;
    public soloCPM:                  number;
+   public selectCpmType:            string;
+
+   public get isBlended() : boolean {
+      return this.selectCpmType === 'isBlended';
+   }
+   public set isBlended(value: boolean) { 
+         // do nothing 
+   }
+   
+   public get isDefinedbyOwnerGroup() : boolean {
+      return this.selectCpmType === 'isDefinedbyOwnerGroup';
+   }
+   public set isDefinedbyOwnerGroup(value: boolean) { 
+         // do nothing 
+      }
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpDiscoveryUI | {} = {}) {
       Object.assign(this, data);
+      
    }
 
    /**
@@ -54,7 +68,8 @@ export class ImpDiscoveryUI
          ['isDefinedbyOwnerGroup',   'boolean'],
          ['includeValassisSM',       'number'],
          ['includeAnneSM',           'number'],
-         ['includeSoloSM',           'number']
+         ['includeSoloSM',           'number'],
+         ['selectCpmType',           'string']
          ]);
    }
 
@@ -78,7 +93,8 @@ export class ImpDiscoveryUI
       isDefinedbyOwnerGroup: false,
       valassisCPM:           null,
       anneCPM:               null,
-      soloCPM:               null
+      soloCPM:               null,
+      selectCpmType:         null
    }
 
    /**
