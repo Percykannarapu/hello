@@ -132,7 +132,7 @@
         <div class="ui-g-11">
             <div class="ui-g-12">
             <span class="ui-float-label">
-                <input id="cpm" type="text" disabled="{{!isCpmBlended}}" [(ngModel)]="impDiscoveryUI.cpm"  (change)="onChangeField($event)" pInputText>
+                <input id="cpm" type="text" [disabled]="!isCpmBlended" [(ngModel)]="impDiscoveryUI.cpm"  (change)="onChangeField($event)" pInputText>
                 <label>CPM</label>
                 <!-- <i *ngIf="impDiscoveryUI.cpm === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
             </span>

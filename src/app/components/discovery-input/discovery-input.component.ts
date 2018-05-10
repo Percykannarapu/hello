@@ -65,7 +65,7 @@ export class DiscoveryInputComponent implements OnInit
    public calcProductCatRadData: string;
    public productCategoryTooltip: string;
 
-   public isCpmBlended: boolean = true;
+   public isCpmBlended: boolean;
    public selectCpmType: string;
    summer: boolean = true;
 
@@ -398,7 +398,6 @@ export class DiscoveryInputComponent implements OnInit
    public onClickCPM(radioName: string){
       if (radioName === 'Blended'){
             this.isCpmBlended = true;
-            this.selectCpmType = 'Blended';
             this.impDiscoveryUI.valassisCPM = null;
             this.impDiscoveryUI.anneCPM = null;
             this.impDiscoveryUI.soloCPM = null;
