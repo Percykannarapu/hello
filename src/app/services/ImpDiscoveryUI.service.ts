@@ -83,10 +83,16 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
       impDiscoveryUI.includeAnne      = impProject.isIncludeAnne;
       impDiscoveryUI.includeSolo      = impProject.isIncludeSolo;
       impDiscoveryUI.projectTrackerId = impProject.projectTrackerId;
+      
+      
       impDiscoveryUI.cpm = impProject.estimatedBlendedCpm;
       impDiscoveryUI.valassisCPM = impProject.smValassisCpm;
       impDiscoveryUI.anneCPM = impProject.smAnneCpm;
       impDiscoveryUI.soloCPM = impProject.smSoloCpm;
+
+      if (impProject.estimatedBlendedCpm != null){
+            impDiscoveryUI.selectCpmType = 'isBlended';
+      } else impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
 
       console.log ('ImpDiscoveryUI.service.mapDiscoveryFromProject - finished ', impDiscoveryUI);
       return impDiscoveryUI;

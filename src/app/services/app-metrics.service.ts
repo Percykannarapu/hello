@@ -92,15 +92,15 @@ export class ValMetricsService implements OnDestroy {
 
         if (attributesMap.has(season)) {
           if (this.currentDiscoveryVar.isBlended && isNumber(this.currentDiscoveryVar.cpm)) {
-            return (currentHH * this.currentDiscoveryVar.cpm) / 1000;
+            return (currentHH * this.currentDiscoveryVar.cpm);
           }
           if (this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
             if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
-              return (currentHH * this.currentDiscoveryVar.valassisCPM) / 1000;
+              return (currentHH * this.currentDiscoveryVar.valassisCPM);
             } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
-              return (currentHH * this.currentDiscoveryVar.anneCPM) / 1000;
+              return (currentHH * this.currentDiscoveryVar.anneCPM);
             } else if (attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
-              return (currentHH * this.currentDiscoveryVar.soloCPM) / 1000;
+              return (currentHH * this.currentDiscoveryVar.soloCPM);
             } else return 0;
           } else return 0;
         } else return 0;
@@ -108,7 +108,7 @@ export class ValMetricsService implements OnDestroy {
       metricAccumulator: (p, c) => p + c,
       metricFormatter: v => {
         if (v != null && v != 0) {
-          return '$' + ((Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+          return '$' + ((Math.round(v / 1000)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         } else {
           return 'N/A';
         }

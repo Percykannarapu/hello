@@ -73,7 +73,6 @@ export class DiscoveryInputComponent implements OnInit
    private loadRetries: number = 0;
    private analysisLevelRetries = 0;
    private mapReady: boolean = false;
-   public validationMessage: string;
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
