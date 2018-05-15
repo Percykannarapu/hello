@@ -189,8 +189,7 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onAddToProject(siteType: string) : void {
-    console.log('test:::',this.selector);
-    if(this.selector === 'Site' || this.selector === 'Competitor' ){
+    if (this.selector === 'Site' || this.selector === 'Competitor') { 
       const locationsForInsert: ImpGeofootprintLocation[] = [];
       this.searchResults.filter(sr => sr.selected).forEach(result => {
         locationsForInsert.push(this.createSiteFromSearchResult(result.data, siteType));
@@ -202,9 +201,9 @@ export class BusinessSearchComponent implements OnInit {
         this.locationService.add(locationsForInsert);
         this.appService.closeOverLayPanel.next(true);
       }
-  } else {
+    } else {
     this.messagingService.showGrowlError('Error', `Please indicate whether to select Sites or Competitors`);
+    }
   }
-}
 
 }

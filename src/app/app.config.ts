@@ -74,7 +74,7 @@ export class AppConfig implements EsriLoaderConfig {
       case 'pcr':
         return boundary ? this.layerIds.pcr.topVars.id : this.layerIds.pcr.centroids.id;
       default:
-        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel()`);
+        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }
   }
 

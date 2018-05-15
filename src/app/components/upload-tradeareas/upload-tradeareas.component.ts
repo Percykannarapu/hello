@@ -21,6 +21,7 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 
+
 class GeoLocations {
 
   constructor(private geocode: string, private location:  ImpGeofootprintLocation, private message?: string){}
@@ -56,6 +57,9 @@ export class UploadTradeAreasComponent implements OnInit {
     private usageService: UsageService) { }
 
   ngOnInit() {
+    this.impDiscoveryService.storeObservable.subscribe (discovery => {
+      this.analysisLevel = discovery[0].analysisLevel;
+    }  )
   }
 
   //upload tradearea rings with site numbers and geos: US6879 tradeAreaUpload
@@ -225,7 +229,7 @@ export class UploadTradeAreasComponent implements OnInit {
                 sub.unsubscribe();
         });*/
       } else {
-        this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
+        this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
         console.log('Set A validation message', header);
       }
      
@@ -262,7 +266,8 @@ export class UploadTradeAreasComponent implements OnInit {
 
   private handleError(message: string) : void {
     //this.displayGcSpinner = false;
-    this.messageService.add({ severity: 'error', summary: 'Geocoding Error', detail: message });
+    //  this.messageService.add({ severity: 'error', summary: 'Trade Area Error', detail: message });
+   //  this.appMessageService.showGrowlError(`Trade Area Error:`, `You must select an Analysis Level before uploading a custom trade area.`);
   }
 
   private onResubmit(row: GeoLocations){
