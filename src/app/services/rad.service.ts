@@ -107,8 +107,12 @@ export class RadService {
             this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
           }
 
+          /**
+           * US7497: Commenting out the ROI caluclation
+           * Please leave this here in case we need it again
+           */
           //Calculate Predicted ROI
-          const discoveryData = this.impDiscoveryService.get();
+          /*const discoveryData = this.impDiscoveryService.get();
           if (discoveryData[0].cpm != null) {
             let predictedROI = toplineSales - (discoveryData[0].cpm * hhCount / 1000);
             predictedROI = Math.round(predictedROI);
@@ -119,14 +123,14 @@ export class RadService {
             }
           } else {
             this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
-          }
+          }*/
         } catch (error) {
           this.handleError(error);
         }
       } else {
         this.metricService.add('PERFORMANCE', 'Predicted Response', 'N/A');
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
-        this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
+        //this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
       }
     }
   }
