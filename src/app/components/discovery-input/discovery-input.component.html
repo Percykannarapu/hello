@@ -23,7 +23,7 @@
             </div>
         <div class="ui-g-12">
                 <!--<input [(ngModel)]="searchText" placeholder="Project Tracker Id" pInputText style="width:50%"  (input)="filterProjectTracker(searchText)"/>           -->
-                <p-autoComplete [(ngModel)]="searchText" [suggestions]="searchList" (completeMethod)="filterProjectTracker($event)" [size]="50"
+                <p-autoComplete  [suggestions]="searchList" (completeMethod)="filterProjectTracker($event)" [size]="50"
                     [minLength]="1" placeholder="Project Tracker Id" [dropdown]="true">
                     <ng-template let-searchText pTemplate="item">
                         <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
