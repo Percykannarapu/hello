@@ -48,7 +48,7 @@ export class MapDispatchService {
   public featuresInViewExtent(layerId: string) : Observable<__esri.Graphic[]> {
     console.log(`featuresInViewExtent subscribed with layerId "${layerId}"`);
     return this.afterMapViewUpdate().pipe(
-      mergeMap(mapView => this.queryService.queryLayerView(layerId))
+      mergeMap(mapView => this.queryService.queryLayerView(layerId, true, this.mapService.mapView.extent))
     );
   }
 }

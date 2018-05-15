@@ -22,10 +22,16 @@
                 </span>
             </div>
         <div class="ui-g-12">
-                <span class="md-inputfield">
-                    <input id="projectTrackerId" type="text" [(ngModel)]="impDiscoveryUI.projectTrackerId" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-                    <label> Project Tracker Id</label>         
-                </span>
+                <!--<input [(ngModel)]="searchText" placeholder="Project Tracker Id" pInputText style="width:50%"  (input)="filterProjectTracker(searchText)"/>           -->
+                <p-autoComplete [(ngModel)]="searchText" [suggestions]="searchList" (completeMethod)="filterProjectTracker($event)" [size]="50"
+                    [minLength]="1" placeholder="Project Tracker Id" [dropdown]="true">
+                    <ng-template let-searchText pTemplate="item">
+                        <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
+                            <div style="font-size:18px;float:right;margin:10px 10px 0 0">{{searchText}}</div>
+                        </div>
+                    </ng-template>
+                </p-autoComplete>
+                
         </div>
        <div class="ui-g-12 val-flush-to-edges">
                 <div class="ui-g-6">

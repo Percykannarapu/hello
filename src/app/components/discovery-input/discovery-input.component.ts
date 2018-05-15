@@ -21,6 +21,7 @@ import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { ImpProjectTrackerService } from '../../val-modules/targeting/services/ImpProjectTracker.service';
 
 
 interface Product {
@@ -37,7 +38,7 @@ interface Category {
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
   styleUrls: ['./discovery-input.component.css'],
-  providers: [ImpRadLookupService, ImpRadLookupStore]
+  providers: [ImpRadLookupService, ImpRadLookupStore, ImpProjectTrackerService]
 })
 export class DiscoveryInputComponent implements OnInit
 {
@@ -52,6 +53,8 @@ export class DiscoveryInputComponent implements OnInit
    radDisabled: boolean = true;
 
    storeRadData: ImpRadLookup[];
+
+   storeProjectTrackerData: any;
 
    categories: Category[];
    selectedCategory: Category;
@@ -68,6 +71,8 @@ export class DiscoveryInputComponent implements OnInit
    public isCpmBlended: boolean;
    public selectCpmType: string;
    summer: boolean = true;
+
+   public searchList = [];
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
@@ -89,7 +94,8 @@ export class DiscoveryInputComponent implements OnInit
                private usageService: UsageService,
                private messagingService: AppMessagingService,
                private valMapService: ValMapService,
-               private messageService: MessageService)
+               private messageService: MessageService,
+               private impProjectTrackerService: ImpProjectTrackerService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -198,6 +204,11 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
       this.impRadLookupService.get(true);
 
+      this.impProjectTrackerService.storeObservable.subscribe(ptojectTrackerData => this.storeProjectTrackerData = ptojectTrackerData );
+
+      this.impProjectTrackerService.get(true);
+      //restdata.subscribe(response => console.log('response::::::::::::::::::::::', response) );
+     
       // console.log('Discovery defaults: ', this.impDiscoveryUI);
       /*  Currently disabled in favor of hard coded categories until we identify the true source
       this.impRadLookupService.fetchData().subscribe(data => {
@@ -656,4 +667,35 @@ export class DiscoveryInputComponent implements OnInit
       this.testIsSummer(new Date('01 Oct 2018'));
       this.testIsSummer(new Date('01 Apr 2018'));
    }
+
+   filterProjectTracker(event) {
+      const value = event.query;   
+      this.searchList = [];
+      if (value.length > 2) {
+            const respList: string[] = [];
+            
+            console.log('project tracker:::', value);
+            const ssd: string = null;
+            const projectTrackerData = this.impProjectTrackerService.get();
+            projectTrackerData.forEach((item => {
+                  const dataString = item['projectId'] + ' | ' + item['projectName'] ;
+                  if (dataString.toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        this.searchList.push(dataString);
+                  }
+            }));
+          
+      }
+    }
+
+    private sortOn(property) {
+      return function (a, b) {
+        if (a[property] < b[property]) {
+          return -1;
+        } else if (a[property] > b[property]) {
+          return 1;
+        } else {
+          return 0;
+        }
+      };
+    }
 }

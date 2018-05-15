@@ -196,7 +196,7 @@ export class ValTradeAreaService implements OnDestroy {
 //      console.log('tradeAreasForInsert = ', tradeAreasForInsert)
    }, null, () => {
       this.tradeAreaService.add(tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
-      sub.unsubscribe()
+      sub.unsubscribe();
       });
   }
 

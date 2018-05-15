@@ -15,6 +15,9 @@ import { ValMapService } from './app-map.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
+import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 
 @Injectable()
 export class MapService {
@@ -52,7 +55,9 @@ export class MapService {
         private authService: AuthService,
         private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
         private appMapService: ValMapService,
-        private usageService: UsageService) {
+        private usageService: UsageService,
+        private esriLayerService: EsriLayerService, 
+        private esriQueryService: EsriQueryService) {
         this.esriMapService.onReady$.subscribe(ready => {
             if (ready) {
                 this.mapView = this.esriMapService.mapView;
@@ -305,7 +310,7 @@ export class MapService {
         },
         polygonSymbol: {
           type: 'simple-fill',
-          color: 'rgba(138,43,226, 0.8)',
+          color: 'rgba(0,0,0, 0)',
           style: 'solid',
           outline: {
             color: 'white',
@@ -355,8 +360,8 @@ export class MapService {
         geometry: geometry,
         symbol: symbol
       });
+      
       this.mapView.graphics.add(sketchGraphic);
-
       // ----------------------------------------------------------------------------------------
       // Measure Length of PolyLine
       if (this.mapFunction === mapFunctions.MeasureLine) {
@@ -374,6 +379,34 @@ export class MapService {
         this.mapFunction = mapFunctions.Popups;
         this.toggleFeatureLayerPopups();
       }
+
+      if (this.mapFunction === mapFunctions.DrawPoly){
+          const polygons = geometry as __esri.Polygon;
+          console.log('polygons:::::', polygons);
+          const discoveryUi: ImpDiscoveryUI[] = this.impDiscoveryService.get(); 
+          const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(discoveryUi[0].analysisLevel);
+          const layer = this.esriLayerService.getPortalLayerById(boundaryLayerId);
+          const sub = this.esriQueryService.queryLayerView(boundaryLayerId, true,  polygons.extent).subscribe(graphics => {
+
+               console.log('list of ggraphics::', graphics);
+               graphics.forEach(graphic => {
+                const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
+                const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
+                const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
+                this.appMapService.handleClickEvent(point);
+               });
+          });
+
+
+      }
+
+      //this.updateSketchGraphic = null;
+    }
+
+
+    public findpolyOnExtent(poly: __esri.Polygon){
+       // if (poly.extent.contains)
+
     }
 
     // set active button
@@ -456,6 +489,15 @@ export class MapService {
         this.setActiveButton(event);
         // set the sketch to create a polyline geometry
         this.sketchViewModel.create('polyline', undefined);
+        this.toggleFeatureLayerPopups();
+    }
+
+    // Toggle Polygon multiple selection Mode
+    public selectMultiPolyButton(event: MouseEvent){
+        this.mapFunction = mapFunctions.DrawPoly;
+        this.setActiveButton(event);
+        // set the sketch to create a polygon geometry
+        this.sketchViewModel.create('rectangle', undefined);
         this.toggleFeatureLayerPopups();
     }
 
