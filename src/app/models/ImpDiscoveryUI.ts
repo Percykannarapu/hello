@@ -22,6 +22,7 @@ export class ImpDiscoveryUI
    public anneCPM:                  number;
    public soloCPM:                  number;
    public selectCpmType:            string;
+   public isCpmBlended:             boolean;
 
    public get isBlended() : boolean {
       return this.selectCpmType === 'isBlended';
@@ -36,7 +37,7 @@ export class ImpDiscoveryUI
    public set isDefinedbyOwnerGroup(value: boolean) { 
          // do nothing 
       }
-
+     
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpDiscoveryUI | {} = {}) {
       Object.assign(this, data);

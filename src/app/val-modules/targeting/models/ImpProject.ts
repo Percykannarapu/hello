@@ -118,7 +118,11 @@ export class ImpProject extends BaseModel
       this.isIncludeSolo            = null;
       this.isIncludeNonWeekly       = null;
       this.projectTrackerId         = null;
-         
+      this.estimatedBlendedCpm      = null;
+      this.smValassisCpm            = null;
+      this.smAnneCpm                = null;
+      this.smSoloCpm                = null;
+               
    
       // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
       // -------------------------------------------------------
