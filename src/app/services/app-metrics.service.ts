@@ -1,10 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { Subscription, Observable, combineLatest } from 'rxjs';
+import { Subscription, Observable, combineLatest, zip } from 'rxjs';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { isNumber } from '../app.utils';
@@ -20,7 +20,7 @@ export interface MetricDefinition {
   metricAccumulator: (prevValue: number, currentValue: number) => number;
   metricFormatter: (value: number) => string;
   metricFlag?: boolean;
-  calcFlagState?: (d: ImpDiscoveryUI, a: ImpGeofootprintGeoAttrib[]) => boolean;
+  calcFlagState?: () => boolean;
 }
 
 @Injectable()
@@ -31,16 +31,22 @@ export class ValMetricsService implements OnDestroy {
   private isWinter: boolean;
   private useCircBudget: boolean;
   private useTotalBudget: boolean;
+  private geoCpmMismatch: boolean;
+  private currentGeoAttributes: ImpGeofootprintGeoAttrib[] = [];
 
   public metrics$: Observable<MetricDefinition[]>;
+  public mismatch$: Observable<boolean>;
 
   constructor(private config: AppConfig, private attributeService: ImpGeofootprintGeoAttribService,
     private metricService: MetricService, private discoveryService: ImpDiscoveryService, private messageService: MessageService) {
     this.registerMetrics();
     this.metrics$ = this.getMetricObservable();
-    this.metricSub = this.metrics$.subscribe(
-      metrics => this.onMetricsChanged(metrics)
-    );
+    this.mismatch$ = this.getMismatchObservable();
+    this.metricSub = combineLatest(this.mismatch$, this.metrics$).subscribe(
+      ([mismatch, metrics]) => {
+        this.geoCpmMismatch = mismatch;
+        this.onMetricsChanged(metrics);
+      });
   }
 
   public ngOnDestroy(): void {
@@ -114,15 +120,8 @@ export class ValMetricsService implements OnDestroy {
         }
       },
 
-      calcFlagState: (d, a) => {
-        const attributesMap: Map<string, string> = new Map<string, string>();
-        a.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
-        return (!d.isBlended && !d.isDefinedbyOwnerGroup) ||
-               ((d.isDefinedbyOwnerGroup) &&
-               ((d.includeValassis && d.valassisCPM == null && attributesMap.get('owner_group_primary') === 'VALASSIS') ||
-               (d.includeAnne && d.anneCPM == null && attributesMap.get('owner_group_primary') === 'ANNE') ||
-               (d.includeSolo && d.soloCPM == null && attributesMap.get('cov_frequency') === 'Solo')));
-
+      calcFlagState: () => {
+        return this.geoCpmMismatch;
       }
     };
     this.metricDefinitions.push(totalInvestment);
@@ -174,13 +173,8 @@ export class ValMetricsService implements OnDestroy {
           return 'N/A';
         }
       },
-      calcFlagState: (d, a) => {
-        const attributesMap: Map<string, string> = new Map<string, string>();
-        a.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
-        return (!d.isBlended && !d.isDefinedbyOwnerGroup) ||
-               ((d.isDefinedbyOwnerGroup && d.valassisCPM == null && attributesMap.get('owner_group_primary') === 'VALASSIS') ||
-               (d.isDefinedbyOwnerGroup && d.anneCPM == null && attributesMap.get('owner_group_primary') === 'ANNE') ||
-               (d.isDefinedbyOwnerGroup && d.soloCPM == null && attributesMap.get('cov_frequency') === 'Solo'));
+      calcFlagState: () => {
+        return this.geoCpmMismatch;
       }
     };
     this.metricDefinitions.push(progressToBudget);
@@ -198,7 +192,36 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI): MetricDefinition[] {
+  private getMismatchObservable(): Observable<boolean> {
+    const geoOwnerTypes$ = this.attributeService.storeObservable.pipe(
+      map(attributes => attributes.filter(a => a.isActive === 1 && (a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency'))),
+      map(attributes => {
+        return {
+          valExists: attributes.filter(a => a.attributeCode === 'owner_group_primary' && a.attributeValue === 'VALASSIS').length > 0,
+          anneExists: attributes.filter(a => a.attributeCode === 'owner_group_primary' && a.attributeValue === 'ANNE').length > 0,
+          soloExists: attributes.filter(a => a.attributeCode === 'cov_frequency' && a.attributeValue === 'Solo').length > 0
+        };
+      })
+    );
+    const discovery$ = this.discoveryService.storeObservable.pipe(
+      filter(disco => disco != null && disco.length > 0),
+      map(disco => disco[0])
+    );
+
+    return combineLatest(geoOwnerTypes$, discovery$).pipe(
+      map(([attributes, discovery]) => {
+        if (!discovery.isDefinedbyOwnerGroup) {
+          return false;
+        } else {
+          return (!isNumber(discovery.anneCPM) && attributes.anneExists) || 
+          (!isNumber(discovery.valassisCPM) && attributes.valExists) || 
+          (!isNumber(discovery.soloCPM) && attributes.soloExists);
+        }
+      })
+    );
+  }
+
+  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI) : MetricDefinition[] {
     if (discovery == null || attributes == null) return;
     this.currentDiscoveryVar = discovery;
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
@@ -231,19 +254,20 @@ export class ValMetricsService implements OnDestroy {
           }, new Map<string, ImpGeofootprintGeoAttrib[]>())
           .forEach(uniqueAttributes => {
             values.push(Number(definition.compositePreCalc(uniqueAttributes)));
+            this.currentGeoAttributes = [...uniqueAttributes];
           });
       } else {
         attributesUniqueByGeo
           .filter(a => a.attributeCode === code)
           .forEach(attribute => values.push(Number(attribute.attributeValue)));
       }
-      if (definition.calcFlagState != null) definition.metricFlag = definition.calcFlagState(discovery, attributes);
+      if (definition.calcFlagState != null) definition.metricFlag = definition.calcFlagState();
       definition.metricValue = values.reduce(definition.metricAccumulator, definition.metricDefault);
     }
     return this.metricDefinitions;
   }
 
-  public getLayerAttributes(): string[] {
+  public getLayerAttributes() : string[] {
     return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency'];
   }
 
