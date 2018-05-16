@@ -1,10 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { Subscription, Observable, combineLatest } from 'rxjs';
+import { Subscription, Observable, combineLatest, zip } from 'rxjs';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { isNumber } from '../app.utils';
@@ -20,7 +20,7 @@ export interface MetricDefinition {
   metricAccumulator: (prevValue: number, currentValue: number) => number;
   metricFormatter: (value: number) => string;
   metricFlag?: boolean;
-  calcFlagState?: (d: ImpDiscoveryUI) => boolean;
+  calcFlagState?: () => boolean;
 }
 
 @Injectable()
@@ -31,16 +31,22 @@ export class ValMetricsService implements OnDestroy {
   private isWinter: boolean;
   private useCircBudget: boolean;
   private useTotalBudget: boolean;
+  private geoCpmMismatch: boolean;
+  private currentGeoAttributes: ImpGeofootprintGeoAttrib[] = [];
 
   public metrics$: Observable<MetricDefinition[]>;
+  public mismatch$: Observable<boolean>;
 
   constructor(private config: AppConfig, private attributeService: ImpGeofootprintGeoAttribService,
     private metricService: MetricService, private discoveryService: ImpDiscoveryService, private messageService: MessageService) {
     this.registerMetrics();
     this.metrics$ = this.getMetricObservable();
-    this.metricSub = this.metrics$.subscribe(
-      metrics => this.onMetricsChanged(metrics)
-    );
+    this.mismatch$ = this.getMismatchObservable();
+    this.metricSub = combineLatest(this.mismatch$, this.metrics$).subscribe(
+      ([mismatch, metrics]) => {
+        this.geoCpmMismatch = mismatch;
+        this.onMetricsChanged(metrics);
+      });
   }
 
   public ngOnDestroy(): void {
@@ -113,59 +119,68 @@ export class ValMetricsService implements OnDestroy {
           return 'N/A';
         }
       },
-      // calcFlagState: d => {
-      //   return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
-      // }
+
+      calcFlagState: () => {
+        return this.geoCpmMismatch;
+      }
     };
     this.metricDefinitions.push(totalInvestment);
 
-    // const totalInvestment: MetricDefinition = {
-    //   metricValue: 0,
-    //   metricDefault: 0,
-    //   metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
-    //   metricCategory: 'CAMPAIGN',
-    //   metricFriendlyName: 'Total Investment',
-    //   metricAccumulator: (p, c) => p + (c * this.currentDiscoveryVar.cpm / 1000),
-    //   metricFormatter: v => {
-    //     if (v != null && v != 0) {
-    //       return '$' + (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    //     } else {
-    //       return 'N/A';
-    //     }
-    //   }
-    // };
-    // this.metricDefinitions.push(totalInvestment);
-
     const progressToBudget: MetricDefinition = {
-        metricValue: 0,
-        metricDefault: 0,
-        metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
-        metricCategory: 'CAMPAIGN',
-        metricFriendlyName: 'Progress to Budget',
-        metricAccumulator: (p, c) => {
-          if (this.useTotalBudget) {
-            return p + ((c * this.currentDiscoveryVar.cpm / 1000) / this.currentDiscoveryVar.totalBudget * 100);
-          } else if (this.useCircBudget) {
-            return p + (c / this.currentDiscoveryVar.circBudget * 100);
-          } else {
-            return null;
-          }
-        },
-        metricFormatter: v => {
-          if (v != null && v !== 0) {
-            return (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
-          } else {
-            return 'N/A';
-          }
-        },
-        // calcFlagState: d => {
-        //   return (d.includeValassis && d.valassisCPM == null) || (d.includeAnne && d.anneCPM == null) || (d.includeSolo && d.soloCPM == null);
-        // }
-      };
-      this.metricDefinitions.push(progressToBudget);
-    } 
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: () => this.isWinter ? ['hhld_w', 'owner_group_primary', 'cov_frequency'] : ['hhld_s', 'owner_group_primary', 'cov_frequency'],
+      metricCategory: 'CAMPAIGN',
+      metricFriendlyName: 'Progress to Budget',
+      compositePreCalc: t => {
+        const attributesMap: Map<string, string> = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        const currentHH = Number(attributesMap.get(season)) || 0;
+        if (this.useTotalBudget) {
+          if (attributesMap.has(season)) {
+            if (this.currentDiscoveryVar.isBlended && isNumber(this.currentDiscoveryVar.cpm)) {
+              return (currentHH * this.currentDiscoveryVar.cpm);
+            }
+            if (this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
+              if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
+                return (currentHH * this.currentDiscoveryVar.valassisCPM);
+              } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
+                return (currentHH * this.currentDiscoveryVar.anneCPM);
+              } else if (attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
+                return (currentHH * this.currentDiscoveryVar.soloCPM);
+              } else return 0;
+            } else return 0;
+          } else return 0;
+      } 
+      if (this.useCircBudget) {
+        return currentHH;
+      }
+      },
+      metricAccumulator: (p, c) => {
+        if (this.useTotalBudget) {
+          return p + (c / (1000 * this.currentDiscoveryVar.totalBudget));
+        } else if (this.useCircBudget) {
+          return p + (c / this.currentDiscoveryVar.circBudget);
+        } else {
+          return null;
+        }
+      },
+      metricFormatter: v => {
+        if (v != null && v !== 0) {
+          return (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
+        } else {
+          return 'N/A';
+        }
+      },
+      calcFlagState: () => {
+        return this.geoCpmMismatch;
+      }
+    };
+    this.metricDefinitions.push(progressToBudget);
+  }
 
-  private getMetricObservable() : Observable<MetricDefinition[]> {
+  private getMetricObservable(): Observable<MetricDefinition[]> {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive === 1))
     );
@@ -177,7 +192,36 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI): MetricDefinition[] {
+  private getMismatchObservable(): Observable<boolean> {
+    const geoOwnerTypes$ = this.attributeService.storeObservable.pipe(
+      map(attributes => attributes.filter(a => a.isActive === 1 && (a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency'))),
+      map(attributes => {
+        return {
+          valExists: attributes.filter(a => a.attributeCode === 'owner_group_primary' && a.attributeValue === 'VALASSIS').length > 0,
+          anneExists: attributes.filter(a => a.attributeCode === 'owner_group_primary' && a.attributeValue === 'ANNE').length > 0,
+          soloExists: attributes.filter(a => a.attributeCode === 'cov_frequency' && a.attributeValue === 'Solo').length > 0
+        };
+      })
+    );
+    const discovery$ = this.discoveryService.storeObservable.pipe(
+      filter(disco => disco != null && disco.length > 0),
+      map(disco => disco[0])
+    );
+
+    return combineLatest(geoOwnerTypes$, discovery$).pipe(
+      map(([attributes, discovery]) => {
+        if (!discovery.isDefinedbyOwnerGroup) {
+          return false;
+        } else {
+          return (!isNumber(discovery.anneCPM) && attributes.anneExists) || 
+          (!isNumber(discovery.valassisCPM) && attributes.valExists) || 
+          (!isNumber(discovery.soloCPM) && attributes.soloExists);
+        }
+      })
+    );
+  }
+
+  private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI) : MetricDefinition[] {
     if (discovery == null || attributes == null) return;
     this.currentDiscoveryVar = discovery;
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
@@ -210,19 +254,20 @@ export class ValMetricsService implements OnDestroy {
           }, new Map<string, ImpGeofootprintGeoAttrib[]>())
           .forEach(uniqueAttributes => {
             values.push(Number(definition.compositePreCalc(uniqueAttributes)));
+            this.currentGeoAttributes = [...uniqueAttributes];
           });
       } else {
         attributesUniqueByGeo
           .filter(a => a.attributeCode === code)
           .forEach(attribute => values.push(Number(attribute.attributeValue)));
       }
-      if (definition.calcFlagState != null) definition.metricFlag = definition.calcFlagState(discovery);
+      if (definition.calcFlagState != null) definition.metricFlag = definition.calcFlagState();
       definition.metricValue = values.reduce(definition.metricAccumulator, definition.metricDefault);
     }
     return this.metricDefinitions;
   }
 
-  public getLayerAttributes(): string[] {
+  public getLayerAttributes() : string[] {
     return ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency'];
   }
 

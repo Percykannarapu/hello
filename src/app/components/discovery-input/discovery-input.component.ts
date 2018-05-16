@@ -333,8 +333,13 @@ export class DiscoveryInputComponent implements OnInit
       
       if (this.impProject.estimatedBlendedCpm != null){
             this.impDiscoveryUI.selectCpmType = 'isBlended';
-      } else this.impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
-      
+            this.impDiscoveryUI.isCpmBlended = true;
+            this.onClickCPM('Blended');
+      } else {
+            this.impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
+            this.impDiscoveryUI.isCpmBlended = false;
+            this.onClickCPM('Owner');
+      }
       
       this.impDiscoveryUI.cpm = this.impProject.estimatedBlendedCpm;
       this.impDiscoveryUI.valassisCPM = this.impProject.smValassisCpm;
@@ -426,6 +431,7 @@ export class DiscoveryInputComponent implements OnInit
             this.impDiscoveryUI.valassisCPM = null;
             this.impDiscoveryUI.anneCPM = null;
             this.impDiscoveryUI.soloCPM = null;
+            this.selectCpmType = 'isBlended';
       }
       else{
             this.isCpmBlended = false;
