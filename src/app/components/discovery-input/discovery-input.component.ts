@@ -22,6 +22,9 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ImpProjectTrackerService } from '../../val-modules/targeting/services/ImpProjectTracker.service';
+import { Response } from '@angular/http/src/static_response';
+import { RestDataService } from '../../val-modules/common/services/restdata.service';
+import { map } from 'rxjs/internal/operators/map';
 
 
 interface Product {
@@ -78,6 +81,7 @@ export class DiscoveryInputComponent implements OnInit
    private loadRetries: number = 0;
    private analysisLevelRetries = 0;
    private mapReady: boolean = false;
+   private projectTrackerData = null;
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -95,7 +99,8 @@ export class DiscoveryInputComponent implements OnInit
                private messagingService: AppMessagingService,
                private valMapService: ValMapService,
                private messageService: MessageService,
-               private impProjectTrackerService: ImpProjectTrackerService)
+               private impProjectTrackerService: ImpProjectTrackerService,
+               private restService: RestDataService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -204,10 +209,10 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
       this.impRadLookupService.get(true);
 
-      this.impProjectTrackerService.storeObservable.subscribe(ptojectTrackerData => this.storeProjectTrackerData = ptojectTrackerData );
-
-      this.impProjectTrackerService.get(true);
-      //restdata.subscribe(response => console.log('response::::::::::::::::::::::', response) );
+      const sub = this.getImsProjectTrakerData().subscribe(data => {
+            console.log('project traker Date', data);
+            this.projectTrackerData = data;
+      });
      
       // console.log('Discovery defaults: ', this.impDiscoveryUI);
       /*  Currently disabled in favor of hard coded categories until we identify the true source
@@ -676,9 +681,9 @@ export class DiscoveryInputComponent implements OnInit
             
             console.log('project tracker:::', value);
             const ssd: string = null;
-            const projectTrackerData = this.impProjectTrackerService.get();
-            projectTrackerData.forEach((item => {
-                  const dataString = item['projectId'] + ' | ' + item['projectName'] ;
+           
+            this.projectTrackerData.forEach((item => {
+                  const dataString = item['projectId'] + ' ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
                   if (dataString.toLowerCase().indexOf(value.toLowerCase()) > -1){
                         this.searchList.push(dataString);
                   }
@@ -686,6 +691,29 @@ export class DiscoveryInputComponent implements OnInit
           
       }
     }
+
+    public getImsProjectTrakerData() : Observable<Response>{
+          const currentDate = new Date();
+          let updatedDateFrom = null;
+          const updatedDateTo = this.formatDate(currentDate);
+          console.log('updatedDateTo:::', updatedDateTo);
+          currentDate.setMonth(currentDate.getMonth() - 36);
+          updatedDateFrom = this.formatDate(currentDate);
+          console.log('updatedDateFrom:::', updatedDateFrom);
+         return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
+          TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
+           map((result: any) => result.payload.rows)
+          // console.log('result.payload.rows::::', result.payload.rows))
+          );
+     
+    }
+
+    public formatDate(date) {
+      const year = date.getFullYear().toString();
+      const month = (date.getMonth() + 101).toString().substring(1);
+      const day = (date.getDate() + 100).toString().substring(1);
+      return year + '-' + month + '-' + day;
+  }
 
     private sortOn(property) {
       return function (a, b) {

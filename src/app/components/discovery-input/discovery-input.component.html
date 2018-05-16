@@ -26,8 +26,8 @@
                 <p-autoComplete  [suggestions]="searchList" (completeMethod)="filterProjectTracker($event)" [size]="50"
                     [minLength]="1" placeholder="Project Tracker Id" [dropdown]="true">
                     <ng-template let-searchText pTemplate="item">
-                        <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
-                            <div style="font-size:18px;float:right;margin:10px 10px 0 0">{{searchText}}</div>
+                        <div class="ui-helper-clearfix" style="border-bottom:0px solid #D5D5D5">
+                            <div style="font-size:15px;float:left;margin:8px 8px 0 0">{{searchText}}</div>
                         </div>
                     </ng-template>
                 </p-autoComplete>
