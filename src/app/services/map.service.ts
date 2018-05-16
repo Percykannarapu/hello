@@ -313,7 +313,7 @@ export class MapService {
           color: 'rgba(0,0,0, 0)',
           style: 'solid',
           outline: {
-            color: 'white',
+            color: 'red',
             width: 1
           }
         }
@@ -337,6 +337,7 @@ export class MapService {
       //  * Clicks to finish sketching a point geometry.
       // ***********************************************************
       this.sketchViewModel.on('draw-complete', e => this.addSketchGraphic(e));
+
       // -----------------------------------------------------------------------------------
     }
 
@@ -395,18 +396,12 @@ export class MapService {
                 const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
                 this.appMapService.handleClickEvent(point);
                });
-          });
-
-
+          }, null, () => 
+              {
+                  console.log('select polygon');
+                  
+              });
       }
-
-      //this.updateSketchGraphic = null;
-    }
-
-
-    public findpolyOnExtent(poly: __esri.Polygon){
-       // if (poly.extent.contains)
-
     }
 
     // set active button
