@@ -114,7 +114,7 @@
 
             <div class="ui-g-12 val-grid-no-pad-left">
                     <span class="ui-float-label">
-                    <input id="totalBudget" type="text" [ngModel]="impDiscoveryUI.totalBudget" (change)="dollarBudgetChange($event)" pInputText>
+                    <input id="totalBudget" type="text" [ngModel]="impDiscoveryUI.totalBudget" (ngModelChange)="dollarBudgetChange($event)" pInputText>
                     <label> Dollar Budget</label>
                     </span>
                 </div>
