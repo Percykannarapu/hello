@@ -37,6 +37,14 @@ interface Category {
    code: string;
 }
 
+
+/* Need to check with kirk how to search based on object values
+export class ProjectTraker {
+    id: string;
+    projectName: string;
+    targetor: string;
+}*/
+
 @Component({
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
@@ -76,6 +84,8 @@ export class DiscoveryInputComponent implements OnInit
    summer: boolean = true;
 
    public searchList = [];
+  // projectTrackerList: ProjectTraker[];
+   public trakerId: string;
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
@@ -210,7 +220,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impRadLookupService.get(true);
 
       const sub = this.getImsProjectTrakerData().subscribe(data => {
-            console.log('project traker Date', data);
+            //console.log('project traker data', data);
             this.projectTrackerData = data;
       });
      
@@ -458,13 +468,21 @@ export class DiscoveryInputComponent implements OnInit
       });*/
    }
 
-  /* public onChangeSeason(event: SelectItem){
-      const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.selectedSeason;
+   public onChangeSeason(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.selectedSeason;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'seasonality', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
-
+      this.impDiscoveryUI.selectedSeason = event;
       this.onChangeField(event);
-   }*/
+   }
+
+   public dollarBudgetChange(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.totalBudget;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'seasonality', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.impDiscoveryUI.totalBudget = event;
+      this.onChangeField(event);
+   }
 
    public onChangeProjectId(event: SelectItem)
    {
@@ -525,6 +543,8 @@ export class DiscoveryInputComponent implements OnInit
       }
       this.loadRetries = 0;
       console.log('discovery-input.component - loadProject fired');
+      if (this.impProject.projectTrackerId != null)
+            this.trakerId = this.impProject.projectTrackerId.toString();
 
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
@@ -680,16 +700,28 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    filterProjectTracker(event) {
-      const value = event.query;   
+      const value = event.query; 
       this.searchList = [];
       if (value.length > 2) {
             const respList: string[] = [];
-            
-            console.log('project tracker:::', value);
-            const ssd: string = null;
-           
             this.projectTrackerData.forEach((item => {
-                  const dataString = item['projectId'] + ' ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
+                  //console.log('item value::::', item);
+                  let dataString = null;
+                  if ( item['targetor'] != null){
+                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
+                  }
+                  else{
+                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (Unassigned)'  ;
+                  }
+
+                 /* need to check with kirk to seach based on object insted of string
+                  const projectTracker: ProjectTraker = new ProjectTraker();
+                  projectTracker.id = item['projectId'];
+                  projectTracker.projectName = item['projectName'];
+                  projectTracker.targetor = item['projectName'] != null ? item['projectName'] : '  (Unassigned)';
+                  this.projectTrackerList.push(projectTracker);*/
+
+                  
                   if (dataString.toLowerCase().indexOf(value.toLowerCase()) > -1){
                         this.searchList.push(dataString);
                   }
@@ -698,14 +730,29 @@ export class DiscoveryInputComponent implements OnInit
       }
     }
 
+    public onChangeProjectTraker(event){
+          //console.log('event value', event);
+          if (event.length > 5){
+            this.impDiscoveryUI.projectTrackerId  = event.length > 4 ? event.substring(0, 4) : null;
+            
+            if (this.impProject.projectName == null && this.impProject.projectId == null){
+                  //this.impProject.projectName = 'test';
+                  this.impProject.projectName = event.substring(4, event.indexOf('('));
+            }
+                  
+          }
+         
+         //console.log('value substring:::', this.impDiscoveryUI.projectTrackerId);
+    }
+
     public getImsProjectTrakerData() : Observable<Response>{
           const currentDate = new Date();
           let updatedDateFrom = null;
           const updatedDateTo = this.formatDate(currentDate);
-          console.log('updatedDateTo:::', updatedDateTo);
+          //console.log('updatedDateTo:::', updatedDateTo);
           currentDate.setMonth(currentDate.getMonth() - 36);
           updatedDateFrom = this.formatDate(currentDate);
-          console.log('updatedDateFrom:::', updatedDateFrom);
+          //console.log('updatedDateFrom:::', updatedDateFrom);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
           TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
            map((result: any) => result.payload.rows)
@@ -720,16 +767,4 @@ export class DiscoveryInputComponent implements OnInit
       const day = (date.getDate() + 100).toString().substring(1);
       return year + '-' + month + '-' + day;
   }
-
-    private sortOn(property) {
-      return function (a, b) {
-        if (a[property] < b[property]) {
-          return -1;
-        } else if (a[property] > b[property]) {
-          return 1;
-        } else {
-          return 0;
-        }
-      };
-    }
 }

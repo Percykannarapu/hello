@@ -398,7 +398,9 @@ export class MapService {
                });
           }, null, () => 
               {
-                  console.log('select polygon');
+                this.mapView.graphics.removeAll();
+                  setTimeout(() => 
+                      this.sketchViewModel.create('rectangle', undefined), 0);
                   
               });
       }
