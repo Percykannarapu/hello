@@ -111,7 +111,7 @@ export class UploadTradeAreasComponent implements OnInit {
       const discoveryUI: ImpDiscoveryUI[] = this.impDiscoveryService.get();
       let customIndex: number = 0;
       this.analysisLevel = discoveryUI[0].analysisLevel;
-      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.analysisLevel, true);
+      const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.analysisLevel, false);
 
       //const filteredLocations: ImpGeofootprintLocation[] = [];
       //const successGeoLocMap:  Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
@@ -165,10 +165,19 @@ export class UploadTradeAreasComponent implements OnInit {
                 const loc: ImpGeofootprintLocation = geoLocMap.get(geocode);
                 geocodeResultSet.add(geocode);
                 customIndex++;
-                const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
-                const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
-                const geocodeDistance =  EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
-                const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
+                const geometry = graphic.geometry;
+                let point: __esri.Point = null;
+                let latitude: number = null;
+                let longitude: number = null;
+                let geocodeDistance: number = null;
+                if (EsriUtils.geometryIsPoint(geometry)) {
+                  latitude = geometry.latitude   != null ? geometry.latitude : geometry.y;
+                  longitude = geometry.longitude != null ? geometry.longitude : geometry.x;
+                  geocodeDistance =  EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
+                } else {
+                  console.warn('The data returned for the centroid during the CTA query has no associated geometry');
+                }
+                point = new EsriModules.Point({latitude: latitude, longitude: longitude});
 
                 const geoData = data.parsedData.filter(g => g.Geo === geocode);
                 if (geoData.length > 0) {
