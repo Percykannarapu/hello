@@ -2,7 +2,7 @@
     <div class="ui-g-5">
       <div class="ui-g-12">
         <div class="ui-g-3">
-          <label>Add as:</label>
+          <label>Define For:</label>
         </div>
         <div class="ui-g-3">
           <p-radioButton name="uploadListType1" value="Site" label="Sites" [(ngModel)]="listType1"></p-radioButton>
@@ -16,8 +16,8 @@
               <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="analysisLevel == null || analysisLevel.length === 0"
                             pTooltip="CSV or Excel format required: Location #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
               </p-fileUpload>
-              <div *ngIf="analysisLevel == null || analysisLevel.length === 0 "  >
-              Please select an Analysis Level before uploading a custom trade area
+              <div *ngIf="analysisLevel == null || analysisLevel.length === 0 " class="warning-label" >
+                Please select an Analysis Level before uploading a custom trade area
         </div>
             </div>
       </div>
