@@ -78,7 +78,7 @@ export class UploadLocationsComponent {
       this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
       this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: this.listType.toLowerCase() + '-data-file', action: 'upload' });
-      this.usageService.createCounterMetric(usageMetricName, `success=${data.parsedData.length}~error=${data.failedRows.length}`, null);
+      this.usageService.createCounterMetric(usageMetricName, `total=${rows.length - 1}`, null);
       this.messagingService.stopSpinnerDialog(this.spinnerKey);
       });
     } catch (e) {

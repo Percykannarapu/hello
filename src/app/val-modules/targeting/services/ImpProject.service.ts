@@ -44,6 +44,7 @@ let restUrl = 'v1/targeting/base/impproject/';
 let dataUrl = restUrl + 'load';
 // let dataUrl = restUrl + 'search?q=impProject';
 
+
 @Injectable()
 export class ImpProjectService extends DataStore<ImpProject>
 {
@@ -68,6 +69,8 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.add([new ImpProject({methAnalysis: 'ZIP'})]);
    }
 
+   public trakerId: string;
+
    private handleError(error: Response)
    {
       const errorMsg = `Status code: ${error.status} on url ${error.url}`;
@@ -79,6 +82,8 @@ export class ImpProjectService extends DataStore<ImpProject>
    {
       this.appProjectService.loadProject(projectId, clearStore).subscribe((projects: ImpProject[]) => {
          console.log('ImpProjectService.loadProject - load from AppProject finished');
+         if (projects[0].projectTrackerId != null)
+             this.trakerId = projects[0].projectTrackerId.toString();
          this.replace(projects);
       //this.replace(this.appProjectService.get());
       });

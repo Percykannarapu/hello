@@ -9,7 +9,7 @@ import { AppMessagingService } from './app-messaging.service';
 @Injectable()
 export class ValGeocodingService {
 
-  private failures: BehaviorSubject<ValGeocodingResponse[]> = new BehaviorSubject<ValGeocodingResponse[]>([]);
+  public failures: BehaviorSubject<ValGeocodingResponse[]> = new BehaviorSubject<ValGeocodingResponse[]>([]);
 
   public geocodingFailures$: Observable<ValGeocodingResponse[]> = this.failures.asObservable();
   public failureCount$: Observable<number> = this.geocodingFailures$.pipe(map(failures => failures.length));

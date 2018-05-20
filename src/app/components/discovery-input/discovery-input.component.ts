@@ -85,7 +85,7 @@ export class DiscoveryInputComponent implements OnInit
 
    public searchList = [];
   // projectTrackerList: ProjectTraker[];
-   public trakerId: string;
+   
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
@@ -543,13 +543,13 @@ export class DiscoveryInputComponent implements OnInit
       }
       this.loadRetries = 0;
       console.log('discovery-input.component - loadProject fired');
-      if (this.impProject.projectTrackerId != null)
-            this.trakerId = this.impProject.projectTrackerId.toString();
+      
 
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
+     
    }
 
    public saveProject()
