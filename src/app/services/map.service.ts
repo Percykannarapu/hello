@@ -18,6 +18,7 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { AppMessagingService } from './app-messaging.service';
 
 @Injectable()
 export class MapService {
@@ -57,7 +58,7 @@ export class MapService {
         private appMapService: ValMapService,
         private usageService: UsageService,
         private esriLayerService: EsriLayerService, 
-        private esriQueryService: EsriQueryService) {
+        private esriQueryService: EsriQueryService, private messagingService: AppMessagingService) {
         this.esriMapService.onReady$.subscribe(ready => {
             if (ready) {
                 this.mapView = this.esriMapService.mapView;
@@ -385,23 +386,23 @@ export class MapService {
           const polygons = geometry as __esri.Polygon;
           console.log('polygons:::::', polygons);
           const discoveryUi: ImpDiscoveryUI[] = this.impDiscoveryService.get(); 
+          this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
           const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(discoveryUi[0].analysisLevel);
           const layer = this.esriLayerService.getPortalLayerById(boundaryLayerId);
+          const geocodes = [];
+          let graphicsList = [];
           const sub = this.esriQueryService.queryLayerView(boundaryLayerId, true,  polygons.extent).subscribe(graphics => {
-
-               console.log('list of ggraphics::', graphics);
-               graphics.forEach(graphic => {
-                const latitude = graphic.geometry['centroid'].latitude   != null ? graphic.geometry['centroid'].latitude  : graphic.geometry['centroid'].y;
-                const longitude = graphic.geometry['centroid'].longitude != null ? graphic.geometry['centroid'].longitude : graphic.geometry['centroid'].x;
-                const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-                this.appMapService.handleClickEvent(point);
-               });
+            graphicsList = graphics;
           }, null, () => 
               {
+                this.appMapService.selectMultipleGeocode(graphicsList);  
+              //  console.log('list of graphicsList:::', graphicsList);
                 this.mapView.graphics.removeAll();
-                  setTimeout(() => 
-                      this.sketchViewModel.create('rectangle', undefined), 0);
-                  
+               
+                  setTimeout(() => {
+                    this.sketchViewModel.create('rectangle', undefined);
+                    this.messagingService.stopSpinnerDialog('selectGeos');
+                  }, 0);
               });
       }
     }

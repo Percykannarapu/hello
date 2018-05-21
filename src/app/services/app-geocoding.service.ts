@@ -15,6 +15,8 @@ export class ValGeocodingService {
   public failureCount$: Observable<number> = this.geocodingFailures$.pipe(map(failures => failures.length));
   public hasFailures$: Observable<boolean> = this.failureCount$.pipe(map(c => c > 0));
 
+  public currentFilefailedlist = 0;
+
   constructor(private messageService: AppMessagingService, private restService: RestDataService) { }
 
   public removeFailedGeocode(data: ValGeocodingResponse) : void {
@@ -28,6 +30,7 @@ export class ValGeocodingService {
 
   public geocodeLocations(sites: ValGeocodingRequest[]) : Promise<ValGeocodingResponse[]> {
     let geocoderPromise: Promise<ValGeocodingResponse[]>;
+    this.currentFilefailedlist = 0;
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
       const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
@@ -50,6 +53,7 @@ export class ValGeocodingService {
             });
             const projectFailures =  this.failures.getValue();
           this.failures.next([...fail, ...projectFailures]);
+          this.currentFilefailedlist = this.failures.getValue().length;
           return success;
           })
         );
