@@ -708,10 +708,10 @@ export class DiscoveryInputComponent implements OnInit
                   //console.log('item value::::', item);
                   let dataString = null;
                   if ( item['targetor'] != null){
-                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
+                        dataString = item['projectId'] + '   ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
                   }
                   else{
-                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (Unassigned)'  ;
+                        dataString = item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)'  ;
                   }
 
                  /* need to check with kirk to seach based on object insted of string
@@ -732,14 +732,17 @@ export class DiscoveryInputComponent implements OnInit
 
     public onChangeProjectTraker(event){
           //console.log('event value', event);
-          if (event.length > 5){
-            this.impDiscoveryUI.projectTrackerId  = event.length > 4 ? event.substring(0, 4) : null;
+          if (event.length > 6){
+            this.impDiscoveryUI.projectTrackerId  = event.length > 5 ? event.substring(0, 6) : null;
             
             if (this.impProject.projectName == null && this.impProject.projectId == null){
                   //this.impProject.projectName = 'test';
                   this.impProject.projectName = event.substring(4, event.indexOf('('));
             }
                   
+          }
+          else{
+            this.impDiscoveryUI.projectTrackerId = event;
           }
          
          //console.log('value substring:::', this.impDiscoveryUI.projectTrackerId);
