@@ -93,7 +93,7 @@ export class TargetAudienceApioService {
       result.isNumber = 1;
     }
     if (rawData != null) {
-      result.customVarExprDisplay = rawData.categoryName;
+      result.customVarExprDisplay = `${rawData.categoryName} (${source})`;
     }
     return result;
   }
