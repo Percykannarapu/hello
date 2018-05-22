@@ -53,7 +53,7 @@ export class ValGeocodingService {
             });
             const projectFailures =  this.failures.getValue();
           this.failures.next([...fail, ...projectFailures]);
-          this.currentFilefailedcount = this.failures.getValue().length;
+          this.currentFilefailedcount = projectFailures.length;
           return success;
           })
         );
