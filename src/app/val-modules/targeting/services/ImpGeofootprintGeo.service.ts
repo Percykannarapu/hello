@@ -28,6 +28,8 @@ import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { AppConfig } from '../../../app.config';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
+import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -43,8 +45,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
 
-   // this is intended to be a cache of the attrobutes and geos used for the geoffotprint export
+   // this is intended to be a cache of the attributes and geos used for the geofootprint export
    private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
+   private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
 
    constructor(private restDataService: RestDataService,
                private impDiscoveryService: ImpDiscoveryService,
@@ -52,6 +55,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private messageService: AppMessagingService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
+               private impGeofootprintVarService: ImpGeofootprintVarService,
                private config: AppConfig)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
@@ -600,23 +604,35 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    };
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
+      let result = '';
       if (state.attributeCache.has(geo)) {
          const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
          const attr = attrs.find(i => i.attributeCode === header);
-         return attr != null ? attr.attributeValue : '';
+         result = attr != null ? attr.attributeValue : '';
       }
-      console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
-      return '';
+      if (result === '' && state.varCache.has(geo.geocode)) {
+        const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
+        const currentVar = vars.find(v => v.customVarExprDisplay === header);
+        if (currentVar != null) {
+          if (currentVar.isString) result = currentVar.valueString;
+          if (currentVar.isNumber) result = currentVar.valueNumber.toString();
+        }
+      }
+      if (result === '') {
+        console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
+      }
+      return result;
    }
 
-   public addVarAttributeExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
+   public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
    // console.log('exportVar handler for #V-ATTRIBUTES fired');
-      let varValue: any;
       const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const attributeNames = Array.from(new Set(allExportAttributes.map(att => att.attributeCode)));
+      const allExportGeoVars = this.impGeofootprintVarService.get();
+      const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
+      allExportGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
+      const attributeNames = Array.from(columnSet);
       attributeNames.sort();
-
       attributeNames.forEach(name => {
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
@@ -640,6 +656,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
 
+      this.varCache = new Map<string, ImpGeofootprintVar[]>();
+      for (const geoVar of this.impGeofootprintVarService.get()) {
+         if (this.varCache.has(geoVar.geocode)) {
+            this.varCache.get(geoVar.geocode).push(geoVar);
+         } else {
+            this.varCache.set(geoVar.geocode, [geoVar]);
+         }
+      }
+
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
          this.messageService.showGrowlError('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
@@ -649,7 +674,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
       // TODO make this a part of the getExportFormat
-      this.addVarAttributeExportColumns(exportColumns, 17);
+      this.addAdditionalExportColumns(exportColumns, 17);
 
       if (filename == null)
          filename = this.getFileName();

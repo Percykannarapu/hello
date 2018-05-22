@@ -96,7 +96,7 @@
         <ul style="list-style: none;padding:0px">
           <li *ngIf="searchResults.length > 0">
               <div style="padding: 1px">
-                <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All" [(ngModel)]="selectAll"></p-checkbox>
+                <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All"></p-checkbox>
                 <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchResults = [];"></button>
               </div>
           </li>

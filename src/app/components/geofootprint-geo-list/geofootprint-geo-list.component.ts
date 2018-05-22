@@ -10,6 +10,8 @@ import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/ser
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
+import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -21,6 +23,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private siteSubscription: Subscription;
    private geosSubscription: Subscription;
    private attributeSubscription: Subscription;
+   private varSubscription: Subscription;
 
    public  impGeofootprintLocations: ImpGeofootprintLocation[];
    public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
@@ -29,6 +32,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
    public impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
+   private imGeofootprintVars: ImpGeofootprintVar[];
 
 
   public myStyles = {
@@ -70,6 +74,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
+               private impGeofootprintVarService: ImpGeofootprintVarService,
                private mapService: EsriMapService) { }
 
    ngOnInit()
@@ -82,6 +87,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       this.attributeSubscription = this.impGeofootprintGeoAttribService.storeObservable.subscribe(storeData => this.onChangeGeoAttributes(storeData));
 
+      this.varSubscription = this.impGeofootprintVarService.storeObservable.subscribe(storeData => this.onChangeGeoVars(storeData));
       // For now, sub out some data
       //this.stubLocations();
       //this.stubGeos();
@@ -137,6 +143,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.geoGridCache.clear();
 //    console.log('onChangeGeoAttributes - After:  ', this.impGeofootprintGeoAttributes);
 //    console.log('----------------------------------------------------------------------------------------');
+   }
+
+   private onChangeGeoVars(geoVars: ImpGeofootprintVar[]) : void {
+     this.imGeofootprintVars = Array.from(geoVars);
+     this.geoGridCache.clear();
    }
 
    // -----------------------------------------------------------
@@ -222,8 +233,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
      if (!this.geoGridCache.has(location)) {
        const geos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation === location);
-       const geoSet = new Set(geos);
-       const attributes = this.impGeofootprintGeoAttributes.filter(attribute => attribute.attributeType === 'Geofootprint Variable' && geoSet.has(attribute.impGeofootprintGeo));
+       const geoSet = new Set(geos.map(g => g.geocode));
+       const attributes = this.impGeofootprintGeoAttributes.filter(attribute => attribute.attributeType === 'Geofootprint Variable' && geoSet.has(attribute.impGeofootprintGeo.geocode));
+       const vars = this.imGeofootprintVars.filter(gv => geoSet.has(gv.geocode));
        const result = geos.map(geo => Object.assign({}, geo));
        const attributeSet = new Set(this.geoGridAdditionalColumns);
        result.forEach(geo => {
@@ -234,6 +246,16 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
              if (!attributeSet.has(att.attributeCode)) {
                this.geoGridAdditionalColumns.push(att.attributeCode);
                attributeSet.add(att.attributeCode);
+             }
+           });
+         }
+         const currentVars = vars.filter(v => v.geocode === geo.geocode);
+         if (currentVars.length > 0) {
+           currentVars.forEach(gv => {
+             geo[gv.customVarExprDisplay] = gv.isNumber === 1 ? gv.valueNumber : gv.valueString;
+             if (!attributeSet.has(gv.customVarExprDisplay)) {
+               this.geoGridAdditionalColumns.push(gv.customVarExprDisplay);
+               attributeSet.add(gv.customVarExprDisplay);
              }
            });
          }

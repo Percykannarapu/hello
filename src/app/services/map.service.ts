@@ -57,7 +57,7 @@ export class MapService {
         private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
         private appMapService: ValMapService,
         private usageService: UsageService,
-        private esriLayerService: EsriLayerService, 
+        private esriLayerService: EsriLayerService,
         private esriQueryService: EsriQueryService, private messagingService: AppMessagingService) {
         this.esriMapService.onReady$.subscribe(ready => {
             if (ready) {
@@ -175,50 +175,27 @@ export class MapService {
         const home = new EsriModules.widgets.Home({
             view: this.mapView
         });
-
-        // Create an instace of the Compass widget
-        const compass = new EsriModules.widgets.Compass({
-            view: this.mapView
-        });
-
-        // Create an instace of the Locate widget
-        const locate = new EsriModules.widgets.Locate({
-            view: this.mapView
-        });
-
-        // Create an instance of the Search widget
         const search = new EsriModules.widgets.Search({
           view: this.mapView,
           container: document.createElement('div')
         });
-
-        // Create an instance of the Legend widget
         const legend = new EsriModules.widgets.Legend({
             view: this.mapView,
             container: document.createElement('div')
         });
-
-        // Create an instance of the Scalebar widget
         const scaleBar = new EsriModules.widgets.ScaleBar({
             view: this.mapView,
             unit: 'dual' // The scale bar displays both metric and non-metric units.
         });
-
-        // Create an instance of the BasemapGallery widget
         const basemapGallery = new EsriModules.widgets.BaseMapGallery({
             view: this.mapView,
             container: document.createElement('div')
         });
 
-
-        /*
-        // Create an instance of the print widget
-        const print = new EsriModules.widgets.Print({
+        const layerListWidget = new EsriModules.widgets.LayerList({
             view: this.mapView,
-            printServiceUrl: this.config.valPrintServiceURL,
-            container: document.createElement('div')
+            container: document.createElement('div'),
         });
-        */
 
         // Create an Expand instance and set the content
         // property to the DOM node of the basemap gallery widget
@@ -242,50 +219,32 @@ export class MapService {
             expandIconClass: 'esri-icon-search',
             expandTooltip: 'Search',
         });
-
-        /*
-        const printExpand = new EsriModules.widgets.Expand({
+        const layerListExpand = new EsriModules.widgets.Expand({
             view: this.mapView,
-            content: print.container,
-            expandIconClass: 'esri-icon-printer',
-            expandTooltip: 'Print',
+            content: layerListWidget.container,
+            expandIconClass: 'esri-icon-layer-list',
+            expandTooltip: 'Expand LayerList',
         });
-        */
 
         // Add widgets to the viewUI
         this.esriMapService.addWidget(home, 'top-left');
         this.esriMapService.addWidget(searchExpand, 'top-left');
-        // TODO: hard coded id is temporary
-        this.layerService.initLayerList('colorSlider');
-
-        //this.esriMapService.addWidget(legend, 'top-left');
+        this.esriMapService.addWidget(layerListExpand, 'top-left');
         this.esriMapService.addWidget(legendExpand, 'top-left');
         this.esriMapService.addWidget(bgExpand, 'top-left');
-        /*US6650: nallana
-        --Removing the demo content
-        --We need to keep this content for enhancements,
-        --if we want to use the additional functionality
-        */
-        //this.esriMapService.addWidget(locate, 'top-left');
-        //this.esriMapService.addWidget(printExpand, 'top-right');
-
         this.esriMapService.addWidget(scaleBar, 'bottom-left');
 
         // Event handler that fires each time a popup action is clicked.
         this.mapView.popup.on('trigger-action', (event) => {
-
           // Execute the measureThis() function if the measure-this action is clicked
           if (event.action.id === 'measure-this') {
             this.measureThis();
           }
-
           // Execute the selectThis() function if the select-this action is clicked
           if (event.action.id === 'select-this') {
             this.selectThis();
           }
-
         });
-
         this.setupSketchViewModel();
     }
 
@@ -362,7 +321,7 @@ export class MapService {
         geometry: geometry,
         symbol: symbol
       });
-      
+
       this.mapView.graphics.add(sketchGraphic);
       // ----------------------------------------------------------------------------------------
       // Measure Length of PolyLine
@@ -385,7 +344,7 @@ export class MapService {
       if (this.mapFunction === mapFunctions.DrawPoly){
           const polygons = geometry as __esri.Polygon;
           console.log('polygons:::::', polygons);
-          const discoveryUi: ImpDiscoveryUI[] = this.impDiscoveryService.get(); 
+          const discoveryUi: ImpDiscoveryUI[] = this.impDiscoveryService.get();
           this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
           const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(discoveryUi[0].analysisLevel);
           const layer = this.esriLayerService.getPortalLayerById(boundaryLayerId);
@@ -393,12 +352,12 @@ export class MapService {
           let graphicsList = [];
           const sub = this.esriQueryService.queryLayerView(boundaryLayerId, true,  polygons.extent).subscribe(graphics => {
             graphicsList = graphics;
-          }, null, () => 
+          }, null, () =>
               {
-                this.appMapService.selectMultipleGeocode(graphicsList);  
+                this.appMapService.selectMultipleGeocode(graphicsList);
               //  console.log('list of graphicsList:::', graphicsList);
                 this.mapView.graphics.removeAll();
-               
+
                   setTimeout(() => {
                     this.sketchViewModel.create('rectangle', undefined);
                     this.messagingService.stopSpinnerDialog('selectGeos');

@@ -1,7 +1,7 @@
 import { ElementRef, Inject, Injectable } from '@angular/core';
 import { EsriModules } from './esri-modules.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { publish, refCount } from 'rxjs/operators';
+import { publishLast, refCount, share } from 'rxjs/operators';
 import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
 @Injectable()
@@ -57,14 +57,14 @@ export class EsriMapService {
     return Observable.create(observer => {
       const esriHandle = this.mapView.on(eventName, f => observer.next(f));
       return () => esriHandle.remove();
-    }).pipe(publish(), refCount());
+    }).pipe(share());
   }
 
   private createFieldHandler<T>(esriItem: __esri.Accessor, fieldName: string) : Observable<T> {
     return Observable.create(observer => {
       const esriHandle = esriItem.watch(fieldName, f => observer.next(f));
       return () => esriHandle.remove();
-    }).pipe(publish(), refCount());
+    }).pipe(share());
   }
 
   public zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : void {

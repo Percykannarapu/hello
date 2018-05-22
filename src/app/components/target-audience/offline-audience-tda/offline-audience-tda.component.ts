@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
-import { CategoryVariable, DemographicCategory, TopVarService } from '../../../services/top-var.service';
-import { map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 
 @Component({
   selector: 'val-offline-audience-tda',
-  templateUrl: './offline-audience-tda.html'
+  templateUrl: './offline-audience-tda.component.html'
 })
 export class OfflineAudienceTdaComponent implements OnInit {
   private allNodes: TreeNode[] = [];
@@ -16,22 +16,23 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private varService: TopVarService) { }
+  constructor(private audienceService: TargetAudienceTdaService) { }
 
-  private static asFolder(category: DemographicCategory) : TreeNode {
+  private static asFolder(category: TdaAudienceDescription) : TreeNode {
     return {
-      label: category.tabledesc,
+      label: category.displayName,
       data: category,
       expandedIcon: 'ui-icon-folder-open',
       collapsedIcon: 'ui-icon-folder',
       leaf: false,
-      selectable: false
+      selectable: false,
+      children: category.children.map(child => this.asLeaf(child))
     };
   }
 
-  private static asLeaf(variable: CategoryVariable) : TreeNode {
+  private static asLeaf(variable: TdaAudienceDescription) : TreeNode {
     return {
-      label: variable.fielddescr,
+      label: variable.displayName,
       data: variable,
       icon: 'fa-fontAwesome fa-file-o',
       leaf: true,
@@ -39,27 +40,19 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   public ngOnInit() : void {
-    const sub = this.varService.getDemographicCategories().subscribe(categories => {
-      categories.sort((a, b) => a.sort - b.sort);
-      this.allNodes = categories.map(c => OfflineAudienceTdaComponent.asFolder(c));
-      this.allNodes.forEach(n => this.fillNode(n));
-    }, null, () => {
-      sub.unsubscribe();
-      this.loading = false;
-      this.currentNodes = Array.from(this.allNodes);
-    });
+    this.audienceService.getAudienceDescriptions().subscribe(
+      folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
+      err => console.error('There was an error during retrieval of the TDA Audience descriptions', err),
+      () => {
+        this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
+        this.currentNodes = Array.from(this.allNodes);
+        this.loading = false;
+      }
+    );
     this.searchTerm$.pipe(
       debounceTime(400),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
-  }
-
-  private fillNode(currentNode: TreeNode) : void {
-    if (currentNode.children == null || currentNode.children.length === 0) {
-      const currentSub = this.varService.getVariablesByCategory(currentNode.data.tablename).pipe(
-        map(variables => variables.map(v => OfflineAudienceTdaComponent.asLeaf(v)))
-      ).subscribe(nodes => currentNode.children = Array.from(nodes), null, () => currentSub.unsubscribe());
-    }
   }
 
   private filterNodes(term: string) {
@@ -69,7 +62,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
       this.currentNodes = [];
       this.allNodes.forEach(category => {
         const newChildren = category.children.filter(variable => variable.label.toLowerCase().includes(term.toLowerCase()) ||
-                                                               variable.data.fieldname.toLowerCase().includes(term.toLowerCase()));
+                                                               variable.data.additionalSearchField.toLowerCase().includes(term.toLowerCase()));
         if (newChildren.length > 0) {
           const newCategory = Object.assign({}, category);
           newCategory.children = newChildren;
@@ -81,10 +74,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   public selectVariable(event: TreeNode) : void {
-    this.varService.selectTdaVariable(event.data);
+    this.audienceService.addAudience(event.data);
   }
 
   public removeVariable(event: TreeNode) : void {
-    this.varService.removeTdaVariable(event.data);
+    this.audienceService.removeAudience(event.data);
   }
 }

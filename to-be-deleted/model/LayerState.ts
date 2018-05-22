@@ -1,13 +1,6 @@
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { EsriModules } from '../../src/app/esri-modules/core/esri-modules.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { DemographicVariable } from '../services/top-var.service';
-
-export enum SmartMappingTheme {
-  HighToLow = 'high-to-low',
-  AboveAndBelow = 'above-and-below',
-  //CenteredOn = 'centered-on',
-  Extremes = 'extremes'
-}
+import { DemographicVariable } from '../../src/app/services/target-audience.service';
 
 export class LayerState {
 
@@ -22,7 +15,7 @@ export class LayerState {
   private newBaseMap: __esri.Basemap;
   private newTopVar: DemographicVariable;
   private newVarActualFieldName: string;
-  private newTheme: SmartMappingTheme;
+  //private newTheme: SmartMappingTheme;
 
   private colorSlider: __esri.ColorSlider;
 
