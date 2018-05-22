@@ -841,6 +841,7 @@ export class DiscoveryInputComponent implements OnInit
             if (this.impProject.projectName == null && this.impProject.projectId == null){
                   //this.impProject.projectName = 'test';
                   this.impProject.projectName = event.substring(4, event.indexOf('('));
+                  this.impProject.projectName = this.impProject.projectName.trim();
             }
           }
           else{
