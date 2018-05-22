@@ -645,6 +645,13 @@ export class DiscoveryInputComponent implements OnInit
       this.impProjectService.loadProject(this.impProject.projectId);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
+      // set local copy of discovery ui
+      //this.localCopydiscoverUI = this.impDiscoveryService.get()[0];
+       this.localCopydiscoverUI.totalBudget = this.impProject.totalBudget;
+       this.localCopydiscoverUI.cpm  = this.impProject.estimatedBlendedCpm;
+       this.localCopydiscoverUI.valassisCPM = this.impProject.smValassisCpm;
+       this.localCopydiscoverUI.anneCPM = this.impProject.smAnneCpm;
+       this.localCopydiscoverUI.soloCPM = this.impProject.smSoloCpm;
      
    }
 
