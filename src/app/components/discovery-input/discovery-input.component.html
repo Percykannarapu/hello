@@ -79,28 +79,28 @@
                 <label>Include POBs?</label>
             </div>
             <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includePob" (onChange)="onChangeField($event)"></p-inputSwitch>
+                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includePob" (ngModelChange)="onChangePob($event)"></p-inputSwitch>
             </div> 
         
             <div class="ui-g-8">
                 <label>Include Valassis geographies?</label>
             </div>
             <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeValassis" (onChange)="onChangeField($event)"></p-inputSwitch>
+                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeValassis" (ngModelChange)="onChangeIncludeVal($event)"></p-inputSwitch>
             </div>
         
             <div class="ui-g-8">
                 <label>Include ANNE geographies?</label>
             </div>
             <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeAnne" (onChange)="onChangeField($event)"></p-inputSwitch>
+                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeAnne" (ngModelChange)="onChangeIncludeAnne($event)"></p-inputSwitch>
             </div>
         
             <div class="ui-g-8">
                 <label>Include Solo geographies?</label>
             </div>
             <div class="ui-g-4">
-                    <p-inputSwitch onLabel="Yes" offLabel="No" [(ngModel)]="impDiscoveryUI.includeSolo" (onChange)="onChangeField($event)"></p-inputSwitch>
+                    <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeSolo" (ngModelChange)="onChangeIncludeSolo($event)"></p-inputSwitch>
             </div> 
         </div>
     </div>
@@ -114,14 +114,14 @@
 
             <div class="ui-g-12 val-grid-no-pad-left">
                     <span class="ui-float-label">
-                    <input id="totalBudget" type="text" [ngModel]="impDiscoveryUI.totalBudget" (ngModelChange)="dollarBudgetChange($event)" pInputText>
-                    <label> Dollar Budget</label>
+                        <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (blur)="dollarBudgetChange($event)" pInputText>
+                        <label> Dollar Budget</label>
                     </span>
                 </div>
                 <div class="ui-g-12 val-grid-no-pad-left">
                         <span class="ui-float-label">
-                        <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (change)="onChangeField($event)" pInputText>
-                        <label> Circ Budget</label>
+                            <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (blur)="onChangecircBudget($event)" pInputText>
+                            <label> Circ Budget</label>
                         </span>
                 </div>
              </div>      
@@ -137,7 +137,7 @@
         <div class="ui-g-11">
             <div class="ui-g-12">
             <span class="ui-float-label">
-                <input id="cpm" type="text" [disabled]="!isCpmBlended" [(ngModel)]="impDiscoveryUI.cpm"  (change)="onChangeField($event)" pInputText>
+                <input id="cpm" type="text" [disabled]="!isCpmBlended" [(ngModel)]="impDiscoveryUI.cpm"  (blur)="onChangeBlendedCpm($event)" pInputText>
                 <label>CPM</label>
                 <!-- <i *ngIf="impDiscoveryUI.cpm === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
             </span>
@@ -154,7 +154,7 @@
             <div class="ui-g-11"> 
                 <div class="ui-g-12">
                     <span class="ui-float-label">
-                        <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(change)="onChangeField($event)" pInputText>
+                        <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(blur)="onChangeValCpm($event)" pInputText>
                         <label> Valassis CPM</label>
                         <!-- <i *ngIf="impDiscoveryUI.valassisCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
                     </span>
@@ -162,14 +162,14 @@
             
                 <div class="ui-g-12">
                     <span class="ui-float-label">
-                        <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (change)="onChangeField($event)" pInputText>
+                        <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (blur)="onChangeAnneCpm($event)" pInputText>
                         <label>ANNE CPM</label>
                         <!-- <i *ngIf="impDiscoveryUI.anneCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
                     </span>
                 </div> 
                 <div class="ui-g-12">
                     <span class="ui-float-label">
-                    <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (change)="onChangeField($event)" pInputText>
+                    <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (blur)="onChangeSoloCpm($event)" pInputText>
                     <label>Solo CPM</label>
                     <!-- <i *ngIf="impDiscoveryUI.soloCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
                     </span>

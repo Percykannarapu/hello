@@ -469,6 +469,7 @@ export class MapService {
 
     // Toggle Polygon Selection Mode
     public selectPolyButton(event: MouseEvent) {
+        this.sketchViewModel.reset();
         this.mapFunction = mapFunctions.SelectPoly;
         this.setActiveButton(event);
         this.toggleFeatureLayerPopups();
@@ -476,6 +477,7 @@ export class MapService {
 
     // Toggle Popups
     public popupsButton(event: MouseEvent) {
+        this.sketchViewModel.reset();
         this.mapFunction = mapFunctions.Popups;
         this.setActiveButton(event);
         this.toggleFeatureLayerPopups();
@@ -483,6 +485,7 @@ export class MapService {
 
     // activate the sketch to create a "Measure" polyline
     public measureLineButton(event: MouseEvent) {
+        this.sketchViewModel.reset();
         this.mapFunction = mapFunctions.MeasureLine;
         this.setActiveButton(event);
         // set the sketch to create a polyline geometry
@@ -492,6 +495,7 @@ export class MapService {
 
     // Toggle Polygon multiple selection Mode
     public selectMultiPolyButton(event: MouseEvent){
+        this.sketchViewModel.reset();
         this.mapFunction = mapFunctions.DrawPoly;
         this.setActiveButton(event);
         // set the sketch to create a polygon geometry
