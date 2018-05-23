@@ -652,6 +652,7 @@ export class DiscoveryInputComponent implements OnInit
        this.localCopydiscoverUI.valassisCPM = this.impProject.smValassisCpm;
        this.localCopydiscoverUI.anneCPM = this.impProject.smAnneCpm;
        this.localCopydiscoverUI.soloCPM = this.impProject.smSoloCpm;
+       this.localCopydiscoverUI.projectTrackerId = this.impProject.projectTrackerId;
      
    }
 
@@ -836,11 +837,20 @@ export class DiscoveryInputComponent implements OnInit
     public onChangeProjectTraker(event){
           //console.log('event value', event);
           if (event.length > 6){
-            this.impDiscoveryUI.projectTrackerId  = event.length > 5 ? event.substring(0, 6) : null;
+            let  metricsText = null;
+            this.impDiscoveryUI.projectTrackerId  = parseFloat(event);
+            if (this.localCopydiscoverUI.projectTrackerId != null )
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + this.localCopydiscoverUI.projectTrackerId;
+            else 
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + null;  
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+            this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+
+            this.localCopydiscoverUI.projectTrackerId = this.impDiscoveryUI.projectTrackerId;
             
             if (this.impProject.projectName == null && this.impProject.projectId == null){
                   //this.impProject.projectName = 'test';
-                  this.impProject.projectName = event.substring(4, event.indexOf('('));
+                  this.impProject.projectName = event.substring(this.impDiscoveryUI.projectTrackerId.toString().length, event.indexOf('('));
                   this.impProject.projectName = this.impProject.projectName.trim();
             }
           }
@@ -856,7 +866,7 @@ export class DiscoveryInputComponent implements OnInit
           let updatedDateFrom = null;
           const updatedDateTo = this.formatDate(currentDate);
           //console.log('updatedDateTo:::', updatedDateTo);
-          currentDate.setMonth(currentDate.getMonth() - 36);
+          currentDate.setMonth(currentDate.getMonth() - 6);
           updatedDateFrom = this.formatDate(currentDate);
           //console.log('updatedDateFrom:::', updatedDateFrom);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
