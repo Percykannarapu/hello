@@ -6,6 +6,9 @@ import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './services/usage.service';
+import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { ImpDiscoveryUI } from './models/ImpDiscoveryUI';
+import { MetricService } from './val-modules/common/services/metric.service';
 
 @Component({
     /* tslint:disable:component-selector */
@@ -24,7 +27,9 @@ export class AppMenuComponent implements OnInit {
     constructor(public app: AppComponent,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
-               public usageService: UsageService) {}
+               public usageService: UsageService,
+               public impDiscoveryService: ImpDiscoveryService,
+               public metricService: MetricService) {}
 
     ngOnInit() {
         this.model = [
@@ -217,6 +222,15 @@ export class AppMenuComponent implements OnInit {
         // update the metric count when export geos
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+
+      //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
+      //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
+      const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+
+      this.usageService.createCounterMetrics(counterMetricsDiscover);
+      this.usageService.createCounterMetrics(counterMetricsColorBox);
+
 
     }
 }

@@ -8,6 +8,7 @@ import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { MetricService } from '../../../val-modules/common/services/metric.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -22,7 +23,8 @@ export class SelectedAudiencesComponent implements OnInit {
   allThemes: SelectItem[] = [];
   currentTheme: string;
 
-  constructor(private varService: TargetAudienceService, private usageService: UsageService, private discoService: ImpDiscoveryService) {
+  constructor(private varService: TargetAudienceService, private usageService: UsageService, 
+    private discoService: ImpDiscoveryService, public metricService: MetricService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -53,6 +55,12 @@ export class SelectedAudiencesComponent implements OnInit {
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
       const metricText = variableId + '~' + mappedAudience.audienceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+
+      const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
+
+      this.usageService.createCounterMetrics(counterMetricsDiscover);
+      this.usageService.createCounterMetrics(counterMetricsColorBox);
     }
     this.varService.applyAudienceSelection();
   }

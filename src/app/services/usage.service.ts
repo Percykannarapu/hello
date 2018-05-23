@@ -12,6 +12,11 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { map, mergeMap } from 'rxjs/operators';
 
+export class CounterMetrics{
+  constructor(
+    public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
+  ){}
+}
 
 @Injectable()
 export class UsageService {
@@ -24,6 +29,14 @@ export class UsageService {
     private impMetricNameService: ImpMetricNameService,
     private impProjectService: ImpProjectService) {
      }
+
+
+    public createCounterMetrics(counterMetrics: CounterMetrics[]) {
+      counterMetrics.forEach(counterMetric => {
+            this.createCounterMetric(counterMetric.usageMetricName, counterMetric.metricText, counterMetric.metricValue);
+      });
+     // return counterMetrics;
+    }
 
   /**
    * Create a new usage metric for an even that happened in the imPower application

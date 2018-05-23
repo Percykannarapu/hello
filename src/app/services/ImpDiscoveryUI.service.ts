@@ -1,4 +1,4 @@
-import { AppProjectService } from './app-project.service';
+//import { AppProjectService } from './app-project.service';
 /** A temporary service to manage the ImpDiscoveryUI model data
  **
  ** This class contains code operates against data in its data store.
@@ -13,13 +13,19 @@ import { Observable } from 'rxjs';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectService } from './../val-modules/targeting/services/ImpProject.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 const dataUrl = '';
+
+export class CounterMetrics{
+      constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
+      ){}
+}
 
 @Injectable()
 export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 {
-   constructor(private restDataService: RestDataService,
+   constructor(private restDataService: RestDataService
 //               private impProjectService: ImpProjectService
 //              private appProjectService: AppProjectService
             ) {
@@ -96,6 +102,65 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 
       console.log ('ImpDiscoveryUI.service.mapDiscoveryFromProject - finished ', impDiscoveryUI);
       return impDiscoveryUI;
+   }
+
+   public discoveryUsageMetricsCreate(actionName: string){
+      const discoverUIData: ImpDiscoveryUI = this.get()[0];
+      const counterMetrics = [];
+
+      let usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'product', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, discoverUIData.productCode, null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'category', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, discoverUIData.industryCategoryName, null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'analysis-level', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, discoverUIData.analysisLevel, null));
+
+      const blendedCpm = discoverUIData.cpm != null ? discoverUIData.cpm.toString() : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'blended-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, blendedCpm, null));
+       
+      const valassisCpm = discoverUIData.valassisCPM != null ? discoverUIData.valassisCPM.toString() : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'valassis-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, valassisCpm, null));
+
+      const anneCPM = discoverUIData.anneCPM != null ? discoverUIData.anneCPM.toString() : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'anne-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, anneCPM, null));
+
+      const soloCpm = discoverUIData.soloCPM != null ? discoverUIData.soloCPM.toString() : null;  
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'solo-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, soloCpm, null));
+      
+      const totalBudget = discoverUIData.totalBudget != null ? discoverUIData.totalBudget.toString() : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'dollar-budget', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, totalBudget, null));
+
+      const circBudget = discoverUIData.circBudget != null ? discoverUIData.circBudget.toString() : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'circ-budget', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, circBudget, null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'season', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, discoverUIData.selectedSeason, null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-pob-geo', action: actionName });
+      const ispob = discoverUIData.includePob ? 1 : 0;
+      counterMetrics.push(new CounterMetrics(usageMetricName, ispob.toString() , null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-valassis-geo', action: actionName });
+      const isvalGeo = discoverUIData.includeValassis ? 1 : 0;
+      counterMetrics.push(new CounterMetrics(usageMetricName, isvalGeo.toString() , null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-anne-geo', action: actionName });
+      const isAnneGeo = discoverUIData.includeAnne ? 1 : 0;
+      counterMetrics.push(new CounterMetrics(usageMetricName, isAnneGeo.toString() , null));
+
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-solo-geo', action: actionName });
+      const isSoloGeo = discoverUIData.includeAnne ? 1 : 0;
+      counterMetrics.push(new CounterMetrics(usageMetricName, isSoloGeo.toString() , null));
+
+      return counterMetrics;
    }
 
    private handleError(error: Response)
