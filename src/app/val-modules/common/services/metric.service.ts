@@ -123,7 +123,7 @@ export class MetricService
        let  usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'household-count', action: actionName });
        counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('Household Count'), null));
   
-        usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'ip-count.location', action: actionName });
+        usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'ip-count', action: actionName });
         counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('IP Address Count'), null));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'total-investment', action: actionName });
