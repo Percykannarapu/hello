@@ -47,7 +47,9 @@ export class TargetAudienceCustomService {
       audienceSourceName: source,
       exportInGeoFootprint: true,
       showOnGrid: true,
-      showOnMap: false
+      showOnMap: false,
+      exportNationally: false,
+      allowNationalExport: false
     };
   }
 

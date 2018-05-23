@@ -2,12 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ApioAudienceDescription, TargetAudienceApioService } from '../../../services/target-audience-apio.service';
-
-export enum SourceTypes {
-  InMarket = 'In Market',
-  Interest = 'Interest'
-}
+import { ApioAudienceDescription, SourceTypes, TargetAudienceApioService } from '../../../services/target-audience-apio.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -101,10 +96,6 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   public onSourceChanged(source: SourceTypes) {
     this.currentSelectedNodes = this.selectedNodeMap.get(source);
-  }
-
-  public onSearchTypeChange() {
-
   }
 
   private filterNodes(term: string, includeFolders: boolean) {

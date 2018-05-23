@@ -22,10 +22,15 @@
           <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
         </ng-template>
       </p-column>
-      <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
-      <p-column header="Source" [style]="{ width: '40%' }">
+      <p-column header="National" field="exportNationally" [style]="{ width: '10%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          {{audience.audienceSourceType}} - {{audience.audienceSourceName}}
+          <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
+      <p-column header="Source" [style]="{ width: '30%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
         </ng-template>
       </p-column>
     </p-dataTable>

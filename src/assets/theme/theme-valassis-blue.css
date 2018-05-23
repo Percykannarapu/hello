@@ -8471,8 +8471,8 @@ body .ui-terminal .ui-terminal-input {
   font-size: 1em; }
 
 .val-wide-tree .ui-tree {
-  width: 40em;
-  height: 25em;
+  width: 80%;
+  height: 20em;
   overflow-x: hidden !important;
   overflow-y: auto;
 }

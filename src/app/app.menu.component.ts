@@ -6,8 +6,8 @@ import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './services/usage.service';
+import { TargetAudienceService } from './services/target-audience.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
-import { ImpDiscoveryUI } from './models/ImpDiscoveryUI';
 import { MetricService } from './val-modules/common/services/metric.service';
 
 @Component({
@@ -15,7 +15,7 @@ import { MetricService } from './val-modules/common/services/metric.service';
     selector: 'app-menu',
     /* tslint:enable:component-selector */
     template: `
-        <ul app-submenu [item]="model" root="true" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
+        <ul app-submenu [item]="model" root="true" [style]="{ 'width': '300px;' }" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
     `
 })
 export class AppMenuComponent implements OnInit {
@@ -27,6 +27,7 @@ export class AppMenuComponent implements OnInit {
     constructor(public app: AppComponent,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
+               private audienceService: TargetAudienceService,
                public usageService: UsageService,
                public impDiscoveryService: ImpDiscoveryService,
                public metricService: MetricService) {}
@@ -57,8 +58,9 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.getGeofootprint() },
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => {this.getSites(); } },
-                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => {this.getCompetitor(); }}
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
+                    {label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.getNationalExtract() }
                 ]
             },
             /*{
@@ -235,6 +237,9 @@ export class AppMenuComponent implements OnInit {
 
 
     }
+    public getNationalExtract() {
+      this.audienceService.exportNationalExtract();
+    }
 }
 
 @Component({
@@ -263,7 +268,7 @@ export class AppMenuComponent implements OnInit {
                 </a>
                 <div class="layout-menu-tooltip">
                     <div class="layout-menu-tooltip-arrow"></div>
-                    <div class="layout-menu-tooltip-text">{{child.label}}</div>
+                    <div class="layout-menu-tooltip-text" [innerHTML]="child.label"></div>
                 </div>
                 <ul app-submenu [item]="child" *ngIf="child.items" [visible]="isActive(i)" [reset]="reset"
                     [@children]="(app.isSlim()||app.isHorizontal())&&root ? isActive(i) ?
@@ -359,5 +364,5 @@ export class AppSubMenuComponent {
         }
     }
 
-    
+
 }
