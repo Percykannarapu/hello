@@ -33,6 +33,7 @@ export class UsageService {
 
     public createCounterMetrics(counterMetrics: CounterMetrics[]) {
       counterMetrics.forEach(counterMetric => {
+            counterMetric.metricValue = Number.isNaN(counterMetric.metricValue) ? 0 : counterMetric.metricValue;
             this.createCounterMetric(counterMetric.usageMetricName, counterMetric.metricText, counterMetric.metricValue);
       });
      // return counterMetrics;

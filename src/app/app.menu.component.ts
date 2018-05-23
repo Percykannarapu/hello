@@ -228,6 +228,8 @@ export class AppMenuComponent implements OnInit {
       const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
       const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
 
+     // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
+
       this.usageService.createCounterMetrics(counterMetricsDiscover);
       this.usageService.createCounterMetrics(counterMetricsColorBox);
 

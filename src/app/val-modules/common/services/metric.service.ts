@@ -121,31 +121,35 @@ export class MetricService
         const campaignMap: Map<string, string> = this.metrics.get('CAMPAIGN'); 
         //console.log('CAMPAIGN map ::::', campaignMap);
        let  usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'household-count', action: actionName });
-       counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('Household Count'), null));
+      //  const hhcount = campaignMap.get('Household Count');
+      //  const hhcountNumber = Number(campaignMap.get('Household Count').replace(/,(?!(?<=",)")/g, ''));
+      //  const hhcountNum = Number(campaignMap.get('Household Count').replace(/,(?!(?<=",)")/g, ''));
+      //  const parsehhcount = parseFloat(campaignMap.get('Household Count').replace('$', ''));
+       counterMetrics.push(new CounterMetrics(usageMetricName, null, Number(campaignMap.get('Household Count').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'ip-count', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('IP Address Count'), null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null, Number(campaignMap.get('IP Address Count').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'total-investment', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('Est. Total Investment'), null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null, Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'progress-to-budget', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, campaignMap.get('Progress to Budget') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(campaignMap.get('Progress to Budget').replace(/[^\w.\s]/g, ''))));
         
   
         //AUDIENCE
         const audienceMap:  Map<string, string> = this.metrics.get('AUDIENCE'); 
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2I00', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('Median Household Income') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Median Household Income').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL0C00', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('% \'17 HHs Families with Related Children < 18 Yrs') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% \'17 HHs Families with Related Children < 18 Yrs').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2PRH', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('% \'17 Pop Hispanic or Latino') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% \'17 Pop Hispanic or Latino').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'TAP049', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('Casual Dining: 10+ Times Past 30 Days') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Casual Dining: 10+ Times Past 30 Days').replace(/[^\w.\s]/g, ''))));
         
         //console.log('AUDIENCE map ::::', audienceMap);  
   
@@ -153,10 +157,10 @@ export class MetricService
         const performanceMap:  Map<string, string> = this.metrics.get('PERFORMANCE'); 
         //console.log('PERFORMANCE map ::::', performanceMap);  
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'predicted-response', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('Predicted Response') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Response').replace(/[^\w.\s]/g, ''))));
   
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'predicted-sales', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, audienceMap.get('Predicted Topline Sales Generated') , null));
+        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Topline Sales Generated').replace(/[^\w.\s]/g, ''))));
 
         return counterMetrics;
 
