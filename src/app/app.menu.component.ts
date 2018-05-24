@@ -15,7 +15,7 @@ import { MetricService } from './val-modules/common/services/metric.service';
     selector: 'app-menu',
     /* tslint:enable:component-selector */
     template: `
-        <ul app-submenu [item]="model" root="true" [style]="{ 'width': '300px;' }" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
+        <ul app-submenu [item]="model" root="true" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
     `
 })
 export class AppMenuComponent implements OnInit {
