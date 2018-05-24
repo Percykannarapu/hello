@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { Observable } from 'rxjs';
-import { filter, map, take, mergeMap } from 'rxjs/operators';
+import { filter, map, take, mergeMap, share, tap } from 'rxjs/operators';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 
 @Injectable()
@@ -45,10 +45,21 @@ export class MapDispatchService {
     );
   }
 
-  public featuresInViewExtent(layerId: string) : Observable<__esri.Graphic[]> {
+  public featuresInViewExtent(layerId: string, oneTime: boolean = false, includeGeometry: boolean = false) : Observable<__esri.Graphic[]> {
     console.log(`featuresInViewExtent subscribed with layerId "${layerId}"`);
-    return this.afterMapViewUpdate().pipe(
-      mergeMap(mapView => this.queryService.queryLayerView(layerId, true, this.mapService.mapView.extent))
+    if (!oneTime) {
+      return this.afterMapViewUpdate().pipe(
+        mergeMap(mapView => this.queryService.queryLayerView(layerId, includeGeometry, mapView.extent))
+      );
+    } else {
+      return this.queryService.queryLayerView(layerId, includeGeometry, this.mapService.mapView.extent);
+    }
+  }
+
+  public geocodesInViewExtent(layerId: string, oneTime: boolean = false) : Observable<string[]> {
+    return this.featuresInViewExtent(layerId, oneTime).pipe(
+      tap(features => console.log('features in view extent', features)),
+      map(features => features.map(feature => feature.attributes.geocode))
     );
   }
 }

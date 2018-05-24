@@ -1,28 +1,38 @@
 <div class="ui-g">
-  <div *ngIf="selectedVars.length > 0" class="card ui-g-12">
-    <p-dataTable [value]="selectedVars"
+  <div *ngIf="hasAudiences" class="card ui-g-12">
+    <p-dataTable [value]="audiences$ | async"
                  [resizableColumns]="true"
                  [rows]="10"
                  [paginator]="true"
                  [alwaysShowPaginator]="false"
                  [immutable]="false"
                  columnResizeMode="expand">
-      <p-column header="Map" field="isMapped" [style]="{ width: '7%' }">
+      <p-column header="Map" field="showOnMap" [style]="{ width: '10%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onMapped(audience.audienceData.pk)"></p-checkbox>
+          <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
         </ng-template>
       </p-column>
-      <p-column header="Grid" field="isOnGrid" [style]="{ width: '7%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
-        </ng-template>
-      </p-column>
-      <p-column header="Export" field="isExported" [style]="{ width: '7%' }">
+      <p-column header="Grid" field="showOnGrid" [style]="{ width: '10%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
           <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
         </ng-template>
       </p-column>
-      <p-column header="Audience Name" field="audienceName" [style]="{ width: '79%' }"></p-column>
+      <p-column header="Export" field="exportInGeoFootprint" [style]="{ width: '10%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="National" field="exportNationally" [style]="{ width: '10%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
+        </ng-template>
+      </p-column>
+      <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
+      <p-column header="Source" [style]="{ width: '30%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
+        </ng-template>
+      </p-column>
     </p-dataTable>
   </div>
 
@@ -46,9 +56,9 @@
     </div>
   </div>
 
-  <button *ngIf="selectedVars.length > 0" pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
+  <button *ngIf="hasAudiences" pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
 
-  <div *ngIf="selectedVars.length === 0" class="ui-g-12">
+  <div *ngIf="!hasAudiences" class="ui-g-12">
     Please select or upload Audience Data from one of the other tabs.
   </div>
 

@@ -3,9 +3,16 @@ import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ValGeoService } from './app-geo.service';
 import { Subscription, Observable, Subject } from 'rxjs';
 import { calculateStatistics, Statistics } from '../app.utils';
-import { SmartMappingTheme } from '../models/LayerState';
-import { TopVarService } from './top-var.service';
+import { TargetAudienceService } from './target-audience.service';
 import { map } from 'rxjs/operators';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
+
+export enum SmartMappingTheme {
+  HighToLow = 'high-to-low',
+  AboveAndBelow = 'above-and-below',
+  //CenteredOn = 'centered-on',
+  Extremes = 'extremes'
+}
 
 export interface OutlineSetup {
   defaultWidth: number;
@@ -42,15 +49,14 @@ export class AppRendererService {
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;
 
-  private currentData: Map<string, any> = new Map<string, any>();
+  private currentData: Map<string, ImpGeofootprintVar> = new Map<string, ImpGeofootprintVar>();
   private currentStatistics: Statistics;
   private currentSelectedGeos: Set<string> = new Set<string>();
-  private dataTitle: string;
 
   private rendererDataReady: Subject<number> = new Subject<number>();
   public rendererDataReady$: Observable<number> = this.rendererDataReady.asObservable();
 
-  constructor(private geoService: ValGeoService, private dataService: TopVarService) {
+  constructor(private geoService: ValGeoService, private dataService: TargetAudienceService) {
     this.geoSubscription = this.geoService.uniqueSelectedGeocodes$.subscribe(geos => {
       this.currentSelectedGeos.clear();
       console.log('app-renderer.service.ctor - # geos', geos.length);
@@ -58,11 +64,9 @@ export class AppRendererService {
       geos.forEach(geo => this.currentSelectedGeos.add(geo));
     });
 
-    this.dataSubscription = this.dataService.mapData$.pipe(
+    this.dataSubscription = this.dataService.shadingData$.pipe(
       map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
     ).subscribe(dataList => this.updateData(dataList));
-
-    this.dataService.renderedData$.subscribe(data => this.dataTitle = (data ? data.fielddescr : ''));
   }
 
   private static objectIsSimpleLine(l: any) : l is __esri.SimpleLineSymbol {
@@ -123,13 +127,13 @@ export class AppRendererService {
     });
   }
 
-  public updateData(newData: { geocode: string, data: any }[]) : void {
+  public updateData(newData: { geocode: string, data: ImpGeofootprintVar }[]) : void {
     newData.forEach(d => {
       this.currentData.set(d.geocode, d.data);
     });
     if (newData == null || newData.length === 0) this.currentData.clear();
-    if (newData != null && newData.length > 0 && typeof newData[0].data === 'number') {
-      this.currentStatistics = calculateStatistics(newData.map(d => d.data));
+    if (newData != null && newData.length > 0 && newData[0].data.isNumber === 1) {
+      this.currentStatistics = calculateStatistics(newData.map(d => d.data.valueNumber));
     } else {
       this.currentStatistics = null;
     }
@@ -141,7 +145,7 @@ export class AppRendererService {
     if (this.currentStatistics != null) {
       return this.createMultiVariateRenderer(defaultSymbol, setup);
     } else {
-      const dataValues = new Set(Array.from(this.currentData.values()));
+      const dataValues = new Set(Array.from(this.currentData.values()).map(d => d.valueString));
       return this.createClassBreaksRenderer(defaultSymbol, Array.from(dataValues), setup);
     }
   }
@@ -151,7 +155,11 @@ export class AppRendererService {
     const themeColors = AppRendererService.getThemeColors(setup);
     const colorVariable: Partial<__esri.ColorVisualVariable> = {
       type: 'color',
-      field: (feature: __esri.Graphic) => this.currentData.get(feature.attributes.geocode),
+      field: (feature: __esri.Graphic) => {
+        if (this.currentData.has(feature.attributes.geocode))
+          return this.currentData.get(feature.attributes.geocode).valueNumber;
+        return undefined;
+      },
       stops: this.generateContinuousStops(themeColors),
       legendOptions: { showLegend: true, title: setup.rampLabel}
     };
@@ -182,7 +190,7 @@ export class AppRendererService {
         const geo = feature.attributes.geocode;
         let result: string;
         if (this.currentData.has(geo)) {
-          result = this.currentData.get(geo) + ' (' + (this.currentSelectedGeos.has(geo) ? selectedIndicator : unselectedIndicator) + ')';
+          result = this.currentData.get(geo).valueString + ' (' + (this.currentSelectedGeos.has(geo) ? selectedIndicator : unselectedIndicator) + ')';
         } else {
           result = this.currentSelectedGeos.has(geo) ? selectedValue : unselectedValue;
         }
@@ -191,12 +199,17 @@ export class AppRendererService {
     } else {
       dataSelector = (feature: __esri.Graphic) => this.currentSelectedGeos.has(feature.attributes.geocode) ? selectedValue : null;
     }
+    let dataTitle = '';
+    if (this.currentData.size > 0) {
+      const exemplar = Array.from(this.currentData.values())[0];
+      dataTitle = this.dataService.getAudiences(exemplar.customVarExprQuery)[0].audienceName;
+    }
     const newRenderer = new EsriModules.UniqueValueRenderer({
       defaultSymbol: newDefaultSymbol,
       defaultLabel: unselectedValue,
       field: dataSelector,
       legendOptions: {
-        title: this.dataTitle
+        title: dataTitle
       }
     });
     const selectionSymbol = AppRendererService.createSymbol([0, 255, 0, 0.65], outlineSetup.selectedColor, outlineSetup.selectedWidth);

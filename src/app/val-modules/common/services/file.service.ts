@@ -1,5 +1,3 @@
-import { Injectable } from '@angular/core';
-
 type identifierType = string | RegExp | ((header: string) => boolean);
 
 export interface ParseRule {
@@ -21,7 +19,6 @@ export interface ParseResponse<T> {
   parsedData: T[];
 }
 
-@Injectable()
 export class FileService {
 
   constructor() {}

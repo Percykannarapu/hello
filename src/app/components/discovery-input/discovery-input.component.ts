@@ -85,13 +85,16 @@ export class DiscoveryInputComponent implements OnInit
 
    public searchList = [];
   // projectTrackerList: ProjectTraker[];
-   public trakerId: string;
+   
+   public trakerId: number;
 
    showLoadBtn: boolean = false;
    private loadRetries: number = 0;
    private analysisLevelRetries = 0;
    private mapReady: boolean = false;
    private projectTrackerData = null;
+
+   private localCopydiscoverUI: ImpDiscoveryUI = new ImpDiscoveryUI;
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -476,11 +479,101 @@ export class DiscoveryInputComponent implements OnInit
       this.onChangeField(event);
    }
 
-   public dollarBudgetChange(event){
-      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.totalBudget;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'seasonality', action: 'changed' });
+   public onChangePob(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includePob;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
-      this.impDiscoveryUI.totalBudget = event;
+      this.impDiscoveryUI.includePob = event;
+      this.onChangeField(event);
+   }
+   public onChangeIncludeVal(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeValassis;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-val-geo', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.impDiscoveryUI.includeValassis = event;
+      this.onChangeField(event);
+
+   }
+   public onChangeIncludeAnne(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeAnne;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.impDiscoveryUI.includeAnne = event;
+      this.onChangeField(event);
+   }
+   public onChangeIncludeSolo(event){
+      const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeSolo;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.impDiscoveryUI.includeSolo = event;
+      this.onChangeField(event);
+   }
+   public dollarBudgetChange(event){
+      let metricsText = null;
+      if (this.localCopydiscoverUI.totalBudget != null )
+             metricsText = 'New=' + this.impDiscoveryUI.totalBudget + '~Old=' + this.localCopydiscoverUI.totalBudget;
+      else 
+             metricsText = 'New=' + this.impDiscoveryUI.totalBudget + '~Old=' + null;       
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'dollar-budget', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.totalBudget = this.impDiscoveryUI.totalBudget;
+      this.onChangeField(event);
+   }
+   public onChangecircBudget(event){
+      let  metricsText = null;
+      if (this.localCopydiscoverUI.circBudget != null )
+             metricsText = 'New=' + this.impDiscoveryUI.circBudget + '~Old=' + this.localCopydiscoverUI.circBudget;
+      else 
+             metricsText = 'New=' + this.impDiscoveryUI.circBudget + '~Old=' + null;  
+     // 'New=' + event + '~Old=' + this.impDiscoveryUI.circBudget;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'dist-budget', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.circBudget = this.impDiscoveryUI.circBudget;
+      this.onChangeField(event);
+   }
+   public onChangeBlendedCpm(event){
+      let  metricsText = null;
+      if (this.localCopydiscoverUI.cpm != null)
+            metricsText = 'New=' + this.impDiscoveryUI.cpm + '~Old=' + this.localCopydiscoverUI.cpm;
+      else 
+            metricsText = 'New=' + this.impDiscoveryUI.cpm + '~Old=' + null;  
+     // const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.cpm;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'blended-cpm', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.cpm = this.impDiscoveryUI.cpm;
+      this.onChangeField(event);
+   }
+   public onChangeValCpm(event){
+      let  metricsText = null;
+      if (this.localCopydiscoverUI.valassisCPM != null )
+             metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + this.localCopydiscoverUI.valassisCPM;
+      else 
+             metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + null;  
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'val-cpm', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.valassisCPM = this.impDiscoveryUI.valassisCPM;
+      this.onChangeField(event);
+   }
+   public onChangeAnneCpm(event){
+      let  metricsText = null;
+      if (this.localCopydiscoverUI.anneCPM != null )
+             metricsText = 'New=' + this.impDiscoveryUI.anneCPM + '~Old=' + this.localCopydiscoverUI.anneCPM;
+      else 
+             metricsText = 'New=' + this.impDiscoveryUI.anneCPM + '~Old=' + null;  
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'anne-cpm', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.anneCPM = this.impDiscoveryUI.anneCPM;
+      this.onChangeField(event);
+   }
+   public onChangeSoloCpm(event){
+      let  metricsText = null;
+      if (this.localCopydiscoverUI.soloCPM != null )
+             metricsText = 'New=' + this.impDiscoveryUI.soloCPM + '~Old=' + this.localCopydiscoverUI.soloCPM;
+      else 
+             metricsText = 'New=' + this.impDiscoveryUI.soloCPM + '~Old=' + null;     
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'solo-cpm', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.localCopydiscoverUI.soloCPM = this.localCopydiscoverUI.soloCPM;
       this.onChangeField(event);
    }
 
@@ -542,14 +635,25 @@ export class DiscoveryInputComponent implements OnInit
             return;
       }
       this.loadRetries = 0;
+      if ( this.impDiscoveryUI.projectTrackerId != null){
+            this.trakerId = this.impDiscoveryUI.projectTrackerId;
+      }
       console.log('discovery-input.component - loadProject fired');
-      if (this.impProject.projectTrackerId != null)
-            this.trakerId = this.impProject.projectTrackerId.toString();
+      
 
       // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
+      // set local copy of discovery ui
+      //this.localCopydiscoverUI = this.impDiscoveryService.get()[0];
+       this.localCopydiscoverUI.totalBudget = this.impProject.totalBudget;
+       this.localCopydiscoverUI.cpm  = this.impProject.estimatedBlendedCpm;
+       this.localCopydiscoverUI.valassisCPM = this.impProject.smValassisCpm;
+       this.localCopydiscoverUI.anneCPM = this.impProject.smAnneCpm;
+       this.localCopydiscoverUI.soloCPM = this.impProject.smSoloCpm;
+       this.localCopydiscoverUI.projectTrackerId = this.impProject.projectTrackerId;
+     
    }
 
    public saveProject()
@@ -708,10 +812,10 @@ export class DiscoveryInputComponent implements OnInit
                   //console.log('item value::::', item);
                   let dataString = null;
                   if ( item['targetor'] != null){
-                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
+                        dataString = item['projectId'] + '   ' + item['projectName'] + '  (' + item['targetor'] + ')'  ;
                   }
                   else{
-                        dataString = item['projectId'] + ' ' + item['projectName'] + '  (Unassigned)'  ;
+                        dataString = item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)'  ;
                   }
 
                  /* need to check with kirk to seach based on object insted of string
@@ -732,14 +836,26 @@ export class DiscoveryInputComponent implements OnInit
 
     public onChangeProjectTraker(event){
           //console.log('event value', event);
-          if (event.length > 5){
-            this.impDiscoveryUI.projectTrackerId  = event.length > 4 ? event.substring(0, 4) : null;
+          if (event.length > 6){
+            let  metricsText = null;
+            this.impDiscoveryUI.projectTrackerId  = parseFloat(event);
+            if (this.localCopydiscoverUI.projectTrackerId != null )
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + this.localCopydiscoverUI.projectTrackerId;
+            else 
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + null;  
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+            this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+
+            this.localCopydiscoverUI.projectTrackerId = this.impDiscoveryUI.projectTrackerId;
             
             if (this.impProject.projectName == null && this.impProject.projectId == null){
                   //this.impProject.projectName = 'test';
-                  this.impProject.projectName = event.substring(4, event.indexOf('('));
+                  this.impProject.projectName = event.substring(this.impDiscoveryUI.projectTrackerId.toString().length, event.indexOf('('));
+                  this.impProject.projectName = this.impProject.projectName.trim();
             }
-                  
+          }
+          else{
+            this.impDiscoveryUI.projectTrackerId = event;
           }
          
          //console.log('value substring:::', this.impDiscoveryUI.projectTrackerId);
@@ -750,7 +866,7 @@ export class DiscoveryInputComponent implements OnInit
           let updatedDateFrom = null;
           const updatedDateTo = this.formatDate(currentDate);
           //console.log('updatedDateTo:::', updatedDateTo);
-          currentDate.setMonth(currentDate.getMonth() - 36);
+          currentDate.setMonth(currentDate.getMonth() - 6);
           updatedDateFrom = this.formatDate(currentDate);
           //console.log('updatedDateFrom:::', updatedDateFrom);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,

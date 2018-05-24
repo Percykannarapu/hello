@@ -1,11 +1,8 @@
 import {NgModule} from '@angular/core';
-import {HttpModule} from '@angular/http';
 import {LocationStrategy, HashLocationStrategy} from '@angular/common';
 
 @NgModule({
-   imports: [
-      HttpModule
-   ],
+   imports: [],
    declarations: [
    ],
    providers: [

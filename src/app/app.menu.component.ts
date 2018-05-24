@@ -6,13 +6,16 @@ import {ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO} from './val
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './services/usage.service';
+import { TargetAudienceService } from './services/target-audience.service';
+import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { MetricService } from './val-modules/common/services/metric.service';
 
 @Component({
     /* tslint:disable:component-selector */
     selector: 'app-menu',
     /* tslint:enable:component-selector */
     template: `
-        <ul app-submenu [item]="model" root="true" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
+        <ul app-submenu [item]="model" root="true" [style]="{ 'width': '300px;' }" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" visible="true"></ul>
     `
 })
 export class AppMenuComponent implements OnInit {
@@ -24,7 +27,10 @@ export class AppMenuComponent implements OnInit {
     constructor(public app: AppComponent,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
-               public usageService: UsageService) {}
+               private audienceService: TargetAudienceService,
+               public usageService: UsageService,
+               public impDiscoveryService: ImpDiscoveryService,
+               public metricService: MetricService) {}
 
     ngOnInit() {
         this.model = [
@@ -52,8 +58,9 @@ export class AppMenuComponent implements OnInit {
                 label: 'Export', icon: 'file_download',
                 items: [
                     {label: 'Export Geofootprint', icon: 'map', command: () => this.getGeofootprint() },
-                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => {this.getSites(); } },
-                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => {this.getCompetitor(); }}
+                    {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
+                    {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
+                    {label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.getNationalExtract() }
                 ]
             },
             /*{
@@ -218,6 +225,20 @@ export class AppMenuComponent implements OnInit {
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
 
+      //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
+      //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
+      const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+
+     // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
+
+      this.usageService.createCounterMetrics(counterMetricsDiscover);
+      this.usageService.createCounterMetrics(counterMetricsColorBox);
+
+
+    }
+    public getNationalExtract() {
+      this.audienceService.exportNationalExtract();
     }
 }
 
@@ -247,7 +268,7 @@ export class AppMenuComponent implements OnInit {
                 </a>
                 <div class="layout-menu-tooltip">
                     <div class="layout-menu-tooltip-arrow"></div>
-                    <div class="layout-menu-tooltip-text">{{child.label}}</div>
+                    <div class="layout-menu-tooltip-text" [innerHTML]="child.label"></div>
                 </div>
                 <ul app-submenu [item]="child" *ngIf="child.items" [visible]="isActive(i)" [reset]="reset"
                     [@children]="(app.isSlim()||app.isHorizontal())&&root ? isActive(i) ?
@@ -343,5 +364,5 @@ export class AppSubMenuComponent {
         }
     }
 
-    
+
 }

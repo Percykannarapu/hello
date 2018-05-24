@@ -235,6 +235,44 @@ export class ValMapService implements OnDestroy {
     }, err => console.error(err), () => centroidSub.unsubscribe());
   }
 
+  public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
+    graphicsList.forEach(graphic => {
+      const geocode =  graphic.attributes['geocode'];
+      let hhc = null;
+      const discoData = this.discoveryService.get();
+      if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
+           hhc = Number(graphic.attributes.hhld_w);
+      }
+      else{
+        hhc = Number(graphic.attributes.hhld_s);
+      }
+      const currentGeocodes = new Set(this.currentGeocodeList);
+      const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
+      const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
+      if (discoData[0].cpm != null) {
+        const amount: number = hhc * discoData[0].cpm / 1000;
+        if (currentGeocodes.has(geocode)) {
+          this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+        } else {
+          this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
+        }
+      } else {
+        if (currentGeocodes.has(geocode)) {
+          this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        } else {
+          this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        }
+      }
+      const latitude = graphic.geometry['centroid'].y;
+      const longitude = graphic.geometry['centroid'].x;
+      const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
+     // const point = graphic.geometry;
+     //   if (EsriUtils.geometryIsPoint(point)) 
+          this.appGeoService.toggleGeoSelection(geocode, point);
+     
+    });
+  }
+
   public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
     const locationKeys = Array.from(locationBuffers.keys());
     console.log('drawing buffers', locationBuffers);

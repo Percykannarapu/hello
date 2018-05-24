@@ -1,6 +1,16 @@
 <p-tabView>
   <p-tabPanel header="Online Audience">
-    <span>Coming Soon</span>
+    <p-accordion>
+      <p-accordionTab header="In-Market and Interest" [selected]="true">
+        <val-online-audience-apio></val-online-audience-apio>
+      </p-accordionTab>
+      <p-accordionTab header="Visit Likelihood">
+        Coming Soon
+      </p-accordionTab>
+      <p-accordionTab header="Pixel">
+        Coming Soon
+      </p-accordionTab>
+    </p-accordion>
   </p-tabPanel>
   <p-tabPanel header="Offline Audience">
     <p-accordion>

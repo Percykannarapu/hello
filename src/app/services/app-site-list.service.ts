@@ -19,6 +19,8 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './usage.service';
 
 @Injectable()
 export class ValSiteListService implements OnDestroy {
@@ -53,7 +55,8 @@ export class ValSiteListService implements OnDestroy {
               private messageService: AppMessagingService,
               private metricsService: MetricService,
               private config: AppConfig,
-              private esriMapService: EsriMapService) {
+              private esriMapService: EsriMapService,
+              private usageService: UsageService) {
     this.allLocations$ = this.locationService.storeObservable;
     this.uiModels = [];
     this.currentAnalysisLevel = '';
@@ -107,6 +110,8 @@ export class ValSiteListService implements OnDestroy {
 
   public geocodeAndPersist(data: ValGeocodingRequest[], siteType: string) : Promise<void> {
     return this.geocodingService.geocodeLocations(data).then((result: ValGeocodingResponse[]) => {
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: siteType.toLowerCase() + '-data-file', action: 'upload' });
+      this.usageService.createCounterMetric(usageMetricName, `success=${result.length}~error=${this.geocodingService.currentFilefailedcount}`, result.length + this.geocodingService.currentFilefailedcount);
       this.handlePersist(result.map(r => r.toGeoLocation(siteType)));
     });
   }
