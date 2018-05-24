@@ -233,7 +233,6 @@ export class MapService {
         this.esriMapService.addWidget(legendExpand, 'top-left');
         this.esriMapService.addWidget(bgExpand, 'top-left');
         this.esriMapService.addWidget(scaleBar, 'bottom-left');
-
         // Event handler that fires each time a popup action is clicked.
         this.mapView.popup.on('trigger-action', (event) => {
           // Execute the measureThis() function if the measure-this action is clicked
@@ -518,74 +517,59 @@ export class MapService {
     }
 
     private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {
-        this.pauseLayerWatch(this.pausableWatches);
-        // Add this action to the popup so it is always available in this view
-        const measureThisAction = {
-            title: 'Measure Length',
-            id: 'measure-this',
-            className: 'esri-icon-share'
-        };
-        // Add this action to the popup so it is always available in this view
-        const selectThisAction = {
-            title: 'Select Polygon',
-            id: 'select-this',
-            className: 'esri-icon-plus-circled'
-        };
-        // const groupContainsLayer = (layerDef) => (layer: __esri.FeatureLayer) => layer.portalItem && layer.portalItem.id === layerDef.id;
-        // const currentLayer = (layerDef) => (layer: __esri.FeatureLayer) => curren = (layerDef => {EsriModules.Layer.fromPortalItem(<any>{portalItem: { id: layerDef.id}});
+      this.pauseLayerWatch(this.pausableWatches);
+      // Add this action to the popup so it is always available in this view
+      const measureThisAction = {
+        title: 'Measure Length',
+        id: 'measure-this',
+        className: 'esri-icon-share'
+      };
+      // Add this action to the popup so it is always available in this view
+      const selectThisAction = {
+        title: 'Select Polygon',
+        id: 'select-this',
+        className: 'esri-icon-plus-circled'
+      };
 
-        // if (layerDefinitions.filter(i => i != null && i.id != null)){
-        //     for (let i: number = 0; i < layerDefinitions.length; i++) {
-        //         const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
-        // }
-
-        layerDefinitions.filter(i => i != null && i.id != null ).forEach(layerDef => {
-          const isUrlRequest = layerDef.id.toLowerCase().startsWith('http');
-          const loader: (spec: any) => IPromise<__esri.Layer> = isUrlRequest ? EsriModules.Layer.fromArcGISServerUrl : EsriModules.Layer.fromPortalItem;
-          const itemLoadSpec = isUrlRequest ? { url: layerDef.id } : { portalItem: {id: layerDef.id } };
-          loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
-                const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
-                const localPopUpFields = new Set(layerDef.popUpFields);
-                currentLayer.visible = layerDef.defaultVisibility;
-                currentLayer.title = layerDef.name;
-                currentLayer.minScale = layerDef.minScale;
-                const compare = (f1, f2) => {
-                    const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
-                    const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
-                    return firstIndex - secondIndex;
-                };
-                if (layerDef.popUpFields.length > 0){
-                currentLayer.popupTemplate = new EsriModules.PopupTemplate(<any>{ title: popupTitle, content: '{*}', actions: [selectThisAction, measureThisAction] });
-                currentLayer.on('layerview-create', e => {
-                    const localLayer = (e.layerView.layer as __esri.FeatureLayer);
-                    localLayer.popupTemplate.fieldInfos = localLayer.fields.filter(f => {
-                      return localPopUpFields.has(f.name);
-                    }).map(f => {
-                      return {fieldName: f.name, label: f.alias};
-                    });
-                    localLayer.popupTemplate.fieldInfos.sort(compare);
-                    localLayer.popupTemplate.content = [{
-                      type: 'fields'
-                    }];
-                     });
-                } else {
-                    currentLayer.popupEnabled = false;
-                }
-                // Add Layer to Group Layer if it does not already exist
-                // if (!group.layers.some(groupContainsLayer(layerDef))) {
-                    group.add(currentLayer);
-                // }
-
-                // register a listener for this layer to collect usage metrics
-                EsriModules.watchUtils.pausable(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
+      layerDefinitions.filter(i => i != null && i.id != null ).forEach(layerDef => {
+        const isUrlRequest = layerDef.id.toLowerCase().startsWith('http');
+        const loader: any = isUrlRequest ? EsriModules.Layer.fromArcGISServerUrl : EsriModules.Layer.fromPortalItem;
+        const itemLoadSpec = isUrlRequest ? { url: layerDef.id } : { portalItem: {id: layerDef.id } };
+        loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
+          const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
+          const localPopUpFields = new Set(layerDef.popUpFields);
+          currentLayer.visible = layerDef.defaultVisibility;
+          currentLayer.title = layerDef.name;
+          currentLayer.minScale = layerDef.minScale;
+          const compare = (f1, f2) => {
+            const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
+            const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
+            return firstIndex - secondIndex;
+          };
+          if (layerDef.popUpFields.length > 0) {
+            currentLayer.on('layerview-create', e => {
+              const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+              const template = new EsriModules.PopupTemplate({ title: popupTitle, actions: [selectThisAction, measureThisAction] });
+              const fieldInfos = localLayer.fields.map(f => ({ fieldName: f.name, label: f.alias, visible: localPopUpFields.has(f.name) }));
+              fieldInfos.sort(compare);
+              template.content = [{
+                type: 'fields',
+                fieldInfos: fieldInfos
+              }];
+              localLayer.popupTemplate = template;
             });
+          } else {
+            currentLayer.popupEnabled = false;
+          }
+          group.add(currentLayer);
+          // register a listener for this layer to collect usage metrics
+          EsriModules.watchUtils.pausable(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
         });
-        //if (!this.map.layers.some(l => l === group)) {
-            this.map.layers.add(group);
-            MapService.layers.add(group);
-        //}
-        group.visible = true;
-        this.resumeLayerWatch(this.pausableWatches);
+      });
+      this.map.layers.add(group);
+      MapService.layers.add(group);
+      group.visible = true;
+      this.resumeLayerWatch(this.pausableWatches);
     }
 
     /**

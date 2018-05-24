@@ -91,3 +91,8 @@
 .val-table-with-dropdowns div.ui-datatable-resizable {
   overflow: visible;
 }
+
+// fixes a naming collision between primeng and esri causing ui popup titles to be white on white
+.ui-widget .esri-popup .esri-widget header h2 {
+  opacity: 1;
+}
