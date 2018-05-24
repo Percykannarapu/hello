@@ -43,8 +43,11 @@ export class ValGeocodingService {
             const fail: ValGeocodingResponse[] = [];
             const success: ValGeocodingResponse[] = [];
             data.payload.forEach(d => {
-              if (d['Match Quality'] === 'E' || d['Match Code'].startsWith('E')) {
+              if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
                 d['Geocode Status'] = 'ERROR';
+                fail.push(new ValGeocodingResponse(d));
+              } else if (d['Match Quality'] === '' || d['Match Quality'].startsWith('Z')) {
+                d['Geocode Status'] = 'CENTROID';
                 fail.push(new ValGeocodingResponse(d));
               } else {
                 d['Geocode Status'] = 'SUCCESS';

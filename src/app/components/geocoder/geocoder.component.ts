@@ -6,6 +6,8 @@ import { ValSiteListService } from '../../services/app-site-list.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { Observable } from 'rxjs';
+import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
 
 @Component({
   selector: 'val-geocoder',
@@ -13,6 +15,9 @@ import { UsageService } from '../../services/usage.service';
   styleUrls: ['./geocoder.component.css']
 })
 export class GeocoderComponent implements OnInit {
+  public failureCount$: Observable<number>;
+  public geocodingFailures$: Observable<ValGeocodingResponse[]>;
+  public hasFailures$: Observable<boolean>;
   public currentManualSiteType: string = 'Site';
   public siteModel: ValGeocodingRequest;
   public compModel: ValGeocodingRequest;
@@ -21,20 +26,24 @@ export class GeocoderComponent implements OnInit {
   private spinnerMessage: string = 'Geocoding Locations';
   private messagingKey: string = 'GeocoderComponentKey';
 
-  constructor(public  config: AppConfig,
-              public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService,
-              private messageService: AppMessagingService,
-              private usageService: UsageService ) { }
+  constructor(public config: AppConfig,
+    public geocodingService: ValGeocodingService,
+    private siteListService: ValSiteListService,
+    private messageService: AppMessagingService,
+    private usageService: UsageService) {
+    this.hasFailures$ = this.geocodingService.hasFailures$;
+    this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
+    this.failureCount$ = this.geocodingService.failureCount$;
+  }
 
-  public ngOnInit() : void {
+  public ngOnInit(): void {
     this.siteModel = new ValGeocodingRequest({});
     this.compModel = new ValGeocodingRequest({});
     this.currentModel = this.siteModel;
   }
 
-  public onSiteTypeChange($event) : void {
-    if ($event === 'Site'){
+  public onSiteTypeChange($event): void {
+    if ($event === 'Site') {
       this.currentModel = this.siteModel;
     } else {
       this.currentModel = this.compModel;
@@ -43,7 +52,7 @@ export class GeocoderComponent implements OnInit {
   }
 
   // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
-  public  onResubmit(row) {
+  public onResubmit(row) {
     this.geocodingService.removeFailedGeocode(row);
     this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
     this.siteListService.geocodeAndPersist([row], this.currentManualSiteType).then(() => {
@@ -56,21 +65,22 @@ export class GeocoderComponent implements OnInit {
     this.geocodingService.removeFailedGeocode(row);
   }
 
+
   public onGeocode() {
     const number = this.currentModel.number != null ? 'Number=' + this.currentModel.number + '~' : '';
-    const name =   this.currentModel.name   != null ? 'Name=' + this.currentModel.name + '~'     : '';
+    const name = this.currentModel.name != null ? 'Name=' + this.currentModel.name + '~' : '';
     const street = this.currentModel.street != null ? 'Street=' + this.currentModel.street + '~' : '';
-    const city =   this.currentModel.city   != null ? 'City=' + this.currentModel.city + '~'     : '';
-    const state =  this.currentModel.state  != null ? 'State=' + this.currentModel.state + '~'   : '';
-    const zip =    this.currentModel.zip    != null ? 'ZIP=' + this.currentModel.zip + '~'       : '';
+    const city = this.currentModel.city != null ? 'City=' + this.currentModel.city + '~' : '';
+    const state = this.currentModel.state != null ? 'State=' + this.currentModel.state + '~' : '';
+    const zip = this.currentModel.zip != null ? 'ZIP=' + this.currentModel.zip + '~' : '';
     const market = this.currentModel.Market != null ? 'market=' + this.currentModel.Market + '~' : '';
-    const x =     this.currentModel.longitude != null ? 'X=' + this.currentModel.longitude + '~' : '';
-    const y =     this.currentModel.latitude  != null ? 'Y=' + this.currentModel.latitude        : '';            
+    const x = this.currentModel.longitude != null ? 'X=' + this.currentModel.longitude + '~' : '';
+    const y = this.currentModel.latitude != null ? 'Y=' + this.currentModel.latitude : '';
     const metricText = number + name + street + city + state + zip + market + x + y;
     if (this.currentModel.canBeGeocoded()) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
-       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
       this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
         this.messageService.stopSpinnerDialog(this.messagingKey);
       });

@@ -116,7 +116,7 @@ export class ValSiteListService implements OnDestroy {
     });
   }
 
-  private handlePersist(data: ImpGeofootprintLocation[]) : void {
+  public handlePersist(data: ImpGeofootprintLocation[]) : void {
     const flatten = (previous: ImpGeofootprintLocAttrib[], current: ImpGeofootprintLocAttrib[]) => {
       previous.push(...current);
       return previous;

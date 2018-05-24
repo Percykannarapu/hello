@@ -82,9 +82,9 @@
       </div>
     </div>
   </div>
-  <div *ngIf="geocodingService.hasFailures$ | async" class="ui-g-8">
-    <p-dataTable [value]="geocodingService.geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-      <p-header>Detected {{(geocodingService.failureCount$ | async) || 0}} geocoding failures</p-header>
+  <div *ngIf="hasFailures$ | async" class="ui-g-8">
+    <p-dataTable [value]="geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
+      <p-header>Detected {{(failureCount$ | async) || 0}} geocoding failures</p-header>
       <p-column field="Number" [hidden]="true"></p-column>
       <p-column field="Original Address" header="Street" [editable]="true"></p-column>
       <p-column field="Original City" header="City" [editable]="true"></p-column>
