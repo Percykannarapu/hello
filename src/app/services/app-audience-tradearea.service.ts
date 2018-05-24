@@ -342,6 +342,7 @@ export class ValAudienceTradeareaService {
       newGeo.geocode = taResponse.geocode;
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
+      newGeo.distance = taResponse.distance;
       if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 4) {
         newGeo.isActive = true;
       }
