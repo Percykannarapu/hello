@@ -11,6 +11,7 @@ import { HttpHeaders } from '@angular/common/http';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { map, mergeMap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 
 
 @Injectable()
@@ -22,7 +23,8 @@ export class UsageService {
   constructor(private userService: UserService,
     private restClient: RestDataService,
     private impMetricNameService: ImpMetricNameService,
-    private impProjectService: ImpProjectService) {
+    private impProjectService: ImpProjectService,
+    private appConfig: AppConfig) {
      }
 
   /**
@@ -32,6 +34,10 @@ export class UsageService {
    * @param metricValue The number of times a particular event has occurred for this metric
    */
   public createCounterMetric(metricName: ImpMetricName, metricText: string, metricValue: number, projectId?: string) {
+    //we don't want to capture metrics if working locally
+    if (this.appConfig.environmentName === 'LOCAL') {
+      return; 
+    }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
       console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
       return;

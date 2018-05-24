@@ -29,8 +29,8 @@ export class EnvironmentData {
   public static debugMode: boolean = true;
 
   // this variable controls whether a user is currently authenticated
-  // this *MUST* be set to false for all environments other than local
-  public static authenticated = true;
+  // this must be set to false now for local environments so we get an OAUTH token
+  public static authenticated = false;
 
   public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';

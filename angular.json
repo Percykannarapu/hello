@@ -75,6 +75,23 @@
                 }
               ]
             },
+            "local": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.local.ts"
+                }
+              ]
+            },
             "dev-server": {
               "optimization": true,
               "outputHashing": "all",
@@ -102,6 +119,9 @@
             },
             "production": {
               "browserTarget": "esri-angular-first-look:build:production"
+            },
+            "local": {
+              "browserTarget": "esri-angular-first-look:build:local"
             }
           }
         },
