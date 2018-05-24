@@ -12,4 +12,5 @@ export interface AudienceDataDefinition {
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
   audienceSourceType: 'Online' | 'Offline' | 'Custom';
+  secondaryId?: string;
 }

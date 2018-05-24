@@ -1,0 +1,62 @@
+<div class="ui-g">
+  <div class="card ui-g-6">
+    <p>Audience Search</p>
+    <p-tabView>
+      <p-tabPanel header="Online Audiences">
+        <val-online-audience-apio></val-online-audience-apio>
+      </p-tabPanel>
+      <p-tabPanel header="Offline Audiences">
+        <val-offline-audience-tda></val-offline-audience-tda>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+  <div class="ui-g-6 card">
+    <p>Trade Area Configuration</p>
+    <div class="ui-g-6">
+      <span class="ui-float-label">
+        <input id="ata-min-miles" type="text" size="30" pInputText [(ngModel)]="minRadius">
+        <label for="ata-min-miles">Minimum must cover radius</label>
+      </span>
+    </div>
+    <div class="ui-g-6">
+      <span class="ui-float-label">
+        <input id="ata-max-miles" type="text" size="30" pInputText [(ngModel)]="maxRadius">
+        <label for="ata-max-miles">Maximum radius</label>
+      </span>
+    </div>
+    <div class="ui-g-12"></div>
+    <div class="ui-g-6">
+      Driving variable in addition to distance:
+    </div>
+    <div class="ui-g-6">
+      <p-dropdown #audienceTAVar (onChange)="onVarDropdownChange($event)" [options]="varSelectorOptions" [(ngModel)]="selectedVar"
+        placeholder="Select a variable" [style]="{ width: '100%' }"></p-dropdown>
+    </div>
+    <div class="ui-g-12"></div>
+    <div class="ui-g-6">
+      Weight % of the variable vs. distance: {{sliderVal}}
+    </div>
+    <div class="ui-g-6">
+      <p-slider [(ngModel)]="sliderVal" [min]="0" [max]="100"></p-slider>
+    </div>
+    <div class="ui-g-12"></div>
+    <div class="ui-g-6">
+      Tiles to include in geo selection:
+    </div>
+    <div class="ui-g-6">
+      <p-multiSelect defaultLabel="Choose tiles" [style]="{'width':'100%'}" [options]="tileSelectorOptions" [(ngModel)]="tileSelectorValues"></p-multiSelect>
+    </div>
+    <div class="ui-g-12"></div>
+    <div class="ui-g-6">
+      Variable score type:
+    </div>
+    <div class="ui-g-6">
+      <p-selectButton #audienceTAVar [options]="scoreTypeOptions" [(ngModel)]="selectedScoreType"
+        placeholder="Select a score type" [style]="{ width: '100%' }"></p-selectButton>
+    </div>
+    <div class="ui-g-12"></div>
+    <div class="ui-g-12">
+      <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
+    </div>
+  </div>
+</div>

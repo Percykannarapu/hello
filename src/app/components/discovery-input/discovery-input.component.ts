@@ -357,7 +357,6 @@ export class DiscoveryInputComponent implements OnInit
 
    public onAnalysisSelectType(event: SelectItem) {
          if (!this.mapReady && this.analysisLevelRetries < 14) {
-            console.log('AARON: WAITING TO SET ANALYSIS LEVEL, MAP NOT READY');
             this.analysisLevelRetries++;
             setTimeout((() => this.onAnalysisSelectType(event)), 10000);
             return;

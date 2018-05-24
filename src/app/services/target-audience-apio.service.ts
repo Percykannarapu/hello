@@ -100,7 +100,7 @@ export class TargetAudienceApioService {
     this.fuseSourceMapping.set(SourceTypes.InMarket, 'in_market');
   }
 
-  private static createDataDefinition(source: SourceTypes, name: string, pk: number) : AudienceDataDefinition {
+  private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
     return {
       audienceName: name,
       audienceIdentifier: `${pk}`,
@@ -113,6 +113,7 @@ export class TargetAudienceApioService {
       exportNationally: false,
       selectedDataSet: 'nationalScore',
       dataSetOptions: [ { label: 'National Index', value: 'nationalScore' }, { label: 'DMA Index', value: 'dmaScore' } ],
+      secondaryId: digId.toLocaleString()
     };
   }
 
@@ -141,7 +142,7 @@ export class TargetAudienceApioService {
   }
 
   public addAudience(audience: ApioAudienceDescription, source: SourceTypes) {
-    const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId);
+    const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
       (al, pks, geos) => this.apioRefreshCallback(source, al, pks, geos),

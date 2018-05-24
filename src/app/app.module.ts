@@ -147,6 +147,8 @@ import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpG
 import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
+import { AudienceTradeareaComponent } from './components/audience-tradearea/audience-tradearea.component';
+import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
 
 @NgModule({
@@ -255,7 +257,8 @@ import { OnlineAudienceApioComponent } from './components/target-audience/online
         SelectedAudiencesComponent,
         CustomAudienceComponent,
         TargetAudienceComponent,
-        OnlineAudienceApioComponent
+        OnlineAudienceApioComponent,
+        AudienceTradeareaComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -277,7 +280,7 @@ import { OnlineAudienceApioComponent } from './components/target-audience/online
       MapService, AuthService, MapDispatchService, RadService, UsageService, UserService,
       TargetAudienceService, TargetAudienceMetricService,
       ValLayerService, ValGeocodingService, ValSiteListService, ValTradeAreaService,
-      ValMapService, ValGeoService, ValMetricsService
+      ValMapService, ValGeoService, ValMetricsService, ValAudienceTradeareaService
     ],
     bootstrap: [AppComponent]
 })
