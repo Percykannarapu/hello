@@ -86,16 +86,27 @@ export class ValAudienceTradeareaService {
   private audienceTaSubject: Subject<boolean> = new Subject<boolean>();
   private sortMap: Map<string, number> = new Map<string, number>();
   private taResponses: Map<string, Map<number, AudienceTradeareaResponse>> = new Map<string, Map<number, AudienceTradeareaResponse>>();
+  
+  // variables to determine whether or not we need to fetch data from the server
   private fetchData = true;
+  private lastMinRadius: number;
+  private lastMaxRadius: number;
+  private lastDigCategoryId: number;
+  private lastWeight: number;
 
   /**
-   * Create an audience trade area for each location that has been created
-   * @param minRadius The minimum, or must cover, radius for the trade area
-   * @param maxRadius The maximum radius for the trade area
+   * Create an audience trade are for each location that has been created
+   * @param minRadius The minimum, must cover radius, for the trade areas
+   * @param maxRadius The maximum radius for the trade areas
+   * @param tiles The currently active smart tile values selected by the user
+   * @param digCategoryId The digital category ID seledcted by the user
+   * @param weight The weight of the selected variable vs the distance
+   * @param scoreType The score type, DMA or National
    */
   public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string) : Observable<boolean> {
     const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType);
     this.attachVariables();
+    this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
     if (this.fetchData) {
     this.sendRequest(taConfig).subscribe(response => {
         try {
@@ -106,6 +117,10 @@ export class ValAudienceTradeareaService {
             this.drawRadiusRings(minRadius, maxRadius, location);
           }
           this.audienceTaSubject.next(true);
+          this.lastMinRadius = minRadius;
+          this.lastMaxRadius = maxRadius;
+          this.lastDigCategoryId = digCategoryId;
+          this.lastWeight = weight;
         } catch (error) {
           this.audienceTaSubject.error(error);
         }
@@ -130,6 +145,25 @@ export class ValAudienceTradeareaService {
       });
     }
     return this.audienceTaSubject.asObservable();
+  }
+
+  /**
+   * Determine if we need to fetch data from the Fuse service
+   * or if we can rerun the trade area with cached data
+   * @param minRadius The minimum, must cover radius, for the trade areas
+   * @param maxRadius The maximum radius for the trade areas
+   * @param digCategoryId The ID of the targeting variable currently in use
+   * @param weight The weight of the selected variable vs the distance 
+   */
+  private determineRerun(minRadius: number, maxRadius: number, digCategoryId: number, weight: number) {
+    if (minRadius !== this.lastMinRadius)
+      this.fetchData = true;
+    if (maxRadius !==  this.lastMaxRadius)
+      this.fetchData = true;
+    if (digCategoryId !== this.lastDigCategoryId)
+      this.fetchData = true;
+    if (weight !== this.lastWeight)
+      this.fetchData = true;
   }
 
   /**
@@ -361,6 +395,10 @@ export class ValAudienceTradeareaService {
     private httpClient: HttpClient,
     private appConfig: AppConfig) {
     this.initializeSortMap();
+    this.locationService.storeObservable.subscribe(location => {
+      // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
+      this.fetchData = true;
+    });
     const json: string = `[
       {
         "gvId": 100000,
