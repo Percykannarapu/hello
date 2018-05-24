@@ -153,9 +153,10 @@ export class TargetAudienceTdaService {
       return throwError({ identifiers, msg: `Some identifiers were passed into the Tda Refresh function that weren't numeric pks` });
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<TdaBulkDataResponse[]>[] = [];
+    const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     for (const chunk of chunks) {
       const inputData = {
-        geoType: analysisLevel,
+        geoType: serviceAnalysisLevel,
         geocodes: chunk,
         variablePks: numericIds
       };
