@@ -9,7 +9,7 @@ export interface AudienceDataDefinition {
   allowNationalExport: boolean;
   nationalCsvTransform?: (fieldName: string) => { name: string, field: string }[];
   selectedDataSet?: string;
-  dataSetOptions?: { name: string, field: string }[];
+  dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
   audienceSourceType: 'Online' | 'Offline' | 'Custom';
 }
