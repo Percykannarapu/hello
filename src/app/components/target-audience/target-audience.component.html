@@ -1,6 +1,11 @@
 <p-tabView>
   <p-tabPanel header="Online Audience">
-    <p-accordion>
+    <div class="ui-g" *ngIf="(analysisLevel$ | async) === 'PCR'">
+      <div class="ui-g-12">
+        Online Audience not available at the PCR level
+      </div>
+    </div>
+    <p-accordion *ngIf="(analysisLevel$ | async) !== 'PCR'">
       <p-accordionTab header="In-Market and Interest" [selected]="true">
         <val-online-audience-apio></val-online-audience-apio>
       </p-accordionTab>
