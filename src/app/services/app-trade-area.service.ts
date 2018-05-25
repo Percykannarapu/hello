@@ -89,6 +89,7 @@ export class ValTradeAreaService implements OnDestroy {
     const matchingTradeAreas = tradeAreas.filter(ta => ta.taType === tradeAreaType);
     const result = new Map<ImpGeofootprintLocation, ImpGeofootprintTradeArea[]>();
     matchingTradeAreas.forEach(ta => {
+        ta.isActive = (ta.isActive ? 1 : 0);
       if (!result.has(ta.impGeofootprintLocation)) {
         result.set(ta.impGeofootprintLocation, [ta]);
       } else {
