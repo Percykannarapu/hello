@@ -6,7 +6,7 @@
       </div>
     </div>
     <p-accordion *ngIf="(analysisLevel$ | async) !== 'PCR'">
-      <p-accordionTab header="In-Market and Interest" [selected]="true">
+      <p-accordionTab header="Interest and In-Market" [selected]="true">
         <val-online-audience-apio></val-online-audience-apio>
       </p-accordionTab>
       <p-accordionTab header="Visit Likelihood">
