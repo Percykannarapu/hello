@@ -88,6 +88,7 @@ export class EsriModules {
     console.log('Constructing esri-modules');
     // todo: remove when this wrapper is no longer needed
     EsriLoaderWrapperService.esriLoader = this;
+    esriLoader.loadCss(`${this.config.esriConfig.url}esri/css/main.css`);
     esriLoader.loadScript(this.config.esriConfig).then(() => {
       this.deferredLoad = esriLoader.loadModules(EsriModules.names.concat(EsriWidgets.moduleNames));
       this.deferredLoad
