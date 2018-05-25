@@ -20,7 +20,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
   templateUrl: './upload-locations.component.html',
   styleUrls: ['./upload-locations.component.css']
 })
-export class UploadLocationsComponent {
+export class UploadLocationsComponent implements OnInit {
   public listType: string = 'Site';
 
   @ViewChild('fileUpload') private fileUploadEl: FileUpload;
@@ -36,7 +36,10 @@ export class UploadLocationsComponent {
   public hasFailures$: Observable<boolean>;
   public geocodingFailures$: Observable<ValGeocodingResponse[]>;
   public failureCount$: Observable<number>;
+  public successCount: number;
   public totalCount: number;
+  public failureCount: number;
+
 
   constructor(private messagingService: AppMessagingService,
     public geocodingService: ValGeocodingService,
@@ -52,15 +55,29 @@ export class UploadLocationsComponent {
 
   }
 
+  ngOnInit(){
+    const s = this.locationService.storeObservable.subscribe(loc => {
+      this.successCount = loc.length;
+      this.calculateCounts();
+    });   
+    const f = this.failureCount$.subscribe(n => {
+      this.failureCount = n;
+      this.calculateCounts();
+    });
+    
+  }
+  
+  public calculateCounts(){
+    this.totalCount = this.successCount + this.failureCount;
+  }
+
   public onRemove(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
   }
   public onAccept(row: ValGeocodingResponse) {
     const valGeoList: ValGeocodingResponse[] = [];
     valGeoList.push(row);
-    console.log('after::', valGeoList);
-    console.log('before::::', this.failureList);
-    
+        
     this.geocodingService.removeFailedGeocode(row);
 
     if (row['Geocode Status'] === 'CENTROID') {
@@ -68,6 +85,12 @@ export class UploadLocationsComponent {
     } else row['Geocode Status'] = 'PROVIDED';
     this.valSiteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.listType)));
 
+  }
+   
+  public onChangeGeos(){
+    this.locationService.storeObservable.subscribe(loc => {
+      console.log('locations::::', loc);
+  });    
   }
 
   public onResubmit(row: ValGeocodingResponse) {
@@ -102,7 +125,6 @@ export class UploadLocationsComponent {
   private parseCsvFile(dataBuffer: string) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    this.totalCount = rows.length - 1;
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules, this.csvHeaderValidator);
       if (data.failedRows.length > 0) {
