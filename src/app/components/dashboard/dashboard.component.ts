@@ -84,7 +84,8 @@ export class DashboardComponent implements OnInit {
 
         this.metricMapTeal = new Map([
             ['Predicted Response', '0'],
-            ['Predicted Topline Sales Generated', '$0']
+            ['Predicted Topline Sales Generated', '$0'],
+            ['Cost per Response', '$0']
         ]);
         this.flagMapTeal = new Map<string, boolean>();
 

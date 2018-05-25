@@ -20,6 +20,7 @@ export class RadService {
   private category: string;
   private product: string;
   private filteredRadData: Array<RadData>;
+  private predictedResp: number;
 
   constructor(private impDiscoveryService: ImpDiscoveryService,
     private appConfig: AppConfig,
@@ -107,6 +108,11 @@ export class RadService {
             this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$' + toplineSales.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
           }
 
+          this.predictedResp = predictedResponse;
+          
+         
+
+
           /**
            * US7497: Commenting out the ROI caluclation
            * Please leave this here in case we need it again
@@ -132,6 +138,21 @@ export class RadService {
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', 'N/A');
         //this.metricService.add('PERFORMANCE', 'Predicted ROI', 'N/A');
       }
+    }
+
+    if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Est. Total Investment'){
+
+        //Calculate Cost per Response
+          let cpr = 0;
+         const campaignMap =  this.metricService.metrics.get('CAMPAIGN');
+         const totalInvestment = Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''));
+         if (!Number.isNaN(totalInvestment) && totalInvestment != 0 && this.predictedResp != 0){
+            console.log('total investment:::', totalInvestment);
+            if (totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
+                cpr = this.predictedResp / totalInvestment;
+            }
+            this.metricService.add('PERFORMANCE', 'Cost per Response', cpr.toFixed(2));
+         }
     }
   }
 
