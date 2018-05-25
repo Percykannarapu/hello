@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, combineLatest, merge, EMPTY } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
 import { distinctUntilChanged, filter, map, mergeMap, switchMap, take, tap } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { ValGeoService } from './app-geo.service';
@@ -10,8 +10,8 @@ import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { FileService } from '../val-modules/common/services/file.service';
 import * as XLSX from 'xlsx';
+import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -39,7 +39,7 @@ export class TargetAudienceService implements OnDestroy {
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
 
   constructor(private geoService: ValGeoService, private discoveryService: ImpDiscoveryService,
-              private varService: ImpGeofootprintVarService,
+              private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
               private usageService: UsageService, private messagingService: AppMessagingService,
               private config: AppConfig, private mapDispatchService: MapDispatchService) {
     this.analysisLevel$ = this.discoveryService.storeObservable.pipe(
@@ -100,7 +100,8 @@ export class TargetAudienceService implements OnDestroy {
   public exportNationalExtract() : void {
     const spinnerId = 'NATIONAL_EXTRACT';
     const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
-    if (audiences.length > 0 && this.currentAnalysisLevel != null && this.currentAnalysisLevel.length > 0) {
+    const projects = this.projectService.get();
+    if (audiences.length > 0 && this.currentAnalysisLevel != null && this.currentAnalysisLevel.length > 0 && projects.length > 0 && projects[0].projectId != null) {
       const convertedData: any[] = [];
       this.messagingService.startSpinnerDialog(spinnerId, 'Downloading National Data');
       this.getNationalData(audiences[0]).subscribe(
@@ -125,8 +126,10 @@ export class TargetAudienceService implements OnDestroy {
     } else {
       if (audiences.length === 0) {
         this.messagingService.showGrowlError('National Extract Export', 'A variable must be selected for a national extract before exporting.');
-      } else {
+      } else if (this.currentAnalysisLevel == null || this.currentAnalysisLevel.length === 0) {
         this.messagingService.showGrowlError('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
+      } else {
+        this.messagingService.showGrowlError('National Extract Export', 'The project must be saved before exporting a national extract.');
       }
     }
   }
