@@ -4,8 +4,8 @@ import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
-import { map, tap } from 'rxjs/operators';
-import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs/index';
+import { map, shareReplay } from 'rxjs/operators';
+import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
 import { chunkArray } from '../app.utils';
 
 interface ApioCategoryResponse {
@@ -94,6 +94,7 @@ export class ApioAudienceDescription {
 })
 export class TargetAudienceApioService {
   private fuseSourceMapping: Map<SourceTypes, string> = new Map<SourceTypes, string>();
+  private audienceDescriptions$: Observable<ApioAudienceDescription[]>;
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService) {
     this.fuseSourceMapping.set(SourceTypes.Interest, 'interest');
@@ -155,18 +156,22 @@ export class TargetAudienceApioService {
   }
 
   public getAudienceDescriptions() : Observable<ApioAudienceDescription[]> {
-    const interest$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=interest').pipe(
-      map(response => response.payload.rows as ApioCategoryResponse[]),
-      map(categories => categories.filter(c => c.isActive === 1))
-    );
-    const inMarket$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=in_market').pipe(
-      map(response => response.payload.rows as ApioCategoryResponse[]),
-      map(categories => categories.filter(c => c.isActive === 1)),
-    );
-    return forkJoin(interest$, inMarket$).pipe(
-      map(([interest, inMarket]) => interest.concat(inMarket)),
-      map(categories => (new ApioAudienceDescription(categories)).children),
-    );
+    if (this.audienceDescriptions$ == null) {
+      const interest$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=interest').pipe(
+        map(response => response.payload.rows as ApioCategoryResponse[]),
+        map(categories => categories.filter(c => c.isActive === 1))
+      );
+      const inMarket$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=in_market').pipe(
+        map(response => response.payload.rows as ApioCategoryResponse[]),
+        map(categories => categories.filter(c => c.isActive === 1))
+      );
+      this.audienceDescriptions$ = forkJoin(interest$, inMarket$).pipe(
+        map(([interest, inMarket]) => interest.concat(inMarket)),
+        map(categories => (new ApioAudienceDescription(categories)).children),
+        shareReplay()
+      );
+    }
+    return this.audienceDescriptions$;
   }
 
   private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
