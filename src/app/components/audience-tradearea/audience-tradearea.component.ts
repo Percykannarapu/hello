@@ -5,6 +5,7 @@ import { SmartTile, ValAudienceTradeareaService } from '../../services/app-audie
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../models/audience-data.model';
+import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { filter, map } from 'rxjs/operators';
 
 
@@ -29,7 +30,8 @@ export class AudienceTradeareaComponent implements OnInit {
 
   constructor(private audienceTradeareaService: ValAudienceTradeareaService,
     private messagingService: AppMessagingService,
-    private targetAudienceService: TargetAudienceService) { }
+    private targetAudienceService: TargetAudienceService,
+    private discoService: ImpDiscoveryService) { }
 
   ngOnInit() {
     this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_HIGH, value: SmartTile.EXTREMELY_HIGH});
@@ -88,6 +90,10 @@ export class AudienceTradeareaComponent implements OnInit {
     const id: number = this.getVarId();
     if (!id) {
       this.messagingService.showGrowlError(this.errorTitle, 'Unable to determine ID for the selected variable');
+      return;
+    }
+    if (!this.discoService.get()[0].analysisLevel) {
+      this.messagingService.showGrowlError(this.errorTitle, 'You must select an Analysis Level before applying a trade area to Sites');
       return;
     }
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
