@@ -22,16 +22,14 @@
                 </span>
             </div>
             <!-- class="val-auto-complete" -->
-        <div class="ui-fluid" >
-                <!--<input [(ngModel)]="searchText" placeholder="Project Tracker Id" pInputText style="width:50%"  (input)="filterProjectTracker(searchText)"/>           -->
+        <div class="ui-g-12" >
+            <span class="md-inputfield">
                 <p-autoComplete   [suggestions]="searchList" [(ngModel)]="impProjectService.trakerId" (onSelect)="onChangeProjectTraker($event)" (completeMethod)="filterProjectTracker($event)"
-                [style]="{ width: '75%' }"   [minLength]="3" placeholder="  Search for Project Tracker ID" [dropdown]="true">
-                    <!-- <ng-template let-searchText pTemplate="item" >
-                        <div class="ui-helper-clearfix" style="border-bottom:0px solid #D5D5D5">
-                            <div style="font-size:15px;float:left;margin:8px 8px 0 0">{{searchText}}</div>
-                        </div> 
-                    </ng-template> -->
+                    [style]="{'width': '75%'}"  [inputStyle]="{'width':'100%'}"  [minLength]="3"  inputId="float-input" [dropdown]="true">
+                
                 </p-autoComplete>
+                <label>Search for Project Tracker ID</label>   
+            </span>
         </div>
        <div class="ui-g-12 val-flush-to-edges">
                 <div class="ui-g-6">
