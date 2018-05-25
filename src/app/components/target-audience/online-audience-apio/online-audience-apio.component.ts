@@ -25,7 +25,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
   public includeFolder$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public selectedSource: SourceTypes = SourceTypes.InMarket;
+  public selectedSource: SourceTypes = SourceTypes.Interest;
 
   // these have to be exposed like this so they are available in the template
   public SourceType = SourceTypes;
