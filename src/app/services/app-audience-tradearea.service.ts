@@ -213,6 +213,7 @@ export class ValAudienceTradeareaService {
       if (this.taResponses.has(taResponse.locationName)) {
         this.taResponses.get(taResponse.locationName).set(count, taResponse);
       } else {
+        count = 0; // reset the counter for each new location
         const addResponse: Map<number, AudienceTradeareaResponse> = new Map<number, AudienceTradeareaResponse>();
         addResponse.set(count, taResponse);
         this.taResponses.set(taResponse.locationName, addResponse);
