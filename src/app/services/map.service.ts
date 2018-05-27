@@ -536,7 +536,7 @@ export class MapService {
         const loader: any = isUrlRequest ? EsriModules.Layer.fromArcGISServerUrl : EsriModules.Layer.fromPortalItem;
         const itemLoadSpec = isUrlRequest ? { url: layerDef.id } : { portalItem: {id: layerDef.id } };
         loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
-          const popupTitle = layerDef.name + layerDef.popupTitleSuffix;
+          const popupTitle = layerDef.popupTitle;
           const localPopUpFields = new Set(layerDef.popUpFields);
           currentLayer.visible = layerDef.defaultVisibility;
           currentLayer.title = layerDef.name;

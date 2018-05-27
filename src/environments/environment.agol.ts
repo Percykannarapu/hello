@@ -6,7 +6,7 @@ export interface LayerDefinition {
   id: string;
   name: string;
   defaultVisibility: boolean;
-  popupTitleSuffix: string;
+  popupTitle: string;
   minScale: number;
   popUpFields: string[];
 }
@@ -50,9 +50,9 @@ export class EnvironmentData {
         id: undefined,
         name: 'County Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+        popupTitle: 'County: {COUNTY_NAM}, {STATE_ABBR}',
         minScale: undefined,
-        popUpFields: ['objectid', 'gdt_id', 'county_nam', 'state_abbr', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
+        popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
       }
     },
     dma: {
@@ -60,9 +60,9 @@ export class EnvironmentData {
         id: '9205b77cd8c74773aefad268b6705543',
         name: 'DMA Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {DMA_CODE} - {DMA_NAME}',
+        popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
-        popUpFields: ['objectid', 'dma_code', 'dma_name', 'dma_area', 'cent_lat', 'cent_long']
+        popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long']
       }
     },
     zip: {
@@ -70,7 +70,7 @@ export class EnvironmentData {
         id: '38b352fed65640beb0c246b82a24c881',
         name: 'ZIP Centroids',
         defaultVisibility: false,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: 1155600,
         popUpFields: []
       },
@@ -78,9 +78,9 @@ export class EnvironmentData {
         id: '5742f3faba51493ab29f9e78bc5598d4',
         name: 'ZIP Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {GEOCODE}',
+        popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     atz: {
@@ -88,7 +88,7 @@ export class EnvironmentData {
         id: '6053fb9b971245a6a61c3c20a2495732',
         name: 'ATZ Centroids',
         defaultVisibility: false,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: 1155600,
         popUpFields: []
       },
@@ -96,9 +96,9 @@ export class EnvironmentData {
         id: 'd3bf2b2a2a0a46f5bf10e8c6270767da',
         name: 'ATZ Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {GEOCODE}',
+        popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     digital_atz: {
@@ -106,7 +106,7 @@ export class EnvironmentData {
         id: '2acb6088bfbb4be1abd502ea3b20ecf6',
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: 577790,
         popUpFields: []
       },
@@ -114,9 +114,9 @@ export class EnvironmentData {
         id: '2393d7bb2ac547c4a6bfa3d16f8febaa',
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {GEOCODE}',
+        popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 600000,
-        popUpFields: []
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
       }
     },
     pcr: {
@@ -124,7 +124,7 @@ export class EnvironmentData {
         id: undefined,
         name: 'PCR Centroids',
         defaultVisibility: false,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: 577790, // turn on at scale level 10
         popUpFields: []
       },
@@ -132,9 +132,9 @@ export class EnvironmentData {
         id: undefined,
         name: 'PCR Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {GEOCODE}',
+        popupTitle: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 600000,
-        popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
       }
     },
     wrap: {
@@ -142,9 +142,9 @@ export class EnvironmentData {
         id: '09e5cdab538b43a4a6bd9a0d54b682a7',
         name: 'Wrap Boundaries',
         defaultVisibility: true,
-        popupTitleSuffix: ': {GEOCODE}',
-        minScale: 5000000,
-        popUpFields: ['city_name', 'dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+        popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
+        minScale: 500000,
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
       }
     },
     hh: {
@@ -152,7 +152,7 @@ export class EnvironmentData {
         id: '837f4f8be375464a8971c56a0856198e',
         name: 'HH VT',
         defaultVisibility: true,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: undefined,
         popUpFields: []
       },
@@ -160,7 +160,7 @@ export class EnvironmentData {
         id: '5a99095bc95b45a7a830c9e25a389712',
         name: 'HH Source',
         defaultVisibility: true,
-        popupTitleSuffix: '',
+        popupTitle: '',
         minScale: undefined,
         popUpFields: []
       }
