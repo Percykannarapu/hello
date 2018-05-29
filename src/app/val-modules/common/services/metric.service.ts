@@ -162,8 +162,9 @@ export class MetricService
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'predicted-sales', action: actionName });
         counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Topline Sales Generated').replace(/[^\w.\s]/g, ''))));
 
+        //TODO: need to check issue on this metric
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'cost-per-response', action: actionName });
-        counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Cost per Response').replace(/[^\w.\s]/g, ''))));
+        //counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Cost per Response').replace(/[^\w.\s]/g, ''))));
 
         return counterMetrics;
 
