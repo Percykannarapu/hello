@@ -14,6 +14,8 @@ export class ValGeocodingResponse {
   Number: string;
   Name: string;
   Market: string;
+  get LatLon() : string { return `${this.Latitude}, ${this.Longitude}`; }
+  set LatLon(value: string) { this.parseLatLon(value); }
   'Original Address': string;
   'Original City': string;
   'Original State': string;
@@ -25,6 +27,12 @@ export class ValGeocodingResponse {
 
   constructor(initializer: any) {
     Object.assign(this, initializer);
+  }
+
+  private parseLatLon(value: string) : void {
+    const temp = value.split(',');
+    this.Latitude = temp[0];
+    this.Longitude = temp[1];
   }
 
   public toGeoLocation(siteType?: string) : ImpGeofootprintLocation {
