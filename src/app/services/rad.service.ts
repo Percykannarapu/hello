@@ -151,7 +151,7 @@ export class RadService {
             if (totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
                 cpr = this.predictedResp / totalInvestment;
             }
-          //  this.metricService.add('PERFORMANCE', 'Cost per Response', cpr.toFixed(2));
+            this.metricService.add('PERFORMANCE', 'Cost per Response', cpr.toFixed(2));
          }
     }
   }
