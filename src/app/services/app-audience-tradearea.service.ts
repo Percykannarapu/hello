@@ -112,16 +112,17 @@ export class ValAudienceTradeareaService {
         try {
           this.parseResponse(response);
           this.fetchData = false;
-          for (const location of this.locationService.get()) {
+          for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
             this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
-            this.drawRadiusRings(minRadius, maxRadius, location);
           }
+          this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
           this.lastMinRadius = minRadius;
           this.lastMaxRadius = maxRadius;
           this.lastDigCategoryId = digCategoryId;
           this.lastWeight = weight;
         } catch (error) {
+          console.error(error);
           this.audienceTaSubject.error(error);
         }
       },
@@ -181,7 +182,7 @@ export class ValAudienceTradeareaService {
       try {
         for (const location of this.locationService.get()) {
           this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
-          this.drawRadiusRings(minRadius, maxRadius, location);
+          this.drawRadiusRings(minRadius, maxRadius);
         }
         obs.next(true);
       } catch (error) {
@@ -290,13 +291,15 @@ export class ValAudienceTradeareaService {
    * @param maxRadius The maximum radius for the trade area
    * @param location The location associated with the trade are
    */
-  private drawRadiusRings(minRadius: number, maxRadius: number, location: ImpGeofootprintLocation) {
-    const coordinates: Coordinates = { xcoord: location.xcoord, ycoord: location.ycoord };
-    const radii: Array<number> = new Array<number>();
-    radii.push(minRadius);
-    radii.push(maxRadius);
+  private drawRadiusRings(minRadius: number, maxRadius: number) {
     const ringMap: Map<Coordinates, number[]> = new Map<Coordinates, number[]>();
-    ringMap.set(coordinates, radii);
+    for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
+      const coordinates: Coordinates = { xcoord: location.xcoord, ycoord: location.ycoord };
+      const radii: Array<number> = new Array<number>();
+      radii.push(minRadius);
+      radii.push(maxRadius);
+      ringMap.set(coordinates, radii);
+    }
     this.mapService.drawRadiusBuffers(ringMap, true, 'Site');
   }
 
@@ -336,6 +339,10 @@ export class ValAudienceTradeareaService {
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const newAttributes: ImpGeofootprintGeoAttrib[] = new Array<ImpGeofootprintGeoAttrib>();
     const taResponseMap = this.taResponses.get(location.locationName);
+    if (!taResponseMap) {
+      console.warn('Unable to find response for location: ', location);
+      return;
+    }
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const newAttribute: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
