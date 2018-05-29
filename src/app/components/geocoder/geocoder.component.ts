@@ -81,6 +81,19 @@ export class GeocoderComponent implements OnInit {
     });
   }
 
+  public onAccept(row: ValGeocodingResponse) {
+    const valGeoList: ValGeocodingResponse[] = [];
+    valGeoList.push(row);
+        
+    this.geocodingService.removeFailedGeocode(row);
+
+    if (row['Geocode Status'] === 'CENTROID') {
+      row['Geocode Status'] = 'SUCCESS';
+    } else row['Geocode Status'] = 'PROVIDED';
+    this.siteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.currentManualSiteType)));
+
+  }
+
   // remove an GeocodingResponse from the  list of sites that failed to geocode
   public onRemove(row) {
     this.geocodingService.removeFailedGeocode(row);

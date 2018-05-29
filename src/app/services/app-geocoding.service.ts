@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { map } from 'rxjs/operators';
+import { map, pairwise, filter } from 'rxjs/operators';
 import { AppMessagingService } from './app-messaging.service';
 import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -25,9 +25,15 @@ export class ValGeocodingService implements OnInit {
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService, 
               private valGeoService: ValGeoService,
-              private locationService: ImpGeofootprintLocationService) { }
+              private locationService: ImpGeofootprintLocationService) {
+                  this.failureCount$.pipe(
+                    pairwise(),
+                    filter(([prevCount, currentCount]) => prevCount < currentCount),
+                    map(([prevCount, currentCount]) => currentCount > 0)
+                  ).subscribe(hasNewError => this.messageService.showGrowlError('Error', 'Geocoding Error'));
+               }
 
-  ngOnInit() {
+  /* ngOnInit() {
     const s = this.locationService.storeObservable.subscribe(loc => {
       this.successCount = loc.length;
       this.calculateCounts();
@@ -41,7 +47,7 @@ export class ValGeocodingService implements OnInit {
  
   public calculateCounts(){
     this.totalCount = this.successCount + this.failureCount;
-  }
+  } */
 
   public removeFailedGeocode(data: ValGeocodingResponse) : void {
     const failures = this.failures.getValue();
@@ -106,9 +112,7 @@ export class ValGeocodingService implements OnInit {
   private showCompletedMessage() : void {
     if (this.failures.getValue().length === 0) {
       this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
-    } else {
-      this.messageService.showGrowlError('Error', 'Geocoding Error');
-    }
+    } 
   }
 
   private chunkArray(data: ValGeocodingRequest[], size: number) {
