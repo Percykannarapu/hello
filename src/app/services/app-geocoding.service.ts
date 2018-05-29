@@ -7,6 +7,8 @@ import { map, pairwise, filter } from 'rxjs/operators';
 import { AppMessagingService } from './app-messaging.service';
 import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { chunkArray } from '../app.utils';
+import { AppConfig } from '../app.config';
 
 @Injectable()
 export class ValGeocodingService {
@@ -25,7 +27,8 @@ export class ValGeocodingService {
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
               private valGeoService: ValGeoService,
-              private locationService: ImpGeofootprintLocationService) {
+              private locationService: ImpGeofootprintLocationService,
+              private config: AppConfig) {
     
               this.failureCount$.pipe(
                 pairwise(),
@@ -49,7 +52,7 @@ export class ValGeocodingService {
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
       const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
-      const requestData = this.chunkArray(cleanRequestData, 50);
+      const requestData = chunkArray(cleanRequestData, this.config.maxValGeocodingReqSize);
       const observables: Observable<ValGeocodingResponse[]>[] = [];
       const promises: Promise<ValGeocodingResponse[]>[] = [];
       requestData.forEach(reqList => {
@@ -100,9 +103,4 @@ export class ValGeocodingService {
     }
   }
 
-  private chunkArray(data: ValGeocodingRequest[], size: number) {
-    return Array.from({ length: Math.ceil(data.length / size) })
-      .map((_, i) => Array.from({ length: size })
-        .map((_, j) => data[i * size + j]));
-  }
 }
