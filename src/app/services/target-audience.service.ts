@@ -12,6 +12,7 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -112,6 +113,9 @@ export class TargetAudienceService implements OnDestroy {
         },
         () => {
           try{
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'export' });
+            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName;
+            this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
             const fileName = `NatlExtract_${this.currentAnalysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
             const workbook = XLSX.utils.book_new();
