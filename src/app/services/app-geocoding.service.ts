@@ -23,15 +23,16 @@ export class ValGeocodingService {
   public currentFilefailedcount = 0;
 
   constructor(private messageService: AppMessagingService,
-              private restService: RestDataService, 
+              private restService: RestDataService,
               private valGeoService: ValGeoService,
               private locationService: ImpGeofootprintLocationService) {
-                  this.failureCount$.pipe(
-                    pairwise(),
-                    filter(([prevCount, currentCount]) => prevCount < currentCount),
-                    map(([prevCount, currentCount]) => currentCount > 0)
-                  ).subscribe(hasNewError => this.messageService.showGrowlError('Error', 'Geocoding Error'));
-               }
+    
+              this.failureCount$.pipe(
+                pairwise(),
+                filter(([prevCount, currentCount]) => prevCount < currentCount),
+                map(([prevCount, currentCount]) => currentCount > 0)
+              ).subscribe(hasNewError => this.messageService.showGrowlError('Error', 'Geocoding Error'));
+   }
 
   public removeFailedGeocode(data: ValGeocodingResponse) : void {
     const failures = this.failures.getValue();
@@ -60,7 +61,7 @@ export class ValGeocodingService {
               if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
                 d['Geocode Status'] = 'ERROR';
                 fail.push(new ValGeocodingResponse(d));
-              } else if (d['Match Quality'] === '' || d['Match Quality'].startsWith('Z') || d['Match Code'] === 'Z') {
+              } else if (d['Match Quality'] === '' || (d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) || d['Match Code'] === 'Z') {
                 d['Geocode Status'] = 'CENTROID';
                 fail.push(new ValGeocodingResponse(d));
               } else {
@@ -68,10 +69,10 @@ export class ValGeocodingService {
                 success.push(new ValGeocodingResponse(d));
               }
             });
-            const projectFailures =  this.failures.getValue();
-          this.failures.next([...fail, ...projectFailures]);
-          this.currentFilefailedcount = this.currentFilefailedcount + fail.length;
-          return success;
+            const projectFailures = this.failures.getValue();
+            this.failures.next([...fail, ...projectFailures]);
+            this.currentFilefailedcount = this.currentFilefailedcount + fail.length;
+            return success;
           })
         );
         observables.push(obs);
@@ -83,8 +84,8 @@ export class ValGeocodingService {
         return Array.prototype.concat(...data);
       });
 
-     // mergeMap()
-     //const obs =  merge(...observables).subscribe(, null, () => obs.unsubscribe());
+      // mergeMap()
+      //const obs =  merge(...observables).subscribe(, null, () => obs.unsubscribe());
     }
     if (geocoderPromise) {
       return geocoderPromise;
@@ -93,15 +94,15 @@ export class ValGeocodingService {
     }
   }
 
-  private showCompletedMessage() : void {
+  private showCompletedMessage(): void {
     if (this.failures.getValue().length === 0) {
       this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
-    } 
+    }
   }
 
   private chunkArray(data: ValGeocodingRequest[], size: number) {
-    return Array.from({length: Math.ceil(data.length / size)})
-                .map((_, i) => Array.from({length: size})
-                                              .map((_ , j) => data[i * size + j]));
+    return Array.from({ length: Math.ceil(data.length / size) })
+      .map((_, i) => Array.from({ length: size })
+        .map((_, j) => data[i * size + j]));
   }
 }

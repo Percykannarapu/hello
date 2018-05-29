@@ -85,12 +85,12 @@
   <div *ngIf="hasFailures$ | async" class="ui-g">
     <p-dataTable [value]="geocodingFailures$ | async" [rows]="10" [paginator]="true" [editable]="true" [immutable]="false">
       <p-header>Detected {{(failureCount$ | async) || 0}} geocoding failures out of {{count}} rows</p-header>
-      <p-column header="Resubmit">
+      <p-column header="Resubmit Address">
         <ng-template let-h="rowData" pTemplate="body">
           <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
         </ng-template>
       </p-column>
-      <p-column header="Accept">
+      <p-column header="Accept XY">
         <ng-template let-h="rowData" pTemplate="body">
           <button (click)="onAccept(h)" icon="ui-icon-check" [disabled]="h['Geocode Status'] === 'ERROR'" pButton style="margin: auto; display: block"></button>
         </ng-template>
