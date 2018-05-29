@@ -9,7 +9,7 @@ import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Injectable()
-export class ValGeocodingService implements OnInit {
+export class ValGeocodingService {
 
   public failures: BehaviorSubject<ValGeocodingResponse[]> = new BehaviorSubject<ValGeocodingResponse[]>([]);
 
@@ -32,22 +32,6 @@ export class ValGeocodingService implements OnInit {
                     map(([prevCount, currentCount]) => currentCount > 0)
                   ).subscribe(hasNewError => this.messageService.showGrowlError('Error', 'Geocoding Error'));
                }
-
-  /* ngOnInit() {
-    const s = this.locationService.storeObservable.subscribe(loc => {
-      this.successCount = loc.length;
-      this.calculateCounts();
-    });   
-    const f = this.failureCount$.subscribe(n => {
-      this.failureCount = n;
-      this.calculateCounts();
-    });
-    
-  }
- 
-  public calculateCounts(){
-    this.totalCount = this.successCount + this.failureCount;
-  } */
 
   public removeFailedGeocode(data: ValGeocodingResponse) : void {
     const failures = this.failures.getValue();
