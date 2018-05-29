@@ -116,7 +116,7 @@ export class TargetAudienceApioService {
       allowNationalExport: true,
       exportNationally: false,
       selectedDataSet: 'nationalScore',
-      dataSetOptions: [ { label: 'National Index', value: 'nationalScore' }, { label: 'DMA Index', value: 'dmaScore' } ],
+      dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
       secondaryId: digId.toLocaleString()
     };
   }

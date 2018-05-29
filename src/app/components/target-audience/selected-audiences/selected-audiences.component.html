@@ -21,7 +21,7 @@
           </div>
         </ng-template>
       </p-column>
-      <p-column header="Export" field="exportInGeoFootprint" [style]="{ width: '8%' }">
+      <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '8%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
           <div class="val-center-controls">
             <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
@@ -35,7 +35,7 @@
           </div>
         </ng-template>
       </p-column>
-      <p-column header="Dataset" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
+      <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
           <p-dropdown
             *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"

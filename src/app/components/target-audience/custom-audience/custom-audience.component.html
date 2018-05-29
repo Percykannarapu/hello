@@ -1,7 +1,7 @@
 <div class="ui-g">
   <div class="ui-g-5">
     <p-fileUpload #audienceUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                  pTooltip="CSV or Excel format required: Geocode, Score" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true">
+                  pTooltip="CSV or Excel format required: Geocode, Field 1, Field 2, ..." [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true">
     </p-fileUpload>
   </div>
 </div>
