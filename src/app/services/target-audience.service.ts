@@ -112,7 +112,7 @@ export class TargetAudienceService implements OnDestroy {
           this.messagingService.stopSpinnerDialog(spinnerId);
         },
         () => {
-          try{
+          try {
             const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'export' });
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
@@ -120,7 +120,8 @@ export class TargetAudienceService implements OnDestroy {
             const fileName = `NatlExtract_${this.currentAnalysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            XLSX.utils.book_append_sheet(workbook, worksheet, audiences[0].audienceName);
+            const sheetName = audiences[0].audienceName.substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
           } finally {
             this.messagingService.stopSpinnerDialog(spinnerId);
