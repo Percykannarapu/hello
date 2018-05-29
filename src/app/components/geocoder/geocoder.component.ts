@@ -73,10 +73,10 @@ export class GeocoderComponent implements OnInit {
   }
 
   // resubmit a geocoding request for an GeocodingResponse that failed to geocode previously
-  public onResubmit(row) {
+  public onResubmit(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
     this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
-    this.siteListService.geocodeAndPersist([row], this.currentManualSiteType).then(() => {
+    this.siteListService.geocodeAndPersist([row.toGeocodingRequest()], this.currentManualSiteType).then(() => {
       this.messageService.stopSpinnerDialog(this.messagingKey);
     });
   }
