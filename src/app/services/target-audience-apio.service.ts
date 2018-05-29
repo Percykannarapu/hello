@@ -7,6 +7,8 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { map, shareReplay } from 'rxjs/operators';
 import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
 import { chunkArray } from '../app.utils';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './usage.service';
 
 interface ApioCategoryResponse {
   categoryId: string;
@@ -96,7 +98,8 @@ export class TargetAudienceApioService {
   private fuseSourceMapping: Map<SourceTypes, string> = new Map<SourceTypes, string>();
   private audienceDescriptions$: Observable<ApioAudienceDescription[]>;
 
-  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService) {
+  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
+              private usageService: UsageService) {
     this.fuseSourceMapping.set(SourceTypes.Interest, 'interest');
     this.fuseSourceMapping.set(SourceTypes.InMarket, 'in_market');
   }
@@ -113,7 +116,7 @@ export class TargetAudienceApioService {
       allowNationalExport: true,
       exportNationally: false,
       selectedDataSet: 'nationalScore',
-      dataSetOptions: [ { label: 'National Index', value: 'nationalScore' }, { label: 'DMA Index', value: 'dmaScore' } ],
+      dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
       secondaryId: digId.toLocaleString()
     };
   }
@@ -143,6 +146,7 @@ export class TargetAudienceApioService {
   }
 
   public addAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+    this.usageMetricCheckUncheckApio('checked', audience);
     const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
@@ -152,6 +156,7 @@ export class TargetAudienceApioService {
   }
 
   public removeAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+    this.usageMetricCheckUncheckApio('unchecked', audience);
     this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
   }
 
@@ -232,5 +237,12 @@ export class TargetAudienceApioService {
       }
     }
     return observables;
+  }
+
+  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription){
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
+      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + audience.source;
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
+
   }
 }

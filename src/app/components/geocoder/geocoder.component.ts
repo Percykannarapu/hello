@@ -8,6 +8,7 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { Observable } from 'rxjs';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
   selector: 'val-geocoder',
@@ -22,24 +23,44 @@ export class GeocoderComponent implements OnInit {
   public siteModel: ValGeocodingRequest;
   public compModel: ValGeocodingRequest;
   public currentModel: ValGeocodingRequest;
+  public successCount: number;
+  public count: number;
+  public failureCount: number;
 
   private spinnerMessage: string = 'Geocoding Locations';
   private messagingKey: string = 'GeocoderComponentKey';
 
   constructor(public config: AppConfig,
-    public geocodingService: ValGeocodingService,
-    private siteListService: ValSiteListService,
-    private messageService: AppMessagingService,
-    private usageService: UsageService) {
-    this.hasFailures$ = this.geocodingService.hasFailures$;
-    this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
-    this.failureCount$ = this.geocodingService.failureCount$;
+              public geocodingService: ValGeocodingService,
+              private siteListService: ValSiteListService,
+              private messageService: AppMessagingService,
+              private usageService: UsageService, 
+              private locationService: ImpGeofootprintLocationService) {
+
+                    this.hasFailures$ = this.geocodingService.hasFailures$;
+                    this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
+                    this.failureCount$ = this.geocodingService.failureCount$;
+                    // this.totalCount = this.geocodingService.totalCount;
   }
 
   public ngOnInit(): void {
     this.siteModel = new ValGeocodingRequest({});
     this.compModel = new ValGeocodingRequest({});
     this.currentModel = this.siteModel;
+
+    const s = this.locationService.storeObservable.subscribe(loc => {
+        this.successCount = loc.length;
+        this.calculateCounts();
+      });   
+    const f = this.failureCount$.subscribe(n => {
+        this.failureCount = n;
+        this.calculateCounts();
+      });
+      
+  }
+  
+  public calculateCounts(){
+    this.count = this.successCount + this.failureCount;
   }
 
   public onSiteTypeChange($event): void {
@@ -58,6 +79,19 @@ export class GeocoderComponent implements OnInit {
     this.siteListService.geocodeAndPersist([row], this.currentManualSiteType).then(() => {
       this.messageService.stopSpinnerDialog(this.messagingKey);
     });
+  }
+
+  public onAccept(row: ValGeocodingResponse) {
+    const valGeoList: ValGeocodingResponse[] = [];
+    valGeoList.push(row);
+        
+    this.geocodingService.removeFailedGeocode(row);
+
+    if (row['Geocode Status'] === 'CENTROID') {
+      row['Geocode Status'] = 'SUCCESS';
+    } else row['Geocode Status'] = 'PROVIDED';
+    this.siteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.currentManualSiteType)));
+
   }
 
   // remove an GeocodingResponse from the  list of sites that failed to geocode
