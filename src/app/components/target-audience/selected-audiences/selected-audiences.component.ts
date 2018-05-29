@@ -50,12 +50,15 @@ export class SelectedAudiencesComponent implements OnInit {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
     if (mappedAudience != null) {
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
+      
       const discoData = this.discoService.get()[0];
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
-      const metricText = variableId + '~' + mappedAudience.audienceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-
+     
+      if ( mappedAudience.audienceSourceType.includes('Offline')){
+           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
+           const metricText = variableId + '~' + mappedAudience.audienceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+           this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      }
       const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
       const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
 
