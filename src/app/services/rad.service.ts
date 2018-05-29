@@ -148,8 +148,9 @@ export class RadService {
          const totalInvestment = Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''));
          if (!Number.isNaN(totalInvestment) && totalInvestment != 0 && this.predictedResp != 0){
             console.log('total investment:::', totalInvestment);
-            if (totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
-                cpr = this.predictedResp / totalInvestment;
+            if (this.predictedResp != 0 && totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
+               // cpr = this.predictedResp / totalInvestment;
+               cpr =  totalInvestment / this.predictedResp;
             }
             this.metricService.add('PERFORMANCE', 'Cost per Response', cpr.toFixed(2));
          }
