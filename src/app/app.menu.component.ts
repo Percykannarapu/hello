@@ -9,6 +9,7 @@ import { UsageService } from './services/usage.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { MetricService } from './val-modules/common/services/metric.service';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 
 @Component({
     /* tslint:disable:component-selector */
@@ -30,7 +31,8 @@ export class AppMenuComponent implements OnInit {
                private audienceService: TargetAudienceService,
                public usageService: UsageService,
                public impDiscoveryService: ImpDiscoveryService,
-               public metricService: MetricService) {}
+               public metricService: MetricService,
+               private confirmationService: ConfirmationService) {}
 
     ngOnInit() {
         this.model = [
@@ -54,6 +56,12 @@ export class AppMenuComponent implements OnInit {
                 ]
             },*/
             // {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
+          /*  {
+                label: 'Projects',
+                items: [
+                    {label: 'Create New Project', command: () => this.createNewProject() }
+                ]
+            },*/
             {
                 label: 'Export', icon: 'file_download',
                 items: [
@@ -232,13 +240,27 @@ export class AppMenuComponent implements OnInit {
 
      // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
 
-      this.usageService.createCounterMetrics(counterMetricsDiscover);
-      this.usageService.createCounterMetrics(counterMetricsColorBox);
+     this.usageService.creategaugeMetrics(counterMetricsDiscover);
+     this.usageService.creategaugeMetrics(counterMetricsColorBox);
+      //this.usageService.createCounterMetrics(counterMetricsDiscover);
+      //this.usageService.createCounterMetrics(counterMetricsColorBox);
 
 
     }
     public getNationalExtract() {
       this.audienceService.exportNationalExtract();
+    }
+
+    public createNewProject(){
+        this.confirmationService.confirm({
+            message: 'Your project may have unsaved changes. Do you wish to save your current project?',
+            header: 'Save Confirmation',
+            icon: 'ui-icon-project',
+            accept: () => {
+            },
+            reject: () => {
+            }
+        });
     }
 }
 
