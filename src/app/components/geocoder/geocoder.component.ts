@@ -87,9 +87,9 @@ export class GeocoderComponent implements OnInit {
         
     this.geocodingService.removeFailedGeocode(row);
 
-    if (row['Geocode Status'] === 'CENTROID') {
-      row['Geocode Status'] = 'SUCCESS';
-    } else row['Geocode Status'] = 'PROVIDED';
+    if (row['userHasEdited'] != null && row['userHasEdited'] === true) {
+      row['Geocode Status'] = 'PROVIDED';
+   } else row['Geocode Status'] = 'SUCCESS';
     this.siteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.currentManualSiteType)));
 
   }

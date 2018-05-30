@@ -31,8 +31,6 @@ export class UploadLocationsComponent implements OnInit {
   private spinnerKey = 'UploadLocationsComponentKey';
   private spinnerMessage: string = 'Geocoding Locations';
 
-  private failureList: ValGeocodingResponse[] = [];
-
   public hasFailures$: Observable<boolean>;
   public geocodingFailures$: Observable<ValGeocodingResponse[]>;
   public failureCount$: Observable<number>;
@@ -80,13 +78,13 @@ export class UploadLocationsComponent implements OnInit {
         
     this.geocodingService.removeFailedGeocode(row);
 
-    if (row['Geocode Status'] === 'CENTROID') {
-      row['Geocode Status'] = 'SUCCESS';
-    } else row['Geocode Status'] = 'PROVIDED';
+    if (row['userHasEdited'] != null && row['userHasEdited'] === true) {
+       row['Geocode Status'] = 'PROVIDED';
+    } else row['Geocode Status'] = 'SUCCESS';
     this.valSiteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.listType)));
 
   }
-   
+  
   public onChangeGeos(){
     this.locationService.storeObservable.subscribe(loc => {
       console.log('locations::::', loc);
