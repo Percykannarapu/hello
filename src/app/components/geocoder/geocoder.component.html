@@ -92,7 +92,7 @@
       </p-column>
       <p-column header="Accept XY">
         <ng-template let-h="rowData" pTemplate="body">
-          <button (click)="onAccept(h)" icon="ui-icon-check" [disabled]="h['Geocode Status'] === 'ERROR'" pButton style="margin: auto; display: block"></button>
+          <button (click)="onAccept(h)" icon="ui-icon-check" [disabled]="h['Geocode Status'] === 'ERROR' && h['userHasEdited'] !== true" pButton style="margin: auto; display: block"></button>
         </ng-template>
       </p-column>
       <p-column header="Remove">
