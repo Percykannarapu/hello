@@ -480,14 +480,14 @@ export class DiscoveryInputComponent implements OnInit
 
    public onChangePob(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includePob;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includePob = event;
       this.onChangeField(event);
    }
    public onChangeIncludeVal(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeValassis;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-val-geo', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-valassis-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeValassis = event;
       this.onChangeField(event);
@@ -495,14 +495,14 @@ export class DiscoveryInputComponent implements OnInit
    }
    public onChangeIncludeAnne(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeAnne;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeAnne = event;
       this.onChangeField(event);
    }
    public onChangeIncludeSolo(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeSolo;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeSolo = event;
       this.onChangeField(event);
@@ -525,7 +525,7 @@ export class DiscoveryInputComponent implements OnInit
       else 
              metricsText = 'New=' + this.impDiscoveryUI.circBudget + '~Old=' + null;  
      // 'New=' + event + '~Old=' + this.impDiscoveryUI.circBudget;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'dist-budget', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'circ-budget', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.localCopydiscoverUI.circBudget = this.impDiscoveryUI.circBudget;
       this.onChangeField(event);
@@ -548,7 +548,7 @@ export class DiscoveryInputComponent implements OnInit
              metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + this.localCopydiscoverUI.valassisCPM;
       else 
              metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + null;  
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'val-cpm', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'valassis-cpm', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.localCopydiscoverUI.valassisCPM = this.impDiscoveryUI.valassisCPM;
       this.onChangeField(event);
