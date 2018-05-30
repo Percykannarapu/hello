@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { map, pairwise, filter } from 'rxjs/operators';
+import { map, pairwise, filter, tap } from 'rxjs/operators';
 import { AppMessagingService } from './app-messaging.service';
 import { ValGeoService } from './app-geo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -55,10 +55,10 @@ export class ValGeocodingService {
       const requestData = chunkArray(cleanRequestData, this.config.maxValGeocodingReqSize);
       const observables: Observable<ValGeocodingResponse[]>[] = [];
       const promises: Promise<ValGeocodingResponse[]>[] = [];
+      const fail: ValGeocodingResponse[] = [];
       requestData.forEach(reqList => {
         const obs = this.restService.post('v1/geocoder/multiplesites', reqList).pipe(
-          map(data => {
-            const fail: ValGeocodingResponse[] = [];
+          map(data => {        
             const success: ValGeocodingResponse[] = [];
             data.payload.forEach(d => {
               if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
@@ -72,19 +72,20 @@ export class ValGeocodingService {
                 success.push(new ValGeocodingResponse(d));
               }
             });
-            const projectFailures = this.failures.getValue();
-            this.failures.next([...fail, ...projectFailures]);
-            this.currentFilefailedcount = this.currentFilefailedcount + fail.length;
             return success;
           })
+          
         );
         observables.push(obs);
       });
 
       observables.forEach(o => promises.push(o.toPromise()));
       geocoderPromise = Promise.all(promises).then(data => {
-        this.showCompletedMessage();
-        return Array.prototype.concat(...data);
+          const projectFailures = this.failures.getValue();
+          this.failures.next([...fail, ...projectFailures]);
+          this.currentFilefailedcount = this.currentFilefailedcount + fail.length;
+          this.showCompletedMessage();
+          return Array.prototype.concat(...data);
       });
 
       // mergeMap()
