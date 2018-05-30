@@ -147,7 +147,7 @@ export class TargetAudienceApioService {
   }
 
   public addAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
-    this.usageMetricCheckUncheckApio('checked', audience, discoService);
+    this.usageMetricCheckUncheckApio('checked', audience, discoService, source.toString());
     const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
@@ -157,7 +157,7 @@ export class TargetAudienceApioService {
   }
 
   public removeAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
-    this.usageMetricCheckUncheckApio('unchecked', audience, discoService);
+    this.usageMetricCheckUncheckApio('unchecked', audience, discoService, source.toString());
     this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
   }
 
@@ -240,9 +240,9 @@ export class TargetAudienceApioService {
     return observables;
   }
 
-  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, discoService?: ImpDiscoveryService){
+  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, discoService?: ImpDiscoveryService, source?: string){
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + audience.source + '~' + discoService.get()[0].analysisLevel;
+      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + source + '~' + discoService.get()[0].analysisLevel;
       this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
   }
