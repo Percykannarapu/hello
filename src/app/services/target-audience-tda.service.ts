@@ -182,7 +182,7 @@ export class TargetAudienceTdaService {
 
   private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: checkType });
-      const metricText = audience.audienceIdentifier + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + this.discoService.get()[0].analysisLevel;
+      const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + this.discoService.get()[0].analysisLevel;
       this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
   }
