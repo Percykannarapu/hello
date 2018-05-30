@@ -9,6 +9,7 @@ import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
 import { chunkArray } from '../app.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 
 interface ApioCategoryResponse {
   categoryId: string;
@@ -145,8 +146,8 @@ export class TargetAudienceApioService {
     return result;
   }
 
-  public addAudience(audience: ApioAudienceDescription, source: SourceTypes) {
-    this.usageMetricCheckUncheckApio('checked', audience);
+  public addAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
+    this.usageMetricCheckUncheckApio('checked', audience, discoService);
     const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
@@ -155,8 +156,8 @@ export class TargetAudienceApioService {
       );
   }
 
-  public removeAudience(audience: ApioAudienceDescription, source: SourceTypes) {
-    this.usageMetricCheckUncheckApio('unchecked', audience);
+  public removeAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
+    this.usageMetricCheckUncheckApio('unchecked', audience, discoService);
     this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
   }
 
@@ -239,9 +240,9 @@ export class TargetAudienceApioService {
     return observables;
   }
 
-  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription){
+  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, discoService?: ImpDiscoveryService){
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + audience.source;
+      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + audience.source + '~' + discoService.get()[0].analysisLevel;
       this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
   }
