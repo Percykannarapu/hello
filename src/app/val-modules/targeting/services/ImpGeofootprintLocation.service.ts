@@ -310,7 +310,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Match Pass',         row: (state, data) => null});
             exportColumns.push({ header: 'Match Score',        row: (state, data) => null});
             exportColumns.push({ header: 'Match Code',         row: (state, data) => data.geocoderMatchCode});
-            exportColumns.push({ header: 'Match Quality',      row: (state, data) => null});
+            exportColumns.push({ header: 'Match Quality',      row: (state, data) => data.geocoderLocationCode});
             exportColumns.push({ header: 'Match Error',        row: (state, data) => null});
             exportColumns.push({ header: 'Match Error Desc',   row: (state, data) => null});
             exportColumns.push({ header: 'Original Address',   row: (state, data) => data.origAddress1});
