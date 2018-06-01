@@ -861,13 +861,18 @@ export class DiscoveryInputComponent implements OnInit
     }
 
     public getImsProjectTrakerData() : Observable<Response>{
-          const currentDate = new Date();
           let updatedDateFrom = null;
-          const updatedDateTo = this.formatDate(currentDate);
+          let updatedDateTo = null;
+         updatedDateTo = new Date();
+         updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+         updatedDateTo = this.formatDate(updatedDateTo);
           //console.log('updatedDateTo:::', updatedDateTo);
-          currentDate.setMonth(currentDate.getMonth() - 6);
-          updatedDateFrom = this.formatDate(currentDate);
+          updatedDateFrom = new Date();
+          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+          updatedDateFrom = this.formatDate(updatedDateFrom);
           //console.log('updatedDateFrom:::', updatedDateFrom);
+      //     console.log('url:::::', `v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
+      //     TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
           TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
            map((result: any) => result.payload.rows)
