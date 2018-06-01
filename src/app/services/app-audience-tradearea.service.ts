@@ -208,11 +208,13 @@ export class ValAudienceTradeareaService {
    * @param restResponse The response from Fuse returned from the trade area service
    */
   private parseResponse(restResponse: RestResponse) {
+    this.taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
     const rendererData: Array<any> = new Array<any>();
     let count: number = 0;
     for (const taResponse of restResponse.payload.rows) {
       if (this.taResponses.has(taResponse.locationName)) {
         this.taResponses.get(taResponse.locationName).set(count, taResponse);
+        count++;
       } else {
         count = 0; // reset the counter for each new location
         const addResponse: Map<number, AudienceTradeareaResponse> = new Map<number, AudienceTradeareaResponse>();
@@ -222,7 +224,6 @@ export class ValAudienceTradeareaService {
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
       geoVar.valueString = taResponse.indexTileName;
       rendererData.push({geocode: taResponse.geocode, data: geoVar});
-      count++;
     }
     this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
   }
