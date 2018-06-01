@@ -74,15 +74,15 @@ export class UploadLocationsComponent implements OnInit {
   }
   public onAccept(row: ValGeocodingResponse) {
     const valGeoList: ValGeocodingResponse[] = [];
-    valGeoList.push(row);
-        
+    valGeoList.push(row);     
     this.geocodingService.removeFailedGeocode(row);
 
     if (row['userHasEdited'] != null && row['userHasEdited'] === true) {
        row['Geocode Status'] = 'PROVIDED';
+       row['Match Code'] = '';
+       row['Match Quality'] = '';
     } else row['Geocode Status'] = 'SUCCESS';
     this.valSiteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.listType)));
-
   }
   
   public onChangeGeos(){
