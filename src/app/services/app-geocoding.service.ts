@@ -72,6 +72,7 @@ export class ValGeocodingService {
                 success.push(new ValGeocodingResponse(d));
               }
             });
+            Array.prototype.push.apply(success, preGeoCodedSites);
             return success;
           })
           
