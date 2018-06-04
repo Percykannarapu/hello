@@ -152,8 +152,12 @@ export class RadService {
                // cpr = this.predictedResp / totalInvestment;
                cpr =  totalInvestment / this.predictedResp;
             }
-            this.metricService.add('PERFORMANCE', 'Cost per Response', cpr.toFixed(2));
          }
+         if (Number.isNaN(cpr)){
+          this.metricService.add('PERFORMANCE', 'Cost per Response', 'N/A');
+        }else{
+          this.metricService.add('PERFORMANCE', 'Cost per Response', '$' + cpr.toFixed(2));
+        }
     }
   }
 
