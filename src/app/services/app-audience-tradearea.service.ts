@@ -197,8 +197,8 @@ export class ValAudienceTradeareaService {
    */
   private sendRequest(taConfig: AudienceTradeAreaConfig) : Observable<RestResponse> {
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
-    //const url: string = this.appConfig.valServiceBase + 'v1/targeting/base/audiencetradearea';
-    const url: string = 'https://servicesdev.valassislab.com/services/v1/targeting/base/audiencetradearea';
+    const url: string = this.appConfig.valServiceBase + 'v1/targeting/base/audiencetradearea';
+    //const url: string = 'https://servicesdev.valassislab.com/services/v1/targeting/base/audiencetradearea';
     return this.httpClient.post<RestResponse>(url, JSON.stringify(taConfig), {headers: headers});
   }
 
