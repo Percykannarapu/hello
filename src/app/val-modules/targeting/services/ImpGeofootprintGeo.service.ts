@@ -712,7 +712,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
+            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
+
          break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
