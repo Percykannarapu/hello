@@ -60,8 +60,8 @@ export class ValGeocodingResponse {
       clientLocationTypeCode: siteType, //new ImpClientLocationType({clientLocationType: siteType}),
       isActive: true
     });
-    if (this.Number != null && !Number.isNaN(Number(this.Number))) {
-      result.locationNumber = Number(this.Number);
+    if (this.Number != null ) {
+      result.locationNumber = this.Number;
       result.glId = null; // Number(this.Number);
     }
     const attributes: ImpGeofootprintLocAttrib[] = [];
