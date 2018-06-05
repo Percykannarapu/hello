@@ -268,7 +268,8 @@ export class ValMapService implements OnDestroy {
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
      // const point = graphic.geometry;
      //   if (EsriUtils.geometryIsPoint(point)) 
-          this.appGeoService.toggleGeoSelection(geocode, point);
+        //  this.appGeoService.toggleGeoSelection(geocode, point);
+        this.selectSingleGeocode(geocode);
      
     });
   }

@@ -356,7 +356,6 @@ export class MapService {
                 this.appMapService.selectMultipleGeocode(graphicsList);
               //  console.log('list of graphicsList:::', graphicsList);
                 this.mapView.graphics.removeAll();
-
                   setTimeout(() => {
                     this.sketchViewModel.create('rectangle', undefined);
                     this.messagingService.stopSpinnerDialog('selectGeos');
