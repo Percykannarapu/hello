@@ -63,7 +63,7 @@ export class GeocoderComponent implements OnInit {
     this.count = this.successCount + this.failureCount;
   }
 
-  public onSiteTypeChange($event): void {
+  public onSiteTypeChange($event) : void {
     if ($event === 'Site') {
       this.currentModel = this.siteModel;
     } else {
@@ -111,13 +111,17 @@ export class GeocoderComponent implements OnInit {
     const x = this.currentModel.longitude != null ? 'X=' + this.currentModel.longitude + '~' : '';
     const y = this.currentModel.latitude != null ? 'Y=' + this.currentModel.latitude : '';
     const metricText = number + name + street + city + state + zip + market + x + y;
-    if (this.currentModel.canBeGeocoded()) {
+    const dupNumber = this.locationService.get().filter(loc => loc.locationNumber.toString() == this.currentModel.number.toString() );
+    if (this.currentModel.canBeGeocoded() && dupNumber.length == 0) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
       this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
         this.messageService.stopSpinnerDialog(this.messagingKey);
       });
+    }
+    else{
+      this.handleError(`Site Number already exist on the project.`);
     }
   }
 
@@ -149,5 +153,10 @@ export class GeocoderComponent implements OnInit {
     this.currentModel.Market = 'Test Market';
     this.currentModel.latitude = '39.967208';
     this.currentModel.longitude = '-85.988858';
+  }
+
+  private handleError(message: string) : void {
+   // this.messageService.stopSpinnerDialog(this.spinnerKey);
+    this.messageService.showGrowlError('Geocoding Error', message);
   }
 }
