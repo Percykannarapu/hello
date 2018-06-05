@@ -807,7 +807,20 @@ export class DiscoveryInputComponent implements OnInit
       this.searchList = [];
       if (value.length > 2) {
             const respList: string[] = [];
-            this.projectTrackerData.forEach((item => {
+            const matchingValues = this.projectTrackerData.filter(item => {
+                  if (item['targetor'] != null){
+                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) || item['targetor'].includes(value);
+                  }
+                  else{
+                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) ;
+                  }
+                  
+            }).map(item => {
+                  return item['targetor'] != null ? item['projectId'] + '   ' + item['projectName'] + '  (' + item['targetor'] + ')' : item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)' ;
+            });
+            this.searchList.push(...matchingValues);
+
+           /* this.projectTrackerData.forEach((item => {
                   //console.log('item value::::', item);
                   let dataString = null;
                   if ( item['targetor'] != null){
@@ -817,18 +830,11 @@ export class DiscoveryInputComponent implements OnInit
                         dataString = item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)'  ;
                   }
 
-                 /* need to check with kirk to seach based on object insted of string
-                  const projectTracker: ProjectTraker = new ProjectTraker();
-                  projectTracker.id = item['projectId'];
-                  projectTracker.projectName = item['projectName'];
-                  projectTracker.targetor = item['projectName'] != null ? item['projectName'] : '  (Unassigned)';
-                  this.projectTrackerList.push(projectTracker);*/
-
                   
                   if (dataString.toLowerCase().indexOf(value.toLowerCase()) > -1){
                         this.searchList.push(dataString);
                   }
-            }));
+            }));*/
           
       }
     }
@@ -866,13 +872,9 @@ export class DiscoveryInputComponent implements OnInit
          updatedDateTo = new Date();
          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
          updatedDateTo = this.formatDate(updatedDateTo);
-          //console.log('updatedDateTo:::', updatedDateTo);
           updatedDateFrom = new Date();
-          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 100);
           updatedDateFrom = this.formatDate(updatedDateFrom);
-          //console.log('updatedDateFrom:::', updatedDateFrom);
-      //     console.log('url:::::', `v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
-      //     TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
           TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
            map((result: any) => result.payload.rows)
