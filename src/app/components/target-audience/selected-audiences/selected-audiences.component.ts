@@ -8,6 +8,7 @@ import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { MetricService } from '../../../val-modules/common/services/metric.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -22,7 +23,8 @@ export class SelectedAudiencesComponent implements OnInit {
   allThemes: SelectItem[] = [];
   currentTheme: string;
 
-  constructor(private varService: TargetAudienceService, private usageService: UsageService, private discoService: ImpDiscoveryService) {
+  constructor(private varService: TargetAudienceService, private usageService: UsageService, 
+    private discoService: ImpDiscoveryService, public metricService: MetricService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -48,11 +50,26 @@ export class SelectedAudiencesComponent implements OnInit {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
     if (mappedAudience != null) {
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
+      
       const discoData = this.discoService.get()[0];
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
-      const metricText = variableId + '~' + mappedAudience.audienceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
+      let metricText = null;
+      if (mappedAudience.audienceSourceType === 'Custom'){
+        metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+      }
+      else{
+         metricText = variableId + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+      }
+     
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      
+      const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
+      this.usageService.creategaugeMetrics(counterMetricsDiscover);
+      this.usageService.creategaugeMetrics(counterMetricsColorBox);
+      // this.usageService.createCounterMetrics(counterMetricsDiscover);
+      // this.usageService.createCounterMetrics(counterMetricsColorBox);
     }
     this.varService.applyAudienceSelection();
   }
@@ -68,6 +85,15 @@ export class SelectedAudiencesComponent implements OnInit {
     this.audiences$.pipe(
       map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
       tap(unMapped => unMapped.forEach(a => a.showOnMap = false)),
+      take(1)
+    ).subscribe(() => null); // with take(1), this subscription will immediately close
+  }
+
+  onNationalSelected(audience: AudienceDataDefinition) : void {
+    this.showRenderControls = audience.showOnMap;
+    this.audiences$.pipe(
+      map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
+      tap(unMapped => unMapped.forEach(a => a.exportNationally = false)),
       take(1)
     ).subscribe(() => null); // with take(1), this subscription will immediately close
   }

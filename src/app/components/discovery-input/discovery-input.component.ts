@@ -25,6 +25,7 @@ import { ImpProjectTrackerService } from '../../val-modules/targeting/services/I
 import { Response } from '@angular/http/src/static_response';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { map } from 'rxjs/internal/operators/map';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
 
 interface Product {
@@ -92,6 +93,8 @@ export class DiscoveryInputComponent implements OnInit
    private loadRetries: number = 0;
    private analysisLevelRetries = 0;
    private mapReady: boolean = false;
+   private layersReady: boolean = false;
+   public validationMessage: string;
    private projectTrackerData = null;
 
    private localCopydiscoverUI: ImpDiscoveryUI = new ImpDiscoveryUI;
@@ -113,7 +116,8 @@ export class DiscoveryInputComponent implements OnInit
                private valMapService: ValMapService,
                private messageService: MessageService,
                private impProjectTrackerService: ImpProjectTrackerService,
-               private restService: RestDataService)
+               private restService: RestDataService,
+               private esriLayerService: EsriLayerService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -183,6 +187,7 @@ export class DiscoveryInputComponent implements OnInit
       // console.log('DiscoveryInputComponent constructed');
       this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
       this.valMapService.onReady$.subscribe(ready => this.mapReady = ready);
+      this.esriLayerService.layersReady$.subscribe(ready => this.layersReady = ready);
    }
 
    /**
@@ -307,6 +312,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log ('discovery-input.component - mapFromProject - fired');
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
+      this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.description)[0];
 
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
@@ -356,10 +362,9 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    public onAnalysisSelectType(event: SelectItem) {
-         if (!this.mapReady && this.analysisLevelRetries < 14) {
-            console.log('AARON: WAITING TO SET ANALYSIS LEVEL, MAP NOT READY');
+      if ((!this.mapReady || !this.layersReady) && this.analysisLevelRetries < 29) {
             this.analysisLevelRetries++;
-            setTimeout((() => this.onAnalysisSelectType(event)), 10000);
+            setTimeout((() => this.onAnalysisSelectType(event)), 1000);
             return;
          }
          console.log('Analysis level:::' , event);
@@ -481,14 +486,14 @@ export class DiscoveryInputComponent implements OnInit
 
    public onChangePob(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includePob;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includePob = event;
       this.onChangeField(event);
    }
    public onChangeIncludeVal(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeValassis;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-val-geo', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-valassis-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeValassis = event;
       this.onChangeField(event);
@@ -496,14 +501,14 @@ export class DiscoveryInputComponent implements OnInit
    }
    public onChangeIncludeAnne(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeAnne;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeAnne = event;
       this.onChangeField(event);
    }
    public onChangeIncludeSolo(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeSolo;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeSolo = event;
       this.onChangeField(event);
@@ -526,7 +531,7 @@ export class DiscoveryInputComponent implements OnInit
       else 
              metricsText = 'New=' + this.impDiscoveryUI.circBudget + '~Old=' + null;  
      // 'New=' + event + '~Old=' + this.impDiscoveryUI.circBudget;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'dist-budget', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'circ-budget', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.localCopydiscoverUI.circBudget = this.impDiscoveryUI.circBudget;
       this.onChangeField(event);
@@ -549,7 +554,7 @@ export class DiscoveryInputComponent implements OnInit
              metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + this.localCopydiscoverUI.valassisCPM;
       else 
              metricsText = 'New=' + this.impDiscoveryUI.valassisCPM + '~Old=' + null;  
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'val-cpm', action: 'changed' });
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'valassis-cpm', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.localCopydiscoverUI.valassisCPM = this.impDiscoveryUI.valassisCPM;
       this.onChangeField(event);
@@ -629,9 +634,9 @@ export class DiscoveryInputComponent implements OnInit
    public loadProject()
    {
       this.messagingService.startSpinnerDialog('PROJECTLOAD', 'Loading project ' + this.impProject.projectId);
-      if (!this.mapReady && this.loadRetries < 14) {
+      if ((!this.mapReady || !this.layersReady) && this.loadRetries < 29) {
             this.loadRetries++;
-            setTimeout((() => this.loadProject()), 10000);
+            setTimeout((() => this.loadProject()), 1000);
             return;
       }
       this.loadRetries = 0;
@@ -652,6 +657,7 @@ export class DiscoveryInputComponent implements OnInit
        this.localCopydiscoverUI.valassisCPM = this.impProject.smValassisCpm;
        this.localCopydiscoverUI.anneCPM = this.impProject.smAnneCpm;
        this.localCopydiscoverUI.soloCPM = this.impProject.smSoloCpm;
+       this.localCopydiscoverUI.projectTrackerId = this.impProject.projectTrackerId;
      
    }
 
@@ -807,7 +813,20 @@ export class DiscoveryInputComponent implements OnInit
       this.searchList = [];
       if (value.length > 2) {
             const respList: string[] = [];
-            this.projectTrackerData.forEach((item => {
+            const matchingValues = this.projectTrackerData.filter(item => {
+                  if (item['targetor'] != null){
+                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) || item['targetor'].includes(value);
+                  }
+                  else{
+                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) ;
+                  }
+                  
+            }).map(item => {
+                  return item['targetor'] != null ? item['projectId'] + '   ' + item['projectName'] + '  (' + item['targetor'] + ')' : item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)' ;
+            });
+            this.searchList.push(...matchingValues);
+
+           /* this.projectTrackerData.forEach((item => {
                   //console.log('item value::::', item);
                   let dataString = null;
                   if ( item['targetor'] != null){
@@ -817,18 +836,11 @@ export class DiscoveryInputComponent implements OnInit
                         dataString = item['projectId'] + '   ' + item['projectName'] + '  (Unassigned)'  ;
                   }
 
-                 /* need to check with kirk to seach based on object insted of string
-                  const projectTracker: ProjectTraker = new ProjectTraker();
-                  projectTracker.id = item['projectId'];
-                  projectTracker.projectName = item['projectName'];
-                  projectTracker.targetor = item['projectName'] != null ? item['projectName'] : '  (Unassigned)';
-                  this.projectTrackerList.push(projectTracker);*/
-
                   
                   if (dataString.toLowerCase().indexOf(value.toLowerCase()) > -1){
                         this.searchList.push(dataString);
                   }
-            }));
+            }));*/
           
       }
     }
@@ -836,29 +848,41 @@ export class DiscoveryInputComponent implements OnInit
     public onChangeProjectTraker(event){
           //console.log('event value', event);
           if (event.length > 6){
-            this.impDiscoveryUI.projectTrackerId  = event.length > 5 ? event.substring(0, 6) : null;
+            let  metricsText = null;
+            this.impDiscoveryUI.projectTrackerId  = parseFloat(event);
+            if (this.localCopydiscoverUI.projectTrackerId != null )
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + this.localCopydiscoverUI.projectTrackerId;
+            else 
+                  metricsText = 'New=' + this.impDiscoveryUI.projectTrackerId + '~Old=' + null;  
+            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+            this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+
+            this.localCopydiscoverUI.projectTrackerId = this.impDiscoveryUI.projectTrackerId;
             
             if (this.impProject.projectName == null && this.impProject.projectId == null){
                   //this.impProject.projectName = 'test';
-                  this.impProject.projectName = event.substring(4, event.indexOf('('));
+                  this.impProject.projectName = event.substring(this.impDiscoveryUI.projectTrackerId.toString().length, event.indexOf('('));
                   this.impProject.projectName = this.impProject.projectName.trim();
             }
+            this.onChangeField(event);
           }
           else{
             this.impDiscoveryUI.projectTrackerId = event;
+            this.onChangeField(event);
           }
          
          //console.log('value substring:::', this.impDiscoveryUI.projectTrackerId);
     }
 
     public getImsProjectTrakerData() : Observable<Response>{
-          const currentDate = new Date();
           let updatedDateFrom = null;
-          const updatedDateTo = this.formatDate(currentDate);
-          //console.log('updatedDateTo:::', updatedDateTo);
-          currentDate.setMonth(currentDate.getMonth() - 36);
-          updatedDateFrom = this.formatDate(currentDate);
-          //console.log('updatedDateFrom:::', updatedDateFrom);
+          let updatedDateTo = null;
+         updatedDateTo = new Date();
+         updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+         updatedDateTo = this.formatDate(updatedDateTo);
+          updatedDateFrom = new Date();
+          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+          updatedDateFrom = this.formatDate(updatedDateFrom);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
           TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
            map((result: any) => result.payload.rows)

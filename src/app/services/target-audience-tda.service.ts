@@ -7,6 +7,9 @@ import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './usage.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -74,7 +77,8 @@ export class TargetAudienceTdaService {
 
   private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService) { }
+  constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
+              private audienceService: TargetAudienceService, private discoService: ImpDiscoveryService) { }
 
   private static createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse) : ImpGeofootprintVar {
     const fullId = `Offline/TDA/${varPk}`;
@@ -103,7 +107,9 @@ export class TargetAudienceTdaService {
       audienceSourceName: 'TDA',
       exportInGeoFootprint: true,
       showOnGrid: true,
-      showOnMap: false
+      showOnMap: false,
+      exportNationally: false,
+      allowNationalExport: false
     };
   }
 
@@ -112,6 +118,7 @@ export class TargetAudienceTdaService {
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier);
       this.audienceService.addAudience(model, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+      this.usageMetricCheckUncheckOffline('checked', model);
     }
   }
 
@@ -119,6 +126,8 @@ export class TargetAudienceTdaService {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       this.audienceService.removeAudience('Offline', 'TDA', audience.identifier);
+      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier);
+      this.usageMetricCheckUncheckOffline('unchecked', model);
     }
   }
 
@@ -151,9 +160,10 @@ export class TargetAudienceTdaService {
       return throwError({ identifiers, msg: `Some identifiers were passed into the Tda Refresh function that weren't numeric pks` });
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<TdaBulkDataResponse[]>[] = [];
+    const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     for (const chunk of chunks) {
       const inputData = {
-        geoType: analysisLevel,
+        geoType: serviceAnalysisLevel,
         geocodes: chunk,
         variablePks: numericIds
       };
@@ -168,5 +178,12 @@ export class TargetAudienceTdaService {
     return merge(...observables, 4).pipe(
       map(bulkData => bulkData.map(b => TargetAudienceTdaService.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk))))
     );
+  }
+
+  private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: checkType });
+      const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + this.discoService.get()[0].analysisLevel;
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
+
   }
 }

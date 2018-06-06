@@ -8,6 +8,7 @@ import { EMPTY, merge, Observable, of } from 'rxjs';
 import { TargetAudienceService } from './target-audience.service';
 import { filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 
 const audienceUploadRules: ParseRule[] = [
   { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
@@ -24,7 +25,8 @@ interface CustomAudienceData {
 export class TargetAudienceCustomService {
   private dataCache: Map<string, Map<string, ImpGeofootprintVar>> = new Map<string, Map<string, ImpGeofootprintVar>>();
 
-  constructor(private messagingService: AppMessagingService, private usageService: UsageService, private audienceService: TargetAudienceService) { }
+  constructor(private messagingService: AppMessagingService, private usageService: UsageService, 
+              private audienceService: TargetAudienceService, private discoService: ImpDiscoveryService) { }
 
   private static createGeofootprintVar(geocode: string, column: string, value: string, fileName: string) : ImpGeofootprintVar {
     const fullId = `Custom/${fileName}/${column}`;
@@ -47,7 +49,9 @@ export class TargetAudienceCustomService {
       audienceSourceName: source,
       exportInGeoFootprint: true,
       showOnGrid: true,
-      showOnMap: false
+      showOnMap: false,
+      exportNationally: false,
+      allowNationalExport: false
     };
   }
 
@@ -74,8 +78,10 @@ export class TargetAudienceCustomService {
             const columnData = data.parsedData.map(d => TargetAudienceCustomService.createGeofootprintVar(d.geocode, column, d[column], fileName));
             const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));
             this.dataCache.set(column, geoDataMap);
-            this.audienceService.addAudience(TargetAudienceCustomService.createDataDefinition(column, fileName), (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
-            this.usageService.createCounterMetric(usageMetricName, column, successCount);
+            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
+            this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+            const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + this.discoService.get()[0].analysisLevel;
+            this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
           }
           console.log(this.dataCache);
           this.messagingService.showGrowlSuccess('Audience Upload Success', 'Upload Complete');

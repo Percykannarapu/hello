@@ -20,6 +20,7 @@ export interface ParseResponse<T> {
 }
 
 export class FileService {
+  public locNumberSet: Set<string>;
 
   constructor() {}
 
@@ -39,6 +40,7 @@ export class FileService {
       failedRows: [],
       parsedData: []
     };
+    this.prototype.locNumberSet = new Set<string>();
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -50,6 +52,9 @@ export class FileService {
         const dataResult: T = {} as T;
         for (let j = 0; j < columns.length; ++j) {
           dataResult[parseEngine[j].outputFieldName] = parseEngine[j].dataProcess(columns[j]);
+          if (parseEngine[j].outputFieldName === 'number'){
+            this.prototype.locNumberSet.add(parseEngine[j].dataProcess(columns[j]));
+          }
         }
         result.parsedData.push(dataResult);
       }
@@ -58,7 +63,11 @@ export class FileService {
   }
 
   private static generateEngine(headerRow: string, parsers: ParseRule[], delimiter: string) : ParseRule[] {
-    const headerColumns = headerRow.split(delimiter);
+    const regExString = `(".*?"|[^\\s"${delimiter}][^"${delimiter}]+[^\\s"${delimiter}])(?=\\s*${delimiter}|\\s*$)`;
+    const regex = new RegExp(regExString, 'gi');
+    console.log('Header before split', headerRow);
+    const headerColumns = headerRow.includes('"') ? headerRow.match(regex) : headerRow.split(delimiter);
+    console.log('Header after split', headerColumns);
     const result: ParseRule[] = [];
     const requiredHeaders: ParseRule[] = parsers.filter(p => p.required === true);
     // reset the column parser for a new file
@@ -68,6 +77,7 @@ export class FileService {
     });
     for (let i = 0; i < headerColumns.length; ++i) {
       let matched = false;
+      if (headerColumns[i].startsWith('"') && headerColumns[i].endsWith('"')) headerColumns[i] = headerColumns[i].substring(1, headerColumns[i].length - 1);
       for (const parser of parsers) {
         if (!parser.found && FileService.matchHeader(headerColumns[i], parser)) {
           parser.found = true;

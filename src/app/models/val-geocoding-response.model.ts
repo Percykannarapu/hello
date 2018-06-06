@@ -14,6 +14,8 @@ export class ValGeocodingResponse {
   Number: string;
   Name: string;
   Market: string;
+  get LatLon() : string { return `${this.Latitude}, ${this.Longitude}`; }
+  set LatLon(value: string) {  this.parseLatLon(value); }
   'Original Address': string;
   'Original City': string;
   'Original State': string;
@@ -25,6 +27,16 @@ export class ValGeocodingResponse {
 
   constructor(initializer: any) {
     Object.assign(this, initializer);
+  }
+
+  private parseLatLon(value: string) : void {
+        const temp = value.split(',');
+        if (temp[0] != null && !Number.isNaN(Number(temp[0])) && temp[1] != null && !Number.isNaN(Number(temp[1])) ) {
+          this.userHasEdited = true;
+          this.Latitude = temp[0];
+          this.Longitude = temp[1];
+        }
+      
   }
 
   public toGeoLocation(siteType?: string) : ImpGeofootprintLocation {
@@ -48,8 +60,8 @@ export class ValGeocodingResponse {
       clientLocationTypeCode: siteType, //new ImpClientLocationType({clientLocationType: siteType}),
       isActive: true
     });
-    if (this.Number != null && !Number.isNaN(Number(this.Number))) {
-      result.locationNumber = Number(this.Number);
+    if (this.Number != null ) {
+      result.locationNumber = this.Number;
       result.glId = null; // Number(this.Number);
     }
     const attributes: ImpGeofootprintLocAttrib[] = [];

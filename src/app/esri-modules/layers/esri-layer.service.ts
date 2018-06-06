@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../core/esri-modules.service';
 import { EsriMapService } from '../core/esri-map.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
 
 export type layerGeometryType = 'point' | 'mulitpoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -9,6 +11,9 @@ export class EsriLayerService {
 
   private groupRefs = new Map<string, __esri.GroupLayer>();
   private layerRefs = new Map<string, __esri.FeatureLayer>();
+  private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
+  private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
   constructor(private modules: EsriModules, private mapService: EsriMapService) { }
 
@@ -133,5 +138,36 @@ export class EsriLayerService {
 
   public getAllLayerNames() : string[] {
     return this.mapService.map.allLayers.map(l => l.title).toArray();
+  }
+
+  /**
+  * Determine if the layers are ready for use yet and notify observers if they are
+  * @param layer an Esri layer to examine
+  */
+  private determineLayerStatuses(layer: __esri.Layer) {
+    if (layer.loaded) {
+      this.layerStatuses.set(layer.title, true);
+    }
+    let loaded = true;
+    for (const layerName of Array.from(this.layerStatuses.keys())) {
+      if (!this.layerStatuses.get(layerName)) {
+        loaded = false;
+      }
+    }
+    if (loaded) {
+      this.layersReady.next(true);
+    }
+  }
+
+  /**
+   * Set up the layer watches on newly created layers so we can notify
+   * the rest of the app when the layers have finished loading
+   * @param layers an array of Esri Layers to set up the watches on
+   */
+  public setupLayerWatches(layers: Array<__esri.Layer>) {
+    for (const layer of layers) {
+      this.layerStatuses.set(layer.title, false);
+      EsriModules.watchUtils.watch(layer, 'loaded', e => this.determineLayerStatuses(layer));
+    }
   }
 }

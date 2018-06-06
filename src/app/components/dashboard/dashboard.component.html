@@ -30,7 +30,7 @@
         <p-tabPanel header="Define Trade Areas">
           <p-accordion>
               <p-accordionTab header="Audience">
-                  <span>Coming Soon</span>
+                <val-audience-tradearea>Loading Audience Trade Areas...</val-audience-tradearea>
               </p-accordionTab>
             <p-accordionTab header="Distance">
                 <val-trade-area-define>Loading TradeAreas...</val-trade-area-define>
@@ -85,7 +85,9 @@
                      icon="send"
                      pTooltip="Predicted Response is the number of households expected to act on the offer received.
 
-                              Predicted Topline Sales Generated is the sales likely to be generated from the recommended media."
+                              Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
+                              
+                              Cost per Response is the estimated investment per predicted response."
                      [model]="metricMapTeal"
                      [flags]="flagMapTeal"
                      displayOverlay="false"

@@ -81,3 +81,13 @@
     }
   }
 }
+
+// widen the main menu so the full National Extract text can fit on one line
+.layout-menu ul.ultima-menu > li > ul {
+  width: 300px !important;
+}
+
+// when a p-dataTable has drop downs, you need to apply this class, as well as set overflow: visible on the p-column with the drop-down
+.val-table-with-dropdowns div.ui-datatable-resizable {
+  overflow: visible;
+}

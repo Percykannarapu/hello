@@ -23,7 +23,7 @@ export class ValGeoService implements OnDestroy {
   private discoverySubscription: Subscription;
   private geoSubscription: Subscription;
 
-  private uniqueSelectedGeocodes: BehaviorSubject<string[]>;
+  public uniqueSelectedGeocodes: BehaviorSubject<string[]>;
   private currentTradeAreas: ImpGeofootprintTradeArea[];
   private currentAnalysisLevel: string;
 

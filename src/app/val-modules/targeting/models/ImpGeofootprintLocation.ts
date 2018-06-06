@@ -22,7 +22,7 @@ export class ImpGeofootprintLocation extends BaseModel
    public clientIdentifierTypeCode:    string;
    public clientIdentifierId:          number;
    public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
-   public locationNumber:              number;
+   public locationNumber:              string;
    public locationName:                string;                        /// Name of the location
    public marketName:                  string;
    public groupName:                   string;

@@ -1,5 +1,5 @@
 <div class="ui-g">
-  <div *ngIf="hasAudiences" class="card ui-g-12">
+  <div *ngIf="hasAudiences" class="card ui-g-12 val-table-with-dropdowns">
     <p-dataTable [value]="audiences$ | async"
                  [resizableColumns]="true"
                  [rows]="10"
@@ -7,25 +7,47 @@
                  [alwaysShowPaginator]="false"
                  [immutable]="false"
                  columnResizeMode="expand">
-      <p-column header="Map" field="showOnMap" [style]="{ width: '10%' }">
+      <p-column header="Map" field="showOnMap" [style]="{ width: '8%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
+          <div class="val-center-controls">
+            <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
+          </div>
         </ng-template>
       </p-column>
-      <p-column header="Grid" field="showOnGrid" [style]="{ width: '10%' }">
+      <p-column header="Grid" field="showOnGrid" [style]="{ width: '8%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+          <div class="val-center-controls">
+            <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+          </div>
         </ng-template>
       </p-column>
-      <p-column header="Export" field="exportInGeoFootprint" [style]="{ width: '10%' }">
+      <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '8%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+          <div class="val-center-controls">
+            <p-checkbox [(ngModel)]="audience[col.field]" binary="true" [disabled]="true"></p-checkbox>
+          </div>
+        </ng-template>
+      </p-column>
+      <p-column header="National" field="exportNationally" [style]="{ width: '8%' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <div class="val-center-controls">
+            <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
+          </div>
+        </ng-template>
+      </p-column>
+      <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
+        <ng-template let-col let-audience="rowData" pTemplate="body">
+          <p-dropdown
+            *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
+            [options]="audience.dataSetOptions"
+            [(ngModel)]="audience.selectedDataSet"
+            [autoWidth]="false"></p-dropdown>
         </ng-template>
       </p-column>
       <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
-      <p-column header="Source" [style]="{ width: '40%' }">
+      <p-column header="Source" [style]="{ width: '23%' }">
         <ng-template let-col let-audience="rowData" pTemplate="body">
-          {{audience.audienceSourceType}} - {{audience.audienceSourceName}}
+          {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
         </ng-template>
       </p-column>
     </p-dataTable>
@@ -38,16 +60,8 @@
         <p-dropdown [options]="allThemes"
                     (onChange)="onThemeChange($event)"
                     [autoWidth]="false"
-                    [style]="{'width':'200px'}"></p-dropdown>
+                    [style]="{ width:'200px' }"></p-dropdown>
       </div>
-    </div>
-    <div class="ui-g-6">
-      <!--<div class="ui-g-4"><label>Opacity</label></div>-->
-      <!--<div class="ui-g-8">-->
-        <!--<p class="sliderLabel">{{currentOpacity}} %</p>-->
-        <!--<p-slider [ngModel]="currentOpacity"-->
-                  <!--(ngModelChange)="onOpacityChange($event)"></p-slider>-->
-      <!--</div>-->
     </div>
   </div>
 

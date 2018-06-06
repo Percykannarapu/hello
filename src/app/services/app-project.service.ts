@@ -512,8 +512,8 @@ export class AppProjectService extends DataStore<ImpProject>
                   console.log('location: ', impLocation.locationNumber, ' set baseStatus to: ', impLocation.baseStatus);
          //       location.isActive = true;
          //       impLocation.locationNumber = locNumber++;            // Mandatory field, stubbing
-                  impLocation.clientIdentifierId = impLocation.locationNumber; // Mandatory field, stubbing
-                  impLocation.clientLocationId = impLocation.locationNumber;   // Mandatory field, stubbing
+                  impLocation.clientIdentifierId = 123; // Mandatory field, stubbing
+                  impLocation.clientLocationId = 123;   // Mandatory field, stubbing
 //                impLocation.marketName = (impLocation.marketName == null) ? 'Market ' + impLocation.locationNumber : impLocation.marketName; // Mandatory field, stubbing
                   console.log('location: ', impLocation);
                }

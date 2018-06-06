@@ -11,7 +11,17 @@ import { HttpHeaders } from '@angular/common/http';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { map, mergeMap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { ImpMetricGauge } from '../val-modules/metrics/models/ImpMetricGauge';
+//import { HttpClient } from '@angular/common/http/src/client';
+import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 
+
+export class Metrics{
+  constructor(
+    public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
+  ){}
+}
 
 @Injectable()
 export class UsageService {
@@ -22,8 +32,26 @@ export class UsageService {
   constructor(private userService: UserService,
     private restClient: RestDataService,
     private impMetricNameService: ImpMetricNameService,
-    private impProjectService: ImpProjectService) {
+    private impProjectService: ImpProjectService,
+    private appConfig: AppConfig, private http: HttpClient) {
      }
+
+
+    public createCounterMetrics(counterMetrics: Metrics[]) {
+      counterMetrics.forEach(counterMetric => {
+            counterMetric.metricValue = Number.isNaN(counterMetric.metricValue) ? 0 : counterMetric.metricValue;
+            this.createCounterMetric(counterMetric.usageMetricName, counterMetric.metricText, counterMetric.metricValue);
+      });
+     // return counterMetrics;
+    }
+
+    public creategaugeMetrics(counterMetrics: Metrics[]) {
+      counterMetrics.forEach(counterMetric => {
+            counterMetric.metricValue = Number.isNaN(counterMetric.metricValue) ? 0 : counterMetric.metricValue;
+            this.createGaugeMetric(counterMetric.usageMetricName, counterMetric.metricText, counterMetric.metricValue);
+      });
+     // return counterMetrics;
+    }
 
   /**
    * Create a new usage metric for an even that happened in the imPower application
@@ -32,6 +60,10 @@ export class UsageService {
    * @param metricValue The number of times a particular event has occurred for this metric
    */
   public createCounterMetric(metricName: ImpMetricName, metricText: string, metricValue: number, projectId?: string) {
+    //we don't want to capture metrics if working locally
+    if (this.appConfig.environmentName === 'LOCAL') {
+      return; 
+    }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
       console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
       return;
@@ -65,6 +97,58 @@ export class UsageService {
         });
     } else {
       this._createCounterMetric(impMetricName[0].metricId, metricText, metricValue)
+        .subscribe(res => {
+          // do nothing with the response for now
+        }, err => {
+          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        });
+    }
+  }
+
+  /**
+   * Create a new usage metric for an even that happened in the imPower application
+   * @param metricName The object of type UsageMetricName containing the namepsace, section, target, and action
+   * @param metricText The data that will be saved with this counter
+   * @param metricValue The number of times a particular event has occurred for this metric
+   */
+  public createGaugeMetric(metricName: ImpMetricName, metricText: string, metricValue: number, projectId?: string) {
+    //we don't want to capture metrics if working locally
+    if (this.appConfig.environmentName === 'LOCAL') {
+      return; 
+    }
+    if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
+      console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
+      return;
+    }
+
+    //If the data store is empty load it up from Fuse and then call this function again
+    if (this.impMetricNameService.get().length === 0 && this.fetchRetries < 3) {
+      this.impMetricNameService.get(true).subscribe(res => {
+        this.fetchRetries++;
+        this.createCounterMetric(metricName, metricText, metricValue);
+      }, err => {
+        console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+      });
+      return;
+    }
+
+    //If there is no OAuth token available yet wait a few seconds and try again
+    if (DataStore.getConfig().oauthToken == null) {
+      setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
+    }
+
+    const impMetricName = this.impMetricNameService.get().filter(item => item.namespace === metricName.namespace && item.section === metricName.section && item.target === metricName.target && item.action === metricName.action);
+    if (impMetricName.length === 0) {
+      this.createMetricName(metricName, 'COUNTER').pipe(
+        map(res => res.payload),
+        mergeMap(res => this._createGaugeMetric(Number(res), metricText, metricValue))
+      ).subscribe(res => {
+          // do nothing with the response for now
+        }, err => {
+          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        });
+    } else {
+      this._createGaugeMetric(impMetricName[0].metricId, metricText, metricValue)
         .subscribe(res => {
           // do nothing with the response for now
         }, err => {
@@ -126,6 +210,38 @@ export class UsageService {
     // Send the counter data to Fuse for persistence
     return this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter));
 
+  }
+
+  /**
+   * Create a new usage record in the imp_metric_gauges table using the Fuse service
+   * @param metricName The ImpMetricName record that will be the parent record of this counter, see UsageTypes class
+   * @param metricText The data that will be saved with this counter
+   * @param metricValue The number that will be saved on this counter
+   */
+  private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
+    const impProject: ImpProject = this.impProjectService.get()[0];
+    const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
+
+    // Create the new counter to be persisted
+    const impMetricGauge: ImpMetricGauge = new ImpMetricGauge();
+    impMetricGauge['dirty'] = true;
+    impMetricGauge['baseStatus'] = 'INSERT';
+    //impMetricGauge.gaugeId = metricName;
+    impMetricGauge.metricId = metricName;
+    impMetricGauge.createDate = new Date(Date.now());
+    impMetricGauge.createUser = this.userService.getUser().userId;
+    impMetricGauge.metricText = metricText;
+    impMetricGauge.metricValue = metricValue;
+    impMetricGauge.modifyDate = new Date(Date.now());
+    impMetricGauge.modifyUser = this.userService.getUser().userId;
+    impMetricGauge.origSystemRefId = projectid;
+    impMetricGauge.isActive = 1;
+
+    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
+
+    // Send the counter data to Fuse for persistence
+    //console.log('metric request:::', JSON.stringify(impMetricGauge));
+    return this.restClient.post('v1/metrics/base/impmetricgauge/save', JSON.stringify(impMetricGauge));
   }
 
 }

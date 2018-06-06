@@ -346,8 +346,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public assignGeocodeRank()
    {
-      const site1: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 1000, locationNumber: 10});
-      const site2: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 2000, locationNumber: 20});
+      const site1: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 1000, locationNumber: '10'});
+      const site2: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 2000, locationNumber: '20'});
       const geoArray: Array<ImpGeofootprintGeo>  = [new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: site1, distance: 10, hhc: 1000})
                                                    ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: site1, distance: 10, hhc: 2000})
                                                    ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: site1, distance: 15, hhc: 200})
@@ -712,7 +712,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
+            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
+
          break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT

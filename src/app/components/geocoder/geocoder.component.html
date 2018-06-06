@@ -82,18 +82,17 @@
       </div>
     </div>
   </div>
-  <div *ngIf="geocodingService.hasFailures$ | async" class="ui-g-8">
-    <p-dataTable [value]="geocodingService.geocodingFailures$ | async" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-      <p-header>Detected {{(geocodingService.failureCount$ | async) || 0}} geocoding failures</p-header>
-      <p-column field="Number" [hidden]="true"></p-column>
-      <p-column field="Original Address" header="Street" [editable]="true"></p-column>
-      <p-column field="Original City" header="City" [editable]="true"></p-column>
-      <p-column field="Original State" header="State" [editable]="true"></p-column>
-      <p-column field="Original ZIP" header="ZIP" [editable]="true"></p-column>
-      <p-column field="status" header="Status" [editable]="true"></p-column>
-      <p-column header="Resubmit">
+  <div *ngIf="hasFailures$ | async" class="ui-g">
+    <p-dataTable [value]="geocodingFailures$ | async" [rows]="10" [paginator]="true" [editable]="true" [immutable]="false">
+      <p-header>Detected {{(failureCount$ | async) || 0}} geocoding failures out of {{count}} rows</p-header>
+      <p-column header="Resubmit Address">
         <ng-template let-h="rowData" pTemplate="body">
           <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+      </p-column>
+      <p-column header="Accept XY">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onAccept(h)" icon="ui-icon-check" [disabled]="h['Geocode Status'] === 'ERROR' && h['userHasEdited'] !== true" pButton style="margin: auto; display: block"></button>
         </ng-template>
       </p-column>
       <p-column header="Remove">
@@ -101,6 +100,20 @@
           <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
         </ng-template>
       </p-column>
+      <p-column field="Number" header="Number" [editable]="false"></p-column>
+      <p-column field="Name" header="Name" [editable]="false"></p-column>
+      <p-column field="Original Address" header="Address" [editable]="true"></p-column>
+      <p-column field="Original City" header="City" [editable]="true"></p-column>
+      <p-column field="Original State" header="State" [editable]="true"></p-column>
+      <p-column field="Original ZIP" header="ZIP" [editable]="true"></p-column>
+      <p-column field="Market" header="Market" [editable]="true"></p-column>
+      <p-column field="Geocode Status" header="Status" [editable]="false"></p-column>
+      <!-- <p-column field="Latitude" header="Latitude" [editable]="true"></p-column>
+      <p-column field="Longitude" header="Longitude" [editable]="true"></p-column> -->
+      <p-column field="LatLon" header="XY" [editable]="true"></p-column>
+      <p-column field="Match Code" header="Match Code" [editable]="false"></p-column>
+      <p-column field="Match Quality" header="Location Code" [editable]="false"></p-column>
+
     </p-dataTable>
   </div>
 </div>

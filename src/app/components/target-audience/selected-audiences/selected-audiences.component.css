@@ -2,3 +2,8 @@
   padding-bottom: 5px;
   margin: 0;
 }
+
+.val-center-controls {
+  text-align: center;
+  width: 100%;
+}
