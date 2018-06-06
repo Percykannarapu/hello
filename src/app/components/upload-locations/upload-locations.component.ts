@@ -129,13 +129,30 @@ export class UploadLocationsComponent implements OnInit {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       }
-      const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
-      this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
-      this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
-      //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: this.listType.toLowerCase() + '-data-file', action: 'upload' });
-      //this.usageService.createCounterMetric(usageMetricName, `total=${rows.length - 1}`, null);
-      this.messagingService.stopSpinnerDialog(this.spinnerKey);
+      let dupNumbersString = '';
+      const dupLocNumbers = this.locationService.get().filter(loc => {
+          if (FileService.prototype.locNumberSet.has(loc.locationNumber)){
+            dupNumbersString = dupNumbersString + '-' + loc.locationNumber.toString();
+            return loc;
+          }
       });
+      if (data.parsedData.length > FileService.prototype.locNumberSet.size){
+          this.handleError(`Duplicate Site Numbers exist in your upload file.`);
+      }else if (dupLocNumbers.length > 0){
+            let errorMsg = 'The following Sites Numbers in your upload file already exist in your project:';
+             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + 'add(...)';
+             this.handleError(errorMsg);
+      }
+      else{
+        const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
+        this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
+        this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
+        //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: this.listType.toLowerCase() + '-data-file', action: 'upload' });
+        //this.usageService.createCounterMetric(usageMetricName, `total=${rows.length - 1}`, null);
+        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        });
+      }
+     
     } catch (e) {
       this.handleError(`${e}`);
     }

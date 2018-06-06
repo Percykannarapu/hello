@@ -125,8 +125,8 @@ export class ValSiteListService implements OnDestroy {
     data.forEach(d => { delete d[valGeocodingAttributeKey];
                         // Temp code until we are populating these mandatory fields
                         if (d.locationNumber     == null) d.locationNumber = this.locationService.getNextStoreId().toString();
-                        if (d.clientIdentifierId == null) d.clientIdentifierId = Number(d.locationNumber);
-                        if (d.clientLocationId   == null) d.clientLocationId = Number(d.locationNumber);
+                        if (d.clientIdentifierId == null) d.clientIdentifierId = 123;
+                        if (d.clientLocationId   == null) d.clientLocationId = 123;
                      });
     this.locationService.add(data);
     this.attributeService.add(attributes);

@@ -20,6 +20,7 @@ export interface ParseResponse<T> {
 }
 
 export class FileService {
+  public locNumberSet: Set<string>;
 
   constructor() {}
 
@@ -39,6 +40,7 @@ export class FileService {
       failedRows: [],
       parsedData: []
     };
+    this.prototype.locNumberSet = new Set<string>();
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -50,6 +52,9 @@ export class FileService {
         const dataResult: T = {} as T;
         for (let j = 0; j < columns.length; ++j) {
           dataResult[parseEngine[j].outputFieldName] = parseEngine[j].dataProcess(columns[j]);
+          if (parseEngine[j].outputFieldName === 'number'){
+            this.prototype.locNumberSet.add(parseEngine[j].dataProcess(columns[j]));
+          }
         }
         result.parsedData.push(dataResult);
       }

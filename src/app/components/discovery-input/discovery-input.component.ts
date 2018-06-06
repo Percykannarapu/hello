@@ -307,6 +307,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log ('discovery-input.component - mapFromProject - fired');
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
+      this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.description)[0];
 
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
@@ -858,9 +859,11 @@ export class DiscoveryInputComponent implements OnInit
                   this.impProject.projectName = event.substring(this.impDiscoveryUI.projectTrackerId.toString().length, event.indexOf('('));
                   this.impProject.projectName = this.impProject.projectName.trim();
             }
+            this.onChangeField(event);
           }
           else{
             this.impDiscoveryUI.projectTrackerId = event;
+            this.onChangeField(event);
           }
          
          //console.log('value substring:::', this.impDiscoveryUI.projectTrackerId);
@@ -873,7 +876,7 @@ export class DiscoveryInputComponent implements OnInit
          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
          updatedDateTo = this.formatDate(updatedDateTo);
           updatedDateFrom = new Date();
-          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 100);
+          updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
           updatedDateFrom = this.formatDate(updatedDateFrom);
          return this.restService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
           TARGETOR targetor&updatedDateFrom=${updatedDateFrom}&updatedDateTo=${updatedDateTo}&sort=UPDATED_DATE&sortDirection=desc`).pipe(

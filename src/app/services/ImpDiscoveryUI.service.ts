@@ -62,6 +62,7 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
          console.log ('Mapping from project: ', impProject);
 
       impDiscoveryUI.industryCategoryCode = impProject.industryCategoryCode;
+      impDiscoveryUI.productCode = impProject.description;
 //d      this.selectedCategory = this.categories.filter(category => category.code === impProject.industryCategoryCode)[0];
 
       impDiscoveryUI.analysisLevel        = impProject.methAnalysis;
