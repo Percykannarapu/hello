@@ -73,7 +73,7 @@ export class BusinessSearchComponent implements OnInit {
       xcoord: searchResult.x,
       ycoord: searchResult.y,
       isActive: true,
-      locationNumber: locationId,
+      locationNumber: locationId.toString(),
       clientIdentifierId: locationId,
       marketName: searchResult.pricing_market_name,
       recordStatusCode: 'SUCCESS'

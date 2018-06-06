@@ -124,9 +124,9 @@ export class ValSiteListService implements OnDestroy {
     const attributes: ImpGeofootprintLocAttrib[] = data.map(l => l[valGeocodingAttributeKey]).reduce(flatten, []);
     data.forEach(d => { delete d[valGeocodingAttributeKey];
                         // Temp code until we are populating these mandatory fields
-                        if (d.locationNumber     == null) d.locationNumber = this.locationService.getNextStoreId();
-                        if (d.clientIdentifierId == null) d.clientIdentifierId = d.locationNumber;
-                        if (d.clientLocationId   == null) d.clientLocationId = d.locationNumber;
+                        if (d.locationNumber     == null) d.locationNumber = this.locationService.getNextStoreId().toString();
+                        if (d.clientIdentifierId == null) d.clientIdentifierId = Number(d.locationNumber);
+                        if (d.clientLocationId   == null) d.clientLocationId = Number(d.locationNumber);
                      });
     this.locationService.add(data);
     this.attributeService.add(attributes);
