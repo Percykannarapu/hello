@@ -7337,7 +7337,7 @@ body .ui-paginator {
       -webkit-transition: background-color 0.3s;
       transition: background-color 0.3s; }
       body .ui-paginator .ui-paginator-pages a:not(.ui-state-active):hover {
-        background-color: #C4E0F5; }
+        background-color: #91b8d6; }
       body .ui-paginator .ui-paginator-pages a.ui-state-active {
         background-color: #EF9300;
         color: #ffffff; }
@@ -7361,12 +7361,14 @@ body .ui-datatable .ui-datatable-footer {
 body .ui-datatable .ui-paginator {
   padding: 0.2em 1em; }
 body .ui-datatable .ui-datatable-thead > tr {
-  border-color: #cacaca; }
+  border-color: #acc2ce; }
   body .ui-datatable .ui-datatable-thead > tr th {
     padding: .425em .425em;
-    background-color: #C4E0F5; }
+    background-color: #91b8d6; }
     body .ui-datatable .ui-datatable-thead > tr th.ui-sortable-column:not(.ui-state-active):hover {
-      background-color: #e8e8e8;
+      background-color: #5b99c9;
+      border-top-color: #000000;
+      border-bottom-color: #000000;
       color: #000000; }
     body .ui-datatable .ui-datatable-thead > tr th .ui-column-title {
       display: inline-block;
@@ -7375,9 +7377,10 @@ body .ui-datatable .ui-datatable-thead > tr {
       vertical-align: middle;
       color: #757575; }
     body .ui-datatable .ui-datatable-thead > tr th.ui-state-active, body .ui-datatable .ui-datatable-thead > tr th.ui-state-highlight {
-      background-color: #FFD28A;
+      background-color: #b3d4ed;
       color: #000000;
-      border-top-color: #EF9300; }
+      border-top-color: #000000;
+      border-bottom-color: #000000; }
       body .ui-datatable .ui-datatable-thead > tr th.ui-state-active .fa, body .ui-datatable .ui-datatable-thead > tr th.ui-state-highlight .fa {
         color: #ffffff; }
       body .ui-datatable .ui-datatable-thead > tr th.ui-state-active .ui-inputtext, body .ui-datatable .ui-datatable-thead > tr th.ui-state-highlight .ui-inputtext {
@@ -7393,7 +7396,7 @@ body .ui-datatable tfoot th {
 body .ui-datatable .ui-datatable-data tr.ui-datatable-even {
   background-color: #f4f4f4; }
   body .ui-datatable .ui-datatable-data tr.ui-datatable-even.ui-state-highlight {
-    background-color: #F0BE6E;
+    background-color: #CFEAFF;
     color: #000000; }
 body .ui-datatable .ui-datatable-data tr {
   border: 1px solid #cacaca; }
@@ -7417,8 +7420,9 @@ body .ui-datatable .ui-datatable-data tr {
     body .ui-datatable .ui-datatable-data tr td.ui-selection-column .ui-chkbox-box, body .ui-datatable .ui-datatable-data tr td.ui-selection-column .ui-radiobutton-box {
       box-sizing: content-box; }
   body .ui-datatable .ui-datatable-data tr.ui-state-highlight {
-    background-color: #FFD28A;
-    border-color: ┬á #EF9300;
+    background-color: #E5F4FF;
+    border-color: #acc2ce;
+    
     color: #000000; }
   body .ui-datatable .ui-datatable-data tr .ui-cell-editor-input input {
     color: #ffffff; }
@@ -7466,7 +7470,7 @@ body .ui-datatable .ui-datatable-loading {
   opacity: 0.3;
   filter: alpha(opacity=30); }
 body .ui-datatable .ui-datatable-loading-content {
-  top: 35%; }
+  top: 35%; } */
   body .ui-datatable .ui-datatable-loading-content .fa {
     font-family: 'Material Icons';
     font-weight: normal;
@@ -7509,6 +7513,7 @@ body .ui-datatable .ui-datatable-loading-content {
     font-size: 2em; }
     body .ui-datatable .ui-datatable-loading-content .fa:before {
       content: "refresh"; }
+
 body .ui-carousel {
   padding: 0; }
   body .ui-carousel .ui-carousel-header {

@@ -1,49 +1,82 @@
-<div *ngIf="config.debugMode" class="ui-g-12">
+<!-- <div *ngIf="config.debugMode" class="ui-g-12">
    <button label="Test Find" pButton (click)="testFind()"></button>
    <button label="Test Rank" pButton (click)="testRank()"></button>
-</div>
-
+</div> -->
 <div class="ui-g-12">
-   <p-dataTable #locGrid [value]="impGeofootprintLocations" [expandableRows]="true"
-      [(selection)]="selectedImpGeofootprintLocations" selectionMode ="multiple"
-      [rows]="17" [paginator]="true" [headerCheckboxToggleAllPages]="true"
-      [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
-      (onRowSelect)="toggleGeocode($event)">
-      <!-- <p-header pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}">Locations / Geographies</p-header> -->
-      <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['location']}}</ng-template> -->
-      <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'35px'}"></p-column>
-      <p-column selectionMode="multiple" [style]="{'width':'35px'}" (click)="toggleGeocode($event)"></p-column>
-
-      <p-column *ngFor="let col of locGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}"
-      pTooltip="Locations: {{impGeofootprintLocations.length}}, Geos: {{impGeofootprintGeos.length}}"></p-column>
-
-      <ng-template let-site pTemplate="rowexpansion">
-         <div class="ui-grid ui-grid-responsive ui-fluid" style="width:45%;font-size:14px;padding: 0 0 0 2.68em">
-            <div class="ui-grid-row">
-               <p-dataTable [value]="filterGeosBySite(site)" [(selection)]="selectedImpGeofootprintGeos" dataKey="ggId"
-                              [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
-                              [paginator]="true" [rows]="25" [headerCheckboxToggleAllPages]="true">
-                  <p-column [style]="{'width':'1%'}" selectionMode="multiple" styleClass="val-table-select-row-checkbox"></p-column>
-                  <p-column *ngFor="let col of geoGridColumns" [field]="col.value.field" [header]="col.value.header" [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
-                     <ng-template *ngIf="col.value.field=='geocode'" let-row="rowData" pTemplate="body">
-                        <div class="ui-g-11" style="vertical-align:inherit">
-                           {{row['geocode']}}
-                        </div>
-                        <div class="ui-g-1" style="vertical-align:inherit">
-                           <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 5px 0px -5px; padding: 0px; width: 22px; height: 22px; display: block"></button>
-                        </div>
-                     </ng-template>
-                     <ng-template *ngIf="col.value.field=='distance'" let-row="rowData" pTemplate="body">
-                        <div class="ui-g-12">
-                           {{row['distance'] | number : '1.2-2'}}
-                        </div>
-                     </ng-template>
-                  </p-column>
-                  <p-column *ngFor="let addCol of geoGridAdditionalColumns" [field]="addCol" [header]="addCol"></p-column>
-               </p-dataTable>
+   <p-dataTable selectionMode ="multiple" dataKey="fgId" class="val-table"
+      scrollable="false" scrollWidth="100%"
+      [responsive]="true" sortMode="multiple"
+      [value]="allImpGeofootprintGeos$ | async" 
+      [selection]="selectedImpGeofootprintGeos$ | async"
+      [headerCheckboxToggleAllPages]="true"
+      [resizableColumns]="true" columnResizeMode="expand"
+      [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50]"
+      [globalFilter]="filter" [reorderableColumns]="true"
+      (onRowClick)="onRowClick($event)"
+      (onRowSelect)="onSelectGeocode($event, true)"
+      (onRowUnselect)="onSelectGeocode($event, false)">
+      <!-- GEOGRID HEADER -->
+      <p-header>
+         <div class="ui-g ui-g-nopad" style="flex-wrap: nowrap !important;">
+            <div class="ui-g-12 ui-g-nopad">
+               <div class="ui-g-1" style="min-width:25px; width:25px">
+                  <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+               </div>
+               <div class="ui-g-2">
+                  <span class="md-inputfield">
+                     <input #filter id="filter" type="text" pInputText size="50" placeholder="Filter Geographies" style="width:auto; color: white;">
+                  </span>
+               </div>
+               <div class="ui-g-7">
+                  <label style="text-align: center;">Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}</label>
+               </div>
+               <div class="ui-g-2" style="display: flex; justify-content: flex-end">
+                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+               </div>
             </div>
          </div>
-      </ng-template>
-
+      </p-header>
+      <!-- GEOGRID COLUMN SELECTION -->
+      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+      <!-- GEOGRID STANDARD COLUMNS -->
+      <p-column *ngFor="let col of selectedColumns" [sortable]="true"
+               [header]="col.value.header" [field]="((col.value.field != null) ? col.value.field : null)"
+               [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
+         <!-- Template for the header to line up with the data columns -->
+         <ng-template pTemplate="header">
+            <div [style]="{'width': col.value.width}">
+               {{col.value.header}}
+            </div>
+         </ng-template>
+         <!-- Add ZoomTo Icon to Geocode -->
+         <ng-template *ngIf="col.value.header=='Geocode'" let-row="rowData" pTemplate="body">
+            <div class="ui-g-10 .val-flush-to-edges" style="vertical-align:inherit">
+               {{row['geo'].geocode}}
+            </div>
+            <div class="ui-g-2 .val-flush-to-edges" style="vertical-align:inherit">
+               <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 3px 0px 0px 1px; padding: 0px; width: 1.1em; height: 1.1em; display: block"></button>
+            </div>
+         </ng-template>
+         <!-- Format Distance column-->
+         <ng-template *ngIf="col.value.header=='Distance'" let-row="rowData" pTemplate="body">
+            {{row['geo'].distance | number : '1.2-2'}}
+         </ng-template>
+         <!-- Format hhc column-->
+         <ng-template *ngIf="col.value.header=='HHC'" let-row="rowData" pTemplate="body">
+            {{row['geo'].hhc | number:'1.0-0'}}
+         </ng-template>
+         <!-- Format hhc column-->
+         <ng-template *ngIf="col.value.header=='CPM'" let-row="rowData" pTemplate="body">
+            ${{row['cpm'] | number:'1.2-2'}}
+         </ng-template>
+         <!-- Format investment column-->
+         <ng-template *ngIf="col.value.header=='Investment'" let-row="rowData" pTemplate="body">
+            ${{row['investment'] | number:'1.2-2'}}
+         </ng-template>
+      </p-column>
+      <!-- GEOGRID VARIABLE COLUMNS -->
+      <p-column *ngFor="let extraCol of flatGeoGridExtraColumns" [sortable]="true"
+               [field]="((extraCol.value.field != null) ? extraCol.value.field : null)" [header]="extraCol.value.header"
+               [style]="{'width': extraCol.value.width}" [styleClass]="extraCol.value.styleClass"></p-column>
    </p-dataTable>
 </div>
