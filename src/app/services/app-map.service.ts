@@ -48,6 +48,7 @@ export class ValMapService implements OnDestroy {
 
   private defaultSymbol: __esri.SimpleFillSymbol;
   private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private rendererRetries: number = 0;
   public onReady$: Observable<boolean> = this.isReady.asObservable();
 
   constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
@@ -350,6 +351,12 @@ export class ValMapService implements OnDestroy {
     console.log('setting renderer');
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(portalId);
+    if ((!layer || !layer.renderer) && this.rendererRetries < 19) {
+      this.rendererRetries++;
+      setTimeout((() => this.setupRenderer(dataLength, currentAnalysisLevel)), 1000);
+      return;
+    }
+    this.rendererRetries = 0;
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
       this.defaultSymbol = layer.renderer.symbol;
     }

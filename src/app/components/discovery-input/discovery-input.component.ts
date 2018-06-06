@@ -25,6 +25,7 @@ import { ImpProjectTrackerService } from '../../val-modules/targeting/services/I
 import { Response } from '@angular/http/src/static_response';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { map } from 'rxjs/internal/operators/map';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
 
 interface Product {
@@ -92,6 +93,8 @@ export class DiscoveryInputComponent implements OnInit
    private loadRetries: number = 0;
    private analysisLevelRetries = 0;
    private mapReady: boolean = false;
+   private layersReady: boolean = false;
+   public validationMessage: string;
    private projectTrackerData = null;
 
    private localCopydiscoverUI: ImpDiscoveryUI = new ImpDiscoveryUI;
@@ -113,7 +116,8 @@ export class DiscoveryInputComponent implements OnInit
                private valMapService: ValMapService,
                private messageService: MessageService,
                private impProjectTrackerService: ImpProjectTrackerService,
-               private restService: RestDataService)
+               private restService: RestDataService,
+               private esriLayerService: EsriLayerService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -183,6 +187,7 @@ export class DiscoveryInputComponent implements OnInit
       // console.log('DiscoveryInputComponent constructed');
       this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
       this.valMapService.onReady$.subscribe(ready => this.mapReady = ready);
+      this.esriLayerService.layersReady$.subscribe(ready => this.layersReady = ready);
    }
 
    /**
@@ -357,9 +362,9 @@ export class DiscoveryInputComponent implements OnInit
    }
 
    public onAnalysisSelectType(event: SelectItem) {
-         if (!this.mapReady && this.analysisLevelRetries < 14) {
+      if ((!this.mapReady || !this.layersReady) && this.analysisLevelRetries < 29) {
             this.analysisLevelRetries++;
-            setTimeout((() => this.onAnalysisSelectType(event)), 10000);
+            setTimeout((() => this.onAnalysisSelectType(event)), 1000);
             return;
          }
          console.log('Analysis level:::' , event);
@@ -629,9 +634,9 @@ export class DiscoveryInputComponent implements OnInit
    public loadProject()
    {
       this.messagingService.startSpinnerDialog('PROJECTLOAD', 'Loading project ' + this.impProject.projectId);
-      if (!this.mapReady && this.loadRetries < 14) {
+      if ((!this.mapReady || !this.layersReady) && this.loadRetries < 29) {
             this.loadRetries++;
-            setTimeout((() => this.loadProject()), 10000);
+            setTimeout((() => this.loadProject()), 1000);
             return;
       }
       this.loadRetries = 0;

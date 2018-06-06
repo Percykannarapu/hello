@@ -6,6 +6,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 import { ValMapService } from '../../services/app-map.service';
 import { MapDispatchService } from '../../services/map-dispatch.service';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const CENTER_LONG_KEY = 'IMPOWER-MAP-CENTER-LONGITUDE';
@@ -38,7 +39,7 @@ export class EsriMapComponent implements OnInit {
 
   constructor(public mapService: MapService, private mapDispatch: MapDispatchService,
                private modules: EsriModules, private newMapService: ValMapService,
-              private esriMapService: EsriMapService) {
+              private esriMapService: EsriMapService, private esriLayerService: EsriLayerService) {
     console.log('Constructing esri-map-component');
   }
 
@@ -82,6 +83,7 @@ export class EsriMapComponent implements OnInit {
       this.setMapViewPoint();
       this.disableNavigation(this.mapView);
       this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
+      this.esriLayerService.setupLayerWatches(this.mapDispatch.getMapView().map.layers.toArray());
     });
   }
 

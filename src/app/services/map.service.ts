@@ -15,6 +15,8 @@ import { ValMapService } from './app-map.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
@@ -39,6 +41,9 @@ export class MapService {
 
     private map: __esri.Map;
     private mapView: __esri.MapView;
+    private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
+    private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
     // set a reference to global enum (defined in app.component)
     public mapFunction: mapFunctions = mapFunctions.Popups;
@@ -561,14 +566,35 @@ export class MapService {
             currentLayer.popupEnabled = false;
           }
           group.add(currentLayer);
+          //this.layerStatuses.set(currentLayer.title, false);
           // register a listener for this layer to collect usage metrics
           EsriModules.watchUtils.pausable(currentLayer, 'visible', e => this.collectLayerUsage(currentLayer));
+          //EsriModules.watchUtils.watch(currentLayer, 'loaded', e => this.determineLayerStatuses(currentLayer));
         });
       });
       this.map.layers.add(group);
       MapService.layers.add(group);
       group.visible = true;
       this.resumeLayerWatch(this.pausableWatches);
+    }
+
+    /**
+     * Determine if the layers are ready for use yet and notify observers if they are
+     * @param layer an Esri layer to examine
+     */
+    private determineLayerStatuses(layer: __esri.Layer) {
+        if (layer.loaded) {
+            this.layerStatuses.set(layer.title, true);
+        }
+        let loaded = true;
+        for (const layerName of Array.from(this.layerStatuses.keys())) {
+            if (!this.layerStatuses.get(layerName)) {
+                loaded = false;
+            }
+        }
+        if (loaded) {
+            this.layersReady.next(true);
+        }
     }
 
     /**
