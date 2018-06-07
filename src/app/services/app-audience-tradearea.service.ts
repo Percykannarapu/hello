@@ -320,12 +320,20 @@ export class ValAudienceTradeareaService {
    * @param geos An array of geos that will be attached to the trade area being created
    * @param location the location that the trade area is associated with
    */
-  private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
+  private createTradeArea(geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>, location: ImpGeofootprintLocation) {
     const tradeArea: ImpGeofootprintTradeArea = new ImpGeofootprintTradeArea();
-    tradeArea.impGeofootprintGeos = geos;
+    const taGeos: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+    const taVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
+    for (const geo of Array.from(geoVarMap.keys())) {
+      taGeos.push(geo);
+      taVars.push(...geoVarMap.get(geo));
+    }
+    tradeArea.impGeofootprintGeos = taGeos;
+    //tradeArea.impGeofootprintVars = taVars;
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
     this.tradeareaService.add([tradeArea]);
+    this.varService.add(taVars);
   }
 
   /**
@@ -334,19 +342,22 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation) : Array<ImpGeofootprintGeo> {
+  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
     this.geoService.clearAll();
     this.geoAttribService.clearAll();
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const newAttributes: ImpGeofootprintGeoAttrib[] = new Array<ImpGeofootprintGeoAttrib>();
     const taResponseMap = this.taResponses.get(location.locationName);
+    const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
+    const varPk: number = this.varService.getNextStoreId();
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       return;
     }
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      const newAttribute: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
+      const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
+      const newVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       const taResponse = taResponseMap.get(i);
       newGeo.geocode = taResponse.geocode;
       newGeo.impGeofootprintLocation = location;
@@ -361,19 +372,20 @@ export class ValAudienceTradeareaService {
         }
       }
       newGeo.ggId = this.geoService.getNextStoreId();
-      newAttribute.geoAttributeId = this.geoAttribService.getNextStoreId();
-      newAttribute.impGeofootprintGeo = newGeo;
-      newAttribute.attributeCode = 'Smart Tile Value';
-      newAttribute.attributeValue = taResponse.indexTileName;
-      newAttribute.attributeType = 'Geofootprint Variable';
-      if (newGeo.isActive) {
-        newGeos.push(newGeo);
-        newAttributes.push(newAttribute);
-      }
+      newVar.varPk = varPk;
+      newVar.gvId = this.varService.getNextStoreId();
+      newVar.geocode = newGeo.geocode;
+      newVar.customVarExprDisplay = 'Smart Tile Value';
+      newVar.valueString = taResponse.indexTileName;
+      newVar.isString = 1;
+      newVar.isActive = 1;
+      newVars.push(newVar);
+      geoVarMap.set(newGeo, newVars);
+      newGeos.push(newGeo);
     }
     this.geoService.add(newGeos);
     this.geoAttribService.add(newAttributes);
-    return newGeos;
+    return geoVarMap;
   }
 
   /**
