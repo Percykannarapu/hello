@@ -300,7 +300,8 @@ export class DiscoveryInputComponent implements OnInit
       this.impProject.smSoloCpm = this.impDiscoveryUI.soloCPM;
 
       // TODO: This needs to be in product allocations, hijacking description for product code for now
-      this.impProject.description    = this.impDiscoveryUI.productCode;
+      //this.impProject.description    = this.impDiscoveryUI.productCode;
+      this.impProject.radProduct     = this.impDiscoveryUI.productCode;
    }
 
    public mapFromProject()
@@ -312,7 +313,7 @@ export class DiscoveryInputComponent implements OnInit
       console.log ('discovery-input.component - mapFromProject - fired');
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
-      this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.description)[0];
+      this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.radProduct)[0];
 
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];

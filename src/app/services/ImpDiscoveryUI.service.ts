@@ -62,15 +62,15 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
          console.log ('Mapping from project: ', impProject);
 
       impDiscoveryUI.industryCategoryCode = impProject.industryCategoryCode;
-      impDiscoveryUI.productCode = impProject.description;
+      impDiscoveryUI.productCode = impProject.radProduct;
 //d      this.selectedCategory = this.categories.filter(category => category.code === impProject.industryCategoryCode)[0];
 
       impDiscoveryUI.analysisLevel        = impProject.methAnalysis;
 //d      this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === impProject.methAnalysis)[0];
       // TODO: This belongs in product allocations, which doesn't exist yet.  Using project description
-      impDiscoveryUI.productCode          = impProject.description;
+      impDiscoveryUI.productCode          = impProject.radProduct;
 //    this.selectedProduct = this.products.filter(product => product.productCode = this.impProject.description)[0];
-      console.log('impDiscoveryUI.productCode: ', impDiscoveryUI.productCode);
+     // console.log('impDiscoveryUI.productCode: ', impDiscoveryUI.productCode);
 
       if (impProject.isCircBudget)
       {
