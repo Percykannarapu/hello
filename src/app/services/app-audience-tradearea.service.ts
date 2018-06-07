@@ -86,6 +86,7 @@ export class ValAudienceTradeareaService {
   private audienceTaSubject: Subject<boolean> = new Subject<boolean>();
   private sortMap: Map<string, number> = new Map<string, number>();
   private taResponses: Map<string, Map<number, AudienceTradeareaResponse>> = new Map<string, Map<number, AudienceTradeareaResponse>>();
+  private mustCover: boolean;
   
   // variables to determine whether or not we need to fetch data from the server
   private fetchData = true;
@@ -103,8 +104,8 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string) : Observable<boolean> {
-    const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType);
+  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+    const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType, mustCover);
     this.attachVariables();
     this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
     if (this.fetchData) {
@@ -113,7 +114,7 @@ export class ValAudienceTradeareaService {
           this.parseResponse(response);
           this.fetchData = false;
           for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
-            this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
+            this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover), location);
           }
           this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
@@ -132,7 +133,7 @@ export class ValAudienceTradeareaService {
         this.fetchData = true;
       });
     } else {
-      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType).subscribe(res => {
+      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType, mustCover).subscribe(res => {
         if (res) {
           this.audienceTaSubject.next(true);
         } else {
@@ -177,11 +178,11 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string) : Observable<boolean> {
+  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
+          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover), location);
           this.drawRadiusRings(minRadius, maxRadius);
         }
         obs.next(true);
@@ -236,7 +237,7 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the variable vs distance that has been set by the user
    * @param scoreType Score type, DMA or national
    */
-  private buildTAConfig(minRadius: number, maxRadius: number, digCategoryId: number, weight: number, scoreType: string) : AudienceTradeAreaConfig {
+  private buildTAConfig(minRadius: number, maxRadius: number, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : AudienceTradeAreaConfig {
     const audienceTALocations: Array<AudienceTradeareaLocation> = new Array<AudienceTradeareaLocation>();
     const taConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.discoService.get()[0].analysisLevel.toLocaleLowerCase(),
@@ -245,7 +246,7 @@ export class ValAudienceTradeareaService {
       maxRadius: Number(maxRadius),
       minRadius: Number(minRadius),
       scoreType: scoreType,
-      weight: weight / 100
+      weight: weight / 100,
     };
     for (const location of this.locationService.get()) {
       const taLocation: AudienceTradeareaLocation = {
@@ -342,7 +343,7 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
+  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
     this.geoService.clearAll();
     this.geoAttribService.clearAll();
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
@@ -370,6 +371,9 @@ export class ValAudienceTradeareaService {
         if (taResponse.indexTileName === tile) {
           newGeo.isActive = true;
         }
+      }
+      if (mustCover && taResponse.distance <= minRadius) {
+        newGeo.isActive = true;
       }
       newGeo.ggId = this.geoService.getNextStoreId();
       newVar.varPk = varPk;

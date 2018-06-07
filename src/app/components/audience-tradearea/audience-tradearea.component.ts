@@ -24,6 +24,7 @@ export class AudienceTradeareaComponent implements OnInit {
   public selectedScoreType: string = 'DMA';
   public minRadius: number;
   public maxRadius: number;
+  public includeMustCover: boolean = true;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
@@ -97,7 +98,7 @@ export class AudienceTradeareaComponent implements OnInit {
       return;
     }
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
-    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType)
+    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       },

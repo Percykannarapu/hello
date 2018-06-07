@@ -56,6 +56,13 @@
         placeholder="Select a score type" [style]="{ width: '100%' }"></p-selectButton>
     </div>
     <div class="ui-g-12"></div>
+    <div class="ui-g-6">
+      Include all geography in must cover radius:
+    </div>
+    <div class="ui-g-6">
+      <p-checkbox [(ngModel)]="includeMustCover" binary="true"></p-checkbox>
+    </div>
+    <div class="ui-g-12"></div>
     <div class="ui-g-12">
       <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
     </div>
