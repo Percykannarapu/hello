@@ -24,7 +24,7 @@ export class AudienceTradeareaComponent implements OnInit {
   public selectedScoreType: string = 'DMA';
   public minRadius: number;
   public maxRadius: number;
-  public includeMustCover: boolean = true;
+  public includeMustCover: boolean = false;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
@@ -69,6 +69,11 @@ export class AudienceTradeareaComponent implements OnInit {
       return null;
     }
     return id;
+  }
+
+  public onSelectMustCover() {
+    this.includeMustCover = !this.includeMustCover;
+    console.log('AARON: MUST COVER', this.includeMustCover);
   }
 
   public onClickApply() {
