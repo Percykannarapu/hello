@@ -364,7 +364,7 @@ export class ValAudienceTradeareaService {
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 4) {
+      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
         newGeo.isActive = true;
       }
       for (const tile of activeSmartTiles) {
@@ -373,6 +373,9 @@ export class ValAudienceTradeareaService {
         }
       }
       if (mustCover && taResponse.distance <= minRadius) {
+        newGeo.isActive = true;
+      }
+      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
         newGeo.isActive = true;
       }
       newGeo.ggId = this.geoService.getNextStoreId();
