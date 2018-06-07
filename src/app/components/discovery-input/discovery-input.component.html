@@ -13,15 +13,14 @@
                 </div>
             </div>
         <div class="ui-g-3">
-        <button pButton type="button" style="float: right;" (click)="saveProject()" label="Save Project"></button>
+            <button pButton type="button" style="float: right;" (click)="saveProject()" label="Save Project"></button>
         </div>
         <div class="ui-g-12">
-                <span class="md-inputfield">
-                    <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
-                    <label>imPower Project Name</label>
-                </span>
-            </div>
-            <!-- class="val-auto-complete" -->
+            <span class="md-inputfield">
+                <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
+                <label>imPower Project Name</label>
+            </span>
+        </div>
         <div class="ui-g-12" >
             <span class="md-inputfield">
                 <p-autoComplete   [suggestions]="searchList" [(ngModel)]="impProjectService.trakerId" (onSelect)="onChangeProjectTraker($event)" (completeMethod)="filterProjectTracker($event)"
@@ -31,31 +30,23 @@
                 <label>Search for Project Tracker ID</label>   
             </span>
         </div>
-       <div class="ui-g-12 val-flush-to-edges">
-                <div class="ui-g-6">
-                        <p-dropdown #productSelector
-                        [options]="products" [(ngModel)]="selectedProduct" optionLabel="productName"
-                        placeholder="Select a Product" [filter]="true" filterBy="label,value.name"
-                        (onChange)="onChangeProduct($event)" pTooltip="{{productCategoryTooltip}}"
-                        [style]="{'width':'250px'}"></p-dropdown>   
-                </div> 
-                <div class="ui-g-6"><label>{{calcProductCatRadData}}</label></div>   
-            </div>
-            
-            <div class="ui-g-12 val-flush-to-edges">
-                <p-dropdown #categorySelector
-                            [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name"
-                            (onChange)="onChangeCategory($event)"
-                            placeholder="Select a Category" [filter]="true" filterBy="label,value.name" pTooltip="{{productCategoryTooltip}}"
-                            [style]="{'width':'250px'}"></p-dropdown>
-            </div>
         
-            <div class="ui-g-12 val-flush-to-edges">
-                <p-dropdown #analysisLevelSelector
-                            [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
-                            (ngModelChange)="onAnalysisSelectType($event)"
-                            placeholder="Select an Analysis Level"
-                            [style]="{'width':'250px'}"></p-dropdown>
+        <div class="ui-g-12 val-flush-to-edges">
+            <p-dropdown #analysisLevelSelector
+                [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
+                (ngModelChange)="onAnalysisSelectType($event)"
+                placeholder="Select an Analysis Level"
+                [style]="{'width':'250px'}"></p-dropdown>
+        </div>
+    </div>
+    <div class="card ui-g-12">
+            <div class="ui-g-12" >
+                    <span class="md-inputfield">
+                        <p-autoComplete  [(ngModel)]="selectedRadLookupValue" [suggestions]="radSearchList" (completeMethod)="filterRadData($event)" (onSelect)="onSelectRadData($event)" 
+                            [style]="{'width': '75%'}"  [inputStyle]="{'width':'100%'}"  [minLength]="0"   [dropdown]="true">
+                        </p-autoComplete>
+                        <label>Performance Prediction Category-Product</label>   
+                    </span>
             </div>
     </div>
         
