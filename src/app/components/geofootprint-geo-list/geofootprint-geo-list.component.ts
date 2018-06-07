@@ -405,23 +405,28 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Get all of the variables for this geo
          const geovars = vars.filter(geovar => geovar.geocode === geo.geocode);
          (geovars||[]).forEach(geovar => {
-            // Format them
-            switch(geovar.fieldconte) {
-               case "COUNT":
-               case "MEDIAN":
-               case "INDEX":
-                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
-                  break;
+            if (geovar.isString)
+               gridGeo[geovar.varPk.toString()] = geovar.valueString;
+            else
+            {
+               // Format them
+               switch(geovar.fieldconte) {
+                  case "COUNT":
+                  case "MEDIAN":
+                  case "INDEX":
+                     gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
+                     break;
 
-               case "PERCENT":
-               case "RATIO":
-                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
-                  break;
+                  case "PERCENT":
+                  case "RATIO":
+                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
+                     break;
 
-               default:
-                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
-                  break;
-            };
+                  default:
+                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
+                     break;
+               };
+            }
             // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar);
 
             // Create grid columns for the variables
