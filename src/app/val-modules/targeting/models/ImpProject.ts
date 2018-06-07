@@ -51,6 +51,7 @@ export class ImpProject extends BaseModel
    public smValassisCpm:               number;
    public smAnneCpm:                   number;
    public smSoloCpm:                   number;
+   public radProduct:                   string;   
 
    // IMPOWER.IMP_PROJECTS - MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------------------
