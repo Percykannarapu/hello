@@ -16,6 +16,8 @@ import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { AppConfig } from '../app.config';
 import { RestResponse } from '../models/RestResponse';
+import { TargetAudienceService } from './target-audience.service';
+import { AudienceDataDefinition } from '../models/audience-data.model';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -114,7 +116,7 @@ export class ValAudienceTradeareaService {
           this.parseResponse(response);
           this.fetchData = false;
           for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
-            this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover), location);
+            this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
           this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
@@ -182,7 +184,7 @@ export class ValAudienceTradeareaService {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover), location);
+          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           this.drawRadiusRings(minRadius, maxRadius);
         }
         obs.next(true);
@@ -343,7 +345,7 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
+  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
     this.geoService.clearAll();
     this.geoAttribService.clearAll();
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
@@ -382,10 +384,13 @@ export class ValAudienceTradeareaService {
       newVar.varPk = varPk;
       newVar.gvId = this.varService.getNextStoreId();
       newVar.geocode = newGeo.geocode;
-      newVar.customVarExprDisplay = 'Smart Tile Value';
-      newVar.valueString = taResponse.indexTileName;
-      newVar.isString = 1;
+      const audiences = this.targetAudienceService.getAudiences();
+      const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+      newVar.customVarExprDisplay = audience.audienceName + ' Index';
+      newVar.valueNumber = taResponse.indexValue;
+      newVar.isNumber = 1;
       newVar.isActive = 1;
+      newVar.fieldconte = 'INDEX';
       newVars.push(newVar);
       geoVarMap.set(newGeo, newVars);
       newGeos.push(newGeo);
@@ -422,7 +427,8 @@ export class ValAudienceTradeareaService {
     private mapService: ValMapService,
     private discoService: ImpDiscoveryService,
     private httpClient: HttpClient,
-    private appConfig: AppConfig) {
+    private appConfig: AppConfig,
+    private targetAudienceService: TargetAudienceService) {
     this.initializeSortMap();
     this.locationService.storeObservable.subscribe(location => {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
