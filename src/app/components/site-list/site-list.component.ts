@@ -73,6 +73,12 @@ export class SiteListComponent implements OnInit {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
+    this.siteListService.allSites$.subscribe(locations => { 
+      locations.forEach(loc => { 
+      loc.location.locationName = (loc.location.locationName == null || loc.location.locationName === '') ? loc.location.locationNumber : loc.location.locationName; 
+      console.log('Location::: ', loc); 
+      }); 
+      } );
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
