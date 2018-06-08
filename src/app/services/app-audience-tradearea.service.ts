@@ -278,10 +278,10 @@ export class ValAudienceTradeareaService {
    * Compare smart tile values together to determine sort oder
    */
   private compare(a, b) {
-    if (this.sortMap.get(a.data.valueString) < this.sortMap.get(b.data.valueString)) {
+    if (this.sortMap.get(a.data.valueString) > this.sortMap.get(b.data.valueString)) {
       return -1;
     }
-    if (this.sortMap.get(a.data.valueString) > this.sortMap.get(b.data.valueString)) {
+    if (this.sortMap.get(a.data.valueString) < this.sortMap.get(b.data.valueString)) {
       return 1;
     } 
     return 0;
