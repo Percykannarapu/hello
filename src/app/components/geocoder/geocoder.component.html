@@ -80,6 +80,12 @@
         <button (click)="loadSkyZone()" type="button" label="Do SkyZone" icon="ui-icon-map" pButton
                 style="width: 100%;"></button>
       </div>
+      <div *ngIf="config.debugMode" class="ui-g-6">
+         <button (click)="loadTecumseh()" type="button" label="Do Tecumseh" icon="ui-icon-map" pButton
+                 style="width: 100%;"></button>
+       </div>
+       <div *ngIf="config.debugMode" class="ui-g-6">
+       </div>
     </div>
   </div>
   <div *ngIf="hasFailures$ | async" class="ui-g">

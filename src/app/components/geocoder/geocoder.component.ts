@@ -111,7 +111,8 @@ export class GeocoderComponent implements OnInit {
     const x = this.currentModel.longitude != null ? 'X=' + this.currentModel.longitude + '~' : '';
     const y = this.currentModel.latitude != null ? 'Y=' + this.currentModel.latitude : '';
     const metricText = number + name + street + city + state + zip + market + x + y;
-    const dupNumber = this.locationService.get().filter(loc => loc.locationNumber.toString() == this.currentModel.number.toString() );
+    const dupNumber = this.locationService.get().filter(loc => (loc.locationNumber != null && this.currentModel != null && this.currentModel.number != null)
+                                                              ? loc.locationNumber.toString() === this.currentModel.number.toString() : false);
     if (this.currentModel.canBeGeocoded() && dupNumber.length == 0) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
@@ -154,6 +155,18 @@ export class GeocoderComponent implements OnInit {
     this.currentModel.latitude = '39.967208';
     this.currentModel.longitude = '-85.988858';
   }
+
+  public loadTecumseh() {
+   this.clearFields();
+   this.currentModel.name = 'Tecumseh All Owner Groups within 20 miles';
+   this.currentModel.street = '411 E Chicago Blvd';
+   this.currentModel.city = 'Tecumseh';
+   this.currentModel.state = 'MI';
+   this.currentModel.zip = '49286';
+   this.currentModel.Market = 'Test Market';
+   this.currentModel.latitude = '42.004672';
+   this.currentModel.longitude = '-83.939051';
+ }
 
   private handleError(message: string) : void {
    // this.messageService.stopSpinnerDialog(this.spinnerKey);
