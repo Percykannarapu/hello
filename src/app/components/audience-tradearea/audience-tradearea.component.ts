@@ -24,6 +24,7 @@ export class AudienceTradeareaComponent implements OnInit {
   public selectedScoreType: string = 'DMA';
   public minRadius: number;
   public maxRadius: number;
+  public includeMustCover: boolean = false;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
@@ -70,6 +71,11 @@ export class AudienceTradeareaComponent implements OnInit {
     return id;
   }
 
+  public onSelectMustCover() {
+    this.includeMustCover = !this.includeMustCover;
+    console.log('AARON: MUST COVER', this.includeMustCover);
+  }
+
   public onClickApply() {
     if (!this.minRadius || !this.maxRadius) {
       this.messagingService.showGrowlError(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
@@ -97,7 +103,7 @@ export class AudienceTradeareaComponent implements OnInit {
       return;
     }
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
-    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType)
+    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       },

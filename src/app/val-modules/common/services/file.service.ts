@@ -46,6 +46,16 @@ export class FileService {
       // replace commas embedded inside nested quotes, then remove the quotes.
       const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '');
       const columns = csvRow.split(delimiter);
+      let emptyRow: boolean = true;
+      for (let column of columns) {
+        column = column.replace(/\s/g, '');
+        if (column !== '') { 
+          emptyRow = false;
+        }
+      }
+      if (emptyRow) {
+        continue; // US7729: we don't want to flag the row as failed if it was just empty
+      }
       if (columns.length !== parseEngine.length) {
         result.failedRows.push(dataRows[i]);
       } else {

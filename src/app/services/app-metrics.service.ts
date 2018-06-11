@@ -9,6 +9,7 @@ import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { isNumber } from '../app.utils';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 
 export interface MetricDefinition {
   metricValue: number;
@@ -34,6 +35,19 @@ export class ValMetricsService implements OnDestroy {
   private geoCpmMismatch: boolean;
   private currentGeoAttributes: ImpGeofootprintGeoAttrib[] = [];
 
+  private medianmetricVal: number = 0;
+  private medianhhc: number = 0;
+
+  private relatedhhc: number = 0;
+  private relatedmetricVal: number = 0;
+
+  private popHispanhhc: number = 0;
+  private popHispanmetricVal: number = 0;
+
+  private casualDinhhc: number = 0;
+  private casualDinmetricVal: number = 0;
+
+
   public metrics$: Observable<MetricDefinition[]>;
   public mismatch$: Observable<boolean>;
 
@@ -49,7 +63,7 @@ export class ValMetricsService implements OnDestroy {
       });
   }
 
-  public ngOnDestroy(): void {
+  public ngOnDestroy() : void {
     if (this.metricSub) this.metricSub.unsubscribe();
   }
 
@@ -60,7 +74,7 @@ export class ValMetricsService implements OnDestroy {
     }
   }
 
-  private registerMetrics(): void {
+  private registerMetrics()   : void {
     //TODO: this will be deprecated when user's can specify their own metrics
     const householdCount: MetricDefinition = {
       metricValue: 0,
@@ -178,9 +192,106 @@ export class ValMetricsService implements OnDestroy {
       }
     };
     this.metricDefinitions.push(progressToBudget);
+
+    const medianHhIncome: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: () => this.isWinter ? ['cl2i00', 'hhld_w'] : ['cl2i00', 'hhld_s'],
+      metricCategory: 'AUDIENCE',
+      metricFriendlyName: 'Median Household Income',
+      compositePreCalc: t => {
+        if (t.length < 1)
+            return 0;
+        const attributesMap: Map<string, string> = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+       
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        if (attributesMap.has(season) && attributesMap.has('cl2i00')) {
+          this.medianhhc += t[0].impGeofootprintGeo.hhc;
+          this.medianmetricVal = (Number(attributesMap.get('cl2i00')) * t[0].impGeofootprintGeo.hhc) + this.medianmetricVal;
+          return Number((this.medianmetricVal / this.medianhhc).toFixed(0));
+        }
+        return 0;        
+      },
+      metricAccumulator: (p, c) =>  c,
+      metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+    };
+    this.metricDefinitions.push(medianHhIncome);
+
+    const familiesRelatedChild: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: () => this.isWinter ? ['cl0c00', 'hhld_w'] : ['cl0c00', 'hhld_s'],
+      metricCategory: 'AUDIENCE',
+      metricFriendlyName: '% \'17 HHs Families with Related Children < 18 Yrs',
+      compositePreCalc: t => {
+        if (t.length < 1)
+            return 0;
+        const attributesMap: Map<string, string> = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        if (attributesMap.has(season) && attributesMap.has('cl0c00')) {
+          this.relatedhhc += t[0].impGeofootprintGeo.hhc;
+          this.relatedmetricVal = (Number(attributesMap.get('cl0c00')) * t[0].impGeofootprintGeo.hhc) + this.relatedmetricVal;
+          return Number((this.relatedmetricVal / this.relatedhhc).toFixed(2));
+        }
+        return 0;        
+      },
+      metricAccumulator: (p, c) =>  c,
+      metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %',
+    };
+    this.metricDefinitions.push(familiesRelatedChild);
+
+    const popHispanicLatino: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: () => this.isWinter ? ['cl2prh', 'hhld_w'] : ['cl2prh', 'hhld_s'],
+      metricCategory: 'AUDIENCE',
+      metricFriendlyName: '% \'17 Pop Hispanic or Latino',
+      compositePreCalc: t => {
+        if (t.length < 1)
+            return 0;
+        const attributesMap: Map<string, string> = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        if (attributesMap.has(season) && attributesMap.has('cl2prh')) {
+          this.popHispanhhc += t[0].impGeofootprintGeo.hhc;
+          this.popHispanmetricVal = (Number(attributesMap.get('cl2prh')) * t[0].impGeofootprintGeo.hhc) + this.popHispanmetricVal;
+          return Number((this.popHispanmetricVal / this.popHispanhhc).toFixed(2));
+        }
+        return 0;        
+      },
+      metricAccumulator: (p, c) =>  c,
+      metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %',
+    };
+    this.metricDefinitions.push(popHispanicLatino);
+
+    const casualDining: MetricDefinition = {
+      metricValue: 0,
+      metricDefault: 0,
+      metricCode: () => this.isWinter ? ['tap049', 'hhld_w'] : ['tap049', 'hhld_s'],
+      metricCategory: 'AUDIENCE',
+      metricFriendlyName: 'Casual Dining: 10+ Times Past 30 Days',
+      compositePreCalc: t => {
+        if (t.length < 1)
+            return 0;
+        const attributesMap: Map<string, string> = new Map<string, string>();
+        t.forEach(attribute => attributesMap.set(attribute.attributeCode, attribute.attributeValue));
+        const season = this.currentDiscoveryVar.selectedSeason === 'WINTER' ? 'hhld_w' : 'hhld_s';
+        if (attributesMap.has(season) && attributesMap.has('tap049')) {
+          this.casualDinhhc += t[0].impGeofootprintGeo.hhc;
+          this.casualDinmetricVal = (Number(attributesMap.get('tap049')) * t[0].impGeofootprintGeo.hhc) + this.casualDinmetricVal;
+          return Number((this.casualDinmetricVal / this.casualDinhhc).toFixed(0));
+        }
+        return 0;        
+      },
+      metricAccumulator: (p, c) =>  c,
+      metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+    };
+    this.metricDefinitions.push(casualDining);
   }
 
-  private getMetricObservable(): Observable<MetricDefinition[]> {
+  private getMetricObservable() : Observable<MetricDefinition[]> {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive === 1))
     );
@@ -192,7 +303,7 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  private getMismatchObservable(): Observable<boolean> {
+  private getMismatchObservable() : Observable<boolean> {
     const geoOwnerTypes$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive === 1 && (a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency'))),
       map(attributes => {

@@ -85,6 +85,8 @@ export class DiscoveryInputComponent implements OnInit
    summer: boolean = true;
 
    public searchList = [];
+   public radSearchList = [];
+   public selectedRadLookupValue: string ;
   // projectTrackerList: ProjectTraker[];
    
    public trakerId: number;
@@ -223,7 +225,9 @@ export class DiscoveryInputComponent implements OnInit
             this.mapFromProject();
          }
       });
-      this.impRadLookupService.storeObservable.subscribe(radData => this.storeRadData = radData);
+      this.impRadLookupService.storeObservable.subscribe(radData => { 
+            this.storeRadData = radData; 
+      });
       this.impDiscoveryService.storeObservable.subscribe(impDiscoveryUI => this.onChangeDiscovery(impDiscoveryUI));
       this.impRadLookupService.get(true);
 
@@ -314,6 +318,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
       this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.radProduct)[0];
+      this.selectedRadLookupValue = this.selectedCategory.name + ' - ' + this.selectedProduct.productCode;
 
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
@@ -449,7 +454,7 @@ export class DiscoveryInputComponent implements OnInit
       }
    }
 
-   public onChangeField(event: SelectItem)
+   public onChangeField(event?: SelectItem)
    {
       if (this.selectedCategory){
             this.impDiscoveryUI.industryCategoryCode = this.selectedCategory.code;
@@ -809,6 +814,59 @@ export class DiscoveryInputComponent implements OnInit
       this.testIsSummer(new Date('01 Apr 2018'));
    }
 
+   filterRadData(event) {
+      const value = event.query; 
+      this.radSearchList = [];
+      const excludeList: string[] = [];
+      const excludeSet = new Set(['reminder', 'research', 'ritual']);
+      //if (value.length > 2) {
+            let matchingValues = this.storeRadData.filter( item => {
+                  return item.category.toLowerCase().includes(value.toLowerCase()) || item.product.toLowerCase().includes(value.toLowerCase());
+            }).map(item => {
+                  if (!excludeSet.has(item.category.toLowerCase())){
+                        return item.category + ' - ' + item.product;
+                  }else{
+                        excludeList.push(item.category + ' - ' + item.product);
+                  }
+            }).sort();
+            
+            excludeList.sort();
+            //matchingValues.reduce().concat(...excludeList);
+            matchingValues.push(...excludeList);
+            matchingValues = matchingValues.filter(x => x != null);
+           /* sort((n1 , n2 ) => {
+                  if (n1.includes('Ritual')){
+                        return 1;
+                  }
+                  if (n2.includes('Ritual')){
+                        return 1;
+                  }
+            });*/
+            this.radSearchList.push(...matchingValues);
+     // }
+   }
+
+   onSelectRadData(event: string){
+        
+         const data: string[] = event.split('-');
+         this.impDiscoveryUI.productCode = data[1].trim();
+         const categoryValue = this.categories.filter(category => {  
+            if (category.name.toLowerCase().trim() == data[0].toLowerCase().trim()){
+                  this.impDiscoveryUI.industryCategoryCode = category.code;
+                  this.impDiscoveryUI.industryCategoryName = category.name;
+                  return category;
+            }
+         });
+      let metricsText = 'New=' + this.selectedProduct.productName + '~Old=' + this.impDiscoveryUI.productCode;
+      let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+
+      metricsText = 'New=' + this.selectedCategory.name + '~Old=' + this.impDiscoveryUI.industryCategoryName;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      this.onChangeField();         
+   }
+
    filterProjectTracker(event) {
       const value = event.query; 
       this.searchList = [];
@@ -816,10 +874,10 @@ export class DiscoveryInputComponent implements OnInit
             const respList: string[] = [];
             const matchingValues = this.projectTrackerData.filter(item => {
                   if (item['targetor'] != null){
-                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) || item['targetor'].includes(value);
+                        return item['projectId'].toString().toLowerCase().includes(value.toLowerCase()) || item['projectName'].toLowerCase().includes(value.toLowerCase()) || item['targetor'].toLowerCase().includes(value.toLowerCase());
                   }
                   else{
-                        return item['projectId'].toString().includes(value) || item['projectName'].includes(value) ;
+                        return item['projectId'].toString().toLowerCase().includes(value.toLowerCase()) || item['projectName'].toLowerCase().includes(value.toLowerCase()) ;
                   }
                   
             }).map(item => {

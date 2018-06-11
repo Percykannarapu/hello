@@ -16,6 +16,8 @@ import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { AppConfig } from '../app.config';
 import { RestResponse } from '../models/RestResponse';
+import { TargetAudienceService } from './target-audience.service';
+import { AudienceDataDefinition } from '../models/audience-data.model';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -86,6 +88,7 @@ export class ValAudienceTradeareaService {
   private audienceTaSubject: Subject<boolean> = new Subject<boolean>();
   private sortMap: Map<string, number> = new Map<string, number>();
   private taResponses: Map<string, Map<number, AudienceTradeareaResponse>> = new Map<string, Map<number, AudienceTradeareaResponse>>();
+  private mustCover: boolean;
   
   // variables to determine whether or not we need to fetch data from the server
   private fetchData = true;
@@ -103,8 +106,8 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string) : Observable<boolean> {
-    const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType);
+  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+    const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType, mustCover);
     this.attachVariables();
     this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
     if (this.fetchData) {
@@ -113,7 +116,7 @@ export class ValAudienceTradeareaService {
           this.parseResponse(response);
           this.fetchData = false;
           for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
-            this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
+            this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
           this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
@@ -132,7 +135,7 @@ export class ValAudienceTradeareaService {
         this.fetchData = true;
       });
     } else {
-      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType).subscribe(res => {
+      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType, mustCover).subscribe(res => {
         if (res) {
           this.audienceTaSubject.next(true);
         } else {
@@ -177,11 +180,11 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string) : Observable<boolean> {
+  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(minRadius, tiles, location), location);
+          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           this.drawRadiusRings(minRadius, maxRadius);
         }
         obs.next(true);
@@ -236,7 +239,7 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the variable vs distance that has been set by the user
    * @param scoreType Score type, DMA or national
    */
-  private buildTAConfig(minRadius: number, maxRadius: number, digCategoryId: number, weight: number, scoreType: string) : AudienceTradeAreaConfig {
+  private buildTAConfig(minRadius: number, maxRadius: number, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : AudienceTradeAreaConfig {
     const audienceTALocations: Array<AudienceTradeareaLocation> = new Array<AudienceTradeareaLocation>();
     const taConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.discoService.get()[0].analysisLevel.toLocaleLowerCase(),
@@ -245,7 +248,7 @@ export class ValAudienceTradeareaService {
       maxRadius: Number(maxRadius),
       minRadius: Number(minRadius),
       scoreType: scoreType,
-      weight: weight / 100
+      weight: weight / 100,
     };
     for (const location of this.locationService.get()) {
       const taLocation: AudienceTradeareaLocation = {
@@ -277,10 +280,10 @@ export class ValAudienceTradeareaService {
    * Compare smart tile values together to determine sort oder
    */
   private compare(a, b) {
-    if (this.sortMap.get(a.data.valueString) < this.sortMap.get(b.data.valueString)) {
+    if (this.sortMap.get(a.data.valueString) > this.sortMap.get(b.data.valueString)) {
       return -1;
     }
-    if (this.sortMap.get(a.data.valueString) > this.sortMap.get(b.data.valueString)) {
+    if (this.sortMap.get(a.data.valueString) < this.sortMap.get(b.data.valueString)) {
       return 1;
     } 
     return 0;
@@ -320,12 +323,20 @@ export class ValAudienceTradeareaService {
    * @param geos An array of geos that will be attached to the trade area being created
    * @param location the location that the trade area is associated with
    */
-  private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
+  private createTradeArea(geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>, location: ImpGeofootprintLocation) {
     const tradeArea: ImpGeofootprintTradeArea = new ImpGeofootprintTradeArea();
-    tradeArea.impGeofootprintGeos = geos;
+    const taGeos: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+    const taVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
+    for (const geo of Array.from(geoVarMap.keys())) {
+      taGeos.push(geo);
+      taVars.push(...geoVarMap.get(geo));
+    }
+    tradeArea.impGeofootprintGeos = taGeos;
+    //tradeArea.impGeofootprintVars = taVars;
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
     this.tradeareaService.add([tradeArea]);
+    this.varService.add(taVars);
   }
 
   /**
@@ -334,25 +345,28 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation) : Array<ImpGeofootprintGeo> {
+  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
     this.geoService.clearAll();
     this.geoAttribService.clearAll();
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const newAttributes: ImpGeofootprintGeoAttrib[] = new Array<ImpGeofootprintGeoAttrib>();
     const taResponseMap = this.taResponses.get(location.locationName);
+    const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
+    const varPk: number = this.varService.getNextStoreId();
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       return;
     }
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      const newAttribute: ImpGeofootprintGeoAttrib = new ImpGeofootprintGeoAttrib();
+      const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
+      const newVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       const taResponse = taResponseMap.get(i);
       newGeo.geocode = taResponse.geocode;
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 4) {
+      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
         newGeo.isActive = true;
       }
       for (const tile of activeSmartTiles) {
@@ -360,20 +374,30 @@ export class ValAudienceTradeareaService {
           newGeo.isActive = true;
         }
       }
-      newGeo.ggId = this.geoService.getNextStoreId();
-      newAttribute.geoAttributeId = this.geoAttribService.getNextStoreId();
-      newAttribute.impGeofootprintGeo = newGeo;
-      newAttribute.attributeCode = 'Smart Tile Value';
-      newAttribute.attributeValue = taResponse.indexTileName;
-      newAttribute.attributeType = 'Geofootprint Variable';
-      if (newGeo.isActive) {
-        newGeos.push(newGeo);
-        newAttributes.push(newAttribute);
+      if (mustCover && taResponse.distance <= minRadius) {
+        newGeo.isActive = true;
       }
+      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
+        newGeo.isActive = true;
+      }
+      newGeo.ggId = this.geoService.getNextStoreId();
+      newVar.varPk = varPk;
+      newVar.gvId = this.varService.getNextStoreId();
+      newVar.geocode = newGeo.geocode;
+      const audiences = this.targetAudienceService.getAudiences();
+      const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+      newVar.customVarExprDisplay = audience.audienceName + ' Index';
+      newVar.valueNumber = taResponse.indexValue;
+      newVar.isNumber = 1;
+      newVar.isActive = 1;
+      newVar.fieldconte = 'INDEX';
+      newVars.push(newVar);
+      geoVarMap.set(newGeo, newVars);
+      newGeos.push(newGeo);
     }
     this.geoService.add(newGeos);
     this.geoAttribService.add(newAttributes);
-    return newGeos;
+    return geoVarMap;
   }
 
   /**
@@ -403,7 +427,8 @@ export class ValAudienceTradeareaService {
     private mapService: ValMapService,
     private discoService: ImpDiscoveryService,
     private httpClient: HttpClient,
-    private appConfig: AppConfig) {
+    private appConfig: AppConfig,
+    private targetAudienceService: TargetAudienceService) {
     this.initializeSortMap();
     this.locationService.storeObservable.subscribe(location => {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
