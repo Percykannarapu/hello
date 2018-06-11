@@ -77,13 +77,13 @@ export class EsriMapComponent implements OnInit {
       this.mapService.hideMapLayers();
       this.mapDispatch.onMapViewClick().subscribe(location => this.clickHandler(location));
       EsriMapComponent.replaceCopyrightElement();
-      this.setMapHeight();
+      this.mapDispatch.afterMapViewUpdate().subscribe(
+        () => this.saveMapViewData(this.mapContainerEl), null, () => this.setMapHeight());
+      this.esriLayerService.setupLayerWatches(this.mapDispatch.getMapView().map.layers.toArray());
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
       this.disableNavigation(this.mapView);
-      this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
-      this.esriLayerService.setupLayerWatches(this.mapDispatch.getMapView().map.layers.toArray());
     });
   }
 
