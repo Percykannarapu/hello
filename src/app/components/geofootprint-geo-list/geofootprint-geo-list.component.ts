@@ -15,6 +15,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { MenuItem } from 'primeng/components/common/menuitem';
 
 export interface FlatGeo {
    fgId: number,
@@ -54,6 +55,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
    private impGeofootprintVars: ImpGeofootprintVar[];
 
+   public  numGeosActive: number = 0;
+   public  numGeosInactive: number = 0;
+
+   public  selectedGeo: FlatGeo;
+   public  geoInfoMenuItems: MenuItem[];
 
    public myStyles = {
       'background-color': 'lime',
@@ -162,7 +168,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                     .pipe(map(([discovery, geos, vars, attributes]) => this.createComposite(discovery,geos,vars,attributes)));
 
       this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
-                                          .pipe(map((AllGeos) => AllGeos.filter(flatGeo => flatGeo.geo.isActive === true)));
+                                          .pipe(map((AllGeos) => {
+                                             this.numGeosActive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length;
+                                             this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length;
+                                             return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true)}));
 
       // Good - Just doesn't have the console log
       //this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$.pipe(
@@ -204,6 +213,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    onChangeDiscovery(impDiscoveryUI: ImpDiscoveryUI)
    {
+      console.log("geofootprint-geo-list.component.onChangeDiscovery fired");
       this.impDiscoveryUI = impDiscoveryUI;
    }
 
@@ -259,6 +269,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // COMPONENT METHODS
    // -----------------------------------------------------------
+   public getGeoTooltip(flatGeo: FlatGeo)
+   {
+      //console.log('getGeoTooltip: flatGeo: ', flatGeo.geo.geocode, ', filterReasons: ', flatGeo['filterReasons'], ', geo.filterReasons: ', flatGeo.geo['filterReasons']);      
+      return flatGeo.geo['filterReasons'];
+   }
    /**
     * The geo passed in will be compared to the list of locations
     * and the closest will be recorded on the geo as well as the distance.
@@ -331,10 +346,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    createComposite(discovery: ImpDiscoveryUI[], geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]): FlatGeo[]
    {
-      //console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
+      console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
       let fgId = 0;
       let geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
+      this.impDiscoveryUI = discovery[0];
       
       // Assign the closest site to any geo not having one
       this.assignGeoSite(geos);
@@ -361,12 +377,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
             if (attribute.attributeCode === 'owner_group_primary')
             {
-               // console.log('this.impDiscoveryUI.selectCpmType = ' + this.impDiscoveryUI.selectCpmType);
-               // console.log('this.impDiscoveryUI.isCpmBlended  = ' + this.impDiscoveryUI.isCpmBlended);
-               // console.log('this.impDiscoveryUI.cpm           = ' + this.impDiscoveryUI.cpm);
-               // console.log('this.impDiscoveryUI.valassisCPM   = ' + this.impDiscoveryUI.valassisCPM);
-               // console.log('this.impDiscoveryUI.anneCPM       = ' + this.impDiscoveryUI.anneCPM);
-               // console.log('this.impDiscoveryUI.soloCPM       = ' + this.impDiscoveryUI.soloCPM);
+               //  console.log('this.impDiscoveryUI.selectCpmType = ' + this.impDiscoveryUI.selectCpmType);
+               //  console.log('this.impDiscoveryUI.isCpmBlended  = ' + this.impDiscoveryUI.isCpmBlended);
+               //  console.log('this.impDiscoveryUI.cpm           = ' + this.impDiscoveryUI.cpm);
+               //  console.log('this.impDiscoveryUI.valassisCPM   = ' + this.impDiscoveryUI.valassisCPM);
+               //  console.log('this.impDiscoveryUI.anneCPM       = ' + this.impDiscoveryUI.anneCPM);
+               //  console.log('this.impDiscoveryUI.soloCPM       = ' + this.impDiscoveryUI.soloCPM);
+               //  console.log('attribute.attributeValue          = ' + attribute.attributeValue);
+               //  console.log(gridGeo.geo.geocode + ", isActive: ", gridGeo.geo.isActive, ', filterReasons: ', gridGeo.geo['filterReasons']);
 
                gridGeo['ownergroup'] = attribute.attributeValue;
                if (this.impDiscoveryUI.selectCpmType = 'isBlended')

@@ -75,12 +75,14 @@ export class ValGeoService implements OnDestroy {
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
     console.log('app-geo.service.onDiscoveryChange - discovery analysisLevel', (discovery != null && discovery.length > 0) ? discovery[0].analysisLevel : null, ' currentAnalysisLevel: ', this.currentAnalysisLevel);
     if (discovery && discovery[0] && discovery[0].analysisLevel && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
-      this.geoService.clearAll();
       this.attributeService.clearAll();
       this.currentAnalysisLevel = discovery[0].analysisLevel;
+    }
+    if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== '') {
+      this.geoService.clearAll();
       this.selectAndPersistGeos(this.currentTradeAreas);
     }
-  }
+   }
 
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
     console.log('Geo Service onGeoChange. Creating unique list of geocodes from ', (geos != null) ? geos.length : 0, ' geos');
@@ -97,6 +99,8 @@ export class ValGeoService implements OnDestroy {
   }
 
   private selectAndPersistGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+     console.log("app-geo.service.selectAndPersistGeos - fired - tradeAreas: ", tradeAreas.length);
+     
     if (tradeAreas != null && tradeAreas.length > 0) {
       const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
       const queryMap = this.createTradeAreaQueryMap(tradeAreas);
@@ -112,6 +116,8 @@ export class ValGeoService implements OnDestroy {
         },
         err => console.error(err),
         () => {
+           console.log('Selecting geos to persist');
+           
           let geosToPersist: ImpGeofootprintGeo[] = [];
           let count: number = 0;
           radii.forEach(radius => {
@@ -122,10 +128,10 @@ export class ValGeoService implements OnDestroy {
             }
             count++;
           });
-          console.log ('geoService size before: ', this.geoService.storeLength);
-          console.log ('app-geo.service.selectAndPersistGeos: ', (geosToPersist != null) ? geosToPersist.length : 0);
+          //console.log ('geoService size before: ', this.geoService.storeLength);
+          //console.log ('app-geo.service.selectAndPersistGeos: ', (geosToPersist != null) ? geosToPersist.length : 0);
           this.geoService.add(geosToPersist);
-          console.log ('geoService size after: ', this.geoService.storeLength);
+          //console.log ('geoService size after: ', this.geoService.storeLength);
           sub.unsubscribe();
           this.messagingService.stopSpinnerDialog(spinnerKey);
         });
@@ -153,55 +159,121 @@ export class ValGeoService implements OnDestroy {
     this.attributeService.remove(deletedAttributes);
   }
 
-  private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[], previousRadius?: number) : ImpGeofootprintGeo[] {
-    if (!previousRadius) previousRadius = 0;
-    const locationSet = new Set(locations);
-    const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
-    const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
-    const geosToSave: ImpGeofootprintGeo[] = [];
-    const latestDiscovery = this.discoveryService.get();
-    const includeValassis = latestDiscovery[0].includeValassis;
-    const includeAnne = latestDiscovery[0].includeAnne;
-    const includeSolo = latestDiscovery[0].includeSolo;
-    const includePob = latestDiscovery[0].includePob;
-    const filteredCentroids = centroids.filter(c => {
-                                    if (includePob === true){
-                                        return ((c.attributes.is_pob_only === 1 || c.attributes.is_pob_only === 0)
-                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
-                                          || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
-                                          || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
-                                    }else {
-                                      return ((c.attributes.is_pob_only === 0)
-                                          && ((c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne)
-                                          || (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
-                                          || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo)));
-                                      }
-                                  }
-                                  );
-    const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
-    centroidMap.forEach((graphic, geocode) => {
-      locations.forEach(loc => {
-      //  if (EsriUtils.geometryIsPoint(graphic.geometry)) {
-          const currentDistance = EsriUtils.getDistance(graphic.attributes.longitude, graphic.attributes.latitude, loc.xcoord, loc.ycoord);
-          if (currentDistance <= radius && currentDistance > previousRadius) {
-            const currentTradeAreas = tradeAreaMap.get(loc);
-            if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
-              if (currentTradeAreas.length === 1) {
-              geosToSave.push(new ImpGeofootprintGeo({
-                xcoord: graphic.attributes.longitude,
-                ycoord: graphic.attributes.latitude,
-                geocode: geocode,
-                distance: currentDistance,
-                impGeofootprintTradeArea: currentTradeAreas[0],
-                impGeofootprintLocation: loc,
-                isActive: true
-              }));
-            }
-          }
-        //}
+   private createGeosToPersist(radius: number, locations: ImpGeofootprintLocation[], centroids: __esri.Graphic[], previousRadius?: number) : ImpGeofootprintGeo[] {
+      // console.log("app-geo.service.createGeosToPersist - fired: locations: ", locations.length, ", centroids: ", centroids.length);
+      if (!previousRadius) previousRadius = 0;
+      const locationSet = new Set(locations);
+      const tradeAreas = this.tradeAreaService.get().filter(ta => ta.taRadius === radius && locationSet.has(ta.impGeofootprintLocation));
+      const tradeAreaMap = ValTradeAreaService.createLocationTradeAreaMap(tradeAreas);
+      const geosToSave: ImpGeofootprintGeo[] = [];
+      const latestDiscovery = this.discoveryService.get();
+      const includeValassis = latestDiscovery[0].includeValassis;
+      const includeAnne = latestDiscovery[0].includeAnne;
+      const includeSolo = latestDiscovery[0].includeSolo;
+      const includePob = latestDiscovery[0].includePob;
+      const filteredCentroids = centroids.filter(c => {
+         return (c.attributes.is_pob_only !== 1 || (c.attributes.is_pob_only === 1 && includePob)) && (
+                (c.attributes.owner_group_primary == null)
+                ? (includeSolo) 
+                : ((c.attributes.owner_group_primary.toUpperCase() !== 'ANNE'     || (c.attributes.owner_group_primary.toUpperCase() === 'ANNE' && includeAnne))
+                && (c.attributes.owner_group_primary.toUpperCase() !== 'VALASSIS' || (c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis))
+                && (c.attributes.cov_frequency == null || c.attributes.cov_frequency.toUpperCase() !== 'SOLO' || (c.attributes.cov_frequency != null && c.attributes.cov_frequency.toUpperCase() === 'SOLO' && includeSolo))
+                  ));
+
+            // return (c.attributes.is_pob_only === 1 && includePob)
+            // ||  (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'ANNE'     && includeAnne)
+            // ||  (c.attributes.owner_group_primary != null && c.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && includeValassis)
+            // ||  (c.attributes.cov_frequency       != null && c.attributes.cov_frequency.toUpperCase()       === 'SOLO'     && includeSolo)
+            // ||  ((c.attributes.owner_group_primary == null || c.attributes.owner_group_primary == '') && includeSolo);
+            
       });
-    });
-    return geosToSave;
+      // Collect filtered out centroids in another list
+      const inActiveCentroids = centroids.filter(c => !filteredCentroids.includes(c));
+
+      console.log("=========================================================================");
+      console.log('# Centroids:          ', (centroids         != null) ? centroids.length.toString() : "0");
+      console.log('# filtered centroids: ', (filteredCentroids != null) ? filteredCentroids.length.toString() : "0");
+      console.log('# InActive centroids: ', (inActiveCentroids != null) ? inActiveCentroids.length.toString() : "0");
+      console.log("=========================================================================");    
+
+      // I could add the filtered and unfiltered geos in one pass, but would have to check if the current geo
+      // is in one list or the other.  Going to process them seperately as it seems like it would be faster
+      const centroidMap = new Map(filteredCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
+      //console.log('centroidMap.size: ', centroidMap.size.toString());
+
+      centroidMap.forEach((graphic, geocode) => {
+         locations.forEach(loc => {
+            const currentDistance = EsriUtils.getDistance(graphic.attributes.longitude, graphic.attributes.latitude, loc.xcoord, loc.ycoord);
+            if (currentDistance <= radius && currentDistance > previousRadius) {
+               const currentTradeAreas = tradeAreaMap.get(loc);
+               if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
+               if (currentTradeAreas.length === 1) {
+                  geosToSave.push(new ImpGeofootprintGeo({
+                     xcoord: graphic.attributes.longitude,
+                     ycoord: graphic.attributes.latitude,
+                     geocode: geocode,
+                     distance: currentDistance,
+                     impGeofootprintTradeArea: currentTradeAreas[0],
+                     impGeofootprintLocation: loc,
+                     isActive: true
+                  }));
+               }
+            }
+         });
+      });
+      console.log('createGeosToPersist - geosToSave filtered: ', (geosToSave != null) ? geosToSave.length.toString() : "0");
+      
+      // Process filtered out geos
+      const inActiveCentroidMap = new Map(inActiveCentroids.map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
+      inActiveCentroidMap.forEach((graphic, geocode) => {
+         locations.forEach(loc => {
+            const currentDistance = EsriUtils.getDistance(graphic.attributes.longitude, graphic.attributes.latitude, loc.xcoord, loc.ycoord);            
+            if (currentDistance <= radius && currentDistance > previousRadius) {
+               const currentTradeAreas = tradeAreaMap.get(loc);
+               if (currentTradeAreas.length > 1) throw new Error('Multiple trade areas defined for the same radius');
+               if (currentTradeAreas.length === 1) {
+                  let newGeo = new ImpGeofootprintGeo({
+                     xcoord: graphic.attributes.longitude,
+                     ycoord: graphic.attributes.latitude,
+                     geocode: geocode,
+                     distance: currentDistance,
+                     impGeofootprintTradeArea: currentTradeAreas[0],
+                     impGeofootprintLocation: loc,
+                     isActive: false
+                  });
+                  newGeo['filterReasons']="";
+
+                  // Set Transitory Properties on the geo
+                  //console.log('setting transitory properties on the geo')
+                  if (graphic != null && graphic.attributes != null)
+                  {
+                     if (graphic.attributes.is_pob_only === 1 && !includePob){
+                        newGeo['filterReasons'] += ((newGeo['filterReasons'] === "") ? "" : ", ") + 'POB';
+                     }                        
+                     if (graphic.attributes.owner_group_primary != null && graphic.attributes.owner_group_primary.toUpperCase() === 'ANNE' && !includeAnne){
+                        newGeo['filterReasons'] += ((newGeo['filterReasons'] === "") ? "" : ", ") + 'ANNE';
+                     }
+                     if (graphic.attributes.owner_group_primary != null && graphic.attributes.owner_group_primary.toUpperCase() === 'VALASSIS' && !includeValassis){
+                        newGeo['filterReasons'] += ((newGeo['filterReasons'] === "") ? "" : ", ") + 'Valassis';
+                     }
+                     if (graphic.attributes.owner_group_primary == null && !includeSolo ||
+                        graphic.attributes.cov_frequency        != null && graphic.attributes.cov_frequency.toUpperCase() === 'SOLO' && !includeSolo){
+                        newGeo['filterReasons'] += ((newGeo['filterReasons'] === "") ? "" : ", ") + 'Solo';
+                     }
+
+                     // If there were filter reasons, create the text for the tooltip
+                     if (newGeo['filterReasons'] !== '')
+                        newGeo['filterReasons']="Filtered because: " + newGeo['filterReasons'];
+                  }
+                  
+                  geosToSave.push(newGeo);
+               }
+            }
+         //}
+         });
+      });
+      console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', (geosToSave != null) ? geosToSave.length.toString() : "0");
+      return geosToSave;
   }
 
   public updatedGeoAttributes(attributesForUpdate: any[]) {

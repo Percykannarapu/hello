@@ -4,13 +4,13 @@
 </div> -->
 <div class="ui-g-12">
    <p-dataTable selectionMode ="multiple" dataKey="fgId" class="val-table"
-      scrollable="false" scrollWidth="100%"
+      scrollable="false" scrollWidth="100%" 
       [responsive]="true" sortMode="multiple"
       [value]="allImpGeofootprintGeos$ | async" 
       [selection]="selectedImpGeofootprintGeos$ | async"
       [headerCheckboxToggleAllPages]="true"
       [resizableColumns]="true" columnResizeMode="expand"
-      [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50]"
+      [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
       [globalFilter]="filter" [reorderableColumns]="true"
       (onRowClick)="onRowClick($event)"
       (onRowSelect)="onSelectGeocode($event, true)"
@@ -28,7 +28,11 @@
                   </span>
                </div>
                <div class="ui-g-7">
-                  <label style="text-align: center;">Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}</label>
+                  <label style="text-align: center;"
+                         pTooltip="Selected Geos:   {{numGeosActive}}
+                                   Unselected Geos: {{numGeosInactive}}">
+                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}
+                  </label>
                </div>
                <div class="ui-g-2" style="display: flex; justify-content: flex-end">
                   <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
@@ -50,7 +54,7 @@
          </ng-template>
          <!-- Add ZoomTo Icon to Geocode -->
          <ng-template *ngIf="col.value.header=='Geocode'" let-row="rowData" pTemplate="body">
-            <div class="ui-g-10 .val-flush-to-edges" style="vertical-align:inherit">
+            <div class="ui-g-10 .val-flush-to-edges" style="vertical-align:inherit" [pTooltip]="getGeoTooltip(row)">
                {{row['geo'].geocode}}
             </div>
             <div class="ui-g-2 .val-flush-to-edges" style="vertical-align:inherit">
@@ -67,11 +71,11 @@
          </ng-template>
          <!-- Format hhc column-->
          <ng-template *ngIf="col.value.header=='CPM'" let-row="rowData" pTemplate="body">
-            ${{row['cpm'] | number:'1.2-2'}}
+            {{row['cpm'] | currency}}
          </ng-template>
          <!-- Format investment column-->
          <ng-template *ngIf="col.value.header=='Investment'" let-row="rowData" pTemplate="body">
-            ${{row['investment'] | number:'1.2-2'}}
+            {{row['investment'] | currency}}
          </ng-template>
       </p-column>
       <!-- GEOGRID VARIABLE COLUMNS -->
