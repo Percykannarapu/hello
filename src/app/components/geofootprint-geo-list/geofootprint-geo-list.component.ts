@@ -387,7 +387,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                //  console.log(gridGeo.geo.geocode + ", isActive: ", gridGeo.geo.isActive, ', filterReasons: ', gridGeo.geo['filterReasons']);
 
                gridGeo['ownergroup'] = attribute.attributeValue;
-               if (this.impDiscoveryUI.selectCpmType = 'isBlended')
+               if (this.impDiscoveryUI.selectCpmType === 'isBlended')
                   gridGeo['cpm'] = this.impDiscoveryUI.cpm;
                else
                   switch (attribute.attributeValue)
