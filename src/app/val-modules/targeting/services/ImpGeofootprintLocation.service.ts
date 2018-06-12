@@ -8,23 +8,19 @@
  **
  ** ImpGeofootprintLocation.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AppMessagingService } from '../../../services/app-messaging.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { ImpProjectService } from './ImpProject.service';
-import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore, ColumnDefinition } from '../../common/services/datastore.service';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
-
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-
-// Imports for exporting CSVs
-import { encode } from 'punycode';
-import * as $ from 'jquery';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
-import { AppMessagingService } from '../../../services/app-messaging.service';
+import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
+
+
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -90,14 +86,12 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // GL_ID                      -- Can't default a primary or foreign key
    }
 
-   public getFileName()
+   public getFileName(impProjectId?: Number, siteType?: string)
    {
       try
-      {
-         // Prepare date string for the filename
-         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13);
-
-         return 'Locations_' + ((this.impProject.projectId != null) ? this.impProject.projectId + '_' : '') + fmtDate + '.csv';
+      {                 
+         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13) 
+         return siteType + '_' + ((impProjectId != null) ? impProjectId + '_' : '1') + '_' +  fmtDate + '.csv';
       }
       catch(e)
       {
@@ -222,8 +216,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
-      if (filename == null)
-         filename = this.getFileName();
+      //if (filename == null)
+         //filename = this.getFileName();
 
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));

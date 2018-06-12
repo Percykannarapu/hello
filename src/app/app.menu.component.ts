@@ -234,17 +234,21 @@ export class AppMenuComponent implements OnInit {
     }
 
     public getSites(){
-        this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
+        const impProjectId = this.impProjectService.get()[0].projectId;
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProjectId, 'Sites'), EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
             this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
     }
     public getCompetitor(){
-       this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
+       const impProjectId = this.impProjectService.get()[0].projectId;
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProjectId, 'Competitors'), EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
        this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Competitor').length);
     }
     public getGeofootprint(){
-      this.impGeofootprintGeoService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx);
+        const impProjectId = this.impProjectService.get()[0].projectId;
+        const impAnalysis = this.impProjectService.get()[0].methAnalysis;
+      this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx);
         // update the metric count when export geos
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);

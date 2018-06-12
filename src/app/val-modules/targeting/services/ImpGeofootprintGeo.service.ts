@@ -67,13 +67,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
-   public getFileName()
+   public getFileName(impProjectId?: Number)
    {
       try
       {
          let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13);
 
-         return 'GeoFootPrint_1_' + ((this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
+         return 'GeoFootPrint' + '_'+ ((impProjectId != null) ? impProjectId + '_' : '1')+'_'+ ((this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
       }
       catch(e)
       {
