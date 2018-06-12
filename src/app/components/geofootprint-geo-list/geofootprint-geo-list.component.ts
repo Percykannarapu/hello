@@ -271,7 +271,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    public getGeoTooltip(flatGeo: FlatGeo)
    {
-      //console.log('getGeoTooltip: flatGeo: ', flatGeo.geo.geocode, ', filterReasons: ', flatGeo['filterReasons'], ', geo.filterReasons: ', flatGeo.geo['filterReasons']);      
+      //console.log('getGeoTooltip: flatGeo: ', flatGeo.geo.geocode, ', filterReasons: ', flatGeo['filterReasons'], ', geo.filterReasons: ', flatGeo.geo['filterReasons']);
+      if (flatGeo.geo.isActive === false && flatGeo.geo['filterReasons'] == null)
+         return "Filtered manually";
+
+      if (flatGeo.geo.isActive === true  && flatGeo.geo['filterReasons'] != null)
+         return '*** Manual Override ***\n' + flatGeo.geo['filterReasons'];
+      
       return flatGeo.geo['filterReasons'];
    }
    /**
