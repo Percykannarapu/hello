@@ -328,7 +328,7 @@ export class ValMetricsService implements OnDestroy {
   }
 
   private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], discovery: ImpDiscoveryUI) : MetricDefinition<any>[] {
-    if (discovery == null || attributes == null) return;
+    if (discovery == null || attributes == null || attributes.length === 0) return;
     this.currentDiscoveryVar = discovery;
     this.isWinter = (this.currentDiscoveryVar.selectedSeason.toUpperCase() === 'WINTER');
     this.useCircBudget = (isNumber(this.currentDiscoveryVar.circBudget) && this.currentDiscoveryVar.circBudget !== 0);
