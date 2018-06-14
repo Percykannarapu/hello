@@ -73,14 +73,22 @@ export class ValGeoService implements OnDestroy {
   }
 
   private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
+     if (discovery == null || discovery.length == 0 || discovery[0] == null)
+        return;
     console.log('app-geo.service.onDiscoveryChange - discovery analysisLevel', (discovery != null && discovery.length > 0) ? discovery[0].analysisLevel : null, ' currentAnalysisLevel: ', this.currentAnalysisLevel);
     if (discovery && discovery[0] && discovery[0].analysisLevel && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
+       console.log('Clearing all attributes');
       this.attributeService.clearAll();
       this.currentAnalysisLevel = discovery[0].analysisLevel;
     }
-    if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== '') {
+    console.log('this.discoveryService.needsGeoRefresh: ', this.discoveryService.needsGeoRefresh);
+    console.log('discovery[0].analysisLevel: ', discovery[0].analysisLevel);
+    if (this.discoveryService.needsGeoRefresh && discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== '') {
+       console.log('REFRESHING GEOS');
       this.geoService.clearAll();
+      this.currentTradeAreas = this.tradeAreaService.get();
       this.selectAndPersistGeos(this.currentTradeAreas);
+      this.discoveryService.needsGeoRefresh = false;
     }
    }
 
