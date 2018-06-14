@@ -395,7 +395,8 @@ export class AppProjectService extends DataStore<ImpProject>
                   try
                   {
                      console.log('processing location: ', JSON.stringify(location));
-                     impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
+                  //    impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
+                   
                      impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(attrib => attrib.impGeofootprintLocation != null
                                                                                                      && attrib.impGeofootprintLocation == impLocation
                                                                                                      && attrib.attributeValue != null
@@ -414,7 +415,7 @@ export class AppProjectService extends DataStore<ImpProject>
                            attrib.createDate    = (attrib.createDate == null) ? new Date(Date.now()) : attrib.createDate;
                            attrib.modifyUser    = this.userService.getUser().userId;
                            attrib.modifyDate    = new Date(Date.now());
-                           attrib.attributeType = 'PUMPKIN_SPICE_LATTE'
+                           attrib.attributeType = 'PUMPKIN_SPICE_LATTE';
                            attrib.formatMask	   = null;
                            attrib.isActive      = 1;
                         });

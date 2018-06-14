@@ -27,6 +27,7 @@ export class ValGeoService implements OnDestroy {
   private currentTradeAreas: ImpGeofootprintTradeArea[];
   private currentAnalysisLevel: string;
 
+
   public uniqueSelectedGeocodes$: Observable<string[]>;
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService, private discoveryService: ImpDiscoveryService,
@@ -108,9 +109,8 @@ export class ValGeoService implements OnDestroy {
   }
 
   private selectAndPersistGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-     console.log("app-geo.service.selectAndPersistGeos - fired - tradeAreas: ", tradeAreas.length);
-     
-    if (tradeAreas != null && tradeAreas.length > 0) {
+     console.log('app-geo.service.selectAndPersistGeos - fired - tradeAreas: ');
+     if (tradeAreas != null && tradeAreas.length > 0) {
       const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
       const queryMap = this.createTradeAreaQueryMap(tradeAreas);
       const radii = Array.from(queryMap.keys());

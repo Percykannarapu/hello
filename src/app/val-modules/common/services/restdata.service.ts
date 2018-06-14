@@ -36,6 +36,11 @@ export class RestDataService
       //const headers = new HttpHeaders().set('Content-Type', 'application/json').set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.post<RestResponse>(this.baseUrl + url, payload);
    }
+   public postCSV(url: string, payload: any) : Observable<RestResponse>
+   {
+      const csvHeaders = new HttpHeaders({'Content-Type': 'text/csv' });
+      return this.http.post<RestResponse>(this.baseUrl + url, payload);
+   }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
    {

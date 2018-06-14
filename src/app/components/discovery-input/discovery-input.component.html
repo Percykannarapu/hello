@@ -23,7 +23,7 @@
         </div>
         <div class="ui-g-12" >
             <span class="md-inputfield">
-                <p-autoComplete   [suggestions]="searchList" [(ngModel)]="impProjectService.trakerId" (onSelect)="onChangeProjectTraker($event)" (completeMethod)="filterProjectTracker($event)"
+                <p-autoComplete   [suggestions]="searchList" [(ngModel)]="impProjectService.trackerId" (onSelect)="onChangeProjectTracker($event)" (completeMethod)="filterProjectTracker($event)"
                     [style]="{'width': '75%'}"  [inputStyle]="{'width':'100%'}"  [minLength]="3"  inputId="float-input" [dropdown]="true">
                 
                 </p-autoComplete>
@@ -140,11 +140,10 @@
                 <label>(Coming Soon)</label>
             </div> -->
             <div class="ui-g-1"> </div>
-            <!-- Commenting this section for US7450:Disable the Define by Owner Group option in the Discovery tab -->
             <div class="ui-g-11"> 
                 <div class="ui-g-12">
                     <span class="ui-float-label">
-                        <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM"(blur)="onChangeValCpm($event)" pInputText>
+                        <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM" (blur)="onChangeValCpm($event)" pInputText>
                         <label> Valassis CPM</label>
                         <!-- <i *ngIf="impDiscoveryUI.valassisCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
                     </span>

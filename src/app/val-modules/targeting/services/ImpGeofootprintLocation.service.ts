@@ -19,6 +19,8 @@ import { ImpProject } from '../models/ImpProject';
 import { RestDataService } from './../../common/services/restdata.service';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
+import { AppConfig } from '../../../app.config';
+import { HttpHeaders } from '@angular/common/http';
 
 
 
@@ -27,7 +29,8 @@ const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootpr
 export enum EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION {
    default,
    alteryx,
-   custom
+   custom,
+   digital
 }
 
 @Injectable()
@@ -39,18 +42,18 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    private tradeAreas: ImpGeofootprintTradeArea[];
 
    public  removes: ImpGeofootprintLocation[];
+   public environmentName = this.appConfig.environmentName;
 
    constructor(private restDataService: RestDataService,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
                private projectTransactionManager: TransactionManager,
-               private messageService: AppMessagingService   ) //, impProjectService: ImpProjectService)
-   {
+               private messageService: AppMessagingService,
+               private appConfig: AppConfig)
+    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocation');
-
-      //impProjectService.storeObservable.subscribe(impProject => this.onChangeProject(impProject[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(impGeofootprintTradeAreas => this.onChangeTradeAreas(impGeofootprintTradeAreas));
-   }
+    }
 
    // -----------------------------------------------------------
    // UTILITY METHODS
@@ -93,7 +96,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13) 
          return siteType + '_' + ((impProjectId != null) ? impProjectId + '_' : '1') + '_' +  fmtDate + '.csv';
       }
-      catch(e)
+      catch (e)
       {
          return 'Locations.csv';
       }
@@ -145,16 +148,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // No matches, return input geocode untouched
       return geocode;
    }
-
-
-   // -----------------------------------------------------------
-   // SUBSCRIPTION CALLBACK METHODS
-   // -----------------------------------------------------------
-   public onChangeProject(impProject: ImpProject)
-   {
-      this.impProject = impProject;
-   }
-
    public onChangeTradeAreas(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
    {
       console.log('onChangeTradeAreas - fired');
@@ -211,31 +204,36 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
-
-      //if (filename == null)
-         //filename = this.getFileName();
-
+      this.impProject = project;
+      if (filename == null){
+            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13); 
+            filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
+      }
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {
         const locations = this.get().filter(filter);
         if (locations.length > 0) {
-          const attributeCodeBlackList = new Set(['Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ']); //ugly hack for now
           const locationSet = new Set(locations);
           const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
-          const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
-          attributeCodes.forEach(code => {
-            if (code != null && !attributeCodeBlackList.has(code)) {
-              exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
-            }
-          });
-          this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+          if (isDigital === false){
+            const attributeCodeBlackList = new Set(exportColumns.map(c => c.header)); 
+            const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
+            attributeCodes.forEach(code => {
+              if (code != null && !attributeCodeBlackList.has(code)) {
+                exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
+              }
+            });
+            this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+          } else {
+          const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId ;
+          this.restDataService.postCSV(serviceUrl, this.prepareCSV(exportColumns, locations)).subscribe(res => console.log(res));
+          }
         } else {
-
           // DE1742: display an error message if attempting to export an empty data store
           if (exportType && exportType.toLocaleUpperCase() === 'SITES') {
             this.messageService.showGrowlError('Error exporting sites list', 'You must first add site locations');
@@ -249,16 +247,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
 
    private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION) : ColumnDefinition<ImpGeofootprintLocation>[]
    {
-      let result: string = '';
+      const result: string = '';
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = [];
-
       switch (exportFormat)
       {
          case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx:
             exportColumns.push({ header: 'GROUP',              row: (state, data) => (data.groupName) ? data.groupName : (data.clientLocationTypeCode === 'Site') ? 'Advertisers' : 'Competitors'});
             exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
             exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => null});
+            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName.trim() + '~' + this.impProject.projectId});
             exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
             exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
             exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
@@ -313,6 +310,22 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Original ZIP',       row: (state, data) => data.origPostalCode});
             exportColumns.push({ header: 'Home Digital ATZ',   row: (state, data) => state.exportHomeGeoAttribute(data, 'Digital ATZ')});
             break;
+
+         case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital:
+           console.log ('setExportFormat - digital');
+           exportColumns.push({ header: 'GROUP',              row: (state, data) => data.groupName});
+           exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
+           exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
+           exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName.trim() + '~' + this.impProject.projectId});
+           exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
+           exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
+           exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
+           exportColumns.push({ header: 'ZIP',                row: (state, data) => data.locZip});
+           exportColumns.push({ header: 'X',                  row: (state, data) => data.xcoord});
+           exportColumns.push({ header: 'Y',                  row: (state, data) => data.ycoord});
+           exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
+           exportColumns.push({ header: 'Market Code',        row: (state, data) => null});
+           break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
          default:
