@@ -87,12 +87,13 @@ export class ValGeoService implements OnDestroy {
   private onGeoChange(geos: ImpGeofootprintGeo[]) {
     console.log('Geo Service onGeoChange. Creating unique list of geocodes from ', (geos != null) ? geos.length : 0, ' geos');
     const uniqueGeos: Set<string> = new Set();
+    const allGeos: Set<string> = new Set();
     const length = geos.length;
     for (let i = 0; i < length; ++i) {
-//    console.log('app-geo.service.onGeoChange - processing geo: ', geos[i], ' isActive: ', geos[i].isActive);
+      //    console.log('app-geo.service.onGeoChange - processing geo: ', geos[i], ' isActive: ', geos[i].isActive);
       if (geos[i].isActive) {
         uniqueGeos.add(geos[i].geocode);
-      }
+      } 
     }
     console.log('app-geo.service.onGeoChange - # unique geos: ', (uniqueGeos != null) ? uniqueGeos.size : null);
     this.uniqueSelectedGeocodes.next(Array.from(uniqueGeos));

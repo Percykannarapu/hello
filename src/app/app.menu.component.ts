@@ -81,7 +81,8 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Export', icon: 'file_download',
                 items: [
-                    {label: 'Export Geofootprint', icon: 'map', command: () => this.getGeofootprint() },
+                    {label: 'Export Geofootprint - All', icon: 'map', command: () => this.getGeofootprintAll() },
+                    {label: 'Export Geofootprint - Selected Only', icon: 'map', command: () => this.getGeofootprintSelected() },
                     {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
                     {label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
                     {label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.getNationalExtract() }
@@ -245,10 +246,30 @@ export class AppMenuComponent implements OnInit {
        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
        this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Competitor').length);
     }
-    public getGeofootprint(){
+    public getGeofootprintAll(){
         const impProjectId = this.impProjectService.get()[0].projectId;
-        const impAnalysis = this.impProjectService.get()[0].methAnalysis;
       this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx);
+        // update the metric count when export geos
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+
+      //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
+      //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
+      
+      const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+     // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
+
+     this.usageService.creategaugeMetrics(counterMetricsDiscover);
+     this.usageService.creategaugeMetrics(counterMetricsColorBox);
+      //this.usageService.createCounterMetrics(counterMetricsDiscover);
+      //this.usageService.createCounterMetrics(counterMetricsColorBox);
+
+
+    }
+    public getGeofootprintSelected(){
+        const impProjectId = this.impProjectService.get()[0].projectId;
+      this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, geo => geo.isActive === true);
         // update the metric count when export geos
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
