@@ -475,7 +475,7 @@ export class AppProjectService extends DataStore<ImpProject>
                                  geo.ggId = null;
 
                               geo.baseStatus = (geo.ggId == null) ? DAOBaseStatus.INSERT : (geo.baseStatus === DAOBaseStatus.DELETE) ? DAOBaseStatus.DELETE : DAOBaseStatus.UPDATE;
-                              geo.isActive   = true;
+                              //geo.isActive   = true;
                            });
 
                            // // Map in vars
