@@ -25,6 +25,8 @@ export class CounterMetrics{
 @Injectable()
 export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
 {
+   public needsGeoRefresh: boolean = false;
+
    constructor(private restDataService: RestDataService
 //               private impProjectService: ImpProjectService
 //              private appProjectService: AppProjectService

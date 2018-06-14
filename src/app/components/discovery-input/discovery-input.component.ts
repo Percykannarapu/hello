@@ -318,7 +318,8 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.industryCategoryCode = this.impProject.industryCategoryCode;
       this.selectedCategory = this.categories.filter(category => category.code === this.impProject.industryCategoryCode)[0];
       this.selectedProduct = this.products.filter(product => product.productCode === this.impProject.radProduct)[0];
-      this.selectedRadLookupValue = this.selectedCategory.name + ' - ' + this.selectedProduct.productCode;
+      this.selectedRadLookupValue = ((this.selectedCategory != null) ? this.selectedCategory.name + ' - ' : '')
+                                  + ((this.selectedProduct  != null) ? this.selectedProduct.productCode   : '');
 
       this.impDiscoveryUI.analysisLevel        = this.impProject.methAnalysis;
       this.selectedAnalysisLevel               = this.analysisLevels.filter(level => level.value === this.impProject.methAnalysis)[0];
@@ -373,6 +374,7 @@ export class DiscoveryInputComponent implements OnInit
             setTimeout((() => this.onAnalysisSelectType(event)), 1000);
             return;
          }
+         this.impDiscoveryService.needsGeoRefresh = true;
          console.log('Analysis level:::' , event);
          const metricsText = 'New=' + event.value + '~Old=' + this.impDiscoveryUI.analysisLevel;
          this.selectedAnalysisLevel = event;
