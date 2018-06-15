@@ -352,12 +352,28 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    createComposite(discovery: ImpDiscoveryUI[], geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]): FlatGeo[]
    {
-      console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
+      let UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
+      console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
       let fgId = 0;
       let geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
       this.impDiscoveryUI = discovery[0];
-      
+
+      let  attributeMap = new Map<string, ImpGeofootprintGeoAttrib[]>();
+      geoAttributes.forEach(attribute => {if (attribute.attributeCode === 'pob' 
+                                          ||  attribute.attributeCode === 'owner_group_primary'
+                                          ||  attribute.attributeCode === 'cov_frequency'
+                                          ||  attribute.attributeCode === 'cov_desc'
+                                          ||  attribute.attributeCode === 'dma_name')
+                                             // There has got to be a prettier way than this 
+                                             if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
+                                             {
+                                                attributeMap[attribute.impGeofootprintGeo.geocode] = [];
+                                                attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute)
+                                             }
+                                             else
+                                             attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute)});
+
       // Assign the closest site to any geo not having one
       this.assignGeoSite(geos);
       geos.forEach(geo => {
@@ -369,62 +385,67 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //       vars.forEach(v => gridGeo[v] = null);
 
          // Get all of the attributes for the geo
-         const attributes = geoAttributes.filter(attribute => (attribute.attributeCode === 'pob' 
+/*good         const attributes = geoAttributes.filter(attribute => (attribute.attributeCode === 'pob' 
                                                            ||  attribute.attributeCode === 'owner_group_primary'
                                                            ||  attribute.attributeCode === 'cov_frequency'
                                                            ||  attribute.attributeCode === 'cov_desc'
                                                            ||  attribute.attributeCode === 'dma_name')
-                                                           &&  attribute.impGeofootprintGeo.geocode === geo.geocode);
+                                                           &&  attribute.impGeofootprintGeo.geocode === geo.geocode);*/
 
          // Add attributes the grid is interested in and massage them where needed
-         attributes.forEach(attribute => {
-            if (attribute.attributeCode === 'pob')
+//       attributes.forEach(attribute => {
+        // let attribs: ImpGeofootprintGeoAttrib[] = attributeMap[geo.geocode];
+         if (attributeMap[geo.geocode] != null)
+         {
+            attributeMap[geo.geocode].forEach(attribute => {
+               if (attribute.attributeCode === 'pob')
                gridGeo['pob'] = (attribute.attributeValue === 'B') ? 'Y' : 'N';
 
-            if (attribute.attributeCode === 'owner_group_primary')
-            {
-               //  console.log('this.impDiscoveryUI.selectCpmType = ' + this.impDiscoveryUI.selectCpmType);
-               //  console.log('this.impDiscoveryUI.isCpmBlended  = ' + this.impDiscoveryUI.isCpmBlended);
-               //  console.log('this.impDiscoveryUI.cpm           = ' + this.impDiscoveryUI.cpm);
-               //  console.log('this.impDiscoveryUI.valassisCPM   = ' + this.impDiscoveryUI.valassisCPM);
-               //  console.log('this.impDiscoveryUI.anneCPM       = ' + this.impDiscoveryUI.anneCPM);
-               //  console.log('this.impDiscoveryUI.soloCPM       = ' + this.impDiscoveryUI.soloCPM);
-               //  console.log('attribute.attributeValue          = ' + attribute.attributeValue);
-               //  console.log(gridGeo.geo.geocode + ", isActive: ", gridGeo.geo.isActive, ', filterReasons: ', gridGeo.geo['filterReasons']);
+               if (attribute.attributeCode === 'owner_group_primary')
+               {
+                  //  console.log('this.impDiscoveryUI.selectCpmType = ' + this.impDiscoveryUI.selectCpmType);
+                  //  console.log('this.impDiscoveryUI.isCpmBlended  = ' + this.impDiscoveryUI.isCpmBlended);
+                  //  console.log('this.impDiscoveryUI.cpm           = ' + this.impDiscoveryUI.cpm);
+                  //  console.log('this.impDiscoveryUI.valassisCPM   = ' + this.impDiscoveryUI.valassisCPM);
+                  //  console.log('this.impDiscoveryUI.anneCPM       = ' + this.impDiscoveryUI.anneCPM);
+                  //  console.log('this.impDiscoveryUI.soloCPM       = ' + this.impDiscoveryUI.soloCPM);
+                  //  console.log('attribute.attributeValue          = ' + attribute.attributeValue);
+                  //  console.log(gridGeo.geo.geocode + ", isActive: ", gridGeo.geo.isActive, ', filterReasons: ', gridGeo.geo['filterReasons']);
 
-               gridGeo['ownergroup'] = attribute.attributeValue;
-               if (this.impDiscoveryUI.selectCpmType === 'isBlended')
-                  gridGeo['cpm'] = this.impDiscoveryUI.cpm;
-               else
-                  switch (attribute.attributeValue)
-                  {
-                     case 'VALASSIS':
-                        //console.log('Assigning VALASSIS CPM - ' + discovery[0].valassisCPM);
-                        gridGeo['cpm'] = this.impDiscoveryUI.valassisCPM;
-                        break;
+                  gridGeo['ownergroup'] = attribute.attributeValue;
+                  if (this.impDiscoveryUI.selectCpmType === 'isBlended')
+                     gridGeo['cpm'] = this.impDiscoveryUI.cpm;
+                  else
+                     switch (attribute.attributeValue)
+                     {
+                        case 'VALASSIS':
+                           //console.log('Assigning VALASSIS CPM - ' + discovery[0].valassisCPM);
+                           gridGeo['cpm'] = this.impDiscoveryUI.valassisCPM;
+                           break;
 
-                     case 'ANNE':
-                        //console.log('Assigning ANNE CPM - ' + discovery[0].anneCPM);
-                        gridGeo['cpm'] = this.impDiscoveryUI.anneCPM;
-                        break;
-                     
-                     default:
-                        //console.log('Assigning SOLO CPM - ' + discovery[0].soloCPM);
-                        gridGeo['cpm'] = this.impDiscoveryUI.soloCPM;
-                        break;
-                  }
-               gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm']/1000) * gridGeo.geo.hhc : 0;
-            }
+                        case 'ANNE':
+                           //console.log('Assigning ANNE CPM - ' + discovery[0].anneCPM);
+                           gridGeo['cpm'] = this.impDiscoveryUI.anneCPM;
+                           break;
+                        
+                        default:
+                           //console.log('Assigning SOLO CPM - ' + discovery[0].soloCPM);
+                           gridGeo['cpm'] = this.impDiscoveryUI.soloCPM;
+                           break;
+                     }
+                  gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm']/1000) * gridGeo.geo.hhc : 0;
+               }
 
-            if (attribute.attributeCode === 'cov_frequency')
-               gridGeo['coveragefrequency'] = attribute.attributeValue;
+               if (attribute.attributeCode === 'cov_frequency')
+                  gridGeo['coveragefrequency'] = attribute.attributeValue;
 
-            if (attribute.attributeCode === 'cov_desc')
-               gridGeo['coveragedescription'] = attribute.attributeValue;
+               if (attribute.attributeCode === 'cov_desc')
+                  gridGeo['coveragedescription'] = attribute.attributeValue;
 
-            if (attribute.attributeCode === 'dma_name')
-               gridGeo['dma'] = attribute.attributeValue;
-         });
+               if (attribute.attributeCode === 'dma_name')
+                  gridGeo['dma'] = attribute.attributeValue;
+           })
+         };
 
          // Get all of the variables for this geo
          const geovars = vars.filter(geovar => geovar.geocode === geo.geocode);

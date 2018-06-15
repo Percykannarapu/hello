@@ -491,12 +491,14 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.selectedSeason = event;
       this.onChangeField(event);
    }
-
+   
    public onChangePob(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includePob;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-pob-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includePob = event;
+      this.localCopydiscoverUI.includePob = this.impDiscoveryUI.includePob;
+      this.impDiscoveryService.needsGeoRefresh = true;
       this.onChangeField(event);
    }
    public onChangeIncludeVal(event){
@@ -504,14 +506,15 @@ export class DiscoveryInputComponent implements OnInit
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-valassis-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeValassis = event;
+      this.impDiscoveryService.needsGeoRefresh = true;
       this.onChangeField(event);
-
    }
    public onChangeIncludeAnne(event){
       const metricsText = 'New=' + event + '~Old=' + this.impDiscoveryUI.includeAnne;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-anne-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeAnne = event;
+      this.impDiscoveryService.needsGeoRefresh = true;
       this.onChangeField(event);
    }
    public onChangeIncludeSolo(event){
@@ -519,6 +522,7 @@ export class DiscoveryInputComponent implements OnInit
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'include-solo-geo', action: 'changed' });
       this.usageService.createCounterMetric(usageMetricName, metricsText, null);
       this.impDiscoveryUI.includeSolo = event;
+      this.impDiscoveryService.needsGeoRefresh = true;
       this.onChangeField(event);
    }
    public dollarBudgetChange(event){
@@ -556,6 +560,7 @@ export class DiscoveryInputComponent implements OnInit
       this.localCopydiscoverUI.cpm = this.impDiscoveryUI.cpm;
       this.onChangeField(event);
    }
+
    public onChangeValCpm(event){
       let  metricsText = null;
       if (this.localCopydiscoverUI.valassisCPM != null )
