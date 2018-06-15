@@ -80,22 +80,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           ];
 
    public  flatGeoGridColumns: SelectItem[] = 
-                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',         header: 'Loc#',                 width: '5%',  styleClass: 'val-text-right'}},
-                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',           header: 'Location Name',        width: '13%', styleClass: ''}},
-                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',             header: 'Location Address',     width: '13%', styleClass: ''}},
-                                       // {label: 'Location Type',        value: {field: 'geo.impGeofootprintLocation.clientLocationTypeCode', header: 'Location Type',        width: '6%', styleClass: ''}},
-                                          {label: 'geocode',              value: {field: 'geo.geocode',                                        header: 'Geocode',              width: '5%',  styleClass: ''}},
-                                          {label: 'City/State',           value: {field: 'geo.impGeofootprintLocation.locCity',                header: 'City/State',           width: '8%',  styleClass: ''}},
-                                          {label: 'hhc',                  value: {field: 'geo.hhc',                                            header: 'HHC',                  width: '4%',  styleClass: 'val-text-right'}},
-                                          {label: 'cpm',                  value: {field: 'cpm',                                                header: 'CPM',                  width: '4%',  styleClass: 'val-text-right'}},
-//                                        {label: 'cpm',                  value: {field: 'geo.impGeofootprintLocation.cpm',                    header: 'CPM',                  width: '4%',  styleClass: 'val-text-right'}},
-                                          {label: 'investment',           value: {field: 'investment',                                         header: 'Investment',           width: '6%',  styleClass: 'val-text-right'}},
-                                          {label: 'distance',             value: {field: 'geo.distance',                                       header: 'Distance',             width: '5%',  styleClass: 'val-text-right'}},
-                                          {label: 'Owner Group',          value: {field: 'ownergroup',                                         header: 'Owner Group',          width: '6%',  styleClass: ''}},
-                                          {label: 'Coverage Frequency',   value: {field: 'coveragefrequency',                                  header: 'Coverage Frequency',   width: '9%',  styleClass: ''}},
-                                          {label: 'Coverage Description', value: {field: 'coveragedescription',                                header: 'Coverage Description', width: '9%',  styleClass: ''}},
-                                          {label: 'POB',                  value: {field: 'pob',                                                header: 'POB',                  width: '3%',  styleClass: 'val-text-center'}},
-                                          {label: 'DMA',                  value: {field: 'dma',                                                header: 'DMA',                  width: '10%', styleClass: ''}},
+                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Loc#',                 width: '5%',  styleClass: 'val-text-right'}},
+                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Location Name',        width: '9%',  styleClass: ''}},
+                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Location Address',     width: '9%',  styleClass: ''}},
+                                          {label: 'Location City, State', value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'Loc City, State',      width: '7%',  styleClass: ''}},
+                                          {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'Loc Zip',              width: '5%',  styleClass: ''}},
+                                          {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',             width: '5%',  styleClass: 'val-text-right'}},
+                                          {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',              width: '5%',  styleClass: ''}},
+                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'City, State',          width: '6%',  styleClass: ''}},
+                                          {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                  width: '4%',  styleClass: 'val-text-right'}},
+                                          {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                  width: '4%',  styleClass: 'val-text-right'}},
+                                          {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',           width: '6%',  styleClass: 'val-text-right'}},
+                                          {label: 'Owner Group',          value: {field: 'ownergroup',                                  header: 'Owner Group',          width: '6%',  styleClass: ''}},
+                                          {label: 'Coverage Frequency',   value: {field: 'coveragefrequency',                           header: 'Coverage Frequency',   width: '9%',  styleClass: ''}},
+                                          {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description', width: '9%',  styleClass: ''}},
+                                          {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                  width: '3%',  styleClass: 'val-text-center'}},
+                                          {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '8%',  styleClass: ''}},
                                          ];
 
    public  flatGeoGridExtraColumns: SelectItem[];
@@ -364,7 +364,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           ||  attribute.attributeCode === 'owner_group_primary'
                                           ||  attribute.attributeCode === 'cov_frequency'
                                           ||  attribute.attributeCode === 'cov_desc'
-                                          ||  attribute.attributeCode === 'dma_name')
+                                          ||  attribute.attributeCode === 'dma_name'
+                                          ||  attribute.attributeCode === 'city_name')
                                              // There has got to be a prettier way than this 
                                              if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
                                              {
@@ -400,6 +401,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             attributeMap[geo.geocode].forEach(attribute => {
                if (attribute.attributeCode === 'pob')
                gridGeo['pob'] = (attribute.attributeValue === 'B') ? 'Y' : 'N';
+
+               if (attribute.attributeCode === 'city_name' && attribute.attributeValue != null)
+                  gridGeo['city_name'] = attribute.attributeValue.substring(0,1).toUpperCase() + attribute.attributeValue.substring(1, attribute.attributeValue.length-3).toLowerCase() + ' ' + attribute.attributeValue.substring(attribute.attributeValue.length-2);
 
                if (attribute.attributeCode === 'owner_group_primary')
                {
