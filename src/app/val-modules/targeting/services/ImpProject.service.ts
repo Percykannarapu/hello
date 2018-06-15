@@ -69,7 +69,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.add([new ImpProject({methAnalysis: 'ZIP'})]);
    }
 
-   public trakerId: string;
+   public trackerId: string;
 
    private handleError(error: Response)
    {
@@ -83,7 +83,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       this.appProjectService.loadProject(projectId, clearStore).subscribe((projects: ImpProject[]) => {
          console.log('ImpProjectService.loadProject - load from AppProject finished');
          if (projects[0].projectTrackerId != null)
-             this.trakerId = projects[0].projectTrackerId.toString();
+             this.trackerId = projects[0].projectTrackerId.toString();
          this.replace(projects);
       //this.replace(this.appProjectService.get());
       });

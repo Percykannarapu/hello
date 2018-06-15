@@ -142,7 +142,7 @@ export class UploadLocationsComponent implements OnInit {
           this.handleError(`Duplicate Site Numbers exist in your upload file.`);
       }else if (dupLocNumbers.length > 0){
             let errorMsg = 'The following Sites Numbers in your upload file already exist in your project:';
-             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (...)';
+             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (' + dupLocNumbers.length + ')';
              this.handleError(errorMsg);
       }
       else{

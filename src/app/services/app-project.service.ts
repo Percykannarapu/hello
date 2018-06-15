@@ -31,6 +31,7 @@ import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLoc
 import { Observable, EMPTY } from 'rxjs';
 import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
 import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 let restUrl = 'v1/targeting/base/impproject/';
 let dataUrl = restUrl + 'load';
@@ -38,6 +39,7 @@ let dataUrl = restUrl + 'load';
 @Injectable()
 export class AppProjectService extends DataStore<ImpProject>
 {
+   public ngDialog: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);  
    constructor(public impClientLocationService: ImpClientLocationService,
                public impProjectPrefService: ImpProjectPrefService,
                public impGeofootprintMasterService: ImpGeofootprintMasterService,
@@ -395,7 +397,8 @@ export class AppProjectService extends DataStore<ImpProject>
                   try
                   {
                      console.log('processing location: ', JSON.stringify(location));
-                     impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
+                  //    impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs;
+                   
                      impLocation.impGeofootprintLocAttribs = impGeofootprintLocAttribs.filter(attrib => attrib.impGeofootprintLocation != null
                                                                                                      && attrib.impGeofootprintLocation == impLocation
                                                                                                      && attrib.attributeValue != null
@@ -414,7 +417,7 @@ export class AppProjectService extends DataStore<ImpProject>
                            attrib.createDate    = (attrib.createDate == null) ? new Date(Date.now()) : attrib.createDate;
                            attrib.modifyUser    = this.userService.getUser().userId;
                            attrib.modifyDate    = new Date(Date.now());
-                           attrib.attributeType = 'PUMPKIN_SPICE_LATTE'
+                           attrib.attributeType = 'PUMPKIN_SPICE_LATTE';
                            attrib.formatMask	   = null;
                            attrib.isActive      = 1;
                         });
@@ -706,6 +709,10 @@ export class AppProjectService extends DataStore<ImpProject>
             }
          })
       );
+   }
+
+  public getngDialogObs() : Observable<boolean> {
+      return this.ngDialog.asObservable();
    }
 }
 

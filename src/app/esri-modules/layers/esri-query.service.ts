@@ -115,13 +115,21 @@ export class EsriQueryService {
       const sub = this.mapService.onReady$.subscribe(ready => {
         if (ready) {
           try {
-            const layer = this.layerService.getPortalLayerById(layerId);
-            layer.queryFeatures(query).then(
-              featureSet => {
-                observer.next(featureSet);
-                observer.complete();
-              },
-              errReason => observer.error(errReason));
+            this.mapService.mapView.when(() => {
+              const layer = this.layerService.getPortalLayerById(layerId);
+              layer.when(() => {
+                layer.queryFeatures(query).then(
+                  featureSet => {
+                    observer.next(featureSet);
+                    observer.complete();
+                  },
+                  errReason => observer.error(errReason));
+              }, err => {
+                observer.error(err);
+              });
+            }, err => {
+              observer.error(err);
+            });
           } catch (ex) {
             observer.error(ex);
           }

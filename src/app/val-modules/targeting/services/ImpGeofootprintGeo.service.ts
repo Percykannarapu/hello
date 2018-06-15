@@ -641,11 +641,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, filter?: (geo: ImpGeofootprintGeo) => boolean)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      const geos: ImpGeofootprintGeo[] = this.get();
+      let geos: ImpGeofootprintGeo[] = this.get();
 
+      if (filter != null) geos = geos.filter(filter);
       // Populate the attribute cache
       this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
       for (const attr of this.impGeofootprintGeoAttribService.get()) {
@@ -681,7 +682,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();
-      this.downloadExport(filename, this.prepareCSV(exportColumns));
+      this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
    }
 
    private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO): ColumnDefinition<ImpGeofootprintGeo>[]

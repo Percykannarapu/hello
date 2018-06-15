@@ -36,6 +36,11 @@ export class RestDataService
       //const headers = new HttpHeaders().set('Content-Type', 'application/json').set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.post<RestResponse>(this.baseUrl + url, payload);
    }
+   public postCSV(url: string, payload: any) : Observable<RestResponse>
+   {
+      const csvHeaders = new HttpHeaders({'Content-Type': 'text/csv' });
+      return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
+   }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
    {
@@ -70,11 +75,18 @@ export class RestDataInterceptor implements HttpInterceptor
 
         // check to see if the current oauth token is expired
         const refresh: any = this.refreshOauthToken();
-
-        req = req.clone({ headers: req.headers.set('Accept', 'application/json')
+        
+        // if there is already a Content-Type header we don't want to override it
+        if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
+          req = req.clone({ headers: req.headers.set('Accept', 'application/json')
+          .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
+          .set('Accept', 'application/json') });  
+        } else {
+          req = req.clone({ headers: req.headers.set('Accept', 'application/json')
           .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
           .set('Content-Type', 'application/json')
           .set('Accept', 'application/json') });
+        }
         if (refresh instanceof Observable) {
           return concat(refresh, next.handle(req));
         }
