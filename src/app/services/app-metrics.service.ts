@@ -102,11 +102,11 @@ export class ValMetricsService implements OnDestroy {
             return (currentHH * this.currentDiscoveryVar.cpm);
           }
           if (this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
-            if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
+            if (attributesMap.get('owner_group_primary') != null && attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
               return (currentHH * this.currentDiscoveryVar.valassisCPM);
-            } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
+            } else if (attributesMap.get('owner_group_primary') != null && attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
               return (currentHH * this.currentDiscoveryVar.anneCPM);
-            } else if (attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
+            } else if (attributesMap.get('cov_frequency') != null && attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
               return (currentHH * this.currentDiscoveryVar.soloCPM);
             } else return 0;
           } else return 0;
@@ -144,11 +144,11 @@ export class ValMetricsService implements OnDestroy {
               return (currentHH * this.currentDiscoveryVar.cpm);
             }
             if (this.currentDiscoveryVar.isDefinedbyOwnerGroup) {
-              if (attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
+              if (attributesMap.get('owner_group_primary') != null && attributesMap.get('owner_group_primary') === 'VALASSIS' && this.currentDiscoveryVar.includeValassis && isNumber(this.currentDiscoveryVar.valassisCPM)) {
                 return (currentHH * this.currentDiscoveryVar.valassisCPM);
-              } else if (attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
+              } else if (attributesMap.get('owner_group_primary') != null && attributesMap.get('owner_group_primary') === 'ANNE' && this.currentDiscoveryVar.includeAnne && isNumber(this.currentDiscoveryVar.anneCPM)) {
                 return (currentHH * this.currentDiscoveryVar.anneCPM);
-              } else if (attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
+              } else if (attributesMap.get('cov_frequency') != null && attributesMap.get('cov_frequency').toUpperCase() === 'SOLO' && this.currentDiscoveryVar.includeSolo && isNumber(this.currentDiscoveryVar.soloCPM)) {
                 return (currentHH * this.currentDiscoveryVar.soloCPM);
               } else return 0;
             } else return 0;

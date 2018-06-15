@@ -94,6 +94,8 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
           const updatedateFrom = this.todayDate;
           const updatedDateTo = new Date();
           updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
+          updatedateFrom.setDate(updatedateFrom.getDate() - 1);
+          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
           const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
             Array.from(data).forEach(row => {
               const dt = new Date(row['modifiedDate']);
