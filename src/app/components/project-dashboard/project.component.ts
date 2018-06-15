@@ -27,6 +27,7 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     public selectedTimeLine ;
     public todayDate = new Date();
     public display: boolean;
+    public selectedRow;
 
 
     overlaySub: Subscription;

@@ -40,11 +40,9 @@
                           [immutable]="false" 
                           sortField="projectId" 
                           selectionMode="single"
-                          [(selection)]="selectedRow"
                           sortOrder="-1"
                           (onRowDblclick)="dbClick($event)"
                           [tableStyle]= "{'table-layout':'auto'}"
-                          [rowStyleClass]="isRowSelected"
                           reorderableColumns="true">
               
                           <p-header>
@@ -91,7 +89,7 @@
               
               <div class="ui-g-12">
                       <div class="ui-g-1">
-                          <button pButton type="button" style="float: right;" (click)="loadProject(selectedRow)" label="Load"></button>
+                          <button pButton type="button" style="float: right;" (click)="loadProject($event)" label="Load"></button>
                       </div>
               </div> 
     <p-footer>
