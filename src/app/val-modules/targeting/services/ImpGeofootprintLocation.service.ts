@@ -21,6 +21,7 @@ import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.serv
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { AppConfig } from '../../../app.config';
 import { HttpHeaders } from '@angular/common/http';
+import { encode } from 'punycode';
 
 
 
@@ -230,8 +231,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             });
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
-          const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId ;
-          this.restDataService.postCSV(serviceUrl, this.prepareCSV(exportColumns, locations)).subscribe(res => {
+          const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId;
+          const csvData = this.prepareCSV(exportColumns, locations);
+          let csvString: string = '';
+          for (const row of csvData) {
+            let encodedRow = encode(row);
+            encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
+            csvString += encodedRow + '\n';
+          }
+            this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
             console.log('Response from vlh', res);
             if (res.returnCode === 200) this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
           });
