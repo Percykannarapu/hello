@@ -222,6 +222,7 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
       this.display = false;
     }
 
+
     /*public reorderColumn(event){
       console.log('event fired for column alter');
       let i = 0;
