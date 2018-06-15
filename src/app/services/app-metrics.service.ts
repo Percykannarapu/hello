@@ -35,19 +35,6 @@ export class ValMetricsService implements OnDestroy {
   private geoCpmMismatch: boolean;
   private currentGeoAttributes: ImpGeofootprintGeoAttrib[] = [];
 
-  private medianmetricVal: number = 0;
-  private medianhhc: number = 0;
-
-  private relatedhhc: number = 0;
-  private relatedmetricVal: number = 0;
-
-  private popHispanhhc: number = 0;
-  private popHispanmetricVal: number = 0;
-
-  private casualDinhhc: number = 0;
-  private casualDinmetricVal: number = 0;
-
-
   public metrics$: Observable<MetricDefinition<any>[]>;
   public mismatch$: Observable<boolean>;
 

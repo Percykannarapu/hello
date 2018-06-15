@@ -74,12 +74,14 @@ export class AppMenuComponent implements OnInit {
                 ]
             },*/
             // {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
-            /*  {
-                  label: 'Projects',
-                  items: [
-                      {label: 'Create New', command: () => this.createNewProject() }
-                  ]
-              },*/
+            {
+                label: 'Projects',
+                items: [
+                  //  {label: 'Create New', command: () =>  null}, //this.createNewProject()
+                    {label: 'Open Existing', command: () => this.openExisting() }
+                    
+                ]
+            },
             {
                 label: 'Export', icon: 'file_download',
                 items: [
@@ -239,13 +241,15 @@ export class AppMenuComponent implements OnInit {
 
     public getSites() {
         const impProject = this.impProjectService.get()[0];
-        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Sites'), EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Sites'), 
+                EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
     }
     public getCompetitor() {
         const impProject = this.impProjectService.get()[0];
-        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Competitors'), EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Competitors'), 
+                EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Competitor').length);
     }
@@ -318,8 +322,46 @@ export class AppMenuComponent implements OnInit {
         }
     }
 
+    public openExisting(){
+        if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
+            this.confirmationService.confirm({
+                message: 'Would you like to save your work before proceeding?',
+                header: 'Save Work',
+                icon: 'ui-icon-save',
+                accept: () => {
+                    // check for required fields
+                 let errorString = null;   
+                if (this.impProjectService.get()[0].projectName == null || this.impProjectService.get()[0].projectName == '')
+                     errorString = 'imPower Project Name is required<br>';
+                if (this.impProjectService.get()[0].methAnalysis == null || this.impProjectService.get()[0].methAnalysis == '')
+                     errorString += 'Analysis level is required';
+                if (errorString !== '') {
+                    this.messageService.showGrowlError('Error Saving Project', errorString);
+                    return;
+                }
+                    const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
+                        console.log('project saved', savedProject);
+                        console.log('BEFORE REPLACE STORE FROM SAVE');
+                        this.appProjectService.debugLogStoreCounts();
+                        this.impProjectService.replace(savedProject);
+                        console.log('AFTER SAVE');
+                        this.appProjectService.debugLogStoreCounts();
+                        this.appProjectService.ngDialog.next(true);
+                    });    
+                },
+                reject: () => {
+                    this.clearProject();
+                    this.appProjectService.ngDialog.next(true);
+                }
+            });
+        }
+        else {
+             this.appProjectService.ngDialog.next(true);
+        }
+        
+    }
 
-    public createNewProject() {
+    public createNewProject(){
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
         this.confirmationService.confirm({
             message: 'Your project may have unsaved changes. Do you wish to save your current project?',
@@ -347,26 +389,20 @@ export class AppMenuComponent implements OnInit {
                 //impProjects = [impProject, ... ];
 
                 //this.impProjectService.add(impProjects);
-                // this.impProjectService.saveProject();
-                const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
-                    if (savedProject != null) {
-                        console.log('project saved', savedProject);
-                        console.log('BEFORE REPLACE STORE FROM SAVE');
-                        this.appProjectService.debugLogStoreCounts();
-                        this.impProjectService.replace(savedProject);
-                        console.log('AFTER SAVE');
-                        this.appProjectService.debugLogStoreCounts();
+               // this.impProjectService.saveProject();
+               const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
+                    if (savedProject != null)
+                    {
+                       console.log('project saved', savedProject);
+                       console.log('BEFORE REPLACE STORE FROM SAVE');
+                       this.appProjectService.debugLogStoreCounts();
+                       this.impProjectService.replace(savedProject);
+                       console.log('AFTER SAVE');
+                       this.appProjectService.debugLogStoreCounts();
 
-                        this.impGeofootprintGeoService.clearAll();
-                        this.attributeService.clearAll();
-                        //this.impDiscoveryService.get().pop();
-                        // const discoService
-                        this.metricService.metrics.clear();
-                        this.impGeofootprintLocationService.clearAll();
-                        this.impGeofootprintLocAttribService.clearAll();
-                        this.impGeofootprintTradeAreaService.clearAll();
-                        DiscoveryInputComponent.prototype.impProject.projectId = null;
-                        DiscoveryInputComponent.prototype.impProject.projectName = null;
+                       this.clearProject();
+                       //this.router.navigate(['/']);
+                    //   this.router.navigate(['/project']);
                     }
                     else
                         console.log('project did not save');
@@ -379,29 +415,51 @@ export class AppMenuComponent implements OnInit {
 
             },
             reject: () => {
-                //  window.location.reload();
-                this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
-                const oldDisco = this.impDiscoveryService.get()[0];
-                const newDisco = new ImpDiscoveryUI();
-
-                newDisco.selectedSeason = 'WINTER';
-                newDisco.includeAnne = true;
-                newDisco.includeValassis = true;
-                newDisco.includePob = true;
-                newDisco.includeSolo = true;
-
-                this.impGeofootprintGeoService.clearAll();
-                this.attributeService.clearAll();
-                // this.impDiscoveryService.remove(disco);
-                this.impDiscoveryService.update(oldDisco, newDisco);
-                this.metricService.metrics.clear();
-                this.impGeofootprintLocationService.clearAll();
-                this.impGeofootprintLocAttribService.clearAll();
-                this.impGeofootprintTradeAreaService.clearAll();
-                this.impProjectService.clearAll();
-
+              //  window.location.reload();
+              this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
+              this.clearProject();
+              //this.router.navigate(['/']);
+                 
             }
         });
+    }
+
+    public clearProject(){
+        const oldDisco = this.impDiscoveryService.get()[0];
+        const newDisco = new ImpDiscoveryUI();
+        
+        newDisco.selectedSeason = 'WINTER';
+        newDisco.includeAnne = true;
+        newDisco.includeValassis = true;
+        newDisco.includePob = true;
+        newDisco.includeSolo = true;
+
+        this.impGeofootprintGeoService.clearAll();
+        this.attributeService.clearAll();
+            // this.impDiscoveryService.remove(disco);
+        this.impDiscoveryService.update(oldDisco, newDisco);
+       
+        this.impGeofootprintLocationService.clearAll();
+        this.impGeofootprintLocAttribService.clearAll();
+        this.impGeofootprintTradeAreaService.clearAll();
+        this.impProjectService.clearAll();
+        console.log('color box values:::', this.metricService.metrics.entries());
+        //I trided to clear the map, but it didnt work, need to get back later
+        this.metricService.metrics.clear();
+        this.metricService.add('CAMPAIGN', 'Household Count', '0');
+        this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+        this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
+        this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
+
+        this.metricService.add('AUDIENCE', 'Median Household Income', '0');
+        this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
+        this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+        this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+
+        this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
+        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+        this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+        //remove('CAMPAIGN', 'Household Count');
     }
 }
 
@@ -511,11 +569,11 @@ export class AppSubMenuComponent {
         }
     }
 
-    isActive(index: number): boolean {
+    isActive(index: number) : boolean {
         return this.activeIndex === index;
     }
 
-    @Input() get reset(): boolean {
+    @Input() get reset() : boolean {
         return this._reset;
     }
 

@@ -150,6 +150,7 @@ import { TargetAudienceComponent } from './components/target-audience/target-aud
 import { AudienceTradeareaComponent } from './components/audience-tradearea/audience-tradearea.component';
 import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
+import { ProjectComponent } from './components/project-dashboard/project.component';
 
 @NgModule({
     imports: [
@@ -258,7 +259,8 @@ import { OnlineAudienceApioComponent } from './components/target-audience/online
         CustomAudienceComponent,
         TargetAudienceComponent,
         OnlineAudienceApioComponent,
-        AudienceTradeareaComponent
+        AudienceTradeareaComponent,
+        ProjectComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
