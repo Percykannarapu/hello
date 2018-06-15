@@ -231,7 +231,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
           const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId ;
-          this.restDataService.postCSV(serviceUrl, this.prepareCSV(exportColumns, locations)).subscribe(res => console.log(res));
+          this.restDataService.postCSV(serviceUrl, this.prepareCSV(exportColumns, locations)).subscribe(res => {
+            console.log('Response from vlh', res);
+            if (res.returnCode === 200) this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
+          });
           }
         } else {
           // DE1742: display an error message if attempting to export an empty data store
@@ -240,7 +243,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           } else if (exportType && exportType.toLocaleUpperCase() === 'COMPETITORS' ) {
             this.messageService.showGrowlError('Error exporting competitors list', 'You must first add competitor locations');
           }
-
         }
       }
    }
