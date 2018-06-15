@@ -14,6 +14,7 @@ import { calculateStatistics, toUniversalCoordinates } from '../../app.utils';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 import { EsriQueryService } from '../../esri-modules/layers/esri-query.service';
 import { Subscription } from 'rxjs';
+import { ValTradeAreaService } from '../../services/app-trade-area.service';
 
 
 @Component({
@@ -39,7 +40,8 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private esriLayerService: EsriLayerService,
               private queryService: EsriQueryService,
-              private config: AppConfig) {
+              private config: AppConfig,
+              public valTradeAreaService: ValTradeAreaService) {
     }
 
   public ngOnInit() {
@@ -74,28 +76,7 @@ export class EsriLayerSelectComponent implements OnInit, AfterViewInit {
     }
 
     public onZoomToTA() {
-       const latitudes: number[] = [];
-       const longitudes: number[] = [];
-       const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
-       const query$ = this.queryService.queryAttributeIn(layerId, 'geocode', this.geocodes, false, ['latitude', 'longitude']);
-       const sub = query$.subscribe(
-         selections => {
-           selections.forEach(g => {
-             if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
-               latitudes.push(Number(g.attributes.latitude));
-             }
-             if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
-              longitudes.push(Number(g.attributes.longitude));
-            }
-           });
-         },
-         err => { console.error('Error getting lats and longs from layer', err); },
-         () => {
-           const xStats = calculateStatistics(longitudes);
-           const yStats = calculateStatistics(latitudes);
-           this.esriMapService.zoomOnMap(xStats, yStats, this.geocodes.length);
-         }
-       );
+      this.valTradeAreaService.ZoomToTA();
     }
 
     onRevertToTradeArea(){

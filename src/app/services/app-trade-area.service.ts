@@ -11,6 +11,10 @@ import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { AppConfig } from '../app.config';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { calculateStatistics, Statistics } from '../app.utils';
+import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { ValGeoService } from './app-geo.service';
+
 
 export class RadialTradeAreaDefaults {
   radials: { radius: number, displayed: boolean }[];
@@ -30,6 +34,8 @@ export class RadialTradeAreaDefaults {
 @Injectable()
 export class ValTradeAreaService implements OnDestroy {
 
+  geoSubscription: any;
+  // discovery: Subscription;
   private static id: number = 0;
 
   private readonly locationSubscription: Subscription;
@@ -43,23 +49,42 @@ export class ValTradeAreaService implements OnDestroy {
 
   public clientBuffer$ = this.clientBuffers.asObservable();
   public competitorBuffer$ = this.competitorBuffers.asObservable();
+  public analysisLevel : ImpDiscoveryUI[];
 
   // TODO: These are hacks and I want to be rid of them as soon as possible.
   public clientMergeFlag: boolean = false;
   public competitorMergeFlag: boolean = false;
+  private geocodes: string[];
+  private currentAnalysisLevel: string = null;
+  //private layerId: string;
 
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService,
               private locationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
               private impDiscoveryService: ImpDiscoveryService,
               private appConfig: AppConfig,
-              private esriQueryService: EsriQueryService) {
+              private esriQueryService: EsriQueryService,
+              private queryService: EsriQueryService,
+              private esriMapService: EsriMapService,
+              private config: AppConfig
+              ) {
     this.currentLocations = [];
+    this.geoSubscription = this.impGeoService.storeObservable.subscribe(geocodes => {
+      this.geocodes = Array.from(new Set(geocodes.map(geo => geo.geocode)))
+        ;
+    });
+
     this.locationSubscription = this.locationService.storeObservable.subscribe(locations => {
       this.onLocationChange(locations);
     });
     this.tradeAreaSubscription = this.tradeAreaService.storeObservable.subscribe(allTradeAreas => this.drawTradeAreaBuffers(allTradeAreas));
+    this.impDiscoveryService.storeObservable.subscribe(d => {
+            if (d && d[0] && d[0].analysisLevel) {
+              this.currentAnalysisLevel = d[0].analysisLevel;
+            }
+          });               
   }
+
 
   private static createTradeArea(radius: number, index: number, location: ImpGeofootprintLocation, isActive: boolean) : ImpGeofootprintTradeArea {
     return new ImpGeofootprintTradeArea({
@@ -168,8 +193,8 @@ export class ValTradeAreaService implements OnDestroy {
     const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);    
     //console.log('length of home geocodes::', geocodesList);
     const geocodesSet = new Set(geocodesList);
-    const geocodes = Array.from(geocodesSet);
-    if (geocodes[0] == undefined) {
+    this.geocodes = Array.from(geocodesSet);
+    if (this.geocodes[0] == undefined) {
       console.warn('Attempted to define a trade area for a site without a home geocode');
       return; // TODO: Is this correct behavior for DE1765? It seems to work
     }
@@ -177,7 +202,7 @@ export class ValTradeAreaService implements OnDestroy {
     let customIndex: number = tradeAreasForInsert.length + 1; // 0;
     const tas = tradeAreasForInsert.map(ta => ta.taRadius);
     const maxRadius = Math.max(...tas);
-    const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true).subscribe(graphics => {
+    const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', this.geocodes, true).subscribe(graphics => {
       const geosToAdd: ImpGeofootprintGeo[] = [];
       graphics.forEach(graphic => {
          currentLocations.forEach(loc => {
@@ -213,4 +238,30 @@ export class ValTradeAreaService implements OnDestroy {
        impGeofootprintGeo.impGeofootprintTradeArea = ta;
     return impGeofootprintGeo;
   }
+  public ZoomToTA() {
+    const latitudes: number[] = [];
+    const longitudes: number[] = [];
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
+    console.log('layerId:::', layerId);
+    if (layerId == null) return;
+    const query$ = this.queryService.queryAttributeIn(layerId, 'geocode', this.geocodes, false, ['latitude', 'longitude']);
+    const sub = query$.subscribe(
+      selections => {
+        selections.forEach(g => {
+          if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
+            latitudes.push(Number(g.attributes.latitude));
+          }
+          if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
+           longitudes.push(Number(g.attributes.longitude));
+         }
+        });
+      },
+      err => { console.error('Error getting lats and longs from layer', err); },
+      () => {
+        const xStats = calculateStatistics(longitudes);
+        const yStats = calculateStatistics(latitudes);
+        this.esriMapService.zoomOnMap(xStats, yStats, this.geocodes.length);
+   }
+    );
+ }
 }

@@ -11,6 +11,9 @@ import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { Subscription } from 'rxjs/Subscription';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
+//import { ValTradeAreaService } from '../../services/app-trade-area.service';
+//import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+
 
 
 
@@ -35,8 +38,10 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     constructor(private restService: RestDataService, 
                 public  impProjectService: ImpProjectService,
                 private userService: UserService, 
-                public  appProjectService: AppProjectService,
-                ){
+                public  appProjectService: AppProjectService
+  //              public valTradeAreaService: ValTradeAreaService,
+  //              public  impGeofootprintGeoService: ImpGeofootprintGeoService,
+                                ){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -94,8 +99,6 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
           const updatedateFrom = this.todayDate;
           const updatedDateTo = new Date();
           updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
-          updatedateFrom.setDate(updatedateFrom.getDate() - 1);
-          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
           const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
             Array.from(data).forEach(row => {
               const dt = new Date(row['modifiedDate']);
@@ -221,9 +224,12 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     public loadProject(event){
       console.log('load click:::', event);
       this.impProjectService.loadProject(event['projectId'], true);
+      // this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
+      //   if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
+   // }
+   // )
       this.display = false;
     }
-
 
     /*public reorderColumn(event){
       console.log('event fired for column alter');
