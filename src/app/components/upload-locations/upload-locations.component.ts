@@ -131,18 +131,22 @@ export class UploadLocationsComponent implements OnInit {
       }
       let dupNumbersString = '';
       let count = 0;
-      const dupLocNumbers = this.locationService.get().filter(loc => {
+      const dupLocNumbers: any[] = [];
+       this.locationService.get().filter(loc => {
+        dupLocNumbers.push(loc);
           if (FileService.prototype.locNumberSet.has(loc.locationNumber) && count < 5 ){
               dupNumbersString = dupNumbersString + '-' + loc.locationNumber.toString();
               count++;
               return loc;
           }
       });
+      const dedupLength: number = dupLocNumbers.length > 5 ? dupLocNumbers.length - 5 : dupLocNumbers.length ;
       if (data.parsedData.length > FileService.prototype.locNumberSet.size){
           this.handleError(`Duplicate Site Numbers exist in your upload file.`);
+          
       }else if (dupLocNumbers.length > 0){
             let errorMsg = 'The following Sites Numbers in your upload file already exist in your project:';
-             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (' + dupLocNumbers.length + ')';
+             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (+' + dedupLength + ' more)';
              this.handleError(errorMsg);
       }
       else{
