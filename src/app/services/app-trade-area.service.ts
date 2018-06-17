@@ -208,7 +208,7 @@ export class ValTradeAreaService implements OnDestroy {
          currentLocations.forEach(loc => {
           if (loc.homeGeocode === graphic.attributes['geocode'] && EsriUtils.geometryIsPoint(graphic.geometry)){
             const geocodeDistance =  EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
-            if (geocodeDistance > maxRadius) {
+            if (geocodeDistance > maxRadius || geocodeDistance === 0) {
               customIndex++;
               const ta: ImpGeofootprintTradeArea = ValTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO CUSTOM');
               geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc, ta));

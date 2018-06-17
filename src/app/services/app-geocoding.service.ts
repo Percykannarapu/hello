@@ -99,7 +99,7 @@ export class ValGeocodingService {
     }
   }
 
-  private showCompletedMessage(): void {
+  private showCompletedMessage() : void {
     if (this.failures.getValue().length === 0) {
       this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
     }

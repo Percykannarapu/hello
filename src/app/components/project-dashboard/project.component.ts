@@ -83,8 +83,6 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 
     ngOnInit() {
       this.selectedListType = 'Myproject';
-      console.log('test project component:::'); 
-     // this.myProjecctsData = [];
       
       for (const column of this.allColumns) {
         this.columnOptions.push({ label: column.header, value: column });
@@ -94,6 +92,7 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     }
 
     ngAfterViewInit(){
+      this.selectedListType = 'Myproject';
       this.overlaySub = this.appProjectService.getngDialogObs().subscribe(result => {
         this.display = result;
           const updatedateFrom = this.todayDate;
@@ -146,7 +145,6 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     }
 
     public onProjectSelected(event){
-      console.log('project:::::', event);
       this.selectedProjectData.push(event);
       
     }
