@@ -11,8 +11,8 @@ import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { Subscription } from 'rxjs/Subscription';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
-//import { ValTradeAreaService } from '../../services/app-trade-area.service';
-//import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ValTradeAreaService } from '../../services/app-trade-area.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 
 
@@ -38,9 +38,9 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     constructor(private restService: RestDataService, 
                 public  impProjectService: ImpProjectService,
                 private userService: UserService, 
-                public  appProjectService: AppProjectService
-  //              public valTradeAreaService: ValTradeAreaService,
-  //              public  impGeofootprintGeoService: ImpGeofootprintGeoService,
+                public  appProjectService: AppProjectService,
+                public valTradeAreaService: ValTradeAreaService,
+                public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                                 ){
 
                   this.timeLines = [
@@ -222,10 +222,10 @@ import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
     public loadProject(event){
       console.log('load click:::', event);
       this.impProjectService.loadProject(event['projectId'], true);
-      // this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
-      //   if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
-   // }
-   // )
+    //    this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
+    //      if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
+    // }
+    // )
       this.display = false;
     }
 
