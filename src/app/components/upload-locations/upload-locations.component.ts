@@ -133,11 +133,13 @@ export class UploadLocationsComponent implements OnInit {
       let count = 0;
       const dupLocNumbers: any[] = [];
        this.locationService.get().filter(loc => {
-        dupLocNumbers.push(loc);
-          if (FileService.prototype.locNumberSet.has(loc.locationNumber) && count < 5 ){
+          if (FileService.prototype.locNumberSet.has(loc.locationNumber)){
+            dupLocNumbers.push(loc);
+            if (count < 5){
               dupNumbersString = dupNumbersString + '-' + loc.locationNumber.toString();
               count++;
               return loc;
+            }
           }
       });
       const dedupLength: number = data.parsedData.length > 5 ? data.parsedData.length - 5 : data.parsedData.length ;
