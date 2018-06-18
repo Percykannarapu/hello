@@ -28,16 +28,20 @@ export class TargetAudienceService implements OnDestroy {
 
   private nationalSources = new Map<string, nationalSource>();
   private audienceSources = new Map<string, audienceSource>();
-  private audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
+  public  audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
   private audiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
   private shadingData: BehaviorSubject<Map<string, ImpGeofootprintVar>> = new BehaviorSubject<Map<string, ImpGeofootprintVar>>(new Map<string, ImpGeofootprintVar>());
   private shadingSub: Subscription;
   private selectedSub: Subscription;
 
+  //used to store deleted variables from selected Audiance tab
+  public deletedAudiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
+
   private currentAnalysisLevel: string; // only used for National Extract
 
   public shadingData$: Observable<Map<string, ImpGeofootprintVar>> = this.shadingData.asObservable();
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
+  public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   constructor(private geoService: ValGeoService, private discoveryService: ImpDiscoveryService,
               private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
@@ -95,6 +99,18 @@ export class TargetAudienceService implements OnDestroy {
         this.audienceSources.delete(sourceId);
       }
       this.audiences.next(Array.from(this.audienceMap.values()));
+    }
+  }
+
+  public addDeletedAudience(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) : void {
+    const sourceId = this.createKey(sourceType, sourceName);
+    const audienceId = this.createKey(sourceId, audienceIdentifier);
+    if (this.audienceMap.has(audienceId)) {
+      const deletedAudienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>(); 
+       const deletedAudience = this.audienceMap.get(audienceId);
+       deletedAudienceMap.set(audienceId, this.audienceMap.get(audienceId));
+       
+      this.deletedAudiences.next(Array.from(deletedAudienceMap.values()));
     }
   }
 
@@ -191,7 +207,7 @@ export class TargetAudienceService implements OnDestroy {
     if (this.selectedSub) this.selectedSub.unsubscribe();
   }
 
-  private clearShadingData() : void {
+  public clearShadingData() : void {
     console.log('clearing shading data cache');
     const current = this.shadingData.getValue();
     current.clear();

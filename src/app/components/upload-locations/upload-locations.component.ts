@@ -142,11 +142,12 @@ export class UploadLocationsComponent implements OnInit {
             }
           }
       });
-      const dedupLength: number = data.parsedData.length > 5 ? data.parsedData.length - 5 : data.parsedData.length ;
+     
       if (data.parsedData.length > FileService.prototype.locNumberSet.size){
           this.handleError(`Duplicate Site Numbers exist in your upload file.`);
           
       }else if (dupLocNumbers.length > 0){
+            const dedupLength: number = data.parsedData.length > 5 ? data.parsedData.length - 5 : data.parsedData.length ;
             let errorMsg = 'The following Sites Numbers in your upload file already exist in your project:';
              errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (+' + dedupLength + ' more)';
              this.handleError(errorMsg);

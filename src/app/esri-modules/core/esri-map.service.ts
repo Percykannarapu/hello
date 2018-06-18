@@ -29,7 +29,7 @@ export class EsriMapService {
     if (!newMapViewProps.container) newMapViewProps.container = mapEl.nativeElement;
     if (!newMapViewProps.map) newMapViewProps.map = this.map;
     // create the MapView
-    console.log('Creating map view with props:: ', newMapViewProps);
+    //console.log('Creating map view with props:: ', newMapViewProps);
     this.mapView = new EsriModules.MapView(newMapViewProps);
     this.mapView.when(() => {
       this.isReady.next(true);
