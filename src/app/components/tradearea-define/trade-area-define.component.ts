@@ -45,6 +45,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
               private discoveryService: ImpDiscoveryService, private usageService: UsageService,
               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+              public valTradeAreaService: ValTradeAreaService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService) {
     this.tradeAreaMergeTypes = [
       { label: 'No Merge', value: 'No Merge' },
@@ -116,6 +117,10 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       const settings = new RadialTradeAreaDefaults(tradeAreas.map(ta => ta.tradeArea), this.currentMergeType.value);
       this.tradeAreaService.applyRadialDefaults(settings, this.currentSiteType);
     }
+    this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
+      if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
+ }
+ )
   }
 
   public onChangeSiteType(event: SiteType) : void {
