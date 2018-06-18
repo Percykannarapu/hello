@@ -942,11 +942,12 @@ export class DiscoveryInputComponent implements OnInit
                   this.impProject.projectName = this.impProject.projectName.trim();
             }
            if (this.impProject.clientIdentifierName == null){
-                 
-               const temp = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
-                                                                                           return id['projectId'] === Number(clientName) ? this.impProject.clientIdentifierName = id['clientName'] : false;
-                                                                                           }); 
-                 console.log('clientName::::', this.impProject.clientIdentifierName);
+                const temp = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
+                                                                                                if (id['projectId'] === Number(clientName)){
+                                                                                                      this.impProject.clientIdentifierName = id['clientName'];
+                                                                                                      this.impProject.customerNumber = id['projectId'];
+                                                                                                } else return false;
+                                                                                          }); 
            } 
            this.onChangeField(event);
           }
