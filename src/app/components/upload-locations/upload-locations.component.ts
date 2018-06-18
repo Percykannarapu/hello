@@ -140,7 +140,7 @@ export class UploadLocationsComponent implements OnInit {
               return loc;
           }
       });
-      const dedupLength: number = dupLocNumbers.length > 5 ? dupLocNumbers.length - 5 : dupLocNumbers.length ;
+      const dedupLength: number = data.parsedData.length > 5 ? data.parsedData.length - 5 : data.parsedData.length ;
       if (data.parsedData.length > FileService.prototype.locNumberSet.size){
           this.handleError(`Duplicate Site Numbers exist in your upload file.`);
           
