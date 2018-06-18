@@ -32,6 +32,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 import { ValTradeAreaService } from '../../services/app-trade-area.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { isNumber } from '../../app.utils';
 
 
 
@@ -353,11 +354,12 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
       
-      if (this.impProject.estimatedBlendedCpm != null){
+      if (isNumber(this.impProject.estimatedBlendedCpm)){
             this.impDiscoveryUI.selectCpmType = 'isBlended';
             this.impDiscoveryUI.isCpmBlended = true;
             this.onClickCPM('Blended');
-      } else {
+      } 
+      if (isNumber(this.impProject.smValassisCpm) || isNumber(this.impProject.smAnneCpm) || isNumber(this.impProject.smSoloCpm)) {
             this.impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
             this.impDiscoveryUI.isCpmBlended = false;
             this.onClickCPM('Owner');

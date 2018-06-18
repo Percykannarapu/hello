@@ -18,6 +18,7 @@ import { map } from 'rxjs/internal/operators/map';
 import { AppMessagingService } from './app-messaging.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { UsageService } from './usage.service';
+import { isNumber } from '../app.utils';
 
 const dataUrl = '';
 
@@ -94,10 +95,12 @@ export class ImpDiscoveryService extends DataStore<ImpDiscoveryUI>
             impDiscoveryUI.anneCPM = impProject.smAnneCpm;
             impDiscoveryUI.soloCPM = impProject.smSoloCpm;
 
-            if (impProject.estimatedBlendedCpm != null) {
-                  impDiscoveryUI.selectCpmType = 'isBlended';
-            } else impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
-
+            if (isNumber(impProject.estimatedBlendedCpm)) {
+                impDiscoveryUI.selectCpmType = 'isBlended';
+            } 
+            if (isNumber(impProject.smValassisCpm) || isNumber(impProject.smAnneCpm) || isNumber(impProject.smSoloCpm)){
+                  impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
+            }      
             console.log('ImpDiscoveryUI.service.mapDiscoveryFromProject - finished ', impDiscoveryUI);
             return impDiscoveryUI;
       }
