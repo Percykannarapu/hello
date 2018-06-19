@@ -87,13 +87,17 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
     ngAfterViewInit(){
       this.selectedListType = 'Myproject';
+      const usrSub = this.userService.userObservable.subscribe(result => {
+          console.log('user result', result);
+      });
       this.overlaySub = this.appProjectService.getngDialogObs().subscribe(result => {
         this.display = result;
           const updatedateFrom = this.todayDate;
           const updatedDateTo = new Date();
           updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
-          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+          
           const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
+            console.log('error all projects::::', data);
             Array.from(data).forEach(row => {
               const dt = new Date(row['modifiedDate']);
               row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -102,6 +106,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
           });
 
           const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
+            console.log('error my projects::::', data);
             Array.from(data).forEach(row => {
               const dt = new Date(row['modifiedDate']);
               row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -113,19 +118,23 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     }
 
     public getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
+      updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
+      updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
       updatedDateTo = this.formatDate(updatedDateTo);
-      return this.restService.get(`v1/targeting/base/impproject/search?q=impprojectdtls&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
+      return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
         map((result: any) => result.payload.rows)
        );
     }
 
     public getMyProjectData(updatedDateFrom, updatedDateTo) : Observable<any>{
       let data: any[] = [];
+      updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
+      updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
       updatedDateTo = this.formatDate(updatedDateTo);
      // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
-      return this.restService.get(`v1/targeting/base/impproject/search?q=impprojectdtls&&createUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
+      return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&modifyUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
         map((response ) => data = response.payload.rows));
     }
 
