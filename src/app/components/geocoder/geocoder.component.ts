@@ -137,6 +137,7 @@ export class GeocoderComponent implements OnInit {
 
   public loadVPW() {
     this.clearFields();
+    this.currentModel.number = "10";
     this.currentModel.name = 'VPW';
     this.currentModel.street = '19975 Victor Pkwy';
     this.currentModel.city = 'Livonia';
@@ -146,6 +147,7 @@ export class GeocoderComponent implements OnInit {
 
   public loadSkyZone() {
     this.clearFields();
+    this.currentModel.number = "20";
     this.currentModel.name = 'Sky Zone Trampoline Park';
     this.currentModel.street = '10080 E 121st St #182';
     this.currentModel.city = 'Fishers';
@@ -158,6 +160,7 @@ export class GeocoderComponent implements OnInit {
 
   public loadTecumseh() {
    this.clearFields();
+   this.currentModel.number = "30";
    this.currentModel.name = 'Tecumseh All Owner Groups within 20 miles';
    this.currentModel.street = '411 E Chicago Blvd';
    this.currentModel.city = 'Tecumseh';
