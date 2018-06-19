@@ -88,33 +88,33 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     ngAfterViewInit(){
       this.selectedListType = 'Myproject';
       const usrSub = this.userService.userObservable.subscribe(result => {
-          console.log('user result', result);
+        if (result.userId != null){
+          this.overlaySub = this.appProjectService.getngDialogObs().subscribe(bool => {
+            this.display = bool;
+              const updatedateFrom = this.todayDate;
+              const updatedDateTo = new Date();
+              updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
+              
+              const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
+                Array.from(data).forEach(row => {
+                  const dt = new Date(row['modifyDate']);
+                  row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+                });
+                this.allProjectsData = data;
+              });
+    
+              const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
+                Array.from(data).forEach(row => {
+                  const dt = new Date(row['modifyDate']);
+                  row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+                });
+                this.myProjecctsData = data;
+                this.currentProjectData = this.myProjecctsData;
+              });
+            });
+        }
       });
-      this.overlaySub = this.appProjectService.getngDialogObs().subscribe(result => {
-        this.display = result;
-          const updatedateFrom = this.todayDate;
-          const updatedDateTo = new Date();
-          updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
-          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
-          const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
-            console.log('error all projects::::', data);
-            Array.from(data).forEach(row => {
-              const dt = new Date(row['modifiedDate']);
-              row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-            });
-            this.allProjectsData = data;
-          });
-
-          const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
-            console.log('error my projects::::', data);
-            Array.from(data).forEach(row => {
-              const dt = new Date(row['modifiedDate']);
-              row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-            });
-            this.myProjecctsData = data;
-            this.currentProjectData = this.myProjecctsData;
-          });
-        });
+      
     }
 
     public getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
@@ -154,7 +154,6 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     }
 
     public onSelectTimeFrame(event: string){
-      console.log('timeframe::::', event);
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
 
@@ -177,9 +176,9 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
       const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
         Array.from(data).forEach(row => {
-          const dt = new Date(row['modifiedDate']);
-          row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-         row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+          const dt = new Date(row['modifyDate']);
+          row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+        
         });
         this.allProjectsData = data;
       }, null , () => {
@@ -193,9 +192,9 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
       const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
         Array.from(data).forEach(row => {
-          const dt = new Date(row['modifiedDate']);
-          row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+          const dt = new Date(row['modifyDate']);
           row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+         
         });
         this.myProjecctsData = data;
         this.currentProjectData = this.myProjecctsData;
