@@ -132,7 +132,8 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
       updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
       updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
-     // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
+      updatedDateTo = this.formatDate(updatedDateTo);
+      // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
       return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&modifyUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
         map((response ) => data = response.payload.rows));
     }
