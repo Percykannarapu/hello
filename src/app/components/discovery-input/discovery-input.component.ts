@@ -8,7 +8,7 @@ import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppState } from '../../app.state';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
 import { ImpRadLookupStore } from '../../val-modules/targeting/services/ImpRadLookup.store';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ValMapService } from '../../services/app-map.service';
@@ -30,6 +30,10 @@ import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/Imp
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { ValTradeAreaService } from '../../services/app-trade-area.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { isNumber } from '../../app.utils';
+
 
 
 interface Product {
@@ -111,6 +115,7 @@ export class DiscoveryInputComponent implements OnInit
                public  impRadLookupService: ImpRadLookupService,
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                public  impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+               public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                public  userService: UserService,
                private http: HttpClient,
                private appState: AppState,
@@ -122,7 +127,8 @@ export class DiscoveryInputComponent implements OnInit
                private impProjectTrackerService: ImpProjectTrackerService,
                private restService: RestDataService,
                private esriLayerService: EsriLayerService,
-               private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService)
+               private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
+               public valTradeAreaService: ValTradeAreaService)
    {
       //this.impDiscoveryService.analysisLevel.subscribe(data => this.onAnalysisSelectType(data));
 
@@ -192,7 +198,7 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryService.storeObservable.subscribe(disco => this.onDiscoChange(disco[0]));
       this.valMapService.onReady$.subscribe(ready => this.mapReady = ready);
       this.esriLayerService.layersReady$.subscribe(ready => this.layersReady = ready);
-   }
+  }
 
    /**
     * Subscribe to changes in the discovery service to be able to reflect those changes in the UI
@@ -348,11 +354,12 @@ export class DiscoveryInputComponent implements OnInit
       this.impDiscoveryUI.includeSolo      = this.impProject.isIncludeSolo;
       this.impDiscoveryUI.projectTrackerId = this.impProject.projectTrackerId;
       
-      if (this.impProject.estimatedBlendedCpm != null){
+      if (isNumber(this.impProject.estimatedBlendedCpm)){
             this.impDiscoveryUI.selectCpmType = 'isBlended';
             this.impDiscoveryUI.isCpmBlended = true;
             this.onClickCPM('Blended');
-      } else {
+      } 
+      if (isNumber(this.impProject.smValassisCpm) || isNumber(this.impProject.smAnneCpm) || isNumber(this.impProject.smSoloCpm)) {
             this.impDiscoveryUI.selectCpmType = 'isDefinedbyOwnerGroup';
             this.impDiscoveryUI.isCpmBlended = false;
             this.onClickCPM('Owner');
@@ -659,13 +666,12 @@ export class DiscoveryInputComponent implements OnInit
             return;
       }
       this.loadRetries = 0;
+
       if ( this.impDiscoveryUI.projectTrackerId != null){
             this.trackerId = this.impDiscoveryUI.projectTrackerId;
       }
       console.log('discovery-input.component - loadProject fired');
-      
-
-      // Load the project
+            // Load the project
       this.impProjectService.loadProject(this.impProject.projectId);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
       this.usageService.createCounterMetric(usageMetricName, null, this.impProject.projectId);
@@ -677,7 +683,10 @@ export class DiscoveryInputComponent implements OnInit
        this.localCopydiscoverUI.anneCPM = this.impProject.smAnneCpm;
        this.localCopydiscoverUI.soloCPM = this.impProject.smSoloCpm;
        this.localCopydiscoverUI.projectTrackerId = this.impProject.projectTrackerId;
-     
+      //  this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
+      //       if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
+      //   }
+      //   )
    }
 
    public saveProject()
@@ -935,11 +944,12 @@ export class DiscoveryInputComponent implements OnInit
                   this.impProject.projectName = this.impProject.projectName.trim();
             }
            if (this.impProject.clientIdentifierName == null){
-                 
-               const temp = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
-                                                                                           return id['projectId'] === Number(clientName) ? this.impProject.clientIdentifierName = id['clientName'] : false;
-                                                                                           }); 
-                 console.log('clientName::::', this.impProject.clientIdentifierName);
+                const temp = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
+                                                                                                if (id['projectId'] === Number(clientName)){
+                                                                                                      this.impProject.clientIdentifierName = id['clientName'];
+                                                                                                      this.impProject.customerNumber = id['projectId'];
+                                                                                                } else return false;
+                                                                                          }); 
            } 
            this.onChangeField(event);
           }

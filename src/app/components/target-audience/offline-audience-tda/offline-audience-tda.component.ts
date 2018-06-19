@@ -3,6 +3,8 @@ import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { TargetAudienceService } from '../../../services/target-audience.service';
 
 @Component({
   selector: 'val-offline-audience-tda',
@@ -16,7 +18,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceTdaService) { }
+  constructor(private audienceService: TargetAudienceTdaService,
+    private targetAudienceService: TargetAudienceService) { 
+    this.targetAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
+  }
 
   private static asFolder(category: TdaAudienceDescription) : TreeNode {
     return {
@@ -79,5 +84,9 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   public removeVariable(event: TreeNode) : void {
     this.audienceService.removeAudience(event.data);
+  }
+
+  private syncCheckData(result: AudienceDataDefinition[]){
+    this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier != result[0].audienceIdentifier);
   }
 }
