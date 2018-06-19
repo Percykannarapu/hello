@@ -2,25 +2,24 @@ import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Injectable } from '@angular/core';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { ValLayerService } from './app-layer.service';
+import { AppLayerService } from './app-layer.service';
 import { mapFunctions } from '../app.component';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { AuthService } from './auth.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LayerDefinition } from '../../environments/environment';
-import { ValMapService } from './app-map.service';
+import { AppMapService } from './app-map.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppMessagingService } from './app-messaging.service';
+import { AppStateService } from './app-state.service';
 
 @Injectable()
 export class MapService {
@@ -52,15 +51,15 @@ export class MapService {
     private pausableWatches: Array<__esri.PausableWatchHandle> = new Array<__esri.PausableWatchHandle>();
 
     constructor(private metricService: MetricService,
-        private layerService: ValLayerService,
+        private layerService: AppLayerService,
         private esriMapService: EsriMapService,
         private impGeofootprintGeoService: ImpGeofootprintGeoService,
         private config: AppConfig,
         private impGeofootprintLocationService: ImpGeofootprintLocationService,
-        private impDiscoveryService: ImpDiscoveryService,
+        private stateService: AppStateService,
         private authService: AuthService,
         private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
-        private appMapService: ValMapService,
+        private appMapService: AppMapService,
         private usageService: UsageService,
         private esriLayerService: EsriLayerService,
         private esriQueryService: EsriQueryService, private messagingService: AppMessagingService) {
@@ -170,8 +169,12 @@ export class MapService {
 
     // Execute each time the "select-this" action is clicked
     public selectThis() {
-      const geocode: string = ValLayerService.getAttributeValue(this.mapView.popup.selectedFeature.attributes, 'geocode');
-      this.appMapService.selectSingleGeocode(geocode);
+      const geocode: string = this.mapView.popup.selectedFeature.attributes.geocode;
+      const geometry = {
+        x: Number(this.mapView.popup.selectedFeature.attributes.longitude),
+        y: Number(this.mapView.popup.selectedFeature.attributes.latitude)
+      };
+      this.appMapService.selectSingleGeocode(geocode, geometry);
     }
 
     // create the MapView
@@ -345,27 +348,25 @@ export class MapService {
         this.toggleFeatureLayerPopups();
       }
 
-      if (this.mapFunction === mapFunctions.DrawPoly){
-          const polygons = geometry as __esri.Polygon;
-          console.log('polygons:::::', polygons);
-          const discoveryUi: ImpDiscoveryUI[] = this.impDiscoveryService.get();
-          this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
-          const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(discoveryUi[0].analysisLevel);
-          const layer = this.esriLayerService.getPortalLayerById(boundaryLayerId);
-          const geocodes = [];
-          let graphicsList = [];
-          const sub = this.esriQueryService.queryLayerView(boundaryLayerId, true,  polygons.extent).subscribe(graphics => {
-            graphicsList = graphics;
-          }, null, () =>
-              {
-                this.appMapService.selectMultipleGeocode(graphicsList);
-              //  console.log('list of graphicsList:::', graphicsList);
-                this.mapView.graphics.removeAll();
-                  setTimeout(() => {
-                    this.sketchViewModel.create('rectangle', undefined);
-                    this.messagingService.stopSpinnerDialog('selectGeos');
-                  }, 0);
-              });
+      if (this.mapFunction === mapFunctions.DrawPoly) {
+        const polygons = geometry as __esri.Polygon;
+        console.log('polygons:::::', polygons);
+        const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+        this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
+        const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+        const graphicsList = [];
+        const sub = this.esriQueryService.queryLayerView(boundaryLayerId, false,  polygons.extent).subscribe(
+          graphics => graphicsList.push(...graphics),
+          err => console.error('There was an error selecting multiple geometries', err),
+          () => {
+            this.appMapService.selectMultipleGeocode(graphicsList);
+            this.mapView.graphics.removeAll();
+            setTimeout(() => {
+              this.sketchViewModel.create('rectangle', undefined);
+              this.messagingService.stopSpinnerDialog('selectGeos');
+            }, 0);
+            if (sub) sub.unsubscribe();
+          });
       }
     }
 

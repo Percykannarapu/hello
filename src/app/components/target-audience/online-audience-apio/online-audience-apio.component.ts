@@ -3,9 +3,8 @@ import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ApioAudienceDescription, SourceTypes, TargetAudienceApioService } from '../../../services/target-audience-apio.service';
-import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
-import { TargetAudienceService } from '../../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { TargetAudienceService } from '../../../services/target-audience.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -33,14 +32,12 @@ export class OnlineAudienceApioComponent implements OnInit {
   // these have to be exposed like this so they are available in the template
   public SourceType = SourceTypes;
 
-  constructor(private audienceService: TargetAudienceApioService,
-              private discoService: ImpDiscoveryService,
-              private targetAudienceService: TargetAudienceService ) {
+  constructor(private audienceService: TargetAudienceApioService, private parentAudienceService: TargetAudienceService) {
     this.selectedNodeMap.set(SourceTypes.InMarket, []);
     this.selectedNodeMap.set(SourceTypes.Interest, []);
     this.currentSelectedNodes = this.selectedNodeMap.get(this.selectedSource);
 
-    this.targetAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
+    this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
   private static asTreeNode(variable: ApioAudienceDescription) : ApioTreeNode {
@@ -92,13 +89,13 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   public selectVariable(event: ApioTreeNode) : void {
     this.currentSelectedNodes.push(event);
-    this.audienceService.addAudience(event.data, this.selectedSource, this.discoService);
+    this.audienceService.addAudience(event.data, this.selectedSource);
   }
 
   public removeVariable(event: ApioTreeNode) : void {
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
-    this.audienceService.removeAudience(event.data, this.selectedSource, this.discoService);
+    this.audienceService.removeAudience(event.data, this.selectedSource);
   }
 
   public onSourceChanged(source: SourceTypes) {
@@ -139,8 +136,6 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
-    //console.log('syncCheckData:::', result);
-    //console.log('selected Nodes:::', this.currentSelectedNodes);
     this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
   }
 }

@@ -11,13 +11,14 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { ValMapService, Coordinates } from './app-map.service';
+import { AppMapService, Coordinates } from './app-map.service';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { AppConfig } from '../app.config';
 import { RestResponse } from '../models/RestResponse';
 import { TargetAudienceService } from './target-audience.service';
 import { AudienceDataDefinition } from '../models/audience-data.model';
+import { AppStateService } from './app-state.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -89,7 +90,6 @@ export class ValAudienceTradeareaService {
   private sortMap: Map<string, number> = new Map<string, number>();
   private taResponses: Map<string, Map<number, AudienceTradeareaResponse>> = new Map<string, Map<number, AudienceTradeareaResponse>>();
   private mustCover: boolean;
-  
   // variables to determine whether or not we need to fetch data from the server
   private fetchData = true;
   private lastMinRadius: number;
@@ -157,7 +157,7 @@ export class ValAudienceTradeareaService {
    * @param minRadius The minimum, must cover radius, for the trade areas
    * @param maxRadius The maximum radius for the trade areas
    * @param digCategoryId The ID of the targeting variable currently in use
-   * @param weight The weight of the selected variable vs the distance 
+   * @param weight The weight of the selected variable vs the distance
    */
   private determineRerun(minRadius: number, maxRadius: number, digCategoryId: number, weight: number) {
     if (minRadius !== this.lastMinRadius)
@@ -242,7 +242,7 @@ export class ValAudienceTradeareaService {
   private buildTAConfig(minRadius: number, maxRadius: number, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : AudienceTradeAreaConfig {
     const audienceTALocations: Array<AudienceTradeareaLocation> = new Array<AudienceTradeareaLocation>();
     const taConfig: AudienceTradeAreaConfig = {
-      analysisLevel: this.discoService.get()[0].analysisLevel.toLocaleLowerCase(),
+      analysisLevel: this.stateService.analysisLevel$.getValue().toLocaleLowerCase(),
       digCategoryId: digCategoryId,
       locations: audienceTALocations,
       maxRadius: Number(maxRadius),
@@ -285,7 +285,7 @@ export class ValAudienceTradeareaService {
     }
     if (this.sortMap.get(a.data.valueString) < this.sortMap.get(b.data.valueString)) {
       return 1;
-    } 
+    }
     return 0;
   }
 
@@ -388,8 +388,8 @@ export class ValAudienceTradeareaService {
       const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
       newVar.customVarExprDisplay = audience.audienceName + ' Index';
       newVar.valueNumber = taResponse.indexValue;
-      newVar.isNumber = 1;
-      newVar.isActive = 1;
+      newVar.isNumber = true;
+      newVar.isActive = true;
       newVar.fieldconte = 'INDEX';
       newVars.push(newVar);
       geoVarMap.set(newGeo, newVars);
@@ -411,21 +411,21 @@ export class ValAudienceTradeareaService {
 
   /**
    * The Constructor will build out mock data until there is a REST service available that can deliver this data back to the application
-   * @param varService 
-   * @param locationService 
-   * @param tradeareaService 
-   * @param geoService 
-   * @param rendererService 
-   * @param geoAttribService 
+   * @param varService
+   * @param locationService
+   * @param tradeareaService
+   * @param geoService
+   * @param rendererService
+   * @param geoAttribService
    */
   constructor(private varService: ImpGeofootprintVarService,
+    private stateService: AppStateService,
     private locationService: ImpGeofootprintLocationService,
     private tradeareaService: ImpGeofootprintTradeAreaService,
     private geoService: ImpGeofootprintGeoService,
     private rendererService: AppRendererService,
     private geoAttribService: ImpGeofootprintGeoAttribService,
-    private mapService: ValMapService,
-    private discoService: ImpDiscoveryService,
+    private mapService: AppMapService,
     private httpClient: HttpClient,
     private appConfig: AppConfig,
     private targetAudienceService: TargetAudienceService) {
@@ -434,269 +434,5 @@ export class ValAudienceTradeareaService {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
       this.fetchData = true;
     });
-    const json: string = `[
-      {
-        "gvId": 100000,
-        "geocode": "48025",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100001,
-        "geocode": "48033",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100002,
-        "geocode": "48034",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100003,
-        "geocode": "48037",
-        "isString": true,
-        "valueString": "High"
-      },
-      {
-        "gvId": 100004,
-        "geocode": "48075",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100005,
-        "geocode": "48076",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100006,
-        "geocode": "48127",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100007,
-        "geocode": "48128",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100008,
-        "geocode": "48135",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100009,
-        "geocode": "48136",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100010,
-        "geocode": "48141",
-        "isString": true,
-        "valueString": "Average"
-      },
-      {
-        "gvId": 100011,
-        "geocode": "48150",
-        "isString": true,
-        "valueString": "Extrememly Low"
-      },
-      {
-        "gvId": 100012,
-        "geocode": "48151",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100013,
-        "geocode": "48167",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100014,
-        "geocode": "48168",
-        "isString": true,
-        "valueString": "High"
-      },
-      {
-        "gvId": 100015,
-        "geocode": "48170",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100016,
-        "geocode": "48185",
-        "isString": true,
-        "valueString": "Extrememly Low"
-      },
-      {
-        "gvId": 100017,
-        "geocode": "48186",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100018,
-        "geocode": "48187",
-        "isString": true,
-        "valueString": "High"
-      },
-      {
-        "gvId": 100019,
-        "geocode": "48219",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100020,
-        "geocode": "48223",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100021,
-        "geocode": "48227",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100022,
-        "geocode": "48228",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100023,
-        "geocode": "48235",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100024,
-        "geocode": "48239",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100025,
-        "geocode": "48240",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100026,
-        "geocode": "48301",
-        "isString": true,
-        "valueString": "Extrememly Low"
-      },
-      {
-        "gvId": 100027,
-        "geocode": "48322",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100028,
-        "geocode": "48323",
-        "isString": true,
-        "valueString": "Average"
-      },
-      {
-        "gvId": 100029,
-        "geocode": "48325",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100030,
-        "geocode": "48331",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100031,
-        "geocode": "48333",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100032,
-        "geocode": "48334",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100033,
-        "geocode": "48374",
-        "isString": true,
-        "valueString": "Low"
-      },
-      {
-        "gvId": 100034,
-        "geocode": "48375",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100035,
-        "geocode": "48376",
-        "isString": true,
-        "valueString": "Above Average"
-      },
-      {
-        "gvId": 100036,
-        "geocode": "48377",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100037,
-        "geocode": "48152",
-        "isString": true,
-        "valueString": "Average"
-      },
-      {
-        "gvId": 100038,
-        "geocode": "48153",
-        "isString": true,
-        "valueString": "Below Average"
-      },
-      {
-        "gvId": 100039,
-        "geocode": "48154",
-        "isString": true,
-        "valueString": "Extrememly Low"
-      },
-      {
-        "gvId": 100040,
-        "geocode": "48332",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100041,
-        "geocode": "48335",
-        "isString": true,
-        "valueString": "Extremely High"
-      },
-      {
-        "gvId": 100042,
-        "geocode": "48336",
-        "isString": true,
-        "valueString": "Extremely High"
-      }
-    ]`;
-    const vars: any = JSON.parse(json);
-    for (const item of vars) {
-      this.mockVars.push(item);
-    }
   }
 }

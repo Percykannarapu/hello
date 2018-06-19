@@ -1,7 +1,6 @@
-import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 /** A TARGETING domain class representing the attributes for a given ImpGeofootprintGeo
  **/
-
+import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
@@ -17,7 +16,7 @@ export class ImpGeofootprintGeoAttrib
    public attributeType:               string;
    public attributeValue:              string;
    public formatMask:                  string;
-   public isActive:                    number;
+   public isActive:                    boolean;
 
    // IMPOWER.IMP_GEOFOOTPRINT_GEO_ATTRIBS - MANY TO ONE RELATIONSHIP MEMBERS (NOTE TABLE DOESNT EXIST)
    // -----------------------------------------------------------------------
@@ -28,6 +27,11 @@ export class ImpGeofootprintGeoAttrib
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpGeofootprintGeoAttrib | {} = {}) {
       Object.assign(this, data);
+   }
+
+   // Convert JSON objects into Models
+   public convertToModel()
+   {
    }
 
    /**

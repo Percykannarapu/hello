@@ -93,8 +93,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public getFileName(impProjectId?: Number, siteType?: string)
    {
       try
-      {                 
-         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13) 
+      {
+         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13)
          return siteType + '_' + ((impProjectId != null) ? impProjectId + '_' : '1') + '_' +  fmtDate + '.csv';
       }
       catch (e)
@@ -211,7 +211,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
       this.impProject = project;
       if (filename == null){
-            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13); 
+            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
             filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
       }
       if (filter == null) {
@@ -222,7 +222,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           const locationSet = new Set(locations);
           const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
           if (isDigital === false){
-            const attributeCodeBlackList = new Set(exportColumns.map(c => c.header)); 
+            const attributeCodeBlackList = new Set(exportColumns.map(c => c.header));
             const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
             attributeCodes.forEach(code => {
               if (code != null && !attributeCodeBlackList.has(code)) {

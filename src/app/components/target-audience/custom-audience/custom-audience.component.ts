@@ -3,8 +3,8 @@ import { AppMessagingService } from '../../../services/app-messaging.service';
 import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
 import { TargetAudienceCustomService } from '../../../services/target-audience-custom.service';
-import { TargetAudienceService } from '../../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { TargetAudienceService } from '../../../services/target-audience.service';
 
 @Component({
   selector: 'val-custom-audience',
@@ -15,10 +15,10 @@ export class CustomAudienceComponent {
 
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
 
-  constructor(private messagingService: AppMessagingService, 
+  constructor(private messagingService: AppMessagingService,
               private audienceService: TargetAudienceCustomService,
-              private targetAudienceService: TargetAudienceService) {
-    this.targetAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
+              private parentAudienceService: TargetAudienceService) {
+    this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
    }
 
    private syncCheckData(result: AudienceDataDefinition[]){

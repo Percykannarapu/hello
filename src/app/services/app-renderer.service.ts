@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { ValGeoService } from './app-geo.service';
+import { AppGeoService } from './app-geo.service';
 import { Subscription, Observable, Subject } from 'rxjs';
 import { calculateStatistics, Statistics } from '../app.utils';
 import { TargetAudienceService } from './target-audience.service';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { AppStateService } from './app-state.service';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -53,16 +55,18 @@ export class AppRendererService {
   private currentStatistics: Statistics;
   private currentSelectedGeos: Set<string> = new Set<string>();
 
-  private rendererDataReady: Subject<number> = new Subject<number>();
-  public rendererDataReady$: Observable<number> = this.rendererDataReady.asObservable();
+  private rendererDataReady: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  public rendererDataReady$: Observable<number>;
 
-  constructor(private geoService: ValGeoService, private dataService: TargetAudienceService) {
-    this.geoSubscription = this.geoService.uniqueSelectedGeocodes$.subscribe(geos => {
+  constructor(private appStateService: AppStateService, private dataService: TargetAudienceService) {
+    this.geoSubscription = this.appStateService.uniqueSelectedGeocodes$.subscribe(geos => {
       this.currentSelectedGeos.clear();
-      console.log('app-renderer.service.ctor - # geos', geos.length);
-//    geos.forEach(geo => console.log('  ', geo.toString()));  // Debug print geos
       geos.forEach(geo => this.currentSelectedGeos.add(geo));
     });
+
+    this.rendererDataReady$ = this.rendererDataReady.pipe(
+      distinctUntilChanged()
+    );
 
     this.dataSubscription = this.dataService.shadingData$.pipe(
       map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
@@ -132,7 +136,7 @@ export class AppRendererService {
       this.currentData.set(d.geocode, d.data);
     });
     if (newData == null || newData.length === 0) this.currentData.clear();
-    if (newData != null && newData.length > 0 && newData[0].data.isNumber === 1) {
+    if (newData != null && newData.length > 0 && newData[0].data.isNumber === true) {
       this.currentStatistics = calculateStatistics(newData.map(d => d.data.valueNumber));
     } else {
       this.currentStatistics = null;

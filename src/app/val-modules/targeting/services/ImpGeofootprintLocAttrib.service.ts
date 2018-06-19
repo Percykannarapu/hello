@@ -1,4 +1,4 @@
-/** A TARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS
+/** An IMPTARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS
  **
  ** This class contains code operates against data in its data store.
  ** See the contents of val-modules/common/services/datastore.service.ts to see built in
@@ -6,12 +6,15 @@
  **
  ** NOTE: This class is generated only once and may be updated by developers.
  **
- ** ImpGeofootprintLocAttrib.service.ts generated from VAL_ENTITY_GEN - v2.0
+ ** ImpGeofootprintLocAttrib.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { AppConfig } from '../../../app.config';
 import { RestDataService } from './../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { InTransaction } from './../../common/services/datastore.service'
+import { UserService } from '../../../services/user.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -20,11 +23,14 @@ const dataUrl = 'v1/targeting/base/impgeofootprintlocattrib/search?q=impGeofootp
 @Injectable()
 export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLocAttrib>
 {
-   constructor(private restDataService: RestDataService
-              ,private projectTransactionManager: TransactionManager)
+   constructor(public appConfig: AppConfig,
+               public userService: UserService,
+               public transactionManager: TransactionManager,
+               private restDataService: RestDataService)
    {
-      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocAttrib');
+      super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintLocAttrib');
    }
+
 
    public sort (a: ImpGeofootprintLocAttrib, b: ImpGeofootprintLocAttrib): number
    {

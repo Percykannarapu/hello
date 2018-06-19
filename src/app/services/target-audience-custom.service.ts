@@ -9,6 +9,7 @@ import { TargetAudienceService } from './target-audience.service';
 import { filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { AppStateService } from './app-state.service';
 
 const audienceUploadRules: ParseRule[] = [
   { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
@@ -25,18 +26,20 @@ interface CustomAudienceData {
 export class TargetAudienceCustomService {
   private dataCache: Map<string, Map<string, ImpGeofootprintVar>> = new Map<string, Map<string, ImpGeofootprintVar>>();
 
-  constructor(private messagingService: AppMessagingService, private usageService: UsageService, 
-              private audienceService: TargetAudienceService, private discoService: ImpDiscoveryService) { }
+  constructor(private messagingService: AppMessagingService, private usageService: UsageService,
+              private audienceService: TargetAudienceService, private stateService: AppStateService) { }
 
   private static createGeofootprintVar(geocode: string, column: string, value: string, fileName: string) : ImpGeofootprintVar {
     const fullId = `Custom/${fileName}/${column}`;
-    const result = new ImpGeofootprintVar({ geocode, varPk: -1, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: 1, isString: 0, isNumber: 0, isActive: 1 });
+    const result = new ImpGeofootprintVar({ geocode, varPk: -1, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
       result.valueString = value;
-      result.isString = 1;
+      result.fieldconte = 'CHAR';
+      result.isString = true;
     } else {
       result.valueNumber = Number(value);
-      result.isNumber = 1;
+      result.fieldconte = 'INDEX';
+      result.isNumber = true;
     }
     return result;
   }
@@ -58,6 +61,7 @@ export class TargetAudienceCustomService {
   public parseFileData(dataBuffer: string, fileName: string) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
       const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData<CustomAudienceData>(header, rows, audienceUploadRules);
       const failCount = data.failedRows.length;
@@ -80,7 +84,7 @@ export class TargetAudienceCustomService {
             this.dataCache.set(column, geoDataMap);
             const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
             this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
-            const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + this.discoService.get()[0].analysisLevel;
+            const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
           }
           console.log(this.dataCache);

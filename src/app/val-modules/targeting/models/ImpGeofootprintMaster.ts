@@ -1,64 +1,94 @@
-/** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_MASTER
+/** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_MASTER
  **
- ** Generated from VAL_ENTITY_GEN - v2.01
+ ** Generated from VAL_BASE_GEN - v1.04
  **/
-
+import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpProject } from './ImpProject';
+import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
-import { BaseModel, DAOBaseStatus } from '../../api/models/BaseModel';
+import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
+import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
+import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 
 export class ImpGeofootprintMaster extends BaseModel
 {
-   public cgmId:                     number;                        /// Primary key identifying the current run for the profile.
-   public summaryInd:                number;                        /// 1 = Summary, 0 = Not summary
-   public allowDuplicate:            number;                        /// Indicator for allowing duplicate geos
-   public createdDate:               Date;                          /// Date/Time row was created
-   public status:                    string;                        /// Indicates success or failure of geofootprint creation
-   public methAnalysis:              string;                        /// Method analysis level. ZIP or ATZ
-   public methSeason:                string;                        /// Season
-   public activeLocationCount:       number;                        /// Total number of active location
-   public totalLocationCount:        number;                        /// Total number of location
-   public isMarketBased:             boolean;                        /// 1 = Market based, 2 = Store based
-   public isActive:                  boolean;                        /// Is Active
+   public cgmId:                number;         /// Primary key identifying the current run for the profile.
+   public projectId:            number;         /// The IMPower Project ID
+   public summaryInd:           number;         /// 1 = Summary, 0 = Not summary
+   public allowDuplicate:       number;         /// Indicator for allowing duplicate geos
+   public createdDate:          Date;           /// Date/Time row was created
+   public status:               string;         /// Indicates success or failure of geofootprint creation
+   public methAnalysis:         string;         /// Method analysis level. ZIP or ATZ
+   public methSeason:           string;         /// Season
+   public activeLocationCount:  number;         /// Total number of active location
+   public totalLocationCount:   number;         /// Total number of location
+   public isMarketBased:        boolean;        /// 1 = Market based, 2 = Store based
+   public isActive:             boolean;        /// Is Active
 
-   // IMPOWER.IMP_GEOFOOTPRINT_MASTER - MANY TO ONE RELATIONSHIP MEMBERS
-   // ------------------------------------------------------------------
-   public impProject:                ImpProject;                    /// Captures Project information from the UI
+   // ----------------------------------------------------------------------------
+   // ONE TO MANY RELATIONSHIP MEMBERS
+   // ----------------------------------------------------------------------------
+   public impGeofootprintLocations:      Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
+   // ----------------------------------------------------------------------------
 
-   // IMPOWER.IMP_GEOFOOTPRINT_MASTER - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
-   // ------------------------------------------------------------------
-   public impGeofootprintLocations:  Array<ImpGeofootprintLocation>;  /// Set of impGeofootprintLocations related to this ImpGeofootprintMaster
-   
+   // -------------------------------------------
+   // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impProject:                ImpProject;                     /// Captures Project information from the UI
+
+
+   // -------------------------------------------
+   // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   @transient get impGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
+      let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      (this.impGeofootprintLocations||[]).forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])
+                                         .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos||[]))));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   @transient get impGeofootprintLocAttribs(): ReadonlyArray<ImpGeofootprintLocAttrib> {
+      let _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
+      (this.impGeofootprintLocations||[]).forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs||[])));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   @transient get impGeofootprintTradeAreas(): ReadonlyArray<ImpGeofootprintTradeArea> {
+      let _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
+      (this.impGeofootprintLocations||[]).forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas||[])));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   @transient get impGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
+      let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
+      (this.impGeofootprintLocations||[]).forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])
+                                         .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[]))));
+      return _result;
+   }
+
+
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpGeofootprintMaster>) {
+   constructor(data?: Partial<ImpGeofootprintMaster>) {
       super();
-//      this.clear();
       Object.assign(this, data);
    }
 
-   public clear() 
+   // Convert JSON objects into Models
+   public convertToModel()
    {
-      this.dirty               = true;
-      this.baseStatus          = DAOBaseStatus.INSERT;
-      this.cgmId               = null;
-      this.summaryInd          = null;
-      this.allowDuplicate      = null;
-      this.createdDate         = null;
-      this.status              = null;
-      this.methAnalysis        = null;
-      this.methSeason          = null;
-      this.activeLocationCount = null;
-      this.totalLocationCount  = null;
-      this.isMarketBased       = null;
-      this.isActive            = null;
-   
-      // IMPOWER.IMP_GEOFOOTPRINT_MASTER - MANY TO ONE RELATIONSHIP MEMBERS
-      // ------------------------------------------------------------------
-//      this.impProject          = null;
-   
-      // IMPOWER.IMP_GEOFOOTPRINT_MASTER - ONE TO MANY RELATIONSHIP MEMBERS (TO THE CLASS)
-      // ------------------------------------------------------------------
-      this.impGeofootprintLocations = null;
+      // Convert JSON objects into models
+      this.impGeofootprintLocations = (this.impGeofootprintLocations||[]).map(ma => new ImpGeofootprintLocation(ma));
+
+      // Push this as transient parent to children
+      this.impGeofootprintLocations.forEach(fe => fe.impGeofootprintMaster = this);
+
+      // Ask the children to convert into models
+      this.impGeofootprintLocations.forEach(fe => fe.convertToModel());
    }
 
    /**
@@ -79,8 +109,8 @@ export class ImpGeofootprintMaster extends BaseModel
          ['methSeason',                 'string'],
          ['activeLocationCount',        'number'],
          ['totalLocationCount',         'number'],
-         ['isMarketBased',              'number'],
-         ['isActive',                   'number']
+         ['isMarketBased',              'boolean'],
+         ['isActive',                   'boolean']
          ]);
    }
 
@@ -94,8 +124,17 @@ export class ImpGeofootprintMaster extends BaseModel
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impProject',                 'ImpProject']
-         ]);
+         ['impProject',                 'ImpProject'],
+
+         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+         ['impProject',                 'ImpProject'],
+
+         // TRANSITORY ONE TO MANY RELATIONSHIP MEMBERS
+         ['impGeofootprintGeo',         'Array<ImpGeofootprintGeo>'],
+         ['impGeofootprintLocAttrib',   'Array<ImpGeofootprintLocAttrib>'],
+         ['impGeofootprintTradeArea',   'Array<ImpGeofootprintTradeArea>'],
+         ['impGeofootprintVar',         'Array<ImpGeofootprintVar>'],
+      ]);
    }
 
    /**
@@ -104,4 +143,5 @@ export class ImpGeofootprintMaster extends BaseModel
     * @returns A string containing the class data.
     */
    public toString = () => JSON.stringify(this, null, '   ');
+
 }

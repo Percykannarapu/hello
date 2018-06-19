@@ -1,35 +1,49 @@
-/** A TARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS
+/** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS
  **
- ** Generated from VAL_ENTITY_GEN - v2.01
+ ** Generated from VAL_BASE_GEN - v1.04
  **/
-import { BaseModel } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintLocAttrib extends BaseModel
 {
-   public locAttributeId:              number;                        /// Primary Key
-   public createUser:                  number;
-   public createDate:                  Date;
-   public modifyUser:                  number;
-   public modifyDate:                  Date;
-   public attributeCode:               string;
-   public attributeType:               string;
-   public attributeValue:              string;
-   public formatMask:                  string;
-   public isActive:                    number;                        /// Is Active
+   public locAttributeId:  number;         /// Primary Key
+   public createUser:      number;
+   public createDate:      Date;
+   public modifyUser:      number;
+   public modifyDate:      Date;
+   public cgmId:           number;         /// Foreign key to imp_geofootprint_master.cgm_id
+   public glId:            number;         /// Foreign key to imp_geofootprint_locations.gl_id
+   public projectId:       number;         /// Foreign key to imp_projects.project_id
+   public attributeCode:   string;
+   public attributeType:   string;
+   public attributeValue:  string;
+   public formatMask:      string;
+   public isActive:        boolean;        /// Is Active
+   // -------------------------------------------
+   // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impGeofootprintLocation:     ImpGeofootprintLocation;          /// Geofootprint Locations table
 
-   // IMPOWER.IMP_GEOFOOTPRINT_LOC_ATTRIBS - MANY TO ONE RELATIONSHIP MEMBERS
-   // -----------------------------------------------------------------------
-   public impGeofootprintLocation:     ImpGeofootprintLocation;       /// Geofootprint Locations table
-   public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-   public impProject:                  ImpProject;                    /// Captures Project information from the UI
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impGeofootprintMaster:       ImpGeofootprintMaster;            /// Geofootprint master table for IMPower.
+
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impProject:                  ImpProject;                       /// Captures Project information from the UI
+
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpGeofootprintLocAttrib>) {
+   constructor(data?: Partial<ImpGeofootprintLocAttrib>) {
       super();
       Object.assign(this, data);
+   }
+
+   // Convert JSON objects into Models
+   public convertToModel()
+   {
    }
 
    /**
@@ -50,7 +64,7 @@ export class ImpGeofootprintLocAttrib extends BaseModel
          ['attributeType',                'string'],
          ['attributeValue',               'string'],
          ['formatMask',                   'string'],
-         ['isActive',                     'number']
+         ['isActive',                     'boolean']
          ]);
    }
 
@@ -66,8 +80,13 @@ export class ImpGeofootprintLocAttrib extends BaseModel
          // MANY TO ONE RELATIONSHIP MEMBERS
          ['impGeofootprintLocation',      'ImpGeofootprintLocation'],
          ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
-         ['impProject',                   'ImpProject']
-         ]);
+         ['impProject',                   'ImpProject'],
+
+         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+         ['impGeofootprintLocation',      'ImpGeofootprintLocation'],
+         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
+         ['impProject',                   'ImpProject'],
+      ]);
    }
 
    /**
@@ -76,4 +95,5 @@ export class ImpGeofootprintLocAttrib extends BaseModel
     * @returns A string containing the class data.
     */
    public toString = () => JSON.stringify(this, null, '   ');
+
 }

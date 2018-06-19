@@ -9,8 +9,6 @@
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { ImpDiscoveryUI } from '../../../models/ImpDiscoveryUI';
-import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeArea } from './../models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
@@ -42,15 +40,14 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
-   private impDiscoveryUI: ImpDiscoveryUI;
    private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
+   private analysisLevelForExport: string;
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
    private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
    private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
 
    constructor(private restDataService: RestDataService,
-               private impDiscoveryService: ImpDiscoveryService,
                private projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private messageService: AppMessagingService,
@@ -60,20 +57,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
 
-      impDiscoveryService.storeObservable.subscribe(discoveryData => this.onChangeDiscovery(discoveryData[0]));
       impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
    }
 
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
-   public getFileName(impProjectId?: Number)
+   public getFileName(analysisLevel: string, impProjectId?: Number)
    {
       try
       {
-         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13);
+         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
 
-         return 'GeoFootPrint' + '_'+ ((impProjectId != null) ? impProjectId + '_' : '1')+'_'+ ((this.impDiscoveryUI.analysisLevel != null) ? this.impDiscoveryUI.analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
+         return 'GeoFootPrint' + '_'+ ((impProjectId != null) ? impProjectId + '_' : '1')+'_'+ ((analysisLevel != null) ? analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
       }
       catch(e)
       {
@@ -85,11 +81,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // SUBSCRIPTION CALLBACK METHODS
    // -----------------------------------------------------------
-   public onChangeDiscovery(impDiscoveryUI: ImpDiscoveryUI)
-   {
-      this.impDiscoveryUI = impDiscoveryUI;
-   }
-
    public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
    {
       this.impGeofootprintTradeAreas = impGeofootprintTradeAreas;
@@ -99,10 +90,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // EXPORT COLUMN HANDLER METHODS
    // -----------------------------------------------------------
-   public exportVarGeoHeader<ImpGeofootprintGeo> (state: ImpGeofootprintGeoService)
+   public exportVarGeoHeader(state: ImpGeofootprintGeoService)
    {
    // console.log('exportVar handler for #V-GEOHEADER fired');
-      const analysisLevel = (state.impDiscoveryUI != null && state.impDiscoveryUI.analysisLevel != null) ? state.impDiscoveryUI.analysisLevel.toUpperCase() : 'ATZ';
+      const analysisLevel = (state.analysisLevelForExport != null) ? state.analysisLevelForExport.toUpperCase() : 'ATZ';
 
       let varValue: any;
 
@@ -641,8 +632,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, filter?: (geo: ImpGeofootprintGeo) => boolean)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, analysisLevel: string, filter?: (geo: ImpGeofootprintGeo) => boolean)
    {
+      this.analysisLevelForExport = analysisLevel;
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       let geos: ImpGeofootprintGeo[] = this.get();
 
@@ -678,7 +670,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.addAdditionalExportColumns(exportColumns, 17);
 
       if (filename == null)
-         filename = this.getFileName();
+         filename = this.getFileName(analysisLevel);
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();

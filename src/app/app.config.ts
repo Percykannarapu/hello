@@ -65,7 +65,7 @@ export class AppConfig implements EsriLoaderConfig {
 
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
      console.log('app.config.getLayerIdForAnalysisLevel - analysisLevel: ', analysisLevel);
-    switch (analysisLevel.toLowerCase()) {
+    switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
         return boundary ? this.layerIds.zip.topVars.id : this.layerIds.zip.centroids.id;
       case 'atz':
@@ -78,5 +78,4 @@ export class AppConfig implements EsriLoaderConfig {
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }
   }
-
 }

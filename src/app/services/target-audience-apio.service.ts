@@ -9,7 +9,7 @@ import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
 import { chunkArray } from '../app.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { AppStateService } from './app-state.service';
 
 interface ApioCategoryResponse {
   categoryId: string;
@@ -100,7 +100,7 @@ export class TargetAudienceApioService {
   private audienceDescriptions$: Observable<ApioAudienceDescription[]>;
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private usageService: UsageService) {
+              private usageService: UsageService, private appStateService: AppStateService) {
     this.fuseSourceMapping.set(SourceTypes.Interest, 'interest');
     this.fuseSourceMapping.set(SourceTypes.InMarket, 'in_market');
   }
@@ -128,26 +128,29 @@ export class TargetAudienceApioService {
       geocode: response.geocode,
       varPk: Number(response.categoryId),
       customVarExprQuery: fullId,
-      isString: 0,
-      isNumber: 0,
-      isActive: 1
+      isString: false,
+      isNumber: false,
+      isActive: true
     });
+    // this is the full category description object that comes from Fuse
     const description = descriptionMap.get(response.categoryId);
     if (description != null) {
       result.customVarExprDisplay = `${description.audienceName} (${source})`;
       if (Number.isNaN(Number(response[description.selectedDataSet]))) {
         result.valueString = response[description.selectedDataSet];
-        result.isString = 1;
+        result.fieldconte = 'CHAR';
+        result.isString = true;
       } else {
         result.valueNumber = Number(response[description.selectedDataSet]);
-        result.isNumber = 1;
+        result.fieldconte = 'INDEX';
+        result.isNumber = true;
       }
     }
     return result;
   }
 
-  public addAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
-    this.usageMetricCheckUncheckApio('checked', audience, discoService, source.toString());
+  public addAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+    this.usageMetricCheckUncheckApio('checked', audience, source.toString());
     const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
@@ -156,8 +159,8 @@ export class TargetAudienceApioService {
       );
   }
 
-  public removeAudience(audience: ApioAudienceDescription, source: SourceTypes, discoService?: ImpDiscoveryService) {
-    this.usageMetricCheckUncheckApio('unchecked', audience, discoService, source.toString());
+  public removeAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+    this.usageMetricCheckUncheckApio('unchecked', audience, source.toString());
     this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
   }
 
@@ -240,10 +243,11 @@ export class TargetAudienceApioService {
     return observables;
   }
 
-  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, discoService?: ImpDiscoveryService, source?: string){
+  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, source?: string) {
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-      const metricText = audience.categoryId + '~' + audience.categoryName + '~' + source + '~' + discoService.get()[0].analysisLevel;
-      this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    const metricText = audience.categoryId + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
   }
 }

@@ -1,34 +1,49 @@
-/** A TARGETING domain class representing the table: IMPOWER.IMP_PROJECT_PREFS
+/** An IMPTARGETING domain class representing the table: IMPOWER.IMP_PROJECT_PREFS
  **
- ** Generated from VAL_ENTITY_GEN - v2.01
+ ** Generated from VAL_BASE_GEN - v1.04
  **/
-
+import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ImpClientPref } from '../../client/models/ImpClientPref';
 import { ImpProject } from './ImpProject';
 
-export class ImpProjectPref
+export class ImpProjectPref extends BaseModel
 {
-   public projectPrefId:               number;                    /// Primary Key
-   public createUser:                  number;
-   public createDate:                  Date;
-   public modifyUser:                  number;
-   public modifyDate:                  Date;
-   public clientIdentifierId:          number;
-   public attributeCode:               string;
-   public attributeType:               string;
-   public attributeValue:              string;
-   public isActive:                    number;
+   public projectPrefId:             number;         /// Primary Key
+   public createUser:                number;
+   public createDate:                Date;
+   public modifyUser:                number;
+   public modifyDate:                Date;
+   public clientPrefId:              number;
+   public projectId:                 number;
+   public clientIdentifierTypeCode:  string;
+   public clientIdentifierId:        number;
+   public attributeCode:             string;
+   public attributeType:             string;
+   public attributeValue:            string;
+   public isActive:                  boolean;
+   // -------------------------------------------
+   // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
 
-   // IMPOWER.IMP_PROJECT_PREFS - MANY TO ONE RELATIONSHIP MEMBERS
-   // ------------------------------------------------------------
-   public clientIdentifierType:        ClientIdentifierType;      /// Cbx Client Identifier Types
-   public impClientPref:               ImpClientPref;             /// Client Library Preferences
-   public impProject:                  ImpProject;                /// Captures Project information from the UI
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impClientPref:               ImpClientPref;                 /// Client Library Preferences
+
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impProject:                  ImpProject;                    /// Captures Project information from the UI
+
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpProjectPref>) {
+   constructor(data?: Partial<ImpProjectPref>) {
+      super();
       Object.assign(this, data);
+   }
+
+   // Convert JSON objects into Models
+   public convertToModel()
+   {
    }
 
    /**
@@ -49,7 +64,7 @@ export class ImpProjectPref
          ['attributeCode',                'string'],
          ['attributeType',                'string'],
          ['attributeValue',               'string'],
-         ['isActive',                     'number']
+         ['isActive',                     'boolean']
          ]);
    }
 
@@ -65,8 +80,13 @@ export class ImpProjectPref
          // MANY TO ONE RELATIONSHIP MEMBERS
          ['clientIdentifierType',         'ClientIdentifierType'],
          ['impClientPref',                'ImpClientPref'],
-         ['impProject',                   'ImpProject']
-         ]);
+         ['impProject',                   'ImpProject'],
+
+         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+         ['clientIdentifierType',         'ClientIdentifierType'],
+         ['impClientPref',                'ImpClientPref'],
+         ['impProject',                   'ImpProject'],
+      ]);
    }
 
    /**
@@ -75,4 +95,5 @@ export class ImpProjectPref
     * @returns A string containing the class data.
     */
    public toString = () => JSON.stringify(this, null, '   ');
+
 }

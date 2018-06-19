@@ -6,5 +6,5 @@
   <!--<button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>-->
 </div>
 <div class="ui-toolbar-group-right val-flush-to-edges" style="margin-top: 15px;">
-  <span style="font-weight: bold;"> Analysis Level = {{currentAnalysisLevel}}</span>
+  <span style="font-weight: bold;"> Analysis Level = {{currentAnalysisLevel$ | async}}</span>
 </div>

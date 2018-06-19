@@ -9,6 +9,7 @@ export interface ParseRule {
    * If the header is successfully found, this is the name of the data field the column is output into
    */
   outputFieldName: string;
+  mustBeUnique?: boolean;
   required?: boolean;
   dataProcess?: (data: string) => any;
   found?: boolean;
@@ -17,10 +18,12 @@ export interface ParseRule {
 export interface ParseResponse<T> {
   failedRows: string[];
   parsedData: T[];
+  duplicateKeys: string[];
 }
 
 export class FileService {
-  public locNumberSet: Set<string>;
+
+  public static uniqueSet: Set<string> = new Set<string>();
 
   constructor() {}
 
@@ -38,9 +41,9 @@ export class FileService {
     if (headerValidator != null && !headerValidator(parseEngine)) return null;
     const result: ParseResponse<T> = {
       failedRows: [],
-      parsedData: []
+      parsedData: [],
+      duplicateKeys: []
     };
-    this.prototype.locNumberSet = new Set<string>();
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -62,8 +65,12 @@ export class FileService {
         const dataResult: T = {} as T;
         for (let j = 0; j < columns.length; ++j) {
           dataResult[parseEngine[j].outputFieldName] = parseEngine[j].dataProcess(columns[j]);
-          if (parseEngine[j].outputFieldName === 'number'){
-            this.prototype.locNumberSet.add(parseEngine[j].dataProcess(columns[j]));
+          if (parseEngine[j].mustBeUnique === true) {
+            if (this.uniqueSet.has(dataResult[parseEngine[j].outputFieldName])) {
+              result.duplicateKeys.push(dataResult[parseEngine[j].outputFieldName]);
+            } else {
+              this.uniqueSet.add(dataResult[parseEngine[j].outputFieldName]);
+            }
           }
         }
         result.parsedData.push(dataResult);
@@ -75,11 +82,10 @@ export class FileService {
   private static generateEngine(headerRow: string, parsers: ParseRule[], delimiter: string) : ParseRule[] {
     const regExString = `(".*?"|[^\\s"${delimiter}][^"${delimiter}]+[^\\s"${delimiter}])(?=\\s*${delimiter}|\\s*$)`;
     const regex = new RegExp(regExString, 'gi');
-    console.log('Header before split', headerRow);
     const headerColumns = headerRow.includes('"') ? headerRow.match(regex) : headerRow.split(delimiter);
-    console.log('Header after split', headerColumns);
     const result: ParseRule[] = [];
     const requiredHeaders: ParseRule[] = parsers.filter(p => p.required === true);
+    const uniqueHeaders: ParseRule[] = parsers.filter(p => p.mustBeUnique === true);
     // reset the column parser for a new file
     parsers.forEach(p => {
       p.found = false;
@@ -102,6 +108,10 @@ export class FileService {
     const reqHeaders = requiredHeaders.filter(p => !p.found);
     if (reqHeaders.length > 0) {
       throw new Error(`"${reqHeaders[0].outputFieldName}" is a required column and was not found in the file.`);
+    }
+    const unHeaders = uniqueHeaders.filter(p => !p.found);
+    if (unHeaders.length > 1) {
+      throw new Error('The file parsing rule set and file includes multiple unique columns. The current implementation only supports one.');
     }
     return result;
   }

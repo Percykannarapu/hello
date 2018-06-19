@@ -91,7 +91,7 @@ export class DataStore<T>
    {
       try
       {
-         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '') 
+         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '')
                             + ((this.storeName != null) ? this.storeName.toUpperCase() + ' ' : '')
                             + 'STORE CONTENTS #----------------');
 
@@ -131,7 +131,7 @@ export class DataStore<T>
      * @param {K} fieldName: The name of the field to extract grouping info from
      * @returns {Map<keyof T, T[]>}
      */
-    public groupBy<K extends keyof T>(fieldName: K) : Map<keyof T, T[]>
+    public groupBy<K extends keyof T>(fieldName: K) : Map<T[K], T[]>
     {
       return groupBy(this._dataStore, fieldName);
     }
@@ -372,7 +372,7 @@ export class DataStore<T>
    }
 
    // For database removals
-   public addDbRemove(removeData: T | T[])
+   public addDbRemove(removeData: T | T[] | ReadonlyArray<T>)
    {
       if (Array.isArray(removeData))
          for (let removeElement of removeData)
@@ -416,7 +416,7 @@ export class DataStore<T>
          this.transactionManager.push(this._storeSubject, this._dataStore);
    }
 
-   public remove (data: T | T[], inTransaction: InTransaction = InTransaction.true)
+   public remove (data: T | T[] | ReadonlyArray<T>, inTransaction: InTransaction = InTransaction.true)
    {
       if (data == null)
          return;

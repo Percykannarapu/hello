@@ -1,3 +1,5 @@
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+
 export class TradeAreaUIModel {
   tradeArea?: number;
   isShowing: boolean;
@@ -17,6 +19,14 @@ export class TradeAreaUIModel {
 
   get tradeAreaInKm() : number {
     return this.tradeArea / 0.62137;
+  }
+
+  applyDatastoreInstance(data: ImpGeofootprintTradeArea) : void {
+    if (data != null) {
+      this.tradeArea = data.taRadius;
+      this.isShowing = data.isActive;
+      this.isValid = true;
+    }
   }
 
   validate(input: string) : void {

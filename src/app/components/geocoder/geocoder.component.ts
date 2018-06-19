@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AppConfig } from '../../app.config';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ValGeocodingService } from '../../services/app-geocoding.service';
-import { ValSiteListService } from '../../services/app-site-list.service';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
+import { AppLocationService } from '../../services/app-location.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -31,35 +31,31 @@ export class GeocoderComponent implements OnInit {
   private messagingKey: string = 'GeocoderComponentKey';
 
   constructor(public config: AppConfig,
-              public geocodingService: ValGeocodingService,
-              private siteListService: ValSiteListService,
+              public geocodingService: AppGeocodingService,
+              private siteListService: AppLocationService,
               private messageService: AppMessagingService,
-              private usageService: UsageService, 
+              private usageService: UsageService,
               private locationService: ImpGeofootprintLocationService) {
-
-                    this.hasFailures$ = this.geocodingService.hasFailures$;
-                    this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
-                    this.failureCount$ = this.geocodingService.failureCount$;
-                    // this.totalCount = this.geocodingService.totalCount;
+    this.hasFailures$ = this.geocodingService.hasFailures$;
+    this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
+    this.failureCount$ = this.geocodingService.failureCount$;
   }
 
-  public ngOnInit(): void {
+  public ngOnInit() : void {
     this.siteModel = new ValGeocodingRequest({});
     this.compModel = new ValGeocodingRequest({});
     this.currentModel = this.siteModel;
-
-    const s = this.locationService.storeObservable.subscribe(loc => {
-        this.successCount = loc.length;
-        this.calculateCounts();
-      });   
-    const f = this.failureCount$.subscribe(n => {
-        this.failureCount = n;
-        this.calculateCounts();
-      });
-      
+    this.locationService.storeObservable.subscribe(loc => {
+      this.successCount = loc.length;
+      this.calculateCounts();
+    });
+    this.failureCount$.subscribe(n => {
+      this.failureCount = n;
+      this.calculateCounts();
+    });
   }
-  
-  public calculateCounts(){
+
+  public calculateCounts() : void {
     this.count = this.successCount + this.failureCount;
   }
 
@@ -76,29 +72,25 @@ export class GeocoderComponent implements OnInit {
   public onResubmit(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
     this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
-    this.siteListService.geocodeAndPersist([row.toGeocodingRequest()], this.currentManualSiteType).then(() => {
-      this.messageService.stopSpinnerDialog(this.messagingKey);
-    });
+    this.geocodeModel(row.toGeocodingRequest());
   }
 
   public onAccept(row: ValGeocodingResponse) {
-    const valGeoList: ValGeocodingResponse[] = [];
-    valGeoList.push(row);
-        
     this.geocodingService.removeFailedGeocode(row);
 
     if (row['userHasEdited'] != null && row['userHasEdited'] === true) {
       row['Geocode Status'] = 'PROVIDED';
-   } else row['Geocode Status'] = 'SUCCESS';
-    this.siteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.currentManualSiteType)));
+    } else {
+      row['Geocode Status'] = 'SUCCESS';
+    }
 
+    this.siteListService.persistLocationsAndAttributes([row.toGeoLocation(this.currentManualSiteType)]);
   }
 
   // remove an GeocodingResponse from the  list of sites that failed to geocode
   public onRemove(row) {
     this.geocodingService.removeFailedGeocode(row);
   }
-
 
   public onGeocode() {
     const number = this.currentModel.number != null ? 'Number=' + this.currentModel.number + '~' : '';
@@ -117,9 +109,7 @@ export class GeocoderComponent implements OnInit {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-      this.siteListService.geocodeAndPersist([this.currentModel], this.currentManualSiteType).then(() => {
-        this.messageService.stopSpinnerDialog(this.messagingKey);
-      });
+      this.geocodeModel(this.currentModel);
     }
     else{
       this.handleError(`Site Number already exist on the project.`);
@@ -170,6 +160,20 @@ export class GeocoderComponent implements OnInit {
    this.currentModel.latitude = '42.004672';
    this.currentModel.longitude = '-83.939051';
  }
+
+  private geocodeModel(model: ValGeocodingRequest) : void {
+    this.siteListService.geocode([model], this.currentManualSiteType).subscribe(
+      locations => {
+        this.siteListService.persistLocationsAndAttributes(locations);
+        this.siteListService.zoomToLocations(locations);
+      },
+      err => {
+        console.error('There was an error geocoding the site', err);
+        this.messageService.stopSpinnerDialog(this.messagingKey);
+      },
+      () => this.messageService.stopSpinnerDialog(this.messagingKey)
+    );
+  }
 
   private handleError(message: string) : void {
    // this.messageService.stopSpinnerDialog(this.spinnerKey);

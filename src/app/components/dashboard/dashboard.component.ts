@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import {  MenuItem } from 'primeng/primeng';
 import { MapService } from '../../services/map.service';
 import { ColorBoxComponent } from '../color-box/color-box.component';
-import { AppService } from '../../services/app.service';
+import { AppBusinessSearchService } from '../../services/app-business-search.service';
 import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -49,7 +49,7 @@ export class DashboardComponent implements OnInit {
     // This is the only place these services are being injected, so leave them.
     // They need to be injected somewhere so they can run properly
     constructor(private mapService: MapService,
-                private appService: AppService,
+                private appService: AppBusinessSearchService,
                 private metricService: MetricService,
                 private radService: RadService,
                 private targetAudienceService: TargetAudienceMetricService,

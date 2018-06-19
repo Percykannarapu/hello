@@ -30,11 +30,9 @@ export class MapDispatchService {
     return this.mapService.createMapFieldHandler<__esri.Basemap>('basemap');
   }
 
-  public onMapViewClick() : Observable<__esri.Point> {
+  public onMapViewClick() : Observable<__esri.MapViewClickEvent> {
     console.log('onMapViewClick subscribed');
-    return this.mapService.createMapViewEventHandler<__esri.MapViewClickEvent>('click').pipe(
-      map(evt => evt.mapPoint)
-    );
+    return this.mapService.createMapViewEventHandler<__esri.MapViewClickEvent>('click');
   }
 
   public afterMapViewUpdate() : Observable<__esri.MapView> {

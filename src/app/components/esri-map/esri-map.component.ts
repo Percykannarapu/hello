@@ -4,7 +4,7 @@ import { Input, Output, EventEmitter } from '@angular/core';
 import { mapFunctions } from '../../app.component';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
-import { ValMapService } from '../../services/app-map.service';
+import { AppMapService } from '../../services/app-map.service';
 import { MapDispatchService } from '../../services/map-dispatch.service';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
 
@@ -38,7 +38,7 @@ export class EsriMapComponent implements OnInit {
   private mapView: __esri.MapView;
 
   constructor(public mapService: MapService, private mapDispatch: MapDispatchService,
-               private modules: EsriModules, private newMapService: ValMapService,
+               private modules: EsriModules, private newMapService: AppMapService,
               private esriMapService: EsriMapService, private esriLayerService: EsriLayerService) {
     console.log('Constructing esri-map-component');
   }
@@ -75,7 +75,7 @@ export class EsriMapComponent implements OnInit {
       this.mapService.createMapView();
       this.mapService.setMapLayers(['PCR', 'DIG_ATZ', 'ATZ', 'ZIP', 'WRAP', 'COUNTY', 'DMA']);
       this.mapService.hideMapLayers();
-      this.mapDispatch.onMapViewClick().subscribe(location => this.clickHandler(location));
+      this.mapDispatch.onMapViewClick().subscribe(event => this.clickHandler(event));
       EsriMapComponent.replaceCopyrightElement();
       this.mapDispatch.afterMapViewUpdate().subscribe(
         () => this.saveMapViewData(this.mapContainerEl), null, () => this.setMapHeight());
@@ -138,9 +138,9 @@ export class EsriMapComponent implements OnInit {
     }
   }
 
-  private clickHandler(location: __esri.Point){
+  private clickHandler(event: __esri.MapViewClickEvent){
     if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
-      this.newMapService.handleClickEvent(location);
+      this.newMapService.handleClickEvent(event);
     }
   }
 

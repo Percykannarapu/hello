@@ -1,9 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { distinctUntilChanged, filter, map, mergeMap, switchMap, take, tap } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap } from 'rxjs/operators';
 import { UsageService } from './usage.service';
-import { ValGeoService } from './app-geo.service';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { MapDispatchService } from './map-dispatch.service';
@@ -11,8 +10,9 @@ import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootpr
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { AppStateService } from './app-state.service';
+import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -24,49 +24,37 @@ export class TargetAudienceService implements OnDestroy {
   private newSelectedGeos$: Observable<string[]>;
   private newVisibleGeos$: Observable<string[]>;
   private currentVisibleGeos$: Observable<string[]>;
-  private analysisLevel$: Observable<string>;
 
   private nationalSources = new Map<string, nationalSource>();
   private audienceSources = new Map<string, audienceSource>();
   public  audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
   private audiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
+  private deletedAudiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
   private shadingData: BehaviorSubject<Map<string, ImpGeofootprintVar>> = new BehaviorSubject<Map<string, ImpGeofootprintVar>>(new Map<string, ImpGeofootprintVar>());
   private shadingSub: Subscription;
   private selectedSub: Subscription;
-
-  //used to store deleted variables from selected Audiance tab
-  public deletedAudiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
-
-  private currentAnalysisLevel: string; // only used for National Extract
 
   public shadingData$: Observable<Map<string, ImpGeofootprintVar>> = this.shadingData.asObservable();
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
-  constructor(private geoService: ValGeoService, private discoveryService: ImpDiscoveryService,
+  constructor(private geoService: AppGeoService, private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
               private usageService: UsageService, private messagingService: AppMessagingService,
               private config: AppConfig, private mapDispatchService: MapDispatchService) {
-    this.analysisLevel$ = this.discoveryService.storeObservable.pipe(
-      filter(disc => disc != null && disc.length > 0 && disc[0].analysisLevel != null && disc[0].analysisLevel !== ''),
-      map(disc => disc[0].analysisLevel),
-      distinctUntilChanged(),
-      tap(al => this.currentAnalysisLevel = al)
-    );
-
-    this.newVisibleGeos$ = this.analysisLevel$.pipe(
+    this.newVisibleGeos$ = this.appStateService.analysisLevel$.pipe(
       map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id
       tap(() => this.clearShadingData()),   // and clear the data cache
       switchMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId)), // set up sub on map-visible geocodes
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
     );
 
-    this.currentVisibleGeos$ = this.analysisLevel$.pipe(
+    this.currentVisibleGeos$ = this.appStateService.analysisLevel$.pipe(
       map(al => this.config.getLayerIdForAnalysisLevel(al)),
       mergeMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId, true).pipe(take(1)))
     );
 
-    this.newSelectedGeos$ = this.geoService.uniqueSelectedGeocodes$.pipe(
+    this.newSelectedGeos$ = this.appStateService.uniqueSelectedGeocodes$.pipe(
       map(geos => {
         const varGeos = new Set(this.varService.get().map(gv => gv.geocode));
         return geos.filter(g => !varGeos.has(g));
@@ -106,22 +94,21 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(sourceType, sourceName);
     const audienceId = this.createKey(sourceId, audienceIdentifier);
     if (this.audienceMap.has(audienceId)) {
-      const deletedAudienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>(); 
+      const deletedAudienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
        const deletedAudience = this.audienceMap.get(audienceId);
        deletedAudienceMap.set(audienceId, this.audienceMap.get(audienceId));
-       
+
       this.deletedAudiences.next(Array.from(deletedAudienceMap.values()));
     }
   }
 
-  public exportNationalExtract() : void {
+  public exportNationalExtract(analysisLevel: string, projectId: number) : void {
     const spinnerId = 'NATIONAL_EXTRACT';
     const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
-    const projects = this.projectService.get();
-    if (audiences.length > 0 && this.currentAnalysisLevel != null && this.currentAnalysisLevel.length > 0 && projects.length > 0 && projects[0].projectId != null) {
+    if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
       this.messagingService.startSpinnerDialog(spinnerId, 'Downloading National Data');
-      this.getNationalData(audiences[0]).subscribe(
+      this.getNationalData(audiences[0], analysisLevel).subscribe(
         data => convertedData.push(...data),
         err => {
           console.error('There was an error processing the National Extract', err);
@@ -130,10 +117,10 @@ export class TargetAudienceService implements OnDestroy {
         () => {
           try {
             const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'export' });
-            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + this.discoveryService.get()[0].analysisLevel;
+            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${this.currentAnalysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
+            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
             const sheetName = audiences[0].audienceName.substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
@@ -147,7 +134,7 @@ export class TargetAudienceService implements OnDestroy {
     } else {
       if (audiences.length === 0) {
         this.messagingService.showGrowlError('National Extract Export', 'A variable must be selected for a national extract before exporting.');
-      } else if (this.currentAnalysisLevel == null || this.currentAnalysisLevel.length === 0) {
+      } else if (analysisLevel == null || analysisLevel.length === 0) {
         this.messagingService.showGrowlError('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
       } else {
         this.messagingService.showGrowlError('National Extract Export', 'The project must be saved before exporting a national extract.');
@@ -181,22 +168,22 @@ export class TargetAudienceService implements OnDestroy {
       this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
-      combineLatest(this.analysisLevel$, this.currentVisibleGeos$).subscribe(
+      combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
         ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
       // set up a map watch process
-      this.shadingSub = combineLatest(this.analysisLevel$, this.newVisibleGeos$).subscribe(
+      this.shadingSub = combineLatest(this.appStateService.analysisLevel$, this.newVisibleGeos$).subscribe(
         ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0])
       );
     }
     if (selectedAudiences.length > 0) {
       // pre-load selection data
-      combineLatest(this.analysisLevel$, this.geoService.uniqueSelectedGeocodes$).pipe(
+      combineLatest(this.appStateService.analysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
         take(1),
       ).subscribe(
         ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
       );
       // set up a watch process
-      this.selectedSub = combineLatest(this.analysisLevel$, this.newSelectedGeos$).subscribe(
+      this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$).subscribe(
         ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
       );
     }
@@ -252,8 +239,8 @@ export class TargetAudienceService implements OnDestroy {
     );
   }
 
-  private getNationalData(audience: AudienceDataDefinition) : Observable<any[]> {
+  private getNationalData(audience: AudienceDataDefinition, analysisLevel: string) : Observable<any[]> {
     const sourceKey = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
-    return this.nationalSources.get(sourceKey)(this.currentAnalysisLevel, audience.audienceIdentifier);
+    return this.nationalSources.get(sourceKey)(analysisLevel, audience.audienceIdentifier);
   }
 }

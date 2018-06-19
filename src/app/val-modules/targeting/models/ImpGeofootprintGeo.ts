@@ -1,39 +1,63 @@
-/** A IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
+/** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
  **
- ** Generated from VAL_BASE_GEN - v1.02
+ ** Generated from VAL_BASE_GEN - v1.04
  **/
-import { BaseModel } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpProject } from './ImpProject';
+import { ImpGeofootprintGeoAttrib } from './ImpGeofootprintGeoAttrib';
 
 export class ImpGeofootprintGeo extends BaseModel
 {
-   public ggId:                         number;                        /// Primary key uniquely identifying a geofootprint row
-   public geocode:                      string;                        /// The geography
-   public geoSortOrder:                 number;                        /// Geography sort order
-   public hhc:                          number;                        /// Household count
-   public xcoord:                       number;                        /// x_coord is longitude
-   public ycoord:                       number;                        /// y_coord is latitude
-   public distance:                     number;                        /// Geocodes distance to the location
-   public isActive:                     boolean;
+   public ggId:          number;         /// Primary key uniquely identifying a geofootprint row
+   public cgmId:         number;         /// Foreign key to imp_geofootprint_master.cgm_id
+   public glId:          number;         /// Foreign key to imp_geofootprint_locations.gl_id
+   public gtaId:         number;         /// Foreign key to imp_geofootprint_trade_areas.gta_id
+   public projectId:     number;         /// The IMPower Project ID
+   public geocode:       string;         /// The geography
+   public geoSortOrder:  number;         /// Geography sort order
+   public hhc:           number;         /// Household count
+   public xcoord:        number;         /// x_coord is longitude
+   public ycoord:        number;         /// y_coord is latitude
+   public distance:      number;         /// Geocodes distance to the location
+   public isActive:      boolean;
 
-   // Transient fields
-   public rank:                         number;
-   public isDeduped:                    number;
+   // ----------------------------------
+   // TRANSITORY MEMBERS (NOT PERSISTED)
+   // ----------------------------------
+   public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
+   public rank:          number;         /// Rank used to calculate dupes
 
-   // IMPOWER.IMP_GEOFOOTPRINT_GEOS - MANY TO ONE RELATIONSHIP MEMBERS
-   // ----------------------------------------------------------------
-   public impGeofootprintLocation:      ImpGeofootprintLocation;       /// Geofootprint Locations table
-   public impGeofootprintMaster:        ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-   public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;      /// Geofootprint Trade Areas
-   public impProject:                   ImpProject;                    /// Captures Project information from the UI
+   @transient public impGeofootprintGeoAttribs: Array<ImpGeofootprintGeoAttrib> = new Array<ImpGeofootprintGeoAttrib>();
+
+   // -------------------------------------------
+   // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impGeofootprintLocation:      ImpGeofootprintLocation;           /// Geofootprint Locations table
+
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impGeofootprintMaster:        ImpGeofootprintMaster;             /// Geofootprint master table for IMPower.
+
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;          /// Geofootprint Trade Areas
+
+   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
+   @transient public impProject:                   ImpProject;                        /// Captures Project information from the UI
+
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintGeo>) {
       super();
       Object.assign(this, data);
+   }
+
+   // Convert JSON objects into Models
+   public convertToModel()
+   {
+     this.impGeofootprintGeoAttribs = this.impGeofootprintGeoAttribs || [];
    }
 
    /**
@@ -52,7 +76,7 @@ export class ImpGeofootprintGeo extends BaseModel
          ['xcoord',                        'number'],
          ['ycoord',                        'number'],
          ['distance',                      'number'],
-         ['isActive',                      'number']
+         ['isActive',                      'boolean']
          ]);
    }
 
@@ -69,8 +93,14 @@ export class ImpGeofootprintGeo extends BaseModel
          ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
          ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
          ['impGeofootprintTradeArea',      'ImpGeofootprintTradeArea'],
-         ['impProject',                    'ImpProject']
-         ]);
+         ['impProject',                    'ImpProject'],
+
+         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
+         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
+         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
+         ['impGeofootprintTradeArea',      'ImpGeofootprintTradeArea'],
+         ['impProject',                    'ImpProject'],
+      ]);
    }
 
    /**

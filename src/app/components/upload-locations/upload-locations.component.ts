@@ -1,18 +1,18 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { siteListUploadRules, siteUploadHeaderValidator } from './upload.rules';
 import { FileService, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
-import { ValGeocodingService } from '../../services/app-geocoding.service';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
 import { FileUpload } from 'primeng/primeng';
-import { ValSiteListService } from '../../services/app-site-list.service';
+import { AppLocationService } from '../../services/app-location.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import * as XLSX from 'xlsx';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
-import { Subscription, Observable } from 'rxjs';
-import { ValGeoService } from '../../services/app-geo.service';
+import { Observable } from 'rxjs';
+import { AppGeoService } from '../../services/app-geo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 
 @Component({
@@ -40,11 +40,11 @@ export class UploadLocationsComponent implements OnInit {
 
 
   constructor(private messagingService: AppMessagingService,
-    public geocodingService: ValGeocodingService,
-    private siteListService: ValSiteListService,
+    private geocodingService: AppGeocodingService,
+    private siteListService: AppLocationService,
     private usageService: UsageService,
-    private valSiteListService: ValSiteListService,
-    private valGeoService: ValGeoService,
+    private valSiteListService: AppLocationService,
+    private valGeoService: AppGeoService,
     private locationService: ImpGeofootprintLocationService) {
 
     this.hasFailures$ = this.geocodingService.hasFailures$;
@@ -54,17 +54,16 @@ export class UploadLocationsComponent implements OnInit {
   }
 
   ngOnInit(){
-    const s = this.locationService.storeObservable.subscribe(loc => {
+    this.locationService.storeObservable.subscribe(loc => {
       this.successCount = loc.length;
       this.calculateCounts();
-    });   
-    const f = this.failureCount$.subscribe(n => {
+    });
+    this.failureCount$.subscribe(n => {
       this.failureCount = n;
       this.calculateCounts();
     });
-    
   }
-  
+
   public calculateCounts(){
     this.totalCount = this.successCount + this.failureCount;
   }
@@ -74,7 +73,8 @@ export class UploadLocationsComponent implements OnInit {
   }
   public onAccept(row: ValGeocodingResponse) {
     const valGeoList: ValGeocodingResponse[] = [];
-    valGeoList.push(row);     
+    valGeoList.push(row);
+
     this.geocodingService.removeFailedGeocode(row);
 
     if (row['userHasEdited'] != null && row['userHasEdited'] === true) {
@@ -82,24 +82,16 @@ export class UploadLocationsComponent implements OnInit {
        row['Match Code'] = '';
        row['Match Quality'] = '';
     } else row['Geocode Status'] = 'SUCCESS';
-    this.valSiteListService.handlePersist(valGeoList.map(r => r.toGeoLocation(this.listType)));
-  }
-  
-  public onChangeGeos(){
-    this.locationService.storeObservable.subscribe(loc => {
-      console.log('locations::::', loc);
-  });    
+    this.valSiteListService.persistLocationsAndAttributes(valGeoList.map(r => r.toGeoLocation(this.listType)));
   }
 
   public onResubmit(row: ValGeocodingResponse) {
     this.geocodingService.removeFailedGeocode(row);
     this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
-    this.siteListService.geocodeAndPersist([row.toGeocodingRequest()], this.listType).then(() => {
-      this.messagingService.stopSpinnerDialog(this.spinnerKey);
-    });
+    this.geocodeData([row.toGeocodingRequest()]);
   }
 
-   public uploadFile(event: any): void {
+   public uploadFile(event: any) : void {
     const reader = new FileReader();
     const name: String = event.files[0].name;
     console.log('file Name:::', name);
@@ -129,46 +121,22 @@ export class UploadLocationsComponent implements OnInit {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       }
-      let dupNumbersString = '';
-      let count = 0;
-      const dupLocNumbers: any[] = [];
-       this.locationService.get().filter(loc => {
-          if (FileService.prototype.locNumberSet.has(loc.locationNumber)){
-            dupLocNumbers.push(loc);
-            if (count < 5){
-              dupNumbersString = dupNumbersString + '-' + loc.locationNumber.toString();
-              count++;
-              return loc;
-            }
-          }
-      });
-     
-      if (data.parsedData.length > FileService.prototype.locNumberSet.size){
-          this.handleError(`Duplicate Site Numbers exist in your upload file.`);
-          
-      }else if (dupLocNumbers.length > 0){
-            const dedupLength: number = data.parsedData.length > 5 ? data.parsedData.length - 5 : data.parsedData.length ;
-            let errorMsg = 'The following Sites Numbers in your upload file already exist in your project:';
-             errorMsg = dupLocNumbers.length <= 5 ? errorMsg + dupNumbersString : errorMsg + dupNumbersString + ' (+' + dedupLength + ' more)';
-             this.handleError(errorMsg);
-      }
-      else{
+      if (data.duplicateKeys.length > 0) {
+        const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
+        const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
+        this.handleError(`There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
+      } else {
         const classInstances = data.parsedData.map(d => new ValGeocodingRequest(d));
         this.messagingService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
-        this.siteListService.geocodeAndPersist(classInstances, this.listType).then(() => {
-        //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: this.listType.toLowerCase() + '-data-file', action: 'upload' });
-        //this.usageService.createCounterMetric(usageMetricName, `total=${rows.length - 1}`, null);
-        this.messagingService.stopSpinnerDialog(this.spinnerKey);
-        });
+        this.geocodeData(classInstances);
       }
-     
     } catch (e) {
       this.handleError(`${e}`);
     }
   }
 
   // to process excel upload data
-  public parseExcelFile(bstr: string): void {
+  private parseExcelFile(bstr: string) : void {
     console.log('process excel data::');
     try {
       const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
@@ -181,9 +149,25 @@ export class UploadLocationsComponent implements OnInit {
     }
   }
 
-  private handleError(message: string): void {
+  private handleError(message: string) : void {
     this.messagingService.stopSpinnerDialog(this.spinnerKey);
     this.messagingService.showGrowlError('Geocoding Error', message);
+  }
+
+  private geocodeData(model: ValGeocodingRequest[]) : void {
+    const allLocations: ImpGeofootprintLocation[] = [];
+    this.siteListService.geocode(model, this.listType).subscribe(
+      locations => allLocations.push(...locations),
+      err => {
+        console.error('There was an error geocoding the site', err);
+        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+      },
+      () => {
+        this.siteListService.persistLocationsAndAttributes(allLocations);
+        this.siteListService.zoomToLocations(allLocations);
+        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+      }
+    );
   }
 
 }

@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { SelectItem } from 'primeng/primeng';
 import { AppRendererService, SmartMappingTheme } from '../../../services/app-renderer.service';
 import { UsageService } from '../../../services/usage.service';
 import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
-import { ImpDiscoveryService } from '../../../services/ImpDiscoveryUI.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { ImpGeofootprintVarService } from '../../../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -25,11 +24,9 @@ export class SelectedAudiencesComponent implements OnInit {
   allThemes: SelectItem[] = [];
   currentTheme: string;
 
-  constructor(private varService: TargetAudienceService, private usageService: UsageService, 
-    private discoService: ImpDiscoveryService,
-    public metricService: MetricService,
-    private confirmationService: ConfirmationService,
-    private impGeofootprintVarService: ImpGeofootprintVarService) {
+  constructor(private varService: TargetAudienceService, private usageService: UsageService,
+    private appStateService: AppStateService, private metricService: MetricService,
+    private confirmationService: ConfirmationService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -55,23 +52,23 @@ export class SelectedAudiencesComponent implements OnInit {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
     if (mappedAudience != null) {
-      
-      const discoData = this.discoService.get()[0];
+
+      const analysisLevel = this.appStateService.analysisLevel$.getValue();
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
       let metricText = null;
       if (mappedAudience.audienceSourceType === 'Custom'){
-        metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+        metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
       }
       else{
-         metricText = variableId + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + discoData.analysisLevel + '~' + 'Theme=' + this.currentTheme;
+         metricText = variableId + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
       }
-     
+
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-      
-      const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+
+      // const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
       const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
-      this.usageService.creategaugeMetrics(counterMetricsDiscover);
+      // this.usageService.creategaugeMetrics(counterMetricsDiscover);
       this.usageService.creategaugeMetrics(counterMetricsColorBox);
       // this.usageService.createCounterMetrics(counterMetricsDiscover);
       // this.usageService.createCounterMetrics(counterMetricsColorBox);
@@ -115,7 +112,7 @@ export class SelectedAudiencesComponent implements OnInit {
       //this.varService.getAudiences().splice(this.varService.getAudiences().indexOf(audience), 1);
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-     
+
       // const audianceDef: AudienceDataDefinition[] = [];
       // audianceDef.push(audience);
       // this.varService.deletedAudiences.next(Array.from(audience.values()));
@@ -125,7 +122,7 @@ export class SelectedAudiencesComponent implements OnInit {
     reject: () => {
     }
    });
-    
+
 
   }
 }

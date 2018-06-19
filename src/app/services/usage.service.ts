@@ -32,7 +32,7 @@ export class UsageService {
   constructor(private userService: UserService,
     private restClient: RestDataService,
     private impMetricNameService: ImpMetricNameService,
-    private impProjectService: ImpProjectService,
+    private projectService: ImpProjectService,
     private appConfig: AppConfig, private http: HttpClient) {
      }
 
@@ -62,7 +62,7 @@ export class UsageService {
   public createCounterMetric(metricName: ImpMetricName, metricText: string, metricValue: number, projectId?: string) {
     //we don't want to capture metrics if working locally
     if (this.appConfig.environmentName === 'LOCAL') {
-      return; 
+      return;
     }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
       console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
@@ -114,7 +114,7 @@ export class UsageService {
   public createGaugeMetric(metricName: ImpMetricName, metricText: string, metricValue: number, projectId?: string) {
     //we don't want to capture metrics if working locally
     if (this.appConfig.environmentName === 'LOCAL') {
-      return; 
+      return;
     }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
       console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
@@ -189,7 +189,7 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProject: ImpProject = this.impProjectService.get()[0];
+    const impProject: ImpProject = this.projectService.get()[0];
     const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted
@@ -219,7 +219,7 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProject: ImpProject = this.impProjectService.get()[0];
+    const impProject: ImpProject = this.projectService.get()[0];
     const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted

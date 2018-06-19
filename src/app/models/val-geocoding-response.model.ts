@@ -36,7 +36,7 @@ export class ValGeocodingResponse {
           this.Latitude = temp[0];
           this.Longitude = temp[1];
         }
-      
+
   }
 
   public toGeoLocation(siteType?: string) : ImpGeofootprintLocation {
@@ -57,14 +57,13 @@ export class ValGeocodingResponse {
       recordStatusCode: this['Geocode Status'],
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
-      clientLocationTypeCode: siteType, //new ImpClientLocationType({clientLocationType: siteType}),
+      clientLocationTypeCode: siteType,
+      clientIdentifierTypeCode: 'PROJECT_ID',
       isActive: true
     });
     if (this.Number != null ) {
       result.locationNumber = this.Number;
-      result.glId = null; // Number(this.Number);
     }
-    const attributes: ImpGeofootprintLocAttrib[] = [];
     for (const [k, v] of Object.entries(this)) {
       if (nonAttributeProps.indexOf(k) < 0 && typeof v !== 'function') {
         const locationAttribute = new ImpGeofootprintLocAttrib({
@@ -72,10 +71,9 @@ export class ValGeocodingResponse {
           attributeValue: v,
           impGeofootprintLocation: result
         });
-        attributes.push(locationAttribute);
+        result.impGeofootprintLocAttribs.push(locationAttribute);
       }
     }
-    result[valGeocodingAttributeKey] = attributes;
     return result;
   }
 
@@ -97,5 +95,4 @@ export class ValGeocodingResponse {
     }
     return result;
   }
-
 }

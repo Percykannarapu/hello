@@ -1,5 +1,5 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
-import { AppService, BusinessSearchResult } from '../../services/app.service';
+import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest, BusinessSearchResponse } from '../../services/app-business-search.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -7,7 +7,7 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 
 interface SelectableSearchResult {
-  data: BusinessSearchResult;
+  data: BusinessSearchResponse;
   friendlyName: string;
   friendlyDescription: string;
   selected: boolean;
@@ -33,14 +33,14 @@ export class BusinessSearchComponent implements OnInit {
   selectedCategory: any;
   selector: any;
   model: any = {};
-  sourceCategories: any = [];
-  targetCategories: any = [];
-  filteredCategories: any = [];
+  sourceCategories: BusinessSearchCategory[] = [];
+  targetCategories: BusinessSearchCategory[] = [];
+  filteredCategories: BusinessSearchCategory[] = [];
   competitors: any = [];
   sites: any;
-  businessCategories: any;
+  businessCategories: BusinessSearchCategory[];
 
-  constructor(private appService: AppService, private messagingService: AppMessagingService,
+  constructor(private appService: AppBusinessSearchService, private messagingService: AppMessagingService,
               private locationService: ImpGeofootprintLocationService, private usageService: UsageService) {
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
@@ -61,35 +61,16 @@ export class BusinessSearchComponent implements OnInit {
     ];
   }
 
-  private createSiteFromSearchResult(searchResult: BusinessSearchResult, siteType: string) : ImpGeofootprintLocation {
-    const locationId = this.locationService.getNextLocationNumber();
-    return new ImpGeofootprintLocation({
-      clientLocationTypeCode: siteType,
-      locationName: searchResult.firm,
-      locAddress: searchResult.address,
-      locCity: searchResult.city,
-      locState: searchResult.state,
-      locZip: searchResult.zip,
-      xcoord: searchResult.x,
-      ycoord: searchResult.y,
-      isActive: true,
-      locationNumber: locationId.toString(),
-      clientIdentifierId: locationId,
-      marketName: searchResult.pricing_market_name,
-      recordStatusCode: 'SUCCESS'
-    });
-  }
-
-  ngOnInit() {
+  ngOnInit() : void {
     this.name = 'Business Search';
-    this.appService.getList().subscribe((data) => {
-      this.filteredCategories = data.rows;
+    this.appService.getCategories().subscribe((data) => {
+      this.filteredCategories = data;
       this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
-
   }
-  categoryChange() {
+
+  categoryChange() : void {
     console.log(this.selectedCategory);
     this.businessCategories = this.filteredCategories.filter((item) => {
       return item.category === this.selectedCategory.category;
@@ -98,8 +79,8 @@ export class BusinessSearchComponent implements OnInit {
     this.sourceCategories = this.businessCategories.sort(this.sortOn('name'));
   }
 
-  assignCopy() {
-    this.sourceCategories = Object.assign([], this.businessCategories);
+  assignCopy() : void {
+    this.sourceCategories = Array.from(this.businessCategories);
   }
 
   filterCategory(value) {
@@ -113,63 +94,75 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onSearchBusiness() {
-    const paramObj = {
-      'radius': this.model.radius,
-      'name': this.model.name,
-      'city': this.model.city,
-      'state': this.model.state,
-      'zip': this.model.zip,
-      'countyName': this.model.countyName,
-      'eliminateBlankFirmNames': 'True',
-      'siteLimit': '2000'
-    };
-
-    
-
-    
-
     const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
-    paramObj['sites'] = currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord }));
-    paramObj['sics'] = this.targetCategories.map(category => ({ sic: category.sic}));
+    const request: BusinessSearchRequest = {
+      radius: this.model.radius,
+      name: this.model.name,
+      city: this.model.city,
+      state: this.model.state,
+      zip: this.model.zip,
+      countyName: this.model.countyName,
+      eliminateBlankFirmNames: 'True',
+      siteLimit: '2000',
+      sites: currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord })),
+      sics: this.targetCategories.map(category => ({ sic: category.sic }))
+    };
     let hasError = false;
-    if (paramObj['sites'].length === 0) {
+    if (request.sites.length === 0) {
       this.messagingService.showGrowlError('Business Search Error', 'You must have at least one Client Site specified');
       hasError = true;
     }
-    if (paramObj['sics'].length === 0) {
+    if (request.sics.length === 0) {
       this.messagingService.showGrowlError('Business Search Error', 'You must have at least one SIC specified');
       hasError = true;
     }
-    if (paramObj['radius'] === undefined || paramObj['radius'] === '') {
+    if (request.radius === undefined || request.radius.length === 0) {
       this.messagingService.showGrowlError('Business Search Error', 'Please enter a radius');
       hasError = true;
     }
-
-    
-    let sic = paramObj['sites'] != null ? 'SIC=' + paramObj['sics'].map(sic3 =>  sic3['sic'] ) + '~' : '';
-    sic = sic.length > 100 ? sic.substring(0, 100) : sic;
-    const miles = paramObj['radius'] != null ? 'Miles=' + paramObj['radius'] + '~' : '';
-    const businessName = paramObj['name'] != null ? 'BusinessName=' + paramObj['name'] + '~' : '';
-    const city = paramObj['city'] != null ? 'City=' + paramObj['city'] : '';
+    let sic = request.sites != null ? 'SIC=' + request['sics'].map(sic3 =>  sic3.sic ) + '~' : '';
+    sic = sic.substring(0, 100);
+    const miles = request['radius'] != null ? 'Miles=' + request['radius'] + '~' : '';
+    const businessName = request['name'] != null ? 'BusinessName=' + request['name'] + '~' : '';
+    const city = request['city'] != null ? 'City=' + request['city'] : '';
     const metricText = sic + miles + businessName + city;
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'search' });
-    
-
-
     if (!hasError) {
       this.messagingService.startSpinnerDialog('businessSearchKey', 'Searching...');
-      this.appService.getBusinesses(paramObj).subscribe(responseData => {
-        this.usageService.createCounterMetric(usageMetricName, metricText, responseData.length);
-        responseData.forEach(fuseResult => {
-          this.searchResults.push({
-            data: fuseResult,
-            friendlyName: `${fuseResult.firm} (${Math.round(fuseResult.dist_to_site * 100) / 100} miles)`,
-            friendlyDescription: `${fuseResult.address}, ${fuseResult.city}, ${fuseResult.state} ${fuseResult.zip}`,
-            selected: false
+      this.appService.getBusinesses(request).subscribe(
+        responseData => {
+          this.usageService.createCounterMetric(usageMetricName, metricText, responseData.length);
+          responseData.forEach(fuseResult => {
+            this.searchResults.push({
+              data: fuseResult,
+              friendlyName: `${fuseResult.firm} (${Math.round(fuseResult.dist_to_site * 100) / 100} miles)`,
+              friendlyDescription: `${fuseResult.address}, ${fuseResult.city}, ${fuseResult.state} ${fuseResult.zip}`,
+              selected: false
+            });
           });
-        });
-      }, err => console.error(err), () => this.messagingService.stopSpinnerDialog('businessSearchKey'));
+        },
+        err => console.error('There was an error requesting a business search', err),
+        () => this.messagingService.stopSpinnerDialog('businessSearchKey')
+      );
     }
+  }
+
+  private createSiteFromSearchResult(searchResult: BusinessSearchResponse, siteType: string) : ImpGeofootprintLocation {
+    const locationId = this.locationService.getNextLocationNumber();
+    return new ImpGeofootprintLocation({
+      clientLocationTypeCode: siteType,
+      locationName: searchResult.firm,
+      locAddress: searchResult.address,
+      locCity: searchResult.city,
+      locState: searchResult.state,
+      locZip: searchResult.zip,
+      xcoord: searchResult.x,
+      ycoord: searchResult.y,
+      isActive: true,
+      locationNumber: locationId.toString(),
+      marketName: searchResult.pricing_market_name,
+      recordStatusCode: 'SUCCESS'
+    });
   }
 
   private sortOn(property) {
@@ -189,7 +182,7 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onAddToProject(siteType: string) : void {
-    if (this.selector === 'Site' || this.selector === 'Competitor') { 
+    if (this.selector === 'Site' || this.selector === 'Competitor') {
       const locationsForInsert: ImpGeofootprintLocation[] = [];
       this.searchResults.filter(sr => sr.selected).forEach(result => {
         locationsForInsert.push(this.createSiteFromSearchResult(result.data, siteType));
@@ -202,8 +195,7 @@ export class BusinessSearchComponent implements OnInit {
         this.appService.closeOverLayPanel.next(true);
       }
     } else {
-    this.messagingService.showGrowlError('Error', `Please indicate whether to select Sites or Competitors`);
+      this.messagingService.showGrowlError('Error', `Please select Site or Competitor for importing Business Search results.`);
     }
   }
-
 }

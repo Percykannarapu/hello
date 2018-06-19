@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MenuItem } from 'primeng/primeng';
 import { AppComponent } from './app.component';
+import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
 import { ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
@@ -10,17 +11,18 @@ import { TargetAudienceService } from './services/target-audience.service';
 import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import { MetricService } from './val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { Subject } from 'rxjs';
+import { AppStateService } from './services/app-state.service';
+import { withLatestFrom } from 'rxjs/operators';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
-import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { DAOBaseStatus } from './val-modules/api/models/BaseModel';
 import { UserService } from './services/user.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpDiscoveryUI } from './models/ImpDiscoveryUI';
-import { AppProjectService } from './services/app-project.service';
-import { DiscoveryInputComponent } from './components/discovery-input/discovery-input.component';
 import { AppMessagingService } from './services/app-messaging.service';
+import { AppProjectService } from './services/app-project.service';
+import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 
 @Component({
     /* tslint:disable:component-selector */
@@ -31,6 +33,8 @@ import { AppMessagingService } from './services/app-messaging.service';
     `
 })
 export class AppMenuComponent implements OnInit {
+
+    private nationalExtractClick$: Subject<any> = new Subject<any>();
 
     @Input() reset: boolean;
 
@@ -43,16 +47,23 @@ export class AppMenuComponent implements OnInit {
         public usageService: UsageService,
         public impDiscoveryService: ImpDiscoveryService,
         public metricService: MetricService,
+        private appStateService: AppStateService,
         private confirmationService: ConfirmationService,
-        public impProjectService: ImpProjectService,
         public userService: UserService,
         private attributeService: ImpGeofootprintGeoAttribService,
         private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
         private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+        private impProjectService: ImpProjectService,
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService) { }
 
     ngOnInit() {
+        // sets up a subscription for the menu click event on the National Export.
+        // doing it this way means I don't have to create a local copy of the analysisLevel or projectId
+        this.nationalExtractClick$.pipe(
+           withLatestFrom(this.appStateService.analysisLevel$, this.appStateService.projectId$),
+        ).subscribe(([c, al, pid]) => this.audienceService.exportNationalExtract(al, pid));
+
         this.model = [
             { label: 'Dashboard', icon: 'dashboard', routerLink: ['/'] },
             /*          {
@@ -77,9 +88,9 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                   // {label: 'Create New', command: () =>  null}, //this.createNewProject()  
+                   // {label: 'Create New', command: () =>  null}, //this.createNewProject()
                     {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() }
-                    
+
                 ]
             },
             {
@@ -89,7 +100,7 @@ export class AppMenuComponent implements OnInit {
                     { label: 'Export Geofootprint - Selected Only', icon: 'map', command: () => this.getGeofootprintSelected() },
                     { label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
                     { label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
-                    { label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.getNationalExtract() },
+                    { label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.nationalExtractClick$.next(null) },
                     { label: 'Send Custom Sites to Valassis Digital', value: 'National', icon: 'group', command: () => this.getCustomSites() }
                 ]
             },
@@ -240,23 +251,23 @@ export class AppMenuComponent implements OnInit {
     }
 
     public getSites() {
-        const impProject = this.impProjectService.get()[0];
-        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Sites'), 
+        const impProject = this.appStateService.currentProject$.getValue();
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Sites'),
                 EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'site-list', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
     }
     public getCompetitor() {
-        const impProject = this.impProjectService.get()[0];
-        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Competitors'), 
+        const impProject = this.appStateService.currentProject$.getValue();
+        this.impGeofootprintLocationService.exportStore(this.impGeofootprintLocationService.getFileName(impProject.projectId, 'Competitors'),
                 EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, impProject, false, loc => loc.clientLocationTypeCode === 'Competitor', 'COMPETITORS');
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'competitor-list', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Competitor').length);
     }
     public getGeofootprintAll() {
-        const impProject = this.impProjectService.get()[0];
-        const impAnalysis = this.impProjectService.get()[0].methAnalysis;
-        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx);
+        const impProject = this.appStateService.currentProject$.getValue();
+        const impAnalysis = impProject.methAnalysis;
+        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impAnalysis, impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, impAnalysis);
         // update the metric count when export geos
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
@@ -276,8 +287,10 @@ export class AppMenuComponent implements OnInit {
 
     }
     public getGeofootprintSelected() {
-        const impProjectId = this.impProjectService.get()[0].projectId;
-        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, geo => geo.isActive === true);
+        const impProject = this.appStateService.currentProject$.getValue();
+        const impProjectId = impProject.projectId;
+        const analysisLevel = this.appStateService.analysisLevel$.getValue();
+        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(analysisLevel, impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, analysisLevel, geo => geo.isActive === true);
         // update the metric count when export geos
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
         this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
@@ -296,12 +309,10 @@ export class AppMenuComponent implements OnInit {
 
 
     }
-    public getNationalExtract() {
-        this.audienceService.exportNationalExtract();
-    }
+
     public getCustomSites() {
-        const impProject = this.impProjectService.get()[0];
-        const currentTrackerId = this.impProjectService.trackerId;
+        const impProject = this.appStateService.currentProject$.getValue();
+        const currentTrackerId = impProject.projectTrackerId;
         let isValid = null;
         if (impProject.projectId == null) {
             this.messageService.showGrowlError('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
@@ -323,31 +334,29 @@ export class AppMenuComponent implements OnInit {
     }
 
     public openExisting(){
-        if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
+      const impProject = this.appStateService.currentProject$.getValue();
+      if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
             this.confirmationService.confirm({
                 message: 'Would you like to save your work before proceeding?',
                 header: 'Save Work',
                 icon: 'ui-icon-save',
                 accept: () => {
                     // check for required fields
-                 let errorString = null;   
-                if (this.impProjectService.get()[0].projectName == null || this.impProjectService.get()[0].projectName == '')
+                 let errorString = null;
+                if (impProject.projectName == null || impProject.projectName == '')
                      errorString = 'imPower Project Name is required<br>';
-                if (this.impProjectService.get()[0].methAnalysis == null || this.impProjectService.get()[0].methAnalysis == '')
+                if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                      errorString += 'Analysis level is required';
                 if (errorString !== '') {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                    const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
+                    const sub = this.appProjectService.saveProject(impProject).subscribe(savedProject => {
                         console.log('project saved', savedProject);
-                        console.log('BEFORE REPLACE STORE FROM SAVE');
-                        this.appProjectService.debugLogStoreCounts();
-                        this.impProjectService.replace(savedProject);
                         console.log('AFTER SAVE');
                         this.appProjectService.debugLogStoreCounts();
                         this.appProjectService.ngDialog.next(true);
-                    });    
+                    });
                 },
                 reject: () => {
                     this.clearProject();
@@ -358,7 +367,7 @@ export class AppMenuComponent implements OnInit {
         else {
              this.appProjectService.ngDialog.next(true);
         }
-        
+
     }
 
     public createNewProject(){
@@ -373,7 +382,7 @@ export class AppMenuComponent implements OnInit {
                 this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
 
                 //let impProject: ImpProject = new ImpProject();
-                const impProject = this.impProjectService.get()[0];
+                const impProject = this.appProjectService.get()[0];
                 //const discoData = this.impDiscoveryService.get()[0];
                 impProject.dirty = true;
                 impProject.baseStatus = (impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
@@ -390,16 +399,12 @@ export class AppMenuComponent implements OnInit {
 
                 //this.impProjectService.add(impProjects);
                // this.impProjectService.saveProject();
-               const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
+               const sub = this.appProjectService.saveProject(this.appProjectService.get()[0]).subscribe(savedProject => {
                     if (savedProject != null)
                     {
                        console.log('project saved', savedProject);
-                       console.log('BEFORE REPLACE STORE FROM SAVE');
-                       this.appProjectService.debugLogStoreCounts();
-                       this.impProjectService.replace(savedProject);
                        console.log('AFTER SAVE');
                        this.appProjectService.debugLogStoreCounts();
-
                        this.clearProject();
                        //this.router.navigate(['/']);
                     //   this.router.navigate(['/project']);
@@ -419,30 +424,24 @@ export class AppMenuComponent implements OnInit {
               this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
               this.clearProject();
               //this.router.navigate(['/']);
-                 
+
             }
         });
     }
 
     public clearProject(){
-        const oldDisco = this.impDiscoveryService.get()[0];
-        const newDisco = new ImpDiscoveryUI();
-        
-        newDisco.selectedSeason = 'WINTER';
-        newDisco.includeAnne = true;
-        newDisco.includeValassis = true;
-        newDisco.includePob = true;
-        newDisco.includeSolo = true;
-
         this.impGeofootprintGeoService.clearAll();
         this.attributeService.clearAll();
-            // this.impDiscoveryService.remove(disco);
-        this.impDiscoveryService.update(oldDisco, newDisco);
-       
         this.impGeofootprintLocationService.clearAll();
         this.impGeofootprintLocAttribService.clearAll();
         this.impGeofootprintTradeAreaService.clearAll();
         this.impProjectService.clearAll();
+        this.appProjectService.clearAll();
+
+        const newProject = new ImpProject();
+        newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
+        this.impProjectService.add([newProject]);
+
         console.log('color box values:::', this.metricService.metrics.entries());
         //I trided to clear the map, but it didnt work, need to get back later
         this.metricService.metrics.clear();

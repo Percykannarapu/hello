@@ -7,6 +7,7 @@ import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../models/audience-data.model';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { filter, map } from 'rxjs/operators';
+import { AppStateService } from '../../services/app-state.service';
 
 
 @Component({
@@ -32,7 +33,7 @@ export class AudienceTradeareaComponent implements OnInit {
   constructor(private audienceTradeareaService: ValAudienceTradeareaService,
     private messagingService: AppMessagingService,
     private targetAudienceService: TargetAudienceService,
-    private discoService: ImpDiscoveryService) { }
+    private stateService: AppStateService) { }
 
   ngOnInit() {
     this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_HIGH, value: SmartTile.EXTREMELY_HIGH});
@@ -98,7 +99,7 @@ export class AudienceTradeareaComponent implements OnInit {
       this.messagingService.showGrowlError(this.errorTitle, 'Unable to determine ID for the selected variable');
       return;
     }
-    if (!this.discoService.get()[0].analysisLevel) {
+    if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
       this.messagingService.showGrowlError(this.errorTitle, 'You must select an Analysis Level before applying a trade area to Sites');
       return;
     }

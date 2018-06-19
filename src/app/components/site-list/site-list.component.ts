@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ValSiteListService } from '../../services/app-site-list.service';
+import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -8,14 +8,14 @@ import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
-import { ValMapService } from '../../services/app-map.service';
-import { ValLayerService } from '../../services/app-layer.service';
-import { ValGeoService } from '../../services/app-geo.service';
+import { AppMapService } from '../../services/app-map.service';
+import { AppLayerService } from '../../services/app-layer.service';
+import { AppGeoService } from '../../services/app-geo.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { simpleFlatten } from '../../val-modules/common/common.utils';
 
 @Component({
   selector: 'val-site-list',
@@ -53,17 +53,16 @@ export class SiteListComponent implements OnInit {
   public selectedColumns: any[] = [];
   public attributeColumns: string[];
 
-  constructor(private siteListService: ValSiteListService,
+  constructor(private siteListService: AppLocationService,
               private locationService: ImpGeofootprintLocationService,
               private attributeService: ImpGeofootprintLocAttribService,
               private confirmationService: ConfirmationService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private geoService:  ImpGeofootprintGeoService,
               private geoAttributeService: ImpGeofootprintGeoAttribService,
-              private impDiscoveryService: ImpDiscoveryService,
-              private appMapService: ValMapService,
-              private appLayerService: ValLayerService,
-              private valGeoService: ValGeoService,
+              private appMapService: AppMapService,
+              private appLayerService: AppLayerService,
+              private valGeoService: AppGeoService,
               private esriMapService: EsriMapService,
               private usageService: UsageService) { }
 
@@ -73,11 +72,6 @@ export class SiteListComponent implements OnInit {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
-    this.siteListService.allSites$.subscribe(locations => { 
-      locations.forEach(loc => { 
-      loc.location.locationName = (loc.location.locationName == null || loc.location.locationName === '') ? loc.location.locationNumber : loc.location.locationName; 
-      }); 
-      } );
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -130,11 +124,10 @@ export class SiteListComponent implements OnInit {
   }
 
   public getRowAttributes(row: ImpGeofootprintLocation) {
-    const attrs = this.attributeService.get().filter(a => a.impGeofootprintLocation === row);
     this.attributeColumns = [];
     const result: any = {};
-    if (attrs == null || attrs.length === 0) return null;
-    for (const attr of attrs) {
+    if (row.impGeofootprintLocAttribs == null || row.impGeofootprintLocAttribs.length === 0) return null;
+    for (const attr of row.impGeofootprintLocAttribs) {
       this.attributeColumns.push(attr.attributeCode);
       result[attr.attributeCode] = attr.attributeValue;
     }
@@ -142,30 +135,22 @@ export class SiteListComponent implements OnInit {
   }
 
   public removeLocationHierarchy(location: ImpGeofootprintLocation) {
-    const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation === location);
-    const tas = this.tradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation === location);
-    const geos = this.geoService.get().filter(geo => geo.impGeofootprintLocation === location);
-    const geoSet = new Set(geos);
-    const geoAttributes = this.geoAttributeService.get().filter(att => geoSet.has(att.impGeofootprintGeo));
-    this.geoAttributeService.remove(geoAttributes);
-    this.geoService.remove(geos);
-    this.tradeAreaService.remove(tas);
-    this.attributeService.remove(attributes);
+    this.geoAttributeService.remove(simpleFlatten(location.impGeofootprintGeos.map(geo => geo.impGeofootprintGeoAttribs)));
+    this.geoService.remove(location.impGeofootprintGeos);
+    this.tradeAreaService.remove(location.impGeofootprintTradeAreas);
+    this.attributeService.remove(location.impGeofootprintLocAttribs);
     this.locationService.addDbRemove(location);  // For database removal
     this.locationService.remove(location);
   }
 
   public setLocationHierarchyActiveFlag(location: ImpGeofootprintLocation, isActive: boolean) {
-    const attributes = this.attributeService.get().filter(attr => attr.impGeofootprintLocation === location);
-    const tas = this.tradeAreaService.get().filter(trArea => trArea.impGeofootprintLocation === location);
-    const geos = this.geoService.get().filter(geo => geo.impGeofootprintLocation === location);
-    const geoSet = new Set(geos);
-    const geoAttributes = this.geoAttributeService.get().filter(att => geoSet.has(att.impGeofootprintGeo));
+    location.impGeofootprintGeos.forEach(geo => {
+      geo.impGeofootprintGeoAttribs.forEach(attr => attr.isActive = isActive);
+      geo.isActive = isActive;
+    });
+    location.impGeofootprintTradeAreas.forEach(ta => ta.isActive = isActive);
+    location.impGeofootprintLocAttribs.forEach(attr => attr.isActive = isActive);
     location.isActive = isActive;
-    attributes.forEach(att => att.isActive = isActive ? 1 : 0);
-    tas.forEach(area => area.isActive = isActive ? 1 : 0);
-//    geos.forEach(geo => geo.isActive = isActive ? 1 : 0);
-    geoAttributes.forEach(att => att.isActive = isActive ? 1 : 0);
     this.geoAttributeService.update(null, null);
     this.geoService.update(null, null);
     this.tradeAreaService.update(null, null);

@@ -1,170 +1,148 @@
-<div class="ui-g form-group val-grid-no-pad-left" style="line-height: .9em">
-    <div class="card ui-g-12">
-            <div class="ui-g-3">
-                    <span class="md-inputfield">
-                        <input id="projectId" type="text" readonly="true" [ngModel]="impProject.projectId" (keyup)="onChangeProjectId($event)" onkeypress="return String.fromCharCode(event.charCode).match(/[0-9 ]/g) != null" pInputText>
-                        <label> imPower ID</label>         
-                    </span>
-                </div>
-            <div class="ui-g-6">
-                <!-- <div *ngIf="showLoadBtn">
-                    <button label="Load Project" pButton (click)="loadProject()"></button>
-                    <button *ngIf="config.debugMode" label="Stop Transaction" pButton (click)="onStopTransaction()" pTooltip="Finish Project Load (DEBUG)"></button>
-                </div> -->
-            </div>
+<div class="ui-g form-group" style="line-height: .9em">
+  <form novalidate (ngSubmit)="saveProject()" [formGroup]="discoveryForm">
+    <div class="card ui-g">
+      <div class="ui-g-12">
         <div class="ui-g-3">
-            <button pButton type="button" style="float: right;" (click)="saveProject()" label="Save Project"></button>
+          <span class="md-inputfield">
+            <input id="projectId" type="text" pInputText [disabled]="true" value="{{impProject?.projectId}}">
+            <label for="projectId">imPower ID</label>
+          </span>
         </div>
-        <div class="ui-g-12">
-            <span class="md-inputfield">
-                <input id="projectName" type="text" [(ngModel)]="impProject.projectName" pInputText style="width:75%">
-                <label>imPower Project Name</label>
-            </span>
+        <div class="ui-g-3 ui-g-offset-6">
+          <button pButton type="submit" style="float: right;" label="Save Project" [disabled]="!discoveryForm.valid"></button>
         </div>
-        <div class="ui-g-12" >
-            <span class="md-inputfield">
-                <p-autoComplete   [suggestions]="searchList" [(ngModel)]="impProjectService.trackerId" (onSelect)="onChangeProjectTracker($event)" (completeMethod)="filterProjectTracker($event)"
-                    [style]="{'width': '75%'}"  [inputStyle]="{'width':'100%'}"  [minLength]="3"  inputId="float-input" [dropdown]="true">
-                
-                </p-autoComplete>
-                <label>Search for Project Tracker ID</label>   
-            </span>
-        </div>
-        
-        <div class="ui-g-12 val-flush-to-edges">
-            <p-dropdown #analysisLevelSelector
-                [options]="analysisLevels" [ngModel]="selectedAnalysisLevel" optionLabel="label"
-                (ngModelChange)="onAnalysisSelectType($event)"
-                placeholder="Select an Analysis Level"
-                [style]="{'width':'250px'}"></p-dropdown>
-        </div>
+      </div>
+      <div class="ui-g-12">
+        <span class="md-inputfield">
+          <input id="projectName" type="text" formControlName="projectName" pInputText>
+          <label for="projectName">imPower Project Name (required)</label>
+        </span>
+      </div>
+      <div class="ui-g-12" >
+        <span class="md-inputfield">
+          <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (completeMethod)="filterProjectTracker($event)"
+                          [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display" [inputStyle]="{'width':'100%'}" >
+          </p-autoComplete>
+          <label for="projectTrackerLookup">Search for Project Tracker ID</label>
+        </span>
+      </div>
+      <div class="ui-g-12 ui-g-nopad">
+        <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
+                    placeholder="Select an Analysis Level" [style]="{'width':'250px'}" ></p-dropdown>
+      </div>
     </div>
-    <div class="card ui-g-12">
-            <div class="ui-g-12" >
-                    <span class="md-inputfield">
-                        <p-autoComplete  [(ngModel)]="selectedRadLookupValue" [suggestions]="radSearchList" (completeMethod)="filterRadData($event)" (onSelect)="onSelectRadData($event)" 
-                            [style]="{'width': '75%'}"  [inputStyle]="{'width':'100%'}"  [minLength]="0"   [dropdown]="true">
-                        </p-autoComplete>
-                        <label>Performance Prediction Category-Product</label>   
-                    </span>
-            </div>
-    </div>
-        
-    <div class="card ui-g-6 val-grid-no-pad-left">
-        <div class="ui-g-12 val-flush-to-edges">
-            <label>Counts</label>
-        </div>
-        <div class="ui-g-1"></div>
-        <div class="ui-g-11">
-                <p-selectButton id="seasonsSelect" [options]="seasons" placeholder="Counts" [ngModel]="impDiscoveryUI.selectedSeason" (ngModelChange)="onChangeSeason($event)"></p-selectButton>
-        </div>
-       
-        <div class="ui-g-12 val-flush-to-edges">
-             <label>Apply Geography Filters</label>
-        </div>  
-        <div class= "ui-g-1"> </div>
- 
-        <div class="ui-g-11">
-        <div class="ui-g-8">
-                <label>Include POBs?</label>
-            </div>
-            <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includePob" (ngModelChange)="onChangePob($event)"></p-inputSwitch>
-            </div> 
-        
-            <div class="ui-g-8">
-                <label>Include Valassis geographies?</label>
-            </div>
-            <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeValassis" (ngModelChange)="onChangeIncludeVal($event)"></p-inputSwitch>
-            </div>
-        
-            <div class="ui-g-8">
-                <label>Include ANNE geographies?</label>
-            </div>
-            <div class="ui-g-4">
-                <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeAnne" (ngModelChange)="onChangeIncludeAnne($event)"></p-inputSwitch>
-            </div>
-        
-            <div class="ui-g-8">
-                <label>Include Solo geographies?</label>
-            </div>
-            <div class="ui-g-4">
-                    <p-inputSwitch onLabel="Yes" offLabel="No" [ngModel]="impDiscoveryUI.includeSolo" (ngModelChange)="onChangeIncludeSolo($event)"></p-inputSwitch>
-            </div> 
-        </div>
-    </div>
-          
-    <div class="card ui-g-6">
-            <div class="ui-g-12">
-                    <label>Budget</label>
-                </div>
-            <div class= "ui-g-1 "> </div>
-            <div class="ui-g-11">
 
-            <div class="ui-g-12 val-grid-no-pad-left">
-                    <span class="ui-float-label">
-                        <input id="totalBudget" type="text" [(ngModel)]="impDiscoveryUI.totalBudget" (blur)="dollarBudgetChange($event)" pInputText>
-                        <label> Dollar Budget</label>
-                    </span>
-                </div>
-                <div class="ui-g-12 val-grid-no-pad-left">
-                        <span class="ui-float-label">
-                            <input id="circBudget" type="text" [(ngModel)]="impDiscoveryUI.circBudget" (blur)="onChangecircBudget($event)" pInputText>
-                            <label> Circ Budget</label>
-                        </span>
-                </div>
-             </div>      
-        <div class="ui-g-12">
-            <label>Select CPM Type</label>
+    <div class="card ui-g">
+      <div class="ui-g-12">
+        <span class="md-inputfield">
+          <p-autoComplete id="radLookup" [suggestions]="radDataFiltered" (completeMethod)="filterRadData($event)" field="display"
+                          [style]="{'width': '75%'}" [minLength]="0" [dropdown]="true" formControlName="selectedRadLookupValue" [inputStyle]="{'width':'100%'}" >
+          </p-autoComplete>
+          <label for="radLookup">Performance Prediction Category-Product</label>
+        </span>
+      </div>
+    </div>
+
+    <div class="card ui-g-6">
+      <div class="ui-g-12 ui-g-nopad">
+        <label>Counts</label>
+      </div>
+      <div class="ui-g-11 ui-g-offset-1">
+        <p-selectButton id="seasonsSelect" [options]="allSeasons" formControlName="selectedSeason"></p-selectButton>
+      </div>
+
+      <div class="ui-g-12 ui-g-nopad">
+        <label>Apply Geography Filters</label>
+      </div>
+      <div class="ui-g-11  ui-g-offset-1">
+        <div class="ui-g-8">
+          <label>Include POBs?</label>
         </div>
-        <div class= "ui-g-1 "> </div>
-        <div class="ui-g-11">
-            <div class="ui-g-12 val-grid-no-pad-left"> 
-                <p-radioButton name="selectCPM" value="isBlended" label="Blended" [(ngModel)]="impDiscoveryUI.selectCpmType" (onClick)="onClickCPM('Blended')" (change)="onChangeField($event)"></p-radioButton>
-            </div>
-        <div class= "ui-g-1 "> </div>
-        <div class="ui-g-11">
-            <div class="ui-g-12">
+        <div class="ui-g-4">
+          <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includePob"></p-inputSwitch>
+        </div>
+
+        <div class="ui-g-8">
+          <label>Include Valassis geographies?</label>
+        </div>
+        <div class="ui-g-4">
+          <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeValassis"></p-inputSwitch>
+        </div>
+
+        <div class="ui-g-8">
+          <label>Include ANNE geographies?</label>
+        </div>
+        <div class="ui-g-4">
+          <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeAnne"></p-inputSwitch>
+        </div>
+
+        <div class="ui-g-8">
+          <label>Include Solo geographies?</label>
+        </div>
+        <div class="ui-g-4">
+          <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeSolo"></p-inputSwitch>
+        </div>
+      </div>
+    </div>
+
+    <div class="card ui-g-6">
+      <div class="ui-g-12">
+        <label>Budget</label>
+      </div>
+      <div class="ui-g-11 ui-g-offset-1">
+        <div class="ui-g-12 val-grid-no-pad-left">
+          <span class="ui-float-label">
+            <input id="dollarBudget" type="text" formControlName="dollarBudget" pInputText>
+            <label for="dollarBudget">Dollar Budget</label>
+          </span>
+        </div>
+        <div class="ui-g-12 val-grid-no-pad-left">
+          <span class="ui-float-label">
+            <input id="circBudget" type="text" formControlName="circBudget" pInputText>
+            <label for="circBudget">Circ Budget</label>
+          </span>
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <label>Select CPM Type</label>
+      </div>
+      <div class="ui-g-11 ui-g-offset-1">
+        <div class="ui-g-12 val-grid-no-pad-left">
+          <p-radioButton name="cpmType" value="blended" label="Blended" formControlName="cpmType"></p-radioButton>
+        </div>
+        <div class="ui-g-11 ui-g-offset-1">
+          <div class="ui-g-12">
             <span class="ui-float-label">
-                <input id="cpm" type="text" [disabled]="!isCpmBlended" [(ngModel)]="impDiscoveryUI.cpm"  (blur)="onChangeBlendedCpm($event)" pInputText>
-                <label>CPM</label>
-                <!-- <i *ngIf="impDiscoveryUI.cpm === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
+              <input id="cpm" type="text" [disabled]="isOwnerGroupCpm" formControlName="cpmBlended" pInputText>
+              <label for="cpm">CPM</label>
             </span>
-            </div>
-    </div>
-            <div class="ui-g-12 val-grid-no-pad-left"> 
-                <p-radioButton name="selectCPM" value="isDefinedbyOwnerGroup" label="Defined By Owner Group" [(ngModel)]="impDiscoveryUI.selectCpmType" (onClick)="onClickCPM('ownerGroup')" (change)="onChangeField($event)"></p-radioButton>
-            </div>
-            <!-- <div class="ui-g-4">
-                <label>(Coming Soon)</label>
-            </div> -->
-            <div class="ui-g-1"> </div>
-            <div class="ui-g-11"> 
-                <div class="ui-g-12">
-                    <span class="ui-float-label">
-                        <input id="includeValassisCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.valassisCPM" (blur)="onChangeValCpm($event)" pInputText>
-                        <label> Valassis CPM</label>
-                        <!-- <i *ngIf="impDiscoveryUI.valassisCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
-                </div>
-            
-                <div class="ui-g-12">
-                    <span class="ui-float-label">
-                        <input id="includeAnneCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.anneCPM" (blur)="onChangeAnneCpm($event)" pInputText>
-                        <label>ANNE CPM</label>
-                        <!-- <i *ngIf="impDiscoveryUI.anneCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
-                </div> 
-                <div class="ui-g-12">
-                    <span class="ui-float-label">
-                    <input id="includeSoloCPM" type="text" disabled="{{isCpmBlended}}" [(ngModel)]="impDiscoveryUI.soloCPM" (blur)="onChangeSoloCpm($event)" pInputText>
-                    <label>Solo CPM</label>
-                    <!-- <i *ngIf="impDiscoveryUI.soloCPM === '0'" class="fa ui-icon-error" style="font-size:23px;color:rgb(131,26,10);" title="Value must be > 0"></i> -->
-                    </span>
-                </div> 
-            </div>
+          </div>
         </div>
+        <div class="ui-g-12 val-grid-no-pad-left">
+          <p-radioButton name="cpmType" value="ownerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
+        </div>
+        <div class="ui-g-11 ui-g-offset-1">
+          <div class="ui-g-12">
+            <span class="ui-float-label">
+              <input id="includeValassisCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmValassis" pInputText>
+              <label for="includeValassisCPM">Valassis CPM</label>
+            </span>
+          </div>
+          <div class="ui-g-12">
+            <span class="ui-float-label">
+              <input id="includeAnneCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmAnne" pInputText>
+              <label for="includeAnneCPM">ANNE CPM</label>
+            </span>
+          </div>
+          <div class="ui-g-12">
+            <span class="ui-float-label">
+              <input id="includeSoloCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmSolo" pInputText>
+              <label for="includeSoloCPM">Solo CPM</label>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
+  </form>
 </div>
-            
+

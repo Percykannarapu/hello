@@ -1,32 +1,23 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ConfirmationService, SelectItem, OverlayPanel } from 'primeng/primeng';
+import { Component, OnInit } from '@angular/core';
+import { SelectItem } from 'primeng/primeng';
 import { Observable } from 'rxjs/internal/Observable';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { map } from 'rxjs/internal/operators/map';
 import { UserService } from '../../services/user.service';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
-//import { Router } from '@angular/router';
-import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { Subscription } from 'rxjs/Subscription';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
-import { ValTradeAreaService } from '../../services/app-trade-area.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { calculateStatistics } from '../../app.utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
-
-
-
-
 
 @Component({
     selector: 'val-project',
     templateUrl: './project.component.html',
     styleUrls: ['./project.component.css']
   })
-
   export class ProjectComponent implements OnInit, AfterViewInit {
 
     public timeLines;
@@ -38,15 +29,13 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
     overlaySub: Subscription;
 
-    constructor(private restService: RestDataService, 
-                public  impProjectService: ImpProjectService,
-                private userService: UserService, 
+    constructor(private restService: RestDataService,
+                private userService: UserService,
                 public  appProjectService: AppProjectService,
-                public  valTradeAreaService: ValTradeAreaService,
+                private impProjectService: ImpProjectService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private esriMapService: EsriMapService
-                                ){
+                private esriMapService: EsriMapService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -58,13 +47,13 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
                     {label: 'Previous Year',  value: 'previousYear'}
                 ];
 
-               
+
                // this.appProjectService.overlayPanel.subscribe(result => this.onShowOverlay(result));
               //  this.impProjectService.overlayPanel.subscribe(result => {
               //   console.log('result:::subscribe:::', result);
               //   this.onShowOverlay(result);
               //  });
-               
+
     }
 
     public allColumns: any[] = [
@@ -76,7 +65,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
      { field: 'modifyUserLoginname',          header: 'Username',                      size: '40px'},
      { field: 'modifyDate',                   header: 'Last Modified Date',            size: '40px'}
     ];
- 
+
     public allProjectsData: any;
     public myProjecctsData: any;
     public selectedListType: 'Myproject' | 'Allproject';
@@ -88,12 +77,12 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
     ngOnInit() {
       this.selectedListType = 'Myproject';
-      
+
       for (const column of this.allColumns) {
         this.columnOptions.push({ label: column.header, value: column });
         this.selectedColumns.push(column);
       }
-      
+
     }
 
     ngAfterViewInit(){
@@ -103,6 +92,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
           const updatedateFrom = this.todayDate;
           const updatedDateTo = new Date();
           updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
+          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
           const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
             Array.from(data).forEach(row => {
               const dt = new Date(row['modifiedDate']);
@@ -119,7 +109,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
             this.myProjecctsData = data;
             this.currentProjectData = this.myProjecctsData;
           });
-        }); 
+        });
     }
 
     public getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
@@ -151,14 +141,14 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
     public onProjectSelected(event){
       this.selectedProjectData.push(event);
-      
+
     }
 
     public onSelectTimeFrame(event: string){
       console.log('timeframe::::', event);
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
-     
+
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
       }
@@ -225,8 +215,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
       }, null , () => {
           this.zoomToSites();
           this.display = false;
-      });
-      
+     });
     }
 
     public loadProject(event){

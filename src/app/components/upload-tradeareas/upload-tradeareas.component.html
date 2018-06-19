@@ -13,23 +13,23 @@
       </div>
       <div class="ui-g-12">
           <div class="ui-g-6">
-              <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="analysisLevel == null || analysisLevel.length === 0"
+              <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="!(analysisLevel$ | async)"
                             pTooltip="CSV or Excel format required: Location #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
               </p-fileUpload>
-              <div *ngIf="analysisLevel == null || analysisLevel.length === 0 " class="warning-label" >
+              <div *ngIf="!(analysisLevel$ | async)" class="warning-label" >
                 Please select an Analysis Level before uploading a custom trade area
-        </div>
+              </div>
             </div>
       </div>
     </div>
           <div *ngIf="failedGeoLocList.length > 0" class="ui-g-7">
       <p-dataTable [value]="failedGeoLocList" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-        <p-header>Detected {{(failedGeoLocList.length) || 0}} {{analysisLevel}} upload failures out of {{geoLocList.length}} rows</p-header>
+        <p-header>Detected {{(failedGeoLocList.length) || 0}} {{analysisLevel$ | async}} upload failures out of {{geoLocList.length}} rows</p-header>
         <!-- <p-column field="Number" [hidden]="true"></p-column> -->
         <p-column field="geocode" header="Geocode" [editable]="true"></p-column>
         <p-column field="loc.locationNumber" header="Number" [editable]="true"></p-column>
         <p-column field="message" header="Status" [editable]="false"></p-column>
-       
+
         <p-column header="Resubmit">
           <ng-template let-h="rowData" pTemplate="body">
             <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>

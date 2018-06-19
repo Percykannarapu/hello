@@ -7,9 +7,9 @@ import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
+import { AppStateService } from './app-state.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -78,17 +78,19 @@ export class TargetAudienceTdaService {
   private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private discoService: ImpDiscoveryService) { }
+              private audienceService: TargetAudienceService, private stateService: AppStateService) { }
 
   private static createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse) : ImpGeofootprintVar {
     const fullId = `Offline/TDA/${varPk}`;
-    const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: 0, isNumber: 0, isActive: 1 });
+    const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
       result.valueString = value;
-      result.isString = 1;
+      result.fieldconte = 'INDEX';
+      result.isString = true;
     } else {
       result.valueNumber = Number(value);
-      result.isNumber = 1;
+      result.fieldconte = 'INDEX';
+      result.isNumber = true;
     }
     if (rawData != null) {
       result.customVarExprDisplay = rawData.fielddescr;
@@ -181,9 +183,9 @@ export class TargetAudienceTdaService {
   }
 
   private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: checkType });
-      const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + this.discoService.get()[0].analysisLevel;
-      this.usageService.createCounterMetric(usageMetricName, metricText, null);
-
+    const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + currentAnalysisLevel;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 }

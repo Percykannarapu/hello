@@ -1,26 +1,18 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { ValSiteListService } from './app-site-list.service';
-import { Subscription, BehaviorSubject, Observable } from 'rxjs';
-import { LocationUiModel } from '../models/location-ui.model';
+import { Subscription, BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { ValLayerService } from './app-layer.service';
-import { ValGeoService } from './app-geo.service';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
-import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
+import { AppGeoService } from './app-geo.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './app-metrics.service';
-import { ValTradeAreaService } from './app-trade-area.service';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { MessageService } from 'primeng/components/common/messageservice';
-import { tap } from 'rxjs/operators';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { MapService } from './map.service';
+import { AppStateService, Season } from './app-state.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -28,21 +20,13 @@ export interface Coordinates {
 }
 
 @Injectable()
-export class ValMapService implements OnDestroy {
-  private siteSubscription: Subscription;
-  private competitorSubscription: Subscription;
-  private geoSubscription: Subscription;
-  private discoverySubscription: Subscription;
+export class AppMapService implements OnDestroy {
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
-  private rendererSubscription: Subscription;
 
-  private currentAnalysisLevel: string;
-  private currentLocationList = new Map<string, LocationUiModel[]>();
   private currentGeocodeList: string[] = [];
-  private currentRendererDataLength = 0;
 
-  private useWebGLHighlighting: boolean;
+  private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
   private highlightHandler: any;
 
@@ -51,230 +35,95 @@ export class ValMapService implements OnDestroy {
   private rendererRetries: number = 0;
   public onReady$: Observable<boolean> = this.isReady.asObservable();
 
-  constructor(private siteService: ValSiteListService, private layerService: EsriLayerService,
+  constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService, private config: AppConfig,
-              private appLayerService: ValLayerService, private appGeoService: ValGeoService,
-              private discoveryService: ImpDiscoveryService, private queryService: EsriQueryService,
-              private metricsService: ValMetricsService, private tradeAreaService: ValTradeAreaService,
+              private appGeoService: AppGeoService, private metricsService: ValMetricsService,
+              private appStateService: AppStateService, private queryService: EsriQueryService,
               private messageService: MessageService, private rendererService: AppRendererService,
               private usageService: UsageService) {
-    this.currentAnalysisLevel = '';
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
+
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
         this.isReady.next(true);
-        this.siteSubscription = this.siteService.allClientSites$.pipe(
-          tap(() => { if (!this.currentLocationList.has('Site')) this.currentLocationList.set('Site', []); })
-        ).subscribe(sites => this.onSiteListChanged(sites, 'Site'));
-        this.competitorSubscription = this.siteService.allCompetitorSites$.pipe(
-          tap(() => { if (!this.currentLocationList.has('Competitor')) this.currentLocationList.set('Competitor', []); })
-        ).subscribe(competitors => this.onSiteListChanged(competitors, 'Competitor'));
-        this.geoSubscription = this.appGeoService.uniqueSelectedGeocodes$.subscribe(geocodes => this.onGeocodeListChanged(geocodes));
-        this.discoverySubscription = this.discoveryService.storeObservable.subscribe(discovery => this.onDiscoveryChange(discovery));
-        this.clientTradeAreaSubscription = this.tradeAreaService.clientBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Site'));
-        this.competitorTradeAreaSubscription = this.tradeAreaService.competitorBuffer$.subscribe(buffer => this.onTradeAreaBufferChange(buffer, 'Competitor'));
-        this.rendererSubscription = this.rendererService.rendererDataReady$.subscribe(length => this.onRendererChanged(length));
+        combineLatest(this.appStateService.analysisLevel$, this.rendererService.rendererDataReady$).subscribe(
+          ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
+        );
+        combineLatest(this.appStateService.analysisLevel$, this.appStateService.uniqueSelectedGeocodes$).subscribe(
+          ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
+        );
+        this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
+          if (this.layerSelectionRefresh) this.layerSelectionRefresh();
+        });
       }
     });
   }
 
   ngOnDestroy() : void {
-    if (this.siteSubscription) this.siteSubscription.unsubscribe();
-    if (this.competitorSubscription) this.competitorSubscription.unsubscribe();
-    if (this.geoSubscription) this.geoSubscription.unsubscribe();
-    if (this.discoverySubscription) this.discoverySubscription.unsubscribe();
     if (this.clientTradeAreaSubscription) this.clientTradeAreaSubscription.unsubscribe();
     if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
-  }
-
-  private onSiteListChanged(sites: LocationUiModel[], siteType: string) {
-    const oldSites = new Set(this.currentLocationList.get(siteType));
-    const newSites = new Set(sites);
-    const addedPoints = sites.filter(s => !oldSites.has(s)).map(s => s.point);
-    const removedPoints = this.currentLocationList.get(siteType).filter(s => !newSites.has(s)).map(s => s.point);
-    const updatedPoints = sites.filter(s => oldSites.has(s)).map(s => s.point);
-    const groupName = `${siteType}s`;
-    const layerName = `Project ${groupName}`;
-    if (this.mapService.map.layers.map(l => l.title).includes(groupName)) {
-      this.layerService.addGraphicsToLayer(layerName, addedPoints);
-      this.layerService.removeGraphicsFromLayer(layerName, removedPoints);
-      this.layerService.updateGraphicAttributes(layerName, updatedPoints);
-      this.layerService.setGraphicVisibility(layerName, updatedPoints);
-    } else {
-      this.layerService.createClientLayer(groupName, layerName, sites.map(s => s.point), 'point', true);
-    }
-    this.currentLocationList.set(siteType, Array.from(sites));
-  }
-
-  private onDiscoveryChange(discovery: ImpDiscoveryUI[]) : void {
-    if (discovery && discovery[0] && discovery[0].analysisLevel != null && discovery[0].analysisLevel !== this.currentAnalysisLevel) {
-      this.currentAnalysisLevel = discovery[0].analysisLevel;
-      this.setDefaultLayers(this.currentAnalysisLevel);
-      this.setupRenderer(this.currentRendererDataLength, this.currentAnalysisLevel);
-    }
-  }
-
-  private onRendererChanged(dataLength: number) {
-    if (this.currentRendererDataLength === 0 && dataLength === 0 && this.layerSelectionRefresh) {
-      this.layerSelectionRefresh();
-    } else {
-      this.currentRendererDataLength = dataLength;
-      this.setupRenderer(this.currentRendererDataLength, this.currentAnalysisLevel);
-    }
-  }
-
-  private setDefaultLayers(currentAnalysisLevel) : void {
-    MapService.DmaGroupLayer.visible = false;
-    MapService.ZipGroupLayer.visible = false;
-    MapService.AtzGroupLayer.visible = false;
-    MapService.DigitalAtzGroupLayer.visible = false;
-    MapService.PcrGroupLayer.visible = false;
-    MapService.WrapGroupLayer.visible = false;
-    MapService.CountyGroupLayer.visible = false;
-
-    switch (currentAnalysisLevel) {
-      case 'Digital ATZ':
-         MapService.DigitalAtzGroupLayer.visible = true;
-         break;
-      case 'ATZ':
-         MapService.AtzGroupLayer.visible = true;
-         break;
-      case 'ZIP':
-         MapService.ZipGroupLayer.visible = true;
-         break;
-      case 'PCR':
-         MapService.PcrGroupLayer.visible = true;
-         break;
-      default:
-          console.error(`ValMapService.setDefaultLayers - Unknown Analysis Level selected: ${currentAnalysisLevel}`);
-     }
-
-  }
-
-  private onGeocodeListChanged(geocodes: string[]) {
-    if ((geocodes == null || geocodes.length === 0) && this.currentGeocodeList.length === 0) return;
-    const currentGeocodes = new Set(this.currentGeocodeList);
-    const adds = geocodes.filter(g => !currentGeocodes.has(g));
-    this.currentGeocodeList = Array.from(geocodes);
-    if (adds.length > 0) {
-      this.getGeoAttributes(adds, this.currentAnalysisLevel);
-    }
-    this.setHighlight(this.currentGeocodeList, this.currentAnalysisLevel);
-    if (this.layerSelectionRefresh) this.layerSelectionRefresh();
-  }
-
-  private onTradeAreaBufferChange(buffer: Map<ImpGeofootprintLocation, number[]>, siteType: string) {
-    const mergeFlag = siteType === 'Site' ? this.tradeAreaService.clientMergeFlag : this.tradeAreaService.competitorMergeFlag;
-    this.drawRadiusBuffers(buffer, mergeFlag, siteType);
   }
 
   public setupMap() : void {
 
   }
 
-  public handleClickEvent(location:  __esri.Point) {
-    if (this.currentAnalysisLevel == null || this.currentAnalysisLevel === '') return;
-    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel);
+  public handleClickEvent(location:  __esri.MapViewClickEvent) {
+    const analysisLevel = this.appStateService.analysisLevel$.getValue();
+    if (analysisLevel == null || analysisLevel.length === 0) return;
+    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
-    const query = layer.createQuery();
-    query.geometry = location;
-    query.outFields = ['geocode'];
-    const discoData = this.discoveryService.get();
-    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
-      query.outFields.push('hhld_w');
-    } else {
-      query.outFields.push('hhld_s');
-    }
-    const sub = this.queryService.executeQuery(boundaryLayerId, query).subscribe(featureSet => {
-      if (featureSet && featureSet.features && featureSet.features.length === 1) {
-        const geocode = featureSet.features[0].attributes.geocode;
-        this.collectSelectionUsage(featureSet);
-        this.selectSingleGeocode(geocode);
+    this.mapService.mapView.hitTest(location.mapPoint).then(response => {
+      const selectedGraphic = response.results.filter(r => r.graphic.layer === layer)[0].graphic;
+      if (selectedGraphic != null) {
+        const geocode = selectedGraphic.attributes.geocode;
+        const geometry = {
+          x: Number(selectedGraphic.attributes.longitude),
+          y: Number(selectedGraphic.attributes.latitude),
+        };
+        this.collectSelectionUsage(selectedGraphic);
+        this.selectSingleGeocode(geocode, geometry);
       }
-    }, err => console.error('Error getting geocode for map click event', err), () => sub.unsubscribe());
+    });
   }
 
-  /**
-   * This method will create usage metrics each time a user selects/deselects geos manually on the map
-   * @param featureSet A feature set containing the features the user manually selected on the map
-   */
-  private collectSelectionUsage(featureSet: __esri.FeatureSet) {
-    const discoData = this.discoveryService.get();
-    let hhc: number;
-    const geocode = featureSet.features[0].attributes.geocode;
-    if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
-      hhc = Number(featureSet.features[0].attributes.hhld_w);
+  public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
+    if (geometry == null) {
+      const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
+      const centroidSub = this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], false, ['geocode', 'latitude', 'longitude']).subscribe(
+        graphics => {
+          if (graphics && graphics.length > 0) {
+            const point = {
+              x: Number(graphics[0].attributes.latitude),
+              y: Number(graphics[0].attributes.longitude)
+            };
+            this.appGeoService.toggleGeoSelection(geocode, point);
+          }
+        },
+        err => console.error('There was an error querying for a geocode', err),
+        () => { if (centroidSub) centroidSub.unsubscribe(); } );
     } else {
-      hhc = Number(featureSet.features[0].attributes.hhld_s);
+      this.appGeoService.toggleGeoSelection(geocode, geometry);
     }
-    const currentGeocodes = new Set(this.currentGeocodeList);
-    const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
-    if (discoData[0].cpm != null) {
-      const amount: number = hhc * discoData[0].cpm / 1000;
-      if (currentGeocodes.has(geocode)) {
-        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
-      } else {
-        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
-      }
-    } else {
-      if (currentGeocodes.has(geocode)) {
-        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
-      } else {
-        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
-      }
-    }
-  }
-
-  public selectSingleGeocode(geocode: string) {
-    const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, false);
-    const centroidSub = this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], true).subscribe(graphics => {
-      if (graphics && graphics.length > 0) {
-        const point = graphics[0].geometry;
-        if (EsriUtils.geometryIsPoint(point)) this.appGeoService.toggleGeoSelection(geocode, point);
-      }
-    }, err => console.error(err), () => centroidSub.unsubscribe());
   }
 
   public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
     graphicsList.forEach(graphic => {
-      const geocode =  graphic.attributes['geocode'];
-      let hhc = null;
-      const discoData = this.discoveryService.get();
-      if (discoData[0].selectedSeason.toUpperCase() === 'WINTER') {
-           hhc = Number(graphic.attributes.hhld_w);
-      }
-      else{
-        hhc = Number(graphic.attributes.hhld_s);
-      }
-      const currentGeocodes = new Set(this.currentGeocodeList);
-      const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-      const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
-      if (discoData[0].cpm != null) {
-        const amount: number = hhc * discoData[0].cpm / 1000;
-        if (currentGeocodes.has(geocode)) {
-          this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
-        } else {
-          this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + discoData[0].cpm + '~' + amount.toLocaleString(), 1);
-        }
-      } else {
-        if (currentGeocodes.has(geocode)) {
-          this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
-        } else {
-          this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
-        }
-      }
-      const latitude = graphic.geometry['centroid'].y;
-      const longitude = graphic.geometry['centroid'].x;
+      const geocode =  graphic.attributes.geocode;
+      const latitude = graphic.attributes.latitude;
+      const longitude = graphic.attributes.longitude;
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-     // const point = graphic.geometry;
-     //   if (EsriUtils.geometryIsPoint(point)) 
-        //  this.appGeoService.toggleGeoSelection(geocode, point);
-        this.selectSingleGeocode(geocode);
-     
+      this.collectSelectionUsage(graphic);
+      this.appGeoService.toggleGeoSelection(geocode, point);
     });
   }
 
+  /**
+   * @deprecated
+   * @param {Map<Coordinates, number[]>} locationBuffers
+   * @param {boolean} mergeBuffers
+   * @param {string} locationType
+   */
   public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
     const locationKeys = Array.from(locationBuffers.keys());
     console.log('drawing buffers', locationBuffers);
@@ -329,21 +178,36 @@ export class ValMapService implements OnDestroy {
     });
   }
 
-  public getGeoAttributes(geocodes: string[], analysisLevel: string) {
-    const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const outFields = this.metricsService.getLayerAttributes();
-    const sub = this.queryService.queryAttributeIn(portalId, 'geocode', geocodes, false, outFields).subscribe(
-      graphics => {
-        const attributesForUpdate = graphics.map(g => g.attributes);
-        this.appGeoService.updatedGeoAttributes(attributesForUpdate);
-      },
-      err => {
-        console.error(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'There was an error during geo selection' });
-      },
-      () => {
-        sub.unsubscribe();
-      });
+  /**
+   * This method will create usage metrics each time a user selects/deselects geos manually on the map
+   * @param graphic The feature the user manually selected on the map
+   */
+  private collectSelectionUsage(graphic: __esri.Graphic) {
+    const currentProject = this.appStateService.currentProject$.getValue();
+    let hhc: number;
+    const geocode = graphic.attributes.geocode;
+    if (this.appStateService.season$.getValue() === Season.Winter) {
+      hhc = Number(graphic.attributes.hhld_w);
+    } else {
+      hhc = Number(graphic.attributes.hhld_s);
+    }
+    const currentGeocodes = new Set(this.currentGeocodeList);
+    const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
+    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
+    if (currentProject.estimatedBlendedCpm != null) {
+      const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
+      } else {
+        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
+      }
+    } else {
+      if (currentGeocodes.has(geocode)) {
+        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      } else {
+        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+      }
+    }
   }
 
   private setupRenderer(dataLength: number, currentAnalysisLevel: string) : void {

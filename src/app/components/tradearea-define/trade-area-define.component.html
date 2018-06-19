@@ -11,7 +11,7 @@
 
   <div class="ui-g-12" *ngFor="let tradeArea of currentTradeAreas; index as i">
     <div class="ui-g-1 ui-g-offset-half ui-g-nopad">
-      <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="tradeArea.isShowing" [style]="{'width':'75px'}"></p-toggleButton>
+      <p-toggleButton onLabel="Show" offLabel="Hide" [(ngModel)]="tradeArea.isShowing" [style]="{'width':'75px'}" (ngModelChange)="onChangeTradeAreaVisibility(i)"></p-toggleButton>
     </div>
     <div class="ui-g-8 ui-g-nopad">
       <span class="ui-float-label">
@@ -25,10 +25,10 @@
 
   <div class="ui-g-12">
     <div class="ui-g-4">
-      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="currentMergeType.value"></p-selectButton>
+      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="currentMergeType.value" (ngModelChange)="onChangeMergeType()"></p-selectButton>
     </div>
     <div class="ui-g-4">
-      <button (click)="onApplyBtnClick()" pButton label="Apply" [disabled]="applyDisabled()"></button>
+      <button (click)="onApplyBtnClick()" pButton label="Apply" [disabled]="isApplyButtonDisabled()"></button>
     </div>
   </div>
 </div>

@@ -13,14 +13,13 @@ import { TargetAudienceService } from '../../../services/target-audience.service
 export class OfflineAudienceTdaComponent implements OnInit {
   private allNodes: TreeNode[] = [];
   public currentNodes: TreeNode[] = [];
-  public selectedVariables: TreeNode[];
+  public selectedVariables: TreeNode[] = [];
 
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceTdaService,
-    private targetAudienceService: TargetAudienceService) { 
-    this.targetAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
+  constructor(private audienceService: TargetAudienceTdaService, private parentAudienceService: TargetAudienceService) {
+    this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
   private static asFolder(category: TdaAudienceDescription) : TreeNode {

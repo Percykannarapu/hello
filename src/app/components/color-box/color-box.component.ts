@@ -1,10 +1,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { AppService } from '../../services/app.service';
+import { AppBusinessSearchService } from '../../services/app-business-search.service';
 
 @Component({
   selector: 'val-color-box',
   templateUrl: './color-box.component.html',
-  providers: [AppService]
+  providers: [AppBusinessSearchService]
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
   @ViewChild('op') overlayPanel;
@@ -24,7 +24,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    popupWidthStr: string = '"{\'width\':\'20%\'}"';
 
-   constructor(private appService: AppService) {
+   constructor(private appService: AppBusinessSearchService) {
      this.appService.closeOverLayPanel.subscribe((value) => {
       if (value){
         this.overlayPanel.hide();

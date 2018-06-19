@@ -1,38 +1,36 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RadData } from '../models/RadData';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { AppConfig } from '../app.config';
 import { MetricService, MetricMessage } from '../val-modules/common/services/metric.service';
 import { RestResponse } from '../models/RestResponse';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpDiscoveryUI } from '../models/ImpDiscoveryUI';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
 import { take } from 'rxjs/operators';
+import { AppStateService } from './app-state.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 
 @Injectable()
 export class RadService {
 
   private radData: Array<RadData>;
   private radUrl: string = this.appConfig.valServiceBase + 'v1/targeting/base/impradlookup/search?q=impRadLookup';
-  private category: string;
-  private product: string;
   private filteredRadData: Array<RadData>;
   private predictedResp: number;
 
-  constructor(private impDiscoveryService: ImpDiscoveryService,
-    private appConfig: AppConfig,
-    private metricService: MetricService,
-    private httpClient: HttpClient,
-    private locationService: ImpGeofootprintLocationService,
-    private geoService: ImpGeofootprintGeoService,
-    private authService: AuthService,
-    private userService: UserService) {
+  constructor(private appStateService: AppStateService,
+              private appConfig: AppConfig,
+              private metricService: MetricService,
+              private httpClient: HttpClient,
+              private locationService: ImpGeofootprintLocationService,
+              private geoService: ImpGeofootprintGeoService,
+              private authService: AuthService,
+              private userService: UserService) {
 
     //Subscribe to the impDiscoveryService
-    this.impDiscoveryService.storeObservable.subscribe(discoveryData => this.filterRad(), error => this.handleError(error));
+    this.appStateService.currentProject$.subscribe(project => this.filterRad(project), error => this.handleError(error));
 
     //Subscribe to the metrics service
     this.metricService.observeMetrics().subscribe(message => this.calculateMetrics(message));
@@ -42,29 +40,15 @@ export class RadService {
   }
 
   /**
-   * get the discovery data from the ImpDiscoveryService
-   */
-  private getDiscoveryData() : any {
-    const discoveryData: Array<ImpDiscoveryUI> = this.impDiscoveryService.get();
-    if (discoveryData && discoveryData[0]) {
-      return { product: discoveryData[0].productCode, category: discoveryData[0].industryCategoryName };
-    }
-    return null;
-  }
-
-  /**
    * Filter the RAD data based on the data available in the ImpDiscoveryService
    */
-  private filterRad() {
-
-    //get the current discovery data
-    const discoveryData = this.getDiscoveryData();
+  private filterRad(currentProject: ImpProject) {
 
     //filter down the RAD data based on the current product and category
-    if (this.radData != null && discoveryData != null) {
+    if (this.radData != null) {
       this.filteredRadData = this.radData.filter(f =>
-         f.category === discoveryData.category
-         && f.product === discoveryData.product);
+         f.category === currentProject.industryCategoryCode
+         && f.product === currentProject.radProduct);
     }
 
     //If we have valid RAD data and a household count available then we can recalculate the performance metrics
@@ -109,8 +93,8 @@ export class RadService {
           }
 
           this.predictedResp = predictedResponse;
-          
-         
+
+
 
 
           /**

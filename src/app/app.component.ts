@@ -1,10 +1,12 @@
-import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
 import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from '@angular/core';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
 import {Message} from 'primeng/primeng';
 import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
+import { ImpProject } from './val-modules/targeting/models/ImpProject';
+import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 
 enum MenuOrientation {
     STATIC,
@@ -79,7 +81,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
     public currentSpinnerState$: Observable<boolean>;
 
     constructor(private esriIdentityService: EsriIdentityService,
-                private impDiscoveryService: ImpDiscoveryService,
+                private projectService: ImpProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService) { }
 
@@ -87,7 +89,9 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
         this.esriIdentityService.authenticate(this.config.esriIdentityParams);
-        this.impDiscoveryService.onInit();
+        const startProject = new ImpProject();
+        startProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
+        this.projectService.add([startProject]);
         this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;
         this.currentSpinnerState$ = this.messaging.spinnerState$;
     }
