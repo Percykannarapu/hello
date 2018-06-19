@@ -95,7 +95,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
           const updatedateFrom = this.todayDate;
           const updatedDateTo = new Date();
           updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
-          
+          updatedDateTo.setDate(updatedDateTo.getDate() + 1);
           const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
             console.log('error all projects::::', data);
             Array.from(data).forEach(row => {
@@ -132,7 +132,6 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
       updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
       updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
-      updatedDateTo = this.formatDate(updatedDateTo);
      // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
       return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&modifyUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
         map((response ) => data = response.payload.rows));
@@ -219,22 +218,27 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     public dbClick(event){
       //console.log('double click:::', event);
      // this.impProjectService.loadProject(event.data['projectId'], true);
-      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
+      this.impProjectService.loadProject(event.data['projectId'], true);
+      this.display = false;
 
-      }, null , () => {
-          this.zoomToSites();
-          this.display = false;
-     });
+      //    .subscribe(result => {
+     //
+     //  }, null , () => {
+     //      this.zoomToSites();
+     //      this.display = false;
+     // });
     }
 
     public loadProject(event){
       //console.log('load click:::', event);
-      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
-
-      }, null , () => {
-          this.zoomToSites();
-          this.display = false;
-      });
+      this.impProjectService.loadProject(event.data['projectId'], true);
+      this.display = false;
+      //   .subscribe(result => {
+      //
+      // }, null , () => {
+      //     this.zoomToSites();
+      //     this.display = false;
+      // });
     }
 
     private zoomToSites(){
