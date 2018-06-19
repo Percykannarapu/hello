@@ -65,6 +65,9 @@ export class ValGeocodingResponse {
       result.locationNumber = this.Number;
     }
     for (const [k, v] of Object.entries(this)) {
+      if (k === '' || v === '') {
+        continue;
+      }
       if (nonAttributeProps.indexOf(k) < 0 && typeof v !== 'function') {
         const locationAttribute = new ImpGeofootprintLocAttrib({
           attributeCode: k,
