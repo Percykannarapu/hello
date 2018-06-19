@@ -101,9 +101,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-    console.log('audience data:::', audience, 'index::::',  this.varService.getAudiences().indexOf(audience));
-   //console.log('Do you want to delete the following audience(s) from your project? \n' + `${audience.audienceName}`);
-    const message = 'Do you want to delete the following audience(s) from your project? \n\r' + `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
+    const message = 'Do you want to delete the following audience from your project? \n\r' + `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
    this.confirmationService.confirm({
     message: message,
     header: 'Delete Confirmation',
