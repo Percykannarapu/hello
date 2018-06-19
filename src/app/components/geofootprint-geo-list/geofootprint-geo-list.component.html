@@ -42,6 +42,20 @@
       </p-header>
       <!-- GEOGRID COLUMN SELECTION -->
       <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+
+      <!-- <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="border: 0px; margin: 3px 0px 0px 1px; padding: 0px; width: 1.1em; height: 1.1em; display: block"></button> -->
+      <!-- <p-button icon="ui-icon-trash" (click)="onRowDelete(rowData)"></p-button> -->
+
+      <!-- DELETE BUTTON -->
+      <p-column [style]="{'width':'30px'}">
+         <ng-template let-flatGeo="rowData" pTemplate="body">
+            <div class="ui-g-12 .val-flush-to-edges" style="vertical-align:inherit">
+               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
+                        style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block">
+               </button>
+            </div>
+         </ng-template>
+      </p-column>
       <!-- GEOGRID STANDARD COLUMNS -->
       <p-column *ngFor="let col of selectedColumns" [sortable]="true"
                [header]="col.value.header" [field]="((col.value.field != null) ? col.value.field : null)"
@@ -58,7 +72,7 @@
                {{row['geo'].geocode}}
             </div>
             <div class="ui-g-2 .val-flush-to-edges" style="vertical-align:inherit">
-               <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 3px 0px 0px 1px; padding: 0px; width: 1.1em; height: 1.1em; display: block"></button>
+               <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"></button>
             </div>
          </ng-template>
          <!-- Format Distance column-->
