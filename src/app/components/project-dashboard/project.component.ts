@@ -13,6 +13,9 @@ import { Subscription } from 'rxjs/Subscription';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { ValTradeAreaService } from '../../services/app-trade-area.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { calculateStatistics } from '../../app.utils';
+import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 
 
 
@@ -39,8 +42,10 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
                 public  impProjectService: ImpProjectService,
                 private userService: UserService, 
                 public  appProjectService: AppProjectService,
-                public valTradeAreaService: ValTradeAreaService,
+                public  valTradeAreaService: ValTradeAreaService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
+                private impGeofootprintLocationService: ImpGeofootprintLocationService,
+                private esriMapService: EsriMapService
                                 ){
 
                   this.timeLines = [
@@ -64,12 +69,12 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 
     public allColumns: any[] = [
      // { field: '',                     header: 'Select',                        size: '60px'},
-      { field: 'projectId',            header: 'imPower ID',                    size: '1px'},
-      { field: 'projectTrakerId',      header: 'Project Tracker ID',            size: '50px'},
-      { field: 'projectName',          header: 'imPower Project Name',          size: '500px'},
-      { field: 'clientname',           header: 'Client Name',                   size: '30px'},
-      { field: 'userNmae',             header: 'Username',                      size: '40px'},
-      { field: 'modifiedDate',         header: 'Last Modified Date',            size: '40px'}
+     { field: 'projectId',                    header: 'imPower ID',                    size: '1px'},
+     { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '50px'},
+     { field: 'projectName',                  header: 'imPower Project Name',          size: '500px'},
+     { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '30px'},
+     { field: 'modifyUserLoginname',          header: 'Username',                      size: '40px'},
+     { field: 'modifyDate',                   header: 'Last Modified Date',            size: '40px'}
     ];
  
     public allProjectsData: any;
@@ -213,20 +218,32 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
     }
 
     public dbClick(event){
-      console.log('double click:::', event);
-      this.impProjectService.loadProject(event.data['projectId'], true);
-      this.display = false;
-     
+      //console.log('double click:::', event);
+     // this.impProjectService.loadProject(event.data['projectId'], true);
+      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
+
+      }, null , () => {
+          this.zoomToSites();
+          this.display = false;
+      });
+      
     }
 
     public loadProject(event){
-      console.log('load click:::', event);
-      this.impProjectService.loadProject(event['projectId'], true);
-    //    this.impGeofootprintGeoService.storeObservable.subscribe (geos => {
-    //      if (geos != null && geos.length > 0) this.valTradeAreaService.ZoomToTA();
-    // }
-    // )
-      this.display = false;
+      //console.log('load click:::', event);
+      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
+
+      }, null , () => {
+          this.zoomToSites();
+          this.display = false;
+      });
+    }
+
+    private zoomToSites(){
+      const locData = this.impGeofootprintLocationService.get();
+      const xStats = calculateStatistics(locData.map(d => d.xcoord));
+      const yStats = calculateStatistics(locData.map(d => d.ycoord));
+      this.esriMapService.zoomOnMap(xStats, yStats, locData.length);
     }
 
     /*public reorderColumn(event){
