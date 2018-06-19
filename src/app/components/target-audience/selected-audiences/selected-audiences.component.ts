@@ -107,15 +107,10 @@ export class SelectedAudiencesComponent implements OnInit {
     header: 'Delete Confirmation',
     icon: 'ui-icon-delete',
     accept: () => {
-      //this.varService.getAudiences().splice(this.varService.getAudiences().indexOf(audience), 1);
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
 
-      // const audianceDef: AudienceDataDefinition[] = [];
-      // audianceDef.push(audience);
-      // this.varService.deletedAudiences.next(Array.from(audience.values()));
       this.varService.applyAudienceSelection();
-      //console.log('shadingAudience::::', this.impGeofootprintVarService.get());
     },
     reject: () => {
     }

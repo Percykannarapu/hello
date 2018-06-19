@@ -12,6 +12,8 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { calculateStatistics } from '../../app.utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
+import { AppLocationService } from '../../services/app-location.service';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 
 @Component({
     selector: 'val-project',
@@ -35,7 +37,8 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
                 private impProjectService: ImpProjectService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private esriMapService: EsriMapService){
+                private esriMapService: EsriMapService,
+                private appLocationService: AppLocationService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -53,6 +56,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
               //   console.log('result:::subscribe:::', result);
               //   this.onShowOverlay(result);
               //  });
+              impProjectService.storeObservable.subscribe(projects => this.onloadProject(projects));
 
     }
 
@@ -216,29 +220,28 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     }
 
     public dbClick(event){
-      //console.log('double click:::', event);
-     // this.impProjectService.loadProject(event.data['projectId'], true);
-      this.impProjectService.loadProject(event.data['projectId'], true);
-      this.display = false;
+        this.loadProject(event);
 
-      //    .subscribe(result => {
-     //
-     //  }, null , () => {
-     //      this.zoomToSites();
-     //      this.display = false;
-     // });
+      /*this.appProjectService.loadProject(event.data['projectId'], true).subscribe((projects: ImpProject[]) => {
+          console.log('project loaded');
+          const loadedProject = new ImpProject(projects[0]);
+          loadedProject.convertToModel();
+          this.appProjectService.replace([loadedProject]);
+          this.appProjectService.replace(projects);
+      }, null, () => {
+        const locData = this.impGeofootprintLocationService.get();
+        this.appLocationService.zoomToLocations(locData);
+        this.display = false;
+      });*/
+      //this.impProjectService.loadProject(event.data['projectId'], true);
+      //this.display = false;
+
     }
 
     public loadProject(event){
-      //console.log('load click:::', event);
+     
       this.impProjectService.loadProject(event.data['projectId'], true);
       this.display = false;
-      //   .subscribe(result => {
-      //
-      // }, null , () => {
-      //     this.zoomToSites();
-      //     this.display = false;
-      // });
     }
 
     private zoomToSites(){
@@ -246,6 +249,11 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
       const xStats = calculateStatistics(locData.map(d => d.xcoord));
       const yStats = calculateStatistics(locData.map(d => d.ycoord));
       this.esriMapService.zoomOnMap(xStats, yStats, locData.length);
+    }
+
+    private onloadProject(project){
+        const locData = this.impGeofootprintLocationService.get();
+        this.appLocationService.zoomToLocations(locData);
     }
 
     /*public reorderColumn(event){
