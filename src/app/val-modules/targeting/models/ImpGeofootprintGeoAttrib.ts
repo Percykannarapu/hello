@@ -4,8 +4,9 @@ import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
+import { transient, BaseModel } from '../../api/models/BaseModel';
 
-export class ImpGeofootprintGeoAttrib
+export class ImpGeofootprintGeoAttrib extends BaseModel
 {
    public geoAttributeId:              number;                        /// Primary Key
    public createUser:                  number;
@@ -20,12 +21,13 @@ export class ImpGeofootprintGeoAttrib
 
    // IMPOWER.IMP_GEOFOOTPRINT_GEO_ATTRIBS - MANY TO ONE RELATIONSHIP MEMBERS (NOTE TABLE DOESNT EXIST)
    // -----------------------------------------------------------------------
-   public impGeofootprintGeo:          ImpGeofootprintGeo;            /// Geofootprint Locations table
-   public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
-   public impProject:                  ImpProject;                    /// Captures Project information from the UI
+   @transient public impGeofootprintGeo:          ImpGeofootprintGeo;            /// Geofootprint Locations table
+   @transient public impGeofootprintMaster:       ImpGeofootprintMaster;         /// Geofootprint master table for IMPower.
+   @transient public impProject:                  ImpProject;                    /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data: ImpGeofootprintGeoAttrib | {} = {}) {
+      super();
       Object.assign(this, data);
    }
 
