@@ -96,7 +96,6 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
               updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
               
               const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
-                console.log('error all projects::::', data);
                 Array.from(data).forEach(row => {
                   const dt = new Date(row['modifiedDate']);
                   row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -105,7 +104,6 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
               });
     
               const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
-                console.log('error my projects::::', data);
                 Array.from(data).forEach(row => {
                   const dt = new Date(row['modifiedDate']);
                   row['modifiedDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -114,9 +112,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
                 this.currentProjectData = this.myProjecctsData;
               });
             });
-
         }
-          console.log('user result', result);
       });
       
     }
@@ -137,7 +133,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
       updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
       updatedDateTo = this.formatDate(updatedDateTo);
-     // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
+      // console.log('url:::::', `v1/targeting/base/impproject/search?q=impproject&&createUser=${this.userService.getUser().userId}`);
       return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&modifyUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
         map((response ) => data = response.payload.rows));
     }
@@ -223,22 +219,27 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
     public dbClick(event){
       //console.log('double click:::', event);
      // this.impProjectService.loadProject(event.data['projectId'], true);
-      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
+      this.impProjectService.loadProject(event.data['projectId'], true);
+      this.display = false;
 
-      }, null , () => {
-          this.zoomToSites();
-          this.display = false;
-     });
+      //    .subscribe(result => {
+     //
+     //  }, null , () => {
+     //      this.zoomToSites();
+     //      this.display = false;
+     // });
     }
 
     public loadProject(event){
       //console.log('load click:::', event);
-      this.appProjectService.loadProject(event.data['projectId'], true).subscribe(result => {
-
-      }, null , () => {
-          this.zoomToSites();
-          this.display = false;
-      });
+      this.impProjectService.loadProject(event.data['projectId'], true);
+      this.display = false;
+      //   .subscribe(result => {
+      //
+      // }, null , () => {
+      //     this.zoomToSites();
+      //     this.display = false;
+      // });
     }
 
     private zoomToSites(){

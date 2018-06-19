@@ -35,8 +35,9 @@ export interface ColumnDefinition<T> {
 }
 
 export enum InTransaction {
-   false,
-   true
+   false,   // Notifications processed normally
+   true,    // Notifications are queued until transaction ends
+   silent   // Notifications do not go out
 }
 
 export class DataStore<T>
@@ -328,10 +329,11 @@ export class DataStore<T>
             this._storeSubject.next(this._dataStore);
          }
          else
-         {
-//          console.log(this.storeName, 'DataStore.service.add - success, in transaction, holding notification for transaction');
-            this.transactionManager.push(this._storeSubject, this._dataStore);
-         }
+            if (inTransaction !== InTransaction.silent)
+            {
+   //          console.log(this.storeName, 'DataStore.service.add - success, in transaction, holding notification for transaction');
+               this.transactionManager.push(this._storeSubject, this._dataStore);
+            }
       }
    }
 

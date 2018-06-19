@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { ConfirmationService } from 'primeng/primeng';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -117,7 +118,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private impGeofootprintVarService: ImpGeofootprintVarService,
                private impDiscoveryService: ImpDiscoveryService,
                private appStateService: AppStateService,
-               private mapService: EsriMapService) { }
+               private esriMapService: EsriMapService,
+               private confirmationService: ConfirmationService) { }
 
    ngOnInit()
    {
@@ -691,8 +693,36 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       if (flatGeo != null && flatGeo.geo != null)
       {
-         this.mapService.zoomOnMap({ min: flatGeo.geo.xcoord, max: flatGeo.geo.xcoord }, { min: flatGeo.geo.ycoord, max: flatGeo.geo.ycoord }, 1);
+         this.esriMapService.zoomOnMap({ min: flatGeo.geo.xcoord, max: flatGeo.geo.xcoord }, { min: flatGeo.geo.ycoord, max: flatGeo.geo.ycoord }, 1);
       }
+   }
+
+   public onClickDeleteGeo(flatGeo: FlatGeo)
+   {
+      if (flatGeo != null && flatGeo.geo != null)
+      {
+         console.log('onClickDeleteGeo - Fired - Geocode: ' + flatGeo.geo.geocode);
+
+         this.confirmationService.confirm({
+            message: 'Do you want to delete geocode: ' + flatGeo.geo.geocode + '?',
+            header: 'Delete Geography Confirmation',
+            icon: 'ui-icon-trash',
+            accept: () => {
+               //this.removeLocationHierarchy(row);
+               //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
+               //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
+               // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+               this.impGeofootprintGeoService.addDbRemove(flatGeo.geo);  // For database removal
+               this.impGeofootprintGeoService.remove(flatGeo.geo);                        
+               console.log('remove successful');
+            },
+            reject: () => {
+               console.log('cancelled remove');
+            }
+          });      
+      }
+      else
+         console.log('onClickDeleteGeo - Fired - Geocode: null');         
    }
 
    onRowClick(event: any)
