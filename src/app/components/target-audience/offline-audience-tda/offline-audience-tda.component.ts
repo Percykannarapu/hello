@@ -51,8 +51,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);
         this.loading = false;
-      }
-    );
+      });
     this.searchTerm$.pipe(
       debounceTime(400),
       distinctUntilChanged()

@@ -3,6 +3,5 @@
       <i class="fa fa-search"></i>
       <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
   </div>
-  <p-tree [value]="currentNodes" selectionMode="checkbox" [(selection)]="selectedVariables" (onNodeSelect)="selectVariable($event.node)" (onNodeUnselect)="removeVariable($event.node)"></p-tree>
+  <p-tree [loading]="loading" [value]="currentNodes" selectionMode="checkbox" [(selection)]="selectedVariables" (onNodeSelect)="selectVariable($event.node)" (onNodeUnselect)="removeVariable($event.node)"></p-tree>
 </div>
-

@@ -152,6 +152,8 @@ import { OnlineAudienceApioComponent } from './components/target-audience/online
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { ImpProjectTrackerService } from './val-modules/targeting/services/ImpProjectTracker.service';
 import { ProjectComponent } from './components/project-dashboard/project.component';
+import { OnlineAudienceVlhComponent } from './components/target-audience/online-audience-vlh/online-audience-vlh.component';
+import { OnlineAudiencePixelComponent } from './components/target-audience/online-audience-pixel/online-audience-pixel.component';
 
 @NgModule({
     imports: [
@@ -262,7 +264,9 @@ import { ProjectComponent } from './components/project-dashboard/project.compone
         TargetAudienceComponent,
         OnlineAudienceApioComponent,
         AudienceTradeareaComponent,
-        ProjectComponent
+        ProjectComponent,
+        OnlineAudienceVlhComponent,
+        OnlineAudiencePixelComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

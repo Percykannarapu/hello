@@ -81,8 +81,8 @@ export class AppGeoService {
     this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
     const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
     const allHomeGeos = allLocations.map(loc => loc.homeGeocode);
-    const distanceQuery$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
-    const homeGeoQuery$ = this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type']);
+    const distanceQuery$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type']);
+    const homeGeoQuery$ = this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
     concat(distanceQuery$, homeGeoQuery$).subscribe(
       selections => allSelectedData.push(...selections),
       err => {
@@ -95,18 +95,17 @@ export class AppGeoService {
           const previousRadius = i > 0 ? radii[i - 1] : -0.1;
           geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), allSelectedData, previousRadius));
         }
-        const homeCentroids = allSelectedData.filter(g => g.attributes.geometry_type == 'Polygon');
-        
-        const homegeocodes = this.createHomeGeos(homeCentroids, geosToPersist) ;
-        if (homegeocodes.length > 0){
-          this.geoService.add(homegeocodes);
+        const homeCentroids = allSelectedData.filter(g => !g.attributes.hasOwnProperty('geometry_type'));
+
+        const homeGeocodes = this.createHomeGeos(homeCentroids, geosToPersist);
+        if (homeGeocodes.length > 0){
+          geosToPersist.push(...homeGeocodes);
         }
 
         this.geoService.add(geosToPersist);
         console.log ('geoService size after: ', this.geoService.storeLength);
         this.messagingService.stopSpinnerDialog(spinnerKey);
       });
-    
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {

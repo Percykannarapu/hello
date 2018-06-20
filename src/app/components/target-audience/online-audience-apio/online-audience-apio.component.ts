@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ApioAudienceDescription, SourceTypes, TargetAudienceApioService } from '../../../services/target-audience-apio.service';
+import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 
@@ -32,7 +32,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   // these have to be exposed like this so they are available in the template
   public SourceType = SourceTypes;
 
-  constructor(private audienceService: TargetAudienceApioService, private parentAudienceService: TargetAudienceService) {
+  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService) {
     this.selectedNodeMap.set(SourceTypes.InMarket, []);
     this.selectedNodeMap.set(SourceTypes.Interest, []);
     this.currentSelectedNodes = this.selectedNodeMap.get(this.selectedSource);
@@ -40,16 +40,16 @@ export class OnlineAudienceApioComponent implements OnInit {
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
-  private static asTreeNode(variable: ApioAudienceDescription) : ApioTreeNode {
+  private static asTreeNode(variable: OnlineAudienceDescription) : ApioTreeNode {
     if (variable.isLeaf) return this.asLeaf(variable);
     return this.asFolder(variable);
   }
 
-  private static asFolder(variable: ApioAudienceDescription) : ApioTreeNode {
+  private static asFolder(variable: OnlineAudienceDescription) : ApioTreeNode {
     const children = variable.children.map(child => this.asTreeNode(child));
     children.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
     return {
-      label: variable.categoryName,
+      label: variable.taxonomyParsedName,
       data: variable,
       expandedIcon: 'ui-icon-folder-open',
       collapsedIcon: 'ui-icon-folder',
@@ -60,7 +60,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     };
   }
 
-  private static asLeaf(variable: ApioAudienceDescription) : ApioTreeNode {
+  private static asLeaf(variable: OnlineAudienceDescription) : ApioTreeNode {
     this.sources.add(variable.source);
     return {
       label: variable.categoryName,
@@ -71,15 +71,6 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.audienceService.getAudienceDescriptions().subscribe(
-      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
-      err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
-      () => {
-        this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
-        this.currentNodes = Array.from(this.allNodes);
-        this.loading = false;
-      }
-    );
     const search$ = this.searchTerm$.pipe(
       debounceTime(400),
       distinctUntilChanged()
@@ -100,6 +91,20 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   public onSourceChanged(source: SourceTypes) {
     this.currentSelectedNodes = this.selectedNodeMap.get(source);
+  }
+
+  public onSelected(event: boolean) : void {
+    if (event && this.loading) {
+      this.audienceService.getAudienceDescriptions([SourceTypes.InMarket, SourceTypes.Interest]).subscribe(
+        folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
+        err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
+        () => {
+          this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
+          this.currentNodes = Array.from(this.allNodes);
+          this.loading = false;
+        }
+      );
+    }
   }
 
   private filterNodes(term: string, includeFolders: boolean) {

@@ -10,19 +10,19 @@ import { chunkArray } from '../app.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
+import { simpleFlatten } from '../val-modules/common/common.utils';
 
-interface ApioCategoryResponse {
+interface OnlineCategoryResponse {
   categoryId: string;
-  digitalInternalId: string;
   digCategoryId: string;
   source: string;
   categoryName: string;
-  categoryDescription: string;
+  categoryDescr: string;
   taxonomy: string;
   isActive: 0 | 1;
 }
 
-interface ApioBulkDataResponse {
+interface OnlineBulkDataResponse {
   geocode: string;
   dmaScore: string;
   nationalScore: string;
@@ -31,24 +31,26 @@ interface ApioBulkDataResponse {
 
 export enum SourceTypes {
   InMarket = 'In-Market',
-  Interest = 'Interest'
+  Interest = 'Interest',
+  VLH = 'VLH',
+  Pixel = 'Pixel'
 }
 
-export class ApioAudienceDescription {
-  private childMap: Map<string, ApioAudienceDescription> = new Map<string, ApioAudienceDescription>();
+export class OnlineAudienceDescription {
+  private childMap: Map<string, OnlineAudienceDescription> = new Map<string, OnlineAudienceDescription>();
   isLeaf: boolean;
   categoryId: number;
   digCategoryId: number;
-  digitalInternalId: number;
   source: string;
   categoryName: string;
+  taxonomyParsedName: string;
   categoryDescription: string;
   taxonomy: string;
-  get children() : ApioAudienceDescription[] {
+  get children() : OnlineAudienceDescription[] {
     return Array.from(this.childMap.values());
   }
 
-  constructor(categories?: ApioCategoryResponse[]) {
+  constructor(categories?: OnlineCategoryResponse[]) {
     if (categories != null) {
       for (const category of categories) {
         const pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
@@ -57,10 +59,10 @@ export class ApioAudienceDescription {
     }
   }
 
-  createSubTree(treeItems: string[], response: ApioCategoryResponse) {
+  createSubTree(treeItems: string[], response: OnlineCategoryResponse) {
     const currentCategory = treeItems.shift();
-    const child = new ApioAudienceDescription();
-    child.categoryName = currentCategory;
+    const child = new OnlineAudienceDescription();
+    child.taxonomyParsedName = currentCategory;
     if (treeItems.length === 0) {
       // we're at the bottom of the taxonomy chain
       if (this.childMap.has(response.categoryId)) {
@@ -74,9 +76,9 @@ export class ApioAudienceDescription {
         child.isLeaf = true;
         child.categoryId = Number(response.categoryId);
         child.digCategoryId = Number(response.digCategoryId);
-        child.digitalInternalId = Number(response.digitalInternalId);
         child.source = response.source;
-        child.categoryDescription = response.categoryDescription;
+        child.categoryDescription = response.categoryDescr;
+        child.categoryName = response.categoryName;
         child.taxonomy = response.taxonomy;
         this.childMap.set(response.categoryId, child);
       }
@@ -95,14 +97,19 @@ export class ApioAudienceDescription {
 @Injectable({
   providedIn: 'root'
 })
-export class TargetAudienceApioService {
-  private fuseSourceMapping: Map<SourceTypes, string> = new Map<SourceTypes, string>();
-  private audienceDescriptions$: Observable<ApioAudienceDescription[]>;
+export class TargetAudienceOnlineService {
+  private fuseSourceMapping: Map<SourceTypes, string>;
+  private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
+  private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
               private usageService: UsageService, private appStateService: AppStateService) {
-    this.fuseSourceMapping.set(SourceTypes.Interest, 'interest');
-    this.fuseSourceMapping.set(SourceTypes.InMarket, 'in_market');
+    this.fuseSourceMapping = new Map<SourceTypes, string>([
+      [SourceTypes.Interest, 'interest'],
+      [SourceTypes.InMarket, 'in_market'],
+      [SourceTypes.VLH, 'vlh'],
+      [SourceTypes.Pixel, 'pixel']
+    ]);
   }
 
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
@@ -122,7 +129,7 @@ export class TargetAudienceApioService {
     };
   }
 
-  private static createGeofootprintVar(response: ApioBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
+  private static createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.categoryId}`;
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
@@ -149,9 +156,9 @@ export class TargetAudienceApioService {
     return result;
   }
 
-  public addAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+  public addAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
     this.usageMetricCheckUncheckApio('checked', audience, source.toString());
-    const model = TargetAudienceApioService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
+    const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
     this.audienceService.addAudience(
       model,
       (al, pks, geos) => this.apioRefreshCallback(source, al, pks, geos),
@@ -159,28 +166,44 @@ export class TargetAudienceApioService {
       );
   }
 
-  public removeAudience(audience: ApioAudienceDescription, source: SourceTypes) {
+  public removeAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
     this.usageMetricCheckUncheckApio('unchecked', audience, source.toString());
     this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
   }
 
-  public getAudienceDescriptions() : Observable<ApioAudienceDescription[]> {
-    if (this.audienceDescriptions$ == null) {
-      const interest$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=interest').pipe(
-        map(response => response.payload.rows as ApioCategoryResponse[]),
-        map(categories => categories.filter(c => c.isActive === 1))
-      );
-      const inMarket$ = this.restService.get('v1/targeting/base/impdigcategory/search?q=impdigcategory&source=in_market').pipe(
-        map(response => response.payload.rows as ApioCategoryResponse[]),
-        map(categories => categories.filter(c => c.isActive === 1))
-      );
-      this.audienceDescriptions$ = forkJoin(interest$, inMarket$).pipe(
-        map(([interest, inMarket]) => interest.concat(inMarket)),
-        map(categories => (new ApioAudienceDescription(categories)).children),
+  public getAudienceDescriptions(sources: SourceTypes[]) : Observable<OnlineAudienceDescription[]> {
+    if (sources == null || sources.length === 0) return EMPTY;
+    const resultKey = sources.join('-');
+    if (!this.audienceCache$.has(resultKey)) {
+      const individualRequests: Observable<OnlineCategoryResponse[]>[] = [];
+      sources.forEach(source => {
+        if (!this.audienceSourceMap.has(source)) {
+          const fuseKey = this.fuseSourceMapping.get(source);
+          const currentRequest = this.restService.get(`v1/targeting/base/impdigcategory/search?q=impdigcategory&source=${fuseKey}`).pipe(
+            map(response => response.payload.rows as OnlineCategoryResponse[]),
+            map(categories => categories.filter(c => c.isActive === 1)),
+            shareReplay()
+          );
+          individualRequests.push(currentRequest);
+        } else {
+          individualRequests.push(this.audienceSourceMap.get(source));
+        }
+      });
+      let result$: Observable<OnlineCategoryResponse[]>;
+      if (individualRequests.length > 1) {
+        result$ = forkJoin(...individualRequests).pipe(
+          map(requests => simpleFlatten(requests)),
+        );
+      } else {
+        result$ = individualRequests[0];
+      }
+      this.audienceCache$.set(resultKey, result$.pipe(
+        map(categories => (new OnlineAudienceDescription(categories)).children),
         shareReplay()
-      );
+      ));
     }
-    return this.audienceDescriptions$;
+
+    return this.audienceCache$.get(resultKey);
   }
 
   private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
@@ -194,7 +217,7 @@ export class TargetAudienceApioService {
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => TargetAudienceApioService.createGeofootprintVar(b, source, descriptionMap)))
+      map(bulkData => bulkData.map(b => TargetAudienceOnlineService.createGeofootprintVar(b, source, descriptionMap)))
     );
   }
 
@@ -220,11 +243,11 @@ export class TargetAudienceApioService {
     );
   }
 
-  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[])  : Observable<ApioBulkDataResponse[]>[] {
+  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[])  : Observable<OnlineBulkDataResponse[]>[] {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
-    const observables: Observable<ApioBulkDataResponse[]>[] = [];
+    const observables: Observable<OnlineBulkDataResponse[]>[] = [];
     for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
@@ -235,7 +258,7 @@ export class TargetAudienceApioService {
       if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
-            map(response => response.payload.rows as ApioBulkDataResponse[])
+            map(response => response.payload.rows as OnlineBulkDataResponse[])
           )
         );
       }
@@ -243,10 +266,10 @@ export class TargetAudienceApioService {
     return observables;
   }
 
-  private usageMetricCheckUncheckApio(checkType: string, audience: ApioAudienceDescription, source?: string) {
+  private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source?: string) {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-    const metricText = audience.categoryId + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+    const metricText = audience.categoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
   }
