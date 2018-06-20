@@ -24,6 +24,7 @@ import { AppMessagingService } from './services/app-messaging.service';
 import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
+import { EsriMapService } from './esri-modules/core/esri-map.service';
 
 
 @Component({
@@ -60,7 +61,8 @@ export class AppMenuComponent implements OnInit {
         private impProjectService: ImpProjectService,
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService,
-        private appConfig: AppConfig) { }
+        private appConfig: AppConfig,
+        private esriMapService: EsriMapService) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -93,7 +95,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                   // {label: 'Create New', command: () =>  null}, //this.createNewProject()
+                    {label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
                     {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() }
 
                 ]
@@ -380,77 +382,69 @@ export class AppMenuComponent implements OnInit {
 
     public createNewProject(){
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
-        this.confirmationService.confirm({
-            message: 'Your project may have unsaved changes. Do you wish to save your current project?',
-            header: 'Save Confirmation',
-            icon: 'ui-icon-project',
-            accept: () => {
-                const impProjects: ImpProject[] = [];
-                //~
-                this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
-
-                //let impProject: ImpProject = new ImpProject();
-                const impProject = this.appProjectService.get()[0];
-                //const discoData = this.impDiscoveryService.get()[0];
-                impProject.dirty = true;
-                impProject.baseStatus = (impProject.projectId) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
-                // Update audit columns
-                if (impProject.createUser == null)
-                    impProject.createUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
-                if (impProject.createDate == null)
-                    impProject.createDate = new Date(Date.now());
-                impProject.modifyUser = (this.userService.getUser().userId) ? (this.userService.getUser().userId) : -1;
-                impProject.modifyDate = new Date(Date.now());
-
-
-                //impProjects = [impProject, ... ];
-
-                //this.impProjectService.add(impProjects);
-               // this.impProjectService.saveProject();
-               const sub = this.appProjectService.saveProject(this.appProjectService.get()[0]).subscribe(savedProject => {
-                    if (savedProject != null)
-                    {
-                       console.log('project saved', savedProject);
-                       console.log('AFTER SAVE');
-                       this.appProjectService.debugLogStoreCounts();
-                       this.clearProject();
-                       //this.router.navigate(['/']);
-                    //   this.router.navigate(['/project']);
-                    }
-                    else
-                        console.log('project did not save');
-                }, null, () => {
-
-                });
-
-
-
-
-            },
-            reject: () => {
-              //  window.location.reload();
-              this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
-              this.clearProject();
-              //this.router.navigate(['/']);
-
-            }
-        });
+        if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
+            this.confirmationService.confirm({
+                message: 'Your project may have unsaved changes. Do you wish to save your current project?',
+                header: 'Save Confirmation',
+                icon: 'ui-icon-project',
+                accept: () => {
+                    const impProjects: ImpProject[] = [];
+                    //~
+                    this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
+    
+                    console.log('list of projects', this.appProjectService.get());
+                    console.log('list of projects123', this.impProjectService.get());
+                  
+                   const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
+                        if (savedProject != null)
+                        {
+                           console.log('project saved', savedProject);
+                           this.clearProject();
+                           
+                        }
+                        else
+                            console.log('project did not save');
+                    }, null, () => {
+                        //const impProject: ImpProject = this.impProjectService.get()[0];
+                        //this.impProjectService.loadProject(impProject.projectId, true);
+                        this.clearProject();
+                       //this.routes.navigate(['/']);
+    
+                    });
+                },
+                reject: () => {
+                  this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
+                 // this.routes.navigate(['/']);
+                  this.clearProject();
+                }
+            });
+        }
+        
     }
 
     public clearProject(){
+
+       this.esriMapService.map.layers.forEach(lyr => {
+            //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
+            if (lyr.title === 'Sites'){
+                this.esriMapService.map.layers.remove(lyr);
+            }
+       });
         this.impGeofootprintGeoService.clearAll();
         this.attributeService.clearAll();
+        this.impGeofootprintTradeAreaService.clearAll(); //this is not working
         this.impGeofootprintLocationService.clearAll();
         this.impGeofootprintLocAttribService.clearAll();
-        this.impGeofootprintTradeAreaService.clearAll();
+        
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
+       
 
         const newProject = new ImpProject();
         newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
         this.impProjectService.add([newProject]);
 
-        console.log('color box values:::', this.metricService.metrics.entries());
+        //console.log('color box values:::', this.metricService.metrics.entries());
         //I trided to clear the map, but it didnt work, need to get back later
         this.metricService.metrics.clear();
         this.metricService.add('CAMPAIGN', 'Household Count', '0');
