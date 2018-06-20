@@ -4,13 +4,14 @@ import { AppConfig } from '../../app.config';
 import { TradeAreaUIModel } from './trade-area-ui.model';
 import { AppTradeAreaService, TradeAreaMergeSpec } from '../../services/app-trade-area.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { map } from 'rxjs/operators';
+import { map, take, tap, filter } from 'rxjs/operators';
 import { UsageService } from '../../services/usage.service';
 import { Subscription } from 'rxjs';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { AppStateService } from '../../services/app-state.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 type SiteType = 'Site' | 'Competitor';
 interface MergeType { value: TradeAreaMergeSpec; }
@@ -38,6 +39,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   tradeAreaMergeTypes: SelectItem[];
 
   constructor(private tradeAreaService: AppTradeAreaService, private config: AppConfig,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
               private usageService: UsageService, private stateService: AppStateService) {
     this.tradeAreaMergeTypes = [
@@ -110,6 +112,13 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       this.tradeAreaService.applyRadiusTradeArea(tradeAreas, this.currentSiteType);
       this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);
     }
+
+      this.stateService.uniqueIdentifiedGeocodes$.pipe(
+        filter(geos => geos != null && geos.length > 0),
+        take(1)
+      ).subscribe (geos => {
+       this.tradeAreaService.zoomToTradeArea();
+    });
   }
 
   public onChangeSiteType(event: SiteType) : void {
