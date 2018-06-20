@@ -74,17 +74,21 @@
       </div>
       <div *ngIf="config.debugMode" class="ui-g-6">
         <button (click)="loadVPW()" type="button" label="Do VPW" icon="ui-icon-map" pButton
-                style="width: 100%;"></button>
+                 style="width: 100%;"></button>
       </div>
       <div *ngIf="config.debugMode" class="ui-g-6">
         <button (click)="loadSkyZone()" type="button" label="Do SkyZone" icon="ui-icon-map" pButton
-                style="width: 100%;"></button>
+                 style="width: 100%;"></button>
       </div>
       <div *ngIf="config.debugMode" class="ui-g-6">
          <button (click)="loadTecumseh()" type="button" label="Do Tecumseh" icon="ui-icon-map" pButton
-                 style="width: 100%;"></button>
+                  pTooltip="Use 20 mile TA to get geos from all owner group types"
+                  style="width: 100%;"></button>
        </div>
        <div *ngIf="config.debugMode" class="ui-g-6">
+         <button (click)="loadMadison()" type="button" label="Do Madison" icon="ui-icon-map" pButton
+                  pTooltip="Has duplicate location attributes"
+                  style="width: 100%;"></button>
        </div>
     </div>
   </div>

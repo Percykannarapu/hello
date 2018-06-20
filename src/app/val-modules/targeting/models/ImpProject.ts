@@ -14,6 +14,7 @@ import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 import { ImpProjectPref } from './ImpProjectPref';
+import { ImpProjectVar } from './ImpProjectVar';
 
 export class ImpProject extends BaseModel
 {
@@ -57,17 +58,20 @@ export class ImpProject extends BaseModel
    public isIncludeSolo:             boolean;        /// 1 = Include Solo Geographies, 0 = Do not
    public isIncludeNonWeekly:        boolean;        /// 1 = Include Non Weekly Geographies, 0 = Do not
    public projectTrackerId:          number;         /// FK to IMS.ims_projects.project_id
-   public estimatedBlendedCpm:       number;
-   public smValassisCpm:             number;
-   public smAnneCpm:                 number;
-   public smSoloCpm:                 number;
-   public radProduct:                   string;
+   public estimatedBlendedCpm:       number;         /// Blended CPM
+   public smValassisCpm:             number;         /// CPM defined by VALASSIS
+   public smAnneCpm:                 number;         /// CPM defined by ANNE
+   public smSoloCpm:                 number;         /// CPM defined by SOLO
+   public radProduct:                string;         /// RAD_PRODUCT
+   public taSiteMergeType:           string;         /// Trade area merge type for sites
+   public taCompetitorMergeType:     string;         /// Trade area merge type for competitors
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
    public impGeofootprintMasters:      Array<ImpGeofootprintMaster> = new Array<ImpGeofootprintMaster>();
    public impProjectPrefs:             Array<ImpProjectPref> = new Array<ImpProjectPref>();
+   public impProjectVars:              Array<ImpProjectVar> = new Array<ImpProjectVar>();
    // ----------------------------------------------------------------------------
 
    // -------------------------------------------
@@ -143,14 +147,17 @@ export class ImpProject extends BaseModel
       // Convert JSON objects into models
       this.impGeofootprintMasters = (this.impGeofootprintMasters||[]).map(ma => new ImpGeofootprintMaster(ma));
       this.impProjectPrefs = (this.impProjectPrefs||[]).map(ma => new ImpProjectPref(ma));
+      this.impProjectVars = (this.impProjectVars||[]).map(ma => new ImpProjectVar(ma));
 
       // Push this as transient parent to children
       this.impGeofootprintMasters.forEach(fe => fe.impProject = this);
       this.impProjectPrefs.forEach(fe => fe.impProject = this);
+      this.impProjectVars.forEach(fe => fe.impProject = this);
 
       // Ask the children to convert into models
       this.impGeofootprintMasters.forEach(fe => fe.convertToModel());
       this.impProjectPrefs.forEach(fe => fe.convertToModel());
+      this.impProjectVars.forEach(fe => fe.convertToModel());
    }
 
    /**
@@ -201,7 +208,10 @@ export class ImpProject extends BaseModel
          ['estimatedBlendedCpm',          'number'],
          ['smValassisCpm',                'number'],
          ['smAnneCpm',                    'number'],
-         ['smSoloCpm',                    'number']
+         ['smSoloCpm',                    'number'],
+         ['radProduct',                   'string'],
+         ['taSiteMergeType',              'string'],
+         ['taCompetitorMergeType',        'string']
          ]);
    }
 
@@ -241,4 +251,5 @@ export class ImpProject extends BaseModel
     * @returns A string containing the class data.
     */
    public toString = () => JSON.stringify(this, null, '   ');
+
 }

@@ -4,6 +4,7 @@ import { DataStore } from '../val-modules/common/services/datastore.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpClientLocationService } from '../val-modules/client/services/ImpClientLocation.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
+import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -41,6 +42,7 @@ export class AppProjectService extends DataStore<ImpProject>
    public ngDialog: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
    constructor(public impClientLocationService: ImpClientLocationService,
                public impProjectPrefService: ImpProjectPrefService,
+               public impProjectVarService: ImpProjectVarService,
                public impGeofootprintMasterService: ImpGeofootprintMasterService,
                public impGeofootprintLocationService: ImpGeofootprintLocationService,
                public impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
@@ -72,7 +74,34 @@ export class AppProjectService extends DataStore<ImpProject>
       this.impClientLocationService.clearAll(notifySubscribers, inTransaction);
       this.impGeofootprintMasterService.clearAll(notifySubscribers, inTransaction);
       this.impProjectPrefService.clearAll(notifySubscribers, inTransaction);
+      this.impProjectVarService.clearAll(notifySubscribers, inTransaction);
    }
+
+   // WIP
+   public getDbRemoves(impProject: ImpProject)
+   {
+      //const impGeofootprintMasterRemoves = impProject.impGeofootprintMasters.forEach(impGeofootprintMaster => getDbRemoves(impGeofootprintMaster));
+   }
+
+   // public addAllDbRemoves(impProject: ImpProject)
+   // {
+   //    impProject.impGeofootprintMasters.addAllDbRemoves(impProject.impGeofootprintMasters);
+   //    this.dbRemoves
+
+   //    if (this.dbRemoves != null && this.dbRemoves.length > 0)
+   //    {
+   //       console.log('Removing ' + this.dbRemoves.length + ' ImpProjects');
+   //       impProject.
+   //       for (const removeTA of this.impGeofootprintTradeAreaService.dbRemoves)
+   //       {
+   //          console.log('TA Removal: ', removeTA);
+   //          impGeofootprintTradeAreas.unshift(removeTA);
+   //       }
+   //    }
+   //    else
+   //       console.log('impGeofootprintTradeAreaService had no database removes');
+
+   // }
 
    public debugLogStores(headerText: string)
    {
@@ -90,6 +119,7 @@ export class AppProjectService extends DataStore<ImpProject>
       this.impClientLocationService.debugLogStore(headerText);
       this.impGeofootprintMasterService.debugLogStore(headerText);
       this.impProjectPrefService.debugLogStore(headerText);
+      this.impProjectVarService.debugLogStore(headerText);
    }
 
    public debugLogStoreCounts()
@@ -102,6 +132,7 @@ export class AppProjectService extends DataStore<ImpProject>
       console.log('impClientLocations:        ', this.impClientLocationService.storeLength);
       console.log('impGeofootprintMasters:    ', this.impGeofootprintMasterService.storeLength);
       console.log('impProjectPrefs:           ', this.impProjectPrefService.storeLength);
+      console.log('impProjectVarService:      ', this.impProjectVarService.storeLength);
    }
 
    reloadProject(project: ImpProject, clearStore: boolean, silent: boolean = false) : Observable<ImpProject[]>
@@ -365,7 +396,7 @@ export class AppProjectService extends DataStore<ImpProject>
 
                //console.log('ImpProject.service.saveProject - Getting location attributes');
                //const impGeofootprintLocAttribs: Array<ImpGeofootprintLocAttrib> = this.impGeofootprintLocAttribService.get().filter(attrib => attrib.attributeValue != null
-                                                                                                                                           //&& attrib.attributeValue != '');
+               //                                                                                                                            && attrib.attributeValue != '');
                // console.log('ImpProject.service.saveProject - Getting trade areas');
                // const impGeofootprintTradeAreas: Array<ImpGeofootprintTradeArea> = this.impGeofootprintTradeAreaService.get();
                // console.log('ImpProject.service.saveProject - Getting geos');
@@ -374,8 +405,17 @@ export class AppProjectService extends DataStore<ImpProject>
                // const impGeofootprintVars:       Array<ImpGeofootprintVar>       = this.impGeofootprintVarService.get();
                //
                // console.log('ImpProject.service.saveProject - Deduping location attributes');
-               // // Dedupe the location attributes
-               // this.denseRank(impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
+
+               impProject.impGeofootprintMasters[0].impGeofootprintLocations.forEach(location => {
+                  // Dedupe the location attributes
+                  this.denseRank(location.impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
+
+                  // Filter out location attributes that are null
+                  location.impGeofootprintLocAttribs = location.impGeofootprintLocAttribs.filter(locationAttrib => locationAttrib.attributeValue != null && locationAttrib['rank'] === 0);
+               });
+
+      //         // Dedupe the location attributes
+      //         this.denseRank(impProject.impGeofootprintLocAttribs,  this.impGeofootprintLocAttribService.sort, this.impGeofootprintLocAttribService.partition);
 
       //         this.impGeofootprintLocAttribService.debugLogStore('Location Attributes');
 

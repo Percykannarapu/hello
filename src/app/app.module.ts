@@ -106,6 +106,7 @@ import { RestDataInterceptor, RestDataService } from './val-modules/common/servi
 import { TransactionManager } from './val-modules/common/services/TransactionManager.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
+import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpClientLocationService } from './val-modules/client/services/ImpClientLocation.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpGeofootprintLocationService } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -270,7 +271,7 @@ import { ProjectComponent } from './components/project-dashboard/project.compone
       {provide: EsriLoaderToken, useClass: AppConfig},
       EsriModules, EsriIdentityService, EsriMapService, EsriLayerService, EsriQueryService,
       // from val-modules
-      ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
+      ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
       ImpGeofootprintLocAttribService, ImpDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
       MetricService, RestDataService, TransactionManager,

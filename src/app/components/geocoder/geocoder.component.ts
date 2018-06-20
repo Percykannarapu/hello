@@ -161,6 +161,19 @@ export class GeocoderComponent implements OnInit {
    this.currentModel.longitude = '-83.939051';
  }
 
+ public loadMadison() {
+   this.clearFields();
+   this.currentModel.number = "40";
+   this.currentModel.name = 'Madison Has Dupe Location Attributes';
+   this.currentModel.street = '600 S Main St';
+   this.currentModel.city = 'Madison';
+   this.currentModel.state = 'WV';
+   this.currentModel.zip = '25130';
+   this.currentModel.Market = 'Test Market';
+   this.currentModel.latitude = '38.05773';
+   this.currentModel.longitude = '-81.825';
+ }
+
   private geocodeModel(model: ValGeocodingRequest) : void {
     this.siteListService.geocode([model], this.currentManualSiteType).subscribe(
       locations => {
