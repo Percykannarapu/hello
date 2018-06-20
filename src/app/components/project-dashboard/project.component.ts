@@ -177,6 +177,20 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
       if (event.toLowerCase() === 'twelemonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 12);
       }
+      if (event.toLowerCase() === 'currentyear'){
+        updatedateFrom.setMonth(1);
+        updatedateFrom.setDate(1);
+        updatedDateTo.setMonth(12);
+        updatedDateTo.setDate(31);
+      }
+      if (event.toLowerCase() === 'previousyear'){
+        updatedateFrom.setMonth(1);
+        updatedateFrom.setDate(1);
+        updatedateFrom.setFullYear(updatedateFrom.getFullYear() - 1);
+        updatedDateTo.setMonth(12);
+        updatedDateTo.setDate(31);
+        updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
+      }
 
       const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
         Array.from(data).forEach(row => {
@@ -220,7 +234,9 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
     }
 
     public dbClick(event){
-        this.loadProject(event);
+       // this.loadProject(event);
+       this.impProjectService.loadProject(event.data['projectId'], true);
+      this.display = false;
 
       /*this.appProjectService.loadProject(event.data['projectId'], true).subscribe((projects: ImpProject[]) => {
           console.log('project loaded');
@@ -239,8 +255,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
     }
 
     public loadProject(event){
-     
-      this.impProjectService.loadProject(event.data['projectId'], true);
+      this.impProjectService.loadProject(event['projectId'], true);
       this.display = false;
     }
 

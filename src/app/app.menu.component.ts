@@ -357,16 +357,12 @@ export class AppMenuComponent implements OnInit {
                      errorString = 'imPower Project Name is required<br>';
                 if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                      errorString += 'Analysis level is required';
-                if (errorString !== '') {
+                if (errorString != null) {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                    const sub = this.appProjectService.saveProject(impProject).subscribe(savedProject => {
-                        console.log('project saved', savedProject);
-                        console.log('AFTER SAVE');
-                        this.appProjectService.debugLogStoreCounts();
+                        this.impProjectService.saveProject();
                         this.appProjectService.ngDialog.next(true);
-                    });
                 },
                 reject: () => {
                     this.clearProject();
