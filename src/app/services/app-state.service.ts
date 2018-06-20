@@ -34,12 +34,10 @@ export class AppStateService {
   public competitorTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
 
   constructor(private projectService: ImpProjectService, private geoService: ImpGeofootprintGeoService,
-               private tradeAreaService: ImpGeofootprintTradeAreaService, private appLayerService: AppLayerService) {
+               private tradeAreaService: ImpGeofootprintTradeAreaService) {
     this.setupProjectObservables();
     this.setupGeocodeObservables();
     this.setupTradeAreaObservables();
-
-    this.analysisLevel$.pipe(filter(al => al != null)).subscribe(al => this.appLayerService.setDefaultLayers(al));
   }
 
   private setupProjectObservables() : void {
