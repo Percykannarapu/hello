@@ -210,10 +210,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
       this.impProject = project;
-      if (filename == null){
-            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
-      }
+      // if (filename == null){
+      //       const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+      //       filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
+      // }
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {

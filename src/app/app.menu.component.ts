@@ -23,6 +23,8 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { AppMessagingService } from './services/app-messaging.service';
 import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
+import { AppConfig } from './app.config';
+
 
 @Component({
     /* tslint:disable:component-selector */
@@ -39,6 +41,8 @@ export class AppMenuComponent implements OnInit {
     @Input() reset: boolean;
 
     model: any[];
+    public environmentName = this.appConfig.environmentName;
+
 
     constructor(public app: AppComponent,
         public impGeofootprintGeoService: ImpGeofootprintGeoService,
@@ -55,7 +59,8 @@ export class AppMenuComponent implements OnInit {
         private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
         private impProjectService: ImpProjectService,
         private appProjectService: AppProjectService,
-        private messageService: AppMessagingService) { }
+        private messageService: AppMessagingService,
+        private appConfig: AppConfig) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -314,6 +319,7 @@ export class AppMenuComponent implements OnInit {
         const impProject = this.appStateService.currentProject$.getValue();
         const currentTrackerId = impProject.projectTrackerId;
         let isValid = null;
+        // let usageMetricText: string = '';
         if (impProject.projectId == null) {
             this.messageService.showGrowlError('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
         } else {
@@ -321,10 +327,12 @@ export class AppMenuComponent implements OnInit {
                 isValid = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
                     return id['projectId'] === impProject.projectTrackerId;
                 });
-
-                this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, impProject, true, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
+                const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+                const fileName = 'visit_locations_' + impProject.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
+                this.impGeofootprintLocationService.exportStore(fileName, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, impProject, true, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
                 const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'vlh-site-list', action: 'send' });
-                this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
+                const usageMetricText = 'clientName=' + impProject.clientIdentifierName + '~' + 'projectTrackerId=' + impProject.customerNumber + '~' + 'fileName=' + fileName;
+                this.usageService.createCounterMetric(usageMetricName, usageMetricText, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
             } else if (isValid == null) {
                 this.messageService.showGrowlError('Send Custom Sites', 'Project Tracker ID ' + currentTrackerId + ' is invalid.');
             } else {

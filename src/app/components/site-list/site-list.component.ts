@@ -16,6 +16,7 @@ import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/ser
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { simpleFlatten } from '../../val-modules/common/common.utils';
+import { AppBusinessSearchService } from '../../services/app-business-search.service';
 
 @Component({
   selector: 'val-site-list',
@@ -64,7 +65,8 @@ export class SiteListComponent implements OnInit {
               private appLayerService: AppLayerService,
               private valGeoService: AppGeoService,
               private esriMapService: EsriMapService,
-              private usageService: UsageService) { }
+              private usageService: UsageService,
+              private appService: AppBusinessSearchService) { }
 
   ngOnInit() {
     this.onListTypeChange('Site');
@@ -121,6 +123,7 @@ export class SiteListComponent implements OnInit {
 
   public onRowZoom(row: ImpGeofootprintLocation) {
     this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
+    this.appService.closeOverLayPanel.next(true);
   }
 
   public getRowAttributes(row: ImpGeofootprintLocation) {
