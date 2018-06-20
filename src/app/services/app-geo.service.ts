@@ -15,6 +15,9 @@ import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
 import { filter, map } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { AppTradeAreaService } from './app-trade-area.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -79,9 +82,8 @@ export class AppGeoService {
     const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
     const allHomeGeos = allLocations.map(loc => loc.homeGeocode);
     const distanceQuery$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
-    const homeGeoQuery$ = this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only']);
-    concat(distanceQuery$, homeGeoQuery$).subscribe();
-    const sub = distanceQuery$.subscribe(
+    const homeGeoQuery$ = this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type']);
+    concat(distanceQuery$, homeGeoQuery$).subscribe(
       selections => allSelectedData.push(...selections),
       err => {
         console.error(err);
@@ -90,16 +92,21 @@ export class AppGeoService {
       () => {
         const geosToPersist: ImpGeofootprintGeo[] = [];
         for (let i = 0; i < radii.length; ++i) {
-          const previousRadius = i > 0 ? radii[i - 1] : 0;
+          const previousRadius = i > 0 ? radii[i - 1] : -0.1;
           geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), allSelectedData, previousRadius));
         }
-        const homeCentroids = allSelectedData.filter(g => g.attributes.latitude == null);
+        const homeCentroids = allSelectedData.filter(g => g.attributes.geometry_type == 'Polygon');
+        
+        const homegeocodes = this.createHomeGeos(homeCentroids, geosToPersist) ;
+        if (homegeocodes.length > 0){
+          this.geoService.add(homegeocodes);
+        }
 
         this.geoService.add(geosToPersist);
         console.log ('geoService size after: ', this.geoService.storeLength);
-        sub.unsubscribe();
         this.messagingService.stopSpinnerDialog(spinnerKey);
       });
+    
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {
@@ -126,6 +133,40 @@ export class AppGeoService {
     this.filterGeos(geosToSave, centroids);
     console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', geosToSave.length);
     return geosToSave;
+  }
+
+  private createHomeGeos(homeCentroids: __esri.Graphic[],  geosToPersist: ImpGeofootprintGeo[]){
+    const geocodes: any[] = [];
+    const outFields: any[] = [];
+    const locations = this.locationService.get();
+    const homeGeosToAdd: ImpGeofootprintGeo[] = [];
+    homeCentroids.forEach(centroidgraphic => {
+      if ( geosToPersist.filter(geo => geo.geocode != centroidgraphic.attributes.geocode)){
+          geocodes.push(centroidgraphic);
+      }
+    });
+    let customIndex: number = 0;
+    if (geocodes.length > 0 ){
+          geocodes.forEach(geo => {
+             locations.filter(loc => {
+                if (loc.homeGeocode === geo.attributes.geocode){
+                  const geocodeDistance: number = EsriUtils.getDistance(geo.attributes.longitude, geo.attributes.latitude, loc.xcoord, loc.ycoord);
+                  customIndex++;
+                  const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEOCODE');
+                  const newGeo = new ImpGeofootprintGeo({
+                    xcoord: geo.attributes.longitude,
+                    ycoord: geo.attributes.latitude,
+                    geocode: geo.attributes.geocode,
+                    distance: geocodeDistance,
+                    impGeofootprintTradeArea: newTA,
+                    isActive: true
+                  });
+                  homeGeosToAdd.push(newGeo);
+                }
+             });
+          });
+    }
+    return homeGeosToAdd;
   }
 
   private filterGeos(geos: ImpGeofootprintGeo[], centroids: __esri.Graphic[]) {

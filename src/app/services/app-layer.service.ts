@@ -10,6 +10,7 @@ import { MapService } from './map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { filter, map } from 'rxjs/operators';
+import { AppStateService } from './app-state.service';
 
 const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
 
@@ -34,7 +35,8 @@ const defaultLocationPopupFields = [
 export class AppLayerService {
 
   constructor(private layerService: EsriLayerService, private moduleService: EsriModules,
-               private locationService: ImpGeofootprintLocationService, private config: AppConfig) {
+               private locationService: ImpGeofootprintLocationService, private appStateService: AppStateService,
+               private config: AppConfig) {
     this.moduleService.onReady(() => {
       // set up the location rendering using stars colored by site type
       const locationSplit$ = this.locationService.storeObservable.pipe(
@@ -47,6 +49,8 @@ export class AppLayerService {
       locationSplit$.pipe(
         map(([sites, competitors]) => competitors),
       ).subscribe(competitors => this.updateSiteLayer('Competitor', competitors));
+
+      this.appStateService.analysisLevel$.pipe(filter(al => al != null)).subscribe(al => this.setDefaultLayers(al));
     });
   }
 
