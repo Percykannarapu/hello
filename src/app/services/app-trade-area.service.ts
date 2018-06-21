@@ -122,7 +122,9 @@ export class AppTradeAreaService implements OnDestroy {
   }
 
   public updateMergeType(mergeType: TradeAreaMergeSpec, siteType: 'Site' | 'Competitor') : void {
+    const currentProject = this.stateService.currentProject$.getValue();
     this.mergeSpecs.get(siteType).next(mergeType);
+    siteType === 'Site' ? currentProject.taSiteMergeType = mergeType : currentProject.taCompetitorMergeType = mergeType;
   }
 
   public updateTradeAreaSelection(tradeAreaIndex: 0|1|2, isSelected: boolean, siteType: 'Site' | 'Competitor') {
