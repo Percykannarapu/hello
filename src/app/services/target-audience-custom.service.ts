@@ -10,6 +10,7 @@ import { filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { AppStateService } from './app-state.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 const audienceUploadRules: ParseRule[] = [
   { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
@@ -25,24 +26,11 @@ interface CustomAudienceData {
 })
 export class TargetAudienceCustomService {
   private dataCache: Map<string, Map<string, ImpGeofootprintVar>> = new Map<string, Map<string, ImpGeofootprintVar>>();
+  private varPkCache: Map<string, number> = new Map<string, number>();
 
   constructor(private messagingService: AppMessagingService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private stateService: AppStateService) { }
-
-  private static createGeofootprintVar(geocode: string, column: string, value: string, fileName: string) : ImpGeofootprintVar {
-    const fullId = `Custom/${fileName}/${column}`;
-    const result = new ImpGeofootprintVar({ geocode, varPk: -1, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
-    if (Number.isNaN(Number(value))) {
-      result.valueString = value;
-      result.fieldconte = 'CHAR';
-      result.isString = true;
-    } else {
-      result.valueNumber = Number(value);
-      result.fieldconte = 'INDEX';
-      result.isNumber = true;
-    }
-    return result;
-  }
+              private audienceService: TargetAudienceService, private stateService: AppStateService,
+              private varService: ImpGeofootprintVarService) { }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
     return {
@@ -56,6 +44,28 @@ export class TargetAudienceCustomService {
       exportNationally: false,
       allowNationalExport: false
     };
+  }
+
+  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string) : ImpGeofootprintVar {
+    const fullId = `Custom/${fileName}/${column}`;
+    let newVarPk = null;
+    if (this.varPkCache.has(column)) {
+      newVarPk = this.varPkCache.get(column);
+    } else {
+      newVarPk = this.varService.getNextStoreId();
+    }
+    const result = new ImpGeofootprintVar({ geocode, varPk: newVarPk, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
+    if (Number.isNaN(Number(value))) {
+      result.valueString = value;
+      result.fieldconte = 'CHAR';
+      result.isString = true;
+    } else {
+      result.valueNumber = Number(value);
+      result.fieldconte = 'INDEX';
+      result.isNumber = true;
+    }
+    this.varPkCache.set(column, newVarPk);
+    return result;
   }
 
   public parseFileData(dataBuffer: string, fileName: string) {
@@ -79,7 +89,7 @@ export class TargetAudienceCustomService {
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
           for (const column of columnNames) {
-            const columnData = data.parsedData.map(d => TargetAudienceCustomService.createGeofootprintVar(d.geocode, column, d[column], fileName));
+            const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName));
             const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));
             this.dataCache.set(column, geoDataMap);
             const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
