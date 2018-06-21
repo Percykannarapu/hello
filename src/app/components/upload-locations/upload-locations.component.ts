@@ -122,6 +122,11 @@ export class UploadLocationsComponent implements OnInit {
         this.handleError(`There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       }
       if (data.duplicateKeys.length > 0) {
+        data.parsedData.forEach(dat => {
+          if (FileService.uniqueSet.has(dat.number)){
+            FileService.uniqueSet.delete(dat.number);
+          }
+        });
         const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
         const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
         this.handleError(`There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
