@@ -208,8 +208,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
       this.impProject = project;
+      const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
       // if (filename == null){
       //       const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
       //       filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';

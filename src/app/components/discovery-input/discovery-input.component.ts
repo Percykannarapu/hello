@@ -48,6 +48,7 @@ class TrackerData {
   public projectId: number;
   public projectName: string;
   public targetor: string;
+  public clientName: string;
   public get display() : string {
     const name = this.targetor == null ? '(Unassigned)' : `(${this.targetor})`;
     return `${this.projectId}   ${this.projectName}  ${name}`;
@@ -296,6 +297,7 @@ export class DiscoveryInputComponent implements OnInit {
 
     // Populate the ImpProject model
     this.impProject.clientIdentifierTypeCode = 'CAR_LIST';
+    this.impProject.clientIdentifierName     =  currentForm.projectTrackerData ? currentForm.projectTrackerData.clientName : null;
     this.impProject.consumerPurchFreqCode    = 'REMINDER';
     this.impProject.goalCode                 = 'ACQUISITION';
     this.impProject.objectiveCode            = 'INCREASE_PENETRATION';

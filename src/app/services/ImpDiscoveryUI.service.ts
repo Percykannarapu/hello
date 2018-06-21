@@ -39,7 +39,7 @@ export class ImpDiscoveryService // extends DataStore<ImpDiscoveryUI>
         const updatedDateFrom = new Date();
         updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
         return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
-              TARGETOR targetor&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
+              TARGETOR targetor,CLIENT_NAME clientName&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
           map((result: any) => result.payload.rows)
         );
       }

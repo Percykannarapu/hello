@@ -319,24 +319,16 @@ export class AppMenuComponent implements OnInit {
 
     public getCustomSites() {
         const impProject = this.appStateService.currentProject$.getValue();
-        const currentTrackerId = impProject.projectTrackerId;
-        let isValid = null;
-        // let usageMetricText: string = '';
         if (impProject.projectId == null) {
             this.messageService.showGrowlError('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
         } else {
             if (impProject.projectTrackerId != null) {
-                isValid = this.impDiscoveryService.storeProjectTrackerData.filter(id => {
-                    return id['projectId'] === impProject.projectTrackerId;
-                });
                 const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
                 const fileName = 'visit_locations_' + impProject.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
                 this.impGeofootprintLocationService.exportStore(fileName, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, impProject, true, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
                 const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'vlh-site-list', action: 'send' });
                 const usageMetricText = 'clientName=' + impProject.clientIdentifierName + '~' + 'projectTrackerId=' + impProject.customerNumber + '~' + 'fileName=' + fileName;
                 this.usageService.createCounterMetric(usageMetricName, usageMetricText, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
-            } else if (isValid == null) {
-                this.messageService.showGrowlError('Send Custom Sites', 'Project Tracker ID ' + currentTrackerId + ' is invalid.');
             } else {
                 this.messageService.showGrowlError('Send Custom Sites', `A valid Project Tracker ID must be specified before sending custom sites to Valassis Digital.`);
             }
