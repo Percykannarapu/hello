@@ -20,6 +20,7 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
 import { Observable } from 'rxjs/Observable';
+import { filter, take } from 'rxjs/operators';
 
 
 class GeoLocations {
@@ -79,6 +80,13 @@ export class UploadTradeAreasComponent {
         this.onFileUpload(reader.result);
       };
     }
+    this.stateService.uniqueIdentifiedGeocodes$.pipe(
+      filter(geos => geos != null && geos.length > 0),
+      take(1)
+    ).subscribe (geos => {
+      console.log('BEFORE ZOOM::::', geos);
+     this.tradeAreaService.zoomToTradeArea();
+  });
   }
   public parseExcelFile(event: any) : void {
     console.log('process excel data::');
@@ -145,6 +153,7 @@ export class UploadTradeAreasComponent {
             this.failedGeoLocList.push(new GeoLocations(valGeo.Geo, null, `$Site Number ${valGeo.STORE}  not found`));
           }
         });
+     //   this.tradeAreaService.zoomToTradeArea();
 
         const outfields = [];
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
@@ -183,8 +192,10 @@ export class UploadTradeAreasComponent {
                       tradeAreasForInsert.push(newTA);
                     }
                   });
+
                 }
               }
+         //     this.tradeAreaService.zoomToTradeArea();
             });
           },
           err => console.log('error:::', err),
