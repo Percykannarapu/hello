@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TreeNode } from 'primeng/primeng';
@@ -6,9 +6,13 @@ import { TargetAudienceService } from '../../../services/target-audience.service
 import { Subject } from 'rxjs/index';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 
+const UnSelectableLimit = 1000;
+
 @Component({
   selector: 'val-online-audience-pixel',
-  templateUrl: './online-audience-pixel.component.html'
+  templateUrl: './online-audience-pixel.component.html',
+  styleUrls: ['./online-audience-pixel.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OnlineAudiencePixelComponent implements OnInit {
 
@@ -21,7 +25,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService) {
+  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -29,18 +33,29 @@ export class OnlineAudiencePixelComponent implements OnInit {
 
   private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode {
     this.sources.add(variable.source);
+    const selectable: boolean = (!Number.isNaN(Number(variable.taxonomy)) && Number(variable.taxonomy) > UnSelectableLimit);
     return {
       label: undefined, // template in the html markup does this since we have spacing requirements
       data: variable,
-      icon: 'fa-fontAwesome fa-file-o',
-      selectable: Number(variable.taxonomy) > 1000,
+      icon: `fa-fontAwesome ${selectable ? 'fa-file-o' : 'fa-lock'}`,
+      type: selectable ? undefined : 'disabled',
+      selectable: selectable,
       leaf: true,
     };
   }
 
   ngOnInit() {
+    this.audienceService.getAudienceDescriptions([SourceTypes.Pixel]).subscribe(
+      folders => folders.forEach(f => this.allNodes.push(OnlineAudiencePixelComponent.asTreeNode(f))),
+      err => console.error('There was an error during retrieval of the Pixel descriptions', err),
+      () => {
+        this.allNodes.sort((a, b) => a.data.categoryName.localeCompare(b.data.categoryName));
+        this.currentNodes = Array.from(this.allNodes);
+        this.loading = false;
+        this.cd.markForCheck();
+      });
     this.searchTerm$.pipe(
-      debounceTime(400),
+      debounceTime(250),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
   }
@@ -56,18 +71,8 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.audienceService.removeAudience(event.data, SourceTypes.Pixel);
   }
 
-  public onSelected(event: boolean) : void {
-    if (event && this.loading) {
-      this.audienceService.getAudienceDescriptions([SourceTypes.Pixel]).subscribe(
-        folders => folders.forEach(f => this.allNodes.push(OnlineAudiencePixelComponent.asTreeNode(f))),
-        err => console.error('There was an error during retrieval of the Pixel descriptions', err),
-        () => {
-          this.allNodes.sort((a, b) => a.data.categoryName.localeCompare(b.data.categoryName));
-          this.currentNodes = Array.from(this.allNodes);
-          this.loading = false;
-        }
-      );
-    }
+  public formatCount(number: string) {
+    return Number.isNaN(Number(number)) ? 'n/a' : Number(number).toLocaleString();
   }
 
   private filterNodes(term: string) {
@@ -76,10 +81,12 @@ export class OnlineAudiencePixelComponent implements OnInit {
     } else {
       this.currentNodes = this.allNodes.filter(n => n.data.categoryName.toLowerCase().includes(term.toLowerCase()));
     }
+    this.cd.markForCheck();
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
     this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    this.cd.markForCheck();
   }
 
 }

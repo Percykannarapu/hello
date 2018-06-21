@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -13,7 +13,8 @@ interface ApioTreeNode extends TreeNode {
 @Component({
   selector: 'val-online-audience-apio',
   templateUrl: './online-audience-apio.component.html',
-  styleUrls: ['./online-audience-apio.component.css']
+  styleUrls: ['./online-audience-apio.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OnlineAudienceApioComponent implements OnInit {
 
@@ -32,7 +33,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   // these have to be exposed like this so they are available in the template
   public SourceType = SourceTypes;
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService) {
+  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
     this.selectedNodeMap.set(SourceTypes.InMarket, []);
     this.selectedNodeMap.set(SourceTypes.Interest, []);
     this.currentSelectedNodes = this.selectedNodeMap.get(this.selectedSource);
@@ -71,8 +72,18 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.audienceService.getAudienceDescriptions([SourceTypes.InMarket, SourceTypes.Interest]).subscribe(
+      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
+      err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
+      () => {
+        this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
+        this.currentNodes = Array.from(this.allNodes);
+        this.loading = false;
+        this.cd.markForCheck();
+      }
+    );
     const search$ = this.searchTerm$.pipe(
-      debounceTime(400),
+      debounceTime(250),
       distinctUntilChanged()
     );
     combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
@@ -91,20 +102,7 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   public onSourceChanged(source: SourceTypes) {
     this.currentSelectedNodes = this.selectedNodeMap.get(source);
-  }
-
-  public onSelected(event: boolean) : void {
-    if (event && this.loading) {
-      this.audienceService.getAudienceDescriptions([SourceTypes.InMarket, SourceTypes.Interest]).subscribe(
-        folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
-        err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
-        () => {
-          this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
-          this.currentNodes = Array.from(this.allNodes);
-          this.loading = false;
-        }
-      );
-    }
+    this.cd.markForCheck();
   }
 
   private filterNodes(term: string, includeFolders: boolean) {
@@ -115,6 +113,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     } else {
       this.currentNodes = this.filterRecursive(Array.from(this.allNodes), term.toLowerCase(), includeFolders);
     }
+    this.cd.markForCheck();
   }
 
   private filterRecursive(nodes: ApioTreeNode[], term: string, includeFolders: boolean) : ApioTreeNode[] {
@@ -140,7 +139,8 @@ export class OnlineAudienceApioComponent implements OnInit {
     });
   }
 
-  private syncCheckData(result: AudienceDataDefinition[]){
+  private syncCheckData(result: AudienceDataDefinition[]) {
     this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    this.cd.markForCheck();
   }
 }

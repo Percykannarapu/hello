@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -8,7 +8,8 @@ import { TargetAudienceService } from '../../../services/target-audience.service
 
 @Component({
   selector: 'val-offline-audience-tda',
-  templateUrl: './offline-audience-tda.component.html'
+  templateUrl: './offline-audience-tda.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OfflineAudienceTdaComponent implements OnInit {
   private allNodes: TreeNode[] = [];
@@ -18,7 +19,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceTdaService, private parentAudienceService: TargetAudienceService) {
+  constructor(private audienceService: TargetAudienceTdaService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
@@ -51,9 +52,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);
         this.loading = false;
+        this.cd.markForCheck();
       });
     this.searchTerm$.pipe(
-      debounceTime(400),
+      debounceTime(250),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
   }
@@ -74,6 +76,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
         }
       });
     }
+    this.cd.markForCheck();
   }
 
   public selectVariable(event: TreeNode) : void {
@@ -86,5 +89,6 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   private syncCheckData(result: AudienceDataDefinition[]){
     this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier != result[0].audienceIdentifier);
+    this.cd.markForCheck();
   }
 }

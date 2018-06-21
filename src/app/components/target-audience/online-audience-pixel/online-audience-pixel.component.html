@@ -1,14 +1,24 @@
-<p-accordionTab header="Pixel Data" (selectedChange)="onSelected($event)">
-  <div class="val-wide-tree">
-    <div class="ui-g-12">
-      <i class="fa fa-search"></i>
-      <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
-    </div>
-    <hr>
-    <p-tree [loading]="loading" [value]="currentNodes" selectionMode="checkbox" [selection]="currentSelectedNodes" (onNodeSelect)="selectVariable($event.node)" (onNodeUnselect)="removeVariable($event.node)">
-      <ng-template let-node pTemplate="default">
-        {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{node.data.taxonomy}}
-      </ng-template>
-    </p-tree>
+<div class="val-wide-tree">
+  <div class="ui-g-12">
+    Pixel Id - First Fire Date - Fire Count are listed below
   </div>
-</p-accordionTab>
+  <div class="ui-g-12">
+    <i class="fa fa-search"></i>
+    <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
+  </div>
+  <hr>
+  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa-spin fa-refresh"
+          [value]="currentNodes"
+          [selection]="currentSelectedNodes"
+          (onNodeSelect)="selectVariable($event.node)"
+          (onNodeUnselect)="removeVariable($event.node)">
+    <ng-template let-node pTemplate="disabled">
+      <span class="unselectable">
+        {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
+      </span>
+    </ng-template>
+    <ng-template let-node pTemplate="default">
+        {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
+    </ng-template>
+  </p-tree>
+</div>

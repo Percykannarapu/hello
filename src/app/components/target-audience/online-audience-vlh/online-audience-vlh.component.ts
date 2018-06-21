@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
 import { Subject } from 'rxjs/index';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -8,9 +8,10 @@ import { TargetAudienceService } from '../../../services/target-audience.service
 
 @Component({
   selector: 'val-online-audience-vlh',
-  templateUrl: './online-audience-vlh.component.html'
+  templateUrl: './online-audience-vlh.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OnlineAudienceVlhComponent implements OnInit {
+export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
 
   static sources: Set<string> = new Set<string>();
 
@@ -21,7 +22,7 @@ export class OnlineAudienceVlhComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService) {
+  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -39,9 +40,21 @@ export class OnlineAudienceVlhComponent implements OnInit {
 
   ngOnInit() {
     this.searchTerm$.pipe(
-      debounceTime(400),
+      debounceTime(250),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
+  }
+
+  ngAfterViewInit() : void {
+    this.audienceService.getAudienceDescriptions([SourceTypes.VLH]).subscribe(
+      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceVlhComponent.asTreeNode(f))),
+      err => console.error('There was an error during retrieval of the VLH descriptions', err),
+      () => {
+        this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
+        this.currentNodes = Array.from(this.allNodes);
+        this.loading = false;
+        this.cd.markForCheck();
+      });
   }
 
   public selectVariable(event: TreeNode) : void {
@@ -55,30 +68,17 @@ export class OnlineAudienceVlhComponent implements OnInit {
     this.audienceService.removeAudience(event.data, SourceTypes.VLH);
   }
 
-  public onSelected(event: boolean) : void {
-    if (event && this.loading) {
-      this.audienceService.getAudienceDescriptions([SourceTypes.VLH]).subscribe(
-        folders => folders.forEach(f => this.allNodes.push(OnlineAudienceVlhComponent.asTreeNode(f))),
-        err => console.error('There was an error during retrieval of the VLH descriptions', err),
-        () => {
-          this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
-          this.currentNodes = Array.from(this.allNodes);
-          this.loading = false;
-        }
-      );
-    }
-  }
-
   private filterNodes(term: string) {
     if (term == null || term.length === 0) {
       this.currentNodes = this.allNodes;
     } else {
       this.currentNodes = this.allNodes.filter(n => n.data.categoryName.toLowerCase().includes(term.toLowerCase()));
     }
+    this.cd.markForCheck();
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
     this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    this.cd.markForCheck();
   }
-
 }
