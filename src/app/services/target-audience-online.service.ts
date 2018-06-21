@@ -11,6 +11,7 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -101,9 +102,10 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
+  private varPkCache: Map<string, number> = new Map<string, number>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private usageService: UsageService, private appStateService: AppStateService) {
+              private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
@@ -129,11 +131,18 @@ export class TargetAudienceOnlineService {
     };
   }
 
-  private static createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
+  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.categoryId}`;
+    let newVarPk = null;
+    if (this.varPkCache.has(fullId)) {
+      newVarPk = this.varPkCache.get(fullId);
+    } else {
+      newVarPk = this.varService.getNextStoreId();
+      this.varPkCache.set(fullId, newVarPk);
+    }
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
-      varPk: Number(response.categoryId),
+      varPk: newVarPk,
       customVarExprQuery: fullId,
       isString: false,
       isNumber: false,
@@ -217,7 +226,7 @@ export class TargetAudienceOnlineService {
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => TargetAudienceOnlineService.createGeofootprintVar(b, source, descriptionMap)))
+      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap)))
     );
   }
 
