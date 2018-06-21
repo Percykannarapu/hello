@@ -196,7 +196,7 @@ export class DiscoveryInputComponent implements OnInit {
       // set up all my observables after the map & layers are ready
       this.impRadLookupService.storeObservable.subscribe(radData => this.radDataCache = radData.map(item => new RadData(item)));
       this.impRadLookupService.get(true); // fire off the store retrieval mechanism
-      this.discoveryService.getProjectTrackerData().subscribe(data => this.trackerDataCache = data.map(item => new TrackerData(item)));
+     this.discoveryService.getProjectTrackerData().subscribe(data => this.trackerDataCache = data.map(item => new TrackerData(item)));
       const cleanForm$ = this.discoveryForm.valueChanges.pipe(
         debounceTime(500)
       );
@@ -425,4 +425,12 @@ export class DiscoveryInputComponent implements OnInit {
       });
     }
   }
+  public refreshProjectTrackerData(){
+      console.log('Refreshing trackerDataCache');
+      this.discoveryService.getProjectTrackerData().subscribe(data => { 
+      this.trackerDataCache = data.map(item => new TrackerData(item));
+      });
+
 }
+}
+

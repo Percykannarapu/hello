@@ -19,13 +19,19 @@
         </span>
       </div>
       <div class="ui-g-12" >
-        <span class="md-inputfield">
+        <div class="ui-g-8">
+         <span class="md-inputfield">
           <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (completeMethod)="filterProjectTracker($event)"
                           [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display" [inputStyle]="{'width':'100%'}" >
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>
-        </span>
+         </span>
+        </div>
+        <div class="ui-g-4">
+            <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh" style= "float:right; margin-right:550px"></button>
+        </div>       
       </div>
+
       <div class="ui-g-12 ui-g-nopad">
         <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
                     placeholder="Select an Analysis Level" [style]="{'width':'250px'}" ></p-dropdown>
