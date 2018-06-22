@@ -84,7 +84,6 @@ export class UploadTradeAreasComponent {
       filter(geos => geos != null && geos.length > 0),
       take(1)
     ).subscribe (geos => {
-      console.log('BEFORE ZOOM::::', geos);
      this.tradeAreaService.zoomToTradeArea();
   });
   }
