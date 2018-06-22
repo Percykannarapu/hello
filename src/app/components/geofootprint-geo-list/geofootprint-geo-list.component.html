@@ -3,10 +3,10 @@
    <button label="Test Rank" pButton (click)="testRank()"></button>
 </div> -->
 <div class="ui-g-12">
-   <p-dataTable selectionMode ="multiple" dataKey="fgId" class="val-table"
+   <p-dataTable #geoGrid selectionMode ="multiple" dataKey="fgId" class="val-table"
       scrollable="true" scrollWidth="100%" 
       [responsive]="true" sortMode="multiple"
-      [value]="allImpGeofootprintGeos$ | async"
+      [value]="displayedImpGeofootprintGeos$ | async"
       [selection]="selectedImpGeofootprintGeos$ | async"
       [headerCheckboxToggleAllPages]="true"
       [resizableColumns]="true" columnResizeMode="expand"
@@ -17,26 +17,33 @@
       (onRowUnselect)="onSelectGeocode($event, false)">
       <!-- GEOGRID HEADER -->
       <p-header>
-         <div class="ui-g ui-g-nopad" style="flex-wrap: nowrap !important;">
-            <div class="ui-g-12 ui-g-nopad">
-               <div class="ui-g-1" style="min-width:25px; width:25px">
-                  <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+         <div class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
+            <div class="ui-g-12 ui-g-nopad" style="padding: 5px 0px 0px 0px;">
+               <div class="ui-g-4 ui-toolbar-group-left val-flush-to-edges">
+                  <div class="ui-g-1" style="min-width:25px; width:25px">
+                     <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+                  </div>
+                  <div class="ui-g-11  ui-toolbar-group-left val-flush-to-edges">
+                     <span class="md-inputfield" style="display: flex; justify-content: flex-begin; margin:4px 4px 0 0">
+                        <input #filter id="filter" type="text" pInputText size="50" placeholder="Filter Geographies" style="width:auto; color: white;">
+                     </span>
+                  </div>
                </div>
-               <div class="ui-g-2">
-                  <span class="md-inputfield">
-                     <input #filter id="filter" type="text" pInputText size="50" placeholder="Filter Geographies" style="width:auto; color: white;">
-                  </span>
-               </div>
-               <div class="ui-g-7">
+               <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label style="text-align: center;"
                          pTooltip="Selected Geos:   {{numGeosActive}}
                                    Unselected Geos: {{numGeosInactive}}">
                      Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}
                   </label>
                </div>
-               <div class="ui-g-2" style="display: flex; justify-content: flex-end">
-                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+               <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
+                     <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+                     <label style="padding: 0px 15px 0px 15px">Include Dupes </label>
+                     <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                </div>
+               <!-- dt.filter($event.value, col.field, 'equals') -->
+               <!-- (onChange)="dt.filter($event.value, col.field, 'in')" -->
+               <!-- (onChange)="onDedupeToggle($event, geoGrid)" -->
             </div>
          </div>
       </p-header>

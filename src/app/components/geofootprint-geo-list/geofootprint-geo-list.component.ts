@@ -50,8 +50,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //   public  impGeofootprintGeos: ImpGeofootprintGeo[];
 //   public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
 
-   public  allImpGeofootprintGeos$: Observable<FlatGeo[]>; // ImpGeofootprintGeo
-   public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>; // ImpGeofootprintGeo
+   public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
+   public  displayedImpGeofootprintGeos$: Observable<FlatGeo[]>;
+   public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>;
 
    public  impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
    private impGeofootprintVars: ImpGeofootprintVar[];
@@ -61,6 +62,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public  selectedGeo: FlatGeo;
    public  geoInfoMenuItems: MenuItem[];
+
+   public  dedupeGrid: boolean = false;
 
    public myStyles = {
       'background-color': 'lime',
@@ -98,6 +101,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description', width: '12em',  styleClass: ''}},
                                           {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                  width: '4em',   styleClass: 'val-text-center'}},
                                           {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '12em',  styleClass: ''}},
+                                          {label: 'isDeduped',            value: {field: 'geo.isDeduped',                               header: 'In Deduped',           width: '7em',   styleClass: ''}},
                                          ];
 /*   Incase we decide to revert back  
     public  flatGeoGridColumns: SelectItem[] =
@@ -178,14 +182,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // setGridData(geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[])
 
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
-      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
+      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
                                     .pipe(map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
 
+      // Original good
+      // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
+      //                               .pipe(map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
+
+      this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
+                                               .pipe(map((AllGeos) => {
+                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); })); 
+
       this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
-                                          .pipe(map((AllGeos) => {
-                                             this.numGeosActive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length;
-                                             this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length;
-                                             return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
+                                              .pipe(map((AllGeos) => {
+                                                 this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true  && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
+                                                 this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
+                                                 return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
 
       // Good - Just doesn't have the console log
       //this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$.pipe(
@@ -320,9 +332,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          {
             dist = EsriUtils.getDistance(geo.xcoord, geo.ycoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
 
+            if (geo.geocode === '48168')
+               console.log('GEOCODE: ', geo.geocode, ' distance to site[' + s + '] = ', dist);
+            
             // If closer to this location, record the lat / lon
             if (dist < closestDistance)
             {
+               if (geo.geocode === '48168')
+                  console.log('GEOCODE: 48168 - setting new closest distance @ ', dist);
                closestDistance = dist;
                closestSiteIdx = s;
 //             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist + ' - NEW CLOSEST');
@@ -384,6 +401,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Assign the closest site to any geo not having one
       this.assignGeoSite(geos);
+      this.impGeofootprintGeoService.calculateGeoRanks();
+
+//      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
@@ -657,9 +677,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       console.log('');
       console.log('Looking for geo: 48080');
-      let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({geocode: '48080'});
-      const foundGeo = this.impGeofootprintGeoService.find(searchGeo);
+      let searchGeo = new ImpGeofootprintGeo({geocode: '48080'});
+      let foundGeo = this.impGeofootprintGeoService.find(searchGeo);
       console.log('foundGeo', foundGeo);
+
+      // console.log('');
+      // console.log('Looking for geos that belong to Grand Rapids');
+      // let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({isActive: 0; impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'BUDDY\'S PIZZA - GRAND RAPIDS'})});
+      // let foundGeo = this.impGeofootprintGeoService.find(searchGeo);
+      // console.log('foundGeo', foundGeo);
 
       console.log('');
       console.log('Looking for geos for location: BUDDY\'S PIZZA - GRAND RAPIDS');
@@ -759,5 +785,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          geo.isActive = isSelected;
          this.impGeofootprintGeoService.update(null, null);
       }
+   }
+
+   onDedupeToggle(event: any, geoGrid)
+   {
+      console.log('event.checked: ', event.checked, ', event: ', event, ', geoGrid: ', geoGrid);
+
+      // Downside to this is that it refreshes the grid data
+      this.impGeofootprintGeoService.makeDirty();  // Works, but is only pinky forward.  A 6:30pm on a Friday decision
+
+      // Downside of this is that it doesnt work, but if it did, the grid would just filter itself
+      //if (event.checked === true)
+      //   geoGrid.filter(1, 'isDeduped', 'equals');
    }
 }

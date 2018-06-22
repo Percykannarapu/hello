@@ -68,7 +68,11 @@ export class DataStore<T>
    // ---------------------------------------------
    // Utility / Non-Essential Methods
    // ---------------------------------------------
-
+   public makeDirty()
+   {
+      this._storeSubject.next(this._dataStore);
+   }
+   
    /**
     * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
     */
