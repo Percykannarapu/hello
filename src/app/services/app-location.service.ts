@@ -74,7 +74,7 @@ export class AppLocationService {
 
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
     return this.geocodingService.geocodeLocations(data).pipe(
-      map(responses => responses.map(r => r.toGeoLocation(siteType)))
+      map(responses => responses.map(r => r.toGeoLocation(siteType, this.appStateService.analysisLevel$.getValue())))
     );
   }
 

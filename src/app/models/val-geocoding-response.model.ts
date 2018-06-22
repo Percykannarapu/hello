@@ -39,7 +39,7 @@ export class ValGeocodingResponse {
 
   }
 
-  public toGeoLocation(siteType?: string) : ImpGeofootprintLocation {
+  public toGeoLocation(siteType?: string, analysisLevel?: string) : ImpGeofootprintLocation {
     const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name,
@@ -61,6 +61,42 @@ export class ValGeocodingResponse {
       clientIdentifierTypeCode: 'PROJECT_ID',
       isActive: true
     });
+    if (analysisLevel) {
+      switch (analysisLevel) {
+        case 'ZIP': {
+          for (const key of Object.keys(this)) {
+            if (key.toLowerCase().match('home') && key.toLowerCase().match('zip')) {
+              result.homeGeocode = this[key];
+            }
+          }
+          break;
+        }
+        case 'ATZ': {
+          for (const key of Object.keys(this)) {
+            if (key.toLowerCase().match('home') && key.toLowerCase().match('atz')) {
+              result.homeGeocode = this[key];
+            }
+          }
+          break;
+        }
+        case 'Digital ATZ': {
+          for (const key of Object.keys(this)) {
+            if (key.toLowerCase().match('home') && key.toLowerCase().match('digital') && key.toLowerCase().match('atz')) {
+              result.homeGeocode = this[key];
+            }
+          }
+          break;
+        }
+        case 'PCR': {
+          for (const key of Object.keys(this)) {
+            if (key.toLowerCase().match('home') && key.toLowerCase().match('carrier') && key.toLowerCase().match('route')) {
+              result.homeGeocode = this[key];
+            }
+          }
+          break;
+        } 
+      }
+    }
     if (this.Number != null ) {
       result.locationNumber = this.Number;
     }
