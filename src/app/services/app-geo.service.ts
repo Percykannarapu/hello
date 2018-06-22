@@ -139,11 +139,13 @@ export class AppGeoService {
     const outFields: any[] = [];
     const locations = this.locationService.get();
     const homeGeosToAdd: ImpGeofootprintGeo[] = [];
+    const geosToPersistString: Set<string> = new Set<string>();
+    geosToPersist.forEach(geo => geosToPersistString.add(geo.geocode));
     homeCentroids.forEach(centroidgraphic => {
-      if ( geosToPersist.filter(geo => geo.geocode != centroidgraphic.attributes.geocode)){
-          geocodes.push(centroidgraphic);
-      }
-    });
+       if (!geosToPersistString.has(centroidgraphic.attributes.geocode)){
+            geocodes.push(centroidgraphic);
+       }
+	  });
     let customIndex: number = 0;
     if (geocodes.length > 0 ){
           geocodes.forEach(geo => {
