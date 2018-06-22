@@ -14,6 +14,13 @@ import { calculateStatistics } from '../../app.utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { AppLocationService } from '../../services/app-location.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { concat } from 'rxjs';
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { filter, take } from 'rxjs/operators';
+import { AppStateService } from '../../services/app-state.service';
+
 
 @Component({
     selector: 'val-project',
@@ -38,7 +45,10 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
                 private esriMapService: EsriMapService,
-                private appLocationService: AppLocationService){
+                private appLocationService: AppLocationService,
+                private impGeofootprintTradeArea: ImpGeofootprintTradeAreaService,
+                private appTradeAreaService: AppTradeAreaService,
+                private stateService: AppStateService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -268,8 +278,18 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 
     private onloadProject(project){
         const locData = this.impGeofootprintLocationService.get();
-        this.appLocationService.zoomToLocations(locData);
-    }
+        const taData = this.impGeofootprintTradeArea.get ();
+        if (taData != null) {
+         this.stateService.uniqueIdentifiedGeocodes$.pipe(
+          filter(geos => geos != null && geos.length > 0),
+          take(1)
+        ).subscribe (geos => {
+         this.appTradeAreaService.zoomToTradeArea();
+      });
+        }
+        else {this.appLocationService.zoomToLocations(locData);
+        }
+      }
 
     /*public reorderColumn(event){
       console.log('event fired for column alter');

@@ -79,11 +79,11 @@ export class AppTradeAreaService implements OnDestroy {
     return result;
   }
 
-  public static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean,  taType: string, radius?: number) : ImpGeofootprintTradeArea {
+  public static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean,  taType: string) : ImpGeofootprintTradeArea {
     const result = new ImpGeofootprintTradeArea({
       taNumber: index + 1,
       taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
-      taRadius: (radius !== null ? radius : 0),
+      taRadius: 0,
       taType: taType,
       impGeofootprintLocation: location,
       isActive: isActive
