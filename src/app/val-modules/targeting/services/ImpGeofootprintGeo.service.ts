@@ -182,7 +182,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
        if (a.distance === b.distance)
             {
                if (a.hhc === b.hhc)
-                  return 0;
+                  if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null) {
+                     // We need a tie breaker at this point, look to the address it belongs to next
+                     if (a.impGeofootprintLocation.locAddress = b.impGeofootprintLocation.locAddress)
+                        return 0;
+                     else {
+                        if (a.impGeofootprintLocation.locationIdDisplay > b.impGeofootprintLocation.locAddress)
+                           return 1;
+                        else
+                           return 1;
+                     }
+                  }
+                  else
+                     return 0;
                else
                   if (a.hhc > b.hhc)
                      return -1;
