@@ -139,6 +139,7 @@ export class EsriMapComponent implements OnInit {
   }
 
   private clickHandler(event: __esri.MapViewClickEvent){
+    console.log('Inside Component click event handler');
     if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
       this.newMapService.handleClickEvent(event);
     }

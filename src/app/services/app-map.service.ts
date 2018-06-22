@@ -69,11 +69,12 @@ export class AppMapService implements OnDestroy {
   }
 
   public handleClickEvent(location:  __esri.MapViewClickEvent) {
+    console.log('Inside AppMapService click event handler');
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
     if (analysisLevel == null || analysisLevel.length === 0) return;
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
-    this.mapService.mapView.hitTest(location.mapPoint).then(response => {
+    this.mapService.mapView.hitTest(location).then(response => {
       const selectedGraphic = response.results.filter(r => r.graphic.layer === layer)[0].graphic;
       if (selectedGraphic != null) {
         const geocode = selectedGraphic.attributes.geocode;
@@ -84,7 +85,7 @@ export class AppMapService implements OnDestroy {
         this.collectSelectionUsage(selectedGraphic);
         this.selectSingleGeocode(geocode, geometry);
       }
-    });
+    }, err => console.error('Error during click event handling', err));
   }
 
   public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
@@ -160,6 +161,7 @@ export class AppMapService implements OnDestroy {
     });
     const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(locationType) && name.endsWith('Trade Area'));
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
+    let layerId = 0;
     pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
@@ -167,7 +169,8 @@ export class AppMapService implements OnDestroy {
         const graphics = geometry.map(g => {
           return new EsriModules.Graphic({
             geometry: g,
-            symbol: symbol
+            symbol: symbol,
+            attributes: { parentId: (++layerId).toString() }
           });
         });
         const groupName = `${locationType}s`;

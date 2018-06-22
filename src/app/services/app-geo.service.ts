@@ -246,17 +246,29 @@ export class AppGeoService {
     const geosToDeactivate = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS');
     const geosToDelete = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType !== 'RADIUS');
     const attribsToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
-    this.attributeService.remove(attribsToDelete);
-    this.attributeService.addDbRemove(attribsToDelete);
-    geosToDeactivate.forEach(geo => geo.isActive = false);
-    this.geoService.remove(geosToDelete);
-    this.geoService.addDbRemove(geosToDelete);
+    if (geosToDeactivate.length > 0) {
+      geosToDeactivate.forEach(geo => geo.isActive = false);
+      if (geosToDelete.length === 0) {
+        this.attributeService.update(null, null);
+        this.geoService.update(null, null);
+      }
+    }
+    if (geosToDelete.length > 0) {
+      this.attributeService.remove(attribsToDelete);
+      this.attributeService.addDbRemove(attribsToDelete);
+      this.geoService.remove(geosToDelete);
+      this.geoService.addDbRemove(geosToDelete);
+    }
   }
 
   private reactivateGeosByGeocode(geocode: string) : void {
     this.geoService.get()
       .filter(geo => geo.geocode === geocode)
-      .forEach(geo => geo.isActive === true);
+      .forEach(geo => {
+        geo.impGeofootprintGeoAttribs.forEach(a => a.isActive = true);
+        geo.isActive = true;
+      });
+    this.geoService.update(null, null);
   }
 
   private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }) : void {

@@ -5,7 +5,6 @@ import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { MapService } from './map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -100,6 +99,7 @@ export class AppLayerService {
     });
     const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.endsWith('Trade Area'));
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
+    let layerId = 0;
     pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
@@ -107,7 +107,8 @@ export class AppLayerService {
         const graphics = geometry.map(g => {
           return new EsriModules.Graphic({
             geometry: g,
-            symbol: symbol
+            symbol: symbol,
+            attributes: { parentId: (++layerId).toString() }
           });
         });
         const groupName = `${siteType}s`;
@@ -151,7 +152,7 @@ export class AppLayerService {
         x: site.xcoord,
         y: site.ycoord
       }),
-      attributes: {},
+      attributes: { parentId: (site.locationNumber || '').toString() },
       visible: site.isActive
     });
     for (const [field, value] of Object.entries(site)) {

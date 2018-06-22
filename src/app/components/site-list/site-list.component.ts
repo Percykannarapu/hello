@@ -138,8 +138,8 @@ export class SiteListComponent implements OnInit {
   }
 
   public removeLocationHierarchy(location: ImpGeofootprintLocation) {
-    this.geoAttributeService.remove(simpleFlatten(location.impGeofootprintGeos.map(geo => geo.impGeofootprintGeoAttribs)));
-    this.geoService.remove(location.impGeofootprintGeos);
+    this.geoAttributeService.remove(simpleFlatten(location.getImpGeofootprintGeos().map(geo => geo.impGeofootprintGeoAttribs)));
+    this.geoService.remove(location.getImpGeofootprintGeos());
     this.tradeAreaService.remove(location.impGeofootprintTradeAreas);
     this.attributeService.remove(location.impGeofootprintLocAttribs);
     this.locationService.addDbRemove(location);  // For database removal
@@ -147,7 +147,7 @@ export class SiteListComponent implements OnInit {
   }
 
   public setLocationHierarchyActiveFlag(location: ImpGeofootprintLocation, isActive: boolean) {
-    location.impGeofootprintGeos.forEach(geo => {
+    location.getImpGeofootprintGeos().forEach(geo => {
       geo.impGeofootprintGeoAttribs.forEach(attr => attr.isActive = isActive);
       geo.isActive = isActive;
     });

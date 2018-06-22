@@ -94,7 +94,7 @@ export class ImpProject extends BaseModel
    // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
+   getImpGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
       let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
       (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
                                        .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])
@@ -103,14 +103,14 @@ export class ImpProject extends BaseModel
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintLocations(): ReadonlyArray<ImpGeofootprintLocation> {
+   getImpGeofootprintLocations(): ReadonlyArray<ImpGeofootprintLocation> {
       let _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
       (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (_result.push(...impGeofootprintMaster.impGeofootprintLocations||[])));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintLocAttribs(): ReadonlyArray<ImpGeofootprintLocAttrib> {
+   getImpGeofootprintLocAttribs(): ReadonlyArray<ImpGeofootprintLocAttrib> {
       let _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
       (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
                                        .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs||[]))));
@@ -118,7 +118,7 @@ export class ImpProject extends BaseModel
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintTradeAreas(): ReadonlyArray<ImpGeofootprintTradeArea> {
+   getImpGeofootprintTradeAreas(): ReadonlyArray<ImpGeofootprintTradeArea> {
       let _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
       (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
                                        .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas||[]))));
@@ -126,7 +126,7 @@ export class ImpProject extends BaseModel
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
+   getImpGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
       let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
                                        .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])

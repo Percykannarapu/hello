@@ -245,7 +245,7 @@ export class ValMetricsService implements OnDestroy {
 
   private getMetricObservable() : Observable<MetricDefinition<any>[]> {
     const attribute$ = this.attributeService.storeObservable.pipe(
-      map(attributes => attributes.filter(a => a.isActive))
+      map(attributes => attributes.filter(a => a.isActive && a.impGeofootprintGeo.isActive))
     );
     return combineLatest(attribute$, this.stateService.currentProject$).pipe(
       map(([attributes, discovery]) => this.updateDefinitions(attributes, discovery))

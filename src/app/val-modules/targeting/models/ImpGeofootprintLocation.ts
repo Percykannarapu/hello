@@ -78,14 +78,14 @@ export class ImpGeofootprintLocation extends BaseModel
    // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
+   getImpGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
       let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
       (this.impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos||[])));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   @transient get impGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
+   getImpGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
       let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       (this .impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[])));
       return _result;
