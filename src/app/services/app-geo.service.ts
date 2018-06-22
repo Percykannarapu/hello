@@ -134,39 +134,45 @@ export class AppGeoService {
     return geosToSave;
   }
 
-  private createHomeGeos(homeCentroids: __esri.Graphic[],  geosToPersist: ImpGeofootprintGeo[]){
+  private createHomeGeos(homeCentroids: __esri.Graphic[],  geosToPersist: ImpGeofootprintGeo[]) : ImpGeofootprintGeo[] {
     const geocodes: any[] = [];
-    const outFields: any[] = [];
+    const existingGeos = new Set(geosToPersist.map(g => g.geocode));
     const locations = this.locationService.get();
     const homeGeosToAdd: ImpGeofootprintGeo[] = [];
-    const geosToPersistString: Set<string> = new Set<string>();
-    geosToPersist.forEach(geo => geosToPersistString.add(geo.geocode));
-    homeCentroids.forEach(centroidgraphic => {
-       if (!geosToPersistString.has(centroidgraphic.attributes.geocode)){
-            geocodes.push(centroidgraphic);
-       }
-	  });
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    homeCentroids.forEach(g => {
+      if (!existingGeos.has(g.attributes.geocode)){
+          geocodes.push(g);
+      }
+    });
     let customIndex: number = 0;
-    if (geocodes.length > 0 ){
-          geocodes.forEach(geo => {
-             locations.filter(loc => {
-                if (loc.homeGeocode === geo.attributes.geocode){
-                  const geocodeDistance: number = EsriUtils.getDistance(geo.attributes.longitude, geo.attributes.latitude, loc.xcoord, loc.ycoord);
-                  customIndex++;
-                  const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEOCODE');
-                  const newGeo = new ImpGeofootprintGeo({
-                    xcoord: geo.attributes.longitude,
-                    ycoord: geo.attributes.latitude,
-                    geocode: geo.attributes.geocode,
-                    distance: geocodeDistance,
-                    impGeofootprintTradeArea: newTA,
-                    isActive: true
-                  });
-                  homeGeosToAdd.push(newGeo);
-                }
-             });
-          });
+    if (geocodes.length > 0 ) {
+      geocodes.forEach(geo => {
+         locations.filter(loc => {
+            if (loc.homeGeocode === geo.attributes.geocode){
+              const geocodeDistance: number = EsriUtils.getDistance(geo.attributes.longitude, geo.attributes.latitude, loc.xcoord, loc.ycoord);
+              customIndex++;
+              const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
+              if (homeGeoTA.length === 0) {
+                const newTA = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO');
+                homeGeoTA.push(newTA);
+                newTradeAreas.push(newTA);
+              }
+              const newGeo = new ImpGeofootprintGeo({
+                xcoord: geo.attributes.longitude,
+                ycoord: geo.attributes.latitude,
+                geocode: geo.attributes.geocode,
+                distance: geocodeDistance,
+                impGeofootprintTradeArea: homeGeoTA[0],
+                isActive: true
+              });
+              homeGeoTA[0].impGeofootprintGeos.push(newGeo);
+              homeGeosToAdd.push(newGeo);
+            }
+         });
+      });
     }
+    if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
     return homeGeosToAdd;
   }
 
@@ -244,9 +250,10 @@ export class AppGeoService {
   }
 
   private deselectGeosByGeocode(geocode: string) : void {
+    const taTypesToDeactivate = new Set<string>(['RADIUS', 'AUDIENCE', 'HOMEGEO', 'CUSTOM']);
     const geosToRemove = this.geoService.get().filter(geo => geo.geocode === geocode);
-    const geosToDeactivate = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS');
-    const geosToDelete = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType !== 'RADIUS');
+    const geosToDeactivate = geosToRemove.filter(geo => taTypesToDeactivate.has(geo.impGeofootprintTradeArea.taType));
+    const geosToDelete = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'MANUAL');
     const attribsToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
     if (geosToDeactivate.length > 0) {
       geosToDeactivate.forEach(geo => geo.isActive = false);
@@ -288,11 +295,11 @@ export class AppGeoService {
     }, null);
     let tradeArea: ImpGeofootprintTradeArea;
     const tradeAreas = this.tradeAreaService.get()
-      .filter(ta => ta.taType === 'CUSTOM' && ta.taName === tradeAreaName && ta.impGeofootprintLocation === closestLocation && ta.isActive);
+      .filter(ta => ta.taType === 'MANUAL' && ta.taName === tradeAreaName && ta.impGeofootprintLocation === closestLocation && ta.isActive);
     if (tradeAreas.length === 0) {
       tradeArea = new ImpGeofootprintTradeArea({
         impGeofootprintLocation: closestLocation,
-        taType: 'CUSTOM',
+        taType: 'MANUAL',
         taName: tradeAreaName,
         taNumber: 0,
         isActive: true
