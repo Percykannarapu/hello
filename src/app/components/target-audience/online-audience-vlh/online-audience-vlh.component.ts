@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
 import { Subject } from 'rxjs/index';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
@@ -46,8 +46,15 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() : void {
-    this.audienceService.getAudienceDescriptions([SourceTypes.VLH]).subscribe(
-      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceVlhComponent.asTreeNode(f))),
+    this.audienceService.getAudienceDescriptions([SourceTypes.VLH])
+    .pipe(
+      map(folders => folders = folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
+    )
+    .subscribe(
+      folders => {
+        //folders = folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$') );
+        folders.forEach(f => this.allNodes.push(OnlineAudienceVlhComponent.asTreeNode(f)));
+      },
       err => console.error('There was an error during retrieval of the VLH descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
