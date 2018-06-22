@@ -86,18 +86,15 @@ export class SelectedAudiencesComponent implements OnInit {
     this.showRenderControls = audience.showOnMap;
     this.audiences$.pipe(
       map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
-      tap(unMapped => unMapped.forEach(a => a.showOnMap = false)),
-      take(1)
-    ).subscribe(() => null); // with take(1), this subscription will immediately close
+      take(1),
+    ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
   }
 
   onNationalSelected(audience: AudienceDataDefinition) : void {
-    this.showRenderControls = audience.showOnMap;
     this.audiences$.pipe(
       map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
-      tap(unMapped => unMapped.forEach(a => a.exportNationally = false)),
-      take(1)
-    ).subscribe(() => null); // with take(1), this subscription will immediately close
+      take(1),
+    ).subscribe(unMapped => unMapped.forEach(a => a.exportNationally = false)); // with take(1), this subscription will immediately close
   }
 
   onRemove(audience) {
