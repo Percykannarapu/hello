@@ -52,7 +52,6 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     )
     .subscribe(
       folders => {
-        //folders = folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$') );
         folders.forEach(f => this.allNodes.push(OnlineAudienceVlhComponent.asTreeNode(f)));
       },
       err => console.error('There was an error during retrieval of the VLH descriptions', err),
