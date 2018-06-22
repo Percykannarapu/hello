@@ -265,7 +265,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'GROUP',              row: (state, data) => (data.groupName) ? data.groupName : (data.clientLocationTypeCode === 'Site') ? 'Advertisers' : 'Competitors'});
             exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
             exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName != null ? this.impProject.clientIdentifierName.trim() : '' + '~' + this.impProject.projectId});
+            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName && this.impProject.projectId != null ? this.impProject.clientIdentifierName.trim() + '' + '~' + this.impProject.projectId : ''});
             exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
             exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
             exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
@@ -326,7 +326,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'GROUP',              row: (state, data) => data.groupName});
            exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
            exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-           exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName != null ? this.impProject.clientIdentifierName.trim() : '' + '~' + this.impProject.projectId});
+           exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName && this.impProject.projectId != null ? this.impProject.clientIdentifierName.trim() + '' + '~' + this.impProject.projectId : ''});
            exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
            exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
            exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
