@@ -122,7 +122,7 @@ export class ValMetricsService implements OnDestroy {
         const season = this.isWinter ? 'hhld_w' : 'hhld_s';
         const currentHH = Number(attributesMap.get(season)) || 0;
         if (this.currentProject.isDollarBudget) {
-          return currentHH * this.getCpmForGeo(attributesMap.get('owner_group_primary'), attributesMap.get('cov_frequency'));
+               return currentHH * this.getCpmForGeo(attributesMap.get('owner_group_primary'), attributesMap.get('cov_frequency'));
         }
         if (this.currentProject.isCircBudget) {
           return currentHH;
@@ -130,16 +130,17 @@ export class ValMetricsService implements OnDestroy {
       },
       metricAccumulator: (p, c) => {
         if (this.currentProject.isDollarBudget) {
-          return p + (c / (1000 * this.currentProject.totalBudget));
+            return p + (c / (1000 * this.currentProject.totalBudget));
         } else if (this.currentProject.isCircBudget) {
-          return p + (c / this.currentProject.totalBudget);
+            return p + (c / (this.currentProject.totalBudget));
         } else {
-          return null;
+            return null;
         }
       },
       metricFormatter: v => {
-        if (v != null && v !== 0) {
-          return (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
+        if (v != null && v != 0) {
+            return this.currentProject.isDollarBudget ? (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %' : 
+                                                      (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
         } else {
           return 'N/A';
         }
