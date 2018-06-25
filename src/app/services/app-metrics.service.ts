@@ -169,7 +169,7 @@ export class ValMetricsService implements OnDestroy {
       },
       metricFormatter: v => {
         const result = v.income / v.hhc;
-        return result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return '$' + result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       }
     };
     this.metricDefinitions.push(medianHhIncome);
