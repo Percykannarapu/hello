@@ -306,11 +306,11 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.methAnalysis       = currentForm.selectedAnalysisLevel ? currentForm.selectedAnalysisLevel.value : null;
     this.impProject.totalBudget        = (dollarBudget != null ? dollarBudget : circBudget);
     this.impProject.isValidated        = true;
-    this.impProject.isCircBudget       = (dollarBudget == null);
+    this.impProject.isCircBudget       = (circBudget != null);
     this.impProject.isActive           = true;
     this.impProject.isSingleDate       = true;
     this.impProject.isMustCover        = true;
-    this.impProject.isDollarBudget     = !this.impProject.isCircBudget;
+    this.impProject.isDollarBudget     = (dollarBudget != null);
     this.impProject.isRunAvail         = true;
     this.impProject.isHardPdi          = true;
     this.impProject.isIncludeNonWeekly = true;
