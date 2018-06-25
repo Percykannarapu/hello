@@ -24,6 +24,8 @@ export class AppStateService {
   public currentProject$: CachedObservable<ImpProject> = new BehaviorSubject<ImpProject>(null);
   public currentMaster$: CachedObservable<ImpGeofootprintMaster> = new BehaviorSubject<ImpGeofootprintMaster>(null);
   public analysisLevel$: CachedObservable<string> = new BehaviorSubject<string>(null);
+  public taSiteMergeType$: CachedObservable<string> = new BehaviorSubject<string>(null);
+  public taCompetitorMergeType$: CachedObservable<string> = new BehaviorSubject<string>(null);
   public projectId$: CachedObservable<number> = new BehaviorSubject<number>(null);
   public season$: CachedObservable<Season> = new BehaviorSubject<Season>(null);
 
@@ -55,6 +57,19 @@ export class AppStateService {
       map(project => project.methAnalysis),
       distinctUntilChanged(),
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
+
+    // Setup trade area merge type subscriptions
+    this.currentProject$.pipe(
+      filter(project => project != null && project.taSiteMergeType != null && project.taSiteMergeType.length > 0),
+      map(project => project.taSiteMergeType),
+      distinctUntilChanged(),
+    ).subscribe(this.taSiteMergeType$ as BehaviorSubject<string>);
+    this.currentProject$.pipe(
+      filter(project => project != null && project.taCompetitorMergeType != null && project.taCompetitorMergeType.length > 0),
+      map(project => project.taCompetitorMergeType),
+      distinctUntilChanged(),
+    ).subscribe(this.taCompetitorMergeType$ as BehaviorSubject<string>);
+
     this.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.projectId),

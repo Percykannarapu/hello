@@ -32,6 +32,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   private siteCountSub: Subscription;
   private competitorCountSub: Subscription;
   private locationCountMap: Map<string, number> = new Map<string, number>();
+  private projectSub: Subscription;
 
   currentTradeAreas: TradeAreaUIModel[];
   currentMergeType: MergeType;
@@ -79,6 +80,10 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
 
     this.stateService.siteTradeAreas$.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData, this.siteTradeAreas));
     this.stateService.competitorTradeAreas$.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData, this.competitorTradeAreas));
+
+    // Subscribe to merge type changes
+    this.stateService.taSiteMergeType$.subscribe(taSiteMergeData => this.onChangeTaMergeType(taSiteMergeData));
+    this.stateService.taCompetitorMergeType$.subscribe(taCompetitorMergeData => this.onChangeTaMergeType(taCompetitorMergeData));
    }
 
   public ngOnDestroy() : void {
@@ -158,4 +163,35 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   isApplyButtonDisabled() : boolean {
     return this.currentTradeAreas.some(t => t.isValid === false) || this.currentTradeAreas.every(t => t.isValid == null);
   }
+
+  getMergeType(mergeType: string) : MergeType {
+      let result: MergeType = this.currentMergeType;
+      switch(mergeType) {
+         case 'No Merge': 
+            result = this.tradeAreaMergeTypes[0];
+            break;
+
+         case 'Merge Each':
+            result = this.tradeAreaMergeTypes[1];
+            break;
+
+         case 'Merge All':
+            result = this.tradeAreaMergeTypes[2];
+            break;
+         
+         default:
+            result = this.currentMergeType;
+      }
+      return result;
+   }
+
+   onChangeTaMergeType(mergeType: string)
+   {
+      // console.log("onChangeTaSiteMergeType - fired - mergeType: ", mergeType);
+      if (this.currentSiteType === 'Site' || this.currentSiteType === 'Competitor')
+      {
+         this.currentMergeType = this.getMergeType(mergeType);
+         this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);         
+      }
+   }
 }
