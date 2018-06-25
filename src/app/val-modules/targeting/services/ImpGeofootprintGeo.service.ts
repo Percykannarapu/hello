@@ -539,7 +539,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
 
       for(let geo of geos) {
-         if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
+         //if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
          if (geo.rank === 0)
             geo.isDeduped = 1;
          else
