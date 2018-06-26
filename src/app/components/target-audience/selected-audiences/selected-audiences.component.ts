@@ -98,7 +98,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-    const message = 'Do you want to delete the following audience from your project? \n\r' + `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
+   const message = 'Do you want to delete the following audience from your project? \n\r' + `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
    this.confirmationService.confirm({
     message: message,
     header: 'Delete Confirmation',
@@ -106,6 +106,20 @@ export class SelectedAudiencesComponent implements OnInit {
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      const metricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'delete' });
+      let metricText = null;
+      if (audience.audienceSourceType === 'Online')
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+      
+      if (audience.audienceSourceType === 'Offline')
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}` ;    
+      
+      if (audience.audienceSourceType === 'Custom')
+          metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;        
+
+     // console.log('test metricText::::', metricText);     
+
+      this.usageService.createCounterMetric(metricName, metricText, null);
 
       this.varService.applyAudienceSelection();
     },

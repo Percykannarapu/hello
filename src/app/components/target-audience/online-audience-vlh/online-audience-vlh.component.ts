@@ -5,6 +5,9 @@ import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators'
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
+import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
   selector: 'val-online-audience-vlh',
@@ -22,7 +25,9 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
+  constructor(private audienceService: TargetAudienceOnlineService, 
+              private parentAudienceService: TargetAudienceService, 
+              private cd: ChangeDetectorRef, private usageService: UsageService, private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -64,11 +69,17 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   public selectVariable(event: TreeNode) : void {
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
+    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
     this.currentSelectedNodes.push(event);
     this.audienceService.addAudience(event.data, SourceTypes.VLH);
   }
 
   public removeVariable(event: TreeNode) : void {
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
+    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
     this.audienceService.removeAudience(event.data, SourceTypes.VLH);

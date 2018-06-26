@@ -15,6 +15,8 @@ import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { filter, take, map } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 
 @Component({
@@ -42,7 +44,8 @@ import { AppStateService } from '../../services/app-state.service';
                 private appLocationService: AppLocationService,
                 private impGeofootprintTradeArea: ImpGeofootprintTradeAreaService,
                 private appTradeAreaService: AppTradeAreaService,
-                private stateService: AppStateService){
+                private stateService: AppStateService,
+                private usageService: UsageService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -235,6 +238,8 @@ import { AppStateService } from '../../services/app-state.service';
     public loadProject(event: { projectId: number }){
       this.stateService.loadProject(event.projectId).subscribe(project => this.onLoadProject(project));
       this.display = false;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
     }
 
     private onLoadProject(project: ImpProject) : void {
