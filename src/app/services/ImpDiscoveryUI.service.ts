@@ -26,14 +26,36 @@ export class CounterMetrics {
 }
 
 @Injectable()
-export class ImpDiscoveryService // extends DataStore<ImpDiscoveryUI>
+export class ImpDiscoveryService
 {
-      public storeProjectTrackerData;
-      public needsGeoRefresh: boolean = false;
 
-      constructor(private restDataService: RestDataService, private appStateService: AppStateService) {
-            // super(restDataService, dataUrl, null, 'ImpDiscovery');
-      }
+    public radCategoryCodeByName: Map<string, string> = new Map<string, string>();
+
+    constructor(private restDataService: RestDataService, private appStateService: AppStateService) {
+      this.radCategoryCodeByName = new Map<string, string>([
+        ['N/A',                            'NA'],
+        ['Auto Service/Parts',             'AS03'],
+        ['Discount Stores',                'DS01'],
+        ['Education',                      'ED01'],
+        ['Financial Services',             'FS01'],
+        ['Full Service Restaurants',       'FSR03'],
+        ['Hardware_Home Improvement Ctrs', 'HI03'],
+        ['Health and Beauty',              'HB01'],
+        ['Healthcare',                     'HC01'],
+        ['Healthcare_Optical',             'OP01'],
+        ['Home Furnishing_Mattress',       'HF01'],
+        ['Home Services',                  'HS01'],
+        ['Non-profit',                     'NP01'],
+        ['Professional',                   'PF01'],
+        ['QSR Pizza',                      'QSR01'],
+        ['Quick Service Restaurants',      'FSR01'],
+        ['Reminder',                       'REM'],
+        ['Research',                       'RES'],
+        ['Ritual',                         'RIT'],
+        ['Specialty Stores',               'SP01'],
+        ['Telecommunications',             'TE03'],
+      ]);
+    }
 
       public getProjectTrackerData() : Observable<any> {
         const updatedDateTo = new Date();
@@ -52,7 +74,7 @@ export class ImpDiscoveryService // extends DataStore<ImpDiscoveryUI>
         //let discoverUIData: ImpDiscoveryUI = this.get()[0];
         const counterMetrics = [];
         let usageMetricName = null;
-        
+
         if (impProject.radProduct != null || impProject.radProduct != '') {
           usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'product', action: actionName });
           counterMetrics.push(new CounterMetrics(usageMetricName, impProject.radProduct, null));
@@ -102,19 +124,19 @@ export class ImpDiscoveryService // extends DataStore<ImpDiscoveryUI>
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-pob-geo', action: actionName });
         const ispob = impProject.isExcludePob ? 1 : 0;
         counterMetrics.push(new CounterMetrics(usageMetricName, ispob.toString(), null));
-        
+
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-valassis-geo', action: actionName });
         const isvalGeo = impProject.isIncludeValassis ? 1 : 0;
         counterMetrics.push(new CounterMetrics(usageMetricName, isvalGeo.toString(), null));
-        
+
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-anne-geo', action: actionName });
         const isAnneGeo = impProject.isIncludeAnne ? 1 : 0;
         counterMetrics.push(new CounterMetrics(usageMetricName, isAnneGeo.toString(), null));
-        
+
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-solo-geo', action: actionName });
         const isSoloGeo = impProject.isIncludeSolo ? 1 : 0;
         counterMetrics.push(new CounterMetrics(usageMetricName, isSoloGeo.toString(), null));
-        
+
         return counterMetrics;
       }
 
