@@ -11,7 +11,6 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -27,7 +26,7 @@ interface OnlineBulkDataResponse {
   geocode: string;
   dmaScore: string;
   nationalScore: string;
-  categoryId: string;
+  digCategoryId: string;
 }
 
 export enum SourceTypes {
@@ -102,10 +101,9 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
-  private varPkCache: Map<string, number> = new Map<string, number>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService) {
+              private usageService: UsageService, private appStateService: AppStateService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
@@ -117,7 +115,7 @@ export class TargetAudienceOnlineService {
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
     return {
       audienceName: name,
-      audienceIdentifier: `${pk}`,
+      audienceIdentifier: `${digId}`,
       audienceSourceType: 'Online',
       audienceSourceName: source,
       exportInGeoFootprint: true,
@@ -132,24 +130,18 @@ export class TargetAudienceOnlineService {
   }
 
   private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
-    const fullId = `Online/${source}/${response.categoryId}`;
-    let newVarPk = null;
-    if (this.varPkCache.has(fullId)) {
-      newVarPk = this.varPkCache.get(fullId);
-    } else {
-      newVarPk = this.varService.getNextStoreId();
-      this.varPkCache.set(fullId, newVarPk);
-    }
+    const fullId = `Online/${source}/${response.digCategoryId}`;
+    const description = descriptionMap.get(response.digCategoryId);
+    const newVarPk = Number(description.audienceIdentifier);
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
-      varPk: newVarPk,
+      varPk: Number.isNaN(newVarPk) ? -1 : newVarPk,
       customVarExprQuery: fullId,
       isString: false,
       isNumber: false,
       isActive: true
     });
     // this is the full category description object that comes from Fuse
-    const description = descriptionMap.get(response.categoryId);
     if (description != null) {
       result.customVarExprDisplay = `${description.audienceName} (${source})`;
       if (Number.isNaN(Number(response[description.selectedDataSet]))) {
@@ -158,6 +150,7 @@ export class TargetAudienceOnlineService {
         result.isString = true;
       } else {
         result.valueNumber = Number(response[description.selectedDataSet]);
+        result.indexValue = result.valueNumber;
         result.fieldconte = 'INDEX';
         result.isNumber = true;
       }
@@ -262,9 +255,9 @@ export class TargetAudienceOnlineService {
         geoType: serviceAnalysisLevel,
         source: this.fuseSourceMapping.get(source),
         geocodes: chunk,
-        categoryIds: numericIds
+        digCategoryIds: numericIds
       };
-      if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {
+      if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
             map(response => response.payload.rows as OnlineBulkDataResponse[])
@@ -280,6 +273,5 @@ export class TargetAudienceOnlineService {
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
     const metricText = audience.categoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
-
   }
 }
