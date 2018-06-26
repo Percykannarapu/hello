@@ -96,11 +96,13 @@ export class AppGeoService {
       },
       () => {
         const geosToPersist: ImpGeofootprintGeo[] = [];
+        const homeCentroids = allSelectedData.filter(g => !g.attributes.hasOwnProperty('geometry_type'));
+        const radiusCentroids = allSelectedData.filter(g => g.attributes.hasOwnProperty('geometry_type'));
+
         for (let i = 0; i < radii.length; ++i) {
           const previousRadius = i > 0 ? radii[i - 1] : -0.1;
-          geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), allSelectedData, previousRadius));
+          geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), radiusCentroids, previousRadius));
         }
-        const homeCentroids = allSelectedData.filter(g => !g.attributes.hasOwnProperty('geometry_type'));
 
         const homeGeocodes = this.createHomeGeos(homeCentroids, geosToPersist);
         if (homeGeocodes.length > 0){
@@ -154,7 +156,7 @@ export class AppGeoService {
     let customIndex: number = 0;
     if (geocodes.length > 0 ) {
       geocodes.forEach(geo => {
-         locations.filter(loc => {
+         locations.forEach(loc => {
             if (loc.homeGeocode === geo.attributes.geocode){
               const geocodeDistance: number = EsriUtils.getDistance(geo.attributes.longitude, geo.attributes.latitude, loc.xcoord, loc.ycoord);
               customIndex++;
@@ -169,17 +171,19 @@ export class AppGeoService {
               if (homeGeoTA[0] != null && homeGeoTA[0].impGeofootprintLocation == null)
                  homeGeoTA[0].impGeofootprintLocation = loc;
 
-              const newGeo = new ImpGeofootprintGeo({
-                xcoord: geo.attributes.longitude,
-                ycoord: geo.attributes.latitude,
-                geocode: geo.attributes.geocode,
-                distance: geocodeDistance,
-                impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
-                impGeofootprintTradeArea: homeGeoTA[0],
-                isActive: true
-              });
-              homeGeoTA[0].impGeofootprintGeos.push(newGeo);
-              homeGeosToAdd.push(newGeo);
+              if (homeGeoTA[0].impGeofootprintGeos.filter(g => g.geocode === geo.attributes.geocode).length === 0) {
+                const newGeo = new ImpGeofootprintGeo({
+                  xcoord: geo.attributes.longitude,
+                  ycoord: geo.attributes.latitude,
+                  geocode: geo.attributes.geocode,
+                  distance: geocodeDistance,
+                  impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
+                  impGeofootprintTradeArea: homeGeoTA[0],
+                  isActive: true
+                });
+                homeGeoTA[0].impGeofootprintGeos.push(newGeo);
+                homeGeosToAdd.push(newGeo);
+              }
             }
          });
       });
