@@ -1,15 +1,13 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { filter, map } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { Subscription, BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppConfig } from '../app.config';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
@@ -22,9 +20,7 @@ export type TradeAreaMergeSpec = 'No Merge' | 'Merge Each' | 'Merge All';
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeSpec = 'Merge Each';
 
 @Injectable()
-export class AppTradeAreaService implements OnDestroy {
-
-  private readonly locationSubscription: Subscription;
+export class AppTradeAreaService {
 
   private currentDefaults = new Map<('Site' | 'Competitor'), { radius: number, selected: boolean }[]>();
 
@@ -47,9 +43,14 @@ export class AppTradeAreaService implements OnDestroy {
     this.currentDefaults.set('Competitor', []);
     this.siteTradeAreaMerge$ = this.mergeSpecs.get('Site').asObservable();
     this.competitorTradeAreaMerge$ = this.mergeSpecs.get('Competitor').asObservable();
-    this.locationSubscription = this.impLocationService.storeObservable.subscribe(locations => {
-      this.onLocationChange(locations);
-    });
+
+    combineLatest(this.impLocationService.storeObservable, this.stateService.projectIsLoading$)
+      .pipe(
+        filter(([locations, isLoading]) => !isLoading), // don't fire sub is project is loading
+        map(([locations]) => locations) // strip isLoading flag off the tuple - don't need it in the sub
+      )
+      .subscribe(locations => this.onLocationChange(locations));
+
     const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
       filter(tradeAreas => tradeAreas != null && tradeAreas.length > 0),
       map(tradeAreas => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
@@ -82,7 +83,7 @@ export class AppTradeAreaService implements OnDestroy {
   public static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean,  taType: string) : ImpGeofootprintTradeArea {
     const result = new ImpGeofootprintTradeArea({
       taNumber: index + 1,
-      taName: `${location.clientLocationTypeCode} CUSTOM ${index + 1}`,
+      taName: `${location.clientLocationTypeCode} Custom ${index + 1}`,
       taRadius: 0,
       taType: taType,
       impGeofootprintLocation: location,
@@ -90,10 +91,6 @@ export class AppTradeAreaService implements OnDestroy {
     });
     location.impGeofootprintTradeAreas.push(result);
     return result;
-  }
-
-  ngOnDestroy() : void {
-    if (this.locationSubscription) this.locationSubscription.unsubscribe();
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
@@ -142,56 +139,6 @@ export class AppTradeAreaService implements OnDestroy {
       if (geoStateChanged) this.impGeoService.update(null, null);
       this.impTradeAreaService.update(null, null);
     }
-  }
-
-  public calculateHomegeocodeBuffer(tradeAreasForInsert: ImpGeofootprintTradeArea[], siteType: string, currentLocations: ImpGeofootprintLocation[]) {
-    const analysisLevel = this.stateService.analysisLevel$.getValue();
-    if (siteType === 'Competitor' || analysisLevel == null || analysisLevel.length > 0) return;
-    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel, false);
-    const geocodesList = currentLocations.map(impGeoLocation => impGeoLocation['homeGeocode']);
-    //console.log('length of home geocodes::', geocodesList);
-    const geocodesSet = new Set(geocodesList);
-    const geocodes = Array.from(geocodesSet);
-    if (geocodes[0] == undefined) {
-      console.warn('Attempted to define a trade area for a site without a home geocode');
-      return; // TODO: Is this correct behavior for DE1765? It seems to work
-    }
-    let customIndex: number = tradeAreasForInsert.length + 1; // 0;
-    const tas = tradeAreasForInsert.map(ta => ta.taRadius);
-    const maxRadius = Math.max(...tas);
-    const sub = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, true).subscribe(graphics => {
-      const geosToAdd: ImpGeofootprintGeo[] = [];
-      graphics.forEach(graphic => {
-        currentLocations.forEach(loc => {
-          if (loc.homeGeocode === graphic.attributes['geocode'] && EsriUtils.geometryIsPoint(graphic.geometry)){
-            const geocodeDistance =  EsriUtils.getDistance(graphic.geometry, loc.xcoord, loc.ycoord);
-            if (geocodeDistance > maxRadius || geocodeDistance === 0) {
-              customIndex++;
-              const ta: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO CUSTOM');
-              geosToAdd.push(this.createGeo(geocodeDistance, graphic.geometry, loc, ta));
-              tradeAreasForInsert.push(ta);
-            }
-          }
-        });
-      });
-      this.impGeoService.add(geosToAdd.filter(g => g.impGeofootprintTradeArea.taType === 'HOMEGEO CUSTOM'));
-    }, null, () => {
-      this.impTradeAreaService.add(tradeAreasForInsert.filter(ta => ta.taType === 'HOMEGEO CUSTOM'));
-      sub.unsubscribe();
-    });
-  }
-
-  public  createGeo(distance: number, point: __esri.Point, loc: ImpGeofootprintLocation, ta?: ImpGeofootprintTradeArea) : ImpGeofootprintGeo {
-    const impGeofootprintGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-    impGeofootprintGeo.geocode = loc.homeGeocode;
-    impGeofootprintGeo.isActive = true;
-    impGeofootprintGeo.impGeofootprintLocation = loc;
-    impGeofootprintGeo.distance = distance;
-    impGeofootprintGeo.xcoord = point.x;
-    impGeofootprintGeo.ycoord = point.y;
-    if (ta != null)
-       impGeofootprintGeo.impGeofootprintTradeArea = ta;
-    return impGeofootprintGeo;
   }
 
   private applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {

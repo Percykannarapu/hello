@@ -48,9 +48,12 @@ export class AppLocationService {
       map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
     );
 
-    this.appStateService.analysisLevel$.subscribe(analysisLevel => this.setPrimaryGeocode(analysisLevel));
-    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$).pipe(
-      filter(([locations]) => locations.length > 0)
+    this.appStateService.analysisLevel$
+      .pipe(filter(al => al != null && al.length > 0))
+      .subscribe(analysisLevel => this.setPrimaryGeocode(analysisLevel));
+
+    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.projectIsLoading$).pipe(
+      filter(([locations, level, isLoading]) => locations.length > 0 && level != null && level.length > 0 && !isLoading)
     ).subscribe(
       ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
     );

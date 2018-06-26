@@ -8,6 +8,7 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { MapService } from './map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { combineLatest } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
 
@@ -38,9 +39,9 @@ export class AppLayerService {
                private config: AppConfig) {
     this.moduleService.onReady(() => {
       // set up the location rendering using stars colored by site type
-      const locationSplit$ = this.locationService.storeObservable.pipe(
-        filter(locations => locations != null),
-        map(locations => [locations.filter(l => l.clientLocationTypeCode === 'Site'), locations.filter(l => l.clientLocationTypeCode === 'Competitor')]),
+      const locationSplit$ = combineLatest(this.locationService.storeObservable, this.appStateService.projectIsLoading$).pipe(
+        filter(([locations, isLoading]) => locations != null && !isLoading),
+        map(([locations]) => [locations.filter(l => l.clientLocationTypeCode === 'Site'), locations.filter(l => l.clientLocationTypeCode === 'Competitor')]),
       );
       locationSplit$.pipe(
         map(([sites]) => sites),
@@ -49,33 +50,44 @@ export class AppLayerService {
         map(([sites, competitors]) => competitors),
       ).subscribe(competitors => this.updateSiteLayer('Competitor', competitors));
 
-      this.appStateService.analysisLevel$.pipe(filter(al => al != null)).subscribe(al => this.setDefaultLayers(al));
+      this.appStateService.analysisLevel$
+        .pipe(filter(al => al != null && al.length > 0))
+        .subscribe(al => this.setDefaultLayers(al));
+
+      this.appStateService.projectIsLoading$
+        .pipe(filter(isLoading => isLoading))
+        .subscribe(() => this.clearLayers());
     });
   }
 
   public updateSiteLayer(siteType: string, sites: ImpGeofootprintLocation[]) : void {
+    console.log('Updating Site Layer Visuals', [siteType, sites]);
     const groupName = `${siteType}s`;
     const layerName = `Project ${groupName}`;
     const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site));
-    if (!this.layerService.groupExists(groupName) && points.length > 0) {
-      const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
-      const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
-      layer.popupTemplate = new EsriModules.PopupTemplate({
-        title: '{clientLocationTypeCode}: {locationName}',
-        content: [{ type: 'fields' }],
-        fieldInfos: defaultLocationPopupFields
-      });
-      layer.renderer = new EsriModules.SimpleRenderer({
-        symbol: new EsriModules.SimpleMarkerSymbol({
-          style: 'path',
-          size: 12,
-          outline: null,
-          color: color,
-          path: starPath
-        })
-      });
+    if (points.length > 0) {
+      if (!this.layerService.groupExists(groupName)) {
+        const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
+        const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
+        layer.popupTemplate = new EsriModules.PopupTemplate({
+          title: '{clientLocationTypeCode}: {locationName}',
+          content: [{ type: 'fields' }],
+          fieldInfos: defaultLocationPopupFields
+        });
+        layer.renderer = new EsriModules.SimpleRenderer({
+          symbol: new EsriModules.SimpleMarkerSymbol({
+            style: 'path',
+            size: 12,
+            outline: null,
+            color: color,
+            path: starPath
+          })
+        });
+      } else {
+        this.layerService.replaceGraphicsOnLayer(layerName, points);
+      }
     } else {
-      this.layerService.replaceGraphicsOnLayer(layerName, points);
+      this.layerService.removeLayer(layerName);
     }
   }
 
@@ -159,5 +171,9 @@ export class AppLayerService {
       graphic.attributes[field] = value;
     }
     return graphic;
+  }
+
+  private clearLayers() {
+    this.layerService.clearAll();
   }
 }

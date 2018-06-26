@@ -32,7 +32,6 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   private siteCountSub: Subscription;
   private competitorCountSub: Subscription;
   private locationCountMap: Map<string, number> = new Map<string, number>();
-  private projectSub: Subscription;
 
   currentTradeAreas: TradeAreaUIModel[];
   currentMergeType: MergeType;
@@ -141,10 +140,10 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   public onChangeTradeArea(tradeAreas: Map<number, ImpGeofootprintTradeArea[]>, uiModels: TradeAreaUIModel[]) {
     if (tradeAreas == null || tradeAreas.size === 0)
       return;
-    console.log('trade-area-define.component.onChangeTradeArea - fired', tradeAreas);
+    console.log('trade-area-define.component.onChangeTradeArea - fired', [tradeAreas, uiModels]);
     for (let i = 0; i < uiModels.length; ++i) {
       const currentData = tradeAreas.get(i + 1);
-      if (currentData != null && currentData.length === 1) {
+      if (currentData != null && currentData.length > 0) {
         uiModels[i].applyDatastoreInstance(currentData[0]);
       }
     }
@@ -167,7 +166,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   getMergeType(mergeType: string) : MergeType {
       let result: MergeType = this.currentMergeType;
       switch(mergeType) {
-         case 'No Merge': 
+         case 'No Merge':
             result = this.tradeAreaMergeTypes[0];
             break;
 
@@ -178,7 +177,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
          case 'Merge All':
             result = this.tradeAreaMergeTypes[2];
             break;
-         
+
          default:
             result = this.currentMergeType;
       }
@@ -191,7 +190,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       if (this.currentSiteType === 'Site' || this.currentSiteType === 'Competitor')
       {
          this.currentMergeType = this.getMergeType(mergeType);
-         this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);         
+         this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);
       }
    }
 }
