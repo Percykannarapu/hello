@@ -8,7 +8,6 @@ import { EMPTY, merge, Observable, of } from 'rxjs';
 import { TargetAudienceService } from './target-audience.service';
 import { filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 

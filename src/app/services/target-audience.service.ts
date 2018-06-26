@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, filter } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
@@ -42,15 +42,18 @@ export class TargetAudienceService implements OnDestroy {
               private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
               private usageService: UsageService, private messagingService: AppMessagingService,
               private config: AppConfig, private mapDispatchService: MapDispatchService) {
-    this.newVisibleGeos$ = this.appStateService.analysisLevel$.pipe(
+    const layerId$ = this.appStateService.analysisLevel$.pipe(
+      filter(al => al != null && al.length > 0),
       map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id
+    );
+
+    this.newVisibleGeos$ = layerId$.pipe(
       tap(() => this.clearShadingData()),   // and clear the data cache
       switchMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId)), // set up sub on map-visible geocodes
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
     );
 
-    this.currentVisibleGeos$ = this.appStateService.analysisLevel$.pipe(
-      map(al => this.config.getLayerIdForAnalysisLevel(al)),
+    this.currentVisibleGeos$ = layerId$.pipe(
       mergeMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId, true).pipe(take(1)))
     );
 
@@ -94,11 +97,7 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(sourceType, sourceName);
     const audienceId = this.createKey(sourceId, audienceIdentifier);
     if (this.audienceMap.has(audienceId)) {
-      const deletedAudienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
-       const deletedAudience = this.audienceMap.get(audienceId);
-       deletedAudienceMap.set(audienceId, this.audienceMap.get(audienceId));
-
-      this.deletedAudiences.next(Array.from(deletedAudienceMap.values()));
+      this.deletedAudiences.next([this.audienceMap.get(audienceId)]);
     }
   }
 

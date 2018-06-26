@@ -15,8 +15,6 @@ import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
 import { filter, map } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
@@ -30,7 +28,9 @@ export class AppGeoService {
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
               private locationService: ImpGeofootprintLocationService, private messagingService: AppMessagingService,
               private queryService: EsriQueryService, private config: AppConfig) {
-    this.appStateService.siteTradeAreas$.pipe(
+    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.projectIsLoading$).pipe(
+      filter(([tradeAreaMap, isLoading]) => !isLoading),
+      map(([tradeAreaMap]) => tradeAreaMap),
       map(tradeAreaMap => simpleFlatten(Array.from(tradeAreaMap.values()))),
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0)),
       filter(tradeAreas => tradeAreas.length > 0)
@@ -38,7 +38,12 @@ export class AppGeoService {
 
     const validAnalysis$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
 
-    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, validAnalysis$).subscribe(
+    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, validAnalysis$, this.appStateService.projectIsLoading$)
+      .pipe(
+        filter(([geocodes, analysisLevel, isLoading]) => !isLoading),
+        map(([geocodes, analysisLevel]) => [geocodes, analysisLevel] as [string[], string])
+      )
+      .subscribe(
       ([geocodes, analysisLevel]) => this.updateGeoAttribsFromLayer(geocodes, analysisLevel)
     );
   }

@@ -4,7 +4,7 @@ import { EsriMapService } from '../core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 
-export type layerGeometryType = 'point' | 'mulitpoint' | 'polyline' | 'polygon' | 'extent';
+export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
 @Injectable()
 export class EsriLayerService {
@@ -19,6 +19,18 @@ export class EsriLayerService {
 
   public static isFeatureLayer(layer: __esri.Layer) : layer is __esri.FeatureLayer {
     return layer && layer.type === 'feature';
+  }
+
+  public clearAll() : void {
+    const layers = Array.from(this.layerRefs.values());
+    const groups = Array.from(this.groupRefs.values());
+    layers.forEach(layer => {
+      const group: __esri.GroupLayer = (layer as any).parent;
+      group.remove(layer);
+    });
+    this.mapService.map.removeMany(groups);
+    this.layerRefs.clear();
+    this.groupRefs.clear();
   }
 
   public groupExists(groupName: string) : boolean {

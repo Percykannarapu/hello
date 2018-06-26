@@ -1,25 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
-import { Observable } from 'rxjs/internal/Observable';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
-import { map } from 'rxjs/internal/operators/map';
 import { UserService } from '../../services/user.service';
 import { AppProjectService } from '../../services/app-project.service';
-import { Subscription } from 'rxjs/Subscription';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { calculateStatistics } from '../../app.utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { AppLocationService } from '../../services/app-location.service';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { concat } from 'rxjs';
-import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { filter, take } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import { filter, take, map } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 
 @Component({
@@ -41,14 +38,14 @@ import { AppStateService } from '../../services/app-state.service';
     constructor(private restService: RestDataService,
                 private userService: UserService,
                 public  appProjectService: AppProjectService,
-                private impProjectService: ImpProjectService,
                 public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
                 private esriMapService: EsriMapService,
                 private appLocationService: AppLocationService,
                 private impGeofootprintTradeArea: ImpGeofootprintTradeAreaService,
                 private appTradeAreaService: AppTradeAreaService,
-                private stateService: AppStateService){
+                private stateService: AppStateService,
+                private usageService: UsageService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -59,14 +56,6 @@ import { AppStateService } from '../../services/app-state.service';
                     {label: 'Current Year',   value: 'currentYear'},
                     {label: 'Previous Year',  value: 'previousYear'}
                 ];
-
-
-               // this.appProjectService.overlayPanel.subscribe(result => this.onShowOverlay(result));
-              //  this.impProjectService.overlayPanel.subscribe(result => {
-              //   console.log('result:::subscribe:::', result);
-              //   this.onShowOverlay(result);
-              //  });
-              impProjectService.storeObservable.subscribe(projects => this.onloadProject(projects));
 
     }
 
@@ -108,7 +97,7 @@ import { AppStateService } from '../../services/app-state.service';
               const updatedateFrom = this.todayDate;
               const updatedDateTo = new Date();
               updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
-              
+
               const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
                 Array.from(data).forEach(row => {
                   const dt = new Date(row['modifyDate']);
@@ -116,7 +105,7 @@ import { AppStateService } from '../../services/app-state.service';
                 });
                 this.allProjectsData = data;
               });
-    
+
               const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
                 Array.from(data).forEach(row => {
                   const dt = new Date(row['modifyDate']);
@@ -128,7 +117,7 @@ import { AppStateService } from '../../services/app-state.service';
             });
         }
       });
-      
+
     }
 
     public getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
@@ -164,7 +153,6 @@ import { AppStateService } from '../../services/app-state.service';
 
     public onProjectSelected(event){
       this.selectedProjectData.push(event);
-
     }
 
     public onSelectTimeFrame(event: string){
@@ -206,7 +194,7 @@ import { AppStateService } from '../../services/app-state.service';
         Array.from(data).forEach(row => {
           const dt = new Date(row['modifyDate']);
           row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-        
+
         });
         this.allProjectsData = data;
       }, null , () => {
@@ -222,7 +210,7 @@ import { AppStateService } from '../../services/app-state.service';
         Array.from(data).forEach(row => {
           const dt = new Date(row['modifyDate']);
           row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-         
+
         });
         this.myProjecctsData = data;
         this.currentProjectData = this.myProjecctsData;
@@ -243,53 +231,33 @@ import { AppStateService } from '../../services/app-state.service';
       return year + '-' + month + '-' + day;
     }
 
-    public dbClick(event){
-       // this.loadProject(event);
-       this.impProjectService.loadProject(event.data['projectId'], true);
-      this.display = false;
-
-      /*this.appProjectService.loadProject(event.data['projectId'], true).subscribe((projects: ImpProject[]) => {
-          console.log('project loaded');
-          const loadedProject = new ImpProject(projects[0]);
-          loadedProject.convertToModel();
-          this.appProjectService.replace([loadedProject]);
-          this.appProjectService.replace(projects);
-      }, null, () => {
-        const locData = this.impGeofootprintLocationService.get();
-        this.appLocationService.zoomToLocations(locData);
-        this.display = false;
-      });*/
-      //this.impProjectService.loadProject(event.data['projectId'], true);
-      //this.display = false;
-
+    public dbClick(event: { originalEvent: MouseEvent, data: { projectId: number }}){
+       this.loadProject(event.data);
     }
 
-    public loadProject(event){
-      this.impProjectService.loadProject(event['projectId'], true);
+    public loadProject(event: { projectId: number }){
+      this.stateService.loadProject(event.projectId).subscribe(project => this.onLoadProject(project));
       this.display = false;
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
+      this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
     }
 
-    private zoomToSites(){
+    private onLoadProject(project: ImpProject) : void {
       const locData = this.impGeofootprintLocationService.get();
-      const xStats = calculateStatistics(locData.map(d => d.xcoord));
-      const yStats = calculateStatistics(locData.map(d => d.ycoord));
-      this.esriMapService.zoomOnMap(xStats, yStats, locData.length);
-    }
-
-    private onloadProject(project){
-        const locData = this.impGeofootprintLocationService.get();
-        const taData = this.impGeofootprintTradeArea.get ();
-        if (taData != null) {
-         this.stateService.uniqueIdentifiedGeocodes$.pipe(
-          filter(geos => geos != null && geos.length > 0),
+      const taData = project.getImpGeofootprintTradeAreas();
+      if (taData != null && taData.length > 0) {
+        console.log('Subing to zoom');
+        combineLatest(this.stateService.uniqueIdentifiedGeocodes$, this.stateService.analysisLevel$).pipe(
+          filter(([geos, al]) => geos != null && geos.length > 0 && al != null && al.length > 0),
           take(1)
-        ).subscribe (geos => {
-         this.appTradeAreaService.zoomToTradeArea();
-      });
-        }
-        else {this.appLocationService.zoomToLocations(locData);
-        }
+        ).subscribe (() => {
+          console.log('Zooming to TA');
+          this.appTradeAreaService.zoomToTradeArea();
+        });
+      } else {
+        this.appLocationService.zoomToLocations(locData);
       }
+    }
 
     /*public reorderColumn(event){
       console.log('event fired for column alter');

@@ -72,7 +72,7 @@ export class DataStore<T>
    {
       this._storeSubject.next(this._dataStore);
    }
-   
+
    /**
     * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
     */
@@ -279,7 +279,7 @@ export class DataStore<T>
     * @param preOperation  - A callback delegate that will fire for each element just before it is added
     * @param postOperation - A callback delegate that fires after all elements have been processed and can determine if partial successes persist
     */
-   public add(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
+   public add(dataArray: T[] | ReadonlyArray<T>, preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
       let success: boolean = true;
       let localCache: T[];

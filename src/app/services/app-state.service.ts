@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
@@ -20,6 +20,9 @@ export enum Season {
   providedIn: 'root'
 })
 export class AppStateService {
+
+  private projectIsLoading = new BehaviorSubject<boolean>(false);
+  public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
 
   public currentProject$: CachedObservable<ImpProject> = new BehaviorSubject<ImpProject>(null);
   public currentMaster$: CachedObservable<ImpGeofootprintMaster> = new BehaviorSubject<ImpGeofootprintMaster>(null);
@@ -42,10 +45,17 @@ export class AppStateService {
     this.setupTradeAreaObservables();
   }
 
+  public loadProject(projectId: number) : Observable<ImpProject> {
+    this.projectIsLoading.next(true);
+    return this.projectService.loadProject(projectId, true).pipe(
+      tap(null, null, () => this.projectIsLoading.next(false))
+    );
+  }
+
   private setupProjectObservables() : void {
     this.projectService.storeObservable.pipe(
       filter(projects => projects != null && projects.length > 0 && projects[0] != null),
-      map(projects => projects[0])
+      map(projects => projects[0]),
     ).subscribe(this.currentProject$ as BehaviorSubject<ImpProject>);
 
     this.currentProject$.pipe(
@@ -77,7 +87,7 @@ export class AppStateService {
     ).subscribe(this.projectId$ as BehaviorSubject<number>);
     this.currentMaster$.pipe(
       filter(master => master != null && master.methSeason != null && master.methSeason.length > 0),
-      map(master => master.methSeason.toLowerCase() as Season),
+      map(master => master.methSeason === 'S' ? 'summer' : 'winter' as Season),
       distinctUntilChanged()
     ).subscribe(this.season$ as BehaviorSubject<Season>);
   }

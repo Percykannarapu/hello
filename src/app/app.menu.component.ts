@@ -369,7 +369,7 @@ export class AppMenuComponent implements OnInit {
     }
 
     public createNewProject(){
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
+        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
         if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
             this.confirmationService.confirm({
                 message: 'Your project may have unsaved changes. Do you wish to save your current project?',
@@ -379,10 +379,9 @@ export class AppMenuComponent implements OnInit {
                     const impProjects: ImpProject[] = [];
                     //~
                     this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
+                    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
+                    this.usageService.createCounterMetric(usageMetricName, null, null);
     
-                    console.log('list of projects', this.appProjectService.get());
-                    console.log('list of projects123', this.impProjectService.get());
-                  
                    const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
                         if (savedProject != null)
                         {
