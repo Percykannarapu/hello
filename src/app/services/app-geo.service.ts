@@ -121,6 +121,7 @@ export class AppGeoService {
               ycoord: graphic.attributes.latitude,
               geocode: geocode,
               distance: currentDistance,
+              impGeofootprintLocation: ta.impGeofootprintLocation,
               impGeofootprintTradeArea: ta,
               isActive: ta.isActive
             });
@@ -158,11 +159,17 @@ export class AppGeoService {
                 homeGeoTA.push(newTA);
                 newTradeAreas.push(newTA);
               }
+
+              // If the HomeGeo does not have a location assigned, give it this location
+              if (homeGeoTA[0] != null && homeGeoTA[0].impGeofootprintLocation == null)
+                 homeGeoTA[0].impGeofootprintLocation = loc;
+
               const newGeo = new ImpGeofootprintGeo({
                 xcoord: geo.attributes.longitude,
                 ycoord: geo.attributes.latitude,
                 geocode: geo.attributes.geocode,
                 distance: geocodeDistance,
+                impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
                 impGeofootprintTradeArea: homeGeoTA[0],
                 isActive: true
               });

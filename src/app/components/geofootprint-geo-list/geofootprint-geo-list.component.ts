@@ -68,7 +68,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public myStyles = {
       'background-color': 'lime',
       'text-align': 'right'
-      };
+   };
 
    public rAlign = 'right';
 
@@ -90,6 +90,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'Location City',        width: '9em',   styleClass: ''}},
                                           {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'Loc State',            width: '7em',   styleClass: ''}},
                                           {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'Loc Zip',              width: '6.5em', styleClass: ''}},
+                                          {label: 'Location HomeGeocode', value: {field: 'geo.impGeofootprintLocation.homeGeocode',     header: 'Home Geo',             width: '8em',   styleClass: ''}},
                                           {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',             width: '7em',   styleClass: 'val-text-right'}},
                                           {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',              width: '8em',   styleClass: ''}},
                                           {label: 'City/State',           value: {field: 'city_name',                                   header: 'City, State',          width: '10em',  styleClass: ''}},
@@ -103,29 +104,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '12em',  styleClass: ''}},
                                           {label: 'isDeduped',            value: {field: 'geo.isDeduped',                               header: 'In Deduped',           width: '7em',   styleClass: ''}},
                                          ];
-/*   Incase we decide to revert back  
-    public  flatGeoGridColumns: SelectItem[] =
-                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Loc#',                 width: '5%',  styleClass: 'val-text-right'}},
-                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Location Name',        width: '9%',  styleClass: ''}},
-                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Location Address',     width: '9%',  styleClass: ''}},
-                                          {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'Loc City',             width: '7%',  styleClass: ''}},
-                                          {label: 'Location State',        value: {field: 'geo.impGeofootprintLocation.locState',       header: 'Loc State',            width: '7%',  styleClass: ''}},
-                                          {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'Loc Zip',              width: '5%',  styleClass: ''}},
-                                          {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',             width: '5%',  styleClass: 'val-text-right'}},
-                                          {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',              width: '5%',  styleClass: ''}},
-                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'City, State',          width: '6%',  styleClass: ''}},
-                                          {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                  width: '4%',  styleClass: 'val-text-right'}},
-                                          {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                  width: '4%',  styleClass: 'val-text-right'}},
-                                          {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',           width: '6%',  styleClass: 'val-text-right'}},
-                                          {label: 'Owner Group',          value: {field: 'ownergroup',                                  header: 'Owner Group',          width: '6%',  styleClass: ''}},
-                                          {label: 'Coverage Frequency',   value: {field: 'coveragefrequency',                           header: 'Coverage Frequency',   width: '9%',  styleClass: ''}},
-                                          {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description', width: '9%',  styleClass: ''}},
-                                          {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                  width: '3%',  styleClass: 'val-text-center'}},
-                                          {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '8%',  styleClass: ''}},
-                                         ]; */
-    public  flatGeoGridExtraColumns: SelectItem[];
-    public  selectedColumns: any[] = [];
-    public  columnOptions: SelectItem[] = [];
+
+   public  flatGeoGridExtraColumns: SelectItem[];
+   public  selectedColumns: any[] = [];
+   public  columnOptions: SelectItem[] = [];
 
    public  selectAllGeos: boolean;
 
@@ -399,8 +381,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                              else
                                              attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute); });
 
-      // Assign the closest site to any geo not having one
-      this.assignGeoSite(geos);
+      // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
 
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
@@ -732,6 +713,30 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.impGeofootprintGeoService.assignGeocodeRank();
    }
 
+   testRemove()
+   {
+      console.log('--------------------------------------------------');
+      console.log('testRemove - Database Removes');
+      console.log('--------------------------------------------------');
+      //this.impGeofootprintGeoService.addDbRemove(this.g);
+      console.log(this.impGeofootprintGeoService.storeLength + ' geos in the data store');
+      console.log(this.impGeofootprintGeoService.dbRemoves.length + ' geos ready to remove');
+      this.impGeofootprintGeoService.debugLogDBRemoves('Geofootprint Geos');
+      this.impGeofootprintGeoService.readyDBRemovesBy('impGeofootprintLocation.locationNumber', '10');
+      console.log('...');
+      console.log('Marked geos ready for removal');
+      console.log('...');
+      console.log(this.impGeofootprintGeoService.storeLength + ' geos in the data store');
+      console.log(this.impGeofootprintGeoService.dbRemoves.length + ' geos ready to remove');
+      let filteredGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get().filter(geo => geo.impGeofootprintLocation.locationNumber === '10');
+      console.log("filteredGeos count: ", filteredGeos.length);
+      filteredGeos.forEach (geo =>
+      {
+         console.log("  ", geo.geocode + " ");
+      });
+      
+   }
+
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
@@ -785,6 +790,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          geo.isActive = isSelected;
          this.impGeofootprintGeoService.update(null, null);
       }
+   }
+
+   onSelectAllGeocodes(event: any)
+   {
+      console.log("All Geos isActive set to: ", event.checked);
+      //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
    }
 
    onDedupeToggle(event: any, geoGrid)
