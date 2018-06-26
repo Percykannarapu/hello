@@ -39,15 +39,8 @@ export class ImpProjectService extends DataStore<ImpProject>
       return this.appProjectService.loadProject(projectId, clearStore).pipe(
         map(projects => {
           console.log('ImpProject.service.loadProject - load from AppProjectService finished');
-          console.log('Raw Project response from Fuse: ', projects[0]);
-          const loadedProject = new ImpProject(projects[0]);
-          loadedProject.convertToModel();
-          loadedProject.getImpGeofootprintGeos().forEach(geo => {
-            geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
-          });
-          console.log('Project after conversion to data model: ', loadedProject);
-          this.appProjectService.populateDataStores(loadedProject);
-          return loadedProject;
+          this.appProjectService.populateDataStores(projects[0]);
+          return projects[0];
         }),
         tap(project => this.replace([project]))
       );
@@ -67,6 +60,12 @@ export class ImpProjectService extends DataStore<ImpProject>
             this.replace(savedProject);
             console.log('AFTER SAVE');
             this.appProjectService.debugLogStoreCounts();
+
+            // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
+            //       This is not ideal code, the app-project.service should be doing it.
+            this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {
+               this.replace(savedProject);
+            })
          }
          else
             console.log('project did not save');

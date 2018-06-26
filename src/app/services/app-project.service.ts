@@ -179,9 +179,23 @@ export class AppProjectService extends DataStore<ImpProject>
              this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
              this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully.');
            }
-           if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();
+
+           const loadedProject: ImpProject = new ImpProject(results[0]);
+
+           //          loadedProject.getImpGeofootprintTradeAreas().forEach(ta => {
+           //            ta.impGeofootprintMaster = ta.impGeofootprintLocation.impGeofootprintMaster;
+           //          });
+           
+            loadedProject.convertToModel();
+            
+            // Associate the geo with location grandparent
+            loadedProject.getImpGeofootprintGeos().forEach(geo => {
+               geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
+            });
+           
+           if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();           
            console.log ('loadProject - observer.complete');
-           observer.next(results);
+           observer.next([loadedProject]);
            observer.complete();
          });
      });

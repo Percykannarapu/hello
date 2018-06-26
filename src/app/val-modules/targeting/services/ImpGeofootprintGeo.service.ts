@@ -77,6 +77,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
+   // TODO: David come back to this - check all in header will call this
+   public setActive(setActiveData: ImpGeofootprintGeo | ImpGeofootprintGeo[] | ReadonlyArray<ImpGeofootprintGeo>, newIsActive: boolean)
+   {
+      if (Array.isArray(setActiveData))
+         for (let geo of setActiveData)
+            geo.isActive = newIsActive;
+      else
+         setActiveData.isActive = newIsActive;
+   }
+
 
    // -----------------------------------------------------------
    // SUBSCRIPTION CALLBACK METHODS
