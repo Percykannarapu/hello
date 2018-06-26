@@ -1,3 +1,6 @@
+import { Observable } from 'rxjs/Observable';
+import { map, take, tap } from 'rxjs/operators';
+
 /** An IMPTARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_MASTER
  **
  ** This class contains code operates against data in its data store.
@@ -8,22 +11,17 @@
  **
  ** ImpGeofootprintMaster.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { filter } from 'rxjs/operators';
-import { AppProjectService } from './../../../services/app-project.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { AppMessagingService } from './../../../services/app-messaging.service';
+import { AppProjectService } from '../../../services/app-project.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { AppConfig } from '../../../app.config';
 import { ImpProject } from '../models/ImpProject';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { UserService } from '../../../services/user.service';
-import { HttpClient } from '@angular/common/http';
 
-let restUrl = 'v1/targeting/base/impproject/';
-let dataUrl = restUrl + 'load';
+const restUrl = 'v1/targeting/base/impproject/';
+const dataUrl = restUrl + 'load';
 
 @Injectable()
 export class ImpProjectService extends DataStore<ImpProject>
@@ -37,37 +35,20 @@ export class ImpProjectService extends DataStore<ImpProject>
       super(restDataService, dataUrl, transactionManager, 'ImpProject');
    }
 
-   public trackerId: string;
-
-   private handleError(error: Response)
+   loadProject(projectId: number, clearStore: boolean = false) : Observable<ImpProject>
    {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
-   }
-
-   loadProject(projectId: number, clearStore: boolean = false)
-   {
-      this.appProjectService.loadProject(projectId, clearStore).subscribe((projects: ImpProject[]) => {
-         console.log('ImpProject.service.loadProject - load from AppProjectService finished');
-         const loadedProject = new ImpProject(projects[0]);
-         loadedProject.convertToModel();
-
-         /* EXAMPLES OF HOW TO USE THE NEW TRANSIENTS
-         console.log("project geos:", loadedProject.impGeofootprintGeos);
-         console.log("project impGeofootprintLocations: ", loadedProject.impGeofootprintLocations);
-         console.log("project impGeofootprintLocAttribs: ", loadedProject.impGeofootprintLocAttribs);
-         console.log("project impGeofootprintTradeAreas: ", loadedProject.impGeofootprintTradeAreas);
-         console.log("master impGeofootprintTradeAreas", loadedProject.impGeofootprintMasters[0].impGeofootprintTradeAreas);
-         console.log("master impGeofootprintGeos: ", loadedProject.impGeofootprintMasters[0].impGeofootprintGeos);
-         console.log("master transient parent: ", loadedProject.impGeofootprintMasters[0].impProject);
-         console.log("geo transient parent: ", loadedProject.impGeofootprintMasters[0].impGeofootprintLocations[0].impGeofootprintTradeAreas[0].impGeofootprintGeos[0].impGeofootprintTradeArea); */
-         this.replace([loadedProject]);
-
-         if (projects[0].projectTrackerId != null)
-             this.trackerId = projects[0].projectTrackerId.toString();
-         this.replace(projects);
-      });
+      return this.appProjectService.loadProject(projectId, clearStore).pipe(
+        map(projects => {
+          console.log('ImpProject.service.loadProject - load from AppProjectService finished');
+          console.log('Raw Project response from Fuse: ', projects[0]);
+          const loadedProject = new ImpProject(projects[0]);
+          loadedProject.convertToModel();
+          console.log('Project after conversion to data model: ', loadedProject);
+          this.appProjectService.populateDataStores(loadedProject);
+          return loadedProject;
+        }),
+        tap(project => this.replace([project]))
+      );
    }
 
    saveProject()
