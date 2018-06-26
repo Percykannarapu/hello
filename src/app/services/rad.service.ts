@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 import { take } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
 
 @Injectable()
 export class RadService {
@@ -21,6 +22,7 @@ export class RadService {
   private predictedResp: number;
 
   constructor(private appStateService: AppStateService,
+              private discoveryService: ImpDiscoveryService,
               private appConfig: AppConfig,
               private metricService: MetricService,
               private httpClient: HttpClient,
@@ -43,33 +45,22 @@ export class RadService {
    * Filter the RAD data based on the data available in the ImpDiscoveryService
    */
   private filterRad(currentProject: ImpProject) {
-
+    const categoryLookup = Array.from(this.discoveryService.radCategoryCodeByName.entries());
+    const currentCategory = categoryLookup.filter(([key, value]) => value === currentProject.industryCategoryCode).map(([key]) => key);
     //filter down the RAD data based on the current product and category
-    if (this.radData != null) {
+    if (this.radData != null && currentCategory.length > 0) {
+
       this.filteredRadData = this.radData.filter(f =>
-         f.category === currentProject.industryCategoryCode
+         f.category === currentCategory[0]
          && f.product === currentProject.radProduct);
     }
-
-    //If we have valid RAD data and a household count available then we can recalculate the performance metrics
-    /*console.log('determing whether to recalculate metrics');
-    if(this.filteredRadData != null && this.filteredRadData.length > 0) {
-      if(this.metricService.metrics.has('CAMPAIGN')) {
-        const perfMetrics = this.metricService.metrics.get('CAMPAIGN');
-        if(perfMetrics.has('Household Count')) {
-          const hhc = perfMetrics.get('Household Count');
-          const metricMessage: MetricMessage = new MetricMessage(MetricOperations.ADD, 'CAMPAIGN', 'Household Count', hhc);
-          console.log('recalculating metrics');
-          this.calculateMetrics(metricMessage);
-        }
-      }
-    }*/
   }
 
   /**
    * Calculate the performance metrics and send them to the metric service
    */
   private calculateMetrics(metricMessage: MetricMessage) {
+    console.log('RAD calculation fired');
     if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Household Count') {
       if (this.filteredRadData != null && this.filteredRadData.length > 0) {
         try {

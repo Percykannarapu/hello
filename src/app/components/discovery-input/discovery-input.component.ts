@@ -84,7 +84,6 @@ export class DiscoveryInputComponent implements OnInit {
 
   public impProject: ImpProject;
   private usageTargetMap: Map<string, string>;
-  private radCategoryCodeByName: Map<string, string> = new Map<string, string>();
 
   private projectSub: Subscription;
 
@@ -127,29 +126,6 @@ export class DiscoveryInputComponent implements OnInit {
     //   {label: 'Red Plum Wrap',               value: 'SM Wrap'}
     // ];
 
-    this.radCategoryCodeByName = new Map<string, string>([
-      ['N/A',                            'NA'],
-      ['Auto Service/Parts',             'AS03'],
-      ['Discount Stores',                'DS01'],
-      ['Education',                      'ED01'],
-      ['Financial Services',             'FS01'],
-      ['Full Service Restaurants',       'FSR03'],
-      ['Hardware_Home Improvement Ctrs', 'HI03'],
-      ['Health and Beauty',              'HB01'],
-      ['Healthcare',                     'HC01'],
-      ['Healthcare_Optical',             'OP01'],
-      ['Home Furnishing_Mattress',       'HF01'],
-      ['Home Services',                  'HS01'],
-      ['Non-profit',                     'NP01'],
-      ['Professional',                   'PF01'],
-      ['QSR Pizza',                      'QSR01'],
-      ['Quick Service Restaurants',      'FSR01'],
-      ['Reminder',                       'REM'],
-      ['Research',                       'RES'],
-      ['Ritual',                         'RIT'],
-      ['Specialty Stores',               'SP01'],
-      ['Telecommunications',             'TE03'],
-    ]);
   }
 
   ngOnInit() : void {
@@ -301,7 +277,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.consumerPurchFreqCode    = 'REMINDER';
     this.impProject.goalCode                 = 'ACQUISITION';
     this.impProject.objectiveCode            = 'INCREASE_PENETRATION';
-    this.impProject.industryCategoryCode     = currentForm.selectedRadLookupValue != null ? this.radCategoryCodeByName.get(currentForm.selectedRadLookupValue.category) : '';
+    this.impProject.industryCategoryCode     = currentForm.selectedRadLookupValue != null ? this.discoveryService.radCategoryCodeByName.get(currentForm.selectedRadLookupValue.category) : '';
 
     this.impProject.methAnalysis       = currentForm.selectedAnalysisLevel ? currentForm.selectedAnalysisLevel.value : null;
     this.impProject.totalBudget        = (dollarBudget != null ? dollarBudget : circBudget);
@@ -348,7 +324,7 @@ export class DiscoveryInputComponent implements OnInit {
       // new project - no need to load form data
       return;
     }
-    const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
+    const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
     const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
     const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
     const newFormData: DiscoveryFormData = {
