@@ -139,7 +139,7 @@ export class ValMetricsService implements OnDestroy {
       },
       metricFormatter: v => {
         if (v != null && v != 0) {
-            return this.currentProject.isDollarBudget ? (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %' : 
+            return this.currentProject.isDollarBudget ? (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %' :
                                                       (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
         } else {
           return 'N/A';
@@ -248,7 +248,8 @@ export class ValMetricsService implements OnDestroy {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive && a.impGeofootprintGeo.isActive))
     );
-    return combineLatest(attribute$, this.stateService.currentProject$).pipe(
+    return combineLatest(attribute$, this.stateService.currentProject$, this.stateService.projectIsLoading$).pipe(
+      filter(([attributes, discovery, isLoading]) => !isLoading),
       map(([attributes, discovery]) => this.updateDefinitions(attributes, discovery))
     );
   }
@@ -281,7 +282,7 @@ export class ValMetricsService implements OnDestroy {
 
   private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], project: ImpProject) : MetricDefinition<any>[] {
     if (project == null || attributes == null || attributes.length === 0) return;
-    //this.currentDiscoveryVar = discovery;
+    console.log('Season observable value', this.stateService.season$.getValue());
     this.isWinter = this.stateService.season$.getValue() === Season.Winter;
     const uniqueGeoAttrCombo = new Set();
     const attributesUniqueByGeo = attributes.reduce((prev, curr) => {

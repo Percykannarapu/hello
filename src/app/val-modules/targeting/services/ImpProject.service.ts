@@ -1,6 +1,3 @@
-import { Observable } from 'rxjs/Observable';
-import { map, take, tap } from 'rxjs/operators';
-
 /** An IMPTARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_MASTER
  **
  ** This class contains code operates against data in its data store.
@@ -19,6 +16,8 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { UserService } from '../../../services/user.service';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -43,6 +42,9 @@ export class ImpProjectService extends DataStore<ImpProject>
           console.log('Raw Project response from Fuse: ', projects[0]);
           const loadedProject = new ImpProject(projects[0]);
           loadedProject.convertToModel();
+          loadedProject.getImpGeofootprintGeos().forEach(geo => {
+            geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
+          });
           console.log('Project after conversion to data model: ', loadedProject);
           this.appProjectService.populateDataStores(loadedProject);
           return loadedProject;

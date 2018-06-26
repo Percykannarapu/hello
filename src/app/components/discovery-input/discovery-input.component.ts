@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { combineLatest } from 'rxjs';
-import { debounceTime, filter, pairwise, startWith, take, tap } from 'rxjs/operators';
+import { debounceTime, filter, pairwise, startWith, take } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { AppConfig } from '../../app.config';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
@@ -111,8 +111,8 @@ export class DiscoveryInputComponent implements OnInit {
     ];
 
     this.allSeasons = [
-      {label: 'Summer', value: 'SUMMER'},
-      {label: 'Winter', value: 'WINTER'}
+      {label: 'Summer', value: 'S'},
+      {label: 'Winter', value: 'W'}
     ];
 
     // this.products = [
@@ -429,7 +429,7 @@ export class DiscoveryInputComponent implements OnInit {
   }
   public refreshProjectTrackerData(){
       console.log('Refreshing trackerDataCache');
-      this.discoveryService.getProjectTrackerData().subscribe(data => { 
+      this.discoveryService.getProjectTrackerData().subscribe(data => {
       this.trackerDataCache = data.map(item => new TrackerData(item));
       });
 

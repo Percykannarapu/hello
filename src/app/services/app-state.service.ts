@@ -87,7 +87,7 @@ export class AppStateService {
     ).subscribe(this.projectId$ as BehaviorSubject<number>);
     this.currentMaster$.pipe(
       filter(master => master != null && master.methSeason != null && master.methSeason.length > 0),
-      map(master => master.methSeason === 'S' ? 'summer' : 'winter' as Season),
+      map(master => (master.methSeason.toUpperCase() === 'S' ? 'summer' : 'winter') as Season),
       distinctUntilChanged()
     ).subscribe(this.season$ as BehaviorSubject<Season>);
   }

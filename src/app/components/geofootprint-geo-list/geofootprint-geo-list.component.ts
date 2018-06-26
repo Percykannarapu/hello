@@ -173,7 +173,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                                .pipe(map((AllGeos) => {
-                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); })); 
+                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); }));
 
       this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                               .pipe(map((AllGeos) => {
@@ -316,7 +316,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
             if (geo.geocode === '48168')
                console.log('GEOCODE: ', geo.geocode, ' distance to site[' + s + '] = ', dist);
-            
+
             // If closer to this location, record the lat / lon
             if (dist < closestDistance)
             {
@@ -721,8 +721,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       //this.impGeofootprintGeoService.addDbRemove(this.g);
       console.log(this.impGeofootprintGeoService.storeLength + ' geos in the data store');
       console.log(this.impGeofootprintGeoService.dbRemoves.length + ' geos ready to remove');
-      this.impGeofootprintGeoService.debugLogDBRemoves('Geofootprint Geos');
-      this.impGeofootprintGeoService.readyDBRemovesBy('impGeofootprintLocation.locationNumber', '10');
+      //this.impGeofootprintGeoService.debugLogDBRemoves('Geofootprint Geos');
+      //this.impGeofootprintGeoService.readyDBRemovesBy('impGeofootprintLocation.locationNumber', '10');
       console.log('...');
       console.log('Marked geos ready for removal');
       console.log('...');
@@ -734,7 +734,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       {
          console.log("  ", geo.geocode + " ");
       });
-      
+
    }
 
    // -----------------------------------------------------------
@@ -764,16 +764,16 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
                // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
                this.impGeofootprintGeoService.addDbRemove(flatGeo.geo);  // For database removal
-               this.impGeofootprintGeoService.remove(flatGeo.geo);                        
+               this.impGeofootprintGeoService.remove(flatGeo.geo);
                console.log('remove successful');
             },
             reject: () => {
                console.log('cancelled remove');
             }
-          });      
+          });
       }
       else
-         console.log('onClickDeleteGeo - Fired - Geocode: null');         
+         console.log('onClickDeleteGeo - Fired - Geocode: null');
    }
 
    onRowClick(event: any)
