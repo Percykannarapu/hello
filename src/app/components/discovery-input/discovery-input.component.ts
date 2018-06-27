@@ -217,26 +217,33 @@ export class DiscoveryInputComponent implements OnInit {
     // custom metrics that aren't picked up by the above code
     if (currentForm.projectTrackerData != null) {
       const previousValue = previousForm.projectTrackerData != null ? previousForm.projectTrackerData.projectId : null;
-      const newText = `New=${currentForm.projectTrackerData.projectId}`;
-      const changeText = `${newText}~Old=${previousValue}`;
-      const metricsText = previousValue == null ? newText : changeText;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
-      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      if (previousValue != null && currentForm.projectTrackerData.projectId !== previousValue){
+        const newText = `New=${currentForm.projectTrackerData.projectId}`;
+        const changeText = `${newText}~Old=${previousValue}`;
+        const metricsText = previousValue == null ? newText : changeText;
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+        this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      }
     }
     if (currentForm.selectedRadLookupValue != null) {
       const productMetric: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
       const previousProduct = previousForm.selectedRadLookupValue != null ? previousForm.selectedRadLookupValue.product : null;
-      const newProductText = `New=${currentForm.selectedRadLookupValue.product}`;
-      const changeProductText = `${newProductText}~Old=${previousProduct}`;
-      const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
-      this.usageService.createCounterMetric(productMetric, productMetricText, null);
+      if (previousProduct != null && currentForm.selectedRadLookupValue.product !== previousProduct){
+        const newProductText = `New=${currentForm.selectedRadLookupValue.product}`;
+        const changeProductText = `${newProductText}~Old=${previousProduct}`;
+        const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
+        this.usageService.createCounterMetric(productMetric, productMetricText, null);
+      }
+      
 
       const categoryMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
       const previousCategory = previousForm.selectedRadLookupValue != null ? previousForm.selectedRadLookupValue.category : null;
-      const newCategoryText = `New=${currentForm.selectedRadLookupValue.category}`;
-      const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
-      const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
-      this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+      if (previousCategory != null && currentForm.selectedRadLookupValue.category !== previousCategory){
+        const newCategoryText = `New=${currentForm.selectedRadLookupValue.category}`;
+        const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
+        const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
+        this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+      }
     }
   }
 
