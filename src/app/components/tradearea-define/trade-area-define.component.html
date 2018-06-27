@@ -25,7 +25,7 @@
 
   <div class="ui-g-12">
     <div class="ui-g-4">
-      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" [(ngModel)]="currentMergeType.value" (ngModelChange)="onChangeMergeType()"></p-selectButton>
+      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" optionLabel="name" [(ngModel)]="currentMergeType" (ngModelChange)="onChangeMergeType()"></p-selectButton>
     </div>
     <div class="ui-g-4">
       <button (click)="onApplyBtnClick()" pButton label="Apply" [disabled]="isApplyButtonDisabled()"></button>

@@ -90,6 +90,7 @@ import { UsageService } from '../../services/usage.service';
 
     ngAfterViewInit(){
       this.selectedListType = 'Myproject';
+     
       const usrSub = this.userService.userObservable.subscribe(result => {
         if (result.userId != null){
           this.overlaySub = this.appProjectService.getngDialogObs().subscribe(bool => {
@@ -116,6 +117,7 @@ import { UsageService } from '../../services/usage.service';
               });
             });
         }
+        this.searchFilterMetric();
       });
 
     }
@@ -143,6 +145,7 @@ import { UsageService } from '../../services/usage.service';
 
     public onListTypeChange(data: 'Myproject' | 'Allproject') {
       this.selectedListType = data;
+      this.searchFilterMetric();
       if (this.selectedListType === 'Myproject'){
           this.currentProjectData = this.myProjecctsData;
       }
@@ -159,6 +162,7 @@ import { UsageService } from '../../services/usage.service';
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
+      this.searchFilterMetric();
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
@@ -237,10 +241,13 @@ import { UsageService } from '../../services/usage.service';
     }
 
     public loadProject(event: { projectId: number }){
-      this.stateService.loadProject(event.projectId).subscribe(project => this.onLoadProject(project));
+      this.stateService.loadProject(event.projectId).subscribe(project => {
+        this.onLoadProject(project);
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
+        this.usageService.createCounterMetric(usageMetricName, null, null);
+      } );
       this.display = false;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
-      this.usageService.createCounterMetric(usageMetricName, null, null);
+     
     }
 
     private onLoadProject(project: ImpProject) : void {
@@ -265,6 +272,12 @@ import { UsageService } from '../../services/usage.service';
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
       this.usageService.createCounterMetric(usageMetricName, metricText, count);
+    }
+
+    private searchFilterMetric(){
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
+      const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
+      this.usageService.createCounterMetric(usageMetricName, metricText, this.currentProjectData.length);
     }
 
     /*public reorderColumn(event){

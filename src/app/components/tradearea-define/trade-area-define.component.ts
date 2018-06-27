@@ -14,7 +14,7 @@ import { AppStateService } from '../../services/app-state.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 type SiteType = 'Site' | 'Competitor';
-interface MergeType { value: TradeAreaMergeSpec; }
+interface MergeType { value: TradeAreaMergeSpec; name:string;}
 
 @Component({
     selector: 'val-trade-area-define',
@@ -36,16 +36,16 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
   currentTradeAreas: TradeAreaUIModel[];
   currentMergeType: MergeType;
   currentSiteType: SiteType;
-  tradeAreaMergeTypes: SelectItem[];
+  tradeAreaMergeTypes: MergeType[];
 
   constructor(private tradeAreaService: AppTradeAreaService, private config: AppConfig,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private locationService: ImpGeofootprintLocationService, private messageService: AppMessagingService,
               private usageService: UsageService, private stateService: AppStateService) {
     this.tradeAreaMergeTypes = [
-      { label: 'No Merge', value: 'No Merge' },
-      { label: 'Merge Each', value: 'Merge Each' },
-      { label: 'Merge All', value: 'Merge All' }
+      { name: 'No Merge', value: 'No Merge' },
+      { name: 'Merge Each', value: 'Merge Each' },
+      { name: 'Merge All', value: 'Merge All' }
     ];
     this.siteTradeAreas = [
       new TradeAreaUIModel(this.config.maxBufferRadius),
@@ -57,8 +57,8 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
       new TradeAreaUIModel(this.config.maxBufferRadius),
       new TradeAreaUIModel(this.config.maxBufferRadius)
     ];
-    this.siteMergeType = { value: this.tradeAreaMergeTypes[1].value };
-    this.competitorMergeType = { value: this.tradeAreaMergeTypes[1].value };
+    this.siteMergeType = this.tradeAreaMergeTypes[1];
+    this.competitorMergeType = this.tradeAreaMergeTypes[1];
     this.currentSiteType = 'Site';
     this.currentTradeAreas = this.siteTradeAreas;
     this.currentMergeType = this.siteMergeType;
@@ -157,6 +157,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
 
   onChangeMergeType() : void {
     this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);
+//    console.log('TEST MERGE::::',this.currentMergeType);
   }
 
   isApplyButtonDisabled() : boolean {

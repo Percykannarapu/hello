@@ -5,6 +5,9 @@ import { TreeNode } from 'primeng/primeng';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { Subject } from 'rxjs/index';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
+import { AppStateService } from '../../../services/app-state.service';
 
 const UnSelectableLimit = 1000;
 
@@ -25,7 +28,11 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
+  constructor(private audienceService: TargetAudienceOnlineService, 
+              private parentAudienceService: TargetAudienceService, 
+              private cd: ChangeDetectorRef,
+              private usageService: UsageService, 
+              private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -63,12 +70,18 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public selectVariable(event: TreeNode) : void {
     this.currentSelectedNodes.push(event);
     this.audienceService.addAudience(event.data, SourceTypes.Pixel);
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
+    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public removeVariable(event: TreeNode) : void {
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
     this.audienceService.removeAudience(event.data, SourceTypes.Pixel);
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
+    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public formatCount(number: string) {
