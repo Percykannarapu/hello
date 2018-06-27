@@ -199,8 +199,8 @@ export class DiscoveryInputComponent implements OnInit {
       // only log values that are tracked and have changed
       if (usageTarget != null && previousValue !== currentValue) {
         console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
-        const newText = `New=${currentValue}`;
-        const changeText = `${newText}~Old=${previousValue}`;
+        const newText = `New=${currentValue.value}`;
+        const changeText = `${newText}~Old=${previousValue.value}`;
         const metricsText = previousValue == null || previousValue === '' ? newText : changeText;
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: usageTarget, action: 'changed' });
         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
