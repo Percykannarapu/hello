@@ -90,7 +90,7 @@ import { UsageService } from '../../services/usage.service';
 
     ngAfterViewInit(){
       this.selectedListType = 'Myproject';
-      this.searchFilterMetric();
+     
       const usrSub = this.userService.userObservable.subscribe(result => {
         if (result.userId != null){
           this.overlaySub = this.appProjectService.getngDialogObs().subscribe(bool => {
@@ -117,6 +117,7 @@ import { UsageService } from '../../services/usage.service';
               });
             });
         }
+        this.searchFilterMetric();
       });
 
     }
