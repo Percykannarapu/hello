@@ -15,6 +15,7 @@ import { AppConfig } from '../app.config';
 import { ImpMetricGauge } from '../val-modules/metrics/models/ImpMetricGauge';
 //import { HttpClient } from '@angular/common/http/src/client';
 import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { AppStateService } from './app-state.service';
 
 
 export class Metrics{
@@ -33,7 +34,7 @@ export class UsageService {
     private restClient: RestDataService,
     private impMetricNameService: ImpMetricNameService,
     private projectService: ImpProjectService,
-    private appConfig: AppConfig, private http: HttpClient) {
+    private appConfig: AppConfig, private http: HttpClient, private stateService: AppStateService) {
      }
 
 
@@ -219,8 +220,8 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProject: ImpProject = this.projectService.get()[0];
-    const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
+    const impProjectId = this.stateService.projectId$.getValue();
+   // const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted
     const impMetricGauge: ImpMetricGauge = new ImpMetricGauge();
@@ -234,7 +235,7 @@ export class UsageService {
     impMetricGauge.metricValue = metricValue;
     impMetricGauge.modifyDate = new Date(Date.now());
     impMetricGauge.modifyUser = this.userService.getUser().userId;
-    impMetricGauge.origSystemRefId = projectid;
+    impMetricGauge.origSystemRefId = impProjectId.toString();
     impMetricGauge.isActive = 1;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
