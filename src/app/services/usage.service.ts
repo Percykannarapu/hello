@@ -190,7 +190,7 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProjectId = this.stateService.projectId$.getValue();
+    const impProjectId = this.stateService.currentProject$.getValue().projectId;
    // const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted

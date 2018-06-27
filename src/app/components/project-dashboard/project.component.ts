@@ -240,10 +240,13 @@ import { UsageService } from '../../services/usage.service';
     }
 
     public loadProject(event: { projectId: number }){
-      this.stateService.loadProject(event.projectId).subscribe(project => this.onLoadProject(project));
+      this.stateService.loadProject(event.projectId).subscribe(project =>{
+        this.onLoadProject(project);
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
+        this.usageService.createCounterMetric(usageMetricName, null, null);
+      } );
       this.display = false;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
-      this.usageService.createCounterMetric(usageMetricName, null, null);
+     
     }
 
     private onLoadProject(project: ImpProject) : void {
