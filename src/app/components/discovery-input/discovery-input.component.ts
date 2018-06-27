@@ -289,8 +289,8 @@ export class DiscoveryInputComponent implements OnInit {
 
     // Populate the ImpProject model
     this.impProject.clientIdentifierTypeCode = 'CAR_LIST';
-    this.impProject.clientIdentifierName     =  currentForm.projectTrackerData ? currentForm.projectTrackerData.clientName : null;
-    this.impProject.customerNumber           =  currentForm.projectTrackerData.accountNumber != null ? currentForm.projectTrackerData.accountNumber : null;
+    this.impProject.clientIdentifierName     =  currentForm.projectTrackerData != null ? currentForm.projectTrackerData.clientName : null;
+    this.impProject.customerNumber           =  currentForm.projectTrackerData != null ? currentForm.projectTrackerData.accountNumber : null;
     this.impProject.consumerPurchFreqCode    = 'REMINDER';
     this.impProject.goalCode                 = 'ACQUISITION';
     this.impProject.objectiveCode            = 'INCREASE_PENETRATION';
