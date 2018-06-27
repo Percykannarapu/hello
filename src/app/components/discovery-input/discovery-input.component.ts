@@ -302,7 +302,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.isExcludePob       = !currentForm.includePob;
     this.impProject.isIncludeAnne      = currentForm.includeAnne;
     this.impProject.isIncludeSolo      = currentForm.includeSolo;
-    this.impProject.projectTrackerId   = currentForm.projectTrackerData ? currentForm.projectTrackerData.projectId : null;
+    this.impProject.projectTrackerId   = currentForm.projectTrackerData != null ? currentForm.projectTrackerData.projectId : null;
     this.impProject.projectName        = currentForm.projectName;
     this.impProject.estimatedBlendedCpm = toNumber(currentForm.cpmBlended);
     this.impProject.smValassisCpm      = toNumber(currentForm.cpmValassis);
@@ -417,6 +417,12 @@ export class DiscoveryInputComponent implements OnInit {
       this.trackerDataCache = data.map(item => new TrackerData(item));
       });
 
+}
+
+public onProjectTrackerSelect(event){
+  if (this.discoveryForm.get('projectName').status === 'INVALID') {
+      this.discoveryForm.get('projectName').setValue(event.projectName);
+  }
 }
 }
 
