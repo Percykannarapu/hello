@@ -271,7 +271,11 @@ export class TargetAudienceOnlineService {
   private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source?: string) {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-    const metricText = audience.digCategoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
+    let metricText = null;
+    if (source === 'Pixel')
+        metricText = audience.digCategoryId + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+    else
+        metricText = audience.digCategoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 }

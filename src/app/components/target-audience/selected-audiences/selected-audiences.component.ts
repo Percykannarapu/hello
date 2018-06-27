@@ -51,6 +51,7 @@ export class SelectedAudiencesComponent implements OnInit {
   public onApplyClicked() {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
+    console.log('mappedAudience:::', mappedAudience);
     if (mappedAudience != null) {
 
       const analysisLevel = this.appStateService.analysisLevel$.getValue();
@@ -62,6 +63,8 @@ export class SelectedAudiencesComponent implements OnInit {
       }
       else{
          metricText = variableId + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+         metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
+          
       }
 
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);

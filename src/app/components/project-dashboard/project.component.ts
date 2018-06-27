@@ -13,10 +13,11 @@ import { AppLocationService } from '../../services/app-location.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, take, map } from 'rxjs/operators';
+import { filter, take, map, tap } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 
 
 @Component({
@@ -145,13 +146,14 @@ import { UsageService } from '../../services/usage.service';
 
     public onListTypeChange(data: 'myProject' | 'allProject') {
       this.selectedListType = data;
-      this.searchFilterMetric();
+     
       if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
       }
       else {
         this.currentProjectData = this.allProjectsData;
       }
+      this.searchFilterMetric();
     }
 
     public onProjectSelected(event){
@@ -162,7 +164,7 @@ import { UsageService } from '../../services/usage.service';
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
-      this.searchFilterMetric();
+     
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
@@ -195,7 +197,42 @@ import { UsageService } from '../../services/usage.service';
         updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
       }
 
-      const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
+      const allProject$ =  this.getAllProjectsData(updatedateFrom, updatedDateTo).pipe(
+        tap(data => {
+          Array.from(data).forEach(row => {
+            const dt = new Date(row['modifyDate']);
+            row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+  
+          });
+          this.allProjectsData = data;
+
+        }));
+
+        const myProject$ =  this.getMyProjectData(updatedateFrom, updatedDateTo).pipe(
+          tap(data => {
+            Array.from(data).forEach(row => {
+              const dt = new Date(row['modifyDate']);
+              row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+    
+            });
+            this.allProjectsData = data;
+  
+          }));
+       
+      forkJoin(allProject$, myProject$).subscribe(null, null, () => {
+
+        if (this.selectedListType === 'myProject'){
+          this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
+        }
+        else {
+          this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
+        }
+
+      });    
+
+     /* const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
         Array.from(data).forEach(row => {
           const dt = new Date(row['modifyDate']);
           row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -205,10 +242,13 @@ import { UsageService } from '../../services/usage.service';
       }, null , () => {
         if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
         }
         else {
           this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
         }
+        
       });
 
       const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
@@ -218,15 +258,18 @@ import { UsageService } from '../../services/usage.service';
 
         });
         this.myProjecctsData = data;
-        this.currentProjectData = this.myProjecctsData;
+       // this.currentProjectData = this.myProjecctsData;
       }, null, () => {
         if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
         }
         else {
           this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
         }
-      });
+       
+      });*/
     }
 
     public formatDate(date) {

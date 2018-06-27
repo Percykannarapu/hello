@@ -277,7 +277,7 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impAnalysis, impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, impAnalysis);
         // update the metric count when export geos
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
-        this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+        this.usageService.createCounterMetric(usageMetricName, 'includeAllGeography ', this.impGeofootprintGeoService.get().length);
 
         //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
         //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
@@ -300,7 +300,7 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(analysisLevel, impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, analysisLevel, geo => geo.isActive === true);
         // update the metric count when export geos
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
-        this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+        this.usageService.createCounterMetric(usageMetricName, 'includeSelectedGeography', this.impGeofootprintGeoService.get().length);
 
         //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
         //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
