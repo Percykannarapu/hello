@@ -105,7 +105,7 @@ import { UsageService } from '../../services/usage.service';
                   row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
                 });
                 this.allProjectsData = data;
-              });
+              }, null , () =>  this.searchFilterMetric());
 
               const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
                 Array.from(data).forEach(row => {
@@ -117,7 +117,7 @@ import { UsageService } from '../../services/usage.service';
               });
             });
         }
-        this.searchFilterMetric();
+       //;
       });
 
     }
