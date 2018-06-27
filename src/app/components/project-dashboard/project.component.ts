@@ -260,7 +260,7 @@ import { UsageService } from '../../services/usage.service';
       }
     }
 
-    private onSearch(event, count){
+    public onSearch(event, count){
       //console.log('test:::::', event, 'count::::', count);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
