@@ -240,7 +240,7 @@ import { UsageService } from '../../services/usage.service';
     }
 
     public loadProject(event: { projectId: number }){
-      this.stateService.loadProject(event.projectId).subscribe(project =>{
+      this.stateService.loadProject(event.projectId).subscribe(project => {
         this.onLoadProject(project);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
         this.usageService.createCounterMetric(usageMetricName, null, null);
@@ -276,7 +276,7 @@ import { UsageService } from '../../services/usage.service';
     private searchFilterMetric(){
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
-      this.usageService.createCounterMetric(usageMetricName, metricText, null);
+      this.usageService.createCounterMetric(usageMetricName, metricText, this.currentProjectData.length);
     }
 
     /*public reorderColumn(event){
