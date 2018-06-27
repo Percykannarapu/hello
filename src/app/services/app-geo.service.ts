@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { combineLatest, concat } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -13,9 +13,10 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMessagingService } from './app-messaging.service';
 import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -24,28 +25,17 @@ const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld
 })
 export class AppGeoService {
 
+  private validAnalysisLevel$: Observable<string>;
+
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService, private appStateService: AppStateService,
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
               private locationService: ImpGeofootprintLocationService, private messagingService: AppMessagingService,
               private queryService: EsriQueryService, private config: AppConfig) {
-    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.projectIsLoading$).pipe(
-      filter(([tradeAreaMap, isLoading]) => !isLoading),
-      map(([tradeAreaMap]) => tradeAreaMap),
-      map(tradeAreaMap => simpleFlatten(Array.from(tradeAreaMap.values()))),
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0)),
-      filter(tradeAreas => tradeAreas.length > 0)
-    ).subscribe(tradeAreas => this.selectAndPersistGeos(tradeAreas));
 
-    const validAnalysis$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-
-    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, validAnalysis$, this.appStateService.projectIsLoading$)
-      .pipe(
-        filter(([geocodes, analysisLevel, isLoading]) => !isLoading),
-        map(([geocodes, analysisLevel]) => [geocodes, analysisLevel] as [string[], string])
-      )
-      .subscribe(
-      ([geocodes, analysisLevel]) => this.updateGeoAttribsFromLayer(geocodes, analysisLevel)
-    );
+    this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
+    this.setupRadiusSelectionObservable();
+    this.setupHomeGeoSelectionObservable();
+    this.setupGeoAttributeUpdateObservable();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -60,7 +50,61 @@ export class AppGeoService {
     }
   }
 
-  public updateGeoAttribsFromLayer(geocodes: string[], analysisLevel: string) {
+  /**
+   * Sets up an observable sequence that fires when a new, empty Radius trade area appears in the data store.
+   */
+  private setupRadiusSelectionObservable() : void {
+    // The root sequence is Radius only trade areas for Sites (not competitors)
+    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.projectIsLoading$).pipe(
+      // halt the sequence if the project is still loading
+      filter(([tradeAreaMap, isLoading]) => !isLoading),
+      // flatten the data to a 1-dimension array
+      map(([tradeAreaMap]) => simpleFlatten(Array.from(tradeAreaMap.values()))),
+      // remove any trade areas that already have geos
+      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0)),
+      // halt the sequence if there are no trade areas remaining at this point
+      filter(tradeAreas => tradeAreas.length > 0)
+    ).subscribe(tradeAreas => this.selectAndPersistRadiusGeos(tradeAreas));
+  }
+
+  /**
+   * Sets up an observable sequence that fires when a location is missing its home geo in any trade area
+   */
+  private setupHomeGeoSelectionObservable() : void {
+    // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
+    combineLatest(this.locationService.storeObservable,
+                  this.geoService.storeObservable,
+                  this.appStateService.projectIsLoading$).pipe(
+      // halt the sequence if the project is still loading
+      filter(([locations, geos, isLoading]) => !isLoading),
+      // remove competitors from the sequence
+      map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
+      // remove sites that don't have home geocodes yet
+      map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
+      // remove sites that don't have any trade areas yet
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
+      // remove sites that don't haven't finished trade area processing
+      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().length > 0 || loc.impGeofootprintTradeAreas.some(ta => ta['isComplete'] === true))),
+      // remove sites that already have their home geo selected
+      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+      // halt the sequence if there are no locations remaining
+      filter(locations => locations.length > 0)
+    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+  }
+
+  /**
+   * Sets up an observable sequence that fires when any geocode is added to the data store
+   */
+  private setupGeoAttributeUpdateObservable() : void {
+    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, this.validAnalysisLevel$, this.appStateService.projectIsLoading$)
+      .pipe(
+        // halt the sequence if the project is loading
+        filter(([geocodes, analysisLevel, isLoading]) => !isLoading))
+      .subscribe(
+        ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel));
+  }
+
+  private updateAttributesFromLayer(geocodes: string[], analysisLevel: string) {
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const sub = this.queryService.queryAttributeIn(portalId, 'geocode', geocodes, false, layerAttributes).subscribe(
       graphics => {
@@ -76,19 +120,43 @@ export class AppGeoService {
       });
   }
 
-  private selectAndPersistGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+  private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const radiusToTradeAreaMap: Map<number, ImpGeofootprintTradeArea[]> = groupBy(tradeAreas, 'taRadius');
     const radii = Array.from(radiusToTradeAreaMap.keys());
     const maxRadius = Math.max(...radii);
     const allSelectedData: __esri.Graphic[] = [];
-    const spinnerKey = 'selectAndPersistGeos';
-    this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+    const spinnerKey = 'selectAndPersistRadiusGeos';
     const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
-    const allHomeGeos = allLocations.map(loc => loc.homeGeocode);
-    const distanceQuery$ = this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type']);
-    const homeGeoQuery$ = this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude']);
-    concat(distanceQuery$, homeGeoQuery$).subscribe(
+
+    this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+    this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type'])
+      .subscribe(
+        selections => allSelectedData.push(...selections),
+        err => {
+          console.error(err);
+          this.messagingService.stopSpinnerDialog(spinnerKey);
+        },
+        () => {
+          const geosToPersist: ImpGeofootprintGeo[] = [];
+          for (let i = 0; i < radii.length; ++i) {
+            const previousRadius = i > 0 ? radii[i - 1] : -0.1;
+            geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), allSelectedData, previousRadius));
+          }
+          this.geoService.add(geosToPersist);
+          this.messagingService.stopSpinnerDialog(spinnerKey);
+        });
+  }
+
+  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[]) : void {
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
+    const allSelectedData: __esri.Graphic[] = [];
+    const spinnerKey = 'selectAndPersistHomeGeos';
+    const allHomeGeos = locations.map(loc => loc.homeGeocode);
+
+    this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+    this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude'])
+      .subscribe(
       selections => allSelectedData.push(...selections),
       err => {
         console.error(err);
@@ -96,37 +164,26 @@ export class AppGeoService {
       },
       () => {
         const geosToPersist: ImpGeofootprintGeo[] = [];
-        const homeCentroids = allSelectedData.filter(g => !g.attributes.hasOwnProperty('geometry_type'));
-        const radiusCentroids = allSelectedData.filter(g => g.attributes.hasOwnProperty('geometry_type'));
-
-        for (let i = 0; i < radii.length; ++i) {
-          const previousRadius = i > 0 ? radii[i - 1] : -0.1;
-          geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), radiusCentroids, previousRadius));
-        }
-
-        const homeGeocodes = this.createHomeGeos(homeCentroids, geosToPersist);
+        const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
         if (homeGeocodes.length > 0){
           geosToPersist.push(...homeGeocodes);
         }
-
         this.geoService.add(geosToPersist);
-        console.log ('geoService size after: ', this.geoService.storeLength);
         this.messagingService.stopSpinnerDialog(spinnerKey);
       });
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {
     const geosToSave: ImpGeofootprintGeo[] = [];
-    // home geos won't have lat/long returned (on purpose - so i can detect and filter them out here)
-    const centroidMap = new Map(centroids.filter(g => g.attributes.latitude != null).map<[string, __esri.Graphic]>(g => [g.attributes.geocode, g]));
-    centroidMap.forEach((graphic, geocode) => {
+    const centroidAttributes: any = centroids.map(c => c.attributes);
+    centroidAttributes.forEach(attributes => {
       tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
-        const currentDistance = EsriUtils.getDistance(graphic.attributes.longitude, graphic.attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
+        const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
         if (currentDistance <= radius && currentDistance > previousRadius) {
             const newGeo = new ImpGeofootprintGeo({
-              xcoord: graphic.attributes.longitude,
-              ycoord: graphic.attributes.latitude,
-              geocode: geocode,
+              xcoord: attributes.longitude,
+              ycoord: attributes.latitude,
+              geocode: attributes.geocode,
               distance: currentDistance,
               impGeofootprintLocation: ta.impGeofootprintLocation,
               impGeofootprintTradeArea: ta,
@@ -137,55 +194,51 @@ export class AppGeoService {
           }
       });
     });
+    // mark trade areas as completed, so Home Geo query can pick it up
+    tradeAreas.forEach(ta => {
+      if (!ta.hasOwnProperty('isComplete')) {
+        Object.defineProperty(ta, 'isComplete', {
+          enumerable: false,
+          configurable: true,
+          writable: true
+        });
+      }
+      ta['isComplete'] = true;
+    });
     this.filterGeos(geosToSave, centroids);
     console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', geosToSave.length);
     return geosToSave;
   }
 
-  private createHomeGeos(homeCentroids: __esri.Graphic[],  geosToPersist: ImpGeofootprintGeo[]) : ImpGeofootprintGeo[] {
-    const geocodes: any[] = [];
-    const existingGeos = new Set(geosToPersist.map(g => g.geocode));
-    const locations = this.locationService.get();
+  private createHomeGeos(homeCentroids: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintGeo[] {
     const homeGeosToAdd: ImpGeofootprintGeo[] = [];
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    homeCentroids.forEach(g => {
-      if (!existingGeos.has(g.attributes.geocode)){
-          geocodes.push(g);
-      }
-    });
-    let customIndex: number = 0;
-    if (geocodes.length > 0 ) {
-      geocodes.forEach(geo => {
-         locations.forEach(loc => {
-            if (loc.homeGeocode === geo.attributes.geocode){
-              const geocodeDistance: number = EsriUtils.getDistance(geo.attributes.longitude, geo.attributes.latitude, loc.xcoord, loc.ycoord);
-              customIndex++;
-              const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
-              if (homeGeoTA.length === 0) {
-                const newTA = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'HOMEGEO');
-                homeGeoTA.push(newTA);
-                newTradeAreas.push(newTA);
-              }
-
-              // If the HomeGeo does not have a location assigned, give it this location
-              if (homeGeoTA[0] != null && homeGeoTA[0].impGeofootprintLocation == null)
-                 homeGeoTA[0].impGeofootprintLocation = loc;
-
-              if (homeGeoTA[0].impGeofootprintGeos.filter(g => g.geocode === geo.attributes.geocode).length === 0) {
-                const newGeo = new ImpGeofootprintGeo({
-                  xcoord: geo.attributes.longitude,
-                  ycoord: geo.attributes.latitude,
-                  geocode: geo.attributes.geocode,
-                  distance: geocodeDistance,
-                  impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
-                  impGeofootprintTradeArea: homeGeoTA[0],
-                  isActive: true
-                });
-                homeGeoTA[0].impGeofootprintGeos.push(newGeo);
-                homeGeosToAdd.push(newGeo);
-              }
+    const homeGeoMap: Map<string, ImpGeofootprintLocation[]> = groupBy(locations, 'homeGeocode');
+    if (homeCentroids.length > 0 ) {
+      homeCentroids.forEach(centroid => {
+        if (homeGeoMap.has(centroid.attributes.geocode)) {
+          const currentLocations = homeGeoMap.get(centroid.attributes.geocode);
+          currentLocations.forEach(loc => {
+            const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
+            const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
+            if (homeGeoTA.length === 0) {
+              const newTA = AppTradeAreaService.createCustomTradeArea(0, loc, true, 'HOMEGEO');
+              homeGeoTA.push(newTA);
+              newTradeAreas.push(newTA);
             }
-         });
+            const newGeo = new ImpGeofootprintGeo({
+              xcoord: centroid.attributes.longitude,
+              ycoord: centroid.attributes.latitude,
+              geocode: centroid.attributes.geocode,
+              distance: geocodeDistance,
+              impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
+              impGeofootprintTradeArea: homeGeoTA[0],
+              isActive: homeGeoTA[0].isActive
+            });
+            homeGeoTA[0].impGeofootprintGeos.push(newGeo);
+            homeGeosToAdd.push(newGeo);
+          });
+        }
       });
     }
     if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
