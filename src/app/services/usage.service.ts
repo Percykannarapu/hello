@@ -190,8 +190,8 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProject: ImpProject = this.projectService.get()[0];
-    const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
+    const impProjectId = this.stateService.projectId$.getValue();
+   // const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();
@@ -204,7 +204,7 @@ export class UsageService {
     impMetricCounter.metricValue = metricValue;
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
-    impMetricCounter.origSystemRefId = projectid;
+    impMetricCounter.origSystemRefId = impProjectId.toString();
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
 

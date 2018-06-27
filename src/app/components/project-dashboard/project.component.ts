@@ -90,6 +90,7 @@ import { UsageService } from '../../services/usage.service';
 
     ngAfterViewInit(){
       this.selectedListType = 'Myproject';
+      this.searchFilterMetric();
       const usrSub = this.userService.userObservable.subscribe(result => {
         if (result.userId != null){
           this.overlaySub = this.appProjectService.getngDialogObs().subscribe(bool => {
@@ -143,6 +144,7 @@ import { UsageService } from '../../services/usage.service';
 
     public onListTypeChange(data: 'Myproject' | 'Allproject') {
       this.selectedListType = data;
+      this.searchFilterMetric();
       if (this.selectedListType === 'Myproject'){
           this.currentProjectData = this.myProjecctsData;
       }
@@ -159,6 +161,7 @@ import { UsageService } from '../../services/usage.service';
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
+      this.searchFilterMetric();
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
@@ -265,6 +268,12 @@ import { UsageService } from '../../services/usage.service';
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
       this.usageService.createCounterMetric(usageMetricName, metricText, count);
+    }
+
+    private searchFilterMetric(){
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
+      const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
     }
 
     /*public reorderColumn(event){
