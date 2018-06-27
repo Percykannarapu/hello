@@ -73,6 +73,10 @@ export class GeocoderComponent implements OnInit {
     this.geocodingService.removeFailedGeocode(row);
     this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
     this.geocodeModel(row.toGeocodingRequest());
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'failure', action: 'resubmit' });
+    const metricText = `Number=${row.Number}~Name=${row.Name}~Street=${row.Address}~City=${row.City}~State=${row.State}~ZIP=${row.ZIP}~X=${row.Longitude}~Y=${row.Latitude}
+    ~Status=${row['Geocode Status']}~MatchCode=${row['Match Code']}~LocationCode=${row['Match Quality']}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public onAccept(row: ValGeocodingResponse) {
@@ -85,6 +89,10 @@ export class GeocoderComponent implements OnInit {
     }
 
     this.siteListService.persistLocationsAndAttributes([row.toGeoLocation(this.currentManualSiteType)]);
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'failure', action: 'accept' });
+    const metricText = `Number=${row.Number}~Name=${row.Name}~Street=${row.Address}~City=${row.City}~State=${row.State}~ZIP=${row.ZIP}~X=${row.Longitude}~Y=${row.Latitude}
+    ~Status=${row['Geocode Status']}~MatchCode=${row['Match Code']}~LocationCode=${row['Match Quality']}`;
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   // remove an GeocodingResponse from the  list of sites that failed to geocode

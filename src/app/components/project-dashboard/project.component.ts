@@ -27,7 +27,7 @@ import { UsageService } from '../../services/usage.service';
   export class ProjectComponent implements OnInit, AfterViewInit {
 
     public timeLines;
-    public selectedTimeLine ;
+    public selectedTimeLine = 'sixMonths';
     public todayDate = new Date();
     public display: boolean;
     public selectedRow;
@@ -158,6 +158,7 @@ import { UsageService } from '../../services/usage.service';
     public onSelectTimeFrame(event: string){
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
+      this.selectedTimeLine = event;
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
@@ -239,7 +240,7 @@ import { UsageService } from '../../services/usage.service';
       this.stateService.loadProject(event.projectId).subscribe(project => this.onLoadProject(project));
       this.display = false;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
-      this.usageService.createCounterMetric(usageMetricName, null, this.impGeofootprintGeoService.get().length);
+      this.usageService.createCounterMetric(usageMetricName, null, null);
     }
 
     private onLoadProject(project: ImpProject) : void {
@@ -257,6 +258,13 @@ import { UsageService } from '../../services/usage.service';
       } else {
         this.appLocationService.zoomToLocations(locData);
       }
+    }
+
+    private onSearch(event, count){
+      //console.log('test:::::', event, 'count::::', count);
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
+      const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
+      this.usageService.createCounterMetric(usageMetricName, metricText, count);
     }
 
     /*public reorderColumn(event){

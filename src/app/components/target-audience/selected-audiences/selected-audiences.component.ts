@@ -106,7 +106,7 @@ export class SelectedAudiencesComponent implements OnInit {
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-      const metricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'delete' });
+      const metricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'audience', action: 'delete' });
       let metricText = null;
       if (audience.audienceSourceType === 'Online')
           metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;

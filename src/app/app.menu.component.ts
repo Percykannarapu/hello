@@ -377,31 +377,27 @@ export class AppMenuComponent implements OnInit {
                 icon: 'ui-icon-project',
                 accept: () => {
                     const impProjects: ImpProject[] = [];
+                    const impProject = this.appStateService.currentProject$.getValue();
+                    
                     //~
                     this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
                     usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
                     this.usageService.createCounterMetric(usageMetricName, null, null);
-    
-                   const sub = this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(savedProject => {
-                        if (savedProject != null)
-                        {
-                           console.log('project saved', savedProject);
-                           this.clearProject();
-                           
-                        }
-                        else
-                            console.log('project did not save');
-                    }, null, () => {
-                        //const impProject: ImpProject = this.impProjectService.get()[0];
-                        //this.impProjectService.loadProject(impProject.projectId, true);
-                        this.clearProject();
-                       //this.routes.navigate(['/']);
-    
-                    });
+                    this.appStateService.projectId$.getValue();
+                    let errorString = null;
+                    if (impProject.projectName == null || impProject.projectName == '')
+                         errorString = 'imPower Project Name is required<br>';
+                    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+                         errorString += 'Analysis level is required';
+                    if (errorString != null) {
+                        this.messageService.showGrowlError('Error Saving Project', errorString);
+                        return;
+                    }
+                    this.impProjectService.saveProject();
+                    this.clearProject();
                 },
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
-                 // this.routes.navigate(['/']);
                   this.clearProject();
                 }
             });
