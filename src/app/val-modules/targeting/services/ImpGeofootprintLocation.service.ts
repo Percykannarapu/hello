@@ -241,7 +241,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                 }
                   this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
                   console.log('Response from vlh', res);
-                  if (res.returnCode === 200) this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
+                  if (res.returnCode === 200) {
+                    this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
+                  } else this.messageService.showGrowlError('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
                 });
               }
         } else {
