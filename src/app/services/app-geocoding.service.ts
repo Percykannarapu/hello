@@ -10,6 +10,8 @@ import { AppGeoService } from './app-geo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './usage.service';
 
 @Injectable()
 export class AppGeocodingService {
@@ -24,6 +26,7 @@ export class AppGeocodingService {
               private restService: RestDataService,
               private valGeoService: AppGeoService,
               private locationService: ImpGeofootprintLocationService,
+              private usageService: UsageService,
               private config: AppConfig) {
     this.failureCount$.pipe(
       pairwise(),
@@ -42,7 +45,7 @@ export class AppGeocodingService {
     }
   }
 
-  public geocodeLocations(sites: ValGeocodingRequest[]) : Observable<ValGeocodingResponse[]> {
+  public geocodeLocations(sites: ValGeocodingRequest[], siteType: string) : Observable<ValGeocodingResponse[]> {
     let result$: Observable<ValGeocodingResponse[]>;
     const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
     if (sites.length > preGeoCodedSites.length) {
@@ -67,6 +70,9 @@ export class AppGeocodingService {
               }
             });
             Array.prototype.push.apply(success, preGeoCodedSites);
+            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
+            const metricText = `success=${success.length}~error=${fail.length}`;
+            this.usageService.createCounterMetric(usageMetricName, metricText, null);
             return success;
           })
         );

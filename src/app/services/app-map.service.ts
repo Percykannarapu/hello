@@ -23,8 +23,8 @@ export interface Coordinates {
 export class AppMapService implements OnDestroy {
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
-
-  private currentGeocodeList: string[] = [];
+  private  currentGeocodes = new Set<string>();
+  //private currentGeocodeList: string[] = [];
 
   private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
@@ -194,20 +194,25 @@ export class AppMapService implements OnDestroy {
     } else {
       hhc = Number(graphic.attributes.hhld_s);
     }
-    const currentGeocodes = new Set(this.currentGeocodeList);
+    //this.currentGeocodeList.push(geocode);
+   
     const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
-      if (currentGeocodes.has(geocode)) {
+      if (this.currentGeocodes.has(geocode)) {
+        this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
       } else {
+        this.currentGeocodes.add(geocode);
         this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
       }
     } else {
-      if (currentGeocodes.has(geocode)) {
+      if (this.currentGeocodes.has(geocode)) {
+        this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
       } else {
+        this.currentGeocodes.add(geocode);
         this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
       }
     }
