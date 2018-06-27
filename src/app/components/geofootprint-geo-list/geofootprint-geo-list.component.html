@@ -4,7 +4,8 @@
    <button label="Test Remove" pButton (click)="testRemove()"></button>
 </div> -->
 <div class="ui-g-12">
-   <p-dataTable #geoGrid selectionMode ="multiple" dataKey="fgId" class="val-table"
+   <p-dataTable #geoGrid
+      dataKey="fgId" class="val-table"
       scrollable="true" scrollWidth="100%" 
       [responsive]="true" sortMode="multiple"
       [value]="displayedImpGeofootprintGeos$ | async"
