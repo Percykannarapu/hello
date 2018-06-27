@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, filter } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, skip, filter } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
@@ -13,11 +13,16 @@ import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService } from './app-state.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class TargetAudienceService implements OnDestroy {
   private readonly spinnerKey: string = 'TargetAudienceServiceKey';
 
@@ -27,7 +32,7 @@ export class TargetAudienceService implements OnDestroy {
 
   private nationalSources = new Map<string, nationalSource>();
   private audienceSources = new Map<string, audienceSource>();
-  public  audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
+  public audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
   private audiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
   private deletedAudiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
   private shadingData: BehaviorSubject<Map<string, ImpGeofootprintVar>> = new BehaviorSubject<Map<string, ImpGeofootprintVar>>(new Map<string, ImpGeofootprintVar>());
@@ -39,9 +44,10 @@ export class TargetAudienceService implements OnDestroy {
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   constructor(private geoService: AppGeoService, private appStateService: AppStateService,
-              private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
-              private usageService: UsageService, private messagingService: AppMessagingService,
-              private config: AppConfig, private mapDispatchService: MapDispatchService) {
+    private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
+    private usageService: UsageService, private messagingService: AppMessagingService,
+    private config: AppConfig, private mapDispatchService: MapDispatchService,
+    private projectVarService: ImpProjectVarService) {
     const layerId$ = this.appStateService.analysisLevel$.pipe(
       filter(al => al != null && al.length > 0),
       map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id
@@ -63,6 +69,47 @@ export class TargetAudienceService implements OnDestroy {
         return geos.filter(g => !varGeos.has(g));
       })
     );
+
+    this.appStateService.projectIsLoading$.subscribe(isLoading => {
+      console.log('got message from observable');
+      this.onLoadProject(isLoading);
+    });
+  }
+
+  private onLoadProject(loading: boolean) {
+    if (loading) return; // loading will be false when the load is actually done
+    try {
+      const project = this.appStateService.currentProject$.getValue();
+      if (project && project.impProjectVars) {
+        this.projectVarService.clearAll();
+        this.projectVarService.add(project.impProjectVars);
+        for (const projectVar of project.impProjectVars) {
+          let sourceType = projectVar.source.split('~')[0].split('_')[0];
+          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
+          delete sourceNamePieces[0];
+          const sourceName = sourceNamePieces.join();
+          const audienceIdentifier = projectVar.source.split('~')[1];
+          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
+          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
+          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
+          const audience: AudienceDataDefinition = {
+            allowNationalExport: projectVar.isNationalExtract,
+            audienceIdentifier: audienceIdentifier,
+            audienceName: projectVar.fieldname,
+            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
+            audienceSourceType: sourceType === 'Online' ? 'Online' : sourceType === 'Offline' ? 'Offline' : 'Custom',
+            dataSetOptions: null,
+            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+            exportNationally: projectVar.isNationalExtract,
+            showOnGrid: projectVar.isIncludedInGeoGrid,
+            showOnMap: projectVar.isShadedOnMap
+          };
+          this.addAudience(audience, null);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private createKey = (...values: string[]) => values.join('/');
@@ -77,7 +124,47 @@ export class TargetAudienceService implements OnDestroy {
     this.audienceSources.set(sourceId, sourceRefresh);
     this.audienceMap.set(audienceId, audience);
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
+    this.projectVarService.add([this.createProjectVar(audience)]);
     this.audiences.next(Array.from(this.audienceMap.values()));
+  }
+
+  private createProjectVar(audience: AudienceDataDefinition) : ImpProjectVar {
+    const projectVar = new ImpProjectVar();
+    let source = audience.audienceSourceType.toUpperCase() + '_' + audience.audienceSourceName.toUpperCase();
+    source = source.replace(' ', '_');
+    source = source + '~' + audience.audienceIdentifier;
+    projectVar.baseStatus = DAOBaseStatus.INSERT;
+    projectVar.varPk = this.projectVarService.getNextStoreId();
+    projectVar.isShadedOnMap = audience.showOnMap;
+    projectVar.isIncludedInGeoGrid = audience.showOnGrid;
+    projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+    projectVar.isNationalExtract = audience.exportNationally;
+    projectVar.indexBase = audience.selectedDataSet;
+    projectVar.fieldname = audience.audienceName;
+    projectVar.source = source;
+    projectVar.isCustom = audience.audienceSourceType.match('Custom') ? true : false;
+    projectVar.isString = false;
+    projectVar.isNumber = false;
+    projectVar.isUploaded = false;
+    projectVar.isActive = true;
+    return projectVar;
+  }
+
+  private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) {
+    for (const projectVar of this.projectVarService.get()) {
+      const parts = projectVar.source.split('~');
+      let source = sourceType.toUpperCase() + '_' + sourceName.toUpperCase();
+      source = source.replace(' ', '_');
+      if (parts[0] === source && parts[1] === audienceIdentifier) {
+        if (projectVar.varPk) {
+          // remove it from the database only if it has an ID populated
+          this.projectVarService.addDbRemove(projectVar);
+          console.log('AARON: ADDED DBREMOVE FOR PROJECT VAR:', projectVar);
+        }
+        this.projectVarService.remove(projectVar);
+        console.log('AARON: REMOVED PROJECT VAR:', projectVar);
+      }
+    }
   }
 
   public removeAudience(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) : void {
@@ -89,6 +176,7 @@ export class TargetAudienceService implements OnDestroy {
       if (this.audienceSources.has(sourceId) && remainingAudiences.filter(a => a.audienceSourceType === sourceType && a.audienceSourceName === sourceName).length === 0) {
         this.audienceSources.delete(sourceId);
       }
+      this.removeProjectVar(sourceType, sourceName, audienceIdentifier);
       this.audiences.next(Array.from(this.audienceMap.values()));
     }
   }
@@ -175,16 +263,11 @@ export class TargetAudienceService implements OnDestroy {
       );
     }
     if (selectedAudiences.length > 0) {
-      // pre-load selection data
-      combineLatest(this.appStateService.analysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
-        take(1),
-      ).subscribe(
-        ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
-      );
       // set up a watch process
-      this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$).subscribe(
+      this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$)
+        .subscribe(
         ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
-      );
+        );
     }
   }
 
