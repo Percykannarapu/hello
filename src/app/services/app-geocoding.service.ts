@@ -70,9 +70,12 @@ export class AppGeocodingService {
               }
             });
             Array.prototype.push.apply(success, preGeoCodedSites);
-            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
-            const metricText = `success=${success.length}~error=${fail.length}`;
-            this.usageService.createCounterMetric(usageMetricName, metricText, null);
+            if (success.length + fail.length > 1){
+              const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
+              const metricText = `success=${success.length}~error=${fail.length}`;
+              this.usageService.createCounterMetric(usageMetricName, metricText, success.length + fail.length);
+            }
+           
             return success;
           })
         );

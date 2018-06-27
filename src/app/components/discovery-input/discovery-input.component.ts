@@ -377,8 +377,7 @@ export class DiscoveryInputComponent implements OnInit {
   public saveProject() {
     // Save the project
     this.appProjectService.saveProject();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-    this.usageService.createCounterMetric(usageMetricName, null, this.appStateService.projectId$.getValue());
+    
   }
 
   filterRadData(event) {

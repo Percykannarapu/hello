@@ -204,7 +204,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
             row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
   
           });
-          this.allProjectsData = data;
+          this.myProjecctsData = data;
 
         }));
 
