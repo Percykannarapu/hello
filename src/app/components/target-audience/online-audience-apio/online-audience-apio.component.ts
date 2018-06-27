@@ -140,7 +140,8 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]) {
-    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    const indexToRemove = this.currentSelectedNodes.findIndex(node => node.data.digCategoryId != result[0].audienceIdentifier);
+    this.currentSelectedNodes.splice(indexToRemove, 1);
     this.cd.markForCheck();
   }
 }

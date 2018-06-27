@@ -170,7 +170,7 @@ export class TargetAudienceOnlineService {
 
   public removeAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
     this.usageMetricCheckUncheckApio('unchecked', audience, source.toString());
-    this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
+    this.audienceService.removeAudience('Online', source, audience.digCategoryId.toString());
   }
 
   public getAudienceDescriptions(sources: SourceTypes[]) : Observable<OnlineAudienceDescription[]> {
