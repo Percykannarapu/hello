@@ -204,7 +204,7 @@ export class UsageService {
     impMetricCounter.metricValue = metricValue;
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
-    impMetricCounter.origSystemRefId = impProjectId.toString();
+    impMetricCounter.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
 
