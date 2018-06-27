@@ -71,7 +71,7 @@ import { UsageService } from '../../services/usage.service';
 
     public allProjectsData: any;
     public myProjecctsData: any;
-    public selectedListType: 'Myproject' | 'Allproject';
+    public selectedListType: 'myProject' | 'allProject';
     public selectedColumns: any[] = [];
     public columnOptions: SelectItem[] = [];
     public projectColumns: string[];
@@ -79,7 +79,7 @@ import { UsageService } from '../../services/usage.service';
     public selectedProjectData: any[] = [];
 
     ngOnInit() {
-      this.selectedListType = 'Myproject';
+      this.selectedListType = 'myProject';
 
       for (const column of this.allColumns) {
         this.columnOptions.push({ label: column.header, value: column });
@@ -89,7 +89,7 @@ import { UsageService } from '../../services/usage.service';
     }
 
     ngAfterViewInit(){
-      this.selectedListType = 'Myproject';
+      this.selectedListType = 'myProject';
      
       const usrSub = this.userService.userObservable.subscribe(result => {
         if (result.userId != null){
@@ -143,10 +143,10 @@ import { UsageService } from '../../services/usage.service';
         map((response ) => data = response.payload.rows));
     }
 
-    public onListTypeChange(data: 'Myproject' | 'Allproject') {
+    public onListTypeChange(data: 'myProject' | 'allProject') {
       this.selectedListType = data;
       this.searchFilterMetric();
-      if (this.selectedListType === 'Myproject'){
+      if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
       }
       else {
@@ -203,7 +203,7 @@ import { UsageService } from '../../services/usage.service';
         });
         this.allProjectsData = data;
       }, null , () => {
-        if (this.selectedListType === 'Myproject'){
+        if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
         }
         else {
@@ -220,7 +220,7 @@ import { UsageService } from '../../services/usage.service';
         this.myProjecctsData = data;
         this.currentProjectData = this.myProjecctsData;
       }, null, () => {
-        if (this.selectedListType === 'Myproject'){
+        if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
         }
         else {
