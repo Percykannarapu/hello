@@ -390,6 +390,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
 
+         if (gridGeo.geo.impGeofootprintLocation.locZip != null) 
+         gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5) ;
+          else 
+           ' ';
+
          // Assign all variable properties to the geo
 //       vars.forEach(v => gridGeo[v] = null);
 
