@@ -49,7 +49,6 @@ export class RadService {
     const currentCategory = categoryLookup.filter(([key, value]) => value === currentProject.industryCategoryCode).map(([key]) => key);
     //filter down the RAD data based on the current product and category
     if (this.radData != null && currentCategory.length > 0) {
-
       this.filteredRadData = this.radData.filter(f =>
          f.category === currentCategory[0]
          && f.product === currentProject.radProduct);
@@ -60,7 +59,6 @@ export class RadService {
    * Calculate the performance metrics and send them to the metric service
    */
   private calculateMetrics(metricMessage: MetricMessage) {
-    console.log('RAD calculation fired');
     if (metricMessage.group === 'CAMPAIGN' && metricMessage.key === 'Household Count') {
       if (this.filteredRadData != null && this.filteredRadData.length > 0) {
         try {

@@ -10,6 +10,7 @@ import { map, take, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { AppMessagingService } from '../../../services/app-messaging.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -26,6 +27,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
   constructor(private varService: TargetAudienceService, private usageService: UsageService,
     private appStateService: AppStateService, private metricService: MetricService,
+    private appMessagingService: AppMessagingService,
     private confirmationService: ConfirmationService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
@@ -51,6 +53,7 @@ export class SelectedAudiencesComponent implements OnInit {
   public onApplyClicked() {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
+    console.log('mappedAudience:::', mappedAudience);
     if (mappedAudience != null) {
 
       const analysisLevel = this.appStateService.analysisLevel$.getValue();
@@ -62,6 +65,8 @@ export class SelectedAudiencesComponent implements OnInit {
       }
       else{
          metricText = variableId + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+         metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
+          
       }
 
       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
@@ -72,6 +77,10 @@ export class SelectedAudiencesComponent implements OnInit {
       // this.usageService.creategaugeMetrics(counterMetricsColorBox);
       // this.usageService.createCounterMetrics(counterMetricsDiscover);
       // this.usageService.createCounterMetrics(counterMetricsColorBox);
+    }
+    if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
+      this.appMessagingService.showGrowlWarning('Apply Selected Audience', 'You must select an Analysis Level in order to apply the selected audience variable(s)');
+      return;
     }
     this.varService.applyAudienceSelection();
   }

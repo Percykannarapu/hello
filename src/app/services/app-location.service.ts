@@ -45,6 +45,7 @@ export class AppLocationService {
     const allLocations$ = this.impLocationService.storeObservable;
     const locationsNeedingHomeGeos$ = allLocations$.pipe(
       filter(locations => locations != null),
+      map(locations => locations.filter(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0)),
       map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
     );
 
@@ -76,7 +77,7 @@ export class AppLocationService {
   }
 
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
-    return this.geocodingService.geocodeLocations(data).pipe(
+    return this.geocodingService.geocodeLocations(data, siteType).pipe(
       map(responses => responses.map(r => r.toGeoLocation(siteType, this.appStateService.analysisLevel$.getValue())))
     );
   }

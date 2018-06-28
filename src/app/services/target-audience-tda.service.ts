@@ -10,6 +10,8 @@ import { AppConfig } from '../app.config';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -78,9 +80,28 @@ export class TargetAudienceTdaService {
   private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private stateService: AppStateService) { }
+              private audienceService: TargetAudienceService, private stateService: AppStateService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService) { }
 
-  private static createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse) : ImpGeofootprintVar {
+  /**
+   * Build a cache of geos that can be used for quick
+   * lookup while building geofootprint vars
+   */
+  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
+    let count = 0;
+    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
+    for (const ta of this.tradeAreaService.get()) {
+      const geoMap = new Map<string, ImpGeofootprintGeo>();
+      for(const geo of ta.impGeofootprintGeos) {
+        geoMap.set(geo.geocode, geo);
+        geoCache.set(count, geoMap);
+      }
+      count++;
+    }
+    return geoCache;
+  }
+
+  private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
     const fullId = `Offline/TDA/${varPk}`;
     const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
@@ -97,6 +118,14 @@ export class TargetAudienceTdaService {
       result.fieldname = rawData.fieldname;
       result.natlAvg = rawData.natlAvg;
       result.fieldconte = rawData.fieldconte;
+    }
+    result.isCustom = false;
+    for(const ta of Array.from(geoCache.keys())) {
+      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
+      if(geoMap.has(geocode)) {
+        result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
+        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+      }
     }
     return result;
   }
@@ -177,8 +206,9 @@ export class TargetAudienceTdaService {
         );
       }
     }
+    const geoCache = this.buildGeoCache()
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => TargetAudienceTdaService.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk))))
+      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache)))
     );
   }
 

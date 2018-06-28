@@ -70,18 +70,18 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public selectVariable(event: TreeNode) : void {
     this.currentSelectedNodes.push(event);
     this.audienceService.addAudience(event.data, SourceTypes.Pixel);
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
-    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
+    // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
+    // this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public removeVariable(event: TreeNode) : void {
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
     this.audienceService.removeAudience(event.data, SourceTypes.Pixel);
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
-    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
+    // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
+    // this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public formatCount(number: string) {

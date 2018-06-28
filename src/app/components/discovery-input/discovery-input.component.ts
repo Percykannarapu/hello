@@ -17,6 +17,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpRadLookup } from '../../val-modules/targeting/models/ImpRadLookup';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
+import { AppProjectService } from '../../services/app-project.service';
 
 interface DiscoveryFormData {
   projectName: string;
@@ -49,6 +50,7 @@ class TrackerData {
   public projectName: string;
   public targetor: string;
   public clientName: string;
+  public accountNumber: string;
   public get display() : string {
     const name = this.targetor == null ? '(Unassigned)' : `(${this.targetor})`;
     return `${this.projectId}   ${this.projectName}  ${name}`;
@@ -93,14 +95,15 @@ export class DiscoveryInputComponent implements OnInit {
   constructor(private fb: FormBuilder,
               private config: AppConfig,
               private discoveryService: ImpDiscoveryService,
-              private appProjectService: ImpProjectService,
+              private impProjectService: ImpProjectService,
               private impRadLookupService: ImpRadLookupService,
               private userService: UserService,
               private usageService: UsageService,
               private messagingService: AppMessagingService,
               private appMapService: AppMapService,
               private appStateService: AppStateService,
-              private esriLayerService: EsriLayerService){
+              private esriLayerService: EsriLayerService,
+              private appProjectService: AppProjectService  ){
 
     this.allAnalysisLevels = [
       {label: 'Digital ATZ', value: 'Digital ATZ'},
@@ -217,26 +220,33 @@ export class DiscoveryInputComponent implements OnInit {
     // custom metrics that aren't picked up by the above code
     if (currentForm.projectTrackerData != null) {
       const previousValue = previousForm.projectTrackerData != null ? previousForm.projectTrackerData.projectId : null;
-      const newText = `New=${currentForm.projectTrackerData.projectId}`;
-      const changeText = `${newText}~Old=${previousValue}`;
-      const metricsText = previousValue == null ? newText : changeText;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
-      this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      if (previousValue != null && currentForm.projectTrackerData.projectId !== previousValue){
+        const newText = `New=${currentForm.projectTrackerData.projectId}`;
+        const changeText = `${newText}~Old=${previousValue}`;
+        const metricsText = previousValue == null ? newText : changeText;
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+        this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+      }
     }
     if (currentForm.selectedRadLookupValue != null) {
       const productMetric: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
       const previousProduct = previousForm.selectedRadLookupValue != null ? previousForm.selectedRadLookupValue.product : null;
-      const newProductText = `New=${currentForm.selectedRadLookupValue.product}`;
-      const changeProductText = `${newProductText}~Old=${previousProduct}`;
-      const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
-      this.usageService.createCounterMetric(productMetric, productMetricText, null);
+      if (previousProduct != null && currentForm.selectedRadLookupValue.product !== previousProduct){
+        const newProductText = `New=${currentForm.selectedRadLookupValue.product}`;
+        const changeProductText = `${newProductText}~Old=${previousProduct}`;
+        const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
+        this.usageService.createCounterMetric(productMetric, productMetricText, null);
+      }
+      
 
       const categoryMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
       const previousCategory = previousForm.selectedRadLookupValue != null ? previousForm.selectedRadLookupValue.category : null;
-      const newCategoryText = `New=${currentForm.selectedRadLookupValue.category}`;
-      const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
-      const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
-      this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+      if (previousCategory != null && currentForm.selectedRadLookupValue.category !== previousCategory){
+        const newCategoryText = `New=${currentForm.selectedRadLookupValue.category}`;
+        const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
+        const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
+        this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+      }
     }
   }
 
@@ -282,6 +292,7 @@ export class DiscoveryInputComponent implements OnInit {
     // Populate the ImpProject model
     this.impProject.clientIdentifierTypeCode = 'CAR_LIST';
     this.impProject.clientIdentifierName     =  currentForm.projectTrackerData ? currentForm.projectTrackerData.clientName : null;
+    this.impProject.customerNumber           =  currentForm.projectTrackerData && currentForm.projectTrackerData.accountNumber ? currentForm.projectTrackerData.accountNumber : null;
     this.impProject.consumerPurchFreqCode    = 'REMINDER';
     this.impProject.goalCode                 = 'ACQUISITION';
     this.impProject.objectiveCode            = 'INCREASE_PENETRATION';
@@ -302,7 +313,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.isExcludePob       = !currentForm.includePob;
     this.impProject.isIncludeAnne      = currentForm.includeAnne;
     this.impProject.isIncludeSolo      = currentForm.includeSolo;
-    this.impProject.projectTrackerId   = currentForm.projectTrackerData ? currentForm.projectTrackerData.projectId : null;
+    this.impProject.projectTrackerId   = currentForm.projectTrackerData != null ? currentForm.projectTrackerData.projectId : null;
     this.impProject.projectName        = currentForm.projectName;
     this.impProject.estimatedBlendedCpm = toNumber(currentForm.cpmBlended);
     this.impProject.smValassisCpm      = toNumber(currentForm.cpmValassis);
@@ -312,7 +323,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.impGeofootprintMasters[0].methSeason = currentForm.selectedSeason;
 
     console.log('Saving project data', this.impProject);
-    this.appProjectService.update(null, null);
+    this.impProjectService.update(null, null);
   }
 
   private mapFromProject(newProject: ImpProject) {
@@ -367,7 +378,13 @@ export class DiscoveryInputComponent implements OnInit {
 
   public saveProject() {
     // Save the project
-    this.appProjectService.saveProject();
+    // Cannot call appProjectService directly, must use impProjectService
+    /*
+    this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(proj => {
+      const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+      this.usageService.createCounterMetric(usageMetricName, null, proj[0].projectId);
+    }); */    
+    this.impProjectService.saveProject();    
   }
 
   filterRadData(event) {
@@ -417,6 +434,12 @@ export class DiscoveryInputComponent implements OnInit {
       this.trackerDataCache = data.map(item => new TrackerData(item));
       });
 
+}
+
+public onProjectTrackerSelect(event){
+  if (this.discoveryForm.get('projectName').status === 'INVALID') {
+      this.discoveryForm.get('projectName').setValue(event.projectName);
+  }
 }
 }
 

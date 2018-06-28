@@ -10,6 +10,7 @@ import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/servic
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { UserService } from './user.service';
 import { AppConfig } from '../app.config';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -49,7 +50,8 @@ export class AppProjectService extends DataStore<ImpProject>
                private http: HttpClient,
                private restDataService: RestDataService,
                private projectTransactionManager: TransactionManager,
-               private appMessagingService: AppMessagingService)
+               private appMessagingService: AppMessagingService,
+               private projectVarService: ImpProjectVarService)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'AppProject');
    }
@@ -246,6 +248,14 @@ export class AppProjectService extends DataStore<ImpProject>
                // Retrieve the project from the datastore (Right now assuming only 1)
                console.log ('Saving project: ', (impProject != null) ? impProject.projectId : 'new project');
 
+               // populate project vars
+               impProject.impProjectVars = this.projectVarService.get();
+               if (this.projectVarService.dbRemoves && this.projectVarService.dbRemoves.length > 0) {
+                 for (const dbRemove of this.projectVarService.dbRemoves) {
+                   this.projectVarService.add([dbRemove]);
+                 }
+               }
+
                // Create Geofootprint Array if needed
                console.log('ImpProject.service.saveProject - populating geofootprint master');
                if (!impProject.impGeofootprintMasters)
@@ -290,7 +300,7 @@ export class AppProjectService extends DataStore<ImpProject>
                // console.log('ImpProject.service.saveProject - Getting geos');
                // const impGeofootprintGeos:       Array<ImpGeofootprintGeo>       = this.impGeofootprintGeoService.get();
                // console.log('ImpProject.service.saveProject - Getting vars');
-               // const impGeofootprintVars:       Array<ImpGeofootprintVar>       = this.impGeofootprintVarService.get();
+               const impGeofootprintVars:       Array<ImpGeofootprintVar>       = this.impGeofootprintVarService.get();
                //
                // console.log('ImpProject.service.saveProject - Deduping location attributes');
 
@@ -417,22 +427,22 @@ export class AppProjectService extends DataStore<ImpProject>
                            // tradeArea.impGeofootprintVars = impGeofootprintVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null
                            //                                                                   && geoVar.impGeofootprintTradeArea == tradeArea);
 
-                           // tradeArea.impGeofootprintVars.forEach(geoVar =>
-                           // {
-                           //    delete geoVar["impGeofootprintLocation"];
-                           //    delete geoVar["impGeofootprintMaster"];
-                           //    delete geoVar["impGeofootprintTradeArea"];
-                           //    delete geoVar["impProject"];
+                           tradeArea.impGeofootprintVars.forEach(geoVar =>
+                           {
+                              delete geoVar['impGeofootprintLocation'];
+                              delete geoVar['impGeofootprintMaster'];
+                              delete geoVar['impGeofootprintTradeArea'];
+                              delete geoVar['impProject'];
 
-                           //    geoVar.dirty = true;
+                              geoVar.dirty = true;
 
-                           //    // Remove stubbed ggIds
-                           //    if (geoVar.gvId < 1000)
-                           //       geoVar.gvId = null;
+                              // Remove stubbed ggIds
+                              if (geoVar.gvId < 1000)
+                                 geoVar.gvId = null;
 
-                           //    geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
-                           //    geoVar.isActive   = 1;
-                           // });
+                              geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
+                              geoVar.isActive   = true;
+                           });
                         });
                      }
                      else

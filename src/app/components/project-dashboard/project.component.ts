@@ -13,10 +13,11 @@ import { AppLocationService } from '../../services/app-location.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, take, map } from 'rxjs/operators';
+import { filter, take, map, tap } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 
 
 @Component({
@@ -71,7 +72,7 @@ import { UsageService } from '../../services/usage.service';
 
     public allProjectsData: any;
     public myProjecctsData: any;
-    public selectedListType: 'Myproject' | 'Allproject';
+    public selectedListType: 'myProject' | 'allProject';
     public selectedColumns: any[] = [];
     public columnOptions: SelectItem[] = [];
     public projectColumns: string[];
@@ -79,7 +80,7 @@ import { UsageService } from '../../services/usage.service';
     public selectedProjectData: any[] = [];
 
     ngOnInit() {
-      this.selectedListType = 'Myproject';
+      this.selectedListType = 'myProject';
 
       for (const column of this.allColumns) {
         this.columnOptions.push({ label: column.header, value: column });
@@ -89,7 +90,7 @@ import { UsageService } from '../../services/usage.service';
     }
 
     ngAfterViewInit(){
-      this.selectedListType = 'Myproject';
+      this.selectedListType = 'myProject';
      
       const usrSub = this.userService.userObservable.subscribe(result => {
         if (result.userId != null){
@@ -105,7 +106,7 @@ import { UsageService } from '../../services/usage.service';
                   row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
                 });
                 this.allProjectsData = data;
-              });
+              }, null , () =>  this.searchFilterMetric());
 
               const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
                 Array.from(data).forEach(row => {
@@ -117,7 +118,7 @@ import { UsageService } from '../../services/usage.service';
               });
             });
         }
-        this.searchFilterMetric();
+       //;
       });
 
     }
@@ -143,15 +144,16 @@ import { UsageService } from '../../services/usage.service';
         map((response ) => data = response.payload.rows));
     }
 
-    public onListTypeChange(data: 'Myproject' | 'Allproject') {
+    public onListTypeChange(data: 'myProject' | 'allProject') {
       this.selectedListType = data;
-      this.searchFilterMetric();
-      if (this.selectedListType === 'Myproject'){
+     
+      if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
       }
       else {
         this.currentProjectData = this.allProjectsData;
       }
+      this.searchFilterMetric();
     }
 
     public onProjectSelected(event){
@@ -162,7 +164,7 @@ import { UsageService } from '../../services/usage.service';
       const updatedateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
-      this.searchFilterMetric();
+     
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
@@ -195,7 +197,40 @@ import { UsageService } from '../../services/usage.service';
         updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
       }
 
-      const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
+      const allProject$ =  this.getAllProjectsData(updatedateFrom, updatedDateTo).pipe(
+        tap(data => {
+          Array.from(data).forEach(row => {
+            const dt = new Date(row['modifyDate']);
+            row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+  
+          });
+          this.allProjectsData = data;
+        }));
+
+        const myProject$ =  this.getMyProjectData(updatedateFrom, updatedDateTo).pipe(
+          tap(data => {
+            Array.from(data).forEach(row => {
+              const dt = new Date(row['modifyDate']);
+              row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
+    
+            });
+            this.myProjecctsData = data;
+          }));
+       
+      forkJoin(allProject$, myProject$).subscribe(null, null, () => {
+
+        if (this.selectedListType === 'myProject'){
+          this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
+        }
+        else {
+          this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
+        }
+
+      });    
+
+     /* const sub = this.getAllProjectsData(updatedateFrom, updatedDateTo).subscribe(data => {
         Array.from(data).forEach(row => {
           const dt = new Date(row['modifyDate']);
           row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
@@ -203,12 +238,15 @@ import { UsageService } from '../../services/usage.service';
         });
         this.allProjectsData = data;
       }, null , () => {
-        if (this.selectedListType === 'Myproject'){
+        if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
         }
         else {
           this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
         }
+        
       });
 
       const sub1 = this.getMyProjectData(updatedateFrom, updatedDateTo).subscribe(data => {
@@ -218,15 +256,18 @@ import { UsageService } from '../../services/usage.service';
 
         });
         this.myProjecctsData = data;
-        this.currentProjectData = this.myProjecctsData;
+       // this.currentProjectData = this.myProjecctsData;
       }, null, () => {
-        if (this.selectedListType === 'Myproject'){
+        if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjecctsData;
+          this.searchFilterMetric();
         }
         else {
           this.currentProjectData = this.allProjectsData;
+          this.searchFilterMetric();
         }
-      });
+       
+      });*/
     }
 
     public formatDate(date) {

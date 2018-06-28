@@ -69,17 +69,17 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   public selectVariable(event: TreeNode) : void {
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
+   /* const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
     const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);*/
     this.currentSelectedNodes.push(event);
     this.audienceService.addAudience(event.data, SourceTypes.VLH);
   }
 
   public removeVariable(event: TreeNode) : void {
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
-    const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
+    // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
+    // this.usageService.createCounterMetric(usageMetricName, metricText, null);
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
     this.audienceService.removeAudience(event.data, SourceTypes.VLH);

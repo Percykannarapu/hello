@@ -94,8 +94,7 @@ export class AppTradeAreaService {
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
-    // const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
-    const currentLocations = locations.filter(loc => loc.homeGeocode.length === 0 && loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
+    const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
     if (newSites.length > 0) {

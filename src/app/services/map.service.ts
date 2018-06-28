@@ -175,6 +175,17 @@ export class MapService {
         y: Number(this.mapView.popup.selectedFeature.attributes.latitude)
       };
       this.appMapService.selectSingleGeocode(geocode, geometry);
+      const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+      const portalLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
+      const outfields = [];
+      const geocodes: string[] = [];
+      geocodes.push(geocode);
+      let graphic = null;
+      outfields.push('geocode', 'latitude', 'longitude', 'hhld_w', 'hhld_s');
+      const sub1 = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, false, outfields).subscribe( graphics => {
+        graphic = graphics[0];
+      }, null, () => this.appMapService.collectSelectionUsage(graphic));
+    //  this.mapView.graphics.
     }
 
     // create the MapView

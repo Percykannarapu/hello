@@ -11,6 +11,9 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -101,9 +104,11 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
+  private varPkCache: Map<string, number> = new Map<string, number>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private usageService: UsageService, private appStateService: AppStateService) {
+              private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
@@ -129,18 +134,51 @@ export class TargetAudienceOnlineService {
     };
   }
 
-  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>) : ImpGeofootprintVar {
+  /**
+   * Build a cache of geos that can be used for quick
+   * lookup while building geofootprint vars
+   */
+  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
+    let count = 0;
+    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
+    for (const ta of this.tradeAreaService.get()) {
+      const geoMap = new Map<string, ImpGeofootprintGeo>();
+      for (const geo of ta.impGeofootprintGeos) {
+        geoMap.set(geo.geocode, geo);
+        geoCache.set(count, geoMap);
+      }
+      count++;
+    }
+    return geoCache;
+  }
+
+  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.digCategoryId}`;
     const description = descriptionMap.get(response.digCategoryId);
-    const newVarPk = Number(description.audienceIdentifier);
+    const currentProject = this.appStateService.currentProject$.getValue();
+    let newVarPk = null;
+    if (this.varPkCache.has(fullId)) {
+      newVarPk = this.varPkCache.get(fullId);
+    } else {
+      newVarPk = this.varService.getNextStoreId();
+      this.varPkCache.set(fullId, newVarPk);
+    }
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
       varPk: Number.isNaN(newVarPk) ? -1 : newVarPk,
       customVarExprQuery: fullId,
       isString: false,
       isNumber: false,
-      isActive: true
+      isActive: true,
+      isCustom: false
     });
+    for (const ta of Array.from(geoCache.keys())) {
+      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
+      if (geoMap.has(response.geocode)) {
+        result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
+        geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+      }
+    }
     // this is the full category description object that comes from Fuse
     if (description != null) {
       result.customVarExprDisplay = `${description.audienceName} (${source})`;
@@ -170,7 +208,7 @@ export class TargetAudienceOnlineService {
 
   public removeAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
     this.usageMetricCheckUncheckApio('unchecked', audience, source.toString());
-    this.audienceService.removeAudience('Online', source, audience.categoryId.toString());
+    this.audienceService.removeAudience('Online', source, audience.digCategoryId.toString());
   }
 
   public getAudienceDescriptions(sources: SourceTypes[]) : Observable<OnlineAudienceDescription[]> {
@@ -218,8 +256,9 @@ export class TargetAudienceOnlineService {
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
+    const geoCache = this.buildGeoCache();
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap)))
+      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache)))
     );
   }
 
@@ -271,7 +310,11 @@ export class TargetAudienceOnlineService {
   private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source?: string) {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
-    const metricText = audience.digCategoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
+    let metricText = null;
+    if (source === 'Pixel')
+        metricText = audience.digCategoryId + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+    else
+        metricText = audience.digCategoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 }

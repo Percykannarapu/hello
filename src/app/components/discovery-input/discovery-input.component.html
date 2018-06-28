@@ -21,7 +21,7 @@
       <div class="ui-g-12" >
         <div class="ui-g-8">
          <span class="md-inputfield">
-          <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (completeMethod)="filterProjectTracker($event)"
+          <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (onSelect)="onProjectTrackerSelect($event)" (completeMethod)="filterProjectTracker($event)"
                           [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display" [inputStyle]="{'width':'100%'}" >
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>

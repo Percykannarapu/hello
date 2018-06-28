@@ -10,6 +10,8 @@ import { filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 const audienceUploadRules: ParseRule[] = [
   { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
@@ -29,7 +31,7 @@ export class TargetAudienceCustomService {
 
   constructor(private messagingService: AppMessagingService, private usageService: UsageService,
               private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private varService: ImpGeofootprintVarService) { }
+              private varService: ImpGeofootprintVarService, private tradeAreaService: ImpGeofootprintTradeAreaService) { }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
     return {
@@ -45,7 +47,25 @@ export class TargetAudienceCustomService {
     };
   }
 
-  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string) : ImpGeofootprintVar {
+  /**
+   * Build a cache of geos that can be used for quick
+   * lookup while building geofootprint vars
+   */
+  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
+    let count = 0;
+    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
+    for (const ta of this.tradeAreaService.get()) {
+      const geoMap = new Map<string, ImpGeofootprintGeo>();
+      for(const geo of ta.impGeofootprintGeos) {
+        geoMap.set(geo.geocode, geo);
+        geoCache.set(count, geoMap);
+      }
+      count++;
+    }
+    return geoCache;
+  }
+
+  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
     const fullId = `Custom/${fileName}/${column}`;
     let newVarPk = null;
     if (this.varPkCache.has(column)) {
@@ -62,6 +82,14 @@ export class TargetAudienceCustomService {
       result.valueNumber = Number(value);
       result.fieldconte = 'INDEX';
       result.isNumber = true;
+    }
+    result.isCustom = false;
+    for(const ta of Array.from(geoCache.keys())) {
+      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
+      if(geoMap.has(geocode)) {
+        result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
+        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+      }
     }
     this.varPkCache.set(column, newVarPk);
     return result;
@@ -87,8 +115,9 @@ export class TargetAudienceCustomService {
         } else {
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
+          const geoCache = this.buildGeoCache()
           for (const column of columnNames) {
-            const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName));
+            const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName, geoCache));
             const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));
             this.dataCache.set(column, geoDataMap);
             const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
