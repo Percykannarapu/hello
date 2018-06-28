@@ -8,7 +8,6 @@ import { UserService } from './user.service';
 import { DataStore } from '../val-modules/common/services/datastore.service';
 import { Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { map, mergeMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -33,7 +32,6 @@ export class UsageService {
   constructor(private userService: UserService,
     private restClient: RestDataService,
     private impMetricNameService: ImpMetricNameService,
-    private projectService: ImpProjectService,
     private appConfig: AppConfig, private http: HttpClient, private stateService: AppStateService) {
      }
 

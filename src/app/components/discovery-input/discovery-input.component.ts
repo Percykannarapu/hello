@@ -384,7 +384,12 @@ export class DiscoveryInputComponent implements OnInit {
       const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
       this.usageService.createCounterMetric(usageMetricName, null, proj[0].projectId);
     }); */    
-    this.impProjectService.saveProject();    
+    this.impProjectService.saveProject();
+
+    // Needs to happen after the save is complete
+    // TODO: See ImpProject.service.saveProjectObs - fix that and swap with saveProject abvoe
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+    this.usageService.createCounterMetric(usageMetricName, null, null); //savedProject[0].projectId);    
   }
 
   filterRadData(event) {
