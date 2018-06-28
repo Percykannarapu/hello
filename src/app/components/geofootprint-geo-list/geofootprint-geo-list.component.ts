@@ -387,9 +387,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
-
+console.log("Flattening Geos");
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
+console.log(geo);
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;

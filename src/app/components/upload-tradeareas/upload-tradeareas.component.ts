@@ -175,7 +175,23 @@ export class UploadTradeAreasComponent {
                 const point = new EsriModules.Point({latitude: latitude, longitude: longitude});
                 const geoData = data.parsedData.filter(g => g.Geo === geocode);
                 if (geoData.length > 0) {
+
+                  const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
+                  if (tas.length <= 0) {
+                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'CUSTOM');
+                     tradeAreasForInsert.push(newTA);
+                     tas.push(newTA);
+                  }
+
                   geoData.forEach(geo => {
+                     tas.forEach(ta => {
+                        const newGeo = this.createGeo(geocodeDistance, point, loc, ta, graphic.attributes['geocode']);
+                        ta.impGeofootprintGeos.push(newGeo);
+                        geosToAdd.push(newGeo);
+                      });
+                  });
+
+   /*               geoData.forEach(geo => {
                     const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
                     if (tas.length > 0) {
                       tas.forEach(ta => {
@@ -184,14 +200,15 @@ export class UploadTradeAreasComponent {
                         geosToAdd.push(newGeo);
                       });
                     } else {
-                      const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'UPLOADGEO CUSTOM');
+                      const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'CUSTOM');
                       if (!newTA.impGeofootprintGeos)
                         newTA.impGeofootprintGeos = [];
-                      geosToAdd.push(this.createGeo(geocodeDistance, point, loc, newTA, graphic.attributes['geocode']));
-                      tradeAreasForInsert.push(newTA);
-                    }
-                  });
-
+                        const newGeo = this.createGeo(geocodeDistance, point, loc, newTA, graphic.attributes['geocode']);
+                        geosToAdd.push(newGeo);
+                        newTA.impGeofootprintGeos.push(newGeo);
+                        tradeAreasForInsert.push(newTA);
+                      }
+                  });*/
                 }
               }
          //     this.tradeAreaService.zoomToTradeArea();
@@ -199,6 +216,9 @@ export class UploadTradeAreasComponent {
           },
           err => console.log('error:::', err),
           () => {
+             geosToAdd.forEach(geo => {
+                console.log(geo);
+             })
             this.impGeoService.add(geosToAdd);
             this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
             const failedGeocodeSet: Set<string> = new Set<string>();
