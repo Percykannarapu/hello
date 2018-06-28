@@ -390,14 +390,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 console.log("Flattening Geos");
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
-console.log(geo);
+// console.log(geo);
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
 
-         if (gridGeo.geo.impGeofootprintLocation.locZip != null) 
+         if (gridGeo.geo.impGeofootprintLocation.locZip != null)
          gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5) ;
-          else 
+          else
            ' ';
 
          // Assign all variable properties to the geo
@@ -792,7 +792,7 @@ console.log(geo);
    }
 
    onSelectGeocode(event: any, isSelected: boolean)
-   {      
+   {
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
 
       const currentProject = this.appStateService.currentProject$.getValue();
@@ -814,7 +814,7 @@ console.log(geo);
          }
          else{
            this.usageService.createCounterMetric(geoDeselected, metricText, null);
-         }   
+         }
       }
    }
 
