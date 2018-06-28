@@ -107,10 +107,10 @@ export class TargetAudienceTdaService {
     if (loading) return; // loading will be false when the load is actually done
     try {
       const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('offline')).length > 0) {
+      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
-        for (const projectVar of project.impProjectVars) {
+        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
           let sourceType = projectVar.source.split('~')[0].split('_')[0];
           const sourceNamePieces = projectVar.source.split('~')[0].split('_');
           const onlineType = sourceNamePieces[0];
