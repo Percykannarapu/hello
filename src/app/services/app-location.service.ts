@@ -45,6 +45,7 @@ export class AppLocationService {
     const allLocations$ = this.impLocationService.storeObservable;
     const locationsNeedingHomeGeos$ = allLocations$.pipe(
       filter(locations => locations != null),
+      map(locations => locations.filter(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0)),
       map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
     );
 
