@@ -95,7 +95,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                    {label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
+                    //{label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
                     {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() }
 
                 ]
