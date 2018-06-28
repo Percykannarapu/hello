@@ -253,7 +253,7 @@ export class AppGeoService {
             const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
             const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
             if (homeGeoTA.length === 0) {
-              const newTA = AppTradeAreaService.createCustomTradeArea(0, loc, true, 'HOMEGEO');
+              const newTA = AppTradeAreaService.createCustomTradeArea(3, loc, true, 'HOMEGEO');
               homeGeoTA.push(newTA);
               newTradeAreas.push(newTA);
             }
