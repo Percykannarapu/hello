@@ -185,7 +185,7 @@ export class AppMapService implements OnDestroy {
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
    * @param graphic The feature the user manually selected on the map
    */
-  private collectSelectionUsage(graphic: __esri.Graphic) {
+  public collectSelectionUsage(graphic: __esri.Graphic) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
