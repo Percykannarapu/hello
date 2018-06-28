@@ -39,32 +39,28 @@ export class ImpProjectService extends DataStore<ImpProject>
       return this.appProjectService.loadProject(projectId, clearStore).pipe(
         map(projects => {
           console.log('ImpProject.service.loadProject - load from AppProjectService finished');
+          this.replace(projects);
           this.appProjectService.populateDataStores(projects[0]);
           return projects[0];
         }),
-        tap(project => this.replace([project]))
+        tap(project => console.log("loadProject complete") /*this.replace([project])*/)
       );
    }
 
    saveProject()
    {
       console.log('ImpProject.service.saveProject fired');
-      console.log('BEFORE SAVE');
       this.appProjectService.debugLogStoreCounts();
       this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
          if (savedProject != null)
          {
-            console.log('project saved', savedProject);
-            console.log('BEFORE REPLACE STORE FROM SAVE');
-            this.appProjectService.debugLogStoreCounts();
-            this.replace(savedProject);
             console.log('AFTER SAVE');
             this.appProjectService.debugLogStoreCounts();
 
             // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
             //       This is not ideal code, the app-project.service should be doing it.
             this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {
-               this.replace(savedProject);
+               console.log("Reloaded projectId: ", (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
             })
          }
          else

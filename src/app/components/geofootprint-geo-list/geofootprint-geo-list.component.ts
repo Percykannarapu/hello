@@ -361,6 +361,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
       console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
+
       let fgId = 0;
       const geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
@@ -784,11 +785,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onSelectGeocode(event: any, isSelected: boolean)
    {
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
-      //console.log('onSelectGeocode - Setting geocode: ', geo.geocode, ' to isActive = ' + isSelected + ", geo: ", geo);
+      // console.log('onSelectGeocode - Setting geocode: ', geo.geocode, ' to isActive = ' + isSelected + ", geo: ", geo);
       if (geo.isActive != isSelected)
       {
          geo.isActive = isSelected;
-         this.impGeofootprintGeoService.update(null, null);
+         //this.impGeofootprintGeoService.update(null, null);
+         this.impGeofootprintGeoService.makeDirty();
       }
    }
 
