@@ -129,9 +129,9 @@ export class ValMetricsService implements OnDestroy {
         }
       },
       metricAccumulator: (p, c) => {
-        if (this.currentProject.isDollarBudget) {
+        if (this.currentProject.isDollarBudget && this.currentProject.totalBudget !== 0) {
             return p + (c / (1000 * this.currentProject.totalBudget));
-        } else if (this.currentProject.isCircBudget) {
+        } else if (this.currentProject.isCircBudget && this.currentProject.totalBudget !== 0) {
             return p + (c / (this.currentProject.totalBudget));
         } else {
             return null;
