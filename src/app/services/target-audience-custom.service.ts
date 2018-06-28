@@ -56,7 +56,7 @@ export class TargetAudienceCustomService {
     const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
     for (const ta of this.tradeAreaService.get()) {
       const geoMap = new Map<string, ImpGeofootprintGeo>();
-      for(const geo of ta.impGeofootprintGeos) {
+      for (const geo of ta.impGeofootprintGeos) {
         geoMap.set(geo.geocode, geo);
         geoCache.set(count, geoMap);
       }
@@ -84,11 +84,17 @@ export class TargetAudienceCustomService {
       result.isNumber = true;
     }
     result.isCustom = false;
-    for(const ta of Array.from(geoCache.keys())) {
+    for (const ta of Array.from(geoCache.keys())) {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-      if(geoMap.has(geocode)) {
+      if (geoMap.has(geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+
+        /**
+         * Uncomment the line below to re-enable saving of the project vars
+         */
+
+        //geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+        
       }
     }
     this.varPkCache.set(column, newVarPk);
@@ -115,7 +121,7 @@ export class TargetAudienceCustomService {
         } else {
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
-          const geoCache = this.buildGeoCache()
+          const geoCache = this.buildGeoCache();
           for (const column of columnNames) {
             const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName, geoCache));
             const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));

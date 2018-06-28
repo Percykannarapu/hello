@@ -224,7 +224,12 @@ export class TargetAudienceOnlineService {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(response.geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
-        geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+
+        /**
+         * Uncomment the line below to re-enable saving of the project vars
+         */
+
+        //geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     // this is the full category description object that comes from Fuse
