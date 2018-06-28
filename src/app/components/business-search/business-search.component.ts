@@ -5,6 +5,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { AppStateService } from '../../services/app-state.service';
 
 interface SelectableSearchResult {
   data: BusinessSearchResponse;
@@ -41,7 +42,8 @@ export class BusinessSearchComponent implements OnInit {
   businessCategories: BusinessSearchCategory[];
 
   constructor(private appService: AppBusinessSearchService, private messagingService: AppMessagingService,
-              private locationService: ImpGeofootprintLocationService, private usageService: UsageService) {
+              private locationService: ImpGeofootprintLocationService, private usageService: UsageService,
+              private appStateService: AppStateService) {
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -191,6 +193,8 @@ export class BusinessSearchComponent implements OnInit {
       const metricName = 'Import as ' + siteType;
       this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
       if (locationsForInsert.length > 0) {
+        const currentMaster = this.appStateService.currentMaster$.getValue();
+        currentMaster.impGeofootprintLocations.push(...locationsForInsert);
         this.locationService.add(locationsForInsert);
         this.appService.closeOverLayPanel.next(true);
       }
