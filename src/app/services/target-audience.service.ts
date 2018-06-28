@@ -16,6 +16,8 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
+import { TargetAudienceTdaService } from './target-audience-tda.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -47,7 +49,7 @@ export class TargetAudienceService implements OnDestroy {
     private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
     private usageService: UsageService, private messagingService: AppMessagingService,
     private config: AppConfig, private mapDispatchService: MapDispatchService,
-    private projectVarService: ImpProjectVarService) {
+    private projectVarService: ImpProjectVarService, private restService: RestDataService) {
     const layerId$ = this.appStateService.analysisLevel$.pipe(
       filter(al => al != null && al.length > 0),
       map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id
@@ -69,47 +71,6 @@ export class TargetAudienceService implements OnDestroy {
         return geos.filter(g => !varGeos.has(g));
       })
     );
-
-    this.appStateService.projectIsLoading$.subscribe(isLoading => {
-      console.log('got message from observable');
-      this.onLoadProject(isLoading);
-    });
-  }
-
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
-    try {
-      const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars) {
-        this.projectVarService.clearAll();
-        this.projectVarService.add(project.impProjectVars);
-        for (const projectVar of project.impProjectVars) {
-          let sourceType = projectVar.source.split('~')[0].split('_')[0];
-          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
-          delete sourceNamePieces[0];
-          const sourceName = sourceNamePieces.join();
-          const audienceIdentifier = projectVar.source.split('~')[1];
-          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
-          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
-          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
-          const audience: AudienceDataDefinition = {
-            allowNationalExport: projectVar.isNationalExtract,
-            audienceIdentifier: audienceIdentifier,
-            audienceName: projectVar.fieldname,
-            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
-            audienceSourceType: sourceType === 'Online' ? 'Online' : sourceType === 'Offline' ? 'Offline' : 'Custom',
-            dataSetOptions: null,
-            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            exportNationally: projectVar.isNationalExtract,
-            showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap
-          };
-          this.addAudience(audience, null, null, projectVar.pvId);
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
   }
 
   private createKey = (...values: string[]) => values.join('/');
@@ -129,10 +90,10 @@ export class TargetAudienceService implements OnDestroy {
     this.audiences.next(Array.from(this.audienceMap.values()));
   }
 
-  private createProjectVar(audience: AudienceDataDefinition, id?: number): ImpProjectVar {
+  private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
     const projectVar = new ImpProjectVar();
     try {
-      let source = audience.audienceSourceType.toUpperCase() + '_' + audience.audienceSourceName.toUpperCase();
+      let source = audience.audienceSourceType + '_' + audience.audienceSourceName;
       source = source.replace(' ', '_');
       source = source + '~' + audience.audienceIdentifier;
       projectVar.pvId = id ? id : null;

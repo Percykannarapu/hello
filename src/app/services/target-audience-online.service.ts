@@ -14,6 +14,8 @@ import { simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -108,13 +110,17 @@ export class TargetAudienceOnlineService {
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
               private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService) {
+              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
       [SourceTypes.VLH, 'vlh'],
       [SourceTypes.Pixel, 'pixel']
     ]);
+
+    this.appStateService.projectIsLoading$.subscribe(isLoading => {
+      this.onLoadProject(isLoading);
+    });
   }
 
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
@@ -132,6 +138,53 @@ export class TargetAudienceOnlineService {
       dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
       secondaryId: digId.toLocaleString()
     };
+  }
+
+  private onLoadProject(loading: boolean) {
+    if (loading) return; // loading will be false when the load is actually done
+    console.log('AARON: CREADING ONLINE AUDIENCE FROM LOAD');
+    try {
+      const project = this.appStateService.currentProject$.getValue();
+      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('online'))) {
+        this.projectVarService.clearAll();
+        this.projectVarService.add(project.impProjectVars);
+        for (const projectVar of project.impProjectVars) {
+          let sourceType = projectVar.source.split('~')[0].split('_')[0];
+          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
+          const onlineType = sourceNamePieces[0];
+          delete sourceNamePieces[0];
+          const sourceName = sourceNamePieces.join();
+          const audienceIdentifier = projectVar.source.split('~')[1];
+          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
+          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
+          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
+          const audience: AudienceDataDefinition = {
+            allowNationalExport: projectVar.isNationalExtract,
+            audienceIdentifier: audienceIdentifier,
+            audienceName: projectVar.fieldname,
+            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
+            audienceSourceType: 'Online',
+            dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
+            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+            exportNationally: projectVar.isNationalExtract,
+            showOnGrid: projectVar.isIncludedInGeoGrid,
+            showOnMap: projectVar.isShadedOnMap,
+            selectedDataSet: 'nationalScore',
+          };
+          if (projectVar.source.toLowerCase().match('interest')) {
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), null, null);
+          } else if (projectVar.source.toLowerCase().match('in-market')){
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), null, null);
+          } else if (projectVar.source.toLowerCase().match('vlh')){
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), null, null);
+          } else {
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), null, null);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
