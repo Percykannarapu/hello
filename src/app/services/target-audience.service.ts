@@ -133,10 +133,8 @@ export class TargetAudienceService implements OnDestroy {
         if (projectVar.varPk) {
           // remove it from the database only if it has an ID populated
           this.projectVarService.addDbRemove(projectVar);
-          console.log('AARON: ADDED DBREMOVE FOR PROJECT VAR:', projectVar);
         }
         this.projectVarService.remove(projectVar);
-        console.log('AARON: REMOVED PROJECT VAR:', projectVar);
       }
     }
   }

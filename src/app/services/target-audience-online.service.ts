@@ -137,10 +137,9 @@ export class TargetAudienceOnlineService {
 
   private onLoadProject(loading: boolean) {
     if (loading) return; // loading will be false when the load is actually done
-    console.log('AARON: CREADING ONLINE AUDIENCE FROM LOAD');
     try {
       const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('online'))) {
+      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('online')).length > 0) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars) {
