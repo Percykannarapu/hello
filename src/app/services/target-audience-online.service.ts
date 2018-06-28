@@ -203,17 +203,17 @@ export class TargetAudienceOnlineService {
   private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.digCategoryId}`;
     const description = descriptionMap.get(response.digCategoryId);
-    const currentProject = this.appStateService.currentProject$.getValue();
-    let newVarPk = null;
-    if (this.varPkCache.has(fullId)) {
-      newVarPk = this.varPkCache.get(fullId);
-    } else {
-      newVarPk = this.varService.getNextStoreId();
-      this.varPkCache.set(fullId, newVarPk);
-    }
+    // const currentProject = this.appStateService.currentProject$.getValue();
+    // let newVarPk = null;
+    // if (this.varPkCache.has(fullId)) {
+    //   newVarPk = this.varPkCache.get(fullId);
+    // } else {
+    //   newVarPk = this.varService.getNextStoreId();
+    //   this.varPkCache.set(fullId, newVarPk);
+    // }
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
-      varPk: Number.isNaN(newVarPk) ? -1 : newVarPk,
+      varPk: Number(response.digCategoryId),
       customVarExprQuery: fullId,
       isString: false,
       isNumber: false,
