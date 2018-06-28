@@ -88,7 +88,7 @@ export class AppLocationService {
       .forEach(loc => loc.locationName = loc.locationNumber);
      const currentMaster = this.appStateService.currentMaster$.getValue();
     data.forEach(l => 
-      { if (l.locationNumber.length === 0 || l.locationNumber == null) l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
+      { if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
         l.impGeofootprintMaster = currentMaster;
       });
     currentMaster.impGeofootprintLocations.push(...data);
