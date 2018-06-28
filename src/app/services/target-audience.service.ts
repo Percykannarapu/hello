@@ -104,7 +104,7 @@ export class TargetAudienceService implements OnDestroy {
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap
           };
-          this.addAudience(audience, null);
+          this.addAudience(audience, null, null, projectVar.pvId);
         }
       }
     } catch (error) {
@@ -118,35 +118,48 @@ export class TargetAudienceService implements OnDestroy {
     this.unsubEverything();
   }
 
-  public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource) : void {
+  public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, id?: number) : void {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
     this.audienceSources.set(sourceId, sourceRefresh);
     this.audienceMap.set(audienceId, audience);
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
-    this.projectVarService.add([this.createProjectVar(audience)]);
+    const projectVar = this.createProjectVar(audience, id);
+    if (projectVar) this.projectVarService.add([projectVar]);
     this.audiences.next(Array.from(this.audienceMap.values()));
   }
 
-  private createProjectVar(audience: AudienceDataDefinition) : ImpProjectVar {
+  private createProjectVar(audience: AudienceDataDefinition, id?: number): ImpProjectVar {
     const projectVar = new ImpProjectVar();
-    let source = audience.audienceSourceType.toUpperCase() + '_' + audience.audienceSourceName.toUpperCase();
-    source = source.replace(' ', '_');
-    source = source + '~' + audience.audienceIdentifier;
-    projectVar.baseStatus = DAOBaseStatus.INSERT;
-    projectVar.varPk = this.projectVarService.getNextStoreId();
-    projectVar.isShadedOnMap = audience.showOnMap;
-    projectVar.isIncludedInGeoGrid = audience.showOnGrid;
-    projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
-    projectVar.isNationalExtract = audience.exportNationally;
-    projectVar.indexBase = audience.selectedDataSet;
-    projectVar.fieldname = audience.audienceName;
-    projectVar.source = source;
-    projectVar.isCustom = audience.audienceSourceType.match('Custom') ? true : false;
-    projectVar.isString = false;
-    projectVar.isNumber = false;
-    projectVar.isUploaded = false;
-    projectVar.isActive = true;
+    try {
+      let source = audience.audienceSourceType.toUpperCase() + '_' + audience.audienceSourceName.toUpperCase();
+      source = source.replace(' ', '_');
+      source = source + '~' + audience.audienceIdentifier;
+      projectVar.pvId = id ? id : null;
+      projectVar.baseStatus = DAOBaseStatus.INSERT;
+      projectVar.varPk = this.projectVarService.getNextStoreId();
+      projectVar.isShadedOnMap = audience.showOnMap;
+      projectVar.isIncludedInGeoGrid = audience.showOnGrid;
+      projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+      projectVar.isNationalExtract = audience.exportNationally;
+      projectVar.indexBase = audience.selectedDataSet;
+      projectVar.fieldname = audience.audienceName;
+      projectVar.source = source;
+      projectVar.isCustom = audience.audienceSourceType.match('Custom') ? true : false;
+      projectVar.isString = false;
+      projectVar.isNumber = false;
+      projectVar.isUploaded = false;
+      projectVar.isActive = true;
+
+      // protect against adding dupes to the data store
+      if (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0) {
+        console.warn('refusing to add duplaicate project var: ', projectVar);
+        return null;
+      }
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
     return projectVar;
   }
 
