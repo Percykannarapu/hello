@@ -13,10 +13,11 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMessagingService } from './app-messaging.service';
 import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -30,12 +31,13 @@ export class AppGeoService {
   constructor(private tradeAreaService: ImpGeofootprintTradeAreaService, private appStateService: AppStateService,
               private geoService: ImpGeofootprintGeoService, private attributeService: ImpGeofootprintGeoAttribService,
               private locationService: ImpGeofootprintLocationService, private messagingService: AppMessagingService,
-              private queryService: EsriQueryService, private config: AppConfig) {
+              private varService: ImpGeofootprintVarService, private queryService: EsriQueryService, private config: AppConfig) {
 
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
     this.setupGeoAttributeUpdateObservable();
+    this.setupAnalysisLevelGeoClearObservable();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -102,6 +104,18 @@ export class AppGeoService {
         filter(([geocodes, analysisLevel, isLoading]) => !isLoading))
       .subscribe(
         ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel));
+  }
+
+  private setupAnalysisLevelGeoClearObservable() {
+    // the core sequence only fires when analysis level changes
+    this.validAnalysisLevel$.pipe(
+      // need to enlist the latest geos and isLoading flag
+      withLatestFrom(this.geoService.storeObservable, this.appStateService.projectIsLoading$),
+      // halt the sequence if the project is loading
+      filter(([analysisLevel, geos, isLoading]) => !isLoading),
+      // halt the sequence if there are no geos
+      filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
+    ).subscribe(() => this.clearAllGeos());
   }
 
   private updateAttributesFromLayer(geocodes: string[], analysisLevel: string) {
@@ -171,6 +185,23 @@ export class AppGeoService {
         this.geoService.add(geosToPersist);
         this.messagingService.stopSpinnerDialog(spinnerKey);
       });
+  }
+
+  private clearAllGeos() {
+    // also removes all vars and trade areas (except Radius and Audience)
+    this.attributeService.clearAll();
+    this.geoService.addDbRemove(this.geoService.get());
+    this.geoService.clearAll();
+    this.varService.addDbRemove(this.varService.get());
+    this.varService.clearAll();
+    this.tradeAreaService.get().forEach(ta => {
+      ta.impGeofootprintGeos = [];
+      ta.impGeofootprintVars = [];
+      if (ta['isComplete'] != null) ta['isComplete'] = false;
+    });
+    const tradeAreasToRemove = this.tradeAreaService.get().filter(ta => ta.taType !== 'RADIUS' && ta.taType !== 'AUDIENCE');
+    this.tradeAreaService.addDbRemove(tradeAreasToRemove);
+    this.tradeAreaService.remove(tradeAreasToRemove);
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {
