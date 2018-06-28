@@ -12,6 +12,7 @@ import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -81,7 +82,73 @@ export class TargetAudienceTdaService {
 
   constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
               private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService) { }
+              private tradeAreaService: ImpGeofootprintTradeAreaService, private appStateService: AppStateService,
+              private projectVarService: ImpProjectVarService) {
+                this.appStateService.projectIsLoading$.subscribe(isLoading => {
+                  this.onLoadProject(isLoading);
+                });
+              }
+
+  private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
+    return {
+      audienceName: name,
+      audienceIdentifier: pk,
+      audienceSourceType: 'Offline',
+      audienceSourceName: 'TDA',
+      exportInGeoFootprint: true,
+      showOnGrid: true,
+      showOnMap: false,
+      exportNationally: false,
+      allowNationalExport: false
+    };
+  }
+
+  private onLoadProject(loading: boolean) {
+    if (loading) return; // loading will be false when the load is actually done
+    try {
+      const project = this.appStateService.currentProject$.getValue();
+      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('offline')).length > 0) {
+        this.projectVarService.clearAll();
+        this.projectVarService.add(project.impProjectVars);
+        for (const projectVar of project.impProjectVars) {
+          let sourceType = projectVar.source.split('~')[0].split('_')[0];
+          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
+          const onlineType = sourceNamePieces[0];
+          delete sourceNamePieces[0];
+          const sourceName = sourceNamePieces.join();
+          const audienceIdentifier = projectVar.source.split('~')[1];
+          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
+          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
+          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
+          const audience: AudienceDataDefinition = {
+            /*allowNationalExport: projectVar.isNationalExtract,
+            audienceIdentifier: audienceIdentifier,
+            audienceName: projectVar.fieldname,
+            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
+            audienceSourceType: 'Offline',
+            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+            exportNationally: projectVar.isNationalExtract,
+            showOnGrid: projectVar.isIncludedInGeoGrid,
+            showOnMap: projectVar.isShadedOnMap*/
+            audienceName: projectVar.fieldname,
+            audienceIdentifier: audienceIdentifier,
+            audienceSourceType: 'Offline',
+            audienceSourceName: 'TDA',
+            exportInGeoFootprint: true,
+            showOnGrid: true,
+            showOnMap: false,
+            exportNationally: false,
+            allowNationalExport: false
+          };
+          if (projectVar.source.toLowerCase().match('tda')) {
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos), null, null);
+          } 
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   /**
    * Build a cache of geos that can be used for quick
@@ -92,7 +159,7 @@ export class TargetAudienceTdaService {
     const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
     for (const ta of this.tradeAreaService.get()) {
       const geoMap = new Map<string, ImpGeofootprintGeo>();
-      for(const geo of ta.impGeofootprintGeos) {
+      for (const geo of ta.impGeofootprintGeos) {
         geoMap.set(geo.geocode, geo);
         geoCache.set(count, geoMap);
       }
@@ -120,28 +187,14 @@ export class TargetAudienceTdaService {
       result.fieldconte = rawData.fieldconte;
     }
     result.isCustom = false;
-    for(const ta of Array.from(geoCache.keys())) {
+    for (const ta of Array.from(geoCache.keys())) {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-      if(geoMap.has(geocode)) {
+      if (geoMap.has(geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
         geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     return result;
-  }
-
-  private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
-    return {
-      audienceName: name,
-      audienceIdentifier: pk,
-      audienceSourceType: 'Offline',
-      audienceSourceName: 'TDA',
-      exportInGeoFootprint: true,
-      showOnGrid: true,
-      showOnMap: false,
-      exportNationally: false,
-      allowNationalExport: false
-    };
   }
 
   public addAudience(audience: TdaAudienceDescription) {
