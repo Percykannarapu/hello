@@ -154,14 +154,14 @@ export class TargetAudienceOnlineService {
           if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
           if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
-            allowNationalExport: projectVar.isNationalExtract,
+            allowNationalExport: true,
+            exportNationally: projectVar.isNationalExtract,
             audienceIdentifier: audienceIdentifier,
             audienceName: projectVar.fieldname,
             audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
             audienceSourceType: 'Online',
             dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            exportNationally: projectVar.isNationalExtract,
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap,
             selectedDataSet: 'nationalScore',
