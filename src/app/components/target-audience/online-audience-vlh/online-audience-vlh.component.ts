@@ -25,8 +25,8 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, 
-              private parentAudienceService: TargetAudienceService, 
+  constructor(private audienceService: TargetAudienceOnlineService,
+              private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef, private usageService: UsageService, private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
@@ -34,7 +34,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode {
-    this.sources.add(variable.source);
+    this.sources.add(Array.from(variable.digLookup.keys()).join('/'));
     return {
       label: variable.categoryName,
       data: variable,
@@ -53,7 +53,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() : void {
     this.audienceService.getAudienceDescriptions([SourceTypes.VLH])
     .pipe(
-      map(folders => folders = folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
+      map(folders => folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
     )
     .subscribe(
       folders => {

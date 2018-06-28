@@ -126,9 +126,9 @@ export class DataStore<T>
      * Returns an incrementing ID number that is unique within this dataStore
      * Useful for stubbing IDs
      */
-    public getNextStoreId(): number
+    public getNextStoreId() : number
     {
-       return this.currStoreId++
+       return this.currStoreId++;
     }
 
     /**
@@ -368,7 +368,7 @@ export class DataStore<T>
    {
       if (removeData != null)
       {
-         console.log(this.storeName, 'registered for db removal: ', removeData);
+         // console.log(this.storeName, 'registered for db removal: ', removeData);
          removeData['dirty'] = true;
          removeData['baseStatus'] = DAOBaseStatus.DELETE;
          if (this.dbRemoves == null)

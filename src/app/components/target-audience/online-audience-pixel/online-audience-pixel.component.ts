@@ -28,10 +28,10 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceOnlineService, 
-              private parentAudienceService: TargetAudienceService, 
+  constructor(private audienceService: TargetAudienceOnlineService,
+              private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
-              private usageService: UsageService, 
+              private usageService: UsageService,
               private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
@@ -39,7 +39,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   }
 
   private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode {
-    this.sources.add(variable.source);
+    this.sources.add(Array.from(variable.digLookup.keys()).join('/'));
     const selectable: boolean = (!Number.isNaN(Number(variable.taxonomy)) && Number(variable.taxonomy) > UnSelectableLimit);
     return {
       label: undefined, // template in the html markup does this since we have spacing requirements

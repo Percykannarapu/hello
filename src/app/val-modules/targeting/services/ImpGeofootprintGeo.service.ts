@@ -544,10 +544,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       console.log('ImpGeofootprintGeo.service.addGeoRank - fired');
       const geos = this.get();
+
       console.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
       this.denseRank(geos,  this.sortGeos, this.partitionGeos);
       console.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
-
+      
       for(let geo of geos) {
          //if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
          if (geo.rank === 0)
@@ -555,9 +556,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          else
             geo.isDeduped = 0;
       }
-
-      // Replace the data store with this version
-     // this.replace(geos);
    }
 
 

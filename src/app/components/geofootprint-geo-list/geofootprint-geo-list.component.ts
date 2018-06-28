@@ -364,6 +364,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
       console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
+
       let fgId = 0;
       const geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
@@ -386,9 +387,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
-
+console.log("Flattening Geos");
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
+console.log(geo);
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
@@ -790,16 +792,19 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    onSelectGeocode(event: any, isSelected: boolean)
-   {
+   {      
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
+
       const currentProject = this.appStateService.currentProject$.getValue();
       const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
+      const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
       //console.log('onSelectGeocode - Setting geocode: ', geo.geocode, ' to isActive = ' + isSelected + ", geo: ", geo);
       if (geo.isActive != isSelected)
       {
          geo.isActive = isSelected;
-         this.impGeofootprintGeoService.update(null, null);
+         //this.impGeofootprintGeoService.update(null, null);
+         this.impGeofootprintGeoService.makeDirty();
+
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
@@ -810,7 +815,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          else{
            this.usageService.createCounterMetric(geoDeselected, metricText, null);
          }   
-            
       }
    }
 

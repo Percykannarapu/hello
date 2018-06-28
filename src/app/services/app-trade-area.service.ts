@@ -8,6 +8,7 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppConfig } from '../app.config';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
@@ -31,6 +32,7 @@ export class AppTradeAreaService {
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
+              private impVarService: ImpGeofootprintVarService,
               private impGeoAttributeService: ImpGeofootprintGeoAttribService,
               private stateService: AppStateService,
               private layerService: AppLayerService,
@@ -112,7 +114,7 @@ export class AppTradeAreaService {
     }
     console.log('applying Trade areas', [tradeAreas, siteType]);
     const currentLocations = this.getLocations(siteType);
-    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS');
+    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' || ta.taType === 'HOMEGEO');
     this.deleteTradeAreas(currentTradeAreas);
     this.currentDefaults.set(siteType, tradeAreas); // reset the defaults that get applied to new locations
     this.applyRadiusTradeAreasToLocations(tradeAreas, currentLocations);
@@ -154,20 +156,39 @@ export class AppTradeAreaService {
   }
 
   private deleteTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-    if (tradeAreas == null) return;
-    this.impTradeAreaService.remove(tradeAreas);
-    this.impTradeAreaService.addDbRemove(tradeAreas);
+    if (tradeAreas == null || tradeAreas.length === 0) return;
 
+    const locationsToProcess = tradeAreas.map(ta => ta.impGeofootprintLocation);
     const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
     const attributesToRemove = simpleFlatten(geosToRemove.map(geo => geo.impGeofootprintGeoAttribs));
-    if (geosToRemove.length === 0) return;
-    this.impGeoService.remove(geosToRemove);
-    this.impGeoService.addDbRemove(geosToRemove);
+    const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
 
-    if (attributesToRemove.length === 0) return;
-    this.impGeoAttributeService.remove(attributesToRemove);
-    // Attributes aren't persisted to the DB, so no need for this, but I want to keep it here in case that changes
-    this.impGeoAttributeService.addDbRemove(attributesToRemove);
+    if (locationsToProcess.length > 0) {
+      const tradeAreaSet = new Set(tradeAreas);
+      // remove the trade areas from the heirarchy
+      locationsToProcess.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
+    }
+
+    // remove each of the data store items for children
+    if (attributesToRemove.length !== 0) {
+      // Attributes aren't persisted to the DB, so no need for this, but I want to keep it here in case that changes
+      this.impGeoAttributeService.addDbRemove(attributesToRemove);
+      this.impGeoAttributeService.remove(attributesToRemove);
+    }
+
+    if (geosToRemove.length !== 0) {
+      this.impGeoService.addDbRemove(geosToRemove);
+      this.impGeoService.remove(geosToRemove);
+    }
+
+    if (varsToRemove.length !== 0) {
+      this.impVarService.addDbRemove(varsToRemove);
+      this.impVarService.remove(varsToRemove);
+    }
+
+    this.impTradeAreaService.addDbRemove(tradeAreas);
+    this.impTradeAreaService.remove(tradeAreas);
+
   }
 
   private getAllTradeAreas(siteType: 'Site' | 'Competitor') : ImpGeofootprintTradeArea[] {

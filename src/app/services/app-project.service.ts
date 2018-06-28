@@ -577,7 +577,7 @@ export class AppProjectService extends DataStore<ImpProject>
                // Set the base status
                impProject.baseStatus = (impProject.projectId != null) ? DAOBaseStatus.UPDATE : DAOBaseStatus.INSERT;
 
-               // Convert the Typescript models into a JSON string
+               // Convert the Typescript models into a JSON string               
                const payload: string = JSON.stringify(impProject);
                console.log('ImpProject payload', payload);
                console.log('posting to: ' + this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save');

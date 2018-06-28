@@ -62,7 +62,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private static asLeaf(variable: OnlineAudienceDescription) : ApioTreeNode {
-    this.sources.add(variable.source);
+    this.sources.add(Array.from(variable.digLookup.keys()).join('/'));
     return {
       label: variable.categoryName,
       data: variable,

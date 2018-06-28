@@ -45,8 +45,7 @@ export class OnlineAudienceDescription {
   private childMap: Map<string, OnlineAudienceDescription> = new Map<string, OnlineAudienceDescription>();
   isLeaf: boolean;
   categoryId: number;
-  digCategoryId: number;
-  source: string;
+  digLookup: Map<string, number> = new Map<string, number>();
   categoryName: string;
   taxonomyParsedName: string;
   categoryDescription: string;
@@ -73,15 +72,11 @@ export class OnlineAudienceDescription {
       if (this.childMap.has(response.categoryId)) {
         // this category has already been added once - just need to append the source
         const localCategory = this.childMap.get(response.categoryId);
-        const sources = localCategory.source.split('/');
-        sources.push(response.source);
-        sources.sort();
-        localCategory.source = sources.join('/');
+        localCategory.digLookup.set(response.source, Number(response.digCategoryId));
       } else {
         child.isLeaf = true;
         child.categoryId = Number(response.categoryId);
-        child.digCategoryId = Number(response.digCategoryId);
-        child.source = response.source;
+        child.digLookup.set(response.source, Number(response.digCategoryId));
         child.categoryDescription = response.categoryDescr;
         child.categoryName = response.categoryName;
         child.taxonomy = response.taxonomy;
@@ -250,8 +245,9 @@ export class TargetAudienceOnlineService {
   }
 
   public addAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
-    this.usageMetricCheckUncheckApio('checked', audience, source.toString());
-    const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digCategoryId);
+    this.usageMetricCheckUncheckApio('checked', audience, source);
+    const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digLookup.get(this.fuseSourceMapping.get(source)));
+    console.log('Adding Audience', model);
     this.audienceService.addAudience(
       model,
       (al, pks, geos) => this.apioRefreshCallback(source, al, pks, geos),
@@ -260,8 +256,8 @@ export class TargetAudienceOnlineService {
   }
 
   public removeAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
-    this.usageMetricCheckUncheckApio('unchecked', audience, source.toString());
-    this.audienceService.removeAudience('Online', source, audience.digCategoryId.toString());
+    this.usageMetricCheckUncheckApio('unchecked', audience, source);
+    this.audienceService.removeAudience('Online', source, audience.digLookup.get(this.fuseSourceMapping.get(source)).toString());
   }
 
   public getAudienceDescriptions(sources: SourceTypes[]) : Observable<OnlineAudienceDescription[]> {
@@ -360,14 +356,14 @@ export class TargetAudienceOnlineService {
     return observables;
   }
 
-  private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source?: string) {
+  private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source: SourceTypes) {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: checkType });
     let metricText = null;
-    if (source === 'Pixel')
-        metricText = audience.digCategoryId + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+    if (source === SourceTypes.Pixel)
+        metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
     else
-        metricText = audience.digCategoryId + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
+        metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 }
