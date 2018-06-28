@@ -17,6 +17,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpRadLookup } from '../../val-modules/targeting/models/ImpRadLookup';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
+import { AppProjectService } from '../../services/app-project.service';
 
 interface DiscoveryFormData {
   projectName: string;
@@ -94,14 +95,15 @@ export class DiscoveryInputComponent implements OnInit {
   constructor(private fb: FormBuilder,
               private config: AppConfig,
               private discoveryService: ImpDiscoveryService,
-              private appProjectService: ImpProjectService,
+              private impProjectService: ImpProjectService,
               private impRadLookupService: ImpRadLookupService,
               private userService: UserService,
               private usageService: UsageService,
               private messagingService: AppMessagingService,
               private appMapService: AppMapService,
               private appStateService: AppStateService,
-              private esriLayerService: EsriLayerService){
+              private esriLayerService: EsriLayerService,
+              private appProjectService: AppProjectService  ){
 
     this.allAnalysisLevels = [
       {label: 'Digital ATZ', value: 'Digital ATZ'},
@@ -321,7 +323,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.impGeofootprintMasters[0].methSeason = currentForm.selectedSeason;
 
     console.log('Saving project data', this.impProject);
-    this.appProjectService.update(null, null);
+    this.impProjectService.update(null, null);
   }
 
   private mapFromProject(newProject: ImpProject) {
@@ -376,9 +378,12 @@ export class DiscoveryInputComponent implements OnInit {
 
   public saveProject() {
     // Save the project
-    this.appProjectService.saveProject();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-    this.usageService.createCounterMetric(usageMetricName, null, null);
+    //this.appProjectService.saveProject();
+    this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(proj => {
+      const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+      this.usageService.createCounterMetric(usageMetricName, null, proj[0].projectId);
+    });
+    
     
   }
 

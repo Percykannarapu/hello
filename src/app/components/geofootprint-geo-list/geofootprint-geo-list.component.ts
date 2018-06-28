@@ -18,6 +18,8 @@ import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { MenuItem } from 'primeng/components/common/menuitem';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
 
 export interface FlatGeo {
    fgId: number;
@@ -125,7 +127,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private impDiscoveryService: ImpDiscoveryService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
-               private confirmationService: ConfirmationService) { }
+               private confirmationService: ConfirmationService,
+               private usageService: UsageService) { }
 
    ngOnInit()
    {
@@ -789,11 +792,24 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onSelectGeocode(event: any, isSelected: boolean)
    {
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
+      const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
+    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
       //console.log('onSelectGeocode - Setting geocode: ', geo.geocode, ' to isActive = ' + isSelected + ", geo: ", geo);
       if (geo.isActive != isSelected)
       {
          geo.isActive = isSelected;
          this.impGeofootprintGeoService.update(null, null);
+         let metricText = null;
+         const cpm = geo.impProject != null && geo.impProject.estimatedBlendedCpm != null ? geo.impProject.estimatedBlendedCpm : 0;
+         const amount: number = geo.hhc * cpm / 1000;
+         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}`;
+         if (geo.isActive){
+             this.usageService.createCounterMetric(geoselected, metricText, null);
+         }
+         else{
+           this.usageService.createCounterMetric(geoDeselected, metricText, null);
+         }   
+            
       }
    }
 

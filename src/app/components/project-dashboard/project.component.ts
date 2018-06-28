@@ -204,8 +204,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
             row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
   
           });
-          this.myProjecctsData = data;
-
+          this.allProjectsData = data;
         }));
 
         const myProject$ =  this.getMyProjectData(updatedateFrom, updatedDateTo).pipe(
@@ -215,8 +214,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
               row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
     
             });
-            this.allProjectsData = data;
-  
+            this.myProjecctsData = data;
           }));
        
       forkJoin(allProject$, myProject$).subscribe(null, null, () => {
