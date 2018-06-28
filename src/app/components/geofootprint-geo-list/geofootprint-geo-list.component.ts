@@ -792,6 +792,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onSelectGeocode(event: any, isSelected: boolean)
    {
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
+      const currentProject = this.appStateService.currentProject$.getValue();
       const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
       //console.log('onSelectGeocode - Setting geocode: ', geo.geocode, ' to isActive = ' + isSelected + ", geo: ", geo);
@@ -800,7 +801,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          geo.isActive = isSelected;
          this.impGeofootprintGeoService.update(null, null);
          let metricText = null;
-         const cpm = geo.impProject != null && geo.impProject.estimatedBlendedCpm != null ? geo.impProject.estimatedBlendedCpm : 0;
+         const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
          metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}`;
          if (geo.isActive){
