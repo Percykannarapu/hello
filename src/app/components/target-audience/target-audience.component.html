@@ -22,13 +22,11 @@
   </p-tabPanel>
 
   <p-tabPanel header="Offline Audience">
-    <ng-template pTemplate="content">
-      <p-accordion>
-        <p-accordionTab header="TDA" [selected]="true">
-          <val-offline-audience-tda></val-offline-audience-tda>
-        </p-accordionTab>
-      </p-accordion>
-    </ng-template>
+    <p-accordion>
+      <p-accordionTab header="TDA" [selected]="true">
+        <val-offline-audience-tda></val-offline-audience-tda>
+      </p-accordionTab>
+    </p-accordion>
   </p-tabPanel>
 
   <p-tabPanel header="Custom">
