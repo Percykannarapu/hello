@@ -368,7 +368,7 @@ export class DataStore<T>
    {
       if (removeData != null)
       {
-         console.log(this.storeName, 'registered for db removal: ', removeData);
+         // console.log(this.storeName, 'registered for db removal: ', removeData);
          removeData['dirty'] = true;
          removeData['baseStatus'] = DAOBaseStatus.DELETE;
          if (this.dbRemoves == null)
