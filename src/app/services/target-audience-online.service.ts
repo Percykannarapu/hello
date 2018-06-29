@@ -139,10 +139,11 @@ export class TargetAudienceOnlineService {
     if (loading) return; // loading will be false when the load is actually done
     try {
       const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('online')).length > 0) {
+      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online').length > 0) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
-        for (const projectVar of project.impProjectVars) {
+        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online')) {
+          console.log('AARON: ', projectVar.source.split('_')[0].toLowerCase());
           let sourceType = projectVar.source.split('~')[0].split('_')[0];
           const sourceNamePieces = projectVar.source.split('~')[0].split('_');
           const onlineType = sourceNamePieces[0];
@@ -153,26 +154,26 @@ export class TargetAudienceOnlineService {
           if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
           if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
-            allowNationalExport: projectVar.isNationalExtract,
+            allowNationalExport: true,
+            exportNationally: projectVar.isNationalExtract,
             audienceIdentifier: audienceIdentifier,
             audienceName: projectVar.fieldname,
             audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
             audienceSourceType: 'Online',
             dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            exportNationally: projectVar.isNationalExtract,
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap,
             selectedDataSet: 'nationalScore',
           };
           if (projectVar.source.toLowerCase().match('interest')) {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('in-market')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('vlh')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk), null);
           } else {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk), null);
           }
         }
       }
@@ -202,17 +203,17 @@ export class TargetAudienceOnlineService {
   private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.digCategoryId}`;
     const description = descriptionMap.get(response.digCategoryId);
-    const currentProject = this.appStateService.currentProject$.getValue();
-    let newVarPk = null;
-    if (this.varPkCache.has(fullId)) {
-      newVarPk = this.varPkCache.get(fullId);
-    } else {
-      newVarPk = this.varService.getNextStoreId();
-      this.varPkCache.set(fullId, newVarPk);
-    }
+    // const currentProject = this.appStateService.currentProject$.getValue();
+    // let newVarPk = null;
+    // if (this.varPkCache.has(fullId)) {
+    //   newVarPk = this.varPkCache.get(fullId);
+    // } else {
+    //   newVarPk = this.varService.getNextStoreId();
+    //   this.varPkCache.set(fullId, newVarPk);
+    // }
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
-      varPk: Number.isNaN(newVarPk) ? -1 : newVarPk,
+      varPk: Number(response.digCategoryId),
       customVarExprQuery: fullId,
       isString: false,
       isNumber: false,
@@ -223,7 +224,12 @@ export class TargetAudienceOnlineService {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(response.geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
-        geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+
+        /**
+         * Uncomment the line below to re-enable saving of the project vars
+         */
+
+        //geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     // this is the full category description object that comes from Fuse

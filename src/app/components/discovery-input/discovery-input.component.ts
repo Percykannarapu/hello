@@ -299,13 +299,13 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject.industryCategoryCode     = currentForm.selectedRadLookupValue != null ? this.discoveryService.radCategoryCodeByName.get(currentForm.selectedRadLookupValue.category) : '';
 
     this.impProject.methAnalysis       = currentForm.selectedAnalysisLevel ? currentForm.selectedAnalysisLevel.value : null;
-    this.impProject.totalBudget        = (dollarBudget != null ? dollarBudget : circBudget);
+    this.impProject.totalBudget        = (dollarBudget != null && dollarBudget !== 0 ? dollarBudget : circBudget);
     this.impProject.isValidated        = true;
-    this.impProject.isCircBudget       = (circBudget != null);
+    this.impProject.isCircBudget       = (circBudget != null && circBudget !== 0);
     this.impProject.isActive           = true;
     this.impProject.isSingleDate       = true;
     this.impProject.isMustCover        = true;
-    this.impProject.isDollarBudget     = (dollarBudget != null);
+    this.impProject.isDollarBudget     = (dollarBudget != null && dollarBudget !== 0);
     this.impProject.isRunAvail         = true;
     this.impProject.isHardPdi          = true;
     this.impProject.isIncludeNonWeekly = true;

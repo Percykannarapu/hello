@@ -107,10 +107,10 @@ export class TargetAudienceTdaService {
     if (loading) return; // loading will be false when the load is actually done
     try {
       const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => v.source.toLowerCase().match('offline')).length > 0) {
+      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
-        for (const projectVar of project.impProjectVars) {
+        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
           let sourceType = projectVar.source.split('~')[0].split('_')[0];
           const sourceNamePieces = projectVar.source.split('~')[0].split('_');
           const onlineType = sourceNamePieces[0];
@@ -121,15 +121,6 @@ export class TargetAudienceTdaService {
           if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
           if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
-            /*allowNationalExport: projectVar.isNationalExtract,
-            audienceIdentifier: audienceIdentifier,
-            audienceName: projectVar.fieldname,
-            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
-            audienceSourceType: 'Offline',
-            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            exportNationally: projectVar.isNationalExtract,
-            showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap*/
             audienceName: projectVar.fieldname,
             audienceIdentifier: audienceIdentifier,
             audienceSourceType: 'Offline',
@@ -191,7 +182,12 @@ export class TargetAudienceTdaService {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+
+        /**
+         * Uncomment the line below to re-enable saving of the project vars
+         */
+
+        //geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     return result;
