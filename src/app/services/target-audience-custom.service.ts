@@ -88,13 +88,7 @@ export class TargetAudienceCustomService {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-
-        /**
-         * Uncomment the line below to re-enable saving of the project vars
-         */
-
-        //geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
-        
+        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     this.varPkCache.set(column, newVarPk);

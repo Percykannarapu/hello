@@ -19,7 +19,7 @@ import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 import { TargetAudienceTdaService } from './target-audience-tda.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
-export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
+export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
 
 @Injectable({
@@ -227,8 +227,8 @@ export class TargetAudienceService implements OnDestroy {
       this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
-      combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
-        ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
+      // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
+      //   ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
       // set up a map watch process
       this.shadingSub = combineLatest(this.appStateService.analysisLevel$, this.newVisibleGeos$).subscribe(
         ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0])
@@ -262,7 +262,7 @@ export class TargetAudienceService implements OnDestroy {
     if (source != null) {
       const currentShadingData = this.shadingData.getValue();
       // this is an http call, no need for an unsub
-      source(analysisLevel, [audience.audienceIdentifier], geos).subscribe(
+      source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
         data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
         err => console.error('There was an error retrieving audience data for map shading', err),
         () => this.shadingData.next(currentShadingData)
@@ -278,7 +278,7 @@ export class TargetAudienceService implements OnDestroy {
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
         const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
-        observables.push(sourceRefresh(analysisLevel, ids, geos));
+        observables.push(sourceRefresh(analysisLevel, ids, geos, false));
       }
     });
     const accumulator: ImpGeofootprintVar[] = [];
