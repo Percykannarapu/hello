@@ -221,31 +221,32 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
         if (locations.length > 0) {
           const locationSet = new Set(locations);
           const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
-          const attributeCodeBlackList = new Set(exportColumns.map(c => c.header));
-          const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
+          if (isDigital === false){
+            const attributeCodeBlackList = new Set(exportColumns.map(c => c.header));
+            const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
             attributeCodes.forEach(code => {
               if (code != null && !attributeCodeBlackList.has(code)) {
                 exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
               }
             });
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
-          
-            if (isDigital === true){ 
-                const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId;
-                const csvData = this.prepareCSV(exportColumns, locations);
-                let csvString: string = '';
-                for (const row of csvData) {
-                  let encodedRow = encode(row);
-                  encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
-                  csvString += encodedRow + '\n';
-                }
-                  this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
-                  console.log('Response from vlh', res);
-                  if (res.returnCode === 200) {
+          } else {
+            const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId;
+            this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
+            const csvData = this.prepareCSV(exportColumns, locations);
+            let csvString: string = '';
+            for (const row of csvData) {
+              let encodedRow = encode(row);
+              encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
+              csvString += encodedRow + '\n';
+            }
+           this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
+              console.log('Response from vlh', res);
+              if (res.returnCode === 200) {
                     this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
-                  } else this.messageService.showGrowlError('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
-                });
-              }
+              } else this.messageService.showGrowlError('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
+              });
+          }
         } else {
           // DE1742: display an error message if attempting to export an empty data store
           if (exportType && exportType.toLocaleUpperCase() === 'SITES') {
