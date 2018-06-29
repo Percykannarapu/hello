@@ -49,10 +49,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
       folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
       err => console.error('There was an error during retrieval of the TDA Audience descriptions', err),
       () => {
-        // this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
-        // this.currentNodes = Array.from(this.allNodes);
-        // this.loading = false;
-        // this.cd.markForCheck();
+        this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
+        this.currentNodes = Array.from(this.allNodes);
+        this.loading = false;
+        this.cd.markForCheck();
       });
     this.searchTerm$.pipe(
       debounceTime(250),
