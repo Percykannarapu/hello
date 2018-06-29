@@ -139,8 +139,7 @@ export class ValMetricsService implements OnDestroy {
       },
       metricFormatter: v => {
         if (v != null && v != 0) {
-            return this.currentProject.isDollarBudget ? (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %' :
-                                                      (Math.round(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
+            return (Math.round(v * 100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' %';
         } else {
           return 'N/A';
         }
