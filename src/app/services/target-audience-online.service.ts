@@ -167,13 +167,13 @@ export class TargetAudienceOnlineService {
             selectedDataSet: 'nationalScore',
           };
           if (projectVar.source.toLowerCase().match('interest')) {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('in-market')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('vlh')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk), null);
           } else {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk), null);
           }
         }
       }
