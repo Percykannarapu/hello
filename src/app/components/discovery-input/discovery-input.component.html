@@ -14,22 +14,22 @@
       </div>
       <div class="ui-g-12">
         <span class="md-inputfield">
-          <input id="projectName" type="text" formControlName="projectName" pInputText>
+          <input id="projectName" type="text" formControlName="projectName" pInputText class="ui-g-10">
           <label for="projectName">imPower Project Name (required)</label>
         </span>
       </div>
       <div class="ui-g-12" >
-        <div class="ui-g-8">
+        <div class="ui-g-10">
          <span class="md-inputfield">
           <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (onSelect)="onProjectTrackerSelect($event)" (completeMethod)="filterProjectTracker($event)"
-                          [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display" [inputStyle]="{'width':'100%'}" >
+                          [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display" [inputStyle]="{'width':'100%'}" [style]="{'width':'100%'}" >
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>
          </span>
         </div>
-        <div class="ui-g-4">
-            <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh" style= "position:absolute;left: 250px; top:23%; padding: 0%; height:28px; width: 25px; text-align: center;"></button>
-        </div>       
+        <div class="ui-g-2">
+            <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh"></button>
+        </div>
       </div>
 
       <div class="ui-g-12 ui-g-nopad">
