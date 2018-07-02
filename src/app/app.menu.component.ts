@@ -92,6 +92,7 @@ export class AppMenuComponent implements OnInit {
                 ]
             },*/
             // {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
+            {label: 'Save', icon: 'save', command: () => this.saveProject() },
             {
                 label: 'Projects', icon: 'storage',
                 items: [
