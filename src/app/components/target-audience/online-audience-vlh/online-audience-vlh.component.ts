@@ -53,7 +53,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() : void {
     this.audienceService.getAudienceDescriptions([SourceTypes.VLH])
     .pipe(
-      map(folders => folders.filter(f => !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
+      map(folders => folders.filter(f => f.isLeaf && !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
     )
     .subscribe(
       folders => {

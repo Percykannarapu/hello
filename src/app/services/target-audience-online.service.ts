@@ -56,7 +56,14 @@ export class OnlineAudienceDescription {
   constructor(categories?: OnlineCategoryResponse[]) {
     if (categories != null) {
       for (const category of categories) {
-        const pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        let pathItems: string[] = [];
+        if (category.categoryName.includes('/') && category.taxonomy.endsWith(category.categoryName)) {
+          const currentTaxonomy = category.taxonomy.replace(category.categoryName, '');
+          pathItems = currentTaxonomy.split('/').filter(s => s != null && s.length > 0);
+          pathItems.push(category.categoryName);
+        } else {
+          pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        }
         this.createSubTree(pathItems, category);
       }
     }
