@@ -376,21 +376,21 @@ export class DiscoveryInputComponent implements OnInit {
     return today.getMonth() >= 4 && today.getMonth() <= 8;
   }
 
-  public saveProject() {
+ /* public saveProject() {
     // Save the project
     // Cannot call appProjectService directly, must use impProjectService
-    /*
+    
     this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(proj => {
       const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
       this.usageService.createCounterMetric(usageMetricName, null, proj[0].projectId);
-    }); */    
+    });   
     this.impProjectService.saveProject();
 
     // Needs to happen after the save is complete
     // TODO: See ImpProject.service.saveProjectObs - fix that and swap with saveProject abvoe
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
     this.usageService.createCounterMetric(usageMetricName, null, null); //savedProject[0].projectId);    
-  }
+  }*/
 
   filterRadData(event) {
     const value = event.query;

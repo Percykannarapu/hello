@@ -96,7 +96,8 @@ export class AppMenuComponent implements OnInit {
                 label: 'Projects', icon: 'storage',
                 items: [
                     //{label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
-                    {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() }
+                    {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() },
+                    {label: 'Save', icon: 'save', command: () => this.saveProject() }
 
                 ]
             },
@@ -444,6 +445,24 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
         //remove('CAMPAIGN', 'Household Count');
+    }
+
+    private saveProject(){
+        const impProject = this.appStateService.currentProject$.getValue();
+        let errorString = null;
+            if (impProject.projectName == null || impProject.projectName == '')
+                errorString = 'imPower Project Name is required<br>';
+            if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+                errorString += 'Analysis level is required';
+            if (errorString != null) {
+                this.messageService.showGrowlError('Error Saving Project', errorString);
+                return;
+            }
+        this.impProjectService.saveProject();
+        // Needs to happen after the save is complete
+        // TODO: See ImpProject.service.saveProjectObs - fix that and swap with saveProject abvoe
+        const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+        this.usageService.createCounterMetric(usageMetricName, null, null); //savedProject[0].projectId);
     }
 }
 

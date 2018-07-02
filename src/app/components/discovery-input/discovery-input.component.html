@@ -1,5 +1,5 @@
 <div class="form-group">
-  <form novalidate (ngSubmit)="saveProject()" [formGroup]="discoveryForm">
+  <form novalidate  [formGroup]="discoveryForm">
 
     <div class="ui-g card">
       <div class="ui-g-6">
@@ -9,7 +9,7 @@
         </span>
       </div>
       <div class="ui-g-6">
-        <button pButton type="submit" label="Save Project" [disabled]="!discoveryForm.valid" style="float: right;"></button>
+        <!-- <button pButton type="submit" label="Save Project" [disabled]="!discoveryForm.valid" style="float: right;"></button> -->
       </div>
 
       <div class="ui-g-10">
