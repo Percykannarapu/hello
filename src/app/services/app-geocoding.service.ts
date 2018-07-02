@@ -54,14 +54,16 @@ export class AppGeocodingService {
       const requestData = chunkArray(cleanRequestData, this.config.maxValGeocodingReqSize);
       const fail: ValGeocodingResponse[] = [];
       requestData.forEach(reqList => {
+        console.log('request:::', JSON.stringify(reqList));
         const obs = this.restService.post('v1/geocoder/multiplesites', reqList).pipe(
           map(data => {
+            console.log('response:::', JSON.stringify(data));
             const success: ValGeocodingResponse[] = [];
             data.payload.forEach(d => {
               if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
                 d['Geocode Status'] = 'ERROR';
                 fail.push(new ValGeocodingResponse(d));
-              } else if ((d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) || d['Match Code'] === 'Z') {
+              } else if ((d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) /*|| d['Match Code'] === 'Z'*/) {
                 d['Geocode Status'] = 'CENTROID';
                 fail.push(new ValGeocodingResponse(d));
               } else {
