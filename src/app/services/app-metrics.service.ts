@@ -280,7 +280,7 @@ export class ValMetricsService implements OnDestroy {
   }
 
   private updateDefinitions(attributes: ImpGeofootprintGeoAttrib[], project: ImpProject) : MetricDefinition<any>[] {
-    if (project == null || attributes == null || attributes.length === 0) return;
+    if (project == null || attributes == null) return;
     console.log('Season observable value', this.stateService.season$.getValue());
     this.isWinter = this.stateService.season$.getValue() === Season.Winter;
     const uniqueGeoAttrCombo = new Set();
