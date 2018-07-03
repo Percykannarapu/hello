@@ -32,6 +32,10 @@ export class AppMessagingService {
     this.growlService.add({ severity: 'info', summary: title, detail: message});
   }
 
+  public clearGrowlMessages() : void {
+    this.growlService.clear();
+  }
+
   public startSpinnerDialog(key: string, message: string) {
     if (!this.spinnerMessageMap.has(key)) {
       this.spinnerMessageMap.set(key, message);

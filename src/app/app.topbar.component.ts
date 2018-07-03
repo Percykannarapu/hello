@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {AppComponent} from './app.component';
 import {UserService} from './services/user.service';
+import { AppMessagingService } from './services/app-messaging.service';
 @Component({
     selector: 'val-app-topbar',
     template: `
@@ -9,8 +10,15 @@ import {UserService} from './services/user.service';
                 <div class="logo"></div>
             </div>
 
-            <div class="topbar-right" style="color: white; float: right">
-                <p *ngIf="username">Welcome, {{username}}</p>
+            <div class="topbar-right">
+              <ul class="topbar-items">
+                <li *ngIf="username"><span style="color: white">Welcome, {{username}}</span></li>
+                <li>
+                  <a href="#" (click)="onClearMessages()" pTooltip="Clear all Growl Messages">
+                    <i class="topbar-icon material-icons" style="margin-top: -0.3em; font-size: 2em">cancel</i>
+                  </a>
+                </li>
+              </ul>
             </div>
 
             <!-- US6650: nallana
@@ -182,7 +190,7 @@ import {UserService} from './services/user.service';
 })
 export class AppTopbarComponent implements OnInit{
 
-    constructor(public app: AppComponent, private userService: UserService) {}
+    constructor(public app: AppComponent, private userService: UserService, private appMessagingService: AppMessagingService) {}
 
     public username: string;
 
@@ -190,5 +198,9 @@ export class AppTopbarComponent implements OnInit{
         this.userService.userObservable.subscribe(user => {
             this.username = user.username;
         });
+    }
+
+    onClearMessages() {
+      this.appMessagingService.clearGrowlMessages();
     }
 }
