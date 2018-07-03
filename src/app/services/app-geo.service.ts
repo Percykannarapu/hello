@@ -115,7 +115,7 @@ export class AppGeoService {
       filter(([analysisLevel, geos, isLoading]) => !isLoading),
       // halt the sequence if there are no geos
       filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
-    ).subscribe(() => this.clearAllGeos());
+    ).subscribe(() => this.clearAllGeos(false, false, false, false));
   }
 
   private updateAttributesFromLayer(geocodes: string[], analysisLevel: string) {
@@ -187,21 +187,50 @@ export class AppGeoService {
       });
   }
 
-  private clearAllGeos() {
+  public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
     // also removes all vars and trade areas (except Radius and Audience)
-    this.attributeService.clearAll();
-    this.geoService.addDbRemove(this.geoService.get());
-    this.geoService.clearAll();
-    this.varService.addDbRemove(this.varService.get());
-    this.varService.clearAll();
-    this.tradeAreaService.get().forEach(ta => {
-      ta.impGeofootprintGeos = [];
+    const allTradeAreas = this.tradeAreaService.get();
+    const radiusTradeAreas = allTradeAreas.filter(ta => ta.taType === 'RADIUS');
+    const audienceTradeAreas = allTradeAreas.filter(ta => ta.taType === 'AUDIENCE');
+    const customTradeAreas = allTradeAreas.filter(ta => ta.taType === 'CUSTOM');
+    const forcedTradeAreas = allTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
+    const otherTradeAreas = allTradeAreas.filter(ta => !['RADIUS', 'AUDIENCE', 'CUSTOM', 'HOMEGEO'].includes(ta.taType));
+    const tradeAreasToClear = [...otherTradeAreas];
+    const tradeAreasToDelete = [...otherTradeAreas];
+    if (!keepRadiusGeos) tradeAreasToClear.push(...radiusTradeAreas);
+    if (!keepAudienceGeos) {
+      tradeAreasToClear.push(...audienceTradeAreas);
+      tradeAreasToDelete.push(...audienceTradeAreas);
+    }
+    if (!keepCustomGeos) {
+      tradeAreasToClear.push(...customTradeAreas);
+      tradeAreasToDelete.push(...customTradeAreas);
+    }
+    if (!keepForcedHomeGeos) {
+      tradeAreasToClear.push(...forcedTradeAreas);
+      tradeAreasToDelete.push(...forcedTradeAreas);
+    }
+    const geosToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintGeos));
+    const varsToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintVars));
+    const attributesToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
+
+    this.attributeService.addDbRemove(attributesToDelete);
+    this.attributeService.remove(attributesToDelete);
+    this.geoService.addDbRemove(geosToDelete);
+    this.geoService.remove(geosToDelete);
+    this.varService.addDbRemove(varsToDelete);
+    this.varService.remove(varsToDelete);
+    tradeAreasToClear.forEach(ta => {
       ta.impGeofootprintVars = [];
-      if (ta['isComplete'] != null) ta['isComplete'] = false;
+      ta.impGeofootprintGeos = [];
     });
-    const tradeAreasToRemove = this.tradeAreaService.get().filter(ta => ta.taType !== 'RADIUS' && ta.taType !== 'AUDIENCE');
-    this.tradeAreaService.addDbRemove(tradeAreasToRemove);
-    this.tradeAreaService.remove(tradeAreasToRemove);
+    tradeAreasToDelete.forEach(ta => {
+      const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
+      ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
+      ta.impGeofootprintLocation = null;
+    });
+    this.tradeAreaService.addDbRemove(tradeAreasToDelete);
+    this.tradeAreaService.remove(tradeAreasToDelete);
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {

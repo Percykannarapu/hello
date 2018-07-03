@@ -8,6 +8,7 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 import { EsriQueryService } from '../../esri-modules/layers/esri-query.service';
 import { AppStateService } from '../../services/app-state.service';
 import { CachedObservable } from '../../val-modules/api/models/CachedObservable';
+import { AppGeoService } from '../../services/app-geo.service';
 
 @Component({
   selector: 'val-esri-layer-select',
@@ -18,31 +19,30 @@ export class EsriLayerSelectComponent {
 
   public currentAnalysisLevel$: CachedObservable<string>;
 
-  constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
-              private esriMapService: EsriMapService,
-              private attributeService: ImpGeofootprintGeoAttribService ,
-              private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private appTradeAreaService: AppTradeAreaService,
-              private queryService: EsriQueryService,
-              private config: AppConfig,
-              private appStateService: AppStateService) {
+  constructor(private appTradeAreaService: AppTradeAreaService,
+               private impGeoService: ImpGeofootprintGeoService,
+               private appGeoService: AppGeoService,
+               private queryService: EsriQueryService,
+               private config: AppConfig,
+               private appStateService: AppStateService) {
     this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
   }
 
-  onClearAllSelections(){
+  onClearAllSelections() {
     console.log(' fired Clear selections:::');
-    this.impGeofootprintGeoService.clearAll();
-    this.attributeService.clearAll();
+    this.appGeoService.clearAllGeos(true, true, true, true);
+    this.impGeoService.get().forEach(geo => geo.isActive = false);
+    this.impGeoService.makeDirty();
   }
 
-    public onZoomToTA() {
-      this.appTradeAreaService.zoomToTradeArea();
-    }
+  public onZoomToTA() {
+    this.appTradeAreaService.zoomToTradeArea();
+  }
 
-  onRevertToTradeArea(){
+  onRevertToTradeArea() {
     console.log(' fired onRevertToTradeArea:::');
-    this.impGeofootprintGeoService.clearAll();
-    this.attributeService.clearAll();
-    this.tradeAreaService.update(null, null);
+    this.appGeoService.clearAllGeos(true, true, true, true);
+    this.impGeoService.get().forEach(geo => geo.isActive = true);
+    this.impGeoService.makeDirty();
   }
 }
