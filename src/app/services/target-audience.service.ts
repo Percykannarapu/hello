@@ -86,7 +86,12 @@ export class TargetAudienceService implements OnDestroy {
     this.audienceMap.set(audienceId, audience);
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
     const projectVar = this.createProjectVar(audience, id);
-    if (projectVar) this.projectVarService.add([projectVar]);
+    // protect against adding dupes to the data store
+    if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
+      console.warn('refusing to add duplicate project var: ', projectVar);
+    } else {
+      if (projectVar) this.projectVarService.add([projectVar]);
+    }
     this.audiences.next(Array.from(this.audienceMap.values()));
   }
 
@@ -111,17 +116,50 @@ export class TargetAudienceService implements OnDestroy {
       projectVar.isNumber = false;
       projectVar.isUploaded = false;
       projectVar.isActive = true;
-
-      // protect against adding dupes to the data store
-      if (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0) {
-        console.warn('refusing to add duplaicate project var: ', projectVar);
-        return null;
-      }
     } catch (error) {
       console.log(error);
       return null;
     }
     return projectVar;
+  }
+
+  public updateProjectVars(audience: AudienceDataDefinition) {
+    const newProjectVar = this.createProjectVar(audience);
+    newProjectVar.baseStatus = DAOBaseStatus.UPDATE;
+    for (const projectVar of this.projectVarService.get()) {
+      if (this.matchProjectVar(projectVar, audience)) {
+        if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
+        this.projectVarService.update(projectVar, newProjectVar);
+      }
+    }
+    if (audience.showOnMap) {
+      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
+      for (const pv of otherVars) {
+        const newPv = Object.assign(pv);
+        newPv.baseStatus = DAOBaseStatus.UPDATE;
+        pv.isShadedOnMap = false;
+        this.projectVarService.update(pv, newPv);
+      }
+    }
+    if (audience.allowNationalExport) {
+      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
+      for (const pv of otherVars) {
+        const newPv = Object.assign(pv);
+        newPv.baseStatus = DAOBaseStatus.UPDATE;
+        pv.isNationalExtract = false;
+        this.projectVarService.update(pv, newPv);
+      }
+    }
+  }
+
+  private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
+    const sourceType = projectVar.source.split('_')[0];
+    const sourceName = projectVar.source.split('_')[1].split('~')[0];
+    const id = projectVar.source.split('~')[1];
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id === audience.audienceIdentifier) {
+      return true;
+    }
+    return false;
   }
 
   private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) {

@@ -127,7 +127,7 @@ export class TargetAudienceTdaService {
             audienceSourceName: 'TDA',
             exportInGeoFootprint: true,
             showOnGrid: true,
-            showOnMap: false,
+            showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false
           };

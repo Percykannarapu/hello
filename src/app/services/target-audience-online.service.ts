@@ -148,7 +148,6 @@ export class TargetAudienceOnlineService {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online')) {
-          console.log('AARON: ', projectVar.source.split('_')[0].toLowerCase());
           let sourceType = projectVar.source.split('~')[0].split('_')[0];
           const sourceNamePieces = projectVar.source.split('~')[0].split('_');
           delete sourceNamePieces[0];
