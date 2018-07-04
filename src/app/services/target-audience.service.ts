@@ -71,6 +71,13 @@ export class TargetAudienceService implements OnDestroy {
         return geos.filter(g => !varGeos.has(g));
       })
     );
+
+    this.appStateService.projectIsLoading$.pipe(
+      filter(loading => loading),
+    ).subscribe(loading => {
+      this.audienceMap.clear();
+      this.audiences.next(Array.from(this.audienceMap.values()));
+    });
   }
 
   private createKey = (...values: string[]) => values.join('/');
