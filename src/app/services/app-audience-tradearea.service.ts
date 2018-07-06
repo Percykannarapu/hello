@@ -343,6 +343,7 @@ export class ValAudienceTradeareaService {
     const taGeos: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
     const taVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
     for (const geo of Array.from(geoVarMap.keys())) {
+      geo.impGeofootprintTradeArea = tradeArea;
       taGeos.push(geo);
       taVars.push(...geoVarMap.get(geo));
     }
