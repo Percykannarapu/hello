@@ -79,6 +79,8 @@ interface AudienceTradeareaResponse {
   combinedIndex: number;
   indexValue: number;
   indexTile: number;
+  combinedIndexTileName: string;
+  combinedIndexTile: number;
 }
 
 @Injectable({
@@ -96,6 +98,7 @@ export class ValAudienceTradeareaService {
   private lastMaxRadius: number;
   private lastDigCategoryId: number;
   private lastWeight: number;
+  private geoCache: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
 
   /**
    * Create an audience trade are for each location that has been created
@@ -110,20 +113,30 @@ export class ValAudienceTradeareaService {
     const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType, mustCover);
     this.attachVariables();
     this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
+    
+    //for now we are going to force always fetching data,
+    //there is a bug where if you add a location since the
+    //last time you ran an audience TA the rerun detection doesn't work
+    this.fetchData = true;
+
     if (this.fetchData) {
     this.sendRequest(taConfig).subscribe(response => {
         try {
           this.parseResponse(response);
           this.fetchData = false;
+          this.geoService.clearAll();
+          this.varService.clearAll();
           for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
             this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
+          this.geoService.add(this.geoCache);
           this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
           this.lastMinRadius = minRadius;
           this.lastMaxRadius = maxRadius;
           this.lastDigCategoryId = digCategoryId;
           this.lastWeight = weight;
+          this.geoCache = new Array<ImpGeofootprintGeo>();
         } catch (error) {
           console.error(error);
           this.audienceTaSubject.error(error);
@@ -223,9 +236,10 @@ export class ValAudienceTradeareaService {
         const addResponse: Map<number, AudienceTradeareaResponse> = new Map<number, AudienceTradeareaResponse>();
         addResponse.set(count, taResponse);
         this.taResponses.set(taResponse.locationName, addResponse);
+        count++;
       }
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-      geoVar.valueString = taResponse.indexTileName;
+      geoVar.valueString = taResponse.combinedIndexTileName;
       rendererData.push({geocode: taResponse.geocode, data: geoVar});
     }
     this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
@@ -346,58 +360,101 @@ export class ValAudienceTradeareaService {
    * @returns An array of ImpGeofootprintGeo
    */
   private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
-    this.geoService.clearAll();
-    this.geoAttribService.clearAll();
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
-    const newAttributes: ImpGeofootprintGeoAttrib[] = new Array<ImpGeofootprintGeoAttrib>();
     const taResponseMap = this.taResponses.get(location.locationName);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
-    const varPk: number = this.varService.getNextStoreId();
+    const audiences = this.targetAudienceService.getAudiences();
+    const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+    
+    let indexVarPk: number = this.searchVarId(audience.audienceName + ' Index');
+    if (!indexVarPk) indexVarPk = this.varService.getNextStoreId();
+    
+    let combinedIndexVarPk: number = this.searchVarId(audience.audienceName + ' Combined Index');
+    if (!combinedIndexVarPk) combinedIndexVarPk = this.varService.getNextStoreId();
+
+    let tileNameVarPk: number = this.searchVarId(audience.audienceName + ' Tile Name');
+    if (!tileNameVarPk) tileNameVarPk = this.varService.getNextStoreId();
+
+    let tileNumberVarPk: number = this.searchVarId(audience.audienceName + ' Tile Number');
+    if (!tileNumberVarPk) tileNumberVarPk = this.varService.getNextStoreId();
+
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       return;
     }
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
       const newVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       const taResponse = taResponseMap.get(i);
+      if (!taResponse || !taResponse.geocode) {
+        console.warn('Unable to find valid audience TA response for location: ', location);
+        continue;
+      }
       newGeo.geocode = taResponse.geocode;
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
+      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 5) {
         newGeo.isActive = true;
-      }
-      for (const tile of activeSmartTiles) {
-        if (taResponse.indexTileName === tile) {
-          newGeo.isActive = true;
-        }
       }
       if (mustCover && taResponse.distance <= minRadius) {
         newGeo.isActive = true;
       }
-      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.indexTileName) <= 3) {
+      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
       newGeo.ggId = this.geoService.getNextStoreId();
-      newVar.varPk = varPk;
-      newVar.gvId = this.varService.getNextStoreId();
-      newVar.geocode = newGeo.geocode;
-      const audiences = this.targetAudienceService.getAudiences();
-      const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
-      newVar.customVarExprDisplay = audience.audienceName + ' Index';
-      newVar.valueNumber = taResponse.indexValue;
-      newVar.isNumber = true;
-      newVar.isActive = true;
-      newVar.fieldconte = 'INDEX';
-      newVars.push(newVar);
+      newVars.push(this.createGeoVar(indexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Index', null, taResponse.indexValue, 'index'));
+      newVars.push(this.createGeoVar(combinedIndexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Combined Index', null, taResponse.combinedIndex, 'index'));
+      newVars.push(this.createGeoVar(tileNameVarPk, newGeo.geocode, 'string', audience.audienceName + ' Tile Name', taResponse.combinedIndexTileName, null));
+      newVars.push(this.createGeoVar(tileNumberVarPk, newGeo.geocode, 'number', audience.audienceName + ' Tile Number', null, taResponse.combinedIndexTile, 'index'));
       geoVarMap.set(newGeo, newVars);
       newGeos.push(newGeo);
     }
-    this.geoService.add(newGeos);
-    this.geoAttribService.add(newAttributes);
+    this.geoCache.push(...newGeos);
     return geoVarMap;
+  }
+
+  private searchVarId(fieldDisplay: string) : number {
+    for (const geoVar of this.varService.get()) {
+      if (geoVar.customVarExprDisplay === fieldDisplay) {
+        return geoVar.varPk;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Create geoffotprint variables for the for the geos that are being selected
+   * @param pk The primary key of the new 
+   * @param geocode The geocode of the new variable
+   * @param type The variable type, string or number
+   * @param fieldDisplay The display name of the new variable
+   * @param valueString If the type is a string, the string value
+   * @param valueNumber If the type is a number, the number value
+   * @param numberType If the number is a vlaue the number type, index or percent
+   */
+  private createGeoVar(pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
+    const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
+    newVar.varPk = pk;
+    newVar.gvId = this.varService.getNextStoreId();
+    newVar.geocode = geocode;
+    newVar.isActive = true;
+    newVar.customVarExprDisplay = fieldDisplay;
+    if (type === 'string') {
+      newVar.valueString = valueString;
+      newVar.isString = true;
+      newVar.fieldconte = 'CHAR';
+    } else {
+      newVar.valueNumber = valueNumber;
+      newVar.isNumber = true;
+      if (numberType === 'index') {
+        newVar.fieldconte = 'INDEX';
+      } else {
+        newVar.fieldconte = 'PERCENT';
+      }
+    }
+    return newVar;
   }
 
   /**
