@@ -116,7 +116,7 @@ export class GeocoderComponent implements OnInit {
     if (this.currentModel.canBeGeocoded() && dupNumber.length == 0) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
       this.geocodeModel(this.currentModel);
     }
     else{

@@ -184,7 +184,7 @@ export class MapService {
       outfields.push('geocode', 'latitude', 'longitude', 'hhld_w', 'hhld_s');
       const sub1 = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, false, outfields).subscribe( graphics => {
         graphic = graphics[0];
-      }, null, () => this.appMapService.collectSelectionUsage(graphic));
+      }, null, () => this.appMapService.collectSelectionUsage(graphic, 'ui=popupAction'));
     //  this.mapView.graphics.
     }
 
@@ -361,7 +361,7 @@ export class MapService {
 
       if (this.mapFunction === mapFunctions.DrawPoly) {
         const polygons = geometry as __esri.Polygon;
-        console.log('polygons:::::', polygons);
+       // console.log('polygons:::::', polygons);
         const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
         this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
         const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
@@ -617,9 +617,9 @@ export class MapService {
         const layerActivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'activated' });
         const layerDeactivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'deactivated' });
         if (layer.visible) {
-          this.usageService.createCounterMetric(layerActivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerActivated, layer.title, null);
         } else {
-          this.usageService.createCounterMetric(layerDeactivated, layer.title, 1);
+          this.usageService.createCounterMetric(layerDeactivated, layer.title, null);
         }
       }
 

@@ -111,7 +111,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
         metricText += 'TA' + counter + ' ' + tradeArea.tradeArea.toString() + ' Miles ~';
         counter++;
       }
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
       const tradeAreas = this.currentTradeAreas.map(ui => ({ radius: ui.tradeArea, selected: ui.isShowing }));
       this.tradeAreaService.applyRadiusTradeArea(tradeAreas, this.currentSiteType);
       this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);

@@ -72,7 +72,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 
     public allProjectsData: any;
     public myProjecctsData: any;
-    public selectedListType: 'myProject' | 'allProject';
+    public selectedListType: 'myProject' | 'allProjects';
     public selectedColumns: any[] = [];
     public columnOptions: SelectItem[] = [];
     public projectColumns: string[];
@@ -144,7 +144,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
         map((response ) => data = response.payload.rows));
     }
 
-    public onListTypeChange(data: 'myProject' | 'allProject') {
+    public onListTypeChange(data: 'myProject' | 'allProjects') {
       this.selectedListType = data;
      
       if (this.selectedListType === 'myProject'){
@@ -312,7 +312,7 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
       //console.log('test:::::', event, 'count::::', count);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
-      this.usageService.createCounterMetric(usageMetricName, metricText, count);
+      //this.usageService.createCounterMetric(usageMetricName, metricText, count);
     }
 
     private searchFilterMetric(){

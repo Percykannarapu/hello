@@ -106,7 +106,7 @@ export class AuthService implements CanActivate {
     }
     const user: User = this.userService.getUser();
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'application', target: 'entry', action: 'login' });
-    this.usageService.createCounterMetric(usageMetricName, user.username + '~' + user.userId, 1);
+    this.usageService.createCounterMetric(usageMetricName, user.username + '~' + user.userId, null);
   }
 
   /**

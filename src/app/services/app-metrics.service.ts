@@ -167,8 +167,12 @@ export class ValMetricsService implements OnDestroy {
         return result;
       },
       metricFormatter: v => {
-        const result = v.income / v.hhc;
-        return '$' + result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (v != null && v.hhc != 0 && v.income != 0){
+          const result = v.income / v.hhc;
+          return '$' + result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }else 
+          return 'N/A';
+       
       }
     };
     this.metricDefinitions.push(medianHhIncome);
@@ -190,8 +194,12 @@ export class ValMetricsService implements OnDestroy {
         return result;
       },
       metricFormatter: v => {
-        const result = v.income / v.hhc;
-        return result.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%';
+        if (v != null && v.hhc != 0 && v.income != 0){
+          const result = v.income / v.hhc;
+          return result.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%';
+        }
+        else return 'N/A';
+        
       }
     };
     this.metricDefinitions.push(familiesRelatedChild);
@@ -213,8 +221,10 @@ export class ValMetricsService implements OnDestroy {
         return result;
       },
       metricFormatter: v => {
+        if (v != null && v.hhc != 0 && v.income != 0){
         const result = v.income / v.hhc;
         return result.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%';
+       }else return 'N/A';
       }
     };
     this.metricDefinitions.push(popHispanicLatino);
@@ -236,8 +246,11 @@ export class ValMetricsService implements OnDestroy {
         return result;
       },
       metricFormatter: v => {
-        const result = v.income / v.hhc;
-        return result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (v != null && v.hhc != 0 && v.income != 0){
+          const result = v.income / v.hhc;
+          return result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        else return 'N/A';
       }
     };
     this.metricDefinitions.push(casualDining);

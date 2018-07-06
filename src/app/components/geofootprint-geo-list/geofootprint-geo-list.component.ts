@@ -808,7 +808,7 @@ console.log("Flattening Geos");
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
-         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}`;
+         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
          if (geo.isActive){
              this.usageService.createCounterMetric(geoselected, metricText, null);
          }

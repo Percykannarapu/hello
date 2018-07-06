@@ -112,7 +112,7 @@ export class SiteListComponent implements OnInit {
         this.removeLocationHierarchy(row);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                                                   target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
-       this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+       this.usageService.createCounterMetric(usageMetricName, metricText, null);
         console.log('remove successful');
       },
       reject: () => {

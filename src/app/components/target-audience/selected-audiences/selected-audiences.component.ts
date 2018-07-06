@@ -85,7 +85,7 @@ export class SelectedAudiencesComponent implements OnInit {
           
       }
 
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
       // const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
       // const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');

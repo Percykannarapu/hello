@@ -694,6 +694,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();
+      geos.sort((a, b) => {
+            const aOwner: any = a.impGeofootprintLocation.locationNumber;
+            const bOwner: any = b.impGeofootprintLocation.locationNumber;
+            return  aOwner - bOwner || a.distance - b.distance;
+      });
+     
       this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
    }
 
