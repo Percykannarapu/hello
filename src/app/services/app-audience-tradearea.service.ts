@@ -394,7 +394,7 @@ export class ValAudienceTradeareaService {
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 5) {
+      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
       if (mustCover && taResponse.distance <= minRadius) {
