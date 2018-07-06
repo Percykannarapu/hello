@@ -225,7 +225,7 @@ export class ValAudienceTradeareaService {
    */
   private parseResponse(restResponse: RestResponse) {
     this.taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
-    const rendererData: Array<any> = new Array<any>();
+    let rendererData: Array<any> = new Array<any>();
     let count: number = 0;
     for (const taResponse of restResponse.payload.rows) {
       if (this.taResponses.has(taResponse.locationName)) {
@@ -242,7 +242,8 @@ export class ValAudienceTradeareaService {
       geoVar.valueString = taResponse.combinedIndexTileName;
       rendererData.push({geocode: taResponse.geocode, data: geoVar});
     }
-    this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
+    rendererData = rendererData.sort((a, b) => this.compare(a, b));
+    this.rendererService.updateData(rendererData);
   }
 
   /**
@@ -372,11 +373,14 @@ export class ValAudienceTradeareaService {
     let combinedIndexVarPk: number = this.searchVarId(audience.audienceName + ' Combined Index');
     if (!combinedIndexVarPk) combinedIndexVarPk = this.varService.getNextStoreId();
 
-    let tileNameVarPk: number = this.searchVarId(audience.audienceName + ' Tile Name');
+    let tileNameVarPk: number = this.searchVarId('Tile Name');
     if (!tileNameVarPk) tileNameVarPk = this.varService.getNextStoreId();
 
-    let tileNumberVarPk: number = this.searchVarId(audience.audienceName + ' Tile Number');
+    let tileNumberVarPk: number = this.searchVarId('Tile Num');
     if (!tileNumberVarPk) tileNumberVarPk = this.varService.getNextStoreId();
+
+    let taLocationVarPk: number = this.searchVarId('In/Out');
+    if (!taLocationVarPk) taLocationVarPk = this.varService.getNextStoreId();
 
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
@@ -406,8 +410,9 @@ export class ValAudienceTradeareaService {
       newGeo.ggId = this.geoService.getNextStoreId();
       newVars.push(this.createGeoVar(indexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Index', null, taResponse.indexValue, 'index'));
       newVars.push(this.createGeoVar(combinedIndexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Combined Index', null, taResponse.combinedIndex, 'index'));
-      newVars.push(this.createGeoVar(tileNameVarPk, newGeo.geocode, 'string', audience.audienceName + ' Tile Name', taResponse.combinedIndexTileName, null));
-      newVars.push(this.createGeoVar(tileNumberVarPk, newGeo.geocode, 'number', audience.audienceName + ' Tile Number', null, taResponse.combinedIndexTile, 'index'));
+      newVars.push(this.createGeoVar(tileNameVarPk, newGeo.geocode, 'string', 'Tile Name', taResponse.combinedIndexTileName, null));
+      newVars.push(this.createGeoVar(tileNumberVarPk, newGeo.geocode, 'number', 'Tile Num', null, taResponse.combinedIndexTile, 'index'));
+      newVars.push(this.createGeoVar(taLocationVarPk, newGeo.geocode, 'string', 'In/Out', taResponse.tradeareaLocation, null));
       geoVarMap.set(newGeo, newVars);
       newGeos.push(newGeo);
     }
