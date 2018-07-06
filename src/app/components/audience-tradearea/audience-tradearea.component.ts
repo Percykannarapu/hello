@@ -68,14 +68,11 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   public onVarDropdownChange(event: any) {
-
-    console.log('AARON: EVENT', event);
     if (this.audienceSourceMap.has(event.value) && this.audienceSourceMap.get(event.value) === 'VLH') {
       this.sliderVal = 100;
     } else {
       this.sliderVal = 65;
     }
-    
   }
 
   private getVarId() : number {
