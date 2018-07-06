@@ -29,6 +29,7 @@ export class AudienceTradeareaComponent implements OnInit {
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
+  private audienceSourceMap: Map<string, string> = new Map<string, string>();
 
   constructor(private audienceTradeareaService: ValAudienceTradeareaService,
     private messagingService: AppMessagingService,
@@ -56,11 +57,25 @@ export class AudienceTradeareaComponent implements OnInit {
       vars.push(selectItem);
       this.selectedVars.push(targetingVar);
       this.selectedVar = targetingVar.audienceName;
+      this.audienceSourceMap.set(targetingVar.audienceName, targetingVar.audienceSourceName);
+      if (targetingVar.audienceSourceName === 'VLH') {
+        this.sliderVal = 100;
+      } else {
+        this.sliderVal = 65;
+      }
     }
     this.varSelectorOptions = vars;
   }
 
   public onVarDropdownChange(event: any) {
+
+    console.log('AARON: EVENT', event);
+    if (this.audienceSourceMap.has(event.value) && this.audienceSourceMap.get(event.value) === 'VLH') {
+      this.sliderVal = 100;
+    } else {
+      this.sliderVal = 65;
+    }
+    
   }
 
   private getVarId() : number {
