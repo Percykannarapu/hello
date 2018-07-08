@@ -63,10 +63,16 @@ export class ValMetricsService implements OnDestroy {
     const householdCount: MetricDefinition<number> = {
       metricValue: 0,
       metricDefault: 0,
-      metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
+      metricCode: () => this.isWinter ? ['cl2i00', 'hhld_w'] : ['cl2i00', 'hhld_s'],
       metricCategory: 'CAMPAIGN',
       metricFriendlyName: 'Household Count',
-      metricAccumulator: (p, c) => p + c,
+      compositePreCalc: t => {
+        if (t.length > 1 && t[0].attributeValue != null)
+            return Number(t[1].attributeValue);
+      },
+      metricAccumulator: (p, c) => {
+        return c != null ? p + c : p;
+      },
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(householdCount);
