@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { map } from 'rxjs/operators';
@@ -15,7 +16,7 @@ import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
-import { simpleFlatten } from '../../val-modules/common/common.utils';
+import { completeFlatten, simpleFlatten } from '../../val-modules/common/common.utils';
 import { AppBusinessSearchService } from '../../services/app-business-search.service';
 
 @Component({
@@ -144,6 +145,15 @@ export class SiteListComponent implements OnInit {
     this.attributeService.remove(location.impGeofootprintLocAttribs);
     this.locationService.addDbRemove(location);  // For database removal
     this.locationService.remove(location);
+  }
+
+  public removeAllLocationHierarchies(locations: ImpGeofootprintLocation[]) {
+    const geosToRemove = completeFlatten<ImpGeofootprintGeo>(locations.map(l => l.getImpGeofootprintGeos()));
+    this.geoAttributeService.remove(simpleFlatten(geosToRemove.map(geo => geo.impGeofootprintGeoAttribs)));
+    this.geoService.remove(geosToRemove);
+    this.tradeAreaService.remove(simpleFlatten(locations.map(l => l.impGeofootprintTradeAreas)));
+    this.attributeService.remove(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
+    this.locationService.remove(locations);
   }
 
   public setLocationHierarchyActiveFlag(location: ImpGeofootprintLocation, isActive: boolean) {
