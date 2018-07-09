@@ -67,7 +67,7 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'CAMPAIGN',
       metricFriendlyName: 'Household Count',
       compositePreCalc: t => {
-        if (t.length > 1 && t[0].attributeValue != null)
+        if (t.length > 1 )
             return Number(t[1].attributeValue);
       },
       metricAccumulator: (p, c) => {
