@@ -204,9 +204,10 @@ export class DiscoveryInputComponent implements OnInit {
         console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
         let newText = null;
         let changeText = null;
-        if (usageTarget === 'analysis-level'){
+        if (usageTarget === 'analysis-level' &&  currentValue != null){
            newText = `New=${currentValue.value}`;
-           changeText = `${newText}~Old=${previousValue.value}`;
+           const preValue = previousValue != null ? previousValue.value  : null ;
+           changeText = `${newText}~Old=${preValue}`;
         }else{
            newText = `New=${currentValue}`;
            changeText = `${newText}~Old=${previousValue}`;
@@ -333,16 +334,16 @@ export class DiscoveryInputComponent implements OnInit {
       console.error('Project passed into MapFromProject is null');
       return;
     }
-    if (this.impProject != null && this.impProject.projectId === newProject.projectId) {
+    if (this.impProject != null && this.impProject.projectId === newProject.projectId && this.impProject === newProject) {
       // break out of infinite loop
       return;
     }
 
     this.impProject = newProject;
-    if (newProject.projectId == null) {
-      // new project - no need to load form data
-      return;
-    }
+    // if (newProject.projectId == null) {
+    //   // new project - no need to load form data
+    //   return;
+    // }
     const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
     const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
     const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];

@@ -37,6 +37,7 @@ export class AppStateService {
 
   public siteTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public competitorTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(private projectService: ImpProjectService, private geoService: ImpGeofootprintGeoService,
                private tradeAreaService: ImpGeofootprintTradeAreaService) {
@@ -115,5 +116,9 @@ export class AppStateService {
       map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
       map(tas => groupBy(tas, 'taNumber'))
     );
+  }
+
+  public getClearUserInterfaceObs() : Observable<boolean> {
+    return this.clearUserInterface.asObservable();
   }
 }

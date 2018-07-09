@@ -83,6 +83,12 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
     // Subscribe to merge type changes
     this.stateService.taSiteMergeType$.subscribe(taSiteMergeData => this.onChangeTaMergeType(taSiteMergeData));
     this.stateService.taCompetitorMergeType$.subscribe(taCompetitorMergeData => this.onChangeTaMergeType(taCompetitorMergeData));
+
+    // subscribe to clear the field values
+    this.stateService.getClearUserInterfaceObs().subscribe(bool => {
+        if (bool)
+            this.clearTradeArea();
+    });
    }
 
   public ngOnDestroy() : void {
@@ -193,5 +199,9 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
          this.currentMergeType = this.getMergeType(mergeType);
          this.tradeAreaService.updateMergeType(this.currentMergeType.value, this.currentSiteType);
       }
+   }
+
+   public clearTradeArea(){
+     this.currentTradeAreas = [];
    }
 }
