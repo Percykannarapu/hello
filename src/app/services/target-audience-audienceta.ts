@@ -61,6 +61,7 @@ export class TargetAudienceAudienceTA {
     private varPkCache: Map<string, number> = new Map<string, number>();
     private geoVarMap: Map<string, string> = new Map<string, string>();
     private geoVarFieldMap: Map<string, string> = new Map<string, string>();
+    private counter = 0;
 
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
         private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
@@ -81,7 +82,7 @@ export class TargetAudienceAudienceTA {
     private createDataDefinition(name: string, digId: number) : AudienceDataDefinition {
         return {
             audienceName: name,
-            audienceIdentifier: `${digId}`,
+            audienceIdentifier: `${digId}-${name}`,
             audienceSourceType: 'Online',
             audienceSourceName: 'Audience-TA',
             exportInGeoFootprint: true,
@@ -98,7 +99,6 @@ export class TargetAudienceAudienceTA {
 
         for (const key of Array.from(this.geoVarMap.keys())) {
             const model = this.createDataDefinition(key, digCategoryId);
-            console.log('AARON: AUDIENCES:',  this.audienceService.getAudiences());
             this.audienceService.addAudience(model, null, null);
         }
         /*this.audienceService.addAudience(
