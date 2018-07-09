@@ -340,10 +340,10 @@ export class DiscoveryInputComponent implements OnInit {
     }
 
     this.impProject = newProject;
-    // if (newProject.projectId == null) {
-    //   // new project - no need to load form data
-    //   return;
-    // }
+    if (newProject.projectId == null) {
+      // new project - no need to load form data
+      return;
+    }
     const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
     const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
     const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
