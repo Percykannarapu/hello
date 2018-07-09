@@ -66,7 +66,7 @@ export class AppLayerService {
     const layerName = `Project ${groupName}`;
     const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site));
     if (points.length > 0) {
-      if (!this.layerService.groupExists(groupName)) {
+      if (!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName)) {
         const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
         const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
         layer.popupTemplate = new EsriModules.PopupTemplate({
