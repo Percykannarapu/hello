@@ -373,7 +373,7 @@ export class AppMenuComponent implements OnInit {
     }
 
     public createNewProject(){
-        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
+        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'new' });
         if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
             this.confirmationService.confirm({
                 message: 'Your project may have unsaved changes. Do you wish to save your current project?',
@@ -431,7 +431,9 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintLocAttribService.clearAll();
         
         this.impProjectService.clearAll();
-        this.appProjectService.clearAll();
+        //this.appProjectService.clearAll();
+        this.impProjectService.clearAll();
+        
        
 
         const newProject = new ImpProject();
@@ -450,10 +452,10 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
         this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
         this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
-
         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+        
         //remove('CAMPAIGN', 'Household Count');
     }
 

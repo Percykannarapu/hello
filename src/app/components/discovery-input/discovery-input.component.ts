@@ -360,7 +360,7 @@ export class DiscoveryInputComponent implements OnInit {
         cpmAnne: null,
         cpmSolo: null
       };
-      
+      this.discoveryForm.patchValue(resetFormData);
        return;
     }
     const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
