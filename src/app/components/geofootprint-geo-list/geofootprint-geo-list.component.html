@@ -63,8 +63,9 @@
       <p-column [style]="{'width':'30px'}">
          <ng-template let-flatGeo="rowData" pTemplate="body">
             <div class="ui-g-12 .val-flush-to-edges" style="vertical-align:inherit">
-               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger"
-                        style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block">
+               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
+                        style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"
+                        pTooltip="Permanently Remove Geo" tooltipPosition="right" >
                </button>
             </div>
          </ng-template>
