@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -53,9 +53,9 @@ export class AppTradeAreaService {
       )
       .subscribe(locations => this.onLocationChange(locations));
 
-    const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
-      filter(tradeAreas => tradeAreas != null && tradeAreas.length > 0),
-      map(tradeAreas => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
+    const radiusTradeAreas$ = combineLatest(this.impTradeAreaService.storeObservable, this.esriMapService.onReady$).pipe(
+      filter(([tradeAreas, isReady]) => isReady && tradeAreas != null),
+      map(([tradeAreas]) => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'))
@@ -201,6 +201,7 @@ export class AppTradeAreaService {
   }
 
   private drawTradeAreas(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeSpec) : void {
+    console.log('Drawing Trade Areas');
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const locationMap = groupBy(tradeAreas, 'impGeofootprintLocation');
     const locations = Array.from(locationMap.keys());
@@ -216,6 +217,7 @@ export class AppTradeAreaService {
         drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
       }
     });
+    console.log('requesting draw trade area');
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
   }
 
