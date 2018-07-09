@@ -6,7 +6,7 @@
 <div class="ui-g-12">
    <p-dataTable #geoGrid
       dataKey="fgId" class="val-table"
-      scrollable="true" scrollWidth="100%" 
+      scrollable="true" scrollWidth="100%"
       [responsive]="true" sortMode="multiple"
       [value]="displayedImpGeofootprintGeos$ | async"
       [selection]="selectedImpGeofootprintGeos$ | async"
@@ -51,7 +51,10 @@
          </div>
       </p-header>
       <!-- GEOGRID COLUMN SELECTION -->
-      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+      <!-- adding display:none to the headerStyle makes the column header disappear, making the columns mis-align with the headers.
+           so I add a "fake" column that has a real header, and a display:none body to offset the row-level data -->
+      <p-column [style]="{ 'display': 'none' }" [headerStyle]="{'width':'30px'}"></p-column>
+      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false" [headerStyle]="{ 'display': 'none' }"></p-column>
 
       <!-- <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="border: 0px; margin: 3px 0px 0px 1px; padding: 0px; width: 1.1em; height: 1.1em; display: block"></button> -->
       <!-- <p-button icon="ui-icon-trash" (click)="onRowDelete(rowData)"></p-button> -->
@@ -60,7 +63,7 @@
       <p-column [style]="{'width':'30px'}">
          <ng-template let-flatGeo="rowData" pTemplate="body">
             <div class="ui-g-12 .val-flush-to-edges" style="vertical-align:inherit">
-               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
+               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger"
                         style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block">
                </button>
             </div>
