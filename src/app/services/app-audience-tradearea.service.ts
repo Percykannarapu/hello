@@ -19,6 +19,7 @@ import { RestResponse } from '../models/RestResponse';
 import { TargetAudienceService } from './target-audience.service';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
+import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -130,6 +131,7 @@ export class ValAudienceTradeareaService {
             this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
           this.geoService.add(this.geoCache);
+          this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId);
           this.drawRadiusRings(minRadius, maxRadius);
           this.audienceTaSubject.next(true);
           this.lastMinRadius = minRadius;
@@ -352,7 +354,7 @@ export class ValAudienceTradeareaService {
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
     this.tradeareaService.add([tradeArea]);
-    this.varService.add(taVars);
+//    this.varService.add(taVars);
   }
 
   /**
@@ -367,22 +369,6 @@ export class ValAudienceTradeareaService {
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
-    
-    let indexVarPk: number = this.searchVarId(audience.audienceName + ' Index');
-    if (!indexVarPk) indexVarPk = this.varService.getNextStoreId();
-    
-    let combinedIndexVarPk: number = this.searchVarId(audience.audienceName + ' Combined Index');
-    if (!combinedIndexVarPk) combinedIndexVarPk = this.varService.getNextStoreId();
-
-    let tileNameVarPk: number = this.searchVarId('Tile Name');
-    if (!tileNameVarPk) tileNameVarPk = this.varService.getNextStoreId();
-
-    let tileNumberVarPk: number = this.searchVarId('Tile Num');
-    if (!tileNumberVarPk) tileNumberVarPk = this.varService.getNextStoreId();
-
-    let taLocationVarPk: number = this.searchVarId('In/Out');
-    if (!taLocationVarPk) taLocationVarPk = this.varService.getNextStoreId();
-
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       return;
@@ -409,13 +395,8 @@ export class ValAudienceTradeareaService {
         newGeo.isActive = true;
       }
       newGeo.ggId = this.geoService.getNextStoreId();
-      newVars.push(this.createGeoVar(indexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Index', null, taResponse.indexValue, 'index'));
-      newVars.push(this.createGeoVar(combinedIndexVarPk, newGeo.geocode, 'number', audience.audienceName + ' Combined Index', null, taResponse.combinedIndex, 'index'));
-      newVars.push(this.createGeoVar(tileNameVarPk, newGeo.geocode, 'string', 'Tile Name', taResponse.combinedIndexTileName, null));
-      newVars.push(this.createGeoVar(tileNumberVarPk, newGeo.geocode, 'number', 'Tile Num', null, taResponse.combinedIndexTile, 'index'));
-      newVars.push(this.createGeoVar(taLocationVarPk, newGeo.geocode, 'string', 'In/Out', taResponse.tradeareaLocation, null));
-      geoVarMap.set(newGeo, newVars);
       newGeos.push(newGeo);
+      this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId);
     }
     this.geoCache.push(...newGeos);
     return geoVarMap;
@@ -491,7 +472,8 @@ export class ValAudienceTradeareaService {
     private mapService: AppMapService,
     private httpClient: HttpClient,
     private appConfig: AppConfig,
-    private targetAudienceService: TargetAudienceService) {
+    private targetAudienceService: TargetAudienceService,
+    private targetAudienceTAService: TargetAudienceAudienceTA) {
     this.initializeSortMap();
     this.locationService.storeObservable.subscribe(location => {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
