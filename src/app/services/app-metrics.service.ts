@@ -63,10 +63,16 @@ export class ValMetricsService implements OnDestroy {
     const householdCount: MetricDefinition<number> = {
       metricValue: 0,
       metricDefault: 0,
-      metricCode: () => this.isWinter ? 'hhld_w' : 'hhld_s',
+      metricCode: () => this.isWinter ? ['cl2i00', 'hhld_w'] : ['cl2i00', 'hhld_s'],
       metricCategory: 'CAMPAIGN',
       metricFriendlyName: 'Household Count',
-      metricAccumulator: (p, c) => p + c,
+      compositePreCalc: t => {
+        if (t.length > 1 && t[0].attributeValue != null)
+            return Number(t[1].attributeValue);
+      },
+      metricAccumulator: (p, c) => {
+        return c != null ? p + c : p;
+      },
       metricFormatter: v => v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     };
     this.metricDefinitions.push(householdCount);
@@ -157,13 +163,13 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'AUDIENCE',
       metricFriendlyName: 'Median Household Income',
       compositePreCalc: t => {
-        if (t.length > 1)
+        if (t.length > 1 && t[0].attributeValue != null)
             return { income: Number(t[0].attributeValue) * Number(t[1].attributeValue) , hhc: Number(t[1].attributeValue) };
       },
       metricAccumulator: (p, c) => {
         const result = Object.assign({}, p);
-        result.hhc += c.hhc;
-        result.income += c.income;
+        result.hhc += c != null ? c.hhc : 0;
+        result.income += c != null ? c.income : 0;
         return result;
       },
       metricFormatter: v => {
@@ -184,13 +190,13 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'AUDIENCE',
       metricFriendlyName: '% \'17 HHs Families with Related Children < 18 Yrs',
       compositePreCalc: t => {
-        if (t.length > 1)
+        if (t.length > 1 && t[0].attributeValue != null)
             return { income: Number(t[0].attributeValue) * Number(t[1].attributeValue) , hhc: Number(t[1].attributeValue) };
       },
       metricAccumulator: (p, c) => {
         const result = Object.assign({}, p);
-        result.hhc += c.hhc;
-        result.income += c.income;
+        result.hhc += c != null ? c.hhc : 0;
+        result.income += c != null ? c.income : 0;
         return result;
       },
       metricFormatter: v => {
@@ -211,13 +217,13 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'AUDIENCE',
       metricFriendlyName: '% \'17 Pop Hispanic or Latino',
       compositePreCalc: t => {
-        if (t.length > 1)
+        if (t.length > 1 && t[0].attributeValue)
             return { income: Number(t[0].attributeValue) * Number(t[1].attributeValue) , hhc: Number(t[1].attributeValue) };
       },
       metricAccumulator: (p, c) =>  {
         const result = Object.assign({}, p);
-        result.hhc += c.hhc;
-        result.income += c.income;
+        result.hhc += c != null ? c.hhc : 0;
+        result.income += c != null ? c.income : 0;
         return result;
       },
       metricFormatter: v => {
@@ -236,13 +242,13 @@ export class ValMetricsService implements OnDestroy {
       metricCategory: 'AUDIENCE',
       metricFriendlyName: 'Casual Dining: 10+ Times Past 30 Days',
       compositePreCalc: t => {
-        if (t.length > 1)
+        if (t.length > 1 && t[0].attributeValue)
         return { income: Number(t[0].attributeValue) * Number(t[1].attributeValue) , hhc: Number(t[1].attributeValue) };
       },
       metricAccumulator: (p, c) =>  {
         const result = Object.assign({}, p);
-        result.hhc += c.hhc;
-        result.income += c.income;
+        result.hhc += c != null ? c.hhc : 0;
+        result.income += c != null ? c.income : 0;
         return result;
       },
       metricFormatter: v => {

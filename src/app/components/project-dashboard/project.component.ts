@@ -286,9 +286,14 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
         this.onLoadProject(project);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
         this.usageService.createCounterMetric(usageMetricName, null, null);
+        this.esriMapService.map.layers.forEach(lyr => {
+          if (lyr.title != null && lyr.title.includes(project.methAnalysis)){
+              lyr.visible = true;
+              console.log('project loaded', project.methAnalysis);
+          }
+        });
       } );
       this.display = false;
-     
     }
 
     private onLoadProject(project: ImpProject) : void {

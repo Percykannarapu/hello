@@ -214,22 +214,19 @@ export class AppGeoService {
     const varsToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintVars));
     const attributesToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
 
-    this.attributeService.addDbRemove(attributesToDelete);
     this.attributeService.remove(attributesToDelete);
-    this.geoService.addDbRemove(geosToDelete);
     this.geoService.remove(geosToDelete);
-    this.varService.addDbRemove(varsToDelete);
     this.varService.remove(varsToDelete);
     tradeAreasToClear.forEach(ta => {
       ta.impGeofootprintVars = [];
       ta.impGeofootprintGeos = [];
+      ta['isComplete'] = false;
     });
     tradeAreasToDelete.forEach(ta => {
       const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
       ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
       ta.impGeofootprintLocation = null;
     });
-    this.tradeAreaService.addDbRemove(tradeAreasToDelete);
     this.tradeAreaService.remove(tradeAreasToDelete);
   }
 
@@ -240,6 +237,7 @@ export class AppGeoService {
       tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
         const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
         if (currentDistance <= radius && currentDistance > previousRadius) {
+          if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
             const newGeo = new ImpGeofootprintGeo({
               xcoord: attributes.longitude,
               ycoord: attributes.latitude,
@@ -252,6 +250,7 @@ export class AppGeoService {
             ta.impGeofootprintGeos.push(newGeo);
             geosToSave.push(newGeo);
           }
+        }
       });
     });
     // mark trade areas as completed, so Home Geo query can pick it up

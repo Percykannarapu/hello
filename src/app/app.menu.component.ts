@@ -25,6 +25,7 @@ import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
+import { MapService } from './services/map.service';
 
 
 @Component({
@@ -62,7 +63,8 @@ export class AppMenuComponent implements OnInit {
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService,
         private appConfig: AppConfig,
-        private esriMapService: EsriMapService) { }
+        private esriMapService: EsriMapService,
+        private mapService: MapService) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -96,7 +98,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                    //{label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
+                    {label: 'Create New', icon: '', command: () =>  this.createNewProject()}, //this.createNewProject()
                     {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() },
                     {label: 'Save', icon: 'save', command: () => this.saveProject() }
 
@@ -355,7 +357,7 @@ export class AppMenuComponent implements OnInit {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                        this.impProjectService.saveProject();
+                        this.saveProject();
                         this.appProjectService.ngDialog.next(true);
                 },
                 reject: () => {
@@ -395,8 +397,11 @@ export class AppMenuComponent implements OnInit {
                         this.messageService.showGrowlError('Error Saving Project', errorString);
                         return;
                     }
-                    this.impProjectService.saveProject();
+                  this.impProjectService.saveProject().subscribe(impPro => {
+                    const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                    this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
                     this.clearProject();
+                });
                 },
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
@@ -408,13 +413,17 @@ export class AppMenuComponent implements OnInit {
     }
 
     public clearProject(){
-
        this.esriMapService.map.layers.forEach(lyr => {
             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-            if (lyr.title === 'Sites'){
+            lyr.visible = false;
+            if (lyr.title === 'Sites' || lyr.title === 'Competitor'){
                 this.esriMapService.map.layers.remove(lyr);
             }
        });
+       this.appStateService.clearUserInterface.next(true);
+       this.messageService.clearGrowlMessages();
+       //GeocoderComponent.prototype.clearFields();
+       //TradeAreaDefineComponent.prototype.clearTradeArea();
         this.impGeofootprintGeoService.clearAll();
         this.attributeService.clearAll();
         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
@@ -459,11 +468,10 @@ export class AppMenuComponent implements OnInit {
                 this.messageService.showGrowlError('Error Saving Project', errorString);
                 return;
             }
-        this.impProjectService.saveProject();
-        // Needs to happen after the save is complete
-        // TODO: See ImpProject.service.saveProjectObs - fix that and swap with saveProject abvoe
-        const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-        this.usageService.createCounterMetric(usageMetricName, null, null); //savedProject[0].projectId);
+        this.impProjectService.saveProject().subscribe(impPro => {
+            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+            this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
+        });
     }
 }
 
