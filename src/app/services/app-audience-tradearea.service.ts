@@ -133,12 +133,12 @@ export class ValAudienceTradeareaService {
           this.geoService.add(this.geoCache);
           this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId);
           this.drawRadiusRings(minRadius, maxRadius);
-          this.audienceTaSubject.next(true);
           this.lastMinRadius = minRadius;
           this.lastMaxRadius = maxRadius;
           this.lastDigCategoryId = digCategoryId;
           this.lastWeight = weight;
           this.geoCache = new Array<ImpGeofootprintGeo>();
+          this.audienceTaSubject.next(true);
         } catch (error) {
           console.error(error);
           this.audienceTaSubject.error(error);
@@ -354,7 +354,6 @@ export class ValAudienceTradeareaService {
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
     this.tradeareaService.add([tradeArea]);
-//    this.varService.add(taVars);
   }
 
   /**

@@ -65,11 +65,13 @@ export class TargetAudienceAudienceTA {
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
         private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
         private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService) {
+        this.geoVarMap.set('Index Value', 'number');
         this.geoVarMap.set('Combined Index', 'number');
         this.geoVarMap.set('Combined Tile Name', 'string');
         this.geoVarMap.set('Combined Tile Number', 'number');
         this.geoVarMap.set('In/Out', 'string');
 
+        this.geoVarFieldMap.set('Index Value', 'indexValue');
         this.geoVarFieldMap.set('Combined Index', 'combinedIndex');
         this.geoVarFieldMap.set('Combined Tile Name', 'combinedIndexTileName');
         this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
@@ -96,6 +98,7 @@ export class TargetAudienceAudienceTA {
 
         for (const key of Array.from(this.geoVarMap.keys())) {
             const model = this.createDataDefinition(key, digCategoryId);
+            console.log('AARON: AUDIENCES:',  this.audienceService.getAudiences());
             this.audienceService.addAudience(model, null, null);
         }
         /*this.audienceService.addAudience(

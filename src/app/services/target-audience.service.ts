@@ -95,7 +95,7 @@ export class TargetAudienceService implements OnDestroy {
     const projectVar = this.createProjectVar(audience, id);
     // protect against adding dupes to the data store
     if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
-      console.warn('refusing to add duplicate project var: ', projectVar);
+      console.warn('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
     } else {
       if (projectVar) this.projectVarService.add([projectVar]);
     }
