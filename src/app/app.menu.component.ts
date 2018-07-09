@@ -98,7 +98,7 @@ export class AppMenuComponent implements OnInit {
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                    {label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
+                    {label: 'Create New', icon: '', command: () =>  this.createNewProject()}, //this.createNewProject()
                     {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() },
                     {label: 'Save', icon: 'save', command: () => this.saveProject() }
 
@@ -357,7 +357,7 @@ export class AppMenuComponent implements OnInit {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                        this.impProjectService.saveProject();
+                        this.saveProject();
                         this.appProjectService.ngDialog.next(true);
                 },
                 reject: () => {
@@ -397,11 +397,11 @@ export class AppMenuComponent implements OnInit {
                         this.messageService.showGrowlError('Error Saving Project', errorString);
                         return;
                     }
-                    this.impProjectService.saveProjectObs().subscribe(impPro => {
-
-                    }, null, () => this.clearProject());
-                    //.saveProject();
-                    //this.clearProject();
+                  this.impProjectService.saveProject().subscribe(impPro => {
+                    const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                    this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
+                    this.clearProject();
+                });
                 },
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
@@ -421,6 +421,7 @@ export class AppMenuComponent implements OnInit {
             }
        });
        this.appStateService.clearUserInterface.next(true);
+       this.messageService.clearGrowlMessages();
        //GeocoderComponent.prototype.clearFields();
        //TradeAreaDefineComponent.prototype.clearTradeArea();
         this.impGeofootprintGeoService.clearAll();
@@ -467,9 +468,9 @@ export class AppMenuComponent implements OnInit {
                 this.messageService.showGrowlError('Error Saving Project', errorString);
                 return;
             }
-        this.impProjectService.saveProjectObs().subscribe(impPro => {
+        this.impProjectService.saveProject().subscribe(impPro => {
             const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-            this.usageService.createCounterMetric(usageMetricName, null, impPro[0].projectId);
+            this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
         });
     }
 }

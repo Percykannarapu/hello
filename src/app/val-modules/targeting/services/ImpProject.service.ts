@@ -16,7 +16,7 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { UserService } from '../../../services/user.service';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
 const restUrl = 'v1/targeting/base/impproject/';
@@ -47,7 +47,7 @@ export class ImpProjectService extends DataStore<ImpProject>
       );
    }
 
-   saveProject()
+  /* saveProject()
    {
       console.log('ImpProject.service.saveProject fired');
       this.appProjectService.debugLogStoreCounts();
@@ -66,6 +66,35 @@ export class ImpProjectService extends DataStore<ImpProject>
          else
             console.log('project did not save');
       });
+   }*/
+
+   saveProject() : Observable<ImpProject>
+   {
+      const  observer = new Subject<ImpProject>();
+      console.log('ImpProject.service.saveProject fired');
+      this.appProjectService.debugLogStoreCounts();
+      this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
+         if (savedProject != null)
+         {
+            console.log('AFTER SAVE');
+            this.appProjectService.debugLogStoreCounts();
+
+            // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
+            //       This is not ideal code, the app-project.service should be doing it.
+            this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {  
+               console.log('Reloaded projectId: ', (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
+               observer.next(saved_project);
+               observer.complete();
+            });
+         }
+         else{
+          console.log('project did not save');
+          observer.error('Project did not save');
+         }
+          
+      });
+
+      return observer.asObservable();
    }
 
    saveProjectObs() : Observable<ImpProject[]> {
