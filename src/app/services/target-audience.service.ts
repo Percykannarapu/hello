@@ -301,6 +301,7 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
+    this.messagingService.startSpinnerDialog('SHADING_DATA', 'Retrieving shading data');
     console.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
@@ -314,13 +315,19 @@ export class TargetAudienceService implements OnDestroy {
             data.forEach(gv => currentShadingData.set(gv.geocode, gv));
           },
           err => console.error('There was an error retrieving audience data for map shading', err),
-          () => this.shadingData.next(currentShadingData)
+          () => { 
+            this.shadingData.next(currentShadingData);
+            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+          }
         );  
       } else {
         source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
           data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
           err => console.error('There was an error retrieving audience data for map shading', err),
-          () => this.shadingData.next(currentShadingData)
+          () => {
+            this.shadingData.next(currentShadingData);
+            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+          }
         );
       }
     }
