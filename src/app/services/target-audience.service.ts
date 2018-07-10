@@ -7,7 +7,7 @@ import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition } from '../models/audience-data.model';
+import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
@@ -19,7 +19,7 @@ import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 import { TargetAudienceTdaService } from './target-audience-tda.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
-export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) => Observable<ImpGeofootprintVar[]>;
+export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audienceTAConfig?: AudienceTradeAreaConfig) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
 
 @Injectable({

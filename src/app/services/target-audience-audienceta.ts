@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
@@ -15,6 +16,7 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { RestResponse } from '../models/RestResponse';
 
 interface AudienceTradeareaResponse {
     maxRadius: number;
@@ -65,7 +67,7 @@ export class TargetAudienceAudienceTA {
 
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
         private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
-        private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService) {
+        private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient) {
         this.geoVarMap.set('Index Value', 'number');
         this.geoVarMap.set('Combined Index', 'number');
         this.geoVarMap.set('Combined Tile Name', 'string');
@@ -79,7 +81,7 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
     }
 
-    private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig) : AudienceDataDefinition {
+    private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig): AudienceDataDefinition {
         return {
             audienceName: name,
             audienceIdentifier: `${digId}-${name}`,
@@ -100,7 +102,10 @@ export class TargetAudienceAudienceTA {
 
         for (const key of Array.from(this.geoVarMap.keys())) {
             const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig);
-            this.audienceService.addAudience(model, null, null);
+            this.audienceService.addAudience(
+                model,
+                (al, pks, geos, shading) => this.dataRefreshCallback(null, null, null, null, audienceTAConfig),
+                null);
         }
         /*this.audienceService.addAudience(
             model,
@@ -120,7 +125,7 @@ export class TargetAudienceAudienceTA {
    * @param valueNumber If the type is a number, the number value
    * @param numberType If the number is a vlaue the number type, index or percent
    */
-    private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>) {
+    private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>): ImpGeofootprintVar[] {
         let varPk = null;
         const geofootprintVars: ImpGeofootprintVar[] = [];
 
@@ -147,6 +152,7 @@ export class TargetAudienceAudienceTA {
             }
         }
         this.varService.add(geofootprintVars);
+        return geofootprintVars;
     }
 
     /**
@@ -159,7 +165,7 @@ export class TargetAudienceAudienceTA {
    * @param valueNumber If the type is a number, the number value
    * @param numberType If the number is a vlaue the number type, index or percent
    */
-    private createGeoVar(pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
+    private createGeoVar(pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent'): ImpGeofootprintVar {
         const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
         newVar.varPk = pk;
         newVar.gvId = this.varService.getNextStoreId();
@@ -182,4 +188,41 @@ export class TargetAudienceAudienceTA {
         return newVar;
     }
 
+    /**
+   * Parse the response from Fuse and build the array of audienceTradeareaResponses
+   * This method will also create the renderer data that is required for map shading
+   * @param restResponse The response from Fuse returned from the trade area service
+   */
+    private parseResponse(restResponse: RestResponse): Map<string, Map<number, AudienceTradeareaResponse>> {
+        console.log('AARON: PARSING RESPONSE');
+        const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
+        let rendererData: Array<any> = new Array<any>();
+        let count: number = 0;
+        for (const taResponse of restResponse.payload.rows) {
+            if (taResponses.has(taResponse.locationName)) {
+                taResponses.get(taResponse.locationName).set(count, taResponse);
+                count++;
+            } else {
+                count = 0; // reset the counter for each new location
+                const addResponse: Map<number, AudienceTradeareaResponse> = new Map<number, AudienceTradeareaResponse>();
+                addResponse.set(count, taResponse);
+                taResponses.set(taResponse.locationName, addResponse);
+                count++;
+            }
+            const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
+            geoVar.valueString = taResponse.combinedIndexTileName;
+            rendererData.push({ geocode: taResponse.geocode, data: geoVar });
+        }
+        return taResponses;
+    }
+
+    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audienceTAConfig?: AudienceTradeAreaConfig): Observable<ImpGeofootprintVar[]> {
+        const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
+        const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
+        const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(audienceTAConfig), { headers: headers });
+        return dataObs.pipe(
+            map(res => this.createGeofootprintVars(this.parseResponse(res)))
+        );
+
+    }
 }
