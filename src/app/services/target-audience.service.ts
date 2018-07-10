@@ -19,7 +19,7 @@ import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 import { TargetAudienceTdaService } from './target-audience-tda.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
-export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audienceTAConfig?: AudienceTradeAreaConfig) => Observable<ImpGeofootprintVar[]>;
+export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
 
 @Injectable({
@@ -307,11 +307,22 @@ export class TargetAudienceService implements OnDestroy {
     if (source != null) {
       const currentShadingData = this.shadingData.getValue();
       // this is an http call, no need for an unsub
-      source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
-        data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
-        err => console.error('There was an error retrieving audience data for map shading', err),
-        () => this.shadingData.next(currentShadingData)
-      );
+      if (audience.audienceSourceName === 'Audience-TA') {
+        source(analysisLevel, [audience.audienceIdentifier], geos, true, audience).subscribe(
+          data => {
+            data = data.filter(gv => gv.customVarExprDisplay.includes(audience.secondaryId));
+            data.forEach(gv => currentShadingData.set(gv.geocode, gv));
+          },
+          err => console.error('There was an error retrieving audience data for map shading', err),
+          () => this.shadingData.next(currentShadingData)
+        );  
+      } else {
+        source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
+          data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
+          err => console.error('There was an error retrieving audience data for map shading', err),
+          () => this.shadingData.next(currentShadingData)
+        );
+      }
     }
   }
 
@@ -323,7 +334,14 @@ export class TargetAudienceService implements OnDestroy {
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
         const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
-        observables.push(sourceRefresh(analysisLevel, ids, geos, false));
+        const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
+        if (taAudiences.length > 0) {
+          for (const taAudience of taAudiences) {
+            observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
+          }
+        } else {
+          observables.push(sourceRefresh(analysisLevel, ids, geos, false));
+        }
       }
     });
     const accumulator: ImpGeofootprintVar[] = [];

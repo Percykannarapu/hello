@@ -97,7 +97,7 @@ export class TargetAudienceAudienceTA {
             showOnMap: false,
             allowNationalExport: false,
             exportNationally: false,
-            secondaryId: digId.toLocaleString(),
+            secondaryId: `${name}`,
             audienceTAConfig: audienceTAConfig
         };
     }
@@ -109,7 +109,7 @@ export class TargetAudienceAudienceTA {
             const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
             this.audienceService.addAudience(
                 model,
-                (al, pks, geos, shading) => this.dataRefreshCallback(null, null, null, null, audienceTAConfig),
+                (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
                 null);
         }
         /*this.audienceService.addAudience(
@@ -199,7 +199,6 @@ export class TargetAudienceAudienceTA {
    * @param restResponse The response from Fuse returned from the trade area service
    */
     private parseResponse(restResponse: RestResponse) : Map<string, Map<number, AudienceTradeareaResponse>> {
-        console.log('AARON: PARSING RESPONSE');
         const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
         let count: number = 0;
         for (const taResponse of restResponse.payload.rows) {
@@ -219,10 +218,11 @@ export class TargetAudienceAudienceTA {
         return taResponses;
     }
 
-    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audienceTAConfig?: AudienceTradeAreaConfig) : Observable<ImpGeofootprintVar[]> {
+    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
+        if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
         const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
         const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
-        const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(audienceTAConfig), { headers: headers });
+        const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(audience.audienceTAConfig), { headers: headers });
         return dataObs.pipe(
             map(res => this.createGeofootprintVars(this.parseResponse(res)))
         );

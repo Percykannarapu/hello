@@ -20,7 +20,7 @@ import { TargetAudienceService } from './target-audience.service';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
-import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model'
+import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -111,7 +111,7 @@ export class ValAudienceTradeareaService {
           this.fetchData = false;
           this.geoService.clearAll();
           this.varService.clearAll();
-          for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
+          for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
             this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
           this.geoService.add(this.geoCache);
@@ -324,20 +324,13 @@ export class ValAudienceTradeareaService {
    * @param geos An array of geos that will be attached to the trade area being created
    * @param location the location that the trade area is associated with
    */
-  private createTradeArea(geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>, location: ImpGeofootprintLocation) {
+  private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
     const tradeArea: ImpGeofootprintTradeArea = new ImpGeofootprintTradeArea();
-    const taGeos: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-    const taVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
-    for (const geo of Array.from(geoVarMap.keys())) {
-      geo.impGeofootprintTradeArea = tradeArea;
-      taGeos.push(geo);
-      taVars.push(...geoVarMap.get(geo));
-    }
-    tradeArea.impGeofootprintGeos = taGeos;
-    //tradeArea.impGeofootprintVars = taVars;
+    tradeArea.impGeofootprintGeos = geos;
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
-    this.tradeareaService.add([tradeArea]);
+    tradeArea.impGeofootprintLocation = location;
+    location.impGeofootprintTradeAreas.push(tradeArea);
   }
 
   /**
@@ -346,7 +339,7 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> {
+  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : ImpGeofootprintGeo[] {
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const taResponseMap = this.taResponses.get(location.locationName);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
@@ -381,7 +374,7 @@ export class ValAudienceTradeareaService {
       newGeos.push(newGeo);
     }
     this.geoCache.push(...newGeos);
-    return geoVarMap;
+    return newGeos;
   }
 
   private searchVarId(fieldDisplay: string) : number {
