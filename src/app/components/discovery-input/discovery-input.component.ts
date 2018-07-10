@@ -342,32 +342,22 @@ export class DiscoveryInputComponent implements OnInit {
     }
 
     this.impProject = newProject;
-    let newFormValues: DiscoveryFormData;
+    
     if (newProject.projectId == null) {
       // new project - no need to load form data
-      newFormValues = {
-        projectName: '',
-        projectTrackerData: null,
-        selectedRadLookupValue: null,
+      this.discoveryForm.reset({
         selectedSeason: this.isSummer() ? this.allSeasons[0].value : this.allSeasons[1].value,
-        selectedAnalysisLevel: null,
         includePob: true,
         includeValassis: true,
         includeAnne: true,
         includeSolo: true,
-        dollarBudget: null,
-        circBudget: null,
-        cpmType: null,
-        cpmBlended: null,
-        cpmValassis: null,
-        cpmAnne: null,
-        cpmSolo: null
-      };
+      });
+
     } else {
       const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
       const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
       const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
-      newFormValues = {
+      const newFormValues: DiscoveryFormData   = {
         projectName: newProject.projectName,
         circBudget: newProject.isCircBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
         dollarBudget: newProject.isDollarBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
@@ -385,9 +375,10 @@ export class DiscoveryInputComponent implements OnInit {
         projectTrackerData: trackerItem ? trackerItem : null,
         selectedRadLookupValue: radItem ? radItem : null
       };
+      console.log('Patching data to form', newFormValues);
+      this.discoveryForm.patchValue(newFormValues);
     }
-    console.log('Patching data to form', newFormValues);
-    this.discoveryForm.patchValue(newFormValues);
+    
   }
 
   // TODO: move to the discovery service and use to initialize selectedSeason
