@@ -8,6 +8,10 @@
   <div class="ui-g-4">
     <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
   </div>
+  <div  class="ui-g-3">
+     
+    <button pButton type="button" label="Delete All" (click)="onDelete()" style="position: absolute;left: 350px;top:60px;height:27px;width:70px;padding: 0px"></button>
+   </div>
 </div>
 
 <div class="ui-g-12">
