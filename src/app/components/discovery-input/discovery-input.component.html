@@ -2,13 +2,13 @@
   <form novalidate  [formGroup]="discoveryForm">
 
     <div class="ui-g card">
-      <div class="ui-g-3">
+      <div class="ui-g-4">
         <span class="md-inputfield">
           <input id="projectId" type="text" pInputText [disabled]="true" value="{{impProject?.projectId}}" class="val-full-width">
           <label for="projectId">imPower ID</label>
         </span>
       </div>
-      <div class="ui-g-9">&nbsp;</div>
+      <div class="ui-g-8">&nbsp;</div>
 
       <div class="ui-g-10">
         <span class="md-inputfield">
@@ -30,11 +30,11 @@
         <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
       </div>
 
-      <div class="ui-g-3">
+      <div class="ui-g-4">
         <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
                     placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
       </div>
-      <div class="ui-g-9">&nbsp;</div>
+      <div class="ui-g-8">&nbsp;</div>
     </div>
 
     <div class="ui-g card">
@@ -121,7 +121,7 @@
           <div class="ui-g-11 ui-g-offset-1">
             <div class="ui-g-12">
               <span class="ui-float-label">
-                <input id="cpm" type="text" [disabled]="isOwnerGroupCpm" formControlName="cpmBlended" pInputText>
+                <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
                 <label for="cpm">CPM</label>
               </span>
             </div>
@@ -132,19 +132,19 @@
           <div class="ui-g-11 ui-g-offset-1">
             <div class="ui-g-12">
               <span class="ui-float-label">
-                <input id="includeValassisCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmValassis" pInputText>
+                <input id="includeValassisCPM" type="text" formControlName="cpmValassis" pInputText>
                 <label for="includeValassisCPM">Valassis CPM</label>
               </span>
             </div>
             <div class="ui-g-12">
               <span class="ui-float-label">
-                <input id="includeAnneCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmAnne" pInputText>
+                <input id="includeAnneCPM" type="text" formControlName="cpmAnne" pInputText>
                 <label for="includeAnneCPM">ANNE CPM</label>
               </span>
             </div>
             <div class="ui-g-12">
               <span class="ui-float-label">
-                <input id="includeSoloCPM" type="text" [disabled]="isBlendedCpm" formControlName="cpmSolo" pInputText>
+                <input id="includeSoloCPM" type="text" formControlName="cpmSolo" pInputText>
                 <label for="includeSoloCPM">Solo CPM</label>
               </span>
             </div>

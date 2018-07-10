@@ -86,17 +86,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           ];
 
    public  flatGeoGridColumns: SelectItem[] =
-                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Number',                 width: '5em',   styleClass: 'val-text-right'}},
+                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Number',                 width: '7em',   styleClass: ''}},
                                           {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Name',                   width: '16em',  styleClass: ''}},
-                                          {label: 'In Market',            value: {field: 'in_market',                                   header: 'In Market',              width: '6.5em', styleClass: ''}},
+                                          {label: 'In Market',            value: {field: 'geo.impGeofootprintLocation.marketName',      header: 'Market',                 width: '12em',  styleClass: ''}},
                                           {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Address',                width: '14em',  styleClass: ''}},
                                           {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'City',                   width: '9em',   styleClass: ''}},
                                           {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'State',                  width: '7em',   styleClass: ''}},
                                           {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'Zip',                    width: '6.5em', styleClass: ''}},
-                                          {label: 'Location HomeGeocode', value: {field: 'home_geo',                                    header: 'Home Geo Ind',           width: '8.5em',   styleClass: ''}},
+                                          {label: 'Location HomeGeocode', value: {field: 'home_geo',                                    header: 'Home Geo Ind',           width: '8.5em', styleClass: ''}},
                                           {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',               width: '7em',   styleClass: 'val-text-right'}},
                                           {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',                width: '8em',   styleClass: ''}},
-                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'Geo City, State',        width: '10em',  styleClass: ''}},
+                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'Geo City, State',        width: '15em',  styleClass: ''}},
                                           {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                    width: '6em',   styleClass: 'val-text-right'}},
                                           {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                    width: '5em',   styleClass: 'val-text-right'}},
                                           {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',             width: '8em',   styleClass: 'val-text-right'}},
@@ -458,17 +458,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
                }
 
-                
-               if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'In Market')){
-                    gridGeo['in_market'] = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter( attr => attr.attributeCode === 'In Market').length === 0 ? '' :
-                                                                                    geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter( attr => attr.attributeCode === 'In Market')[0].attributeValue ;
-                }
-
-                if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null ){
+               if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null ){
                   gridGeo['home_geo']  = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
-                }
-
-                  
+                }                
 
                if (attribute.attributeCode === 'cov_desc')
                   gridGeo['coveragedescription'] = attribute.attributeValue;
