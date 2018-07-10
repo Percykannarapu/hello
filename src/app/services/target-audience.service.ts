@@ -343,8 +343,14 @@ export class TargetAudienceService implements OnDestroy {
         const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
         const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
         if (taAudiences.length > 0) {
+          const doneAudienceTAs: Set<string> = new Set<string>(); 
           for (const taAudience of taAudiences) {
-            observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
+            if (doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
+              continue;
+            } else {
+              observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
+              doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
+            }
           }
         } else {
           observables.push(sourceRefresh(analysisLevel, ids, geos, false));
