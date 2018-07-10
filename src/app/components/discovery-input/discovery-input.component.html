@@ -2,13 +2,13 @@
   <form novalidate  [formGroup]="discoveryForm">
 
     <div class="ui-g card">
-      <div class="ui-g-3">
+      <div class="ui-g-4">
         <span class="md-inputfield">
           <input id="projectId" type="text" pInputText [disabled]="true" value="{{impProject?.projectId}}" class="val-full-width">
           <label for="projectId">imPower ID</label>
         </span>
       </div>
-      <div class="ui-g-9">&nbsp;</div>
+      <div class="ui-g-8">&nbsp;</div>
 
       <div class="ui-g-10">
         <span class="md-inputfield">
@@ -30,11 +30,11 @@
         <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
       </div>
 
-      <div class="ui-g-3">
+      <div class="ui-g-4">
         <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
                     placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
       </div>
-      <div class="ui-g-9">&nbsp;</div>
+      <div class="ui-g-8">&nbsp;</div>
     </div>
 
     <div class="ui-g card">
