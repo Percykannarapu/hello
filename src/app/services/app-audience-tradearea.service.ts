@@ -20,6 +20,7 @@ import { TargetAudienceService } from './target-audience.service';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
+import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model'
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -29,23 +30,6 @@ export enum SmartTile {
   BELOW_AVERAGE = 'Below Average',
   LOW = 'Low',
   EXTREMELY_LOW = 'Extrememly Low'
-}
-
-interface AudienceTradeAreaConfig {
-  digCategoryId: number;
-  analysisLevel: string;
-  scoreType: string;
-  minRadius: number;
-  maxRadius: number;
-  weight: number;
-  locations: Array<AudienceTradeareaLocation>;
-}
-
-interface AudienceTradeareaLocation {
-  LOCATIONNAME: string;
-  XCOORD: number;
-  YCOORD: number;
-  HOMEGEOCODE: string;
 }
 
 interface AudienceTradeareaResponse {
@@ -131,7 +115,7 @@ export class ValAudienceTradeareaService {
             this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
           }
           this.geoService.add(this.geoCache);
-          this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId);
+          this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, taConfig);
           this.drawRadiusRings(minRadius, maxRadius);
           this.lastMinRadius = minRadius;
           this.lastMaxRadius = maxRadius;
@@ -395,7 +379,6 @@ export class ValAudienceTradeareaService {
       }
       newGeo.ggId = this.geoService.getNextStoreId();
       newGeos.push(newGeo);
-      this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId);
     }
     this.geoCache.push(...newGeos);
     return geoVarMap;
