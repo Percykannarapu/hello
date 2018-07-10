@@ -47,7 +47,9 @@ export class AudienceTradeareaComponent implements OnInit {
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
 
-    this.targetAudienceService.audiences$.subscribe(targetingVar => this.updateVars(targetingVar));
+    this.targetAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
+    ).subscribe(targetingVar => this.updateVars(targetingVar));
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
