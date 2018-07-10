@@ -281,7 +281,7 @@ export class AppProjectService extends DataStore<ImpProject>
                  currentCGM.dirty = true;
                  currentCGM.baseStatus = (impProject.projectId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
                  currentCGM.methAnalysis = (impProject.methAnalysis != null) ? impProject.methAnalysis : 'ZIP'; // Mandatory field
-                 currentCGM.methSeason = currentCGM.methSeason.substring(0, 1).toUpperCase();
+                 currentCGM.methSeason = currentCGM.methSeason != null ? currentCGM.methSeason.substring(0, 1).toUpperCase() : null;
                  currentCGM.status = 'SUCCESS';
                  currentCGM.summaryInd = 0;
                  currentCGM.createdDate = new Date(Date.now());
