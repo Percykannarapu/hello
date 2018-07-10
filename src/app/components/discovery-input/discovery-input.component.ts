@@ -180,8 +180,10 @@ export class DiscoveryInputComponent implements OnInit {
       const cleanForm$ = this.discoveryForm.valueChanges.pipe(
         debounceTime(500)
       );
-
-      cleanForm$.subscribe(currentForm => this.updateProject(currentForm));
+      cleanForm$.subscribe(currentForm => {
+                                            this.processForm(currentForm);
+                                            this.updateProject(currentForm);
+                                          });
 
       cleanForm$.pipe(
         startWith(this.discoveryForm.value),
@@ -258,13 +260,21 @@ export class DiscoveryInputComponent implements OnInit {
           cpmValassis: null,
           cpmAnne: null,
           cpmSolo: null
-        });
-        break;
+       });
+       this.discoveryForm.controls['cpmValassis'].disable();
+       this.discoveryForm.controls['cpmAnne'].disable();
+       this.discoveryForm.controls['cpmSolo'].disable();
+       this.discoveryForm.controls['cpmBlended'].enable();
+      break;
       case 'ownerGroup':
         this.discoveryForm.patchValue({
           cpmBlended: null
         });
-        break;
+        this.discoveryForm.controls['cpmValassis'].enable();
+        this.discoveryForm.controls['cpmAnne'].enable();
+        this.discoveryForm.controls['cpmSolo'].enable();
+        this.discoveryForm.controls['cpmBlended'].disable();
+      break;
       default:
         this.discoveryForm.patchValue({
           cpmValassis: null,
@@ -272,6 +282,10 @@ export class DiscoveryInputComponent implements OnInit {
           cpmSolo: null,
           cpmBlended: null
         });
+        this.discoveryForm.controls['cpmValassis'].disable();
+        this.discoveryForm.controls['cpmAnne'].disable();
+        this.discoveryForm.controls['cpmSolo'].disable();
+        this.discoveryForm.controls['cpmBlended'].disable();
     }
   }
 
