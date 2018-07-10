@@ -57,8 +57,10 @@ export class GeocoderComponent implements OnInit {
       this.calculateCounts();
     });
     this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
-      if (bool)
-          this.clearFields();
+      if (bool) {
+        this.clearFields();
+        this.appStateService.clearUserInterface.next(false);
+      }
     });
   }
 

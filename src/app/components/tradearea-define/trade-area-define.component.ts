@@ -23,10 +23,10 @@ interface MergeType { value: TradeAreaMergeSpec; name:string;}
 })
 export class TradeAreaDefineComponent implements OnInit, OnDestroy {
 
-  private readonly siteTradeAreas: TradeAreaUIModel[];
-  private readonly siteMergeType: MergeType;
-  private readonly competitorTradeAreas: TradeAreaUIModel[];
-  private readonly competitorMergeType: MergeType;
+  private siteTradeAreas: TradeAreaUIModel[];
+  private siteMergeType: MergeType;
+  private competitorTradeAreas: TradeAreaUIModel[];
+  private competitorMergeType: MergeType;
 
   private analysisLevelSub: Subscription;
   private siteCountSub: Subscription;
@@ -202,6 +202,20 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
    }
 
    public clearTradeArea(){
-     this.currentTradeAreas = [];
+    this.siteTradeAreas = [
+      new TradeAreaUIModel(this.config.maxBufferRadius),
+      new TradeAreaUIModel(this.config.maxBufferRadius),
+      new TradeAreaUIModel(this.config.maxBufferRadius)
+    ];
+    this.competitorTradeAreas = [
+      new TradeAreaUIModel(this.config.maxBufferRadius),
+      new TradeAreaUIModel(this.config.maxBufferRadius),
+      new TradeAreaUIModel(this.config.maxBufferRadius)
+    ];
+    this.siteMergeType = this.tradeAreaMergeTypes[1];
+    this.competitorMergeType = this.tradeAreaMergeTypes[1];
+    this.currentSiteType = 'Site';
+    this.currentTradeAreas = this.siteTradeAreas;
+    this.currentMergeType = this.siteMergeType;
    }
 }
