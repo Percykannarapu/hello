@@ -3,7 +3,7 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition } from '../models/audience-data.model';
+import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { map, shareReplay } from 'rxjs/operators';
 import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
 import { chunkArray } from '../app.utils';
@@ -79,7 +79,7 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
     }
 
-    private createDataDefinition(name: string, digId: number) : AudienceDataDefinition {
+    private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig) : AudienceDataDefinition {
         return {
             audienceName: name,
             audienceIdentifier: `${digId}-${name}`,
@@ -90,15 +90,16 @@ export class TargetAudienceAudienceTA {
             showOnMap: false,
             allowNationalExport: false,
             exportNationally: false,
-            secondaryId: digId.toLocaleString()
+            secondaryId: digId.toLocaleString(),
+            audienceTAConfig: audienceTAConfig
         };
     }
 
 
-    public addAudiences(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, digCategoryId) {
+    public addAudiences(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, digCategoryId, audienceTAConfig: AudienceTradeAreaConfig) {
 
         for (const key of Array.from(this.geoVarMap.keys())) {
-            const model = this.createDataDefinition(key, digCategoryId);
+            const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig);
             this.audienceService.addAudience(model, null, null);
         }
         /*this.audienceService.addAudience(
