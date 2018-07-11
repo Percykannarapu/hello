@@ -26,6 +26,8 @@ import { ImpProjectService } from './val-modules/targeting/services/ImpProject.s
 import { AppConfig } from './app.config';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
 import { MapService } from './services/map.service';
+import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 
 
 @Component({
@@ -64,6 +66,8 @@ export class AppMenuComponent implements OnInit {
         private messageService: AppMessagingService,
         private appConfig: AppConfig,
         private esriMapService: EsriMapService,
+        private impGeofootprintVarService: ImpGeofootprintVarService,
+        private impGeofootprintMasterService: ImpGeofootprintMasterService,
         private mapService: MapService) { }
 
     ngOnInit() {
@@ -376,8 +380,8 @@ export class AppMenuComponent implements OnInit {
         let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'new' });
         if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
             this.confirmationService.confirm({
-                message: 'Your project may have unsaved changes. Do you wish to save your current project?',
-                header: 'Save Confirmation',
+                message: 'Would you like to save your work before proceeding?',
+                header: 'Save Work',
                 icon: 'ui-icon-project',
                 accept: () => {
                     const impProjects: ImpProject[] = [];
@@ -431,8 +435,10 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintLocAttribService.clearAll();
         
         this.impProjectService.clearAll();
-        //this.appProjectService.clearAll();
-        this.impProjectService.clearAll();
+        this.appProjectService.clearAll();
+        this.impGeofootprintVarService.clearAll();
+        this.impGeofootprintMasterService.clearAll();
+        //this.impProjectService.clearAll();
         
        
 
@@ -452,6 +458,7 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
         this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
         this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+        
         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');

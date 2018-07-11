@@ -108,23 +108,42 @@ export class AppLocationService {
       const homeGeoKey = `Home ${currentAnalysisLevel}`;
       console.log(`Recalculating "${homeGeoKey}" for ${locations.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-      observables.push(this.queryService.queryPoint(layerId, toUniversalCoordinates(locations), true, ['geocode']).pipe(
+      observables.push(this.queryService.queryPoint(layerId, toUniversalCoordinates(locations), true, ['geocode', 'pob']).pipe(
         map(graphics => {
           const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
           for (const loc of locations) {
             const locationPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
+            const matches = [];
             for (const graphic of graphics) {
               if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
                 if (graphic.geometry.contains(locationPoint)) {
-                  const newAttribute = new ImpGeofootprintLocAttrib({
+                  matches.push(graphic);
+                }
+              }
+            }
+            for (const graphic of matches){
+              let newAttribute = null;
+                if (matches.length > 1){
+                  if (graphic.attributes.pob == null){
+                    newAttribute = new ImpGeofootprintLocAttrib({
+                      attributeCode: homeGeoKey,
+                      attributeValue: graphic.attributes.geocode,
+                      impGeofootprintLocation: loc,
+                      isActive: true
+                    }); 
+                  }
+                }
+                else{
+                   newAttribute = new ImpGeofootprintLocAttrib({
                     attributeCode: homeGeoKey,
                     attributeValue: graphic.attributes.geocode,
                     impGeofootprintLocation: loc,
                     isActive: true
                   });
-                  attributesToAdd.push(newAttribute);
-                  loc.impGeofootprintLocAttribs.push(newAttribute);
                 }
+              if (newAttribute != null ){
+                attributesToAdd.push(newAttribute);
+                loc.impGeofootprintLocAttribs.push(newAttribute);
               }
             }
           }

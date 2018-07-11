@@ -18,6 +18,9 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { completeFlatten, simpleFlatten } from '../../val-modules/common/common.utils';
 import { AppBusinessSearchService } from '../../services/app-business-search.service';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
+import { FileService } from '../../val-modules/common/services/file.service';
+import { AppStateService } from '../../services/app-state.service';
 
 @Component({
   selector: 'val-site-list',
@@ -31,7 +34,7 @@ export class SiteListComponent implements OnInit {
   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
   public allSiteCount$: Observable<number>;
   public activeSiteCount$: Observable<number>;
-
+ 
   public columnOptions: SelectItem[] = [];
   // TODO: Where to put this stuff?
   public allColumns: any[] = [
@@ -62,9 +65,8 @@ export class SiteListComponent implements OnInit {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private geoService:  ImpGeofootprintGeoService,
               private geoAttributeService: ImpGeofootprintGeoAttribService,
-              private appMapService: AppMapService,
-              private appLayerService: AppLayerService,
-              private valGeoService: AppGeoService,
+              private geoCodingService: AppGeocodingService,
+              private appStateService: AppStateService,
               private esriMapService: EsriMapService,
               private usageService: UsageService,
               private appService: AppBusinessSearchService) { }
@@ -122,6 +124,50 @@ export class SiteListComponent implements OnInit {
     });
   }
 
+  
+  public onDelete() {
+    const allLocations = this.locationService.get();
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
+               target: this.selectedListType.toLowerCase() + '-list', action: 'delete' }); 
+    if (this.selectedListType === 'Site') {
+     this.confirmationService.confirm({
+      message: 'Do you want to delete all Sites?',
+      header: 'Delete Confirmation',
+            accept: () => {  
+              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
+              this.removeAllLocationHierarchies(allLocations) ;           
+               
+               //const metric_Text = `Number${}`
+               this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+               this.geoCodingService.failures.next([]);
+               FileService.uniqueSet.clear();
+               this.appStateService.clearUserInterface.next(true);
+               console.log('remove ');
+                          },
+            reject: () => {
+              console.log('cancelled remove');
+            }
+    });
+    }
+    else {
+     this.confirmationService.confirm({
+      message: 'Do you want to delete all Competitors?',
+      header: 'Delete Confirmation',
+            accept: () => {
+              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
+              this.removeAllLocationHierarchies(allLocations) ; 
+              this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+              this.geoCodingService.failures.next([]);
+             //GeocoderComponent.prototype.clearFields();
+              console.log('remove successful');
+           },
+           reject: () => {
+             console.log('cancelled remove');
+                         }
+    });
+        }           
+} 
+
   public onRowZoom(row: ImpGeofootprintLocation) {
     this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
     this.appService.closeOverLayPanel.next(true);
@@ -143,7 +189,6 @@ export class SiteListComponent implements OnInit {
     this.geoService.remove(location.getImpGeofootprintGeos());
     this.tradeAreaService.remove(location.impGeofootprintTradeAreas);
     this.attributeService.remove(location.impGeofootprintLocAttribs);
-    this.locationService.addDbRemove(location);  // For database removal
     this.locationService.remove(location);
   }
 

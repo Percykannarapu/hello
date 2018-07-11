@@ -64,7 +64,8 @@ export class AppStateService {
       map(project => project.impGeofootprintMasters[0]),
     ).subscribe(this.currentMaster$ as BehaviorSubject<ImpGeofootprintMaster>);
     this.currentProject$.pipe(
-      filter(project => project != null && project.methAnalysis != null && project.methAnalysis.length > 0),
+      //filter(project => project != null && project.methAnalysis != null && project.methAnalysis.length > 0),
+      filter(project => project != null),
       map(project => project.methAnalysis),
       distinctUntilChanged(),
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
