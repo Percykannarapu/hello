@@ -224,10 +224,10 @@ export class TargetAudienceService implements OnDestroy {
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
+            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace('/', '_');
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = audiences[0].audienceName.substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+            const sheetName = audiences[0].audienceName.replace('/', '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
           } finally {
@@ -325,11 +325,11 @@ export class TargetAudienceService implements OnDestroy {
             data.forEach(gv => currentShadingData.set(gv.geocode, gv));
           },
           err => console.error('There was an error retrieving audience data for map shading', err),
-          () => { 
+          () => {
             this.shadingData.next(currentShadingData);
             this.messagingService.stopSpinnerDialog('SHADING_DATA');
           }
-        );  
+        );
       } else {
         source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
           data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
@@ -353,7 +353,7 @@ export class TargetAudienceService implements OnDestroy {
         const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
         const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
         if (taAudiences.length > 0) {
-          const doneAudienceTAs: Set<string> = new Set<string>(); 
+          const doneAudienceTAs: Set<string> = new Set<string>();
           for (const taAudience of taAudiences) {
             if (doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
               continue;

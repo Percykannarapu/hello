@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -13,11 +13,12 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMessagingService } from './app-messaging.service';
 import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
-import { filter, map, withLatestFrom } from 'rxjs/operators';
+import { filter, map, withLatestFrom, distinctUntilChanged } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -38,6 +39,7 @@ export class AppGeoService {
     this.setupHomeGeoSelectionObservable();
     this.setupGeoAttributeUpdateObservable();
     this.setupAnalysisLevelGeoClearObservable();
+    this.setupFilterGeosObservable();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -264,6 +266,7 @@ export class AppGeoService {
       }
       ta['isComplete'] = true;
     });
+    this.updateGeoAttributes(centroids.map(g => g.attributes), geosToSave);
     this.filterGeos(geosToSave, centroids);
     console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', geosToSave.length);
     return geosToSave;
@@ -349,8 +352,36 @@ export class AppGeoService {
       });
   }
 
-  private updateGeoAttributes(layerAttribute: any[]) {
-    const currentGeos = this.geoService.get();
+  private filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
+    console.log('Filtering Geos Based on Flags'); 
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null) return;
+    const includeValassis = currentProject.isIncludeValassis;
+    const includeAnne = currentProject.isIncludeAnne;
+    const includeSolo = currentProject.isIncludeSolo;
+    const includePob = !currentProject.isExcludePob;
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
+    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
+    const filterReasons: string[] = [];
+
+        if (ownerGroupGeosMap.has('VALASSIS')){
+          ownerGroupGeosMap.get('VALASSIS').forEach(geo => geo.isActive = includeValassis);
+        }
+        if (ownerGroupGeosMap.has('ANNE')){
+          ownerGroupGeosMap.get('ANNE').forEach(geo => geo.isActive = includeAnne);
+        }
+        if (soloGeosMap.has('Solo') ){
+          soloGeosMap.get('Solo').forEach(geo => geo.isActive = includeSolo);
+        }
+        if (pobGeosMap.has('1')){
+          pobGeosMap.get('1').forEach(geo => geo.isActive = includePob);
+        }
+        this.geoService.update(null, null);
+  }
+
+  private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
+    const currentGeos = geos || this.geoService.get();
     const isSummer = this.appStateService.season$.getValue() === Season.Summer;
     const geoMap: Map<string, ImpGeofootprintGeo[]> = groupBy(currentGeos, 'geocode');
     const newAttributes: ImpGeofootprintGeoAttrib[] = [];
@@ -449,4 +480,29 @@ export class AppGeoService {
     tradeArea.impGeofootprintGeos.push(newGeo);
     this.geoService.add([newGeo]);
   }
+
+  private setupFilterGeosObservable() : void{
+    const valassisFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeValassis),
+      distinctUntilChanged()
+    );
+    const anneFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeAnne),
+      distinctUntilChanged()
+    );
+    const soloFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeSolo),
+      distinctUntilChanged()
+    );
+    const pobFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isExcludePob),
+      distinctUntilChanged()
+    );
+   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(currentFlags => this.filterGeosOnFlags(this.geoService.get()));
+    
+}
 }
