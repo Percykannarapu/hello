@@ -370,6 +370,11 @@ export class ValAudienceTradeareaService {
       if (taResponse.distance > minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
+      if (!newGeo.isActive) {
+        const filterReasons: string[] = [];
+        filterReasons.push('Under Audience TA threshold');
+        newGeo['filterReasons'] = filterReasons;
+      }
       newGeo.ggId = this.geoService.getNextStoreId();
       newGeos.push(newGeo);
     }
