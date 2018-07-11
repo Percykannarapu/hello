@@ -14,6 +14,8 @@ export class ValGeocodingResponse {
   Number: string;
   Name: string;
   Market: string;
+  'Market Code': string;
+  'Description': string;
   get LatLon() : string { return `${this.Latitude}, ${this.Longitude}`; }
   set LatLon(value: string) {  this.parseLatLon(value); }
   'Original Address': string;
@@ -40,10 +42,12 @@ export class ValGeocodingResponse {
   }
 
   public toGeoLocation(siteType?: string, analysisLevel?: string) : ImpGeofootprintLocation {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market','Market Code','Description', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name,
       marketName: this.Market,
+      marketCode: this['Market Code'],
+      description: this['Description'],
       locAddress: this.Address,
       locCity: this.City,
       locState: this.State,
@@ -117,11 +121,10 @@ export class ValGeocodingResponse {
   }
 
   public toGeocodingRequest() : ValGeocodingRequest {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result: ValGeocodingRequest = new ValGeocodingRequest({
       name:  this.Name,
       number: this.Number,
-      Market: this.Market,
       street: this['Original Address'],
       city: this['Original City'],
       state: this['Original State'],

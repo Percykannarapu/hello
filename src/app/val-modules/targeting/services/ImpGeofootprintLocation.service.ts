@@ -268,7 +268,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'GROUP',              row: (state, data) => (data.groupName) ? data.groupName : (data.clientLocationTypeCode === 'Site') ? 'Advertisers' : 'Competitors'});
             exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
             exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => null});
+            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => data.description});
             exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
             exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
             exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
@@ -296,7 +296,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Unit',               row: (state, data) => null});
             exportColumns.push({ header: 'ZIP4',               row: (state, data) => state.getGeocodeAs(data.locZip, false, false, false, true)});
             exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
-            exportColumns.push({ header: 'Market Code',        row: (state, data) => null});
+            exportColumns.push({ header: 'Market Code',        row: (state, data) => data.marketCode});
             exportColumns.push({ header: 'Map Group',          row: (state, data) => null});
             exportColumns.push({ header: 'STDLINXSCD',         row: (state, data) => null});
             exportColumns.push({ header: 'SWklyVol',           row: (state, data) => null});
@@ -337,7 +337,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'X',                  row: (state, data) => data.xcoord});
            exportColumns.push({ header: 'Y',                  row: (state, data) => data.ycoord});
            exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
-           exportColumns.push({ header: 'Market Code',        row: (state, data) => null});
+           exportColumns.push({ header: 'Market Code',        row: (state, data) => data.marketCode});
            break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
@@ -346,7 +346,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'GROUP',              row: (state, data) => data.groupName});
             exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
             exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => null});
+            exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => data.description});
             exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
             exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
             exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
