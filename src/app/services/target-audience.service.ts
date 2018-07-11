@@ -224,7 +224,7 @@ export class TargetAudienceService implements OnDestroy {
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
+            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace('/', '_');
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
             const sheetName = audiences[0].audienceName.substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
