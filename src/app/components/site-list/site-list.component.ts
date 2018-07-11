@@ -126,47 +126,24 @@ export class SiteListComponent implements OnInit {
   }
 
   
-  public onDelete() {
-    const allLocations = this.locationService.get();
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-               target: this.selectedListType.toLowerCase() + '-list', action: 'delete' }); 
-    if (this.selectedListType === 'Site') {
+  public onDelete() {      
      this.confirmationService.confirm({
-      message: 'Do you want to delete all Sites?',
+      message: 'Do you want to delete all '+ this.selectedListType +'s ?',
       header: 'Delete Confirmation',
             accept: () => {  
+              const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType);
+              console.log("allLocations values::::::::", allLocations);
               allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
-              this.removeAllLocationHierarchies(allLocations) ;           
-               
-               //const metric_Text = `Number${}`
-               this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
-               this.geoCodingService.failures.next([]);
-               FileService.uniqueSet.clear();
-               this.appStateService.clearUserInterface.next(true);
-               console.log('remove ');
-                          },
-            reject: () => {
-              console.log('cancelled remove');
-            }
-    });
-    }
-    else {
-     this.confirmationService.confirm({
-      message: 'Do you want to delete all Competitors?',
-      header: 'Delete Confirmation',
-            accept: () => {
-              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
-              this.removeAllLocationHierarchies(allLocations) ; 
-              this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+              this.removeAllLocationHierarchies(allLocations) ;           ;           
+              const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
+              target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' }); 
+              this.usageService.createCounterMetric(usageMetricName, allLocations.toString(), 1);
               this.geoCodingService.failures.next([]);
-             //GeocoderComponent.prototype.clearFields();
-              console.log('remove successful');
-           },
-           reject: () => {
-             console.log('cancelled remove');
-                         }
-    });
-        }           
+              FileService.uniqueSet.clear();
+              this.appStateService.clearUserInterface.next(true);
+              console.log('remove ')
+            }
+    });     
 } 
 
   public onRowZoom(row: ImpGeofootprintLocation) {
