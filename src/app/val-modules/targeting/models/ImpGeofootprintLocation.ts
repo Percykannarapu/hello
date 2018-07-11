@@ -25,7 +25,9 @@ export class ImpGeofootprintLocation extends BaseModel
    public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
    public locationNumber:              string;
    public locationName:                string;                        /// Name of the location
-   public marketName:                  string;
+   public marketName:                  string;           
+   public marketCode:                  string;                       /// Market Code
+   public description:                 string;                       ///Description
    public groupName:                   string;
    public xcoord:                      number;                        /// X Location coordinate
    public ycoord:                      number;                        /// Y Location coordinate

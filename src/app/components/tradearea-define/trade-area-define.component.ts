@@ -88,7 +88,7 @@ export class TradeAreaDefineComponent implements OnInit, OnDestroy {
     this.stateService.getClearUserInterfaceObs().subscribe(bool => {
         if (bool)
             this.clearTradeArea();
-        this.stateService.clearUserInterface.next(false);    
+        //this.stateService.clearUserInterface.next(false);    
     });
    }
 

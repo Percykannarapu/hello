@@ -179,7 +179,7 @@ export class UploadTradeAreasComponent {
 
                   const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
                   if (tas.length <= 0) {
-                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'CUSTOM');
+                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(4, loc, true, 'CUSTOM');
                      tradeAreasForInsert.push(newTA);
                      tas.push(newTA);
                   }
