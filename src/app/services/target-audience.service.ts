@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, skip, filter } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, skip, filter, startWith } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
@@ -275,8 +275,18 @@ export class TargetAudienceService implements OnDestroy {
       // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
       //   ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
       // set up a map watch process
-      this.shadingSub = combineLatest(this.appStateService.analysisLevel$, this.newVisibleGeos$).subscribe(
-        ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0])
+
+      const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
+      const visibleGeos$ = this.mapDispatchService.geocodesInViewExtent(layerId, true);
+      const newGeos$ = this.newVisibleGeos$.pipe(startWith(null));
+      this.shadingSub = combineLatest(this.appStateService.analysisLevel$, newGeos$, visibleGeos$).subscribe(
+        ([analysisLevel, newGeos, visibleGeos]) => {
+          if (!newGeos) {
+            this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]);
+          } else {
+            this.getShadingData(analysisLevel, newGeos, shadingAudience[0]);
+          }
+        }
       );
     }
     if (selectedAudiences.length > 0) {
