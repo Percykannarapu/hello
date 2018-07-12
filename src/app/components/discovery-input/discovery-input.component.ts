@@ -186,7 +186,7 @@ export class DiscoveryInputComponent implements OnInit {
       const currentValue = currentForm[fieldName];
       const usageTarget = this.usageTargetMap.get(fieldName);
       // only log values that are tracked and have changed
-      if (usageTarget != null && previousValue !== currentValue) {
+      if (usageTarget != null && previousValue !== currentValue && currentValue != null) {
         console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
         let newText = null;
         let changeText = null;
