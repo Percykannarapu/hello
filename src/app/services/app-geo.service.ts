@@ -370,33 +370,29 @@ export class AppGeoService {
         if (ownerGroupGeosMap.has('VALASSIS')){
               ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
                 geo.isActive = includeValassis; 
-                filterReasons.push('VALASSIS');
-                if (filterReasons.length > 0)
-                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+                if (geo.isActive === false)
+                  geo['filterReasons'] = 'Filtered because: VALASSIS' ;
               });
         }
         if (ownerGroupGeosMap.has('ANNE')){
               ownerGroupGeosMap.get('ANNE').forEach(geo => {
                 geo.isActive = includeAnne;
-                filterReasons.push('ANNE');
-                if (filterReasons.length > 0)
-                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+                if (geo.isActive === false)
+                  geo['filterReasons'] = 'Filtered because: ANNE' ;
               });
         }
         if (soloGeosMap.has('Solo') ){
               soloGeosMap.get('Solo').forEach(geo => {
                 geo.isActive = includeSolo;
-                filterReasons.push('Solo');
-                if (filterReasons.length > 0)
-                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+                if (geo.isActive === false)
+                   geo['filterReasons'] = 'Filtered because: Solo' ;
                 });
         }
         if (pobGeosMap.has('B')){
               pobGeosMap.get('B').forEach(geo => {
                 geo.isActive = includePob;
-                filterReasons.push('Pob');
-                if (filterReasons.length > 0)
-                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+                if (geo.isActive === false)
+                  geo['filterReasons'] = 'Filtered because: POB' ;
               });
         }
         this.geoService.update(null, null);
