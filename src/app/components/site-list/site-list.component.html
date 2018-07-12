@@ -1,84 +1,86 @@
-<div class="ui-g-12">
-  <div class="ui-g-1">
-    <label>Manage for:</label>
+<div class="ui-g">
+  <div class="ui-g-12">
+    <div class="ui-g-1">
+      <label>Manage for:</label>
+    </div>
+    <div class="ui-g-1">
+      <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+    </div>
+    <div class="ui-g-2">
+      <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+    </div>
+    <div  class="ui-g-2 ui-g-nopad">
+      <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
+    </div>
   </div>
-  <div class="ui-g-1">
-    <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-  </div>
-  <div class="ui-g-4">
-    <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-  </div>
-  <div  class="ui-g-3">
-     
-    <button pButton type="button" label="Delete All" (click)="onDelete()" style="position: absolute;left: 350px;top:60px;height:27px;width:70px;padding: 0px"></button>
-   </div>
-</div>
 
-<div class="ui-g-12">
-  <p-dataTable [globalFilter]="filter"
-               [value]="currentAllSites$ | async"
-               [selection]="currentActiveSites$ | async"
-               selectionMode="multiple"
-               [expandableRows]="true" [resizableColumns]="true"
-               [rows]="8" [paginator]="true"
-               [headerCheckboxToggleAllPages]="true"
-               columnResizeMode="expand" [responsive]="true"
-               (onRowUnselect)="onRowSelect($event, false)"
-               (onRowSelect)="onRowSelect($event, true)">
-    <p-header>
-      <div class="ui-g" style="flex-wrap: nowrap !important;">
-        <div class="ui-g-12 ui-g-nopad">
-          <div class="ui-g-1" style="min-width:25px; width:25px">
-            <i class="fa fa-search"></i>
-          </div>
-          <div class="ui-g-2">
+  <div class="ui-g-12">
+    <p-dataTable [globalFilter]="filter"
+                 [value]="currentAllSites$ | async"
+                 [selection]="currentActiveSites$ | async"
+                 selectionMode="multiple"
+                 [expandableRows]="true" [resizableColumns]="true"
+                 [rows]="8" [paginator]="true"
+                 [headerCheckboxToggleAllPages]="true"
+                 columnResizeMode="expand" [responsive]="true"
+                 (onRowUnselect)="onRowSelect($event, false)"
+                 (onRowSelect)="onRowSelect($event, true)">
+      <p-header>
+        <div class="ui-g" style="flex-wrap: nowrap !important;">
+          <div class="ui-g-12 ui-g-nopad">
+            <div class="ui-g-1" style="min-width:25px; width:25px">
+              <i class="fa fa-search"></i>
+            </div>
+            <div class="ui-g-2">
             <span class="md-inputfield">
               <input #filter id="filter" type="text" pInputText size="50" style="color: white;">
               <label for="filter" style="color: white;">Filter Locations</label>
             </span>
-          </div>
-          <div class="ui-g-7">
-            <label style="text-align: center;" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
-          </div>
-          <div class="ui-g-2" style="float:right; color: white;">
-            <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+            </div>
+            <div class="ui-g-7">
+              <label style="text-align: center;" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
+            </div>
+            <div class="ui-g-2" style="float:right; color: white;">
+              <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+            </div>
           </div>
         </div>
-      </div>
-    </p-header>
+      </p-header>
 
-    <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'25px'}" [resizable]="false"></p-column>
-    <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
-    <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
-      <ng-template let-h="rowData" pTemplate="body">
-        <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-      </ng-template>
-    </p-column>
-    <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
-      <ng-template let-site="rowData" pTemplate="body">
-        <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
-      </ng-template>
-    </p-column>
-    <p-column *ngFor="let locationColumn of selectedColumns"
-              [field]="locationColumn.field"
-              [header]="locationColumn.header">
-    </p-column>
+      <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'25px'}" [resizable]="false"></p-column>
+      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+      <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+        </ng-template>
+      </p-column>
+      <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
+        <ng-template let-site="rowData" pTemplate="body">
+          <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
+        </ng-template>
+      </p-column>
+      <p-column *ngFor="let locationColumn of selectedColumns"
+                [field]="locationColumn.field"
+                [header]="locationColumn.header">
+      </p-column>
 
-    <ng-template let-site pTemplate="rowexpansion">
-      <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
-        <div class="ui-grid-row">
-          <p-dataTable [value]="getRowAttributes(site)" dataKey="locAttributeId"
-                       [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
-                       [paginator]="true" [rows]="25" >
-            <p-column *ngFor="let field of attributeColumns" [field]="field" [header]="field">
-            </p-column>
-          </p-dataTable>
+      <ng-template let-site pTemplate="rowexpansion">
+        <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
+          <div class="ui-grid-row">
+            <p-dataTable [value]="getRowAttributes(site)" dataKey="locAttributeId"
+                         [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
+                         [paginator]="true" [rows]="25" >
+              <p-column *ngFor="let field of attributeColumns" [field]="field" [header]="field">
+              </p-column>
+            </p-dataTable>
+          </div>
         </div>
-      </div>
-    </ng-template>
+      </ng-template>
 
-    <ng-template pTemplate="emptymessage">
-      No locations added.  Use the "Add Locations" tab above.
-    </ng-template>
-  </p-dataTable>
+      <ng-template pTemplate="emptymessage">
+        No locations added.  Use the "Add Locations" tab above.
+      </ng-template>
+    </p-dataTable>
+  </div>
 </div>
+
