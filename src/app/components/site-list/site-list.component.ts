@@ -128,20 +128,22 @@ export class SiteListComponent implements OnInit {
   
   public onDelete() {      
      this.confirmationService.confirm({
-      message: 'Do you want to delete all '+ this.selectedListType +'s ?',
+      message: 'Do you want to delete all ' + this.selectedListType + 's ?',
       header: 'Delete Confirmation',
             accept: () => {  
               const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType);
-              console.log("allLocations values::::::::", allLocations);
-              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
-              this.removeAllLocationHierarchies(allLocations) ;           ;           
               const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-              target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' }); 
-              this.usageService.createCounterMetric(usageMetricName, allLocations.toString(), 1);
+              target: this.selectedListType.toLowerCase() + '-list', action: 'delete' }); 
+              console.log('allLocations values::::::::', allLocations);
+              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
+              this.removeAllLocationHierarchies(allLocations) ;                      
+             
+              this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+              
               this.geoCodingService.failures.next([]);
               FileService.uniqueSet.clear();
               this.appStateService.clearUserInterface.next(true);
-              console.log('remove ')
+              console.log('remove ');
             }
     });     
 } 
