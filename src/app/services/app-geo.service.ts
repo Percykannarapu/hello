@@ -267,7 +267,8 @@ export class AppGeoService {
       ta['isComplete'] = true;
     });
     this.updateGeoAttributes(centroids.map(g => g.attributes), geosToSave);
-    this.filterGeos(geosToSave, centroids);
+    // this.filterGeos(geosToSave, centroids);
+    this.filterGeosOnFlags(geosToSave),
     console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', geosToSave.length);
     return geosToSave;
   }
@@ -352,30 +353,51 @@ export class AppGeoService {
       });
   }
 
-  private filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
+  public filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
     console.log('Filtering Geos Based on Flags'); 
     const currentProject = this.appStateService.currentProject$.getValue();
     if (currentProject == null) return;
+    
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
     const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
-    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
+    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
     const filterReasons: string[] = [];
 
         if (ownerGroupGeosMap.has('VALASSIS')){
-          ownerGroupGeosMap.get('VALASSIS').forEach(geo => geo.isActive = includeValassis);
+              ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
+                geo.isActive = includeValassis; 
+                filterReasons.push('VALASSIS');
+                if (filterReasons.length > 0)
+                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+              });
         }
         if (ownerGroupGeosMap.has('ANNE')){
-          ownerGroupGeosMap.get('ANNE').forEach(geo => geo.isActive = includeAnne);
+              ownerGroupGeosMap.get('ANNE').forEach(geo => {
+                geo.isActive = includeAnne;
+                filterReasons.push('ANNE');
+                if (filterReasons.length > 0)
+                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+              });
         }
         if (soloGeosMap.has('Solo') ){
-          soloGeosMap.get('Solo').forEach(geo => geo.isActive = includeSolo);
+              soloGeosMap.get('Solo').forEach(geo => {
+                geo.isActive = includeSolo;
+                filterReasons.push('Solo');
+                if (filterReasons.length > 0)
+                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+                });
         }
-        if (pobGeosMap.has('1')){
-          pobGeosMap.get('1').forEach(geo => geo.isActive = includePob);
+        if (pobGeosMap.has('B')){
+              pobGeosMap.get('B').forEach(geo => {
+                geo.isActive = includePob;
+                filterReasons.push('Pob');
+                if (filterReasons.length > 0)
+                    geo['filterReasons'] = 'Filtered because: ' + filterReasons.join(', ');
+              });
         }
         this.geoService.update(null, null);
   }
