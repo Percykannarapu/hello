@@ -148,20 +148,12 @@ export class TargetAudienceOnlineService {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online')) {
-          let sourceType = projectVar.source.split('~')[0].split('_')[0];
-          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
-          delete sourceNamePieces[0];
-          const sourceName = sourceNamePieces.join();
-          const audienceIdentifier = projectVar.source.split('~')[1];
-          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
-          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
-          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
             allowNationalExport: true,
             exportNationally: projectVar.isNationalExtract,
-            audienceIdentifier: audienceIdentifier,
+            audienceIdentifier: projectVar.varPk.toString(),
             audienceName: projectVar.fieldname,
-            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
+            audienceSourceName: projectVar.source.split('_')[1],
             audienceSourceType: 'Online',
             dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
