@@ -82,7 +82,7 @@ export class TargetAudienceAudienceTA {
     }
 
     private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig, digCategoryId: number) : AudienceDataDefinition {
-        const audiences = this.audienceService.getAudiences().filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId);
+        const audiences = this.audienceService.getAudiences().filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId);
         let audienceName = '';
         if (audiences.length > 0) {
             audienceName = audiences[0].audienceName;

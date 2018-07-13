@@ -344,7 +344,7 @@ export class ValAudienceTradeareaService {
     const taResponseMap = this.taResponses.get(location.locationName);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
-    const audience = audiences.filter(a => Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+    const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       return;
