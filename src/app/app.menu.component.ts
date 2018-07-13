@@ -115,7 +115,7 @@ export class AppMenuComponent implements OnInit {
                     { label: 'Export Geofootprint - Selected Only', icon: 'map', command: () => this.getGeofootprintSelected() },
                     { label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
                     { label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
-                    { label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.nationalExtractClick$.next(null) },
+                    { label: 'Export Online Audience National Data', value: 'National', icon: 'group', command: () => this.nationalExtractClick$.next(null) },
                     { label: 'Send Custom Sites to Valassis Digital', value: 'National', icon: 'group', command: () => this.getCustomSites() }
                 ]
             },
