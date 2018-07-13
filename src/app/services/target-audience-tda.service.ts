@@ -111,18 +111,9 @@ export class TargetAudienceTdaService {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
-          let sourceType = projectVar.source.split('~')[0].split('_')[0];
-          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
-          const onlineType = sourceNamePieces[0];
-          delete sourceNamePieces[0];
-          const sourceName = sourceNamePieces.join();
-          const audienceIdentifier = projectVar.source.split('~')[1];
-          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
-          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
-          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
-            audienceIdentifier: audienceIdentifier,
+            audienceIdentifier: projectVar.varPk.toString(),
             audienceSourceType: 'Offline',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: true,

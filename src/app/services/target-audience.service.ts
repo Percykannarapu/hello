@@ -107,10 +107,9 @@ export class TargetAudienceService implements OnDestroy {
     try {
       let source = audience.audienceSourceType + '_' + audience.audienceSourceName;
       source = source.replace(' ', '_');
-      source = source + '~' + audience.audienceIdentifier;
       projectVar.pvId = id ? id : null;
       projectVar.baseStatus = DAOBaseStatus.INSERT;
-      projectVar.varPk = this.projectVarService.getNextStoreId();
+      projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : this.projectVarService.getNextStoreId();
       projectVar.isShadedOnMap = audience.showOnMap;
       projectVar.isIncludedInGeoGrid = audience.showOnGrid;
       projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
@@ -370,7 +369,11 @@ export class TargetAudienceService implements OnDestroy {
     const accumulator: ImpGeofootprintVar[] = [];
     merge(...observables, 4).subscribe(
       vars => accumulator.push(...vars),
-      err => console.error('There was an error retrieving audience data', err),
+      err => {
+        console.error('There was an error retrieving audience data', err);
+        this.messagingService.showGrowlError('Audience Error', 'There was an error retrieving audience data');
+        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+      },
       () => {
         console.log('persist complete', accumulator);
         this.varService.add(accumulator);
