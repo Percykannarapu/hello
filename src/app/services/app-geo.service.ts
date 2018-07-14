@@ -87,8 +87,8 @@ export class AppGeoService {
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // remove sites that don't have any trade areas yet
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-      // remove sites that don't haven't finished trade area processing
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().length > 0 || loc.impGeofootprintTradeAreas.some(ta => ta['isComplete'] === true))),
+      // remove sites that haven't finished radius trade area processing
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
       // remove sites that already have their home geo selected
       map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
       // halt the sequence if there are no locations remaining
@@ -354,22 +354,22 @@ export class AppGeoService {
   }
 
   public filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
-    console.log('Filtering Geos Based on Flags'); 
+    console.log('Filtering Geos Based on Flags');
     const currentProject = this.appStateService.currentProject$.getValue();
     if (currentProject == null) return;
-    
+
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
-    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo); 
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const filterReasons: string[] = [];
 
         if (ownerGroupGeosMap.has('VALASSIS')){
               ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
-                geo.isActive = includeValassis; 
+                geo.isActive = includeValassis;
                 if (geo.isActive === false){
                   geo['filterReasons'] = 'Filtered because: VALASSIS' ;
                 } else geo['filterReasons'] = null;
@@ -396,7 +396,7 @@ export class AppGeoService {
                 geo.isActive = includePob;
                 if (geo.isActive === false){
                   geo['filterReasons'] = 'Filtered because: POB' ;
-                } else geo['filterReasons'] = null; 
+                } else geo['filterReasons'] = null;
               });
         }
         this.geoService.update(null, null);
@@ -525,6 +525,6 @@ export class AppGeoService {
       distinctUntilChanged()
     );
    combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(currentFlags => this.filterGeosOnFlags(this.geoService.get()));
-    
+
 }
 }

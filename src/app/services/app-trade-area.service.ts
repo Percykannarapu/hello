@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppConfig } from '../app.config';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
@@ -12,13 +12,16 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { Observable } from 'rxjs/Observable';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { calculateStatistics } from '../app.utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 
 export type TradeAreaMergeSpec = 'No Merge' | 'Merge Each' | 'Merge All';
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeSpec = 'Merge Each';
+
+function isMergeType(item: string) : item is TradeAreaMergeSpec {
+  return item === 'No Merge' || item === 'Merge Each' || item === 'Merge All';
+}
 
 @Injectable()
 export class AppTradeAreaService {
@@ -63,6 +66,25 @@ export class AppTradeAreaService {
     const competitorTradeAreas$ = radiusTradeAreas$.pipe(
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'))
     );
+
+    this.stateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.taSiteMergeType),
+      distinctUntilChanged()
+    ).subscribe(mt => {
+      if (isMergeType(mt)) {
+        this.mergeSpecs.get('Site').next(mt);
+      }
+    });
+    this.stateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.taCompetitorMergeType),
+      distinctUntilChanged()
+    ).subscribe(mt => {
+      if (isMergeType(mt)) {
+        this.mergeSpecs.get('Competitor').next(mt);
+      }
+    });
 
     combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas('Site', ta, m));
     combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas('Competitor', ta, m));
@@ -112,7 +134,6 @@ export class AppTradeAreaService {
       console.error('Invalid Trade Area request', { tradeAreas, siteType });
       throw new Error('Invalid Trade Area request');
     }
-    console.log('applying Trade areas', [tradeAreas, siteType]);
     const currentLocations = this.getLocations(siteType);
     const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' || ta.taType === 'HOMEGEO');
     this.deleteTradeAreas(currentTradeAreas);
@@ -121,20 +142,30 @@ export class AppTradeAreaService {
   }
 
   public updateMergeType(mergeType: TradeAreaMergeSpec, siteType: 'Site' | 'Competitor') : void {
+    if (mergeType == null) return;
+    // update project so merge type gets saved to DB
     const currentProject = this.stateService.currentProject$.getValue();
+    siteType === 'Site' ?
+      currentProject.taSiteMergeType = mergeType :
+      currentProject.taCompetitorMergeType = mergeType;
+
+    // notify the map service
     this.mergeSpecs.get(siteType).next(mergeType);
-    siteType === 'Site' ? currentProject.taSiteMergeType = mergeType : currentProject.taCompetitorMergeType = mergeType;
   }
 
-  public updateTradeAreaSelection(tradeAreaIndex: 0|1|2, isSelected: boolean, siteType: 'Site' | 'Competitor') {
-    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' && ta.taNumber === tradeAreaIndex + 1);
+  public updateTradeAreaSelection(tradeAreas: { taNumber: number, isSelected: boolean }[], siteType: 'Site' | 'Competitor') {
+    const taNums = new Set(tradeAreas.map(ta => ta.taNumber));
+    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' && taNums.has(ta.taNumber));
+    const selectedMap = groupBy(tradeAreas, 'taNumber');
     if (currentTradeAreas.length > 0) {
       let geoStateChanged = false;
       currentTradeAreas.forEach(ta => {
-        ta.isActive = isSelected;
+        ta.isActive = selectedMap.get(ta.taNumber)[0].isSelected;
         if (ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0) {
           geoStateChanged = true;
-          ta.impGeofootprintGeos.forEach(geo => geo.isActive = isSelected);
+          ta.impGeofootprintGeos
+            .filter(geo => geo.geocode !== ta.impGeofootprintLocation.homeGeocode)  // TODO: ask in scrum about this
+            .forEach(geo => geo.isActive = selectedMap.get(ta.taNumber)[0].isSelected);
         }
       }); // currentTradeAreas for each
       // notify subscribers when state has changed
@@ -201,23 +232,17 @@ export class AppTradeAreaService {
   }
 
   private drawTradeAreas(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeSpec) : void {
-    console.log('Drawing Trade Areas');
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
-    const locationMap = groupBy(tradeAreas, 'impGeofootprintLocation');
-    const locations = Array.from(locationMap.keys());
-    locations.forEach(loc => {
-      const currentTradeAreas = locationMap.get(loc);
-      if (mergeType !== 'Merge All') {
-        // all circles will be drawn
-        drawnTradeAreas.push(...currentTradeAreas);
-      } else {
-        // only the largest circle will be drawn
-        const radii = currentTradeAreas.map(ta => ta.taRadius);
-        const maxRadius = Math.max(...radii);
-        drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
-      }
-    });
-    console.log('requesting draw trade area');
+    const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
+    if (mergeType !== 'Merge All') {
+      // all circles will be drawn
+      drawnTradeAreas.push(...currentTradeAreas);
+    } else {
+      // only the largest circle will be drawn
+      const radii = currentTradeAreas.map(ta => ta.taRadius);
+      const maxRadius = Math.max(...radii);
+      drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
+    }
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
   }
 
@@ -226,7 +251,6 @@ export class AppTradeAreaService {
     const longitudes: number[] = [];
     const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue(), false);
     const geocodes = this.stateService.uniqueIdentifiedGeocodes$.getValue();
-    console.log('layerId:::', layerId);
     if (layerId == null || geocodes == null || geocodes.length === 0) return;
     const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
     const sub = query$.subscribe(

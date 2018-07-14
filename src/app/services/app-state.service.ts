@@ -35,8 +35,8 @@ export class AppStateService {
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
 
-  public siteTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
-  public competitorTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(private projectService: ImpProjectService, private geoService: ImpGeofootprintGeoService,
@@ -109,14 +109,14 @@ export class AppStateService {
     const radialTradeAreas$ = this.tradeAreaService.storeObservable.pipe(
       map(tas => tas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
-    this.siteTradeAreas$ = radialTradeAreas$.pipe(
+    radialTradeAreas$.pipe(
       map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),
       map(tas => groupBy(tas, 'taNumber')),
-    );
-    this.competitorTradeAreas$ = radialTradeAreas$.pipe(
+    ).subscribe(this.siteTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+    radialTradeAreas$.pipe(
       map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
       map(tas => groupBy(tas, 'taNumber'))
-    );
+    ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
   }
 
   public getClearUserInterfaceObs() : Observable<boolean> {

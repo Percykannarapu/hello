@@ -1,0 +1,32 @@
+<p-accordion>
+  <p-accordionTab header="Audience">
+    <val-audience-tradearea>Loading Audience Trade Areas...</val-audience-tradearea>
+  </p-accordionTab>
+  <p-accordionTab header="Distance">
+    <val-site-type-selector>
+      <site-content>
+        <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
+                                 [currentMergeType]="(siteMergeType$ | async)"
+                                 [maxRadius]="50"
+                                 [numTradeAreas]="3"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, 'Site')"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, 'Site')">
+          Loading Site Trade Areas...
+        </val-distance-trade-area>
+      </site-content>
+      <competitor-content>
+        <val-distance-trade-area [currentTradeAreas]="(competitorTradeAreas$ | async)"
+                                 [currentMergeType]="(competitorMergeType$ | async)"
+                                 [maxRadius]="50"
+                                 [numTradeAreas]="3"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, 'Competitor')"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, 'Competitor')">
+          Loading Competitor Trade Areas...
+        </val-distance-trade-area>
+      </competitor-content>
+    </val-site-type-selector>
+  </p-accordionTab>
+  <p-accordionTab header="Custom">
+    <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
+  </p-accordionTab>
+</p-accordion>

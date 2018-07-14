@@ -386,7 +386,7 @@ export class AppMenuComponent implements OnInit {
                 accept: () => {
                     const impProjects: ImpProject[] = [];
                     const impProject = this.appStateService.currentProject$.getValue();
-                    
+
                     //~
                     this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
                     usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
@@ -416,15 +416,17 @@ export class AppMenuComponent implements OnInit {
                 }
             });
         }
-        
+
     }
 
     public clearProject(){
        this.esriMapService.map.layers.forEach(lyr => {
             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-            lyr.visible = false;
-            if (lyr.title === 'Sites' || lyr.title === 'Competitor'){
+            if (lyr) {
+              lyr.visible = false;
+              if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
                 this.esriMapService.map.layers.remove(lyr);
+              }
             }
        });
        this.appStateService.clearUserInterface.next(true);
@@ -436,15 +438,15 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
         this.impGeofootprintLocationService.clearAll();
         this.impGeofootprintLocAttribService.clearAll();
-        
+
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
         this.impGeofootprintVarService.clearAll();
         this.impGeofootprintMasterService.clearAll();
         this.appStateService.clearUserInterface.next(false);
         //this.impProjectService.clearAll();
-        
-       
+
+
 
         const newProject = new ImpProject();
         newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
@@ -466,7 +468,7 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
-        
+
         //remove('CAMPAIGN', 'Household Count');
     }
 
