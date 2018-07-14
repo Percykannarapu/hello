@@ -1,0 +1,12 @@
+<div class="ui-g">
+  <div class="ui-g-12">
+    <i class="fa-fontAwesome fa ui-bars"></i>
+    <span>Define for:</span>
+    <i class="fa-fontAwesome fa ui-bars"></i>
+    <p-radioButton name="siteType" value="Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
+    <i class="fa-fontAwesome fa ui-bars"></i>
+    <p-radioButton name="siteType" value="Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
+  </div>
+  <ng-content select="site-content" *ngIf="selectedSiteType === 'Site'"></ng-content>
+  <ng-content select="competitor-content" *ngIf="selectedSiteType === 'Competitor'"></ng-content>
+</div>

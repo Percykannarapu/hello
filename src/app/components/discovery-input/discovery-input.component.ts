@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { combineLatest } from 'rxjs';
-import { debounceTime, filter, pairwise, startWith, take } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, pairwise, startWith, take } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { AppConfig } from '../../app.config';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
@@ -17,7 +17,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpRadLookup } from '../../val-modules/targeting/models/ImpRadLookup';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
-import { AppProjectService } from '../../services/app-project.service';
 
 interface DiscoveryFormData {
   projectName: string;
@@ -82,9 +81,8 @@ export class DiscoveryInputComponent implements OnInit {
   trackerDataFiltered: TrackerData[] = [];
 
   public impProject: ImpProject;
-  private usageTargetMap: Map<string, string>;
+  private usageTargetMap: any;
   private projectSub: Subscription;
-  private previousCpmType: string;
 
   // -----------------------------------------------------------
   // LIFECYCLE METHODS
@@ -138,20 +136,20 @@ export class DiscoveryInputComponent implements OnInit {
 
     // this maps the form control names to the equivalent usage metric name
     // if there is no entry here, then it will not get logged on change
-    this.usageTargetMap = new Map<string, string>([
-      ['selectedSeason', 'seasonality'],
-      ['selectedAnalysisLevel', 'analysis-level'],
-      ['includePob', 'include-pob-geo'],
-      ['includeValassis', 'include-valassis-geo'],
-      ['includeAnne', 'include-anne-geo'],
-      ['includeSolo', 'include-solo-geo'],
-      ['dollarBudget', 'dollar-budget'],
-      ['circBudget', 'circ-budget'],
-      ['cpmBlended', 'blended-cpm'],
-      ['cpmValassis', 'valassis-cpm'],
-      ['cpmAnne', 'anne-cpm'],
-      ['cpmSolo', 'solo-cpm'],
-    ]);
+    this.usageTargetMap = {
+      selectedSeason: 'seasonality',
+      selectedAnalysisLevel: 'analysis-level',
+      includePob: 'include-pob-geo',
+      includeValassis: 'include-valassis-geo',
+      includeAnne: 'include-anne-geo',
+      includeSolo: 'include-solo-geo',
+      dollarBudget: 'dollar-budget',
+      circBudget: 'circ-budget',
+      cpmBlended: 'blended-cpm',
+      cpmValassis: 'valassis-cpm',
+      cpmAnne: 'anne-cpm',
+      cpmSolo: 'solo-cpm',
+    };
 
     combineLatest(this.appMapService.onReady$, this.esriLayerService.layersReady$).pipe(
       filter(([mapReady, layersReady]) => mapReady && layersReady),
@@ -163,7 +161,10 @@ export class DiscoveryInputComponent implements OnInit {
       this.discoveryService.getProjectTrackerData().subscribe(data => this.trackerDataCache = data.map(item => new TrackerData(item)));
 
       const cleanForm$ = this.discoveryForm.valueChanges.pipe(
-        debounceTime(500)
+        // wait until user has stopped typing for 1/2 second before we try to process data
+        debounceTime(500),
+        // don't process anything if the form hasn't changed (prevents infinite loops)
+        distinctUntilChanged((x, y) => JSON.stringify(x) === JSON.stringify(y))
       );
       cleanForm$.subscribe(currentForm => {
         this.processForm(currentForm);
@@ -184,7 +185,7 @@ export class DiscoveryInputComponent implements OnInit {
     formFieldNames.forEach(fieldName => {
       const previousValue = previousForm[fieldName];
       const currentValue = currentForm[fieldName];
-      const usageTarget = this.usageTargetMap.get(fieldName);
+      const usageTarget = this.usageTargetMap[fieldName];
       // only log values that are tracked and have changed
       if (usageTarget != null && previousValue !== currentValue && currentValue != null) {
         console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
@@ -238,8 +239,6 @@ export class DiscoveryInputComponent implements OnInit {
   }
 
   private processForm(currentForm: DiscoveryFormData) : void {
-    if (currentForm.cpmType === this.previousCpmType) return;
-
     switch (currentForm.cpmType) {
       case 'blended':
         this.discoveryForm.patchValue({
@@ -273,7 +272,6 @@ export class DiscoveryInputComponent implements OnInit {
         this.discoveryForm.controls['cpmSolo'].disable();
         this.discoveryForm.controls['cpmBlended'].disable();
     }
-    this.previousCpmType = currentForm.cpmType;
   }
 
   private updateProject(currentForm: DiscoveryFormData) {
@@ -342,7 +340,6 @@ export class DiscoveryInputComponent implements OnInit {
     }
 
     this.impProject = newProject;
-    
     if (newProject.projectId == null) {
       // new project - no need to load form data
       this.discoveryForm.reset({
@@ -352,12 +349,11 @@ export class DiscoveryInputComponent implements OnInit {
         includeAnne: true,
         includeSolo: true,
       });
-
     } else {
       const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
       const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
       const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
-      const newFormValues: DiscoveryFormData   = {
+      const newFormValues: DiscoveryFormData = {
         projectName: newProject.projectName,
         circBudget: newProject.isCircBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
         dollarBudget: newProject.isDollarBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
@@ -378,7 +374,6 @@ export class DiscoveryInputComponent implements OnInit {
       console.log('Patching data to form', newFormValues);
       this.discoveryForm.patchValue(newFormValues);
     }
-    
   }
 
   // TODO: move to the discovery service and use to initialize selectedSeason
