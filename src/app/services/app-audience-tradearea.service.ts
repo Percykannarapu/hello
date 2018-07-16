@@ -229,7 +229,9 @@ export class ValAudienceTradeareaService {
       rendererData.push({geocode: taResponse.geocode, data: geoVar});
     }
     rendererData = rendererData.sort((a, b) => this.compare(a, b));
-    this.rendererService.updateData(rendererData);
+
+    // We are not enabling thematic shading by default anymore
+    //this.rendererService.updateData(rendererData);
   }
 
   /**
