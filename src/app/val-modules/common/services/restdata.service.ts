@@ -8,7 +8,7 @@ import { DataStore } from './datastore.service';
 @Injectable()
 export class RestDataService
 {
-   private baseUrl: string;
+   public baseUrl: string;
 
    constructor(private http: HttpClient, private appConfig: AppConfig) {
       // Assign the base url from configuration

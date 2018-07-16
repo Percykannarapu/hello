@@ -20,6 +20,13 @@ import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
+import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
+/*
+import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpGeofootprintTradeAreaService } from './../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintMasterService } from '../../val-modules/targeting/services/ImpGeofootprintMaster.service';*/
 
 export interface FlatGeo {
    fgId: number;
@@ -120,6 +127,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
    constructor(public  config: AppConfig,
+               public  impProjectService: ImpProjectService,
+/*             public  impProjectPrefService: ImpProjectPrefService,
+               public  impGeofootprintMasterService: ImpGeofootprintMasterService,
+               public  impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,*/
                public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
@@ -387,10 +398,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
-console.log("Flattening Geos");
+
+      // Sort the geos
+      this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
+
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
-// console.log(geo);
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
@@ -728,23 +741,233 @@ console.log("Flattening Geos");
       console.log('--------------------------------------------------');
       console.log('testRemove - Database Removes');
       console.log('--------------------------------------------------');
-      //this.impGeofootprintGeoService.addDbRemove(this.g);
-      console.log(this.impGeofootprintGeoService.storeLength + ' geos in the data store');
-      console.log(this.impGeofootprintGeoService.dbRemoves.length + ' geos ready to remove');
-      //this.impGeofootprintGeoService.debugLogDBRemoves('Geofootprint Geos');
-      //this.impGeofootprintGeoService.readyDBRemovesBy('impGeofootprintLocation.locationNumber', '10');
-      console.log('...');
-      console.log('Marked geos ready for removal');
-      console.log('...');
-      console.log(this.impGeofootprintGeoService.storeLength + ' geos in the data store');
-      console.log(this.impGeofootprintGeoService.dbRemoves.length + ' geos ready to remove');
-      let filteredGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get().filter(geo => geo.impGeofootprintLocation.locationNumber === '10');
-      console.log("filteredGeos count: ", filteredGeos.length);
-      filteredGeos.forEach (geo =>
-      {
-         console.log("  ", geo.geocode + " ");
+      
+//      this.impProjectService.removeGeosFromHierarchy(this.impGeofootprintGeoService.get().filter(geo => [220258, 220264, 220265].includes(geo.ggId)));
+/*      
+      console.log('--# TEST FILTERBY')
+      let aLocation: ImpGeofootprintLocation = this.impGeofootprintLocationService.get().filter(location => location.glId = 17193)[0];
+      
+      console.log("A) TAs for glid: " + aLocation.glId, this.impGeofootprintTradeAreaService.filterByGlId(aLocation.glId, true));
+      console.log("B) TAs for projectid: " + aLocation.projectId, this.impGeofootprintTradeAreaService.filterByProjectId(aLocation.projectId, true));
+*/
+/*
+      console.log("--------------------------------------------");
+      console.log("Remove 3 geos");
+      console.log("--------------------------------------------");
+      // Stage Geos removal
+      let ggIds: number[] = [217729, 217730, 217731];
+
+      let geoRemoves: ImpGeofootprintGeo[] = [];
+      ggIds.forEach(ggId => {
+         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
+         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
+      });
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",geoRemoves.length,"Geos");
+
+      this.impGeofootprintGeoService.performDBRemoves(geoRemoves).subscribe(responseCode => {
+         console.log("geofootprint-geo-list received responseCode: ", responseCode);
+         console.log("If below are still here, we need to remove them from datastore");
+         let removesLeft: number = 0;
+         let inStore: number = 0;
+         this.impGeofootprintGeoService.dbRemoves.filter(geo => removesLeft += (ggIds.includes(geo.ggId)) ? 1:0);
+         this.impGeofootprintGeoService.get().filter    (geo => inStore     += (ggIds.includes(geo.ggId)) ? 1:0);
+         
+         console.log("geo db removes: ", removesLeft);
+         console.log("geo data store: ", inStore);
+         console.log("--------------------------------------------");
+      });
+*/
+/*
+      console.log("--------------------------------------------");
+      console.log("Remove 2 Trade Areas");
+      console.log("--------------------------------------------");
+      // Stage a trade area removal
+      let gtaIds: number[] = [37369, 37370];
+      let taRemoves: ImpGeofootprintTradeArea[] = [];
+      gtaIds.forEach(gtaId => {
+         this.impGeofootprintTradeAreaService.remove(this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
+         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => ta.gtaId === gtaId).forEach(ta => taRemoves.push(ta));
       });
 
+      this.impGeofootprintTradeAreaService.performDBRemoves(taRemoves).subscribe(responseCode => {
+         console.log("geofootprint-geo-list received responseCode: ", responseCode);
+         console.log("If below are still here, we need to remove them from datastore");
+         let removesLeft: number = 0;
+         let inStore: number = 0;
+         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => removesLeft += (gtaIds.includes(ta.gtaId)) ? 1:0);
+         this.impGeofootprintTradeAreaService.get().filter    (ta => inStore     += (gtaIds.includes(ta.gtaId)) ? 1:0);
+         
+         console.log("geo db removes: ", removesLeft);
+         console.log("geo data store: ", inStore);
+         console.log("--------------------------------------------");
+      });
+*/
+/*
+      console.log("--------------------------------------------");
+      console.log("Remove 2 Locations");
+      console.log("--------------------------------------------");
+      // Stage locations removal
+      let glIds: number[] = [17194, 17196];
+      let locRemoves: ImpGeofootprintLocation[] = [];
+      glIds.forEach(glId => {
+         this.impGeofootprintLocationService.remove(this.impGeofootprintLocationService.get().filter(loc => loc.glId === glId));
+         this.impGeofootprintLocationService.dbRemoves.filter(loc => loc.glId === glId).forEach(loc => locRemoves.push(loc));
+      });
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",locRemoves.length,"locations");
+
+      this.impGeofootprintLocationService.performDBRemoves(locRemoves).subscribe(responseCode => {
+         console.log("responseCode: ", responseCode);
+         console.log("If below are still here, delete didn't work");
+
+         let locRemovesLeft: number = 0;
+         let locInStore:     number = 0;
+         let taRemovesLeft:  number = 0;
+         let taInStore:      number = 0;  
+         this.impGeofootprintLocationService.dbRemoves.filter (loc => locRemovesLeft += (glIds.includes(loc.glId)) ? 1:0);
+         this.impGeofootprintLocationService.get().filter     (loc => locInStore     += (glIds.includes(loc.glId)) ? 1:0);
+         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta  => taRemovesLeft  += (glIds.includes(ta.gtaId)) ? 1:0);
+         this.impGeofootprintTradeAreaService.get().filter    (ta  => taInStore      += (glIds.includes(ta.gtaId)) ? 1:0);
+
+         console.log("loc db removes: ", locRemovesLeft);
+         console.log("loc data store: ", locInStore);
+         console.log("ta  db removes: ", taRemovesLeft);
+         console.log("ta  data store: ", taInStore);
+      });
+*/
+/*
+      // Stage a master removal
+      let cgmId: number = 2859;
+      this.impGeofootprintMasterService.remove(this.impGeofootprintMasterService.get().filter(ma => ma.cgmId === cgmId));
+      let masterRemoves: ImpGeofootprintMaster[] = this.impGeofootprintMasterService.dbRemoves.filter(ma => ma.cgmId === cgmId)
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ", masterRemoves.length,"Geofootprint Master");
+
+      this.impGeofootprintMasterService.performDBRemoves(masterRemoves).subscribe(responseCode => {
+         console.log("responseCode: ", responseCode);
+         console.log("If below are still here, delete didn't work");
+         console.log("Master db removes: ", this.impGeofootprintMasterService.dbRemoves.filter(ma => ma.cgmId === cgmId));
+         console.log("Master data store: ", this.impGeofootprintMasterService.get().filter(ma => ma.cgmId === cgmId));
+         console.log("Loc    db removes: ", this.impGeofootprintLocationService.dbRemoves.filter(loc => loc.cgmId === cgmId));
+         console.log("Loc    data store: ", this.impGeofootprintLocationService.get().filter(loc => loc.cgmId === cgmId));         
+      });
+*/
+/*
+      // Stage a project removal
+      let projectId: number = 3033;
+      
+      this.impProjectService.remove(this.impProjectService.get().filter(project => project.projectId === projectId));
+      let projectRemoves: ImpProject[] = this.impProjectService.dbRemoves.filter(project => project.projectId === projectId)
+
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",projectRemoves.length,"Project");
+
+      this.impProjectService.performDBRemoves(projectRemoves).subscribe(responseCode => {
+         console.log("responseCode: ", responseCode);
+         console.log("If below are still here, delete didn't work");
+         console.log("Project db removes: ", this.impProjectService.dbRemoves.filter(project => project.projectId === projectId));
+         console.log("Project data store: ", this.impProjectService.get().filter(project => project.projectId === projectId));
+         console.log("Pref    db removes: ", this.impProjectPrefService.dbRemoves.filter(project => project.projectId === projectId));
+         console.log("Pref    data store: ", this.impProjectPrefService.get().filter(project => project.projectId === projectId));
+      });
+*/
+
+// AND NOW FOR THE WEIRD STUFF
+
+      // Test staging geo removes and calling performDBRemoves on project
+      // Stage Geos removal
+      let ggIds: number[] = [220264, 220265];
+
+      console.log("BEFORE project total removes: ", this.impProjectService.getTreeRemoveCount(this.impProjectService.get()));
+
+      let geoRemoves: ImpGeofootprintGeo[] = [];
+      ggIds.forEach(ggId => {
+         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
+         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
+      });
+     
+      console.log("AFTER project total removes: ", this.impProjectService.getTreeRemoveCount(this.impProjectService.get()));
+      
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",geoRemoves.length,"locations");
+
+      this.impProjectService.performDBRemoves([this.impProjectService.get()[0]]).subscribe(responseCode => {
+         console.log("geofootprint-geo-list received responseCode: ", responseCode);
+         console.log("If below are still here, we need to remove them from datastore");
+         let removesLeft: number = 0;
+         let inStore: number = 0;
+         this.impGeofootprintGeoService.dbRemoves.filter(geo => removesLeft += (ggIds.includes(geo.ggId)) ? 1:0);
+         this.impGeofootprintGeoService.get().filter    (geo => inStore     += (ggIds.includes(geo.ggId)) ? 1:0);
+         
+         console.log("geo db removes: ", removesLeft);
+         console.log("geo data store: ", inStore);
+         console.log("--------------------------------------------");
+      });
+
+/*
+      console.log('Remove geos, but not the TA & specifically remove some TAs');
+      console.log('----------------------------------------------------------');
+
+      // Stage some geos not in a TA that is being removed
+      let ggIds: number[] = [217774, 217775];
+      let geoRemoves: ImpGeofootprintGeo[] = [];
+      ggIds.forEach(ggId => {
+         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
+         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
+      });
+
+      // Stage trade area removals
+      let gtaIds: number[] = [37375, 37376];
+      let taRemoves: ImpGeofootprintTradeArea[] = [];
+      gtaIds.forEach(gtaId => {
+         this.impGeofootprintTradeAreaService.remove(this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
+      });
+      // Pickup any trade areas that have deletes
+      taRemoves = this.impGeofootprintTradeAreaService.filterBy ((ta, b) => ta.gtaId === b, (ta) => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta), false, true, true);
+
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",taRemoves.length,"trade areas");
+      console.log("staged: ",geoRemoves.length,"geos");
+
+      this.impGeofootprintTradeAreaService.performDBRemoves(taRemoves).subscribe(responseCode => {
+         console.log("geofootprint-geo-list received responseCode: ", responseCode);
+         console.log("If below are still here, we need to remove them from datastore");
+         let removesLeft: number = 0;
+         let inStore: number = 0;
+         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => removesLeft += (gtaIds.includes(ta.gtaId)) ? 1:0);
+         this.impGeofootprintTradeAreaService.get().filter    (ta => inStore     += (gtaIds.includes(ta.gtaId)) ? 1:0);
+         
+         console.log("ta db removes: ", removesLeft);
+         console.log("ta data store: ", inStore);
+//       console.log("ta db removes: ", this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => ta.gtaId === gtaId));
+//       console.log("ta data store: ", this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
+         console.log("--------------------------------------------");
+      });
+*/
+/*
+      // Stage a project with children to remove (Nothing should happen)
+      let projectId: number = 3033;
+      let removes: ImpProject[] = this.impProjectService.get().filter(project => project.projectId === projectId)
+      console.log("Staging Done");
+      console.log("--------------------------------------------");
+      console.log("staged: ",removes.length,"Project");
+
+      this.impProjectService.performDBRemoves(removes).subscribe(responseCode => {
+         console.log("responseCode: ", responseCode);
+         console.log("If below are still here, delete didn't work");
+         console.log("Project db removes: ", this.impProjectService.dbRemoves.filter(project => project.projectId === projectId));
+         console.log("Project data store: ", this.impProjectService.get().filter(project => project.projectId === projectId));
+         console.log("Pref    db removes: ", this.impProjectPrefService.dbRemoves.filter(project => project.projectId === projectId));
+         console.log("Pref    data store: ", this.impProjectPrefService.get().filter(project => project.projectId === projectId));
+      });
+*/
    }
 
    // -----------------------------------------------------------
@@ -774,6 +997,7 @@ console.log("Flattening Geos");
                //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
                // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
                this.impGeofootprintGeoService.addDbRemove(flatGeo.geo);  // For database removal
+//               flatGeo.geo.impGeofootprintTradeArea.impGeofootprintGeos = flatGeo.geo.impGeofootprintTradeArea.impGeofootprintGeos.filter(geo => geo != flatGeo.geo);
                this.impGeofootprintGeoService.remove(flatGeo.geo);
                console.log('remove successful');
             },

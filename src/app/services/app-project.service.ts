@@ -27,6 +27,8 @@ import { ClientIdentifierType } from '../val-modules/mediaexpress/models/ClientI
 import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLocationType';
 import { Observable, EMPTY, BehaviorSubject } from 'rxjs';
 import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -653,8 +655,17 @@ export class AppProjectService extends DataStore<ImpProject>
       );
    }
 
+   public removeGeosFromHierarchy(impProject: ImpProject, removeGeos: ImpGeofootprintGeo[]) {
+      console.log("Before: ", impProject.toString());
+      impProject.impGeofootprintMasters.map(master => master.impGeofootprintLocations
+                                                            .map(location => location.impGeofootprintTradeAreas
+                                                            .map(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos
+                                                                       .filter(geo => !removeGeos.includes(geo)))));
+      console.log("After: ", impProject.toString());
+   }
+
+
   public getngDialogObs() : Observable<boolean> {
       return this.ngDialog.asObservable();
    }
 }
-

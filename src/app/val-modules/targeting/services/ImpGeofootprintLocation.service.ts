@@ -1,3 +1,4 @@
+import { ImpGeofootprintLocAttrib } from './../models/ImpGeofootprintLocAttrib';
 /** A TARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS
  **
  ** This class contains code operates against data in its data store.
@@ -9,7 +10,7 @@
  ** ImpGeofootprintLocation.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, EMPTY } from 'rxjs';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
@@ -22,6 +23,7 @@ import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.serv
 import { AppConfig } from '../../../app.config';
 import { HttpHeaders } from '@angular/common/http';
 import { encode } from 'punycode';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 
 
 
@@ -59,6 +61,116 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
    // UTILITY METHODS
    // -----------------------------------------------------------
+
+   // Get a count of DB removes from children of these parents
+   public getTreeRemoveCount(impGeofootprintLocations: ImpGeofootprintLocation[]): number {
+      let count: number = 0;
+      impGeofootprintLocations.forEach(impGeofootprintLocation => {
+         count += this.dbRemoves.filter(remove => remove.glId === impGeofootprintLocation.glId).length;
+         count += this.impGeoFootprintLocAttribService.getTreeRemoveCount(this.impGeoFootprintLocAttribService.get().filter(attrib => attrib.glId  === impGeofootprintLocation.glId).concat
+                                                                         (this.impGeoFootprintLocAttribService.dbRemoves.filter(attrib => attrib.glId  === impGeofootprintLocation.glId)));
+         count += this.impGeofootprintTradeAreaService.getTreeRemoveCount(this.impGeofootprintTradeAreaService.get().filter(ta => ta.glId === impGeofootprintLocation.glId).concat
+                                                                         (this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => ta.glId === impGeofootprintLocation.glId)));
+      });
+      return count;
+   }
+
+   // After DB removes have be executed, complete them by removing them from the data stores delete list
+   public completeDBRemoves(completes: ImpGeofootprintLocation[]) {
+      completes.forEach(complete => {
+         this.impGeoFootprintLocAttribService.completeDBRemoves(this.impGeoFootprintLocAttribService.get().filter(attrib => attrib.glId  === complete.glId));
+         this.impGeofootprintTradeAreaService.completeDBRemoves(this.impGeofootprintTradeAreaService.get().filter(ta => ta.glId === complete.glId));
+      });
+      this.clearDBRemoves(completes);
+   }
+
+   // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
+   public prune(source: ImpGeofootprintLocation[], filterOp: (impGeofootprintLocation: ImpGeofootprintLocation) => boolean): ImpGeofootprintLocation[]
+   {
+      if (source == null || source.length === 0)
+         return source;
+
+      let result: ImpGeofootprintLocation[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
+      
+      // TODO: Pretty sure I can use the filterOp below
+      result.forEach (loc => {
+         loc.impGeofootprintLocAttribs = this.impGeoFootprintLocAttribService.prune(loc.impGeofootprintLocAttribs, locAttr => locAttr.glId === loc.glId && (locAttr.baseStatus === DAOBaseStatus.UNCHANGED || locAttr.baseStatus === DAOBaseStatus.DELETE));
+         loc.impGeofootprintTradeAreas = this.impGeofootprintTradeAreaService.prune(loc.impGeofootprintTradeAreas, ta => ta.glId === loc.glId && (ta.baseStatus === DAOBaseStatus.UNCHANGED || ta.baseStatus === DAOBaseStatus.DELETE));
+      })
+
+      return result;
+   }
+
+   // Process all of the removes, ensuring that children of removes are also removed and optionally performing the post
+   public performDBRemoves(removes: ImpGeofootprintLocation[], doPost: boolean = true, mustRemove: boolean = false) : Observable<number>
+   {
+      let impGeofootprintLocationRemoves:  ImpGeofootprintLocation[]  = [];
+      let impGeofootprintLocAttribRemoves: ImpGeofootprintLocAttrib[] = [];
+      let impGeofootprintTradeAreaRemoves: ImpGeofootprintTradeArea[] = [];
+
+      // Prepare database removes for all parents in removes
+      removes.forEach(loc => {
+         // If a root level removal or if a direct parent was removed, flag this object for removal
+         if (mustRemove)
+            this.remove(loc);
+
+         let hasRemoves: boolean = this.getTreeRemoveCount([loc]) > 0;
+
+         if (hasRemoves)
+         {
+            // Determine if the parent is already in the remove list
+            let parentRemove: boolean = this.dbRemoves.includes(loc);
+
+            // Parent gets added to removes even if not being deleted to act as a container
+            if (parentRemove)
+               impGeofootprintLocationRemoves.push(loc);
+
+            // Parent is being removed, all children must be removed as well
+            if (parentRemove)
+            {
+               this.impGeoFootprintLocAttribService.performDBRemoves(this.impGeoFootprintLocAttribService.get().filter(attrib => attrib.glId === loc.glId), false, true);
+               this.impGeofootprintTradeAreaService.performDBRemoves(this.impGeofootprintTradeAreaService.get().filter(ta => ta.glId === loc.glId), false, true);
+            }
+            else
+            // Parent is not being removed, only children already marked for removal will be deleted
+            {
+               this.impGeoFootprintLocAttribService.performDBRemoves(this.impGeoFootprintLocAttribService.filterBy (attrib => attrib.glId === loc.glId  && attrib.baseStatus === DAOBaseStatus.DELETE, (attrib) => this.impGeoFootprintLocAttribService.getTreeRemoveCount(attrib), false, true, true), false, false);
+               this.impGeofootprintTradeAreaService.performDBRemoves(this.impGeofootprintTradeAreaService.filterBy (ta => ta.glId === loc.glId          && ta.baseStatus     === DAOBaseStatus.DELETE, (ta)     => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta),     false, true, true), false, false);
+            }
+/*
+            // DEBUG: Get the list of children to remove.
+            impGeofootprintLocAttribRemoves = this.impGeoFootprintLocAttribService.dbRemoves.filter(geo  => geo.glId  === loc.glId);
+            impGeofootprintTradeAreaRemoves = this.impGeofootprintTradeAreaService.dbRemoves.filter(gvar => gvar.glId === loc.glId);
+            console.log("impGeofootprintLocation  removes: ", impGeofootprintLocationRemoves);
+            console.log("impGeofootprintLocAttrib removes: ", impGeofootprintLocAttribRemoves);
+            console.log("impGeofootprintTradeArea removes: ", impGeofootprintTradeAreaRemoves);*/
+         }
+      });
+
+      if (doPost)
+      {
+         // Clone the parents as a base for the payload
+         let removesPayload: ImpGeofootprintLocation[] = JSON.parse(JSON.stringify(impGeofootprintLocationRemoves));
+
+         // Prune out just the deletes and unchanged from the parents and children
+         removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
+
+         let performDBRemoves$ = Observable.create(observer => {
+            this.postDBRemoves("Targeting", "ImpGeofootprintLocation", "v1", removesPayload)
+                .subscribe(postResultCode => {
+                     console.log("post completed, calling completeDBRemoves");
+                     this.completeDBRemoves(impGeofootprintLocationRemoves);
+                     observer.next(postResultCode);
+                     observer.complete();
+                  });
+         });
+
+         return performDBRemoves$;
+      }
+      else
+         return EMPTY;
+   }
+
    public hasMandatory(impGeofootprintLocation: ImpGeofootprintLocation)
    {
       let hasMandatoryCols = [true, ''];

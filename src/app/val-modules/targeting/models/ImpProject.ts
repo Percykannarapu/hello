@@ -158,6 +158,10 @@ export class ImpProject extends BaseModel
       this.impGeofootprintMasters.forEach(fe => fe.convertToModel());
       this.impProjectPrefs.forEach(fe => fe.convertToModel());
       this.impProjectVars.forEach(fe => fe.convertToModel());
+
+      // Prevent load from firing off the creation of trade areas
+      let tas: ReadonlyArray<ImpGeofootprintTradeArea> = this.getImpGeofootprintTradeAreas();
+      tas.forEach(ta => ta['isComplete'] = true);
    }
 
    /**

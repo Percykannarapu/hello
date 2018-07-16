@@ -65,7 +65,9 @@ export class AppGeoService {
       // remove any trade areas that already have geos
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0)),
       // halt the sequence if there are no trade areas remaining at this point
-      filter(tradeAreas => tradeAreas.length > 0)
+      filter(tradeAreas => tradeAreas.length > 0),
+      // halt the sequence if the trade area already has geos
+      map(tas => tas.filter(ta => ta['isComplete'] !== true))
     ).subscribe(tradeAreas => this.selectAndPersistRadiusGeos(tradeAreas));
   }
 

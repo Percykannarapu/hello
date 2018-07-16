@@ -10,13 +10,13 @@
  **/
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeArea } from './../models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, empty, EMPTY } from 'rxjs';
 import { ColumnDefinition } from './../../common/services/datastore.service';
+import { HttpClient } from '@angular/common/http';
+import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
@@ -24,10 +24,10 @@ import * as $ from 'jquery';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
-import { AppConfig } from '../../../app.config';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -40,7 +40,7 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
-   private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
+//   private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
    private analysisLevelForExport: string;
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
@@ -49,15 +49,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    constructor(private restDataService: RestDataService,
                private projectTransactionManager: TransactionManager,
-               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private messageService: AppMessagingService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
-               private config: AppConfig)
+               public http: HttpClient)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
 
-      impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
+//      impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
    }
 
    // -----------------------------------------------------------
@@ -87,14 +86,66 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          setActiveData.isActive = newIsActive;
    }
 
+   // Get a count of DB removes from children of these parents
+   public getTreeRemoveCount(impGeofootprintGeos: ImpGeofootprintGeo[]): number {
+      let count: number = 0;
+      impGeofootprintGeos.forEach(impGeofootprintGeo => {
+         count += this.dbRemoves.filter(remove => remove.ggId === impGeofootprintGeo.ggId).length;
+      });
+      return count;
+   }
+
+   // After DB removes have be executed, complete them by removing them from the data stores delete list
+   public completeDBRemoves(completes: ImpGeofootprintGeo[]) {
+      this.clearDBRemoves(completes);
+   }
+
+   // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
+   public prune(source: ImpGeofootprintGeo[], filterOp: (impProject: ImpGeofootprintGeo) => boolean): ImpGeofootprintGeo[]
+   {
+      if (source == null || source.length === 0)
+         return source;
+
+      return source.filter(filterOp);
+   }
+
+   // Process all of the removes, ensuring that children of removes are also removed and optionally performing the post
+   public performDBRemoves(removes: ImpGeofootprintGeo[], doPost: boolean = true, mustRemove: boolean = false) : Observable<number>
+   {
+      if (mustRemove)
+         this.remove(removes);
+
+      if (doPost)
+      {
+         // Clone the parents as a base for the payload
+         let removesPayload: ImpGeofootprintGeo[] = JSON.parse(JSON.stringify(removes));
+
+         // Prune out just the deletes and unchanged from the parents and children
+         removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
+
+         let performDBRemoves$ = Observable.create(observer => {
+            this.postDBRemoves("Targeting", "ImpGeofootprintGeo", "v1", removesPayload)
+                .subscribe(postResultCode => {
+                     console.log("post completed, calling completeDBRemoves");
+                     this.completeDBRemoves(removes);
+                     observer.next(postResultCode);
+                     observer.complete();
+                  });
+         });
+
+         return performDBRemoves$;
+      }
+      else
+         return EMPTY;
+   }
 
    // -----------------------------------------------------------
    // SUBSCRIPTION CALLBACK METHODS
    // -----------------------------------------------------------
-   public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
-   {
-      this.impGeofootprintTradeAreas = impGeofootprintTradeAreas;
-   }
+   // public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
+   // {
+   //    this.impGeofootprintTradeAreas = impGeofootprintTradeAreas;
+   // }
 
 
    // -----------------------------------------------------------
@@ -173,6 +224,52 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          return a;
       }
       , []);
+   }
+
+   public defaultSort (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
+   {
+      if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
+      {
+         console.warn('sort criteria is null - a:', a, ', b: ', b);
+         return 0;
+      }
+
+      if (a.impGeofootprintLocation.locationNumber === b.impGeofootprintLocation.locationNumber)
+      {
+         if (a.distance === b.distance)
+         {
+            if (a.hhc === b.hhc)
+               if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null) {
+                  // We need a tie breaker at this point, look to the address it belongs to next
+                  if (a.impGeofootprintLocation.locAddress = b.impGeofootprintLocation.locAddress)
+                     return 0;
+                  else {
+                     if (a.impGeofootprintLocation.locationIdDisplay > b.impGeofootprintLocation.locAddress)
+                        return 1;
+                     else
+                        return 1;
+                  }
+               }
+               else
+                  return 0;
+            else
+               if (a.hhc > b.hhc)
+                  return -1;
+               else
+                  return  1;
+         } 
+         else {
+            if (a.distance > b.distance)
+               return 1;
+            else
+               return -1;
+         }
+      }
+      else
+         if (a.impGeofootprintLocation.locationNumber > b.impGeofootprintLocation.locationNumber)
+            return 1;
+         else
+            return -1;
    }
 
 
@@ -558,6 +655,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
+   public sort(comparatorMethod)
+   {
+     return this.get().sort((a, b) => comparatorMethod(a, b))
+   }
 
    public exportVarStreetAddress(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
    {
@@ -592,6 +693,20 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
    // console.log('exportVar handler for #V-OWNER_TRADE_AREA fired');
       let varValue: any;
+      
+      if (geo != null && geo.impGeofootprintTradeArea != null)
+      {
+         if (geo.impGeofootprintTradeArea.taType === "RADIUS")
+            varValue = 'Trade Area ' + geo.impGeofootprintTradeArea.taNumber;
+         else
+            if (geo.impGeofootprintTradeArea.taType === "HOMEGEO")
+               varValue = 'Forced Home Geo';
+            else
+               varValue = 'Custom';
+      }
+      else
+         return null;
+/*
       if (state.impGeofootprintTradeAreas == null)
          varValue = null;
       else
@@ -610,7 +725,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   varValue = 'Trade Area 3';
                else
                   varValue = 'Custom';
-      }
+      }*/
       return varValue;
    };
 

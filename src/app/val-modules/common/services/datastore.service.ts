@@ -1,7 +1,10 @@
 import { TransactionManager } from './TransactionManager.service';
 import { DAOBaseStatus } from './../../api/models/BaseModel';
 import { RestDataService } from './../../common/services/restdata.service';
-import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, throwError, empty, EMPTY } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+
+import { HttpHeaders } from '@angular/common/http';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
@@ -47,9 +50,9 @@ export class DataStore<T>
    public  dbRemoves: Array<T> = new Array<T>();
 
    // Private data store, exposed publicly as an observable
-   private _dataStore = new Array<T>();
+   private   _dataStore = new Array<T>();
    protected _storeSubject = new BehaviorSubject<T[]>(this._dataStore);
-   private fetchSubject: Subject<T[]> = new Subject<T[]>();
+   private   fetchSubject: Subject<T[]> = new Subject<T[]>();
 
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
@@ -122,6 +125,32 @@ export class DataStore<T>
       }
    }
 
+   /**
+    * Log the contents of dbRemoves to the console.
+    * @param removesTitle Must provide a header since there is no way to differentiate dataStores
+    * @param useFirstMethod If false, it will show the row index next to the data
+    */
+   public debugLogDBRemoves(removesTitle: string)
+   {
+      try
+      {
+         console.log('--# ' + ((removesTitle)? removesTitle.toUpperCase() + ' ' : '')
+                            + ((this.storeName != null) ? this.storeName.toUpperCase() + ' ' : '')
+                            + 'DATABASE REMOVES #----------------');
+
+         if (this.dbRemoves != null && this.dbRemoves.length > 0)
+            for (let i = 0; i < this.dbRemoves.length; i++)
+               console.log('DBRemoves[' + i + '] = ', this.dbRemoves[i]);
+         else
+            console.log('** Empty **');
+      }
+      catch (e)
+      {
+         console.warn(e);
+         console.log('** Empty **');
+      }
+   }
+
     /**
      * Returns an incrementing ID number that is unique within this dataStore
      * Useful for stubbing IDs
@@ -170,6 +199,172 @@ export class DataStore<T>
               }
               // Indicate that we are returning an array
               , []);
+   }
+
+   // ---------------------------------------------
+   // Database Removal Methods
+   // ---------------------------------------------
+   private setDbRemove(removeData: T)
+   {
+      if (removeData != null)
+      {
+         removeData['dirty'] = true;
+         removeData['baseStatus'] = DAOBaseStatus.DELETE;
+         if (this.dbRemoves == null)
+            this.dbRemoves = new Array<T>();
+         
+         // If the db removes list doesn't already have this item
+         // TODO: Does altering the transients dirty and baseStatus affect this?
+         if (!this.dbRemoves.includes(removeData))
+         {
+            console.log(this.storeName, 'registered for db removal: ', removeData);
+            this.dbRemoves.push(removeData);
+         }
+      }
+   }
+
+   // For database removals
+   public addDbRemove(removeData: T | T[] | ReadonlyArray<T>)
+   {
+      if (Array.isArray(removeData))
+         for (let removeElement of removeData)
+            this.setDbRemove(removeElement);
+      else
+         this.setDbRemove(removeData);
+   }
+
+   public clearAllDbRemoves()
+   {
+      this.dbRemoves = new Array<T>();
+   }
+
+   public clearDBRemoves(readyDBRemoves: T[])
+   {
+      // If there are removals, put them back into the datastore
+      if (this.dbRemoves != null && readyDBRemoves != null)
+      {
+         // Set dbRemoves to contain all removes except those in readyDBRemoves
+         this.dbRemoves = this.dbRemoves.filter(obj => !readyDBRemoves.includes(obj));
+      }
+   }
+
+   public readyAllDBRemoves()
+   {
+      // If there are removals, put them back into the datastore
+      if (this.dbRemoves != null)
+      {
+         // Put the removals at the head of the datastore
+         this._dataStore = this._dataStore.concat(this.dbRemoves);
+//       this._dataStore = this.dbRemoves.concat(this._dataStore);
+
+         // Removals are now in the datastore, ready for persistence, clear the list
+         this.clearAllDbRemoves();
+      }
+   }
+
+   public readyDBRemoves(readyDBRemoves: T[])
+   {
+      // If there are removals, put them back into the datastore
+      if (this.dbRemoves != null && readyDBRemoves != null)
+      {
+         // Put the removals at the head of the datastore
+         this._dataStore = this._dataStore.concat(readyDBRemoves);
+//       this._dataStore = readyDBRemoves.concat(this._dataStore);
+
+         // Removals are now in the datastore, ready for persistence, clear the list of readyDBRemoves
+         this.clearDBRemoves(readyDBRemoves);
+         //this.dbRemoves = this.dbRemoves.filter(obj => !readyDBRemoves.includes(obj));
+      }
+   }
+
+   // treeRemoveCountOp: (T[]) => number
+   public filterBy (filterOp: (T, number) => boolean, treeRemoveCountOp: ([T]) => number, includeNormal: boolean = true, includeDBRemoves: Boolean = false, includeIfChildRemoves: boolean = false): T[]
+   {
+      let results: T[] = [];
+      
+      if (includeNormal)
+         results = this.get().filter(filterOp);
+
+      if (includeDBRemoves)
+         results = results.concat(this.dbRemoves.filter(filterOp));
+      
+      // Conditionally check for a remove in the tree
+      if (includeIfChildRemoves)
+      {
+         results = results.concat(this.get().concat(this.dbRemoves).filter(src => {
+            if (treeRemoveCountOp != null && !results.includes(src))
+            {
+               if (treeRemoveCountOp([src]) > 0) // && src['baseStatus'] === DAOBaseStatus.DELETE)
+                  return true;
+               else
+                  return false;
+            }
+            else
+               return false;
+         })); // .filter(r => r['baseStatus'] === DAOBaseStatus.DELETE || r['baseStatus'] === DAOBaseStatus.UNCHANGED));
+      }
+      return results;
+   }
+
+   /**
+    * Adds DB removes back into the data store in preperation for persistence.
+    * This enables removing via a search parameter.
+    *
+    * Ex: Return all of the geofootprint geos whose location is BUDDY'S PIZZA - GRAND RAPIDS
+    * const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS');
+    *
+    * @param propertyStr The property to search for
+    * @param searchValue The value to match
+    * @param comparator  An optional search comparator
+    */
+   public readyDBRemovesBy (propertyStr, searchValue, comparator?: callbackElementType<T>)
+   {
+      let toReady: T[] = this.getListBy(propertyStr, searchValue, comparator);
+      this.readyDBRemoves(toReady);
+   }
+
+   public postDBRemoves(domain: string, model: string, apiVersion: string = 'v1', removes: T[]) : Observable<number>
+   {
+      console.log(this.storeName + ".service.postDBRemoves - fired");
+      let postUrl: string = apiVersion.toLowerCase() + "/" + domain.toLowerCase() + "/base/" + model.toLowerCase() + "/saveList";
+      
+      let resultObs: Observable<number>;
+      try
+      {
+         const numRemoves: number = (removes != null) ? removes.length : 0;
+         console.log("   ", numRemoves + " " + model + "s will be deleted");
+         
+         if (numRemoves > 0)
+         {
+            const payload: string = JSON.stringify(removes);
+      
+            console.log(this.storeName, "payload");
+            console.log(payload);
+            console.log("Posting to: " + postUrl);
+            // resultObs = EMPTY;  // For testing to just see the payload, uncomment this line and comment out the resultObs block
+            resultObs = this.rest.post(postUrl, payload)
+                                 .pipe(tap(restResponse => {
+                                       console.log (model + " dbRemove post result:", restResponse);
+                                       if (restResponse.returnCode === 200)
+                                          console.log("postDBRemoves - " + model + " - success response");
+                                       else
+                                          console.log("postDBRemoves - " + model + " - failure response");
+                                       console.log("--------------------------------------------");
+                                       })
+                                       ,map(restResponse => restResponse.returnCode)
+                                      );
+         }
+         else
+            resultObs = EMPTY;
+     }
+     catch (error)
+     {
+        console.error(this.storeName, '.service.performDBRemove - Error: ', error);
+        this.transactionManager.stopTransaction();
+        resultObs = throwError(error);
+     }
+     
+     return resultObs;
    }
 
    // ---------------------------------------------
@@ -364,34 +559,6 @@ export class DataStore<T>
 //    console.log (this.storeName, 'dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
 
-   private setDbRemove(removeData: T)
-   {
-      if (removeData != null)
-      {
-         // console.log(this.storeName, 'registered for db removal: ', removeData);
-         removeData['dirty'] = true;
-         removeData['baseStatus'] = DAOBaseStatus.DELETE;
-         if (this.dbRemoves == null)
-            this.dbRemoves = new Array<T>();
-         this.dbRemoves.push(removeData);
-      }
-   }
-
-   // For database removals
-   public addDbRemove(removeData: T | T[] | ReadonlyArray<T>)
-   {
-      if (Array.isArray(removeData))
-         for (let removeElement of removeData)
-            this.setDbRemove(removeElement);
-      else
-         this.setDbRemove(removeData);
-   }
-
-   public clearDbRemoves()
-   {
-      this.dbRemoves = new Array<T>();
-   }
-
    public removeAt (index: number, inTransaction: InTransaction = InTransaction.true)
    {
 //    console.log(this.storeName, 'delete at index: ' + index);
@@ -447,6 +614,11 @@ export class DataStore<T>
             this.addDbRemove(this._dataStore[index]);
          this.removeAt(index);
       }
+   }
+
+   public removeAll()
+   {
+      this.remove(this.get());
    }
 
    // TODO: loop until no search results found
@@ -578,7 +750,10 @@ export class DataStore<T>
 //    console.log(this.storeName, 'datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
       // Register data store change and notify observers
       if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
+      {
+         // console.log("datastore not in transaction, notifying observers");
          this._storeSubject.next(this._dataStore);
+      }
       else
          this.transactionManager.push(this._storeSubject, this._dataStore);
    }
