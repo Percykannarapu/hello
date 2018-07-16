@@ -220,7 +220,7 @@ export class TargetAudienceService implements OnDestroy {
         () => {
           try {
             const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'export' });
-            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
+            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
             const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace('/', '_');
