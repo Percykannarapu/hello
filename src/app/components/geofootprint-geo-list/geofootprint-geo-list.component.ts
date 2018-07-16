@@ -73,39 +73,39 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy {
 
   public rAlign = 'right';
 
-  public locGridColumns: SelectItem[] = [{ label: 'locationName', value: { field: 'locationName', header: 'Location', width: '30%', style: '{\'width\':\'60%\'}' } },
-  { label: 'homeGeocode', value: { field: 'home_geo', header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}' } },
-  { label: 'ycoord', value: { field: 'ycoord', header: 'Lat', width: '15%', style: '{\'width\':\'10%\'}' } },
-  { label: 'xcoord', value: { field: 'xcoord', header: 'Long', width: '15%', style: '{\'width\':\'10%\'}' } },
-  ];
-
-  public geoGridColumns: SelectItem[] = [{ label: 'geocode', value: { field: 'geocode', header: 'Geocode', width: '30%', styleClass: '' } },
-  { label: 'hhc', value: { field: 'hhc', header: 'HHC', width: '20%', styleClass: 'val-text-right' } },
-  { label: 'distance', value: { field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right' } }
-  ];
-
-  public flatGeoGridColumns: SelectItem[] =
-    [{ label: 'Location Number', value: { field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number', width: '7em', styleClass: '' } },
-    { label: 'Location Name', value: { field: 'geo.impGeofootprintLocation.locationName', header: 'Name', width: '16em', styleClass: '' } },
-    { label: 'In Market', value: { field: 'geo.impGeofootprintLocation.marketName', header: 'Market', width: '12em', styleClass: '' } },
-    { label: 'Location Address', value: { field: 'geo.impGeofootprintLocation.locAddress', header: 'Address', width: '14em', styleClass: '' } },
-    { label: 'Location City', value: { field: 'geo.impGeofootprintLocation.locCity', header: 'City', width: '9em', styleClass: '' } },
-    { label: 'Location State', value: { field: 'geo.impGeofootprintLocation.locState', header: 'State', width: '7em', styleClass: '' } },
-    { label: 'Location Zip', value: { field: 'geo.impGeofootprintLocation.locZip', header: 'Zip', width: '6.5em', styleClass: '' } },
-    { label: 'Location HomeGeocode', value: { field: 'home_geo', header: 'Home Geo Ind', width: '8.5em', styleClass: '' } },
-    { label: 'distance', value: { field: 'geo.distance', header: 'Distance', width: '7em', styleClass: 'val-text-right' } },
-    { label: 'geocode', value: { field: 'geo.geocode', header: 'Geocode', width: '8em', styleClass: '' } },
-    { label: 'City/State', value: { field: 'city_name', header: 'Geo City, State', width: '15em', styleClass: '' } },
-    { label: 'hhc', value: { field: 'geo.hhc', header: 'HHC', width: '6em', styleClass: 'val-text-right' } },
-    { label: 'cpm', value: { field: 'cpm', header: 'CPM', width: '5em', styleClass: 'val-text-right' } },
-    { label: 'investment', value: { field: 'investment', header: 'Investment', width: '8em', styleClass: 'val-text-right' } },
-    { label: 'Owner Group', value: { field: 'ownergroup', header: 'Owner Group', width: '9em', styleClass: '' } },
-    { label: 'Coverage Description', value: { field: 'coveragedescription', header: 'Coverage Description', width: '12em', styleClass: '' } },
-    { label: 'POB', value: { field: 'pob', header: 'POB', width: '4em', styleClass: 'val-text-center' } },
-    { label: 'DMA', value: { field: 'dma', header: 'DMA', width: '12em', styleClass: '' } },
-    { label: 'isDeduped', value: { field: 'geo.isDeduped', header: 'In Deduped', width: '7em', styleClass: '' } },
-    ];
-
+  public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName',    header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}},
+                                             {label: 'homeGeocode',  value: {field: 'home_geo',     header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}},
+                                             {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}},
+                                             {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}},
+                                            ];
+  
+  public  geoGridColumns: SelectItem[] = [{label: 'geocode',  value: {field: 'geocode',     header: 'Geocode',  width: '30%', styleClass: ''}},
+                                             {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '20%', styleClass: 'val-text-right'}},
+                                             {label: 'distance', value: {field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right'}}
+                                            ];
+  
+  public  flatGeoGridColumns: SelectItem[] =
+                                           [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Number',                 width: '7em',   styleClass: ''}},
+                                            {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Name',                   width: '16em',  styleClass: ''}},
+                                            {label: 'In Market',            value: {field: 'geo.impGeofootprintLocation.marketName',      header: 'Market',                 width: '12em',  styleClass: ''}},
+                                            {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Address',                width: '14em',  styleClass: ''}},
+                                            {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'City',                   width: '9em',   styleClass: ''}},
+                                            {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'State',                  width: '7em',   styleClass: ''}},
+                                            {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'ZIP',                    width: '6.5em', styleClass: ''}},
+                                            {label: 'Location HomeGeocode', value: {field: 'home_geo',                                    header: 'Home Geo Ind',           width: '8.5em', styleClass: ''}},
+                                            {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',               width: '7em',   styleClass: 'val-text-right'}},
+                                            {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',                width: '8em',   styleClass: ''}},
+                                            {label: 'City/State',           value: {field: 'city_name',                                   header: 'Geo City, State',        width: '15em',  styleClass: ''}},
+                                            {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                    width: '6em',   styleClass: 'val-text-right'}},
+                                            {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                    width: '5em',   styleClass: 'val-text-right'}},
+                                            {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',             width: '8em',   styleClass: 'val-text-right'}},
+                                            {label: 'Owner Group',          value: {field: 'ownergroup',                                  header: 'Owner Group',            width: '9em',   styleClass: ''}},
+                                            {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description',   width: '12em',  styleClass: ''}},
+                                            {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                    width: '4em',   styleClass: 'val-text-center'}},
+                                            {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                    width: '12em',  styleClass: ''}},
+                                            {label: 'isDeduped',            value: {field: 'geo.isDeduped',                               header: 'In Deduped',             width: '7em',   styleClass: ''}},
+                                           ];
+    
   public flatGeoGridExtraColumns: SelectItem[];
   public selectedColumns: any[] = [];
   public columnOptions: SelectItem[] = [];
