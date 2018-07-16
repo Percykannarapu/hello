@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
@@ -19,7 +20,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
 
-  constructor(private audienceService: TargetAudienceTdaService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
+  constructor(private audienceService: TargetAudienceTdaService,
+              private parentAudienceService: TargetAudienceService,
+              private messagingService: AppMessagingService,
+              private cd: ChangeDetectorRef) {
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
@@ -47,7 +51,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public ngOnInit() : void {
     this.audienceService.getAudienceDescriptions().subscribe(
       folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
-      err => console.error('There was an error during retrieval of the TDA Audience descriptions', err),
+      err => this.messagingService.showGrowlError('TDA connection error', 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.'),
       () => {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);

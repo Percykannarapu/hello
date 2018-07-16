@@ -352,7 +352,7 @@ export class TargetAudienceOnlineService {
     if (source === SourceTypes.Pixel)
         metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
     else
-        metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.taxonomyParsedName + '~' + source + '~' + currentAnalysisLevel;
+        metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.taxonomyParsedName.replace('~', ':') + '~' + source + '~' + currentAnalysisLevel;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 }
