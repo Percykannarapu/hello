@@ -1,10 +1,16 @@
-<div class="ui-g ui-toolbar-group-left val-flush-to-edges">
+<div class="ui-g ui-toolbar-group-left">
   <val-esri-map-tools>Loading Map-Tools...</val-esri-map-tools>
   <i class="fa-fontAwesome fa ui-bars"></i>
   <button  label="Clear All"  pButton (click)="onClearAllSelections()"  title="Clear All Selections"></button>
+  <button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>
+  <i class="fa-fontAwesome fa ui-bars"></i>
   <button  label="Zoom to TA" pButton (click)="onZoomToTA()"  title="Zoom to TA"></button>
-  <!--<button  label="Revert"     pButton (click)="onRevertToTradeArea()"  title="Revert to Trade Area" ></button>-->
 </div>
-<div class="ui-toolbar-group-right val-flush-to-edges" style="margin-top: 15px;">
-  <span style="font-weight: bold;"> Analysis Level = {{currentAnalysisLevel$ | async}}</span>
+<div class="ui-g ui-toolbar-group-right">
+  <div class="ui-g-12 val-restore-padding">
+    <span *ngIf="currentAnalysisLevel$ | async as analysisLevel; else noAnalysisLevel"><strong>Analysis Level = {{analysisLevel}}</strong></span>
+    <ng-template #noAnalysisLevel>
+      <span><strong>No Analysis Level Selected</strong></span>
+    </ng-template>
+  </div>
 </div>

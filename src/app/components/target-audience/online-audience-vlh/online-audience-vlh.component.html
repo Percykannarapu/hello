@@ -5,7 +5,7 @@
   </div>
   <hr>
   <p-tree [loading]="loading" [value]="currentNodes"
-          selectionMode="checkbox" loadingIcon="fa-spin fa-refresh"
+          selectionMode="checkbox" loadingIcon="fa-fontAwesome fa-circle-o-notch"
           [selection]="currentSelectedNodes"
           (onNodeSelect)="selectVariable($event.node)"
           (onNodeUnselect)="removeVariable($event.node)">

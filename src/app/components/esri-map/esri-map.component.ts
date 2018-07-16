@@ -15,7 +15,7 @@ const ZOOM_KEY = 'IMPOWER-MAP-ZOOM';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 
 @Component({
-  selector: 'app-esri-map',
+  selector: 'val-esri-map',
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.css']
 })
@@ -38,10 +38,8 @@ export class EsriMapComponent implements OnInit {
   private mapView: __esri.MapView;
 
   constructor(public mapService: MapService, private mapDispatch: MapDispatchService,
-               private modules: EsriModules, private newMapService: AppMapService,
-              private esriMapService: EsriMapService, private esriLayerService: EsriLayerService) {
-    console.log('Constructing esri-map-component');
-  }
+              private modules: EsriModules, private newMapService: AppMapService,
+              private esriMapService: EsriMapService, private esriLayerService: EsriLayerService) { }
 
   private static replaceCopyrightElement() {
     // Angular doesn't particularly like to modify existing DOM elements, so we have to drop down to raw JS for this
@@ -77,9 +75,9 @@ export class EsriMapComponent implements OnInit {
       this.mapService.hideMapLayers();
       this.mapDispatch.onMapViewClick().subscribe(event => this.clickHandler(event));
       EsriMapComponent.replaceCopyrightElement();
-      this.mapDispatch.afterMapViewUpdate().subscribe(
-        () => this.saveMapViewData(this.mapContainerEl), null, () => this.setMapHeight());
+      this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
       this.esriLayerService.setupLayerWatches(this.mapDispatch.getMapView().map.layers.toArray());
+      this.setMapHeight();
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
@@ -88,11 +86,12 @@ export class EsriMapComponent implements OnInit {
   }
 
   private saveMapViewData(el: ElementRef) {
+    const mapHeight = el.nativeElement.clientHeight > 50 ? el.nativeElement.clientHeight : 400;
     localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(this.mapView.viewpoint.toJSON()));
     localStorage.setItem(CENTER_LONG_KEY, JSON.stringify(this.mapView.center.longitude));
     localStorage.setItem(CENTER_LAT_KEY, JSON.stringify(this.mapView.center.latitude));
     localStorage.setItem(ZOOM_KEY, JSON.stringify(this.mapView.zoom));
-    localStorage.setItem(HEIGHT_KEY, JSON.stringify(el.nativeElement.clientHeight));
+    localStorage.setItem(HEIGHT_KEY, JSON.stringify(mapHeight));
   }
 
   // save and reset view viewpoint
@@ -120,21 +119,24 @@ export class EsriMapComponent implements OnInit {
     }
   }
 
-    // save and reset map zoom
-    private setMapZoom() {
-      const vpString = localStorage.getItem(ZOOM_KEY);
-      if (vpString) {
-        this.mapView.zoom = JSON.parse(vpString);
-      } else {
-        this.mapView.zoom = 4;
-      }
+  // save and reset map zoom
+  private setMapZoom() {
+    const vpString = localStorage.getItem(ZOOM_KEY);
+    if (vpString) {
+      this.mapView.zoom = JSON.parse(vpString);
+    } else {
+      this.mapView.zoom = 4;
     }
+  }
 
   // save and reset map height
   private setMapHeight() {
-    const mapString = localStorage.getItem(HEIGHT_KEY);
-    if (mapString) {
-      this.height = JSON.parse(mapString) as number;
+    const heightString = localStorage.getItem(HEIGHT_KEY);
+    const heightNum = Number(heightString);
+    if (Number.isNaN(heightNum) || heightNum < 50) {
+      this.height = 400;
+    } else {
+      this.height = heightNum;
     }
   }
 

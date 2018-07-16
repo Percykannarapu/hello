@@ -124,7 +124,7 @@ export class UploadTradeAreasComponent {
 
       // Create a counter metric
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
-       this.usageService.createCounterMetric(usageMetricName, null, rows.length - 1);
+      
 
       // Parse the data into headers and rows
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
@@ -153,6 +153,7 @@ export class UploadTradeAreasComponent {
           }
         });
      //   this.tradeAreaService.zoomToTradeArea();
+        this.usageService.createCounterMetric(usageMetricName, `success~=${this.geoLocList.length}~error=${this.failedGeoLocList.length}`, rows.length - 1);
 
         const outfields = [];
         const tradeAreasForInsert: ImpGeofootprintTradeArea [] = [];
@@ -178,7 +179,7 @@ export class UploadTradeAreasComponent {
 
                   const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
                   if (tas.length <= 0) {
-                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(customIndex, loc, true, 'CUSTOM');
+                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(4, loc, true, 'CUSTOM');
                      tradeAreasForInsert.push(newTA);
                      tas.push(newTA);
                   }

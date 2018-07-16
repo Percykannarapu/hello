@@ -4,6 +4,8 @@ export class ValGeocodingRequest {
   name: string;
   number: string;
   Market: string;
+  'Market Code': string;
+  'Description': string;
   street: string;
   city: string;
   state: string;
@@ -34,10 +36,12 @@ export class ValGeocodingRequest {
   }
 
   public toGeocodingResponse() : ValGeocodingResponse {
-    const nonAttributeProps = ['name', 'number', 'Market', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
+    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code','Description', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
     const result = new ValGeocodingResponse({
       Name: this.name,
       Market: this.Market,
+      'Market Code': this['Market Code'],
+      'Description': this['Description'],
       Number: this.number,
       Address: this.street,
       City: this.city,

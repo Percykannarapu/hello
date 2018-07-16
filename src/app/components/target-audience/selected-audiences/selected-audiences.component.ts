@@ -6,7 +6,7 @@ import { AppRendererService, SmartMappingTheme } from '../../../services/app-ren
 import { UsageService } from '../../../services/usage.service';
 import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { map, take, tap } from 'rxjs/operators';
+import { map, take, tap, filter, skip } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
@@ -48,6 +48,22 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(res => this.hasAudiences = res, null, () => {
       if (sub) sub.unsubscribe();
     });
+    this.appStateService.projectIsLoading$.pipe(
+      filter(loading => !loading),
+      skip(1)
+    ).subscribe(loading => {
+      this.onLoadProject();
+    });
+  }
+
+  private onLoadProject() {
+    let showRender = false;
+    this.varService.getAudiences().forEach(audience => {
+      if (audience.showOnMap) {
+        showRender = true;
+      }
+    });
+    this.showRenderControls = showRender;
   }
 
   public onApplyClicked() {
@@ -69,7 +85,7 @@ export class SelectedAudiencesComponent implements OnInit {
           
       }
 
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
       // const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
       // const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
@@ -92,6 +108,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onMapSelected(audience: AudienceDataDefinition) : void {
+    this.varService.updateProjectVars(audience);
     this.showRenderControls = audience.showOnMap;
     this.audiences$.pipe(
       map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
@@ -100,6 +117,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onNationalSelected(audience: AudienceDataDefinition) : void {
+    this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
       map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
       take(1),

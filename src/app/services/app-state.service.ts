@@ -35,8 +35,9 @@ export class AppStateService {
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
 
-  public siteTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
-  public competitorTradeAreas$: Observable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(private projectService: ImpProjectService, private geoService: ImpGeofootprintGeoService,
                private tradeAreaService: ImpGeofootprintTradeAreaService) {
@@ -63,7 +64,8 @@ export class AppStateService {
       map(project => project.impGeofootprintMasters[0]),
     ).subscribe(this.currentMaster$ as BehaviorSubject<ImpGeofootprintMaster>);
     this.currentProject$.pipe(
-      filter(project => project != null && project.methAnalysis != null && project.methAnalysis.length > 0),
+      //filter(project => project != null && project.methAnalysis != null && project.methAnalysis.length > 0),
+      filter(project => project != null),
       map(project => project.methAnalysis),
       distinctUntilChanged(),
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
@@ -107,13 +109,17 @@ export class AppStateService {
     const radialTradeAreas$ = this.tradeAreaService.storeObservable.pipe(
       map(tas => tas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
-    this.siteTradeAreas$ = radialTradeAreas$.pipe(
+    radialTradeAreas$.pipe(
       map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),
       map(tas => groupBy(tas, 'taNumber')),
-    );
-    this.competitorTradeAreas$ = radialTradeAreas$.pipe(
+    ).subscribe(this.siteTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+    radialTradeAreas$.pipe(
       map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
       map(tas => groupBy(tas, 'taNumber'))
-    );
+    ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+  }
+
+  public getClearUserInterfaceObs() : Observable<boolean> {
+    return this.clearUserInterface.asObservable();
   }
 }

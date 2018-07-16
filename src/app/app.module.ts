@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
@@ -99,7 +99,6 @@ import { MapService } from './services/map.service';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
-import { TradeAreaDefineComponent } from './components/tradearea-define/trade-area-define.component';
 import { DiscoveryInputComponent } from './components/discovery-input/discovery-input.component';
 import { UploadLocationsComponent } from './components/upload-locations/upload-locations.component';
 import { RestDataInterceptor, RestDataService } from './val-modules/common/services/restdata.service';
@@ -154,6 +153,9 @@ import { ImpProjectTrackerService } from './val-modules/targeting/services/ImpPr
 import { ProjectComponent } from './components/project-dashboard/project.component';
 import { OnlineAudienceVlhComponent } from './components/target-audience/online-audience-vlh/online-audience-vlh.component';
 import { OnlineAudiencePixelComponent } from './components/target-audience/online-audience-pixel/online-audience-pixel.component';
+import { TradeAreaTabComponent } from './components/trade-area-tab/trade-area-tab.component';
+import { DistanceTradeAreaComponent } from './components/trade-area-tab/distance-trade-area/distance-trade-area.component';
+import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 
 @NgModule({
     imports: [
@@ -253,7 +255,6 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/onlin
         EsriMapToolsComponent,
         ColorBoxComponent,
         SiteListComponent,
-        TradeAreaDefineComponent,
         DiscoveryInputComponent,
         UploadLocationsComponent,
         LoginComponent,
@@ -266,7 +267,10 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/onlin
         AudienceTradeareaComponent,
         ProjectComponent,
         OnlineAudienceVlhComponent,
-        OnlineAudiencePixelComponent
+        OnlineAudiencePixelComponent,
+        TradeAreaTabComponent,
+        DistanceTradeAreaComponent,
+        SiteTypeSelectorComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -290,6 +294,7 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/onlin
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],
-    bootstrap: [AppComponent]
+    bootstrap: [AppComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule { }

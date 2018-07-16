@@ -28,18 +28,7 @@
           <val-site-list>Loading Site List...</val-site-list>
         </p-tabPanel>
         <p-tabPanel header="Define Trade Areas">
-          <p-accordion>
-              <p-accordionTab header="Audience">
-                <!--<val-audience-tradearea>Loading Audience Trade Areas...</val-audience-tradearea>-->
-                Coming Soon
-              </p-accordionTab>
-            <p-accordionTab header="Distance">
-                <val-trade-area-define>Loading TradeAreas...</val-trade-area-define>
-            </p-accordionTab>
-            <p-accordionTab header="Custom">
-              <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
-            </p-accordionTab>
-        </p-accordion>
+          <val-trade-area-tab>Loading Trade Areas...</val-trade-area-tab>
         </p-tabPanel>
       </p-tabView>
 
@@ -87,7 +76,7 @@
                      pTooltip="Predicted Response is the number of households expected to act on the offer received.
 
                               Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
-                              
+
                               Cost per Response is the estimated investment per predicted response."
                      [model]="metricMapTeal"
                      [flags]="flagMapTeal"
@@ -135,7 +124,7 @@
             <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
           </div>
         </p-toolbar>
-        <app-esri-map>Loading Map...</app-esri-map>
+        <val-esri-map>Loading Map...</val-esri-map>
       </div>
     </p-panel>
     <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true">

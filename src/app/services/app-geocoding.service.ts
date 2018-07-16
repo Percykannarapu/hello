@@ -61,7 +61,7 @@ export class AppGeocodingService {
               if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
                 d['Geocode Status'] = 'ERROR';
                 fail.push(new ValGeocodingResponse(d));
-              } else if ((d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) || d['Match Code'] === 'Z') {
+              } else if ((d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) /*|| d['Match Code'] === 'Z'*/) {
                 d['Geocode Status'] = 'CENTROID';
                 fail.push(new ValGeocodingResponse(d));
               } else {

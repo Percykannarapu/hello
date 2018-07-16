@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { combineLatest } from 'rxjs';
-import { debounceTime, filter, pairwise, startWith, take } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, pairwise, startWith, take } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { AppConfig } from '../../app.config';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
@@ -17,7 +17,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpRadLookup } from '../../val-modules/targeting/models/ImpRadLookup';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpRadLookupService } from '../../val-modules/targeting/services/ImpRadLookup.service';
-import { AppProjectService } from '../../services/app-project.service';
 
 interface DiscoveryFormData {
   projectName: string;
@@ -81,12 +80,8 @@ export class DiscoveryInputComponent implements OnInit {
   trackerDataCache: TrackerData[] = [];
   trackerDataFiltered: TrackerData[] = [];
 
-  get isBlendedCpm() : boolean { return this.discoveryForm.get('cpmType').value === 'blended'; }
-  get isOwnerGroupCpm() : boolean { return this.discoveryForm.get('cpmType').value === 'ownerGroup'; }
-
   public impProject: ImpProject;
-  private usageTargetMap: Map<string, string>;
-
+  private usageTargetMap: any;
   private projectSub: Subscription;
 
   // -----------------------------------------------------------
@@ -102,8 +97,7 @@ export class DiscoveryInputComponent implements OnInit {
               private messagingService: AppMessagingService,
               private appMapService: AppMapService,
               private appStateService: AppStateService,
-              private esriLayerService: EsriLayerService,
-              private appProjectService: AppProjectService  ){
+              private esriLayerService: EsriLayerService){
 
     this.allAnalysisLevels = [
       {label: 'Digital ATZ', value: 'Digital ATZ'},
@@ -116,18 +110,6 @@ export class DiscoveryInputComponent implements OnInit {
       {label: 'Summer', value: 'S'},
       {label: 'Winter', value: 'W'}
     ];
-
-    // this.products = [
-    //   {label: 'N/A',                         value: 'N/A'},
-    //   {label: 'Display Advertising',         value: 'N/A'},
-    //   {label: 'Email',                       value: 'N/A'},
-    //   {label: 'Insert - Newspaper',          value: 'NP Insert'},
-    //   {label: 'Insert - Shared Mail',        value: 'SM Insert'},
-    //   {label: 'RedPlum Plus Dynamic Mobile', value: 'N/A'},
-    //   {label: 'Variable Data Postcard',      value: 'VDP'},
-    //   {label: 'VDP + Email',                 value: 'N/A'},
-    //   {label: 'Red Plum Wrap',               value: 'SM Wrap'}
-    // ];
 
   }
 
@@ -154,20 +136,20 @@ export class DiscoveryInputComponent implements OnInit {
 
     // this maps the form control names to the equivalent usage metric name
     // if there is no entry here, then it will not get logged on change
-    this.usageTargetMap = new Map<string, string>([
-      ['selectedSeason', 'seasonality'],
-      ['selectedAnalysisLevel', 'analysis-level'],
-      ['includePob', 'include-pob-geo'],
-      ['includeValassis', 'include-valassis-geo'],
-      ['includeAnne', 'include-anne-geo'],
-      ['includeSolo', 'include-solo-geo'],
-      ['dollarBudget', 'dollar-budget'],
-      ['circBudget', 'circ-budget'],
-      ['cpmBlended', 'blended-cpm'],
-      ['cpmValassis', 'valassis-cpm'],
-      ['cpmAnne', 'anne-cpm'],
-      ['cpmSolo', 'solo-cpm'],
-    ]);
+    this.usageTargetMap = {
+      selectedSeason: 'seasonality',
+      selectedAnalysisLevel: 'analysis-level',
+      includePob: 'include-pob-geo',
+      includeValassis: 'include-valassis-geo',
+      includeAnne: 'include-anne-geo',
+      includeSolo: 'include-solo-geo',
+      dollarBudget: 'dollar-budget',
+      circBudget: 'circ-budget',
+      cpmBlended: 'blended-cpm',
+      cpmValassis: 'valassis-cpm',
+      cpmAnne: 'anne-cpm',
+      cpmSolo: 'solo-cpm',
+    };
 
     combineLatest(this.appMapService.onReady$, this.esriLayerService.layersReady$).pipe(
       filter(([mapReady, layersReady]) => mapReady && layersReady),
@@ -176,13 +158,18 @@ export class DiscoveryInputComponent implements OnInit {
       // set up all my observables after the map & layers are ready
       this.impRadLookupService.storeObservable.subscribe(radData => this.radDataCache = radData.map(item => new RadData(item)));
       this.impRadLookupService.get(true); // fire off the store retrieval mechanism
-     this.discoveryService.getProjectTrackerData().subscribe(data => this.trackerDataCache = data.map(item => new TrackerData(item)));
+      this.discoveryService.getProjectTrackerData().subscribe(data => this.trackerDataCache = data.map(item => new TrackerData(item)));
+
       const cleanForm$ = this.discoveryForm.valueChanges.pipe(
-        debounceTime(500)
+        // wait until user has stopped typing for 1/2 second before we try to process data
+        debounceTime(500),
+        // don't process anything if the form hasn't changed (prevents infinite loops)
+        distinctUntilChanged((x, y) => JSON.stringify(x) === JSON.stringify(y))
       );
-
-      cleanForm$.subscribe(currentForm => this.updateProject(currentForm));
-
+      cleanForm$.subscribe(currentForm => {
+        this.processForm(currentForm);
+        this.updateProject(currentForm);
+      });
       cleanForm$.pipe(
         startWith(this.discoveryForm.value),
         pairwise()
@@ -198,20 +185,21 @@ export class DiscoveryInputComponent implements OnInit {
     formFieldNames.forEach(fieldName => {
       const previousValue = previousForm[fieldName];
       const currentValue = currentForm[fieldName];
-      const usageTarget = this.usageTargetMap.get(fieldName);
+      const usageTarget = this.usageTargetMap[fieldName];
       // only log values that are tracked and have changed
-      if (usageTarget != null && previousValue !== currentValue) {
+      if (usageTarget != null && previousValue !== currentValue && currentValue != null) {
         console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
         let newText = null;
         let changeText = null;
-        if (usageTarget === 'analysis-level'){
+        if (usageTarget === 'analysis-level' &&  currentValue != null){
            newText = `New=${currentValue.value}`;
-           changeText = `${newText}~Old=${previousValue.value}`;
+           const preValue = previousValue != null ? previousValue.value  : null ;
+           changeText = `${newText}~Old=${preValue}`;
         }else{
            newText = `New=${currentValue}`;
            changeText = `${newText}~Old=${previousValue}`;
         }
-        
+
         const metricsText = previousValue == null || previousValue === '' ? newText : changeText;
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: usageTarget, action: 'changed' });
         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
@@ -237,7 +225,7 @@ export class DiscoveryInputComponent implements OnInit {
         const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
         this.usageService.createCounterMetric(productMetric, productMetricText, null);
       }
-      
+
 
       const categoryMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
       const previousCategory = previousForm.selectedRadLookupValue != null ? previousForm.selectedRadLookupValue.category : null;
@@ -257,13 +245,21 @@ export class DiscoveryInputComponent implements OnInit {
           cpmValassis: null,
           cpmAnne: null,
           cpmSolo: null
-        });
-        break;
+       });
+       this.discoveryForm.controls['cpmValassis'].disable();
+       this.discoveryForm.controls['cpmAnne'].disable();
+       this.discoveryForm.controls['cpmSolo'].disable();
+       this.discoveryForm.controls['cpmBlended'].enable();
+      break;
       case 'ownerGroup':
         this.discoveryForm.patchValue({
           cpmBlended: null
         });
-        break;
+        this.discoveryForm.controls['cpmValassis'].enable();
+        this.discoveryForm.controls['cpmAnne'].enable();
+        this.discoveryForm.controls['cpmSolo'].enable();
+        this.discoveryForm.controls['cpmBlended'].disable();
+      break;
       default:
         this.discoveryForm.patchValue({
           cpmValassis: null,
@@ -271,15 +267,20 @@ export class DiscoveryInputComponent implements OnInit {
           cpmSolo: null,
           cpmBlended: null
         });
+        this.discoveryForm.controls['cpmValassis'].disable();
+        this.discoveryForm.controls['cpmAnne'].disable();
+        this.discoveryForm.controls['cpmSolo'].disable();
+        this.discoveryForm.controls['cpmBlended'].disable();
     }
   }
 
   private updateProject(currentForm: DiscoveryFormData) {
+    if (this.impProject == null) return;
+
     console.log('discovery-component.updateProject fired');
     console.log('selected analysislevel', currentForm.selectedAnalysisLevel);
     const dollarBudget = toNumber(currentForm.dollarBudget);
     const circBudget = toNumber(currentForm.circBudget);
-    if (this.impProject == null) return;
 
     // Update audit columns
     if (this.impProject.createUser == null)
@@ -333,7 +334,7 @@ export class DiscoveryInputComponent implements OnInit {
       console.error('Project passed into MapFromProject is null');
       return;
     }
-    if (this.impProject != null && this.impProject.projectId === newProject.projectId) {
+    if (this.impProject != null && this.impProject.projectId === newProject.projectId && this.impProject === newProject) {
       // break out of infinite loop
       return;
     }
@@ -341,32 +342,38 @@ export class DiscoveryInputComponent implements OnInit {
     this.impProject = newProject;
     if (newProject.projectId == null) {
       // new project - no need to load form data
-      return;
+      this.discoveryForm.reset({
+        selectedSeason: this.isSummer() ? this.allSeasons[0].value : this.allSeasons[1].value,
+        includePob: true,
+        includeValassis: true,
+        includeAnne: true,
+        includeSolo: true,
+      });
+    } else {
+      const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
+      const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
+      const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
+      const newFormValues: DiscoveryFormData = {
+        projectName: newProject.projectName,
+        circBudget: newProject.isCircBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
+        dollarBudget: newProject.isDollarBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
+        cpmAnne: newProject.smAnneCpm ? newProject.smAnneCpm.toString() : null,
+        cpmValassis: newProject.smValassisCpm ? newProject.smValassisCpm.toString() : null,
+        cpmSolo: newProject.smSoloCpm ? newProject.smSoloCpm.toString() : null,
+        cpmBlended: newProject.estimatedBlendedCpm ? newProject.estimatedBlendedCpm.toString() : null,
+        cpmType: newProject.estimatedBlendedCpm ? 'blended' : (newProject.smAnneCpm || newProject.smSoloCpm || newProject.smValassisCpm ? 'ownerGroup' : null),
+        includeAnne: newProject.isIncludeAnne,
+        includeSolo: newProject.isIncludeSolo,
+        includeValassis: newProject.isIncludeValassis,
+        includePob: !newProject.isExcludePob,
+        selectedAnalysisLevel: analysisLevelItem ? analysisLevelItem : null,
+        selectedSeason: newProject.impGeofootprintMasters[0].methSeason,
+        projectTrackerData: trackerItem ? trackerItem : null,
+        selectedRadLookupValue: radItem ? radItem : null
+      };
+      console.log('Patching data to form', newFormValues);
+      this.discoveryForm.patchValue(newFormValues);
     }
-    const radItem = this.radDataCache.filter(rad => rad.product === newProject.radProduct && this.discoveryService.radCategoryCodeByName.get(rad.category) === newProject.industryCategoryCode)[0];
-    const trackerItem = this.trackerDataCache.filter(tracker => tracker.projectId === newProject.projectTrackerId)[0];
-    const analysisLevelItem = this.allAnalysisLevels.filter(al => al.value === newProject.methAnalysis)[0];
-    const newFormData: DiscoveryFormData = {
-      projectName: newProject.projectName,
-      circBudget: newProject.isCircBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
-      dollarBudget: newProject.isDollarBudget && newProject.totalBudget ? newProject.totalBudget.toString() : null,
-      cpmAnne: newProject.smAnneCpm ? newProject.smAnneCpm.toString() : null,
-      cpmValassis: newProject.smValassisCpm ? newProject.smValassisCpm.toString() : null,
-      cpmSolo: newProject.smSoloCpm ? newProject.smSoloCpm.toString() : null,
-      cpmBlended: newProject.estimatedBlendedCpm ? newProject.estimatedBlendedCpm.toString() : null,
-      cpmType: newProject.estimatedBlendedCpm ? 'blended' : (newProject.smAnneCpm || newProject.smSoloCpm || newProject.smValassisCpm ? 'ownerGroup' : null),
-      includeAnne: newProject.isIncludeAnne,
-      includeSolo: newProject.isIncludeSolo,
-      includeValassis: newProject.isIncludeValassis,
-      includePob: !newProject.isExcludePob,
-      selectedAnalysisLevel: analysisLevelItem ? analysisLevelItem : null,
-      selectedSeason: newProject.impGeofootprintMasters[0].methSeason,
-      projectTrackerData: trackerItem ? trackerItem : null,
-      selectedRadLookupValue: radItem ? radItem : null
-    };
-
-    console.log('Patching data to form', newFormData);
-    this.discoveryForm.patchValue(newFormData);
   }
 
   // TODO: move to the discovery service and use to initialize selectedSeason
@@ -374,22 +381,6 @@ export class DiscoveryInputComponent implements OnInit {
     const today: Date = new Date();
     today.setDate(today.getDate() + 28);
     return today.getMonth() >= 4 && today.getMonth() <= 8;
-  }
-
-  public saveProject() {
-    // Save the project
-    // Cannot call appProjectService directly, must use impProjectService
-    /*
-    this.appProjectService.saveProject(this.impProjectService.get()[0]).subscribe(proj => {
-      const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-      this.usageService.createCounterMetric(usageMetricName, null, proj[0].projectId);
-    }); */    
-    this.impProjectService.saveProject();
-
-    // Needs to happen after the save is complete
-    // TODO: See ImpProject.service.saveProjectObs - fix that and swap with saveProject abvoe
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-    this.usageService.createCounterMetric(usageMetricName, null, null); //savedProject[0].projectId);    
   }
 
   filterRadData(event) {
@@ -434,17 +425,16 @@ export class DiscoveryInputComponent implements OnInit {
     }
   }
   public refreshProjectTrackerData(){
-      console.log('Refreshing trackerDataCache');
-      this.discoveryService.getProjectTrackerData().subscribe(data => {
+    console.log('Refreshing trackerDataCache');
+    this.discoveryService.getProjectTrackerData().subscribe(data => {
       this.trackerDataCache = data.map(item => new TrackerData(item));
-      });
-
-}
-
-public onProjectTrackerSelect(event){
-  if (this.discoveryForm.get('projectName').status === 'INVALID') {
-      this.discoveryForm.get('projectName').setValue(event.projectName);
+    });
   }
-}
+
+  public onProjectTrackerSelect(event){
+    if (this.discoveryForm.get('projectName').status === 'INVALID') {
+      this.discoveryForm.get('projectName').setValue(event.projectName);
+    }
+  }
 }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -13,11 +13,12 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMessagingService } from './app-messaging.service';
 import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
-import { filter, map, withLatestFrom } from 'rxjs/operators';
+import { filter, map, withLatestFrom, distinctUntilChanged } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -38,6 +39,7 @@ export class AppGeoService {
     this.setupHomeGeoSelectionObservable();
     this.setupGeoAttributeUpdateObservable();
     this.setupAnalysisLevelGeoClearObservable();
+    this.setupFilterGeosObservable();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -87,8 +89,8 @@ export class AppGeoService {
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // remove sites that don't have any trade areas yet
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-      // remove sites that don't haven't finished trade area processing
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().length > 0 || loc.impGeofootprintTradeAreas.some(ta => ta['isComplete'] === true))),
+      // remove sites that haven't finished radius trade area processing
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
       // remove sites that already have their home geo selected
       map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
       // halt the sequence if there are no locations remaining
@@ -117,7 +119,7 @@ export class AppGeoService {
       filter(([analysisLevel, geos, isLoading]) => !isLoading),
       // halt the sequence if there are no geos
       filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
-    ).subscribe(() => this.clearAllGeos());
+    ).subscribe(() => this.clearAllGeos(false, false, false, false));
   }
 
   private updateAttributesFromLayer(geocodes: string[], analysisLevel: string) {
@@ -189,21 +191,47 @@ export class AppGeoService {
       });
   }
 
-  private clearAllGeos() {
+  public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
     // also removes all vars and trade areas (except Radius and Audience)
-    this.attributeService.clearAll();
-    this.geoService.addDbRemove(this.geoService.get());
-    this.geoService.clearAll();
-    this.varService.addDbRemove(this.varService.get());
-    this.varService.clearAll();
-    this.tradeAreaService.get().forEach(ta => {
-      ta.impGeofootprintGeos = [];
+    const allTradeAreas = this.tradeAreaService.get();
+    const radiusTradeAreas = allTradeAreas.filter(ta => ta.taType === 'RADIUS');
+    const audienceTradeAreas = allTradeAreas.filter(ta => ta.taType === 'AUDIENCE');
+    const customTradeAreas = allTradeAreas.filter(ta => ta.taType === 'CUSTOM');
+    const forcedTradeAreas = allTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
+    const otherTradeAreas = allTradeAreas.filter(ta => !['RADIUS', 'AUDIENCE', 'CUSTOM', 'HOMEGEO'].includes(ta.taType));
+    const tradeAreasToClear = [...otherTradeAreas];
+    const tradeAreasToDelete = [...otherTradeAreas];
+    if (!keepRadiusGeos) tradeAreasToClear.push(...radiusTradeAreas);
+    if (!keepAudienceGeos) {
+      tradeAreasToClear.push(...audienceTradeAreas);
+      tradeAreasToDelete.push(...audienceTradeAreas);
+    }
+    if (!keepCustomGeos) {
+      tradeAreasToClear.push(...customTradeAreas);
+      tradeAreasToDelete.push(...customTradeAreas);
+    }
+    if (!keepForcedHomeGeos) {
+      tradeAreasToClear.push(...forcedTradeAreas);
+      tradeAreasToDelete.push(...forcedTradeAreas);
+    }
+    const geosToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintGeos));
+    const varsToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintVars));
+    const attributesToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
+
+    this.attributeService.remove(attributesToDelete);
+    this.geoService.remove(geosToDelete);
+    this.varService.remove(varsToDelete);
+    tradeAreasToClear.forEach(ta => {
       ta.impGeofootprintVars = [];
-      if (ta['isComplete'] != null) ta['isComplete'] = false;
+      ta.impGeofootprintGeos = [];
+      ta['isComplete'] = false;
     });
-    const tradeAreasToRemove = this.tradeAreaService.get().filter(ta => ta.taType !== 'RADIUS' && ta.taType !== 'AUDIENCE');
-    this.tradeAreaService.addDbRemove(tradeAreasToRemove);
-    this.tradeAreaService.remove(tradeAreasToRemove);
+    tradeAreasToDelete.forEach(ta => {
+      const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
+      ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
+      ta.impGeofootprintLocation = null;
+    });
+    this.tradeAreaService.remove(tradeAreasToDelete);
   }
 
   private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {
@@ -213,6 +241,7 @@ export class AppGeoService {
       tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
         const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
         if (currentDistance <= radius && currentDistance > previousRadius) {
+          if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
             const newGeo = new ImpGeofootprintGeo({
               xcoord: attributes.longitude,
               ycoord: attributes.latitude,
@@ -225,6 +254,7 @@ export class AppGeoService {
             ta.impGeofootprintGeos.push(newGeo);
             geosToSave.push(newGeo);
           }
+        }
       });
     });
     // mark trade areas as completed, so Home Geo query can pick it up
@@ -238,7 +268,9 @@ export class AppGeoService {
       }
       ta['isComplete'] = true;
     });
-    this.filterGeos(geosToSave, centroids);
+    this.updateGeoAttributes(centroids.map(g => g.attributes), geosToSave);
+    // this.filterGeos(geosToSave, centroids);
+    this.filterGeosOnFlags(geosToSave),
     console.log('createGeosToPersist - geosToSave filtered & unfiltered: ', geosToSave.length);
     return geosToSave;
   }
@@ -323,8 +355,57 @@ export class AppGeoService {
       });
   }
 
-  private updateGeoAttributes(layerAttribute: any[]) {
-    const currentGeos = this.geoService.get();
+  public filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
+    console.log('Filtering Geos Based on Flags');
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null) return;
+
+    const includeValassis = currentProject.isIncludeValassis;
+    const includeAnne = currentProject.isIncludeAnne;
+    const includeSolo = currentProject.isIncludeSolo;
+    const includePob = !currentProject.isExcludePob;
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const filterReasons: string[] = [];
+
+        if (ownerGroupGeosMap.has('VALASSIS')){
+              ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
+                geo.isActive = includeValassis;
+                if (geo.isActive === false){
+                  geo['filterReasons'] = 'Filtered because: VALASSIS' ;
+                } else geo['filterReasons'] = null;
+              });
+        }
+        if (ownerGroupGeosMap.has('ANNE')){
+              ownerGroupGeosMap.get('ANNE').forEach(geo => {
+                geo.isActive = includeAnne;
+                if (geo.isActive === false){
+                  geo['filterReasons'] = 'Filtered because: ANNE' ;
+                } else geo['filterReasons'] = null;
+              });
+        }
+        if (soloGeosMap.has('Solo') ){
+              soloGeosMap.get('Solo').forEach(geo => {
+                geo.isActive = includeSolo;
+                if (geo.isActive === false){
+                   geo['filterReasons'] = 'Filtered because: SOLO' ;
+                } else geo['filterReasons'] = null;
+                });
+        }
+        if (pobGeosMap.has('B')){
+              pobGeosMap.get('B').forEach(geo => {
+                geo.isActive = includePob;
+                if (geo.isActive === false){
+                  geo['filterReasons'] = 'Filtered because: POB' ;
+                } else geo['filterReasons'] = null;
+              });
+        }
+        this.geoService.update(null, null);
+  }
+
+  private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
+    const currentGeos = geos || this.geoService.get();
     const isSummer = this.appStateService.season$.getValue() === Season.Summer;
     const geoMap: Map<string, ImpGeofootprintGeo[]> = groupBy(currentGeos, 'geocode');
     const newAttributes: ImpGeofootprintGeoAttrib[] = [];
@@ -423,4 +504,29 @@ export class AppGeoService {
     tradeArea.impGeofootprintGeos.push(newGeo);
     this.geoService.add([newGeo]);
   }
+
+  private setupFilterGeosObservable() : void{
+    const valassisFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeValassis),
+      distinctUntilChanged()
+    );
+    const anneFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeAnne),
+      distinctUntilChanged()
+    );
+    const soloFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isIncludeSolo),
+      distinctUntilChanged()
+    );
+    const pobFlag$ = this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      map(project => project.isExcludePob),
+      distinctUntilChanged()
+    );
+   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(currentFlags => this.filterGeosOnFlags(this.geoService.get()));
+
+}
 }

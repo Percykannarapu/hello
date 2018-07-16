@@ -12,6 +12,7 @@ import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 
 const audienceUploadRules: ParseRule[] = [
   { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
@@ -31,7 +32,14 @@ export class TargetAudienceCustomService {
 
   constructor(private messagingService: AppMessagingService, private usageService: UsageService,
               private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private varService: ImpGeofootprintVarService, private tradeAreaService: ImpGeofootprintTradeAreaService) { }
+              private varService: ImpGeofootprintVarService, private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private projectVarService: ImpProjectVarService) {
+                
+                this.stateService.projectIsLoading$.subscribe(isLoading => {
+                  this.onLoadProject(isLoading);
+                });
+
+              }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
     return {
@@ -45,6 +53,43 @@ export class TargetAudienceCustomService {
       exportNationally: false,
       allowNationalExport: false
     };
+  }
+
+  private onLoadProject(loading: boolean) {
+    if (loading) return; // loading will be false when the load is actually done
+    try {
+      const project = this.stateService.currentProject$.getValue();
+      const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
+      const geocodes: string[] = project.getImpGeofootprintGeos().map(geo => geo.geocode);
+      const columnNames: Set<string> = new Set<string>();
+      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom').length > 0) {
+        this.projectVarService.clearAll();
+        this.projectVarService.add(project.impProjectVars);
+        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom')) {
+          const audience: AudienceDataDefinition = {
+            audienceName: projectVar.fieldname,
+            audienceIdentifier: projectVar.fieldname,
+            audienceSourceType: 'Custom',
+            audienceSourceName: projectVar.source.split('_')[1],
+            exportInGeoFootprint: true,
+            showOnGrid: true,
+            showOnMap: false,
+            exportNationally: false,
+            allowNationalExport: false
+          };
+          columnNames.add(audience.audienceName);
+          const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
+          const geoMap = new Map<string, ImpGeofootprintVar>();
+          for (const geoVar of relatedGeoVars) {
+            geoMap.set(geoVar.geocode, geoVar);
+          }
+          this.dataCache.set(audience.audienceName, geoMap);
+          this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
@@ -88,13 +133,7 @@ export class TargetAudienceCustomService {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(geocode)) {
         result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-
-        /**
-         * Uncomment the line below to re-enable saving of the project vars
-         */
-
-        //geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
-        
+        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
       }
     }
     this.varPkCache.set(column, newVarPk);

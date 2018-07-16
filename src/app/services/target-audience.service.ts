@@ -1,13 +1,13 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, skip, filter } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, skip, filter, startWith } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition } from '../models/audience-data.model';
+import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
@@ -19,7 +19,7 @@ import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 import { TargetAudienceTdaService } from './target-audience-tda.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
-export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[]) => Observable<ImpGeofootprintVar[]>;
+export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
 
 @Injectable({
@@ -71,6 +71,13 @@ export class TargetAudienceService implements OnDestroy {
         return geos.filter(g => !varGeos.has(g));
       })
     );
+
+    this.appStateService.projectIsLoading$.pipe(
+      filter(loading => loading),
+    ).subscribe(loading => {
+      this.audienceMap.clear();
+      this.audiences.next(Array.from(this.audienceMap.values()));
+    });
   }
 
   private createKey = (...values: string[]) => values.join('/');
@@ -86,7 +93,12 @@ export class TargetAudienceService implements OnDestroy {
     this.audienceMap.set(audienceId, audience);
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
     const projectVar = this.createProjectVar(audience, id);
-    if (projectVar) this.projectVarService.add([projectVar]);
+    // protect against adding dupes to the data store
+    if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
+      console.warn('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
+    } else {
+      if (projectVar) this.projectVarService.add([projectVar]);
+    }
     this.audiences.next(Array.from(this.audienceMap.values()));
   }
 
@@ -95,10 +107,9 @@ export class TargetAudienceService implements OnDestroy {
     try {
       let source = audience.audienceSourceType + '_' + audience.audienceSourceName;
       source = source.replace(' ', '_');
-      source = source + '~' + audience.audienceIdentifier;
       projectVar.pvId = id ? id : null;
       projectVar.baseStatus = DAOBaseStatus.INSERT;
-      projectVar.varPk = this.projectVarService.getNextStoreId();
+      projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : this.projectVarService.getNextStoreId();
       projectVar.isShadedOnMap = audience.showOnMap;
       projectVar.isIncludedInGeoGrid = audience.showOnGrid;
       projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
@@ -111,17 +122,50 @@ export class TargetAudienceService implements OnDestroy {
       projectVar.isNumber = false;
       projectVar.isUploaded = false;
       projectVar.isActive = true;
-
-      // protect against adding dupes to the data store
-      if (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0) {
-        console.warn('refusing to add duplaicate project var: ', projectVar);
-        return null;
-      }
     } catch (error) {
       console.log(error);
       return null;
     }
     return projectVar;
+  }
+
+  public updateProjectVars(audience: AudienceDataDefinition) {
+    const newProjectVar = this.createProjectVar(audience);
+    newProjectVar.baseStatus = DAOBaseStatus.UPDATE;
+    for (const projectVar of this.projectVarService.get()) {
+      if (this.matchProjectVar(projectVar, audience)) {
+        if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
+        this.projectVarService.update(projectVar, newProjectVar);
+      }
+    }
+    if (audience.showOnMap) {
+      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
+      for (const pv of otherVars) {
+        const newPv = Object.assign(pv);
+        newPv.baseStatus = DAOBaseStatus.UPDATE;
+        pv.isShadedOnMap = false;
+        this.projectVarService.update(pv, newPv);
+      }
+    }
+    if (audience.allowNationalExport) {
+      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
+      for (const pv of otherVars) {
+        const newPv = Object.assign(pv);
+        newPv.baseStatus = DAOBaseStatus.UPDATE;
+        pv.isNationalExtract = false;
+        this.projectVarService.update(pv, newPv);
+      }
+    }
+  }
+
+  private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
+    const sourceType = projectVar.source.split('_')[0];
+    const sourceName = projectVar.source.split('_')[1].split('~')[0];
+    const id = projectVar.source.split('~')[1];
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id === audience.audienceIdentifier) {
+      return true;
+    }
+    return false;
   }
 
   private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) {
@@ -179,10 +223,10 @@ export class TargetAudienceService implements OnDestroy {
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`;
+            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace('/', '_');
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = audiences[0].audienceName.substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+            const sheetName = audiences[0].audienceName.replace('/', '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
           } finally {
@@ -227,11 +271,21 @@ export class TargetAudienceService implements OnDestroy {
       this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
-      combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
-        ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
+      // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
+      //   ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
       // set up a map watch process
-      this.shadingSub = combineLatest(this.appStateService.analysisLevel$, this.newVisibleGeos$).subscribe(
-        ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0])
+
+      const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
+      const visibleGeos$ = this.mapDispatchService.geocodesInViewExtent(layerId, true);
+      const newGeos$ = this.newVisibleGeos$.pipe(startWith(null));
+      this.shadingSub = combineLatest(this.appStateService.analysisLevel$, newGeos$, visibleGeos$).subscribe(
+        ([analysisLevel, newGeos, visibleGeos]) => {
+          if (!newGeos) {
+            this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]);
+          } else {
+            this.getShadingData(analysisLevel, newGeos, shadingAudience[0]);
+          }
+        }
       );
     }
     if (selectedAudiences.length > 0) {
@@ -256,17 +310,35 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
+    this.messagingService.startSpinnerDialog('SHADING_DATA', 'Retrieving shading data');
     console.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
     if (source != null) {
       const currentShadingData = this.shadingData.getValue();
       // this is an http call, no need for an unsub
-      source(analysisLevel, [audience.audienceIdentifier], geos).subscribe(
-        data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
-        err => console.error('There was an error retrieving audience data for map shading', err),
-        () => this.shadingData.next(currentShadingData)
-      );
+      if (audience.audienceSourceName === 'Audience-TA') {
+        source(analysisLevel, [audience.audienceIdentifier], geos, true, audience).subscribe(
+          data => {
+            data = data.filter(gv => gv.customVarExprDisplay.includes(audience.secondaryId));
+            data.forEach(gv => currentShadingData.set(gv.geocode, gv));
+          },
+          err => console.error('There was an error retrieving audience data for map shading', err),
+          () => {
+            this.shadingData.next(currentShadingData);
+            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+          }
+        );
+      } else {
+        source(analysisLevel, [audience.audienceIdentifier], geos, true).subscribe(
+          data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
+          err => console.error('There was an error retrieving audience data for map shading', err),
+          () => {
+            this.shadingData.next(currentShadingData);
+            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+          }
+        );
+      }
     }
   }
 
@@ -278,13 +350,30 @@ export class TargetAudienceService implements OnDestroy {
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
         const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
-        observables.push(sourceRefresh(analysisLevel, ids, geos));
+        const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
+        if (taAudiences.length > 0) {
+          const doneAudienceTAs: Set<string> = new Set<string>();
+          for (const taAudience of taAudiences) {
+            if (doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
+              continue;
+            } else {
+              observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
+              doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
+            }
+          }
+        } else {
+          observables.push(sourceRefresh(analysisLevel, ids, geos, false));
+        }
       }
     });
     const accumulator: ImpGeofootprintVar[] = [];
     merge(...observables, 4).subscribe(
       vars => accumulator.push(...vars),
-      err => console.error('There was an error retrieving audience data', err),
+      err => {
+        console.error('There was an error retrieving audience data', err);
+        this.messagingService.showGrowlError('Audience Error', 'There was an error retrieving audience data');
+        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+      },
       () => {
         console.log('persist complete', accumulator);
         this.varService.add(accumulator);

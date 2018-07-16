@@ -14,7 +14,6 @@ import { simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 
 interface OnlineCategoryResponse {
@@ -57,7 +56,14 @@ export class OnlineAudienceDescription {
   constructor(categories?: OnlineCategoryResponse[]) {
     if (categories != null) {
       for (const category of categories) {
-        const pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        let pathItems: string[] = [];
+        if (category.categoryName.includes('/') && category.taxonomy.endsWith(category.categoryName)) {
+          const currentTaxonomy = category.taxonomy.replace(category.categoryName, '');
+          pathItems = currentTaxonomy.split('/').filter(s => s != null && s.length > 0);
+          pathItems.push(category.categoryName);
+        } else {
+          pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        }
         this.createSubTree(pathItems, category);
       }
     }
@@ -101,7 +107,6 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
-  private varPkCache: Map<string, number> = new Map<string, number>();
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
               private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
@@ -143,22 +148,12 @@ export class TargetAudienceOnlineService {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online')) {
-          console.log('AARON: ', projectVar.source.split('_')[0].toLowerCase());
-          let sourceType = projectVar.source.split('~')[0].split('_')[0];
-          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
-          const onlineType = sourceNamePieces[0];
-          delete sourceNamePieces[0];
-          const sourceName = sourceNamePieces.join();
-          const audienceIdentifier = projectVar.source.split('~')[1];
-          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
-          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
-          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
             allowNationalExport: true,
             exportNationally: projectVar.isNationalExtract,
-            audienceIdentifier: audienceIdentifier,
+            audienceIdentifier: projectVar.varPk.toString(),
             audienceName: projectVar.fieldname,
-            audienceSourceName: sourceName.replace(new RegExp('^,'), ''),
+            audienceSourceName: projectVar.source.split('_')[1],
             audienceSourceType: 'Online',
             dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
@@ -167,13 +162,13 @@ export class TargetAudienceOnlineService {
             selectedDataSet: 'nationalScore',
           };
           if (projectVar.source.toLowerCase().match('interest')) {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('in-market')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('vlh')){
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk), null);
           } else {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk), null);
           }
         }
       }
@@ -200,17 +195,9 @@ export class TargetAudienceOnlineService {
     return geoCache;
   }
 
-  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
+  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>, isForShading: boolean) : ImpGeofootprintVar {
     const fullId = `Online/${source}/${response.digCategoryId}`;
     const description = descriptionMap.get(response.digCategoryId);
-    // const currentProject = this.appStateService.currentProject$.getValue();
-    // let newVarPk = null;
-    // if (this.varPkCache.has(fullId)) {
-    //   newVarPk = this.varPkCache.get(fullId);
-    // } else {
-    //   newVarPk = this.varService.getNextStoreId();
-    //   this.varPkCache.set(fullId, newVarPk);
-    // }
     const result = new ImpGeofootprintVar({
       geocode: response.geocode,
       varPk: Number(response.digCategoryId),
@@ -220,16 +207,13 @@ export class TargetAudienceOnlineService {
       isActive: true,
       isCustom: false
     });
-    for (const ta of Array.from(geoCache.keys())) {
-      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-      if (geoMap.has(response.geocode)) {
-        result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
-
-        /**
-         * Uncomment the line below to re-enable saving of the project vars
-         */
-
-        //geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+    if (!isForShading) {
+      for (const ta of Array.from(geoCache.keys())) {
+        const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
+        if (geoMap.has(response.geocode)) {
+          result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
+          geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+        }
       }
     }
     // this is the full category description object that comes from Fuse
@@ -255,7 +239,7 @@ export class TargetAudienceOnlineService {
     console.log('Adding Audience', model);
     this.audienceService.addAudience(
       model,
-      (al, pks, geos) => this.apioRefreshCallback(source, al, pks, geos),
+      (al, pks, geos, shading) => this.apioRefreshCallback(source, al, pks, geos, shading),
       (al, pk) => this.nationalRefreshCallback(source, al, pk)
       );
   }
@@ -300,7 +284,7 @@ export class TargetAudienceOnlineService {
     return this.audienceCache$.get(resultKey);
   }
 
-  private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
+  private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<ImpGeofootprintVar[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const numericIds = identifiers.map(i => Number(i));
@@ -312,7 +296,7 @@ export class TargetAudienceOnlineService {
     console.log('Description Maps', descriptionMap);
     const geoCache = this.buildGeoCache();
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache)))
+      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading)))
     );
   }
 

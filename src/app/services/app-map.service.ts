@@ -82,7 +82,7 @@ export class AppMapService implements OnDestroy {
           x: Number(selectedGraphic.attributes.longitude),
           y: Number(selectedGraphic.attributes.latitude),
         };
-        this.collectSelectionUsage(selectedGraphic);
+        this.collectSelectionUsage(selectedGraphic, 'ui=singleSelectTool');
         this.selectSingleGeocode(geocode, geometry);
       }
     }, err => console.error('Error during click event handling', err));
@@ -114,7 +114,7 @@ export class AppMapService implements OnDestroy {
       const latitude = graphic.attributes.latitude;
       const longitude = graphic.attributes.longitude;
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-      this.collectSelectionUsage(graphic);
+      this.collectSelectionUsage(graphic, 'ui=multiSelectTool');
       this.appGeoService.toggleGeoSelection(geocode, point);
     });
   }
@@ -185,7 +185,7 @@ export class AppMapService implements OnDestroy {
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
    * @param graphic The feature the user manually selected on the map
    */
-  public collectSelectionUsage(graphic: __esri.Graphic) {
+  public collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
@@ -200,20 +200,22 @@ export class AppMapService implements OnDestroy {
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
+      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
-        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
+        this.usageService.createCounterMetric(geoDeselected, metricText, null);
       } else {
         this.currentGeocodes.add(geocode);
-        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + currentProject.estimatedBlendedCpm + '~' + amount.toLocaleString(), 1);
+        this.usageService.createCounterMetric(geoselected, metricText, null);
       }
     } else {
+      const metricText = `${geocode}~${hhc}~${0}~${0}~${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
-        this.usageService.createCounterMetric(geoDeselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        this.usageService.createCounterMetric(geoDeselected, metricText, null);
       } else {
         this.currentGeocodes.add(geocode);
-        this.usageService.createCounterMetric(geoselected, geocode + '~' + hhc + '~' + 0 + '~' + 0, 1);
+        this.usageService.createCounterMetric(geoselected, metricText, null);
       }
     }
   }

@@ -8,6 +8,9 @@ import { AudienceDataDefinition } from '../../models/audience-data.model';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
 import { filter, map } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../services/usage.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 
 @Component({
@@ -26,14 +29,18 @@ export class AudienceTradeareaComponent implements OnInit {
   public minRadius: number;
   public maxRadius: number;
   public includeMustCover: boolean = false;
+  public source: string = null;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
+  private audienceSourceMap: Map<string, string> = new Map<string, string>();
 
   constructor(private audienceTradeareaService: ValAudienceTradeareaService,
     private messagingService: AppMessagingService,
     private targetAudienceService: TargetAudienceService,
-    private stateService: AppStateService) { }
+    private stateService: AppStateService,
+    private usageService: UsageService,
+    private impLocationService: ImpGeofootprintLocationService) { }
 
   ngOnInit() {
     this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_HIGH, value: SmartTile.EXTREMELY_HIGH});
@@ -46,7 +53,9 @@ export class AudienceTradeareaComponent implements OnInit {
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
 
-    this.targetAudienceService.audiences$.subscribe(targetingVar => this.updateVars(targetingVar));
+    this.targetAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
+    ).subscribe(targetingVar => this.updateVars(targetingVar));
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
@@ -56,11 +65,23 @@ export class AudienceTradeareaComponent implements OnInit {
       vars.push(selectItem);
       this.selectedVars.push(targetingVar);
       this.selectedVar = targetingVar.audienceName;
+      this.audienceSourceMap.set(targetingVar.audienceName, targetingVar.audienceSourceName);
+      if (targetingVar.audienceSourceName === 'VLH') {
+        this.sliderVal = 100;
+      } else {
+        this.sliderVal = 65;
+      }
     }
     this.varSelectorOptions = vars;
   }
 
   public onVarDropdownChange(event: any) {
+    this.source = event.value;
+    if (this.audienceSourceMap.has(event.value) && this.audienceSourceMap.get(event.value) === 'VLH') {
+      this.sliderVal = 100;
+    } else {
+      this.sliderVal = 65;
+    }
   }
 
   private getVarId() : number {
@@ -78,6 +99,9 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   public onClickApply() {
+    const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
+    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
+    
     if (!this.minRadius || !this.maxRadius) {
       this.messagingService.showGrowlError(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
       return;
@@ -104,6 +128,12 @@ export class AudienceTradeareaComponent implements OnInit {
       return;
     }
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
+
+    const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${this.minRadius}
+~maxRadius=${this.maxRadius}~varPk=${id}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${this.sliderVal}
+~scoreType=${this.selectedScoreType}~includeAllInMustCover=${this.includeMustCover ? 1 : 0}`;
+
+    this.usageService.createCounterMetric(usageMetricName, metricText, null);
     this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');

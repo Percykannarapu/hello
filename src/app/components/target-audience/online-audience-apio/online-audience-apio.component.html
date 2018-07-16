@@ -13,7 +13,7 @@
       <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
     </div>
   </div>
-  <p-tree loadingIcon="fa fa-spinner fa-pulse fa-3x fa-fw" selectionMode="checkbox"
+  <p-tree loadingIcon="fa-fontAwesome fa-circle-o-notch" selectionMode="checkbox"
           [loading]="loading" [value]="currentNodes"
           [selection]="currentSelectedNodes"
           (onNodeSelect)="selectVariable($event.node)"

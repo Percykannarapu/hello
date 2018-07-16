@@ -809,6 +809,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // This is for now, it replaces the data store with a sorted / ranked version
       this.calculateGeoRanks();
+      geos.sort((a, b) => {
+            const aOwner: any = a.impGeofootprintLocation.locationNumber;
+            const bOwner: any = b.impGeofootprintLocation.locationNumber;
+            return  aOwner - bOwner || a.distance - b.distance;
+      });
+     
       this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
    }
 
@@ -823,14 +829,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             console.log ('setExportFormat - alteryx');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
             exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
-            exportColumns.push({ header: 'Site Description',             row: null});
+            exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
             exportColumns.push({ header: 'Site Street',                  row: (state, data) => data.impGeofootprintLocation.locAddress});
             exportColumns.push({ header: 'Site City',                    row: (state, data) => data.impGeofootprintLocation.locCity});
             exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
             exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
             exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
             exportColumns.push({ header: 'Market',                       row: (state, data) => data.impGeofootprintLocation.marketName});
-            exportColumns.push({ header: 'Market Code',                  row: null});
+            exportColumns.push({ header: 'Market Code',                  row: (state, data) => data.impGeofootprintLocation.marketCode});
             exportColumns.push({ header: 'Passes Filter',                row: 1});
             exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
             exportColumns.push({ header: 'Is User Home Geocode',         row: this.exportVarIsHomeGeocode});
@@ -849,7 +855,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             console.log ('setExportFormat - default');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
             exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
-            exportColumns.push({ header: 'Site Description',             row: null});
+            exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
             exportColumns.push({ header: 'Site Street',                  row: (state, data) => data.impGeofootprintLocation.locAddress});
             exportColumns.push({ header: 'Site City',                    row: (state, data) => data.impGeofootprintLocation.locCity});
             exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});

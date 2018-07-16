@@ -9,6 +9,8 @@ import { UsageService } from '../../services/usage.service';
 import { Observable } from 'rxjs';
 import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppProjectService } from '../../services/app-project.service';
+import { AppStateService } from '../../services/app-state.service';
 
 @Component({
   selector: 'val-geocoder',
@@ -35,7 +37,8 @@ export class GeocoderComponent implements OnInit {
               private siteListService: AppLocationService,
               private messageService: AppMessagingService,
               private usageService: UsageService,
-              private locationService: ImpGeofootprintLocationService) {
+              private locationService: ImpGeofootprintLocationService,
+              private appStateService: AppStateService) {
     this.hasFailures$ = this.geocodingService.hasFailures$;
     this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
     this.failureCount$ = this.geocodingService.failureCount$;
@@ -52,6 +55,12 @@ export class GeocoderComponent implements OnInit {
     this.failureCount$.subscribe(n => {
       this.failureCount = n;
       this.calculateCounts();
+    });
+    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
+      if (bool) {
+        this.clearFields();
+        
+      }
     });
   }
 
@@ -116,7 +125,7 @@ export class GeocoderComponent implements OnInit {
     if (this.currentModel.canBeGeocoded() && dupNumber.length == 0) {
       this.messageService.startSpinnerDialog(this.messagingKey, this.spinnerMessage);
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-' + this.currentManualSiteType.toLowerCase(), action: 'add' });
-      this.usageService.createCounterMetric(usageMetricName, metricText, 1);
+      this.usageService.createCounterMetric(usageMetricName, metricText, null);
       this.geocodeModel(this.currentModel);
     }
     else{

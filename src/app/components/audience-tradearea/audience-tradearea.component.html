@@ -1,7 +1,16 @@
 <div class="ui-g">
   <div class="card ui-g-6">
-    <p>Audience Search</p>
-    <val-online-audience-apio></val-online-audience-apio>
+    <p-accordion>
+      <p-accordionTab header="Interest and In-Market">
+        <val-online-audience-apio></val-online-audience-apio>
+      </p-accordionTab>
+      <p-accordionTab header="Visit Likelihood">
+        <val-online-audience-vlh></val-online-audience-vlh>
+      </p-accordionTab>
+      <p-accordionTab header="Pixel Data">
+        <val-online-audience-pixel></val-online-audience-pixel>
+      </p-accordionTab>
+    </p-accordion>
     <!--<p-tabView>
       <p-tabPanel header="Online Audiences">
         <val-online-audience-apio></val-online-audience-apio>
@@ -38,7 +47,7 @@
       Weight % of the variable vs. distance:
     </div>
     <div class="ui-g-6">
-      <p-spinner [(ngModel)]="sliderVal" [min]="0" [max]="100" [style]="{width: '100%'}" ></p-spinner>
+      <p-spinner [(ngModel)]="sliderVal" [min]="0" [max]="100" [step]="5" [style]="{width: '100%'}" ></p-spinner>
     </div>
     <div class="ui-g-12"></div>
     <!--<div class="ui-g-6">
@@ -60,7 +69,7 @@
       Include all geography in must cover radius:
     </div>
     <div class="ui-g-6">
-      <p-checkbox (onChange)="onSelectMustCover()" binary="true"></p-checkbox>
+      <p-checkbox (onChange)="onSelectMustCover()" binary="true" pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
     </div>
     <div class="ui-g-12"></div>
     <div class="ui-g-12">

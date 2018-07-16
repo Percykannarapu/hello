@@ -111,29 +111,20 @@ export class TargetAudienceTdaService {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
-          let sourceType = projectVar.source.split('~')[0].split('_')[0];
-          const sourceNamePieces = projectVar.source.split('~')[0].split('_');
-          const onlineType = sourceNamePieces[0];
-          delete sourceNamePieces[0];
-          const sourceName = sourceNamePieces.join();
-          const audienceIdentifier = projectVar.source.split('~')[1];
-          if (sourceType.toLowerCase().match('online')) sourceType = 'Online';
-          if (sourceType.toLowerCase().match('offline')) sourceType = 'Offline';
-          if (sourceType.toLowerCase().match('custom')) sourceType = 'Custom';
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
-            audienceIdentifier: audienceIdentifier,
+            audienceIdentifier: projectVar.varPk.toString(),
             audienceSourceType: 'Offline',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: true,
             showOnGrid: true,
-            showOnMap: false,
+            showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false
           };
           if (projectVar.source.toLowerCase().match('tda')) {
-            this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos), null, null);
-          } 
+            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading), null, null);
+          }
         }
       }
     } catch (error) {
@@ -159,7 +150,7 @@ export class TargetAudienceTdaService {
     return geoCache;
   }
 
-  private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
+  private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>, isForShading: boolean) : ImpGeofootprintVar {
     const fullId = `Offline/TDA/${varPk}`;
     const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
@@ -178,16 +169,13 @@ export class TargetAudienceTdaService {
       result.fieldconte = rawData.fieldconte;
     }
     result.isCustom = false;
-    for (const ta of Array.from(geoCache.keys())) {
-      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-      if (geoMap.has(geocode)) {
-        result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-
-        /**
-         * Uncomment the line below to re-enable saving of the project vars
-         */
-
-        //geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+    if (!isForShading) {
+      for (const ta of Array.from(geoCache.keys())) {
+        const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
+        if (geoMap.has(geocode)) {
+          result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
+          geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
+        }
       }
     }
     return result;
@@ -197,7 +185,7 @@ export class TargetAudienceTdaService {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier);
-      this.audienceService.addAudience(model, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+      this.audienceService.addAudience(model, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading));
       this.usageMetricCheckUncheckOffline('checked', model);
     }
   }
@@ -232,7 +220,7 @@ export class TargetAudienceTdaService {
     );
   }
 
-  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
+  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<ImpGeofootprintVar[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const numericIds = identifiers.map(i => Number(i));
@@ -255,9 +243,9 @@ export class TargetAudienceTdaService {
         );
       }
     }
-    const geoCache = this.buildGeoCache()
+    const geoCache = this.buildGeoCache();
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache)))
+      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading)))
     );
   }
 

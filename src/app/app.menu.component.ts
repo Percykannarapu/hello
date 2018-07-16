@@ -25,6 +25,9 @@ import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
+import { MapService } from './services/map.service';
+import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 
 
 @Component({
@@ -62,7 +65,10 @@ export class AppMenuComponent implements OnInit {
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService,
         private appConfig: AppConfig,
-        private esriMapService: EsriMapService) { }
+        private esriMapService: EsriMapService,
+        private impGeofootprintVarService: ImpGeofootprintVarService,
+        private impGeofootprintMasterService: ImpGeofootprintMasterService,
+        private mapService: MapService) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -92,11 +98,13 @@ export class AppMenuComponent implements OnInit {
                 ]
             },*/
             // {label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.impGeofootprintLocationService.exportStore(null, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, loc => loc.clientLocationTypeCode === 'Site', 'SITES')},
+            {label: 'Save', icon: 'save', command: () => this.saveProject() },
             {
                 label: 'Projects', icon: 'storage',
                 items: [
-                    //{label: 'Create New', command: () =>  this.createNewProject()}, //this.createNewProject()
-                    {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() }
+                    {label: 'Create New', icon: '', command: () =>  this.createNewProject()}, //this.createNewProject()
+                    {label: 'Open Existing', icon: 'grid-on', command: () => this.openExisting() },
+                    {label: 'Save', icon: 'save', command: () => this.saveProject() }
 
                 ]
             },
@@ -107,7 +115,7 @@ export class AppMenuComponent implements OnInit {
                     { label: 'Export Geofootprint - Selected Only', icon: 'map', command: () => this.getGeofootprintSelected() },
                     { label: 'Export Sites', value: 'Site', icon: 'store', command: () => this.getSites() },
                     { label: 'Export Competitors', value: 'Competitor', icon: 'store', command: () => this.getCompetitor() },
-                    { label: 'Export Valassis Apio™ National Data', value: 'National', icon: 'group', command: () => this.nationalExtractClick$.next(null) },
+                    { label: 'Export Online Audience National Data', value: 'National', icon: 'group', command: () => this.nationalExtractClick$.next(null) },
                     { label: 'Send Custom Sites to Valassis Digital', value: 'National', icon: 'group', command: () => this.getCustomSites() }
                 ]
             },
@@ -353,7 +361,7 @@ export class AppMenuComponent implements OnInit {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                        this.impProjectService.saveProject();
+                        this.saveProject();
                         this.appProjectService.ngDialog.next(true);
                 },
                 reject: () => {
@@ -369,16 +377,16 @@ export class AppMenuComponent implements OnInit {
     }
 
     public createNewProject(){
-        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: '', target: 'project', action: 'new' });
+        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'new' });
         if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
             this.confirmationService.confirm({
-                message: 'Your project may have unsaved changes. Do you wish to save your current project?',
-                header: 'Save Confirmation',
+                message: 'Would you like to save your work before proceeding?',
+                header: 'Save Work',
                 icon: 'ui-icon-project',
                 accept: () => {
                     const impProjects: ImpProject[] = [];
                     const impProject = this.appStateService.currentProject$.getValue();
-                    
+
                     //~
                     this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
                     usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
@@ -393,8 +401,14 @@ export class AppMenuComponent implements OnInit {
                         this.messageService.showGrowlError('Error Saving Project', errorString);
                         return;
                     }
-                    this.impProjectService.saveProject();
+                  this.impProjectService.saveProject().subscribe(impPro => {
+                    const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                    this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
                     this.clearProject();
+                }, err => {
+                    console.log('save error', err);
+                    this.clearProject();
+                });
                 },
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
@@ -402,26 +416,37 @@ export class AppMenuComponent implements OnInit {
                 }
             });
         }
-        
+
     }
 
     public clearProject(){
-
        this.esriMapService.map.layers.forEach(lyr => {
             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-            if (lyr.title === 'Sites'){
+            if (lyr) {
+              lyr.visible = false;
+              if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
                 this.esriMapService.map.layers.remove(lyr);
+              }
             }
        });
+       this.appStateService.clearUserInterface.next(true);
+       this.messageService.clearGrowlMessages();
+       //GeocoderComponent.prototype.clearFields();
+       //TradeAreaDefineComponent.prototype.clearTradeArea();
         this.impGeofootprintGeoService.clearAll();
         this.attributeService.clearAll();
         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
         this.impGeofootprintLocationService.clearAll();
         this.impGeofootprintLocAttribService.clearAll();
-        
+
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
-       
+        this.impGeofootprintVarService.clearAll();
+        this.impGeofootprintMasterService.clearAll();
+        this.appStateService.clearUserInterface.next(false);
+        //this.impProjectService.clearAll();
+
+
 
         const newProject = new ImpProject();
         newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
@@ -443,7 +468,25 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+
         //remove('CAMPAIGN', 'Household Count');
+    }
+
+    private saveProject(){
+        const impProject = this.appStateService.currentProject$.getValue();
+        let errorString = null;
+            if (impProject.projectName == null || impProject.projectName == '')
+                errorString = 'imPower Project Name is required<br>';
+            if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+                errorString += 'Analysis level is required';
+            if (errorString != null) {
+                this.messageService.showGrowlError('Error Saving Project', errorString);
+                return;
+            }
+        this.impProjectService.saveProject().subscribe(impPro => {
+            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+            this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
+        });
     }
 }
 

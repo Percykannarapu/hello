@@ -7,7 +7,7 @@
     <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
   </div>
   <hr>
-  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa-spin fa-refresh"
+  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa-fontAwesome fa-circle-o-notch"
           [value]="currentNodes"
           [selection]="currentSelectedNodes"
           (onNodeSelect)="selectVariable($event.node)"

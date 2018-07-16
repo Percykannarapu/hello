@@ -1,4 +1,4 @@
-<p-dialog [(visible)]="display"   modal="true"  [draggable]="false" width= "1000" maxHeight="400">
+<p-dialog [(visible)]="display"   modal="true"  [draggable]="true" width="1000" [contentStyle]="{'max-height':'400px'}">
     <p-header displayStyle="flex">Project List</p-header>
        <div class="ui-g-12">
            <div class="ui-g-2" >
@@ -8,10 +8,10 @@
               <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
            </div>
            <div class="ui-g-3">
-              <p-radioButton name="projectListProjectGroup" value="allProject" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+              <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
            </div>
            <div class="ui-g-4">
-             
+
                 <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" filter="true"  (ngModelChange)="onSelectTimeFrame($event)">
                 </p-dropdown>
             </div>
@@ -29,29 +29,29 @@
                       </p-dropdown>
             </div>
         </div> -->
-              
+
               <div class="ui-g-12" >
-                      <p-dataTable 
+                      <p-dataTable
                           [globalFilter]="filter"
                           [value]="currentProjectData"
                           [expandableRows]="false" [resizableColumns]="true"
                           [rows]="10" [paginator]="true"
                           columnResizeMode="expand" [responsive]="true"
-                          [immutable]="false" 
-                          sortField="projectId" 
+                          [immutable]="false"
+                          sortField="projectId"
                           selectionMode="single"
                           sortOrder="-1"
                           (onRowDblclick)="dbClick($event)"
                           [tableStyle]= "{'table-layout':'auto'}"
                           [(selection)]="selectedRow"
                           reorderableColumns="true">
-              
+
                           <p-header>
                             <div class="ui-g" >
                               <!-- <div class="ui-g-12 ">
                                   <div class="ui-g-1">
-                                      <label style="size: 100px">Project List</label>  
-                                  </div>    
+                                      <label style="size: 100px">Project List</label>
+                                  </div>
                               </div>     -->
                               <div class="ui-g-12" >
                                  <div class="ui-g-1" style="min-width:25px; width:25px">
@@ -83,19 +83,19 @@
                                           [field]="projectColumn.field"
                                           [header]="projectColumn.header"  [style]="{'width':'25px'}">
                           </p-column>
-                          
-                        
-                      </p-dataTable>    
+
+
+                      </p-dataTable>
               </div>
-              
+
               <div class="ui-g-12">
                       <div class="ui-g-1">
                           <button pButton type="button" style="float: right;" (click)="loadProject(selectedRow)" label="Load"></button>
                       </div>
-              </div> 
+              </div>
     <p-footer>
-    </p-footer>                 
+    </p-footer>
 </p-dialog>
 
-<!-- <div class="ui-g">    
+<!-- <div class="ui-g">
 </div> -->

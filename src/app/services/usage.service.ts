@@ -233,7 +233,7 @@ export class UsageService {
     impMetricGauge.metricValue = metricValue;
     impMetricGauge.modifyDate = new Date(Date.now());
     impMetricGauge.modifyUser = this.userService.getUser().userId;
-    impMetricGauge.origSystemRefId = impProjectId.toString();
+    impMetricGauge.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
     impMetricGauge.isActive = 1;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);

@@ -82,7 +82,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public rAlign = 'right';
 
    public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}},
-                                           {label: 'homeGeocode',  value: {field: 'homeGeocode',  header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}},
+                                           {label: 'homeGeocode',  value: {field: 'home_geo',     header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}},
                                            {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}},
                                            {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}},
                                           ];
@@ -93,21 +93,21 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                           ];
 
    public  flatGeoGridColumns: SelectItem[] =
-                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Loc#',                 width: '5em',   styleClass: 'val-text-right'}},
-                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Location Name',        width: '16em',  styleClass: ''}},
-                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Location Address',     width: '14em',  styleClass: ''}},
-                                          {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'Location City',        width: '9em',   styleClass: ''}},
-                                          {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'Loc State',            width: '7em',   styleClass: ''}},
-                                          {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'Loc Zip',              width: '6.5em', styleClass: ''}},
-                                          {label: 'Location HomeGeocode', value: {field: 'geo.impGeofootprintLocation.homeGeocode',     header: 'Home Geo',             width: '8em',   styleClass: ''}},
+                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Number',               width: '7em',   styleClass: ''}},
+                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Name',                 width: '16em',  styleClass: ''}},
+                                          {label: 'In Market',            value: {field: 'geo.impGeofootprintLocation.marketName',      header: 'Market',               width: '12em',  styleClass: ''}},
+                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Address',              width: '14em',  styleClass: ''}},
+                                          {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'City',                 width: '9em',   styleClass: ''}},
+                                          {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'State',                width: '7em',   styleClass: ''}},
+                                          {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'ZIP',                  width: '6.5em', styleClass: ''}},
+                                          {label: 'Location HomeGeocode', value: {field: 'home_geo',                                    header: 'Home Geo Ind',         width: '8.5em', styleClass: ''}},
                                           {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',             width: '7em',   styleClass: 'val-text-right'}},
                                           {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',              width: '8em',   styleClass: ''}},
-                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'City, State',          width: '10em',  styleClass: ''}},
+                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'Geo City, State',      width: '15em',  styleClass: ''}},
                                           {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                  width: '6em',   styleClass: 'val-text-right'}},
                                           {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                  width: '5em',   styleClass: 'val-text-right'}},
                                           {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',           width: '8em',   styleClass: 'val-text-right'}},
                                           {label: 'Owner Group',          value: {field: 'ownergroup',                                  header: 'Owner Group',          width: '9em',   styleClass: ''}},
-                                          {label: 'Coverage Frequency',   value: {field: 'coveragefrequency',                           header: 'Coverage Frequency',   width: '12em',  styleClass: ''}},
                                           {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description', width: '12em',  styleClass: ''}},
                                           {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                  width: '4em',   styleClass: 'val-text-center'}},
                                           {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '12em',  styleClass: ''}},
@@ -291,7 +291,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
      if (flatGeo.geo.isActive === false && flatGeo.geo['filterReasons'] == null)
        return 'Filtered manually';
 
-      if (flatGeo.geo.isActive === true  && flatGeo.geo['filterReasons'] != null)
+    if (flatGeo.geo.isActive === true && flatGeo.geo['filterReasons'] != null && flatGeo.geo['filterReasons'].length > 0)
          return '*** Manual Override ***\n' + flatGeo.geo['filterReasons'];
 
       return flatGeo.geo['filterReasons'];
@@ -394,7 +394,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                 attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
                                              }
                                              else
-                                             attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute); });
+                                                attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
+                                         });
 
       // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
@@ -471,8 +472,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
                }
 
-               if (attribute.attributeCode === 'cov_frequency')
-                  gridGeo['coveragefrequency'] = attribute.attributeValue;
+               if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
+                  gridGeo['home_geo'] = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+               }
 
                if (attribute.attributeCode === 'cov_desc')
                   gridGeo['coveragedescription'] = attribute.attributeValue;
@@ -975,8 +977,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    public onZoomToGeo(flatGeo: FlatGeo)
    {
-      if (flatGeo != null && flatGeo.geo != null)
-      {
+      if (flatGeo != null && flatGeo.geo != null) {
          this.esriMapService.zoomOnMap({ min: flatGeo.geo.xcoord, max: flatGeo.geo.xcoord }, { min: flatGeo.geo.ycoord, max: flatGeo.geo.ycoord }, 1);
       }
    }
@@ -1032,7 +1033,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
-         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}`;
+         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
          if (geo.isActive){
              this.usageService.createCounterMetric(geoselected, metricText, null);
          }

@@ -1,3 +1,4 @@
+import { ImpGeofootprintLocation } from "../val-modules/targeting/models/ImpGeofootprintLocation";
 
 export interface AudienceDataDefinition {
   audienceName: string;
@@ -13,4 +14,22 @@ export interface AudienceDataDefinition {
   audienceSourceName: string;
   audienceSourceType: 'Online' | 'Offline' | 'Custom';
   secondaryId?: string;
+  audienceTAConfig?: AudienceTradeAreaConfig;
+}
+
+export interface AudienceTradeAreaConfig {
+  digCategoryId: number;
+  analysisLevel: string;
+  scoreType: string;
+  minRadius: number;
+  maxRadius: number;
+  weight: number;
+  locations: Array<AudienceTradeareaLocation>;
+}
+
+export interface AudienceTradeareaLocation {
+  LOCATIONNAME: string;
+  XCOORD: number;
+  YCOORD: number;
+  HOMEGEOCODE: string;
 }

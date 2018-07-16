@@ -82,6 +82,15 @@
   }
 }
 
+// fix up the spinner icon for the project tracker drop-down
+#projectTrackerLookup {
+  span {
+    i.fa {
+      font-family: "FontAwesome";
+    }
+  }
+}
+
 // widen the main menu so the full National Extract text can fit on one line
 .layout-menu ul.ultima-menu > li > ul {
   width: 300px !important;
@@ -90,4 +99,18 @@
 // when a p-dataTable has drop downs, you need to apply this class, as well as set overflow: visible on the p-column with the drop-down
 .val-table-with-dropdowns div.ui-datatable-resizable {
   overflow: visible;
+}
+
+// when controls are placed inside the primeng grid components, they can be expanded to fill the full width of the cell they are in
+.val-full-width {
+  width: 100% !important;
+}
+
+// restores regular grid padding to elements that are nested inside val-flush-to-edges
+.val-restore-padding {
+  padding: 0.5em !important;
+}
+
+.val-nopad-top-bottom {
+  padding: 0 0.5em !important;
 }
