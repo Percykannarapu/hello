@@ -51,7 +51,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public ngOnInit() : void {
     this.audienceService.getAudienceDescriptions().subscribe(
       folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
-      err => this.messagingService.showGrowlError('TDA connection error', 'There was an error during retrieval of the TDA Audience descriptions'),
+      err => this.messagingService.showGrowlError('TDA connection error', 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.'),
       () => {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);
