@@ -160,9 +160,9 @@ export class TargetAudienceService implements OnDestroy {
 
   private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
     const sourceType = projectVar.source.split('_')[0];
-    const sourceName = projectVar.source.split('_')[1].split('~')[0];
-    const id = projectVar.source.split('~')[1];
-    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id === audience.audienceIdentifier) {
+    const sourceName = projectVar.source.split('_')[1];
+    const id = projectVar.varPk;
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
       return true;
     }
     return false;
