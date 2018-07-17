@@ -160,9 +160,9 @@ export class TargetAudienceService implements OnDestroy {
 
   private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
     const sourceType = projectVar.source.split('_')[0];
-    const sourceName = projectVar.source.split('_')[1].split('~')[0];
-    const id = projectVar.source.split('~')[1];
-    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id === audience.audienceIdentifier) {
+    const sourceName = projectVar.source.split('_')[1];
+    const id = projectVar.varPk;
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
       return true;
     }
     return false;
@@ -260,6 +260,15 @@ export class TargetAudienceService implements OnDestroy {
     return this.audiences.getValue();
   }
 
+  private clearVarsFromHierarchy() {
+    const project = this.appStateService.currentProject$.getValue();
+    for (const location of project.impGeofootprintMasters[0].impGeofootprintLocations) {
+      for (const ta of location.impGeofootprintTradeAreas) {
+        ta.impGeofootprintVars = [];
+      }
+    }
+  }
+
   public applyAudienceSelection() : void {
     const audiences = Array.from(this.audienceMap.values());
     const shadingAudience = audiences.filter(a => a.showOnMap);
@@ -267,6 +276,7 @@ export class TargetAudienceService implements OnDestroy {
     this.unsubEverything();
     this.clearShadingData();
     this.varService.clearAll(selectedAudiences.length === 0);
+    this.clearVarsFromHierarchy();
     if (shadingAudience.length > 1) {
       this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {

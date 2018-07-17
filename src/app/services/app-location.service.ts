@@ -83,15 +83,16 @@ export class AppLocationService {
   }
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
-    data
-      .filter(loc => loc.locationName == null || loc.locationName.length === 0)
-      .forEach(loc => loc.locationName = loc.locationNumber);
-     const currentMaster = this.appStateService.currentMaster$.getValue();
+    const currentMaster = this.appStateService.currentMaster$.getValue();
+
     data.forEach(l => 
       { if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
         l.impGeofootprintMaster = currentMaster;
       });
-    currentMaster.impGeofootprintLocations.push(...data);
+    data
+      .filter(loc => loc.locationName == null || loc.locationName.length === 0)
+      .forEach(loc => loc.locationName = loc.locationNumber);
+        currentMaster.impGeofootprintLocations.push(...data);
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
   }
