@@ -156,9 +156,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       //this.varSubscription = this.impGeofootprintVarService.storeObservable.subscribe(storeData => this.onChangeGeoVars(storeData));
 
-      this.allGeos$ = this.impGeofootprintGeoService.storeObservable.pipe(filter(geos => geos.length > 0));
-      this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable.pipe(filter(attrs => attrs.length > 0));
-      this.allVars$ = this.impGeofootprintVarService.storeObservable.pipe(filter(vars => vars.length > 0));
+      this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+      this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable;
+      this.allVars$ = this.impGeofootprintVarService.storeObservable;
 
       this.geosSubscription = this.allGeos$.subscribe(geos => {
          //console.log('geofootprint-geo-list.component - geosSubscription fired. Geos: ', geos);
