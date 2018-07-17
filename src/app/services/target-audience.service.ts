@@ -120,8 +120,9 @@ export class TargetAudienceService implements OnDestroy {
       projectVar.isCustom = audience.audienceSourceType.match('Custom') ? true : false;
       projectVar.isString = false;
       projectVar.isNumber = false;
-      projectVar.isUploaded = false;
+      projectVar.isUploaded = audience.audienceSourceType.match('Custom') ? true : false;
       projectVar.isActive = true;
+      projectVar.uploadFileName = audience.audienceSourceType.match('Custom') ? audience.audienceSourceName : '';
     } catch (error) {
       console.log(error);
       return null;
