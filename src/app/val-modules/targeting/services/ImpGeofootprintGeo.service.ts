@@ -257,7 +257,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   return -1;
                else
                   return  1;
-         } 
+         }
          else {
             if (a.distance > b.distance)
                return 1;
@@ -645,7 +645,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
       this.denseRank(geos,  this.sortGeos, this.partitionGeos);
       console.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
-      
+
       for(let geo of geos) {
          //if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
          if (geo.rank === 0)
@@ -693,16 +693,23 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
    // console.log('exportVar handler for #V-OWNER_TRADE_AREA fired');
       let varValue: any;
-      
+
       if (geo != null && geo.impGeofootprintTradeArea != null)
       {
-         if (geo.impGeofootprintTradeArea.taType === "RADIUS")
+        switch (geo.impGeofootprintTradeArea.taType)
+        {
+          case 'RADIUS':
             varValue = 'Trade Area ' + geo.impGeofootprintTradeArea.taNumber;
-         else
-            if (geo.impGeofootprintTradeArea.taType === "HOMEGEO")
-               varValue = 'Forced Home Geo';
-            else
-               varValue = 'Custom';
+            break;
+          case 'HOMEGEO':
+            varValue = 'Forced Home Geo';
+            break;
+          case 'AUDIENCE':
+            varValue = 'Audience Trade Area';
+            break;
+          default:
+            varValue = 'Custom';
+        }
       }
       else
          return null;
@@ -814,7 +821,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             const bOwner: any = b.impGeofootprintLocation.locationNumber;
             return  aOwner - bOwner || a.distance - b.distance;
       });
-     
+
       this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
    }
 

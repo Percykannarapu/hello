@@ -98,7 +98,7 @@ export class ValAudienceTradeareaService {
     const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType, mustCover);
     this.attachVariables();
     this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
-    
+
     //for now we are going to force always fetching data,
     //there is a bug where if you add a location since the
     //last time you ran an audience TA the rerun detection doesn't work
@@ -332,6 +332,7 @@ export class ValAudienceTradeareaService {
     tradeArea.impGeofootprintLocation = location;
     tradeArea.taType = 'AUDIENCE';
     tradeArea.impGeofootprintLocation = location;
+    geos.forEach(geo => geo.impGeofootprintTradeArea = tradeArea);
     location.impGeofootprintTradeAreas.push(tradeArea);
   }
 
@@ -395,7 +396,7 @@ export class ValAudienceTradeareaService {
 
   /**
    * Create geoffotprint variables for the for the geos that are being selected
-   * @param pk The primary key of the new 
+   * @param pk The primary key of the new
    * @param geocode The geocode of the new variable
    * @param type The variable type, string or number
    * @param fieldDisplay The display name of the new variable
