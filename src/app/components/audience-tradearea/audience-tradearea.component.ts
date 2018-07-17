@@ -19,7 +19,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
   styleUrls: ['./audience-tradearea.component.css']
 })
 export class AudienceTradeareaComponent implements OnInit {
-  public sliderVal: number = 65;
+  public sliderVal: number = null;
   public tileSelectorOptions: SelectItem[] = [];
   public tileSelectorValues: SmartTile[] = [];
   public varSelectorOptions: SelectItem[] = [];
@@ -64,15 +64,19 @@ export class AudienceTradeareaComponent implements OnInit {
       const selectItem: SelectItem = {label: targetingVar.audienceName, value: targetingVar.audienceName};
       vars.push(selectItem);
       this.selectedVars.push(targetingVar);
-      this.selectedVar = targetingVar.audienceName;
       this.audienceSourceMap.set(targetingVar.audienceName, targetingVar.audienceSourceName);
-      if (targetingVar.audienceSourceName === 'VLH') {
+    }
+    this.varSelectorOptions = vars;
+    if (this.selectedVar == null && this.varSelectorOptions.length > 0) {
+      this.selectedVar = this.varSelectorOptions[0].value;
+    }
+    if (this.selectedVar != null && this.sliderVal == null) {
+      if (this.audienceSourceMap.get(this.selectedVar) === 'VLH') {
         this.sliderVal = 100;
       } else {
         this.sliderVal = 65;
       }
     }
-    this.varSelectorOptions = vars;
   }
 
   public onVarDropdownChange(event: any) {
@@ -101,7 +105,7 @@ export class AudienceTradeareaComponent implements OnInit {
   public onClickApply() {
     const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
-    
+
     if (!this.minRadius || !this.maxRadius) {
       this.messagingService.showGrowlError(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
       return;
