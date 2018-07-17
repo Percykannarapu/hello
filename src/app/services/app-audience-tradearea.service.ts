@@ -255,7 +255,7 @@ export class ValAudienceTradeareaService {
     };
     for (const location of this.locationService.get()) {
       const taLocation: AudienceTradeareaLocation = {
-        LOCATIONNAME: location.locationName,
+        LOCATIONNAME: location.locationNumber,
         XCOORD: location.xcoord,
         YCOORD: location.ycoord,
         HOMEGEOCODE: location.homeGeocode
@@ -343,7 +343,7 @@ export class ValAudienceTradeareaService {
    */
   private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : ImpGeofootprintGeo[] {
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
-    const taResponseMap = this.taResponses.get(location.locationName);
+    const taResponseMap = this.taResponses.get(location.locationNumber);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
