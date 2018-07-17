@@ -582,10 +582,10 @@ export class AppProjectService extends DataStore<ImpProject>
                // Convert the Typescript models into a JSON string               
                const payload: string = JSON.stringify(impProject);
                console.log('ImpProject payload', payload);
-               console.log('posting to: ' + this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save');
+               console.log('posting to: ' + this.appConfig.valServiceBase + 'v1/targeting/base/impproject/deleteSave');
 
                // TODO: Need to implement save in the data store
-               this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/save', payload, { headers: headers })
+               this.http.post<RestResponse>(this.appConfig.valServiceBase + 'v1/targeting/base/impproject/deleteSave', payload, { headers: headers })
                         .pipe(tap(result => {
                               console.log ('Save post result: ', result);
                               if (result.returnCode === 200)
@@ -662,6 +662,75 @@ export class AppProjectService extends DataStore<ImpProject>
                                                             .map(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos
                                                                        .filter(geo => !removeGeos.includes(geo)))));
       console.log("After: ", impProject.toString());
+   }
+
+   public pushStatusToHierarchy(impProject: ImpProject, status: DAOBaseStatus, clearId: boolean = false) {
+      impProject.baseStatus = status;
+      impProject.projectId = (clearId) ? null : impProject.projectId;
+      impProject.impProjectPrefs.map(pref => {
+         pref.baseStatus = status;
+         if (clearId) {
+            pref.projectPrefId = null;
+            pref.projectId = null;
+         }
+      });
+      impProject.impProjectVars.map(projectVar => {
+         projectVar.baseStatus = status;
+         if (clearId) {
+            projectVar.pvId = null;
+            projectVar.projectId = null;
+         }
+      });
+      impProject.impGeofootprintMasters.map(master => {
+         master.baseStatus = status;
+         if (clearId) {
+            master.cgmId = null;
+            master.projectId = null;
+         }
+         master.impGeofootprintLocations.map(location => {
+            location.baseStatus = status;
+            if (clearId) {
+               location.glId = null;
+               location.cgmId = null;
+               location.projectId = null;
+           //  location.clientLocationId = null;
+            }
+            location.impGeofootprintLocAttribs.map(locAttrib => {
+               locAttrib.baseStatus = status;
+               if (clearId) {
+                  locAttrib.locAttributeId = null;
+                  locAttrib.glId = null;
+                  locAttrib.cgmId = null;
+                  locAttrib.projectId = null;
+               }
+            })
+            location.impGeofootprintTradeAreas.map(ta => {
+               ta.baseStatus = status;
+               if (clearId) {
+                  ta.gtaId = null;
+                  ta.glId = null;
+                  ta.cgmId = null;
+                  ta.projectId = null;
+               }
+               ta.impGeofootprintGeos.map(geo => {
+                  geo.baseStatus = status;
+                  if (clearId) {
+                     geo.ggId = null;
+                     geo.gtaId = null;
+                     geo.glId = null;
+                     geo.projectId = null;
+                  }
+               });
+               ta.impGeofootprintVars.map(geoVar => {
+                  geoVar.baseStatus = status;
+                  if (clearId) {
+                     geoVar.gvId = null;
+                     geoVar.gtaId = null;
+                     geoVar.glId = null;
+                     geoVar.projectId = null;
+                  }
+               });
+            })})});
    }
 
 
