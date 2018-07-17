@@ -1060,4 +1060,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       //if (event.checked === true)
       //   geoGrid.filter(1, 'isDeduped', 'equals');
    }
+
+   testDeleteProject()
+   {
+      this.impProjectService.postDelete(this.impProjectService.get()[0].projectId).subscribe(restResponse => {
+         console.log ("testDeleteProject - response: ", restResponse);
+      });
+   }
 }

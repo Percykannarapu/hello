@@ -91,7 +91,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          return source;
 
       let result: ImpGeofootprintLocation[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
-      
+
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (loc => {
          loc.impGeofootprintLocAttribs = this.impGeoFootprintLocAttribService.prune(loc.impGeofootprintLocAttribs, locAttr => locAttr.glId === loc.glId && (locAttr.baseStatus === DAOBaseStatus.UNCHANGED || locAttr.baseStatus === DAOBaseStatus.DELETE));
@@ -272,36 +272,16 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // EXPORT COLUMN HANDLER METHODS
    // -----------------------------------------------------------
 
-   // This will be rendered obsolete when tradeareas are slotted under locations
-   public exportTradeArea(state: ImpGeofootprintLocationService, loc: ImpGeofootprintLocation)
+   public exportTradeArea(loc: ImpGeofootprintLocation, index: number)
    {
-      if (state.currentTA == null)
-         state.currentTA = 0;
-
-      state.tradeAreas =  state.impGeofootprintTradeAreaService.get();
-      const tradeArea:  ImpGeofootprintTradeArea = (state.tradeAreas != null) ? state.tradeAreas[state.currentTA] : null;
-
-      const result = (tradeArea != null) ? ((tradeArea.taNumber-1 === state.currentTA) ? tradeArea.taRadius : null) : null;
-
-      // Cycle the currentTA from 0 to 3
-      state.currentTA = (state.currentTA + 1) % 3;
-      return result;
+      const tradeAreas = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta.taNumber === index + 1);
+      return tradeAreas.length > 0 ? tradeAreas[0].taRadius : null;
    }
 
-   // This will be rendered obsolete when tradeareas are slotted under locations
-   public exportTradeAreaDesc(state: ImpGeofootprintLocationService, loc: ImpGeofootprintLocation)
+   public exportTradeAreaDesc(loc: ImpGeofootprintLocation, index: number)
    {
-      if (state.currentTD == null)
-         state.currentTD = 0;
-
-      state.tradeAreas =  state.impGeofootprintTradeAreaService.get();
-      const tradeArea:  ImpGeofootprintTradeArea = (state.tradeAreas != null) ? state.tradeAreas[state.currentTD] : null;
-      const result = (tradeArea != null) ? ((tradeArea.taNumber-1 === state.currentTD) ? 'RADIUS' + (state.currentTD+1) : null) : null;
-
-      // Cycle the currentTD from 0 to 3
-      state.currentTD = (state.currentTD + 1) % 3;
-
-      return result; // (tradeArea != null) ? 'RADIUS' + state.currentTD : null;
+     const tradeAreas = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta.taNumber === index + 1);
+     return tradeAreas.length > 0 ? `RADIUS${index + 1}` : null;
    }
 
    public exportHomeGeoAttribute(loc: ImpGeofootprintLocation, homeGeoType: string) : string {
@@ -388,15 +368,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'X',                  row: (state, data) => data.xcoord});
             exportColumns.push({ header: 'Y',                  row: (state, data) => data.ycoord});
             exportColumns.push({ header: 'ICON',               row: (state, data) => null});
-            exportColumns.push({ header: 'RADIUS1',            row: this.exportTradeArea}); // WHEN TAS ARE UNDER LOCS => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >=1) ? data.impGeofootprintTradeAreas[0].taRadius : null});
-            exportColumns.push({ header: 'RADIUS2',            row: this.exportTradeArea}); // WHEN TAS ARE UNDER LOCS => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >=2) ? data.impGeofootprintTradeAreas[1].taRadius : null});
-            exportColumns.push({ header: 'RADIUS3',            row: this.exportTradeArea}); // WHEN TAS ARE UNDER LOCS => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >=3) ? data.impGeofootprintTradeAreas[2].taRadius : null});
+            exportColumns.push({ header: 'RADIUS1',            row: (state, data) => this.exportTradeArea(data, 0) });
+            exportColumns.push({ header: 'RADIUS2',            row: (state, data) => this.exportTradeArea(data, 1) });
+            exportColumns.push({ header: 'RADIUS3',            row: (state, data) => this.exportTradeArea(data, 2) });
             exportColumns.push({ header: 'TRAVELTIME1',        row: (state, data) => 0});
             exportColumns.push({ header: 'TRAVELTIME2',        row: (state, data) => 0});
             exportColumns.push({ header: 'TRAVELTIME3',        row: (state, data) => 0});
-            exportColumns.push({ header: 'TRADE_DESC1',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 1) ? 'RADIUS1' : null});
-            exportColumns.push({ header: 'TRADE_DESC2',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 2) ? 'RADIUS2' : null});
-            exportColumns.push({ header: 'TRADE_DESC3',        row: this.exportTradeAreaDesc}); // WHEN TAS ARE UNDER LOCS => (state, data) => (data != null && data.impGeofootprintTradeAreas != null && data.impGeofootprintTradeAreas.length >= 3) ? 'RADIUS3' : null});
+            exportColumns.push({ header: 'TRADE_DESC1',        row: (state, data) => this.exportTradeAreaDesc(data, 0) });
+            exportColumns.push({ header: 'TRADE_DESC2',        row: (state, data) => this.exportTradeAreaDesc(data, 1) });
+            exportColumns.push({ header: 'TRADE_DESC3',        row: (state, data) => this.exportTradeAreaDesc(data, 2) });
             exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
             exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});

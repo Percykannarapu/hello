@@ -1,4 +1,3 @@
-import { ImpGeofootprintGeo } from './../models/ImpGeofootprintGeo';
 /** An IMPTARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_MASTER
  **
  ** This class contains code operates against data in its data store.
@@ -25,6 +24,7 @@ import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpGeofootprintMaster } from './../models/ImpGeofootprintMaster';
 import { simpleFlatten, completeFlatten } from '../../common/common.utils';
+import { ImpGeofootprintGeo } from './../models/ImpGeofootprintGeo';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -82,26 +82,42 @@ export class ImpProjectService extends DataStore<ImpProject>
       const  observer = new Subject<ImpProject>();
       console.log('ImpProject.service.saveProject fired');
       this.appProjectService.debugLogStoreCounts();
-      this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
-         if (savedProject != null)
-         {
-            console.log('AFTER SAVE');
-            this.appProjectService.debugLogStoreCounts();
 
-            // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
-            //       This is not ideal code, the app-project.service should be doing it.
-            this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {  
-               console.log('Reloaded projectId: ', (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
-               observer.next(saved_project);
-               observer.complete();
+      this.appProjectService.transactionManager.startTransaction();
+//      this.performDBRemoves(this.get()).subscribe(responseCode => {
+//         console.log("performDBRemoves response code: " + responseCode);
+
+         // this.performDBRemoves(this.get()).subscribe(
+         //    responseCode => {
+         //       console.log("performDBRemoves response code: " + responseCode);
+         // },
+/*         this.postDelete(this.get()[0].projectId).subscribe(restResponse => {
+            console.log ("testDeleteProject - response: ", restResponse);
+            this.appProjectService.pushStatusToHierarchy(this.get()[0], DAOBaseStatus.INSERT, true);
+         },
+         err => console.error('error during performDBRemoves', err),
+         () => {*/
+            console.log("After postDelete, calling saveProject");
+            this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
+               if (savedProject != null)
+               {
+                  console.log('AFTER SAVE');
+                  this.appProjectService.debugLogStoreCounts();
+
+                  // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
+                  //       This is not ideal code, the app-project.service should be doing it.
+                  this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {  
+                     console.log('Reloaded projectId: ', (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
+                     observer.next(saved_project);
+                     observer.complete();
+                  });
+               }
+               else {
+                  console.log('project did not save');
+                  observer.error('Project did not save');
+               }          
             });
-         }
-         else{
-          console.log('project did not save');
-          observer.error('Project did not save');
-         }
-          
-      });
+         //});
 
       return observer.asObservable();
    }
@@ -227,17 +243,58 @@ export class ImpProjectService extends DataStore<ImpProject>
 
          let performDBRemoves$ = Observable.create(observer => {
             this.postDBRemoves("Targeting", "ImpProject", "v1", removesPayload)
-                .subscribe(postResultCode => {
+               .subscribe(postResultCode => {
+                  console.log("post completed, calling completeDBRemoves");
+                  this.completeDBRemoves(impProjectRemoves);
+                  observer.next(postResultCode);
+               }
+               ,err => observer.error(err)
+               ,()  => observer.complete()); 
+/*                .subscribe(postResultCode => {
                      console.log("post completed, calling completeDBRemoves");
                      this.completeDBRemoves(impProjectRemoves);
                      observer.next(postResultCode);
                      observer.complete();
-                  });
+                  });*/
          });
 
          return performDBRemoves$;
       }
       else
          return EMPTY;
-   }   
+   }
+
+   public postDelete(projectId: number, apiVersion: string = 'v1') : Observable<number>
+   {
+      console.log(this.storeName + ".service.postDelete - fired");
+
+      if (projectId == null || projectId === 0) {
+         console.log("Cannot delete an invalid project_id: ", projectId);
+         return EMPTY;
+      }
+
+      let postUrl: string = apiVersion.toLowerCase() + "/targeting/base/impproject/delete/";
+
+      let resultObs: Observable<number>;
+      try
+      {
+         console.log("Deleting projectId: ", projectId, " url: " + postUrl);
+
+         resultObs = this.rest.delete(postUrl, projectId)
+                              .pipe(tap(restResponse => {
+                                       console.log (projectId + " delete response:", restResponse, " (", ((restResponse.returnCode === 200) ? "success" : "failure") ,")");
+                                    })
+                                    ,map(restResponse => restResponse.returnCode)
+                                    );
+     }
+     catch (error)
+     {
+        console.error(this.storeName, '.service.postDelete - Error: ', error);
+        this.transactionManager.stopTransaction();
+        // resultObs = throwError(error);
+     }
+
+     return resultObs;
+   }
+
 }

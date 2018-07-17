@@ -63,7 +63,7 @@ export class DataStore<T>
 
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
-   constructor(private rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager, public storeName: string='') {
+   constructor(public rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager, public storeName: string='') {
       if (storeName != '')
          storeName += ' ';
    }
@@ -217,7 +217,7 @@ export class DataStore<T>
          // TODO: Does altering the transients dirty and baseStatus affect this?
          if (!this.dbRemoves.includes(removeData))
          {
-            console.log(this.storeName, 'registered for db removal: ', removeData);
+            //console.log(this.storeName, 'registered for db removal: ', removeData);
             this.dbRemoves.push(removeData);
          }
       }
@@ -355,7 +355,10 @@ export class DataStore<T>
                                       );
          }
          else
+         {
+            console.log("No db removes to post");
             resultObs = EMPTY;
+         }
      }
      catch (error)
      {
@@ -363,7 +366,7 @@ export class DataStore<T>
         this.transactionManager.stopTransaction();
         resultObs = throwError(error);
      }
-     
+
      return resultObs;
    }
 
