@@ -144,10 +144,12 @@ export class TargetAudienceOnlineService {
     if (loading) return; // loading will be false when the load is actually done
     try {
       const project = this.appStateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online').length > 0) {
+      let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
+      projectVars = projectVars.filter(v => !v.source.split('_')[1].toLowerCase().includes('audience'));
+      if (projectVars.length > 0 ) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
-        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online')) {
+        for (const projectVar of projectVars) {
           const audience: AudienceDataDefinition = {
             allowNationalExport: true,
             exportNationally: projectVar.isNationalExtract,
