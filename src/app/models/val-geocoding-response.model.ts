@@ -104,6 +104,7 @@ export class ValGeocodingResponse {
     if (this.Number != null ) {
       result.locationNumber = this.Number;
     }
+  result.locationName = (result.locationName == null || result.locationName === '') ? result.locationNumber : result.locationName; 
     for (const [k, v] of Object.entries(this)) {
       if (k === '' || v === '') {
         continue;
