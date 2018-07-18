@@ -352,12 +352,12 @@ export class AppMenuComponent implements OnInit {
                 icon: 'ui-icon-save',
                 accept: () => {
                     // check for required fields
-                 let errorString = null;
+                 let errorString = '';
                 if (impProject.projectName == null || impProject.projectName == '')
                      errorString = 'imPower Project Name is required<br>';
                 if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                      errorString += 'Analysis level is required';
-                if (errorString != null) {
+                if (errorString.length === 0) {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
@@ -392,12 +392,12 @@ export class AppMenuComponent implements OnInit {
                     usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
                     this.usageService.createCounterMetric(usageMetricName, null, null);
                     this.appStateService.projectId$.getValue();
-                    let errorString = null;
+                    let errorString = '';
                     if (impProject.projectName == null || impProject.projectName == '')
                          errorString = 'imPower Project Name is required<br>';
                     if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                          errorString += 'Analysis level is required';
-                    if (errorString != null) {
+                    if (errorString.length === 0) {
                         this.messageService.showGrowlError('Error Saving Project', errorString);
                         return;
                     }
@@ -474,12 +474,12 @@ export class AppMenuComponent implements OnInit {
 
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
-        let errorString = null;
+        let errorString = '';
             if (impProject.projectName == null || impProject.projectName == '')
                 errorString = 'imPower Project Name is required<br>';
             if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                 errorString += 'Analysis level is required';
-            if (errorString != null) {
+            if (errorString.length === 0 ) {
                 this.messageService.showGrowlError('Error Saving Project', errorString);
                 return;
             }
