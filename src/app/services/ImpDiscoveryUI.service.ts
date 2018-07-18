@@ -35,7 +35,7 @@ export class ImpDiscoveryService
       this.radCategoryCodeByName = new Map<string, string>([
         ['N/A',                            'NA'],
         ['Auto Service/Parts',             'AS03'],
-        ['Discount Stores',                'DS01'],
+        ['Discounts Stores',                'DS01'],
         ['Education',                      'ED01'],
         ['Financial Services',             'FS01'],
         ['Full Service Restaurants',       'FSR03'],

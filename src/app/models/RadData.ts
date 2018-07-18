@@ -13,7 +13,7 @@ export class RadData {
 export enum RADCategory {
     QSRPIZZA = 'QSR Pizza',
     AUTO_SERVICE = 'Auto Service/Parts',
-    DISCOUNT_STORES = 'Discount Stores',
+    DISCOUNT_STORES = 'Discounts Stores',
     EDUCATION = 'Education',
     FINANCIAL_SERVICES = 'Financial Services',
     FULL_SERVICE_RESTAURANTS = 'Full Service Restaurants',

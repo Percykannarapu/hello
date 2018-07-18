@@ -8,10 +8,11 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
-import { take } from 'rxjs/operators';
+import { take, withLatestFrom, tap, map } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { Message } from '../../../node_modules/@angular/compiler/src/i18n/i18n_ast';
 
 @Injectable()
 export class RadService {
@@ -32,10 +33,14 @@ export class RadService {
               private userService: UserService) {
 
     //Subscribe to the impDiscoveryService
-    this.appStateService.currentProject$.subscribe(project => this.filterRad(project), error => this.handleError(error));
+    // this.appStateService.currentProject$.subscribe(project => this.filterRad(project), error => this.handleError(error));
 
     //Subscribe to the metrics service
-    this.metricService.observeMetrics().subscribe(message => this.calculateMetrics(message));
+    this.metricService.observeMetrics().pipe(
+      withLatestFrom(this.appStateService.currentProject$),
+      tap(([message, project]) => this.filterRad(project)),
+      map(([message]) => message)
+    ).subscribe(message => this.calculateMetrics(message));
 
     // load the RAD data after the user has been logged in
     this.userService.userObservable.pipe(take(1)).subscribe(res => this.fetchRadData(res));
@@ -146,6 +151,7 @@ export class RadService {
   private parseResponse(resp: RestResponse) {
     this.radData = new Array<RadData>();
     for (const row of resp.payload.rows) {
+
       const radData: RadData = new RadData();
       radData.radId = row.radId;
       radData.category = row.category;
