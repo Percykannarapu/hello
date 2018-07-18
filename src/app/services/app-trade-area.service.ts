@@ -194,41 +194,28 @@ export class AppTradeAreaService {
     const attributesToRemove = simpleFlatten(geosToRemove.map(geo => geo.impGeofootprintGeoAttribs));
     const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
 
-    // Add db removes
-    //this.impTradeAreaService.removeAll();
-
     if (locationsToProcess.length > 0) {
       const tradeAreaSet = new Set(tradeAreas);
-      // remove the trade areas from the heirarchy
-      locationsToProcess.forEach(loc => {
-         console.log("Removing tas: ", loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
-         this.impTradeAreaService.remove(loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
-         console.log("Are these gone? tas: ", loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
-         loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta))
-      });
-//ORIG      locationsToProcess.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
+      // remove the trade areas from the heirarchy - deletes from the store happen below
+      locationsToProcess.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
     }
 
     // remove each of the data store items for children
     if (attributesToRemove.length !== 0) {
       // Attributes aren't persisted to the DB, so no need for this, but I want to keep it here in case that changes
-      this.impGeoAttributeService.addDbRemove(attributesToRemove);
       this.impGeoAttributeService.remove(attributesToRemove);
     }
 
     if (geosToRemove.length !== 0) {
-      this.impGeoService.addDbRemove(geosToRemove);
       this.impGeoService.remove(geosToRemove);
     }
 
     if (varsToRemove.length !== 0) {
-      this.impVarService.addDbRemove(varsToRemove);
       this.impVarService.remove(varsToRemove);
     }
 
-    this.impTradeAreaService.addDbRemove(tradeAreas);
+    // remove trade areas from data store
     this.impTradeAreaService.remove(tradeAreas);
-
   }
 
   private getAllTradeAreas(siteType: 'Site' | 'Competitor') : ImpGeofootprintTradeArea[] {
@@ -252,6 +239,7 @@ export class AppTradeAreaService {
       const maxRadius = Math.max(...radii);
       drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
     }
+    console.log(`Drawing ${siteType} trade areas`, drawnTradeAreas);
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
   }
 
