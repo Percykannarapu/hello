@@ -175,14 +175,12 @@ export class TargetAudienceService implements OnDestroy {
       let source = sourceType + '_' + sourceName;
       source = source.replace(' ', '_');
       if (parts[0].toLowerCase() === source.toLowerCase() && (projectVar.varPk.toString() === audienceIdentifier || projectVar.fieldname === audienceIdentifier)) {
-        if (projectVar.pvId) {
-          // remove it from the database only if it has an ID populated
-          this.projectVarService.addDbRemove(projectVar);
-        }
+        this.projectVarService.addDbRemove(projectVar);
         this.projectVarService.remove(projectVar);
         let hierarchyVars = this.appStateService.currentProject$.getValue().impProjectVars;
         hierarchyVars = hierarchyVars.filter(hv => hv.source !== source && hv.varPk.toString() !== audienceIdentifier);
-        this.appStateService.currentProject$.getValue().impProjectVars = hierarchyVars;
+        this.appStateService.currentProject$.getValue().impProjectVars = [];
+        this.appStateService.currentProject$.getValue().impProjectVars.push(...hierarchyVars);
       }
     }
   }
