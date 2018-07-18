@@ -357,7 +357,7 @@ export class AppMenuComponent implements OnInit {
                      errorString = 'imPower Project Name is required<br>';
                 if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                      errorString += 'Analysis level is required';
-                if (errorString.length === 0) {
+                if (errorString.length !== 0) {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
@@ -397,7 +397,7 @@ export class AppMenuComponent implements OnInit {
                          errorString = 'imPower Project Name is required<br>';
                     if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                          errorString += 'Analysis level is required';
-                    if (errorString.length === 0) {
+                    if (errorString.length !== 0) {
                         this.messageService.showGrowlError('Error Saving Project', errorString);
                         return;
                     }
@@ -479,7 +479,7 @@ export class AppMenuComponent implements OnInit {
                 errorString = 'imPower Project Name is required<br>';
             if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                 errorString += 'Analysis level is required';
-            if (errorString.length === 0 ) {
+            if (errorString.length !== 0 ) {
                 this.messageService.showGrowlError('Error Saving Project', errorString);
                 return;
             }
