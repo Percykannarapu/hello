@@ -154,7 +154,7 @@ export class TargetAudienceTdaService {
     const fullId = `Offline/TDA/${varPk}`;
     const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
-      result.valueString = value;
+      result.valueString = (value === 'null')? ' ' : value;
       result.fieldconte = 'INDEX';
       result.isString = true;
     } else {
