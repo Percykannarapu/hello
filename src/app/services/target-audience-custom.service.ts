@@ -120,7 +120,7 @@ export class TargetAudienceCustomService {
     }
     const result = new ImpGeofootprintVar({ geocode, varPk: newVarPk, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
-      result.valueString = value;
+      result.valueString = (value === 'null')? ' ' : value;
       result.fieldconte = 'CHAR';
       result.isString = true;
     } else {

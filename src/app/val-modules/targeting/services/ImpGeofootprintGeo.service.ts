@@ -751,9 +751,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           if (currentVar.isNumber) result = currentVar.valueNumber.toString();
         }
       }
-      if (result === '') {
-        console.warn('Variable not found in attributes when exporting geofootprint for variable and geocode:', header, geo.geocode);
-      }
       return result;
    }
 
@@ -779,7 +776,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.analysisLevelForExport = analysisLevel;
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       let geos: ImpGeofootprintGeo[] = this.get();
-
       if (filter != null) geos = geos.filter(filter);
       // Populate the attribute cache
       this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
@@ -790,7 +786,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
          }
       }
-
+   
       this.varCache = new Map<string, ImpGeofootprintVar[]>();
       for (const geoVar of this.impGeofootprintVarService.get()) {
          if (this.varCache.has(geoVar.geocode)) {
@@ -854,7 +850,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
             exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
-
+            
          break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
@@ -869,7 +865,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
             exportColumns.push({ header: 'Base Count',                   row: null});
             exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
-         break;
+            break;
       }
       return exportColumns;
    }
