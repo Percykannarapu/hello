@@ -187,12 +187,15 @@ export class TargetAudienceCustomService {
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const geoSet = new Set(geocodes);
+    const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
     for (const column of identifiers) {
       if (this.dataCache.has(column)) {
         const geoVars = [];
         this.dataCache.get(column).forEach((v, k) => {
           if (geoSet.has(k)) geoVars.push(v);
+          const geoVarValue = v.valueNumber ? v.valueNumber : v.valueString;
+          this.createGeofootprintVar(v.geocode, v.customVarExprDisplay, geoVarValue.toString(), v.customVarExprQuery.split('/')[1], geoCache);
         });
         observables.push(of(geoVars));
       }
