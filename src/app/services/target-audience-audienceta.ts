@@ -17,6 +17,7 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { RestResponse } from '../models/RestResponse';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 
 interface AudienceTradeareaResponse {
     maxRadius: number;
@@ -79,6 +80,77 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('Combined Tile Name', 'combinedIndexTileName');
         this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
+
+        // We cannot currently load AudienceTA audiences since there 
+        // is no support for saving the audience trade area configuration
+        //this.appStateService.projectIsLoading$.subscribe(loading => this.onLoadProject(loading));
+
+    }
+
+    private onLoadProject(loading: boolean) {
+        if (loading) return; // loading will be false when the load is actually done
+        try {
+            const project = this.appStateService.currentProject$.getValue();
+            let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
+            projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
+            if (projectVars.length > 0) {
+                this.projectVarService.clearAll();
+                this.projectVarService.add(project.impProjectVars);
+                for (const projectVar of projectVars) {
+                    const audience: AudienceDataDefinition = {
+                        audienceName: projectVar.fieldname,
+                        audienceIdentifier: projectVar.varPk.toString(),
+                        audienceSourceType: 'Online',
+                        audienceSourceName: 'Audience-TA',
+                        exportInGeoFootprint: true,
+                        showOnGrid: true,
+                        showOnMap: false,
+                        allowNationalExport: false,
+                        exportNationally: false,
+                        secondaryId: this.reloadSecondaryId(projectVar),
+                        audienceTAConfig: this.reloadAudienceTaConfig()
+                    };
+                    this.audienceService.addAudience(
+                        audience,
+                        (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+                        null);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    private reloadAudienceTaConfig(): AudienceTradeAreaConfig {
+        const audienceTALocations = new Array<AudienceTradeareaLocation>();
+        for (const location of this.appStateService.currentProject$.getValue().getImpGeofootprintLocations()) {
+            const audienceTALocation: AudienceTradeareaLocation = {
+                LOCATIONNAME: location.locationNumber,
+                XCOORD: location.xcoord,
+                YCOORD: location.ycoord,
+                HOMEGEOCODE: location.homeGeocode
+            };
+            audienceTALocations.push(audienceTALocation);
+        }
+        const audienceTAConfig: AudienceTradeAreaConfig = {
+            analysisLevel: null,
+            digCategoryId: null,
+            locations: audienceTALocations,
+            maxRadius: null,
+            minRadius: null,
+            scoreType: null,
+            weight: null
+        };
+        return audienceTAConfig;
+    }
+
+    private reloadSecondaryId(projectVar: ImpProjectVar): string {
+        for (const key of Array.from(this.geoVarMap.keys())) {
+            if (projectVar.fieldname.includes(key)) {
+                return key;
+            }
+        }
+        return '';
     }
 
     private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig, digCategoryId: number) : AudienceDataDefinition {
