@@ -125,12 +125,12 @@ export class ValAudienceTradeareaService {
           this.audienceTaSubject.next(true);
         } catch (error) {
           console.error(error);
-          this.audienceTaSubject.error(error);
+          this.audienceTaSubject.next(false);
         }
       },
       err => {
         console.error(err);
-        this.audienceTaSubject.error(err);
+        this.audienceTaSubject.next(false);
         this.fetchData = true;
       });
     } else {
@@ -143,7 +143,7 @@ export class ValAudienceTradeareaService {
       },
       err => {
         console.error(err);
-        this.audienceTaSubject.error(err);
+        this.audienceTaSubject.next(false);
         this.fetchData = true;
       });
     }

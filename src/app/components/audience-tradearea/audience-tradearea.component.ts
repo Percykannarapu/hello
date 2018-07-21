@@ -6,7 +6,7 @@ import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../models/audience-data.model';
 import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, retry } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -141,6 +141,9 @@ export class AudienceTradeareaComponent implements OnInit {
     this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
+        if (!result) {
+          this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
+        }
       },
       error => {
         console.error('Error while creating audience tradearea');
