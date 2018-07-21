@@ -21,6 +21,7 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
+import { AppMessagingService } from './app-messaging.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -108,6 +109,12 @@ export class ValAudienceTradeareaService {
     this.sendRequest(taConfig).subscribe(response => {
         try {
           this.parseResponse(response);
+          if (this.taResponses.size < 1) {
+            console.warn('No data found when running audience trade area:', taConfig);
+            this.messagingService.showGrowlWarning('Audience Trade Area Warning', 'No data was found for your input parameters');
+            this.audienceTaSubject.next(true);
+            return;
+          }
           this.fetchData = false;
           this.geoService.clearAll();
           this.varService.clearAll();
@@ -125,12 +132,12 @@ export class ValAudienceTradeareaService {
           this.audienceTaSubject.next(true);
         } catch (error) {
           console.error(error);
-          this.audienceTaSubject.error(error);
+          this.audienceTaSubject.next(false);
         }
       },
       err => {
         console.error(err);
-        this.audienceTaSubject.error(err);
+        this.audienceTaSubject.next(false);
         this.fetchData = true;
       });
     } else {
@@ -143,7 +150,7 @@ export class ValAudienceTradeareaService {
       },
       err => {
         console.error(err);
-        this.audienceTaSubject.error(err);
+        this.audienceTaSubject.next(false);
         this.fetchData = true;
       });
     }
@@ -456,7 +463,8 @@ export class ValAudienceTradeareaService {
     private httpClient: HttpClient,
     private appConfig: AppConfig,
     private targetAudienceService: TargetAudienceService,
-    private targetAudienceTAService: TargetAudienceAudienceTA) {
+    private targetAudienceTAService: TargetAudienceAudienceTA,
+    private messagingService: AppMessagingService) {
     this.initializeSortMap();
     this.locationService.storeObservable.subscribe(location => {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
