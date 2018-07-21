@@ -42,7 +42,7 @@ export class TargetAudienceCustomService {
               }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
-    return {
+    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: name,
       audienceSourceType: 'Custom',
@@ -51,8 +51,11 @@ export class TargetAudienceCustomService {
       showOnGrid: true,
       showOnMap: false,
       exportNationally: false,
-      allowNationalExport: false
+      allowNationalExport: false,
+      audienceCounter: TargetAudienceService.audienceCounter
     };
+    TargetAudienceService.audienceCounter++;
+    return audience;
   }
 
   private onLoadProject(loading: boolean) {
@@ -75,8 +78,10 @@ export class TargetAudienceCustomService {
             showOnGrid: true,
             showOnMap: false,
             exportNationally: false,
-            allowNationalExport: false
+            allowNationalExport: false,
+            audienceCounter: projectVar.sortOrder
           };
+          if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           columnNames.add(audience.audienceName);
           const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
           const geoMap = new Map<string, ImpGeofootprintVar>();

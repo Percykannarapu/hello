@@ -124,7 +124,7 @@ export class TargetAudienceOnlineService {
   }
 
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
-    return {
+    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: `${digId}`,
       audienceSourceType: 'Online',
@@ -136,8 +136,11 @@ export class TargetAudienceOnlineService {
       exportNationally: false,
       selectedDataSet: 'nationalScore',
       dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
-      secondaryId: digId.toLocaleString()
+      secondaryId: digId.toLocaleString(),
+      audienceCounter: TargetAudienceService.audienceCounter
     };
+    TargetAudienceService.audienceCounter++;
+    return audience;
   }
 
   private onLoadProject(loading: boolean) {
@@ -162,7 +165,9 @@ export class TargetAudienceOnlineService {
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap,
             selectedDataSet: 'nationalScore',
+            audienceCounter: projectVar.sortOrder
           };
+          if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('interest')) {
             this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
           } else if (projectVar.source.toLowerCase().match('in-market')){

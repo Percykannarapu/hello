@@ -87,7 +87,7 @@ export class TargetAudienceAudienceTA {
         if (audiences.length > 0) {
             audienceName = audiences[0].audienceName;
         }
-        return {
+        const audience: AudienceDataDefinition = {
             audienceName: `${audienceName} ${name}`,
             audienceIdentifier: `${digId}-${name}`,
             audienceSourceType: 'Online',
@@ -98,8 +98,11 @@ export class TargetAudienceAudienceTA {
             allowNationalExport: false,
             exportNationally: false,
             secondaryId: `${name}`,
-            audienceTAConfig: audienceTAConfig
+            audienceTAConfig: audienceTAConfig,
+            audienceCounter: TargetAudienceService.audienceCounter
         };
+        TargetAudienceService.audienceCounter++;
+        return audience;
     }
 
 

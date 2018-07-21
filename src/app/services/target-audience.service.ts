@@ -26,6 +26,13 @@ export type nationalSource = (analysisLevel: string, identifier: string) => Obse
   providedIn: 'root'
 })
 export class TargetAudienceService implements OnDestroy {
+  
+  // This field is being used to maintain the sort order for the audiences grid
+  // As each new audience is created it will get assinged the current value
+  // of this number and increment it, then when we save this value will be
+  // saved in the database and when we load we will know what order to populate the grid in
+  public static audienceCounter: number = 0;
+  
   private readonly spinnerKey: string = 'TargetAudienceServiceKey';
 
   private newSelectedGeos$: Observable<string[]>;
@@ -99,7 +106,18 @@ export class TargetAudienceService implements OnDestroy {
     } else {
       if (projectVar) this.projectVarService.add([projectVar]);
     }
-    this.audiences.next(Array.from(this.audienceMap.values()));
+    const audienceList = Array.from(this.audienceMap.values());
+    this.audiences.next(audienceList.sort((a, b) => this.compare(a, b)));
+  }
+
+  private compare(a, b) {
+    if (a.audienceCounter > b.audienceCounter) {
+      return 1;
+    }
+    if (a.audienceCounter < b.audienceCounter) {
+      return -1;
+    }
+    return 0;
   }
 
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
@@ -123,6 +141,7 @@ export class TargetAudienceService implements OnDestroy {
       projectVar.isUploaded = audience.audienceSourceType.match('Custom') ? true : false;
       projectVar.isActive = true;
       projectVar.uploadFileName = audience.audienceSourceType.match('Custom') ? audience.audienceSourceName : '';
+      projectVar.sortOrder = audience.audienceCounter;
     } catch (error) {
       console.log(error);
       return null;

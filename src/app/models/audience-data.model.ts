@@ -1,4 +1,4 @@
-import { ImpGeofootprintLocation } from "../val-modules/targeting/models/ImpGeofootprintLocation";
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export interface AudienceDataDefinition {
   audienceName: string;
@@ -15,6 +15,7 @@ export interface AudienceDataDefinition {
   audienceSourceType: 'Online' | 'Offline' | 'Custom';
   secondaryId?: string;
   audienceTAConfig?: AudienceTradeAreaConfig;
+  audienceCounter?: number; // the number that will be used to maintain order in the audiences grid
 }
 
 export interface AudienceTradeAreaConfig {

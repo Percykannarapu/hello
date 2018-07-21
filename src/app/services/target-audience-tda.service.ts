@@ -90,7 +90,7 @@ export class TargetAudienceTdaService {
               }
 
   private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
-    return {
+    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: pk,
       audienceSourceType: 'Offline',
@@ -99,8 +99,11 @@ export class TargetAudienceTdaService {
       showOnGrid: true,
       showOnMap: false,
       exportNationally: false,
-      allowNationalExport: false
+      allowNationalExport: false,
+      audienceCounter: TargetAudienceService.audienceCounter
     };
+    TargetAudienceService.audienceCounter++;
+    return audience;
   }
 
   private onLoadProject(loading: boolean) {
@@ -120,8 +123,10 @@ export class TargetAudienceTdaService {
             showOnGrid: true,
             showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
-            allowNationalExport: false
+            allowNationalExport: false,
+            audienceCounter: projectVar.sortOrder
           };
+          if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('tda')) {
             this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading), null, null);
           }
@@ -154,7 +159,7 @@ export class TargetAudienceTdaService {
     const fullId = `Offline/TDA/${varPk}`;
     const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
-      result.valueString = (value === 'null')? ' ' : value;
+      result.valueString = (value === 'null') ? ' ' : value;
       result.fieldconte = 'INDEX';
       result.isString = true;
     } else {
