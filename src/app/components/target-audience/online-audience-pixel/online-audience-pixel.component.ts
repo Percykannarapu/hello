@@ -65,6 +65,12 @@ export class OnlineAudiencePixelComponent implements OnInit {
       debounceTime(250),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
+
+    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
+      if (bool){
+         this.clearSelectedFields();
+      }
+    });
   }
 
   public selectVariable(event: TreeNode) : void {
@@ -100,6 +106,11 @@ export class OnlineAudiencePixelComponent implements OnInit {
   private syncCheckData(result: AudienceDataDefinition[]){
     this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
     this.cd.markForCheck();
+  }
+
+  private clearSelectedFields(){
+      this.currentSelectedNodes = [];
+      this.cd.markForCheck();
   }
 
 }

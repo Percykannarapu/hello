@@ -5,6 +5,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
+import { AppStateService } from '../../../services/app-state.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -33,7 +34,10 @@ export class OnlineAudienceApioComponent implements OnInit {
   // these have to be exposed like this so they are available in the template
   public SourceType = SourceTypes;
 
-  constructor(private audienceService: TargetAudienceOnlineService, private parentAudienceService: TargetAudienceService, private cd: ChangeDetectorRef) {
+  constructor(private audienceService: TargetAudienceOnlineService, 
+    private parentAudienceService: TargetAudienceService, 
+    private cd: ChangeDetectorRef,
+    private stateSetvice: AppStateService) {
     this.selectedNodeMap.set(SourceTypes.InMarket, []);
     this.selectedNodeMap.set(SourceTypes.Interest, []);
     this.currentSelectedNodes = this.selectedNodeMap.get(this.selectedSource);
@@ -87,6 +91,11 @@ export class OnlineAudienceApioComponent implements OnInit {
       distinctUntilChanged()
     );
     combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
+    this.stateSetvice.getClearUserInterfaceObs().subscribe(bool => {
+        if (bool){
+          this.clearSelections();
+        }
+    });
   }
 
   public selectVariable(event: ApioTreeNode) : void {
@@ -142,6 +151,11 @@ export class OnlineAudienceApioComponent implements OnInit {
   private syncCheckData(result: AudienceDataDefinition[]) {
     const indexToRemove = this.currentSelectedNodes.findIndex(node => node.data.digCategoryId != result[0].audienceIdentifier);
     this.currentSelectedNodes.splice(indexToRemove, 1);
+    this.cd.markForCheck();
+  }
+
+  private clearSelections(){
+    this.currentSelectedNodes = [];
     this.cd.markForCheck();
   }
 }

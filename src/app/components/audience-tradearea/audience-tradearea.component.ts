@@ -56,6 +56,10 @@ export class AudienceTradeareaComponent implements OnInit {
     this.targetAudienceService.audiences$.pipe(
       map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
     ).subscribe(targetingVar => this.updateVars(targetingVar));
+
+    this.stateService.getClearUserInterfaceObs().subscribe(bool => {
+      this.clearFields();
+    });
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
@@ -150,6 +154,23 @@ export class AudienceTradeareaComponent implements OnInit {
         this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       });
+  }
+
+  public clearFields(){
+    this.sliderVal = null;
+    this.tileSelectorOptions = [];
+    this.tileSelectorValues = [];
+    this.varSelectorOptions = [];
+    this.selectedVar = null;
+    this.scoreTypeOptions = [];
+    this.selectedScoreType = 'DMA';
+    this.minRadius = null;
+    this.maxRadius = null;
+    this.includeMustCover = false;
+    this.source = null;
+    this.selectedVars = [];
+    this.errorTitle = 'Audience Trade Area Error';
+    this.audienceSourceMap = new Map<string, string>();
   }
 
 }

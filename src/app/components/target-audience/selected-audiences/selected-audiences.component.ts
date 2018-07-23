@@ -54,6 +54,12 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(loading => {
       this.onLoadProject();
     });
+
+    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
+      if (bool){
+         this.clearSelectedFields();
+      }
+    });
   }
 
   private onLoadProject() {
@@ -155,5 +161,14 @@ export class SelectedAudiencesComponent implements OnInit {
    });
 
 
+  }
+
+  private clearSelectedFields(){
+    this.varService.getAudiences().forEach(audience => {
+      this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+    });
+    this.varService.applyAudienceSelection();
+      
   }
 }

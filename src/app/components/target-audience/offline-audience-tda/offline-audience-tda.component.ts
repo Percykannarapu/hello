@@ -6,6 +6,7 @@ import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
+import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
   selector: 'val-offline-audience-tda',
@@ -23,7 +24,8 @@ export class OfflineAudienceTdaComponent implements OnInit {
   constructor(private audienceService: TargetAudienceTdaService,
               private parentAudienceService: TargetAudienceService,
               private messagingService: AppMessagingService,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef, 
+              private stateService: AppStateService) {
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
@@ -62,6 +64,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
       debounceTime(250),
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
+
+    this.stateService.getClearUserInterfaceObs().subscribe(bool => {
+      this.clearSelections();
+    });
   }
 
   private filterNodes(term: string) {
@@ -94,5 +100,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   private syncCheckData(result: AudienceDataDefinition[]){
     this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier != result[0].audienceIdentifier);
     this.cd.markForCheck();
+  }
+
+  private clearSelections(){
+     this.selectedVariables = []; 
+     this.cd.markForCheck();
   }
 }
