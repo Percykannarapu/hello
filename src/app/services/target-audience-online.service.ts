@@ -158,13 +158,13 @@ export class TargetAudienceOnlineService {
             exportNationally: projectVar.isNationalExtract,
             audienceIdentifier: projectVar.varPk.toString(),
             audienceName: projectVar.fieldname,
-            audienceSourceName: projectVar.source.split('_')[1],
+            audienceSourceName: projectVar.source.replace(/^Online_/, ''),
             audienceSourceType: 'Online',
             dataSetOptions: [ { label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' } ],
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap,
-            selectedDataSet: 'nationalScore',
+            selectedDataSet: projectVar.indexBase,
             audienceCounter: projectVar.sortOrder
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;

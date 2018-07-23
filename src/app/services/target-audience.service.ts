@@ -123,8 +123,7 @@ export class TargetAudienceService implements OnDestroy {
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
     const projectVar = new ImpProjectVar();
     try {
-      let source = audience.audienceSourceType + '_' + audience.audienceSourceName;
-      source = source.replace(' ', '_');
+      const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
       projectVar.pvId = id ? id : null;
       projectVar.baseStatus = DAOBaseStatus.INSERT;
       projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : this.projectVarService.getNextStoreId();
@@ -191,8 +190,7 @@ export class TargetAudienceService implements OnDestroy {
   private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) {
     for (const projectVar of this.projectVarService.get()) {
       const parts = projectVar.source.split('~');
-      let source = sourceType + '_' + sourceName;
-      source = source.replace(' ', '_');
+      const source = sourceType + '_' + sourceName;
       if (parts[0].toLowerCase() === source.toLowerCase() && (projectVar.varPk.toString() === audienceIdentifier || projectVar.fieldname === audienceIdentifier)) {
         this.projectVarService.addDbRemove(projectVar);
         this.projectVarService.remove(projectVar);

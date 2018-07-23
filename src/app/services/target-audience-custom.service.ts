@@ -73,7 +73,7 @@ export class TargetAudienceCustomService {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.fieldname,
             audienceSourceType: 'Custom',
-            audienceSourceName: projectVar.source.split('_')[1],
+            audienceSourceName: projectVar.source.replace(/^Custom_/, ''),
             exportInGeoFootprint: true,
             showOnGrid: true,
             showOnMap: false,
