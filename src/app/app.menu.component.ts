@@ -28,6 +28,7 @@ import { EsriMapService } from './esri-modules/core/esri-map.service';
 import { MapService } from './services/map.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
+import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 
 
 @Component({
@@ -68,7 +69,8 @@ export class AppMenuComponent implements OnInit {
         private esriMapService: EsriMapService,
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
-        private mapService: MapService) { }
+        private mapService: MapService,
+        private layerService: EsriLayerService) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -425,7 +427,8 @@ export class AppMenuComponent implements OnInit {
             if (lyr) {
               lyr.visible = false;
               if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-                this.esriMapService.map.layers.remove(lyr);
+                //this.esriMapService.map.layers.remove(lyr);
+                this.layerService.clearAll();
               }
             }
        });
