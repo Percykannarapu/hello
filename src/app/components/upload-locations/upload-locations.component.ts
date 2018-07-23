@@ -14,6 +14,7 @@ import { AppGeoService } from '../../services/app-geo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { AppStateService } from '../../services/app-state.service';
 
 
 @Component({
@@ -46,7 +47,8 @@ export class UploadLocationsComponent implements OnInit {
     private usageService: UsageService,
     private valSiteListService: AppLocationService,
     private valGeoService: AppGeoService,
-    private locationService: ImpGeofootprintLocationService) {
+    private locationService: ImpGeofootprintLocationService,
+    private appStateService: AppStateService) {
 
     this.hasFailures$ = this.geocodingService.hasFailures$;
     this.geocodingFailures$ = this.geocodingService.geocodingFailures$;
@@ -62,6 +64,20 @@ export class UploadLocationsComponent implements OnInit {
     this.failureCount$.subscribe(n => {
       this.failureCount = n;
       this.calculateCounts();
+    });
+
+    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
+        if (bool){
+          FileService.uniqueSet.clear();
+          this.failureCount = 0;
+          this.geocodingService.failureCount$.subscribe(n => n = 0 );
+          //const failures = this.geocodingService.failures.getValue();
+          while (this.geocodingService.failures.getValue().length > 0 ){
+            this.geocodingService.failures.getValue().pop();
+          }
+          this.calculateCounts();
+        }
+          
     });
   }
 
