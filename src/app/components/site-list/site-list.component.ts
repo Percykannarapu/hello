@@ -114,6 +114,7 @@ export class SiteListComponent implements OnInit {
       icon: 'ui-icon-trash',
       accept: () => {
         this.removeLocationHierarchy(row);
+        FileService.uniqueSet.delete(row.locationNumber);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                                                   target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
        this.usageService.createCounterMetric(usageMetricName, metricText, null);
