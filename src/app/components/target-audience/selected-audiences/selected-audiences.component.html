@@ -41,7 +41,8 @@
             *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
             [options]="audience.dataSetOptions"
             [(ngModel)]="audience.selectedDataSet"
-            [autoWidth]="false"></p-dropdown>
+            [autoWidth]="false"
+            (onChange)="onIndexBaseChange(audience)"></p-dropdown>
         </ng-template>
       </p-column>
       <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>

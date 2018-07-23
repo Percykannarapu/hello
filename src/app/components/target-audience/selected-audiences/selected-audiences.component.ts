@@ -130,6 +130,10 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(unMapped => unMapped.forEach(a => a.exportNationally = false)); // with take(1), this subscription will immediately close
   }
 
+  onIndexBaseChange(audience: AudienceDataDefinition) : void {
+    this.varService.updateProjectVars(audience);
+  }
+
   onRemove(audience) {
    const message = 'Do you want to delete the following audience from your project? \n\r' + `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
    this.confirmationService.confirm({
