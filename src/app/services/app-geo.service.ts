@@ -54,6 +54,20 @@ export class AppGeoService {
     }
   }
 
+  public deleteGeos(geos: ImpGeofootprintGeo[]) : void {
+    if (geos == null || geos.length === 0) return;
+
+    const tradeAreas = new Set<ImpGeofootprintTradeArea>(geos.map(g => g.impGeofootprintTradeArea));
+    const geoSet = new Set<ImpGeofootprintGeo>(geos);
+    // remove entities from the hierarchy
+    tradeAreas.forEach(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos.filter(g => !geoSet.has(g)));
+    geos.forEach(g => g.impGeofootprintTradeArea = null);
+    // remove from data stores
+    const attributes = simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs));
+    if (attributes.length > 0) this.impAttributeService.remove(attributes);
+    this.impGeoService.remove(geos);
+  }
+
   /**
    * Sets up an observable sequence that fires when a new, empty Radius trade area appears in the data store.
    */

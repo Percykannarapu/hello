@@ -76,6 +76,43 @@ export class AppLocationService {
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
   }
 
+  public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
+    const items: string[] = [
+      `Number=${site.locationNumber}`,
+      `Name=${site.locationName}`,
+      `Street=${site.locAddress}`,
+      `City=${site.locCity}`,
+      `State=${site.locState}`,
+      `ZIP=${site.locZip}`,
+      `X=${site.xcoord}`,
+      `Y=${site.ycoord}`,
+      `Status=${site.recordStatusCode}`,
+      `MatchCode=${site.geocoderMatchCode}`,
+      `LocationCode=${site.geocoderLocationCode}`
+    ];
+    return items.join('~');
+  }
+
+  public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
+    if (sites == null || sites.length === 0) return;
+
+    const masters = new Set<ImpGeofootprintMaster>(sites.map(l => l.impGeofootprintMaster));
+    const siteSet = new Set<ImpGeofootprintLocation>(sites);
+    // remove the sites from the hierarchy
+    masters.forEach(m => m.impGeofootprintLocations = m.impGeofootprintLocations.filter(l => !siteSet.has(l)));
+    sites.forEach(l => l.impGeofootprintMaster = null);
+    // delete from data stores
+    const tradeAreas = simpleFlatten(sites.map(l => l.impGeofootprintTradeAreas));
+    this.appTradeAreaService.deleteTradeAreas(tradeAreas);
+    const attributes = simpleFlatten(sites.map(l => l.impGeofootprintLocAttribs));
+    if (attributes.length > 0) this.impLocAttributeService.remove(attributes);
+    this.impLocationService.remove(sites);
+  }
+
+  public notifySiteChanges() : void {
+    this.impLocationService.makeDirty();
+  }
+
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
     return this.geocodingService.geocodeLocations(data, siteType).pipe(
       map(responses => responses.map(r => r.toGeoLocation(siteType, this.appStateService.analysisLevel$.getValue())))

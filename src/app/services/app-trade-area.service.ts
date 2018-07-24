@@ -129,6 +129,22 @@ export class AppTradeAreaService {
     }
   }
 
+  public deleteTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+    if (tradeAreas == null || tradeAreas.length === 0) return;
+
+    const locations = new Set<ImpGeofootprintLocation>(tradeAreas.map(ta => ta.impGeofootprintLocation));
+    const tradeAreaSet = new Set<ImpGeofootprintTradeArea>(tradeAreas);
+    // remove from the hierarchy
+    locations.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
+    tradeAreas.forEach(ta => ta.impGeofootprintLocation = null);
+    // delete from the data stores
+    const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
+    this.appGeoService.deleteGeos(geosToRemove);
+    const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
+    if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
+    this.impTradeAreaService.remove(tradeAreas);
+  }
+
   public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean }[], siteType: 'Site' | 'Competitor') : void {
     if (tradeAreas == null || tradeAreas.length === 0 || tradeAreas.length > 3) {
       console.error('Invalid Trade Area request', { tradeAreas, siteType });
