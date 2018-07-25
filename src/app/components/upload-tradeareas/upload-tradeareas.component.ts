@@ -21,6 +21,7 @@ import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
 import { Observable } from 'rxjs/Observable';
 import { filter, take } from 'rxjs/operators';
+import { ImpDomainFactoryService, TradeAreaTypes } from '../../val-modules/targeting/services/imp-domain-factory.service';
 
 
 class GeoLocations {
@@ -56,7 +57,8 @@ export class UploadTradeAreasComponent {
     private impGeofootprintLocationService: ImpGeofootprintLocationService,
     private impGeoService: ImpGeofootprintGeoService,
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-    private usageService: UsageService) {
+    private usageService: UsageService,
+    private domainFactory: ImpDomainFactoryService) {
     this.analysisLevel$ = this.stateService.analysisLevel$;
   }
 
@@ -124,7 +126,7 @@ export class UploadTradeAreasComponent {
 
       // Create a counter metric
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
-      
+
 
       // Parse the data into headers and rows
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
@@ -179,7 +181,7 @@ export class UploadTradeAreasComponent {
 
                   const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
                   if (tas.length <= 0) {
-                     const newTA: ImpGeofootprintTradeArea = AppTradeAreaService.createCustomTradeArea(4, loc, true, 'CUSTOM');
+                     const newTA = this.domainFactory.createTradeArea(loc, 4, TradeAreaTypes.Custom, true);
                      tradeAreasForInsert.push(newTA);
                      tas.push(newTA);
                   }
@@ -219,7 +221,7 @@ export class UploadTradeAreasComponent {
           () => {
              geosToAdd.forEach(geo => {
                 console.log(geo);
-             })
+             });
             this.impGeoService.add(geosToAdd);
             this.impGeofootprintTradeAreaService.add(tradeAreasForInsert);
             const failedGeocodeSet: Set<string> = new Set<string>();

@@ -15,6 +15,7 @@ import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { calculateStatistics } from '../app.utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppGeoService } from './app-geo.service';
+import { ImpDomainFactoryService, TradeAreaTypes } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 export type TradeAreaMergeSpec = 'No Merge' | 'Merge Each' | 'Merge All';
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeSpec = 'Merge Each';
@@ -41,7 +42,8 @@ export class AppTradeAreaService {
               private appGeoService: AppGeoService,
               private appConfig: AppConfig,
               private esriMapService: EsriMapService,
-              private esriQueryService: EsriQueryService) {
+              private esriQueryService: EsriQueryService,
+              private domainFactory: ImpDomainFactoryService) {
     this.mergeSpecs.set('Site', new BehaviorSubject<TradeAreaMergeSpec>(DEFAULT_MERGE_TYPE));
     this.mergeSpecs.set('Competitor', new BehaviorSubject<TradeAreaMergeSpec>(DEFAULT_MERGE_TYPE));
     this.currentDefaults.set('Site', []);
@@ -89,32 +91,6 @@ export class AppTradeAreaService {
     combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas('Site', ta, m));
     combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas('Competitor', ta, m));
 
-  }
-
-  private static createRadiusTradeArea(radius: number, index: number, location: ImpGeofootprintLocation, isActive: boolean) : ImpGeofootprintTradeArea {
-    const result = new ImpGeofootprintTradeArea({
-      taNumber: index + 1,
-      taName: `${location.clientLocationTypeCode} Radius ${index + 1}`,
-      taRadius: radius,
-      taType: 'RADIUS',
-      impGeofootprintLocation: location,
-      isActive: isActive
-    });
-    location.impGeofootprintTradeAreas.push(result);
-    return result;
-  }
-
-  public static createCustomTradeArea(index: number, location: ImpGeofootprintLocation, isActive: boolean,  taType: string) : ImpGeofootprintTradeArea {
-    const result = new ImpGeofootprintTradeArea({
-      taNumber: index + 1,
-      taName: `${location.clientLocationTypeCode} Custom ${index + 1}`,
-      taRadius: 0,
-      taType: taType,
-      impGeofootprintLocation: location,
-      isActive: isActive
-    });
-    location.impGeofootprintTradeAreas.push(result);
-    return result;
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
@@ -195,7 +171,7 @@ export class AppTradeAreaService {
     locations.forEach(location => {
       for (let i = 0; i < tradeAreas.length; ++i) {
         if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
-          newTradeAreas.push(AppTradeAreaService.createRadiusTradeArea(tradeAreas[i].radius, i, location, tradeAreas[i].selected));
+          newTradeAreas.push(this.domainFactory.createTradeArea(location, i, TradeAreaTypes.Radius, tradeAreas[i].selected, tradeAreas[i].radius));
         }
       }
     }); // locations for each

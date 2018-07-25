@@ -16,9 +16,9 @@ import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
 import { filter, map, withLatestFrom, distinctUntilChanged, tap } from 'rxjs/operators';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpDomainFactoryService, TradeAreaTypes } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -38,7 +38,8 @@ export class AppGeoService {
               private impGeoService: ImpGeofootprintGeoService,
               private impAttributeService: ImpGeofootprintGeoAttribService,
               private queryService: EsriQueryService,
-              private config: AppConfig) {
+              private config: AppConfig,
+              private domainFactory: ImpDomainFactoryService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
@@ -316,7 +317,7 @@ export class AppGeoService {
             const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
             const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
             if (homeGeoTA.length === 0) {
-              const newTA = AppTradeAreaService.createCustomTradeArea(3, loc, true, 'HOMEGEO');
+              const newTA = this.domainFactory.createTradeArea(loc, 3, TradeAreaTypes.HomeGeo, true);
               homeGeoTA.push(newTA);
               newTradeAreas.push(newTA);
             }
@@ -351,8 +352,6 @@ export class AppGeoService {
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const filterReasons: string[] = [];
-
     if (ownerGroupGeosMap.has('VALASSIS')){
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
         geo.isActive = includeValassis;
@@ -514,7 +513,7 @@ export class AppGeoService {
       map(project => project.isExcludePob),
       distinctUntilChanged()
     );
-   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(currentFlags => this.filterGeosOnFlags(this.impGeoService.get()));
+   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
 
 }
 }

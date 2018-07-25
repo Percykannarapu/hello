@@ -22,6 +22,7 @@ import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { AppMessagingService } from './app-messaging.service';
+import { ImpDomainFactoryService, TradeAreaTypes } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -334,13 +335,9 @@ export class ValAudienceTradeareaService {
    * @param location the location that the trade area is associated with
    */
   private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
-    const tradeArea: ImpGeofootprintTradeArea = new ImpGeofootprintTradeArea();
+    const tradeArea = this.domainFactory.createTradeArea(location, -1, TradeAreaTypes.Audience, true);
     tradeArea.impGeofootprintGeos = geos;
-    tradeArea.impGeofootprintLocation = location;
-    tradeArea.taType = 'AUDIENCE';
-    tradeArea.impGeofootprintLocation = location;
     geos.forEach(geo => geo.impGeofootprintTradeArea = tradeArea);
-    location.impGeofootprintTradeAreas.push(tradeArea);
   }
 
   /**
@@ -464,7 +461,8 @@ export class ValAudienceTradeareaService {
     private appConfig: AppConfig,
     private targetAudienceService: TargetAudienceService,
     private targetAudienceTAService: TargetAudienceAudienceTA,
-    private messagingService: AppMessagingService) {
+    private messagingService: AppMessagingService,
+    private domainFactory: ImpDomainFactoryService) {
     this.initializeSortMap();
     this.locationService.storeObservable.subscribe(location => {
       // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
