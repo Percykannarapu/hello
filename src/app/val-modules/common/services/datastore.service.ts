@@ -881,11 +881,13 @@ export class DataStore<T>
 
       // Encode the csvData into a gigantic string
       let csvString: string = '';
-      for (const row of csvData) {
-         let encodedRow = encode(row);
-         encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
-         csvString += encodedRow + '\n';
-      }
+      csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
+  
+      // for (const row of csvData) {
+      //    let encodedRow = encode(row);
+      //    encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
+      //    csvString += encodedRow + '\n';
+      // }
 
       const blob = new Blob(['\ufeff', csvString]);
       const url = URL.createObjectURL(blob);
