@@ -104,7 +104,8 @@ export class TargetAudienceCustomService {
   private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
     let count = 0;
     const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
-    for (const ta of this.tradeAreaService.get()) {
+    const project = this.stateService.currentProject$.getValue();
+    for (const ta of project.getImpGeofootprintTradeAreas()) {
       const geoMap = new Map<string, ImpGeofootprintGeo>();
       for (const geo of ta.impGeofootprintGeos) {
         geoMap.set(geo.geocode, geo);
@@ -188,12 +189,22 @@ export class TargetAudienceCustomService {
     this.messagingService.showGrowlError('Audience Upload Error', message);
   }
 
+  private clearVarsFromHierarchy() {
+    const project = this.stateService.currentProject$.getValue();
+    for (const location of project.impGeofootprintMasters[0].impGeofootprintLocations) {
+      for (const ta of location.impGeofootprintTradeAreas) {
+        ta.impGeofootprintVars = [];
+      }
+    }
+  }
+
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const geoSet = new Set(geocodes);
     const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
+    this.clearVarsFromHierarchy();
     for (const column of identifiers) {
       if (this.dataCache.has(column)) {
         const geoVars = [];
