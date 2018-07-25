@@ -4,7 +4,6 @@ import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { AppGeoService } from './app-geo.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './app-metrics.service';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -19,25 +18,32 @@ export interface Coordinates {
   ycoord: number;
 }
 
+export interface GeoClickEvent {
+  geocode: string;
+  geometry?: {
+    x: number;
+    y: number;
+  };
+}
+
 @Injectable()
 export class AppMapService implements OnDestroy {
+  private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
-  private  currentGeocodes = new Set<string>();
-  //private currentGeocodeList: string[] = [];
-
+  private currentGeocodes = new Set<string>();
   private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
   private highlightHandler: any;
-
   private defaultSymbol: __esri.SimpleFillSymbol;
-  private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private rendererRetries: number = 0;
-  public onReady$: Observable<boolean> = this.isReady.asObservable();
 
-  constructor(private layerService: EsriLayerService,
-              private mapService: EsriMapService, private config: AppConfig,
-              private appGeoService: AppGeoService, private metricsService: ValMetricsService,
+  public onReady$: Observable<boolean> = this.isReady.asObservable();
+  public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
+
+  constructor(private layerService: EsriLayerService, private mapService: EsriMapService,
+              private config: AppConfig, private metricsService: ValMetricsService,
               private appStateService: AppStateService, private queryService: EsriQueryService,
               private messageService: MessageService, private rendererService: AppRendererService,
               private usageService: UsageService) {
@@ -90,33 +96,42 @@ export class AppMapService implements OnDestroy {
 
   public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
     if (geometry == null) {
+      const eventData: GeoClickEvent[] = [];
       const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
       const centroidSub = this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], false, ['geocode', 'latitude', 'longitude']).subscribe(
         graphics => {
           if (graphics && graphics.length > 0) {
-            const point = {
-              x: Number(graphics[0].attributes.latitude),
-              y: Number(graphics[0].attributes.longitude)
+            const event = {
+              geocode: geocode,
+              geometry: {
+                x: Number(graphics[0].attributes.latitude),
+                y: Number(graphics[0].attributes.longitude)
+              }
             };
-            this.appGeoService.toggleGeoSelection(geocode, point);
+            eventData.push(event);
           }
         },
         err => console.error('There was an error querying for a geocode', err),
-        () => { if (centroidSub) centroidSub.unsubscribe(); } );
+        () => {
+          this.geoSelected.next(eventData);
+          if (centroidSub) centroidSub.unsubscribe();
+        } );
     } else {
-      this.appGeoService.toggleGeoSelection(geocode, geometry);
+      this.geoSelected.next([{ geocode, geometry }]);
     }
   }
 
   public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
+    const events: GeoClickEvent[] = [];
     graphicsList.forEach(graphic => {
       const geocode =  graphic.attributes.geocode;
       const latitude = graphic.attributes.latitude;
       const longitude = graphic.attributes.longitude;
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
       this.collectSelectionUsage(graphic, 'ui=multiSelectTool');
-      this.appGeoService.toggleGeoSelection(geocode, point);
+      events.push({ geocode, geometry: point });
     });
+    this.geoSelected.next(events);
   }
 
   /**
@@ -195,7 +210,7 @@ export class AppMapService implements OnDestroy {
       hhc = Number(graphic.attributes.hhld_s);
     }
     //this.currentGeocodeList.push(geocode);
-   
+
     const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (currentProject.estimatedBlendedCpm != null) {

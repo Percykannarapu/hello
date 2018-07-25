@@ -12,9 +12,9 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { calculateStatistics } from '../app.utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { AppGeoService } from './app-geo.service';
 
 export type TradeAreaMergeSpec = 'No Merge' | 'Merge Each' | 'Merge All';
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeSpec = 'Merge Each';
@@ -36,9 +36,9 @@ export class AppTradeAreaService {
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
               private impVarService: ImpGeofootprintVarService,
-              private impGeoAttributeService: ImpGeofootprintGeoAttribService,
               private stateService: AppStateService,
               private layerService: AppLayerService,
+              private appGeoService: AppGeoService,
               private appConfig: AppConfig,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService) {
@@ -146,7 +146,7 @@ export class AppTradeAreaService {
   }
 
   public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean }[], siteType: 'Site' | 'Competitor') : void {
-    if (tradeAreas == null || tradeAreas.length === 0 || tradeAreas.length > 3) {
+    if (tradeAreas == null || tradeAreas.length === 0) {
       console.error('Invalid Trade Area request', { tradeAreas, siteType });
       throw new Error('Invalid Trade Area request');
     }
@@ -200,38 +200,6 @@ export class AppTradeAreaService {
       }
     }); // locations for each
     this.impTradeAreaService.add(newTradeAreas);
-  }
-
-  private deleteTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-    if (tradeAreas == null || tradeAreas.length === 0) return;
-
-    const locationsToProcess = tradeAreas.map(ta => ta.impGeofootprintLocation);
-    const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
-    const attributesToRemove = simpleFlatten(geosToRemove.map(geo => geo.impGeofootprintGeoAttribs));
-    const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
-
-    if (locationsToProcess.length > 0) {
-      const tradeAreaSet = new Set(tradeAreas);
-      // remove the trade areas from the heirarchy - deletes from the store happen below
-      locationsToProcess.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
-    }
-
-    // remove each of the data store items for children
-    if (attributesToRemove.length !== 0) {
-      // Attributes aren't persisted to the DB, so no need for this, but I want to keep it here in case that changes
-      this.impGeoAttributeService.remove(attributesToRemove);
-    }
-
-    if (geosToRemove.length !== 0) {
-      this.impGeoService.remove(geosToRemove);
-    }
-
-    if (varsToRemove.length !== 0) {
-      this.impVarService.remove(varsToRemove);
-    }
-
-    // remove trade areas from data store
-    this.impTradeAreaService.remove(tradeAreas);
   }
 
   private getAllTradeAreas(siteType: 'Site' | 'Competitor') : ImpGeofootprintTradeArea[] {

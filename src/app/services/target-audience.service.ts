@@ -26,13 +26,13 @@ export type nationalSource = (analysisLevel: string, identifier: string) => Obse
   providedIn: 'root'
 })
 export class TargetAudienceService implements OnDestroy {
-  
+
   // This field is being used to maintain the sort order for the audiences grid
   // As each new audience is created it will get assinged the current value
   // of this number and increment it, then when we save this value will be
   // saved in the database and when we load we will know what order to populate the grid in
   public static audienceCounter: number = 0;
-  
+
   private readonly spinnerKey: string = 'TargetAudienceServiceKey';
 
   private newSelectedGeos$: Observable<string[]>;
@@ -52,11 +52,11 @@ export class TargetAudienceService implements OnDestroy {
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
-  constructor(private geoService: AppGeoService, private appStateService: AppStateService,
+  constructor(private appStateService: AppStateService,
     private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
     private usageService: UsageService, private messagingService: AppMessagingService,
     private config: AppConfig, private mapDispatchService: MapDispatchService,
-    private projectVarService: ImpProjectVarService, private restService: RestDataService) {
+    private projectVarService: ImpProjectVarService) {
     const layerId$ = this.appStateService.analysisLevel$.pipe(
       filter(al => al != null && al.length > 0),
       map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id

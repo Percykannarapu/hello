@@ -18,6 +18,8 @@ import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
 import { AppGeoService } from './app-geo.service';
+import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
+import { AppTradeAreaService } from './app-trade-area.service';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +38,7 @@ export class AppLocationService {
               private impLocAttributeService: ImpGeofootprintLocAttribService,
               private appStateService: AppStateService,
               private geocodingService: AppGeocodingService,
-              private geoService: AppGeoService,
+              private appTradeAreaService: AppTradeAreaService,
               private queryService: EsriQueryService,
               private messageService: AppMessagingService,
               private metricsService: MetricService,
@@ -76,23 +78,6 @@ export class AppLocationService {
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
   }
 
-  public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
-    const items: string[] = [
-      `Number=${site.locationNumber}`,
-      `Name=${site.locationName}`,
-      `Street=${site.locAddress}`,
-      `City=${site.locCity}`,
-      `State=${site.locState}`,
-      `ZIP=${site.locZip}`,
-      `X=${site.xcoord}`,
-      `Y=${site.ycoord}`,
-      `Status=${site.recordStatusCode}`,
-      `MatchCode=${site.geocoderMatchCode}`,
-      `LocationCode=${site.geocoderLocationCode}`
-    ];
-    return items.join('~');
-  }
-
   public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
     if (sites == null || sites.length === 0) return;
 
@@ -109,10 +94,6 @@ export class AppLocationService {
     this.impLocationService.remove(sites);
   }
 
-  public notifySiteChanges() : void {
-    this.impLocationService.makeDirty();
-  }
-
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
     return this.geocodingService.geocodeLocations(data, siteType).pipe(
       map(responses => responses.map(r => r.toGeoLocation(siteType, this.appStateService.analysisLevel$.getValue())))
@@ -122,7 +103,7 @@ export class AppLocationService {
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
 
-    data.forEach(l => 
+    data.forEach(l =>
       { if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
         l.impGeofootprintMaster = currentMaster;
       });
@@ -168,7 +149,7 @@ export class AppLocationService {
                       attributeValue: graphic.attributes.geocode,
                       impGeofootprintLocation: loc,
                       isActive: true
-                    }); 
+                    });
                   }
                 }
                 else{
