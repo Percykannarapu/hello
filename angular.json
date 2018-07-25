@@ -94,7 +94,7 @@
             "dev-server": {
               "optimization": true,
               "outputHashing": "all",
-              "sourceMap": false,
+              "sourceMap": true,
               "extractCss": true,
               "namedChunks": false,
               "aot": true,
@@ -124,6 +124,9 @@
             },
             "local-fuse": {
               "browserTarget": "esri-angular-first-look:build:local-fuse"
+            },
+            "dev-server": {
+              "browserTarget": "esri-angular-first-look:build:dev-server"
             }
           }
         },
