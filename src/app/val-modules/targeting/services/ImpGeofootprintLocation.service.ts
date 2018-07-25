@@ -302,10 +302,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       this.impProject = project;
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
-      // if (filename == null){
-      //       const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-      //       filename = 'visit_locations_' + project.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
-      // }
+     
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {
@@ -324,14 +321,17 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
             const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId;
-            this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
             const csvData = this.prepareCSV(exportColumns, locations);
+            this.downloadExport(filename, csvData);
             let csvString: string = '';
-            for (const row of csvData) {
-              let encodedRow = encode(row);
-              encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
-              csvString += encodedRow + '\n';
-            }
+
+            csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
+            // for (const row of csvData) {
+            //   // console.log()
+            //   let encodedRow = '';
+            //   encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
+            //   csvString += encodedRow + '\n';
+            // }
            this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
               console.log('Response from vlh', res);
               if (res.returnCode === 200) {
