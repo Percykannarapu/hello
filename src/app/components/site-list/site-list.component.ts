@@ -34,7 +34,7 @@ export class SiteListComponent implements OnInit {
   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
   public allSiteCount$: Observable<number>;
   public activeSiteCount$: Observable<number>;
- 
+
   public columnOptions: SelectItem[] = [];
   // TODO: Where to put this stuff?
   public allColumns: any[] = [
@@ -113,7 +113,7 @@ export class SiteListComponent implements OnInit {
       header: 'Delete Confirmation',
       icon: 'ui-icon-trash',
       accept: () => {
-        this.removeLocationHierarchy(row);
+        this.siteListService.deleteLocations([row]);
         FileService.uniqueSet.delete(row.locationNumber);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                                                   target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
@@ -126,28 +126,27 @@ export class SiteListComponent implements OnInit {
     });
   }
 
-  
-  public onDelete() {      
-     this.confirmationService.confirm({
+
+  public onDelete() {
+    this.confirmationService.confirm({
       message: 'Do you want to delete all ' + this.selectedListType + 's ?',
       header: 'Delete Confirmation',
-            accept: () => {  
-              const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType);
-              const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-              target: this.selectedListType.toLowerCase() + '-list', action: 'delete' }); 
-              console.log('allLocations values::::::::', allLocations);
-              allLocations[0].impGeofootprintMaster.impGeofootprintLocations = [];  
-              this.removeAllLocationHierarchies(allLocations) ;                      
-             
-              this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
-              
-              this.geoCodingService.failures.next([]);
-              FileService.uniqueSet.clear();
-              this.appStateService.clearUserInterface.next(true);
-              console.log('remove ');
-            }
-    });     
-} 
+      accept: () => {
+        const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType);
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
+          target: this.selectedListType.toLowerCase() + '-list', action: 'delete' });
+        console.log('allLocations values::::::::', allLocations);
+        this.siteListService.deleteLocations(allLocations);
+
+        this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+
+        this.geoCodingService.failures.next([]);
+        FileService.uniqueSet.clear();
+        this.appStateService.clearUserInterface.next(true);
+        console.log('remove ');
+      }
+    });
+  }
 
   public onRowZoom(row: ImpGeofootprintLocation) {
     this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
@@ -163,23 +162,6 @@ export class SiteListComponent implements OnInit {
       result[attr.attributeCode] = attr.attributeValue;
     }
     return [result];
-  }
-
-  public removeLocationHierarchy(location: ImpGeofootprintLocation) {
-    this.geoAttributeService.remove(simpleFlatten(location.getImpGeofootprintGeos().map(geo => geo.impGeofootprintGeoAttribs)));
-    this.geoService.remove(location.getImpGeofootprintGeos());
-    this.tradeAreaService.remove(location.impGeofootprintTradeAreas);
-    this.attributeService.remove(location.impGeofootprintLocAttribs);
-    this.locationService.remove(location);
-  }
-
-  public removeAllLocationHierarchies(locations: ImpGeofootprintLocation[]) {
-    const geosToRemove = completeFlatten<ImpGeofootprintGeo>(locations.map(l => l.getImpGeofootprintGeos()));
-    this.geoAttributeService.remove(simpleFlatten(geosToRemove.map(geo => geo.impGeofootprintGeoAttribs)));
-    this.geoService.remove(geosToRemove);
-    this.tradeAreaService.remove(simpleFlatten(locations.map(l => l.impGeofootprintTradeAreas)));
-    this.attributeService.remove(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
-    this.locationService.remove(locations);
   }
 
   public setLocationHierarchyActiveFlag(location: ImpGeofootprintLocation, isActive: boolean) {
