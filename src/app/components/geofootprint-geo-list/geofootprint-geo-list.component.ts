@@ -23,7 +23,7 @@ import { UsageService } from '../../services/usage.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
-import { groupBy }from "c:/Users/zureickn/Downloads/impower-angular-app/src/app/val-modules/common/common.utils";
+import { groupBy } from '../../val-modules/common/common.utils';
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
