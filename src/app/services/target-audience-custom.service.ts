@@ -210,7 +210,7 @@ export class TargetAudienceCustomService {
         const geoVars = [];
         this.dataCache.get(column).forEach((v, k) => {
           if (geoSet.has(k)) geoVars.push(v);
-          const geoVarValue = v.valueNumber ? v.valueNumber : v.valueString;
+          const geoVarValue = v.valueNumber != null ? v.valueNumber : v.valueString;
           this.createGeofootprintVar(v.geocode, v.customVarExprDisplay, geoVarValue.toString(), v.customVarExprQuery.split('/')[1], geoCache);
         });
         observables.push(of(geoVars));
