@@ -162,7 +162,7 @@ export class AudienceTradeareaComponent implements OnInit {
     this.tileSelectorValues = [];
     this.varSelectorOptions = [];
     this.selectedVar = null;
-    this.scoreTypeOptions = [];
+    //this.scoreTypeOptions = [];
     this.selectedScoreType = 'DMA';
     this.minRadius = null;
     this.maxRadius = null;
