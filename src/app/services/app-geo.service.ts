@@ -471,7 +471,7 @@ export class AppGeoService {
         impGeofootprintLocation: closestLocation,
         taType: 'MANUAL',
         taName: tradeAreaName,
-        taNumber: 0,
+        taNumber: 6,
         isActive: true
       });
       closestLocation.impGeofootprintTradeAreas.push(tradeArea);
