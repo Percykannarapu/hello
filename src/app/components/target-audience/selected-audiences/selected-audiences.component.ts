@@ -43,6 +43,9 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public ngOnInit() : void {
     this.audiences$ = this.varService.audiences$;
+    // .pipe(
+    //   tap(items => console.log('Audience Observable contents:', items))
+    // );
     const sub = this.varService.audiences$.pipe(
       map(audiences => audiences.length > 0)
     ).subscribe(res => this.hasAudiences = res, null, () => {
@@ -77,7 +80,6 @@ export class SelectedAudiencesComponent implements OnInit {
     const mappedAudience = audiences.find(a => a.showOnMap === true);
     console.log('mappedAudience:::', mappedAudience);
     if (mappedAudience != null) {
-
       const analysisLevel = this.appStateService.analysisLevel$.getValue();
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
@@ -121,7 +123,23 @@ export class SelectedAudiencesComponent implements OnInit {
       take(1),
     ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
   }
-
+    
+  onShowGridSelected(audience: AudienceDataDefinition): void{
+    this.varService.updateProjectVars(audience);
+    this.audiences$.pipe(
+      map(a => a.filter(a2 => a2 === audience)),
+      take(1),
+    ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);
+   }
+  
+  onExportInGeoFootprintSelected(audience:AudienceDataDefinition) :void {
+    this.varService.updateProjectVars(audience);
+    this.audiences$.pipe(
+      map(a => a.filter(a2 => a2 === audience)),
+      take(1),
+    ).subscribe(selected => selected[0].exportInGeoFootprint = audience.exportInGeoFootprint);
+   }
+  
   onNationalSelected(audience: AudienceDataDefinition) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(

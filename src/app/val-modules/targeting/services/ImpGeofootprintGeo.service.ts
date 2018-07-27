@@ -28,6 +28,9 @@ import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ImpProjectVar } from '../models/ImpProjectVar';
+import { ImpProjectVarService } from './ImpProjectVar.service';
+import { groupBy } from '../../common/common.utils';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -52,6 +55,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                private messageService: AppMessagingService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
+               private impProjectVarService:ImpProjectVarService,
                public http: HttpClient)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
@@ -758,9 +762,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
    // console.log('exportVar handler for #V-ATTRIBUTES fired');
       const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const allExportGeoVars = this.impGeofootprintVarService.get();
+      const usableVars = new Set(this.impProjectVarService.get()
+                          .filter(pv => pv.isIncludedInGeofootprint)
+                          .map(pv => pv.fieldname));
+      const usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
+      this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
-      allExportGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
+      usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
       attributeNames.sort();
       attributeNames.forEach(name => {
@@ -780,22 +788,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // Populate the attribute cache
       this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
       for (const attr of this.impGeofootprintGeoAttribService.get()) {
-         if (this.attributeCache.has(attr.impGeofootprintGeo)) {
-            this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
-         } else {
-            this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
-         }
-      }
-   
-      this.varCache = new Map<string, ImpGeofootprintVar[]>();
-      for (const geoVar of this.impGeofootprintVarService.get()) {
-         if (this.varCache.has(geoVar.geocode)) {
-            this.varCache.get(geoVar.geocode).push(geoVar);
-         } else {
-            this.varCache.set(geoVar.geocode, [geoVar]);
+         if (this.attributeCache.has(attr.impGeofootprintGeo)) {  
+               this.attributeCache.get(attr.impGeofootprintGeo).push(attr);                     
+            } else {
+                  this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
          }
       }
 
+      this.varCache = new Map<string, ImpGeofootprintVar[]>();
+      for (const geoVar of this.impGeofootprintVarService.get()) {
+            if (this.varCache.has(geoVar.geocode)) {
+               this.varCache.get(geoVar.geocode).push(geoVar);
+            } else {
+               this.varCache.set(geoVar.geocode, [geoVar]);
+            }
+      }
+     
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
          this.messageService.showGrowlError('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');

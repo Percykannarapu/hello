@@ -21,6 +21,9 @@ import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
+import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
+import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
+import { groupBy }from "c:/Users/zureickn/Downloads/impower-angular-app/src/app/val-modules/common/common.utils";
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -139,6 +142,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
+               private impProjectVarService: ImpProjectVarService,
                private usageService: UsageService) { }
 
    ngOnInit()
@@ -483,10 +487,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo['dma'] = attribute.attributeValue;
            });
          }
-
+         
          // Get all of the variables for this geo
-         const geovars = vars.filter(geovar => geovar.geocode === geo.geocode);
-         (geovars || []).forEach(geovar => {
+          const usableVars = new Set(this.impProjectVarService.get()
+                               .filter(pv => pv.isIncludedInGeoGrid)
+                               .map(pv => pv.fieldname));
+          const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
+          const varCache = groupBy(geovars, 'geocode');
+          (geovars || []).forEach(geovar => {
             if (geovar.isString)
                gridGeo[geovar.varPk.toString()] = geovar.valueString;
             else
