@@ -310,7 +310,7 @@ export class TargetAudienceOnlineService {
   private nationalRefreshCallback(source: SourceTypes, analysisLevel: string, identifier: string) : Observable<any[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifier == null || identifier.length === 0)
       return EMPTY;
-    const numericId = Number(identifier);
+    const numericId = Number(identifier);    
     if (Number.isNaN(numericId))
       return throwError({ identifier, msg: `An identifier was passed into the Apio National Extract Refresh function that wasn't a numeric pk` });
     const observables = this.apioDataRefresh(source, analysisLevel, [identifier], ['*']);
@@ -321,9 +321,9 @@ export class TargetAudienceOnlineService {
 
     return merge(...observables, 4).pipe(
       map(data => data.map(d => {
-        const result = { Geocode: d.geocode };
-        result[`${description.audienceName}_DMA`] = Math.round(Number(d.dmaScore));
-        result[`${description.audienceName}_National`] = Math.round(Number(d.nationalScore));
+        const result = { Geocode: d.geocode };    
+        result[`${description.audienceName}_${source}_DMA`] = Math.round(Number(d.dmaScore));      
+        result[`${description.audienceName}_${source}_National`] = Math.round(Number(d.nationalScore));
         return result;
       }))
     );
