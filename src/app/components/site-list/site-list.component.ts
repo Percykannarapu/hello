@@ -39,6 +39,7 @@ export class SiteListComponent implements OnInit {
     { field: 'locZip',               header: 'ZIP',              size: '75px'},
     { field: 'marketName',           header: 'Market',           size: '85px'},
     { field: 'marketCode',           header: 'Market Code',      size: '85px'},
+    { field: 'groupName',            header: 'Group',            size: '85px'},
     { field: 'recordStatusCode',     header: 'Geocode Status',   size: '70px'},
     { field: 'ycoord',               header: 'Latitude',         size: '80px'},
     { field: 'xcoord',               header: 'Longitude',        size: '80px'},
@@ -77,7 +78,7 @@ export class SiteListComponent implements OnInit {
     if (this.selectedListType === 'Site') {
       this.currentAllSites$ = this.siteListService.allClientLocations$;
       this.currentActiveSites$ = this.siteListService.activeClientLocations$;
-    } else {
+      } else {
       this.currentAllSites$ = this.siteListService.allCompetitorLocations$;
       this.currentActiveSites$ = this.siteListService.activeCompetitorLocations$;
     }
