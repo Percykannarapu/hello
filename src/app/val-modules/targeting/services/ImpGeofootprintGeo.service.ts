@@ -848,6 +848,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
             exportColumns.push({ header: 'Market',                       row: (state, data) => data.impGeofootprintLocation.marketName});
             exportColumns.push({ header: 'Market Code',                  row: (state, data) => data.impGeofootprintLocation.marketCode});
+            exportColumns.push({ header: 'Group Name',                   row: (state, data) => data.impGeofootprintLocation.groupName});
             exportColumns.push({ header: 'Passes Filter',                row: 1});
             exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
             exportColumns.push({ header: 'Is User Home Geocode',         row: this.exportVarIsHomeGeocode});

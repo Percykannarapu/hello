@@ -15,14 +15,14 @@ export enum RADCategory {
     AUTO_SERVICE = 'Auto Service/Parts',
     DISCOUNT_STORES = 'Discounts Stores',
     EDUCATION = 'Education',
-    FINANCIAL_SERVICES = 'Financial Services',
+    FINANCIAL_SERVICES = 'Financial Services', // data for this category is not present in IMP_RAD_LOOKUP Table
     FULL_SERVICE_RESTAURANTS = 'Full Service Restaurants',
     HARDWARE_HOME_IMPROVEMENT = 'Hardware_Home Improvement Ctrs',
     HEALTH_AND_BEAUTY = 'Health and Beauty',
     HEALTHCARE = 'Healthcare',
     HEALTHCARE_OPTICAL = 'Healthcare_Optical',
     HOME_FURNISHING_MATTRESS = 'Home Furnishing_Mattress',
-    HOME_SERVICES = 'Home Services',
+    HOME_SERVICES = 'Home Services',    // data for this category is not present in IMP_RAD_LOOKUP Table
     NON_PROFIT = 'Non-profit',
     PROFESSIONAL = 'Professional',
     QUICK_SERVICE_RESTAURANTS = 'Quick Service Restaurants',
