@@ -348,36 +348,7 @@ export class AppMenuComponent implements OnInit {
     }
 
     public openExisting(){
-      const impProject = this.appStateService.currentProject$.getValue();
-      if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
-            this.confirmationService.confirm({
-                message: 'Would you like to save your work before proceeding?',
-                header: 'Save Work',
-                icon: 'ui-icon-save',
-                accept: () => {
-                    // check for required fields
-                 let errorString = '';
-                if (impProject.projectName == null || impProject.projectName == '')
-                     errorString = 'imPower Project Name is required<br>';
-                if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                     errorString += 'Analysis level is required';
-                if (errorString.length !== 0) {
-                    this.messageService.showGrowlError('Error Saving Project', errorString);
-                    return;
-                }
-                        this.saveProject();
-                        this.appProjectService.ngDialog.next(true);
-                },
-                reject: () => {
-                    this.clearProject();
-                    this.appProjectService.ngDialog.next(true);
-                }
-            });
-        }
-        else {
-             this.appProjectService.ngDialog.next(true);
-        }
-
+      this.appProjectService.ngDialog.next(true);
     }
 
     public createNewProject(){

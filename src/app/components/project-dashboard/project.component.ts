@@ -18,6 +18,9 @@ import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { AppMessagingService } from '../../services/app-messaging.service';
+import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 
 
 @Component({
@@ -46,7 +49,10 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
                 private impGeofootprintTradeArea: ImpGeofootprintTradeAreaService,
                 private appTradeAreaService: AppTradeAreaService,
                 private stateService: AppStateService,
-                private usageService: UsageService){
+                private usageService: UsageService,
+                private messageService: AppMessagingService,
+                private impProjectService: ImpProjectService,
+                private confirmationService: ConfirmationService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -282,8 +288,49 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
     }
 
     public loadProject(event: { projectId: number }){
+      const impProject = this.stateService.currentProject$.getValue();
+      const locData = this.impGeofootprintLocationService.get();
+      if ( locData.length > 0 || this.impGeofootprintGeoService.get().length > 0){
+        this.confirmationService.confirm({
+          message: 'Would you like to save your work before proceeding?',
+          header: 'Save Work',
+          icon: 'ui-icon-save',
+          accept: () => {
+            console.log('test accespt', document.getElementById('myDialog'));
+              // check for required fields
+           let errorString = null;
+          if (impProject.projectName == null || impProject.projectName == '')
+               errorString = 'imPower Project Name is required<br>';
+          if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+               errorString += 'Analysis level is required';
+          if (errorString != null) {
+              this.messageService.showGrowlError('Error Saving Project', errorString);
+              return;
+          }
+                  this.impProjectService.saveProject().subscribe(impPro => {
+                    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                    this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
+                    this.onLoadProject(event);
+                  });
+          },
+          reject: (e) => {  
+            console.log('test reject::', e);
+            console.log('test reject', document.getElementById('myDialog'));
+            this.onLoadProject(event); }
+        });
+      }
+      else{
+        this.onLoadProject(event);
+      }
+
+         
+      
+    }
+
+    private onLoadProject(event: { projectId: number }) : void {
+      const locData = this.impGeofootprintLocationService.get();
       this.stateService.loadProject(event.projectId).subscribe(project => {
-        this.onLoadProject(project);
+       // this.onLoadProject(project);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
         this.usageService.createCounterMetric(usageMetricName, null, null);
         this.esriMapService.map.layers.forEach(lyr => {
@@ -292,25 +339,22 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
               console.log('project loaded', project.methAnalysis);
           }
         });
+        const taData = project.getImpGeofootprintTradeAreas();
+        if (taData != null && taData.length > 0) {
+          console.log('Subing to zoom');
+          combineLatest(this.stateService.uniqueIdentifiedGeocodes$, this.stateService.analysisLevel$).pipe(
+            filter(([geos, al]) => geos != null && geos.length > 0 && al != null && al.length > 0),
+            take(1)
+          ).subscribe (() => {
+            console.log('Zooming to TA');
+            this.appTradeAreaService.zoomToTradeArea();
+          });
+        } else {
+          this.appLocationService.zoomToLocations(locData);
+        }
       } );
       this.display = false;
-    }
-
-    private onLoadProject(project: ImpProject) : void {
-      const locData = this.impGeofootprintLocationService.get();
-      const taData = project.getImpGeofootprintTradeAreas();
-      if (taData != null && taData.length > 0) {
-        console.log('Subing to zoom');
-        combineLatest(this.stateService.uniqueIdentifiedGeocodes$, this.stateService.analysisLevel$).pipe(
-          filter(([geos, al]) => geos != null && geos.length > 0 && al != null && al.length > 0),
-          take(1)
-        ).subscribe (() => {
-          console.log('Zooming to TA');
-          this.appTradeAreaService.zoomToTradeArea();
-        });
-      } else {
-        this.appLocationService.zoomToLocations(locData);
-      }
+      
     }
 
     public onSearch(event, count){
@@ -324,6 +368,10 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
       this.usageService.createCounterMetric(usageMetricName, metricText, this.currentProjectData.length);
+    }
+
+    private close(){
+      console.log('close conformation box');
     }
 
     /*public reorderColumn(event){

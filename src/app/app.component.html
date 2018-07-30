@@ -28,7 +28,14 @@
         <app-rightpanel></app-rightpanel>
 
         <p-growl [sticky]="true"></p-growl>
-        <p-confirmDialog appendTo="body" icon="fa fa-question-circle" width="500"></p-confirmDialog>
+        <p-confirmDialog id="myDialog" appendTo=”body” icon="fa fa-question-circle" width="500" [closable]="false" #cd>
+            <p-footer>
+                <button type="button" pButton icon="fa-close" label="No" (click)="cd.reject(true)"></button>
+                <button type="button" pButton icon="fa-check" label="Yes" (click)="cd.accept()"></button>
+                <button  type="button" pButton icon="fa-close" label="cancel" (click)="cd.hide()"></button>
+            </p-footer>
+        </p-confirmDialog>
+        
         <div class="ui-g ui-fluid">
           <p-dialog [closable]="true" [header]="currentSpinnerMessage$ | async" [visible]="currentSpinnerState$ | async" [contentStyle]="{'overflow':'visible'}" width="300">
             <div class="ui-g-3"></div>
