@@ -313,9 +313,9 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
                     this.onLoadProject(event);
                   });
           },
-          reject: (e) => {  
-            console.log('test reject::', e);
-            console.log('test reject', document.getElementById('myDialog'));
+          reject: () => {  
+           // console.log('test reject::', e);
+           // console.log('test reject', document.getElementById('myDialog'));
             this.onLoadProject(event); }
         });
       }
