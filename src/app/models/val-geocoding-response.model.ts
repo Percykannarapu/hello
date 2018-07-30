@@ -14,6 +14,7 @@ export class ValGeocodingResponse {
   Market: string;
   'Market Code': string;
   'Description': string;
+  'Group': string;
   get LatLon() : string { return `${this.Latitude}, ${this.Longitude}`; }
   set LatLon(value: string) {  this.parseLatLon(value); }
   'Original Address': string;
@@ -49,14 +50,14 @@ export class ValGeocodingResponse {
   }
 
   public toGeoLocation(siteType?: string, analysisLevel?: string) : ImpGeofootprintLocation {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP',
-      'Number', 'Name', 'Market', 'Market Code', 'Description', 'Original Address', 'Original City',
-      'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
+
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market','Market Code','Group','Description', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name,
       marketName: this.Market,
       marketCode: this['Market Code'],
       description: this['Description'],
+      groupName: this['Group'],
       locAddress: this.Address,
       locCity: this.City,
       locState: this.State,
