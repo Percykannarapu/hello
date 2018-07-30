@@ -1,105 +1,86 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, merge, of } from 'rxjs';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { map, pairwise, filter, tap, distinctUntilChanged } from 'rxjs/operators';
-import { merge, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { AppMessagingService } from './app-messaging.service';
-import { AppGeoService } from './app-geo.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
+import { FileService, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
 
 @Injectable()
 export class AppGeocodingService {
 
-  public failures: BehaviorSubject<ValGeocodingResponse[]> = new BehaviorSubject<ValGeocodingResponse[]>([]);
-
-  public geocodingFailures$: Observable<ValGeocodingResponse[]> = this.failures.asObservable();
-  public failureCount$: Observable<number> = this.geocodingFailures$.pipe(map(failures => failures.length));
-  public hasFailures$: Observable<boolean> = this.failureCount$.pipe(map(c => c > 0));
+  private duplicateKeyMap = new Map<string, string[]>();
 
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
-              private valGeoService: AppGeoService,
-              private locationService: ImpGeofootprintLocationService,
               private usageService: UsageService,
               private config: AppConfig) {
-    this.failureCount$.pipe(
-      pairwise(),
-      filter(([prevCount, currentCount]) => prevCount < currentCount),
-      map(([prevCount, currentCount]) => currentCount > 0),
-      distinctUntilChanged()
-    ).subscribe(() => this.messageService.showGrowlError('Error', 'Geocoding Error'));
+    this.duplicateKeyMap.set('Site', []);
+    this.duplicateKeyMap.set('Competitor', []);
   }
 
-  public removeFailedGeocode(data: ValGeocodingResponse) : void {
-    const failures = this.failures.getValue();
-    const removedIndex = failures.indexOf(data);
-    if (removedIndex >= 0) {
-      failures.splice(removedIndex, 1);
-      this.failures.next(failures);
+  public createRequestsFromRaw(dataRows: string[], siteType: string, rules: ParseRule[], headerValidator: (found: ParseRule[]) => boolean) : ValGeocodingRequest[] {
+    const header: string = dataRows.shift();
+    let result = [];
+    try {
+      const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, rules, headerValidator, this.duplicateKeyMap.get(siteType));
+      if (data.failedRows.length > 0) {
+        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+        this.messageService.showGrowlError('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
+      }
+      if (data.duplicateKeys.length > 0) {
+        const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
+        const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
+        this.messageService.showGrowlError('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
+      } else {
+        result = data.parsedData.map(d => new ValGeocodingRequest(d));
+        this.duplicateKeyMap.get(siteType).push(...result.map(r => r.number));
+      }
+    } catch (e) {
+      this.messageService.showGrowlError('Geocoding Error', `${e}`);
     }
+    return result;
   }
 
-  public geocodeLocations(sites: ValGeocodingRequest[], siteType: string) : Observable<ValGeocodingResponse[]> {
-    let result$: Observable<ValGeocodingResponse[]>;
-    const preGeoCodedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
-    if (sites.length > preGeoCodedSites.length) {
-      const observables: Observable<ValGeocodingResponse[]>[] = [];
-      const cleanRequestData = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
-      const requestData = chunkArray(cleanRequestData, this.config.maxValGeocodingReqSize);
-      const fail: ValGeocodingResponse[] = [];
+  public getGeocodingResponse(sites: ValGeocodingRequest[], siteType: string) : Observable<ValGeocodingResponse[]> {
+    const providedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
+    const otherSites = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
+    const observables: Observable<ValGeocodingResponse[]>[] = [of(providedSites)];
+    const allLocations: ValGeocodingResponse[] = [];
+
+    if (otherSites.length > 0) {
+      const requestData = chunkArray(otherSites, this.config.maxValGeocodingReqSize);
       requestData.forEach(reqList => {
         const obs = this.restService.post('v1/geocoder/multiplesites', reqList).pipe(
-          map(data => {
-            const success: ValGeocodingResponse[] = [];
-            data.payload.forEach(d => {
-              if (d['Match Quality'] === 'E' || (d['Match Code'].startsWith('E') && !d['Match Quality'].startsWith('Z'))) {
-                d['Geocode Status'] = 'ERROR';
-                fail.push(new ValGeocodingResponse(d));
-              } else if ((d['Match Quality'].startsWith('Z') && !d['Match Quality'].startsWith('ZT9')) /*|| d['Match Code'] === 'Z'*/) {
-                d['Geocode Status'] = 'CENTROID';
-                fail.push(new ValGeocodingResponse(d));
-              } else {
-                d['Geocode Status'] = 'SUCCESS';
-                success.push(new ValGeocodingResponse(d));
-              }
-            });
-            Array.prototype.push.apply(success, preGeoCodedSites);
-            if (success.length + fail.length > 1){
-              const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
-              const metricText = `success=${success.length}~error=${fail.length}`;
-              this.usageService.createCounterMetric(usageMetricName, metricText, success.length + fail.length);
-            }
-           
-            return success;
-          })
+          map(data => data.payload),
+          map(rawData => rawData.map(d => new ValGeocodingResponse(d))),
         );
         observables.push(obs);
       });
-
-      result$ = merge(...observables, 4).pipe(
-        tap(null, null, () => {
-          const projectFailures = this.failures.getValue();
-          this.failures.next([...fail, ...projectFailures]);
-          this.showCompletedMessage();
+    }
+    return merge(...observables, 4).pipe(
+      tap(
+        locations => allLocations.push(...locations),
+        null,
+        () => {
+          const successCount = allLocations.filter(loc => loc['Geocode Status'] === 'SUCCESS' || loc['Geocode Status'] === 'PROVIDED').length;
+          const failCount = allLocations.length - successCount;
+          if (allLocations.length > 1) {
+            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
+            const metricText = `success=${successCount}~error=${failCount}`;
+            this.usageService.createCounterMetric(usageMetricName, metricText, allLocations.length);
+          }
+          if (failCount === 0) {
+            this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
+          } else {
+            this.messageService.showGrowlError('Error', 'Geocoding Error');
+          }
         }),
-      );
-    }
-    if (result$ != null) {
-      return result$;
-    } else {
-      return of(preGeoCodedSites);
-    }
-  }
-
-  private showCompletedMessage() : void {
-    if (this.failures.getValue().length === 0) {
-      this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
-    }
+    );
   }
 }

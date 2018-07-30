@@ -91,7 +91,6 @@ import { UserService } from './services/user.service';
 import { EsriMapComponent } from './components/esri-map/esri-map.component';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
-import { GeocoderComponent } from './components/geocoder/geocoder.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
 import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
 import { EsriMapToolsComponent } from './components/esri-map-tools/esri-map-tools.component';
@@ -100,7 +99,7 @@ import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
 import { DiscoveryInputComponent } from './components/discovery-input/discovery-input.component';
-import { UploadLocationsComponent } from './components/upload-locations/upload-locations.component';
+import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { RestDataInterceptor, RestDataService } from './val-modules/common/services/restdata.service';
 import { TransactionManager } from './val-modules/common/services/TransactionManager.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
@@ -156,6 +155,9 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/onlin
 import { TradeAreaTabComponent } from './components/trade-area-tab/trade-area-tab.component';
 import { DistanceTradeAreaComponent } from './components/trade-area-tab/distance-trade-area/distance-trade-area.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
+import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
+import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
+import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 
 @NgModule({
     imports: [
@@ -248,7 +250,6 @@ import { SiteTypeSelectorComponent } from './components/common/site-type-selecto
         PocMapComponent,
         EsriMapComponent,
         GeofootprintGeoListComponent,
-        GeocoderComponent,
         MessageComponent,
         BusinessSearchComponent,
         EsriLayerSelectComponent,
@@ -270,7 +271,10 @@ import { SiteTypeSelectorComponent } from './components/common/site-type-selecto
         OnlineAudiencePixelComponent,
         TradeAreaTabComponent,
         DistanceTradeAreaComponent,
-        SiteTypeSelectorComponent
+        SiteTypeSelectorComponent,
+        AddLocationsTabComponent,
+        FailedGeocodeGridComponent,
+        ManualEntryComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

@@ -1,0 +1,39 @@
+<p-accordion class="ui-g" [lazy]="true">
+  <p-accordionTab header="Upload">
+    <val-site-type-selector label="Add as:">
+      <site-content>
+        <val-upload-locations label="Select Site File" (upload)="onUpload($event, siteTypes.Site)"></val-upload-locations>
+      </site-content>
+      <competitor-content>
+        <val-upload-locations label="Select Competitor File" (upload)="onUpload($event, siteTypes.Competitor)"></val-upload-locations>
+      </competitor-content>
+    </val-site-type-selector>
+    <val-failed-geocode-grid *ngIf="hasFailures$ | async"
+                              [failedSites]="failures$ | async"
+                              [totalCount]="totalCount$ | async"
+                              (remove)="remove($event)"
+                              (resubmit)="resubmit($event)"
+                              (accept)="accept($event)">
+    </val-failed-geocode-grid>
+  </p-accordionTab>
+  <p-accordionTab header="Manually Add">
+    <val-site-type-selector label="Add as:">
+      <site-content>
+        <val-manual-entry [showLoadButtons]="true" (submitSite)="processSiteRequests($event, siteTypes.Site)"></val-manual-entry>
+      </site-content>
+      <competitor-content>
+        <val-manual-entry [showLoadButtons]="true" (submitSite)="processSiteRequests($event, siteTypes.Competitor)"></val-manual-entry>
+      </competitor-content>
+    </val-site-type-selector>
+    <val-failed-geocode-grid *ngIf="hasFailures$ | async"
+                             [failedSites]="failures$ | async"
+                             [totalCount]="totalCount$ | async"
+                             (remove)="remove($event)"
+                             (resubmit)="resubmit($event)"
+                             (accept)="accept($event)">
+    </val-failed-geocode-grid>
+  </p-accordionTab>
+  <p-accordionTab header="Business Search">
+    <val-business-search>Loading business search component...</val-business-search>
+  </p-accordionTab>
+</p-accordion>

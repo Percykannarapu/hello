@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { map } from 'rxjs/operators';
@@ -9,17 +8,11 @@ import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppMapService } from '../../services/app-map.service';
-import { AppLayerService } from '../../services/app-layer.service';
-import { AppGeoService } from '../../services/app-geo.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
-import { completeFlatten, simpleFlatten } from '../../val-modules/common/common.utils';
 import { AppBusinessSearchService } from '../../services/app-business-search.service';
-import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { FileService } from '../../val-modules/common/services/file.service';
 import { AppStateService } from '../../services/app-state.service';
 
 @Component({
@@ -66,7 +59,6 @@ export class SiteListComponent implements OnInit {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private geoService:  ImpGeofootprintGeoService,
               private geoAttributeService: ImpGeofootprintGeoAttribService,
-              private geoCodingService: AppGeocodingService,
               private appStateService: AppStateService,
               private esriMapService: EsriMapService,
               private usageService: UsageService,
@@ -97,24 +89,13 @@ export class SiteListComponent implements OnInit {
   }
 
   public onRowDelete(row: ImpGeofootprintLocation) {
-    const number = row.locationNumber != null ? 'Number=' + row.locationNumber + '~' : '';
-    const name =   row.locationName   != null ? 'Name=' + row.locationName + '~'     : '';
-    const street = row.locAddress     != null ? 'Street=' + row.locAddress + '~'     : '';
-    const city =   row.locCity        != null ? 'City=' + row.locCity + '~'          : '';
-    const state =  row.locState       != null ? 'State=' + row.locState + '~'        : '';
-    const zip =    row.locZip         != null ? 'ZIP=' + row.locZip + '~'            : '';
-    const market = row.marketName     != null ? 'market=' + row.marketName + '~'     : '';
-    const x =      row.xcoord         != null ? 'X=' + row.xcoord + '~'              : '';
-    const y =     row.ycoord          != null ? 'Y=' + row.ycoord                    : '';
-
-    const metricText = number + name + street + city + state + zip + market + x + y;
+    const metricText = AppLocationService.createMetricTextForLocation(row);
     this.confirmationService.confirm({
       message: 'Do you want to delete this record?',
       header: 'Delete Confirmation',
       icon: 'ui-icon-trash',
       accept: () => {
         this.siteListService.deleteLocations([row]);
-        FileService.uniqueSet.delete(row.locationNumber);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                                                   target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
        this.usageService.createCounterMetric(usageMetricName, metricText, null);
@@ -131,22 +112,16 @@ export class SiteListComponent implements OnInit {
     this.confirmationService.confirm({
       message: 'Do you want to delete all ' + this.selectedListType + 's ?',
       header: 'Delete Confirmation',
-      accept: () => {
-        const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType);
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-          target: this.selectedListType.toLowerCase() + '-list', action: 'delete' });
-        console.log('allLocations values::::::::', allLocations);
-        this.siteListService.deleteLocations(allLocations);
-
-        this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
-
-        this.geoCodingService.failures.next([]);
-        FileService.uniqueSet.clear();
-        this.appStateService.clearUserInterface.next(true);
-        console.log('remove ');
-      }
+            accept: () => {
+              const allLocations = this.locationService.get().filter(a => a.clientLocationTypeCode === this.selectedListType || a.clientLocationTypeCode === `Failed ${this.selectedListType}`);
+              const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
+              target: this.selectedListType.toLowerCase() + '-list', action: 'delete' });
+              this.siteListService.deleteLocations(allLocations);
+              this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+              this.appStateService.clearUserInterface.next(true);
+            }
     });
-  }
+}
 
   public onRowZoom(row: ImpGeofootprintLocation) {
     this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
@@ -172,11 +147,11 @@ export class SiteListComponent implements OnInit {
     location.impGeofootprintTradeAreas.forEach(ta => ta.isActive = isActive);
     location.impGeofootprintLocAttribs.forEach(attr => attr.isActive = isActive);
     location.isActive = isActive;
-    this.geoAttributeService.update(null, null);
-    this.geoService.update(null, null);
-    this.tradeAreaService.update(null, null);
-    this.attributeService.update(null, null);
-    this.locationService.update(null, null);
+    this.geoAttributeService.makeDirty();
+    this.geoService.makeDirty();
+    this.tradeAreaService.makeDirty();
+    this.attributeService.makeDirty();
+    this.locationService.makeDirty();
   }
 
   private setCounts() {

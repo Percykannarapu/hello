@@ -1,24 +1,25 @@
 import { Injectable } from '@angular/core';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { combineLatest, Observable } from 'rxjs';
-import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { AppConfig } from '../app.config';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppMessagingService } from './app-messaging.service';
-import { toUniversalCoordinates } from '../app.utils';
 import { AppStateService, Season } from './app-state.service';
-import { filter, map, withLatestFrom, distinctUntilChanged, tap } from 'rxjs/operators';
-import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpDomainFactoryService, TradeAreaTypes } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -247,10 +248,8 @@ export class AppGeoService {
     }
     const geosToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintGeos));
     const varsToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintVars));
-    const attributesToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
 
-    this.impAttributeService.remove(attributesToDelete);
-    this.impGeoService.remove(geosToDelete);
+    this.deleteGeos(geosToDelete);
     this.varService.remove(varsToDelete);
     tradeAreasToClear.forEach(ta => {
       ta.impGeofootprintVars = [];
@@ -273,16 +272,7 @@ export class AppGeoService {
         const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
         if (currentDistance <= radius && currentDistance > previousRadius) {
           if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
-            const newGeo = new ImpGeofootprintGeo({
-              xcoord: attributes.longitude,
-              ycoord: attributes.latitude,
-              geocode: attributes.geocode,
-              distance: currentDistance,
-              impGeofootprintLocation: ta.impGeofootprintLocation,
-              impGeofootprintTradeArea: ta,
-              isActive: ta.isActive
-            });
-            ta.impGeofootprintGeos.push(newGeo);
+            const newGeo = this.domainFactory.createGeo(ta, attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
             geosToSave.push(newGeo);
           }
         }
@@ -317,7 +307,7 @@ export class AppGeoService {
             const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
             const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
             if (homeGeoTA.length === 0) {
-              const newTA = this.domainFactory.createTradeArea(loc, 3, TradeAreaTypes.HomeGeo, true);
+              const newTA = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo);
               homeGeoTA.push(newTA);
               newTradeAreas.push(newTA);
             }
@@ -420,23 +410,18 @@ export class AppGeoService {
   }
 
   private deselectGeosByGeocode(geocode: string) : void {
-    const taTypesToDeactivate = new Set<string>(['RADIUS', 'AUDIENCE', 'HOMEGEO', 'CUSTOM']);
     const geosToRemove = this.impGeoService.get().filter(geo => geo.geocode === geocode);
-    const geosToDeactivate = geosToRemove.filter(geo => taTypesToDeactivate.has(geo.impGeofootprintTradeArea.taType));
-    const geosToDelete = geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'MANUAL');
-    const attribsToDelete = simpleFlatten(geosToDelete.map(geo => geo.impGeofootprintGeoAttribs));
+    const geosToDelete = new Set(geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'MANUAL'));
+    const geosToDeactivate = geosToRemove.filter(geo => !geosToDelete.has(geo));
     if (geosToDeactivate.length > 0) {
       geosToDeactivate.forEach(geo => geo.isActive = false);
-      if (geosToDelete.length === 0) {
-        this.impAttributeService.update(null, null);
-        this.impGeoService.update(null, null);
+      if (geosToDelete.size === 0) {
+        this.impAttributeService.makeDirty();
+        this.impGeoService.makeDirty();
       }
     }
-    if (geosToDelete.length > 0) {
-      this.impAttributeService.remove(attribsToDelete);
-      this.impAttributeService.addDbRemove(attribsToDelete);
-      this.impGeoService.remove(geosToDelete);
-      this.impGeoService.addDbRemove(geosToDelete);
+    if (geosToDelete.size > 0) {
+      this.deleteGeos(Array.from(geosToDelete));
     }
   }
 
@@ -451,7 +436,6 @@ export class AppGeoService {
   }
 
   private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
-    const tradeAreaName = 'Manual Selection';
     const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     let minDistance = Number.MAX_VALUE;
     const closestLocation = locations.reduce((previous, current) => {
@@ -463,32 +447,12 @@ export class AppGeoService {
         return previous;
       }
     }, null);
-    let tradeArea: ImpGeofootprintTradeArea;
-    const tradeAreas = this.tradeAreaService.get()
-      .filter(ta => ta.taType === 'MANUAL' && ta.taName === tradeAreaName && ta.impGeofootprintLocation === closestLocation && ta.isActive);
-    if (tradeAreas.length === 0) {
-      tradeArea = new ImpGeofootprintTradeArea({
-        impGeofootprintLocation: closestLocation,
-        taType: 'MANUAL',
-        taName: tradeAreaName,
-        taNumber: 6,
-        isActive: true
-      });
-      closestLocation.impGeofootprintTradeAreas.push(tradeArea);
+    let tradeArea = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType === 'MANUAL')[0];
+    if (tradeArea == null) {
+      tradeArea = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.Manual);
       this.tradeAreaService.add([tradeArea]);
-    } else {
-      tradeArea = tradeAreas[0];
     }
-    const newGeo = new ImpGeofootprintGeo({
-      geocode: geocode,
-      xcoord: geometry.x,
-      ycoord: geometry.y,
-      distance: minDistance,
-      impGeofootprintLocation: closestLocation,
-      impGeofootprintTradeArea: tradeArea,
-      isActive: true
-    });
-    tradeArea.impGeofootprintGeos.push(newGeo);
+    const newGeo = this.domainFactory.createGeo(tradeArea, geocode, geometry.x, geometry.y, minDistance);
     this.impGeoService.add([newGeo]);
   }
 

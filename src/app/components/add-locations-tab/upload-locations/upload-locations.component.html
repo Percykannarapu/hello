@@ -1,0 +1,10 @@
+<div class="ui-g-12">
+  <p-fileUpload #fileUpload mode="basic" class="file-upload-align"
+                name="data[]" accept=".csv,.xlsx,.xls" [chooseLabel]="label"
+                pTooltip="CSV or Excel format required" [customUpload]="true"
+                (uploadHandler)="uploadFile($event)" [auto]="true">
+  </p-fileUpload>
+</div>
+<div class="ui-g-12">
+  <a target="_self" href="./assets/sample/sample.csv" download="Sample.csv">Sample Upload template</a>
+</div>

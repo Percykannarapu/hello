@@ -2,8 +2,6 @@ import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from './val-geocoding-request.model';
 
-export const valGeocodingAttributeKey = '_attributes';
-
 export class ValGeocodingResponse {
   Latitude: string;
   Longitude: string;
@@ -29,6 +27,15 @@ export class ValGeocodingResponse {
 
   constructor(initializer: any) {
     Object.assign(this, initializer);
+    if (this['Geocode Status'] !== 'PROVIDED') {
+      if (this['Match Quality'] === 'E' || (this['Match Code'].startsWith('E') && !this['Match Quality'].startsWith('Z'))) {
+        this['Geocode Status'] = 'ERROR';
+      } else if ((this['Match Quality'].startsWith('Z') && !this['Match Quality'].startsWith('ZT9')) /*|| this['Match Code'] === 'Z'*/) {
+        this['Geocode Status'] = 'CENTROID';
+      } else {
+        this['Geocode Status'] = 'SUCCESS';
+      }
+    }
   }
 
   private parseLatLon(value: string) : void {
@@ -42,7 +49,9 @@ export class ValGeocodingResponse {
   }
 
   public toGeoLocation(siteType?: string, analysisLevel?: string) : ImpGeofootprintLocation {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market','Market Code','Description', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP',
+      'Number', 'Name', 'Market', 'Market Code', 'Description', 'Original Address', 'Original City',
+      'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name,
       marketName: this.Market,
@@ -52,8 +61,6 @@ export class ValGeocodingResponse {
       locCity: this.City,
       locState: this.State,
       locZip: this.ZIP,
-      xcoord: Number(this.Longitude),
-      ycoord: Number(this.Latitude),
       origAddress1: this['Original Address'],
       origCity: this['Original City'],
       origState: this['Original State'],
@@ -61,10 +68,16 @@ export class ValGeocodingResponse {
       recordStatusCode: this['Geocode Status'],
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
-      clientLocationTypeCode: siteType,
       clientIdentifierTypeCode: 'PROJECT_ID',
       isActive: true
     });
+    if (result.recordStatusCode === 'SUCCESS' || result.recordStatusCode === 'PROVIDED') {
+      result.clientLocationTypeCode = siteType;
+      result.xcoord = Number(this.Longitude);
+      result.ycoord = Number(this.Latitude);
+    } else {
+      result.clientLocationTypeCode = `Failed ${siteType}`;
+    }
     if (analysisLevel) {
       switch (analysisLevel) {
         case 'ZIP': {
@@ -98,7 +111,7 @@ export class ValGeocodingResponse {
             }
           }
           break;
-        } 
+        }
       }
     }
     if (this.Number != null ) {

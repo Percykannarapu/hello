@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GeocoderComponent } from './geocoder.component';
+import { ManualEntryComponent } from './manual-entry.component';
 
-describe('GeocoderComponent', () => {
-  let component: GeocoderComponent;
-  let fixture: ComponentFixture<GeocoderComponent>;
+describe('ManualEntryComponent', () => {
+  let component: ManualEntryComponent;
+  let fixture: ComponentFixture<ManualEntryComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GeocoderComponent ]
+      declarations: [ ManualEntryComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GeocoderComponent);
+    fixture = TestBed.createComponent(ManualEntryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

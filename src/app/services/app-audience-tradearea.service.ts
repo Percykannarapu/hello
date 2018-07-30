@@ -4,6 +4,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppRendererService, OutlineSetup, SmartRendererSetup } from './app-renderer.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -22,7 +23,7 @@ import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { AppMessagingService } from './app-messaging.service';
-import { ImpDomainFactoryService, TradeAreaTypes } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -335,7 +336,7 @@ export class ValAudienceTradeareaService {
    * @param location the location that the trade area is associated with
    */
   private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
-    const tradeArea = this.domainFactory.createTradeArea(location, -1, TradeAreaTypes.Audience, true);
+    const tradeArea = this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Audience);
     tradeArea.impGeofootprintGeos = geos;
     geos.forEach(geo => geo.impGeofootprintTradeArea = tradeArea);
   }

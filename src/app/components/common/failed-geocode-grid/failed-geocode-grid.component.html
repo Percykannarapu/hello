@@ -1,0 +1,36 @@
+<p-dataTable [value]="failedSites" [rows]="10" [paginator]="true" [editable]="true">
+  <p-header>Detected {{failedSites.length}} geocoding failures out of {{totalCount}} rows</p-header>
+  <p-column header="Resubmit Address">
+    <ng-template let-site="rowData" pTemplate="body">
+      <button (click)="resubmit.emit(site)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
+    </ng-template>
+  </p-column>
+  <p-column header="Accept XY">
+    <ng-template let-site="rowData" pTemplate="body">
+      <button (click)="onAccept(site)" icon="ui-icon-check" [disabled]="!canBeAccepted(site)" pButton style="margin: auto; display: block"></button>
+    </ng-template>
+  </p-column>
+  <p-column header="Remove">
+    <ng-template let-site="rowData" pTemplate="body">
+      <button (click)="remove.emit(site)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
+    </ng-template>
+  </p-column>
+  <p-column field="locationNumber" header="Number" [editable]="false"></p-column>
+  <p-column field="locationName" header="Name" [editable]="false"></p-column>
+  <p-column field="origAddress1" header="Address" [editable]="true"></p-column>
+  <p-column field="origCity" header="City" [editable]="true"></p-column>
+  <p-column field="origState" header="State" [editable]="true"></p-column>
+  <p-column field="origPostalCode" header="ZIP" [editable]="true"></p-column>
+  <p-column field="marketName" header="Market" [editable]="true"></p-column>
+  <p-column field="recordStatusCode" header="Status" [editable]="false"></p-column>
+  <p-column field="coordinates" header="XY" [editable]="true">
+    <ng-template let-site="rowData" pTemplate="body">
+      {{ getCoordinates(site) }}
+    </ng-template>
+    <ng-template let-site="rowData" pTemplate="editor">
+      <textarea pInputTextarea rows="2" cols="10" title="XY" (blur)="setCoordinates($event, site)">{{ getCoordinates(site) }}</textarea>
+    </ng-template>
+  </p-column>
+  <p-column field="geocoderMatchCode" header="Match Code" [editable]="false"></p-column>
+  <p-column field="geocoderLocationCode" header="Location Code" [editable]="false"></p-column>
+</p-dataTable>

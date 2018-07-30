@@ -3,6 +3,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { MenuItem } from 'primeng/primeng';
 import { AppComponent } from './app.component';
 import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
@@ -70,7 +71,8 @@ export class AppMenuComponent implements OnInit {
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
         private mapService: MapService,
-        private layerService: EsriLayerService) { }
+        private layerService: EsriLayerService,
+        private domainFactory: ImpDomainFactoryService) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -454,8 +456,7 @@ export class AppMenuComponent implements OnInit {
 
 
 
-        const newProject = new ImpProject();
-        newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
+        const newProject = this.domainFactory.createProject();
         this.impProjectService.add([newProject]);
 
         //console.log('color box values:::', this.metricService.metrics.entries());

@@ -1,4 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
+import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { siteListUploadRules } from './upload.rules';
 import { FileService, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
 import { FileUpload } from 'primeng/primeng';
@@ -21,7 +22,7 @@ import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
 import { Observable } from 'rxjs/Observable';
 import { filter, take } from 'rxjs/operators';
-import { ImpDomainFactoryService, TradeAreaTypes } from '../../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 
 
 class GeoLocations {
@@ -181,7 +182,7 @@ export class UploadTradeAreasComponent {
 
                   const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
                   if (tas.length <= 0) {
-                     const newTA = this.domainFactory.createTradeArea(loc, 4, TradeAreaTypes.Custom, true);
+                     const newTA = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
                      tradeAreasForInsert.push(newTA);
                      tas.push(newTA);
                   }

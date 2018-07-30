@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnI
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidatorFn } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { distinctUntilChanged, pairwise, startWith } from 'rxjs/operators';
-import { TradeAreaMergeSpec } from '../../../services/app-trade-area.service';
+import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
 
 const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
@@ -14,11 +14,11 @@ const numberOrNull = (value: any) => value == null || value === '' || Number.isN
 })
 export class DistanceTradeAreaComponent implements OnInit, OnChanges {
   @Input() currentTradeAreas: TradeAreaModel[];
-  @Input() currentMergeType: TradeAreaMergeSpec;
+  @Input() currentMergeType: TradeAreaMergeTypeCodes;
   @Input() maxRadius: number;
   @Input() numTradeAreas: number;
 
-  @Output() mergeTypeChange = new EventEmitter<TradeAreaMergeSpec>();
+  @Output() mergeTypeChange = new EventEmitter<TradeAreaMergeTypeCodes>();
   @Output() tradeAreaApply = new EventEmitter<DistanceTradeAreaUiModel>();
 
   radiusForm: FormGroup;
@@ -26,9 +26,9 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
   get mergeType() { return this.radiusForm.get('mergeType'); }
 
   tradeAreaMergeTypes: SelectItem[] = [
-    { label: 'No Merge', value: 'No Merge' },
-    { label: 'Merge Each', value: 'Merge Each' },
-    { label: 'Merge All', value: 'Merge All' }
+    { label: 'No Merge', value: TradeAreaMergeTypeCodes.NoMerge },
+    { label: 'Merge Each', value: TradeAreaMergeTypeCodes.MergeEach },
+    { label: 'Merge All', value: TradeAreaMergeTypeCodes.MergeAll }
   ];
 
   constructor(private fb: FormBuilder) {}

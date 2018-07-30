@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
+import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
@@ -64,7 +65,6 @@ export class AppStateService {
       map(project => project.impGeofootprintMasters[0]),
     ).subscribe(this.currentMaster$ as BehaviorSubject<ImpGeofootprintMaster>);
     this.currentProject$.pipe(
-      //filter(project => project != null && project.methAnalysis != null && project.methAnalysis.length > 0),
       filter(project => project != null),
       map(project => project.methAnalysis),
       distinctUntilChanged(),
@@ -96,12 +96,14 @@ export class AppStateService {
 
   private setupGeocodeObservables() : void {
     this.geoService.storeObservable.pipe(
-      map(geos => geos.filter(g => g.isActive)),
-      map(geos => Array.from(new Set(geos.map(g => g.geocode))))
+      filterArray(geo => geo.isActive),
+      mapArray(geo => geo.geocode),
+      distinctArray()
     ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
 
     this.geoService.storeObservable.pipe(
-      map(geos => Array.from(new Set(geos.map(g => g.geocode))))
+      mapArray(geo => geo.geocode),
+      distinctArray()
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
   }
 
@@ -110,11 +112,11 @@ export class AppStateService {
       map(tas => tas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
     radialTradeAreas$.pipe(
-      map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       map(tas => groupBy(tas, 'taNumber')),
     ).subscribe(this.siteTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
     radialTradeAreas$.pipe(
-      map(tas => tas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
       map(tas => groupBy(tas, 'taNumber'))
     ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
   }

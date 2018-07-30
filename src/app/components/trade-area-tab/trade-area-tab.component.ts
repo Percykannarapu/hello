@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { AppStateService } from '../../services/app-state.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
-import { filter, map, take, tap } from 'rxjs/operators';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { AppTradeAreaService, TradeAreaMergeSpec } from '../../services/app-trade-area.service';
-import { UsageService } from '../../services/usage.service';
-import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs/Observable';
+import { filter, map, take, tap } from 'rxjs/operators';
+import { AppConfig } from '../../app.config';
+import { AppLocationService } from '../../services/app-location.service';
+import { AppMessagingService } from '../../services/app-messaging.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { UsageService } from '../../services/usage.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area/distance-trade-area-ui.model';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
@@ -31,31 +33,34 @@ export class TradeAreaTabComponent implements OnInit {
 
   private readonly defaultTradeArea: TradeAreaModel = { radius: null, isShowing: false, isApplied: false };
 
-  maxTradeAreaCount: number = 3;
+  maxTradeAreaCount: number = this.config.maxRadiusTradeAreas;
+  maxRadius: number = this.config.maxBufferRadius;
+
   siteTradeAreas$: Observable<TradeAreaModel[]>;
   competitorTradeAreas$: Observable<TradeAreaModel[]>;
-  siteMergeType$: Observable<TradeAreaMergeSpec>;
-  competitorMergeType$: Observable<TradeAreaMergeSpec>;
+  siteMergeType$: Observable<TradeAreaMergeTypeCodes>;
+  competitorMergeType$: Observable<TradeAreaMergeTypeCodes>;
 
-  private siteCounts = new Map<'Site' | 'Competitor', number>();
-  private tradeAreaUiCache = new Map<'Site' | 'Competitor', TradeAreaModel[]>();
+  siteTypes = ImpClientLocationTypeCodes;
+
+  private siteCounts = new Map<SuccessfulLocationTypeCodes, number>();
+  private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
 
   constructor(private stateService: AppStateService,
                private messagingService: AppMessagingService,
                private tradeAreaService: AppTradeAreaService,
                private usageService: UsageService,
-               private impLocationService: ImpGeofootprintLocationService) { }
+               private appLocationService: AppLocationService,
+               private config: AppConfig) { }
 
   ngOnInit() {
     // keep track of locations - need this for validation upon submit of radius trade areas
-    this.impLocationService.storeObservable.pipe(
-      filter(locations => locations != null),
-      map(locations => locations.filter(loc => loc.clientLocationTypeCode === 'Site').length)
-    ).subscribe(count => this.siteCounts.set('Site', count));
-    this.impLocationService.storeObservable.pipe(
-      filter(locations => locations != null),
-      map(locations => locations.filter(loc => loc.clientLocationTypeCode === 'Competitor').length)
-    ).subscribe(count => this.siteCounts.set('Competitor', count));
+    this.appLocationService.allClientLocations$.pipe(
+      map(sites => sites.length)
+    ).subscribe(count => this.siteCounts.set(ImpClientLocationTypeCodes.Site, count));
+    this.appLocationService.allCompetitorLocations$.pipe(
+      map(competitors => competitors.length)
+    ).subscribe(count => this.siteCounts.set(ImpClientLocationTypeCodes.Competitor, count));
 
     // keep track of the merge flags
     this.siteMergeType$ = this.tradeAreaService.siteTradeAreaMerge$;
@@ -65,16 +70,16 @@ export class TradeAreaTabComponent implements OnInit {
     this.siteTradeAreas$ = this.stateService.siteTradeAreas$.pipe(
       tradeAreaExtract(this.maxTradeAreaCount),
       mapToUiTradeAreas(this.defaultTradeArea),
-      tap(models => this.tradeAreaUiCache.set('Site', models))
+      tap(models => this.tradeAreaUiCache.set(ImpClientLocationTypeCodes.Site, models))
     );
     this.competitorTradeAreas$ = this.stateService.competitorTradeAreas$.pipe(
       tradeAreaExtract(this.maxTradeAreaCount),
       mapToUiTradeAreas(this.defaultTradeArea),
-      tap(models => this.tradeAreaUiCache.set('Competitor', models))
+      tap(models => this.tradeAreaUiCache.set(ImpClientLocationTypeCodes.Competitor, models))
     );
   }
 
-  onDistanceTradeAreasChanged(newModel: DistanceTradeAreaUiModel, siteType: 'Site' | 'Competitor') {
+  onDistanceTradeAreasChanged(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) {
     // sort the values numerically, putting nulls at the end
     newModel.tradeAreas.sort((a, b) => (a.radius ? Number(a.radius) : Number.MAX_SAFE_INTEGER) - (b.radius ? Number(b.radius) : Number.MAX_SAFE_INTEGER));
     const cachedValue = this.tradeAreaUiCache.get(siteType);
@@ -87,7 +92,7 @@ export class TradeAreaTabComponent implements OnInit {
       this.messagingService.showGrowlError('Trade Area Error', `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s`);
       isValid = false;
     }
-    if (isValid && (currentAnalysisLevel == null || currentAnalysisLevel === '') && siteType === 'Site') {
+    if (isValid && (currentAnalysisLevel == null || currentAnalysisLevel === '') && siteType === ImpClientLocationTypeCodes.Site) {
       this.messagingService.showGrowlError('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
       isValid = false;
     }
@@ -118,7 +123,7 @@ export class TradeAreaTabComponent implements OnInit {
     }
   }
 
-  onDistanceMergeTypeChanged(newMergeType: TradeAreaMergeSpec, siteType: 'Site' | 'Competitor') : void {
+  onDistanceMergeTypeChanged(newMergeType: TradeAreaMergeTypeCodes, siteType: SuccessfulLocationTypeCodes) : void {
     this.tradeAreaService.updateMergeType(newMergeType, siteType);
   }
 }

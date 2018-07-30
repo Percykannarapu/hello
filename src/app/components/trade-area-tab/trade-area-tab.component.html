@@ -3,24 +3,24 @@
     <val-audience-tradearea>Loading Audience Trade Areas...</val-audience-tradearea>
   </p-accordionTab>
   <p-accordionTab header="Distance">
-    <val-site-type-selector>
+    <val-site-type-selector label="Define for:">
       <site-content>
         <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
                                  [currentMergeType]="(siteMergeType$ | async)"
-                                 [maxRadius]="50"
-                                 [numTradeAreas]="3"
-                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, 'Site')"
-                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, 'Site')">
+                                 [maxRadius]="maxRadius"
+                                 [numTradeAreas]="maxTradeAreaCount"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Site)"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)">
           Loading Site Trade Areas...
         </val-distance-trade-area>
       </site-content>
       <competitor-content>
         <val-distance-trade-area [currentTradeAreas]="(competitorTradeAreas$ | async)"
                                  [currentMergeType]="(competitorMergeType$ | async)"
-                                 [maxRadius]="50"
-                                 [numTradeAreas]="3"
-                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, 'Competitor')"
-                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, 'Competitor')">
+                                 [maxRadius]="maxRadius"
+                                 [numTradeAreas]="maxTradeAreaCount"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Competitor)"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Competitor)">
           Loading Competitor Trade Areas...
         </val-distance-trade-area>
       </competitor-content>

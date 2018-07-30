@@ -1,3 +1,4 @@
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingResponse } from './val-geocoding-response.model';
 
 export class ValGeocodingRequest {
@@ -5,7 +6,7 @@ export class ValGeocodingRequest {
   number: string;
   Market: string;
   'Market Code': string;
-  'Description': string;
+  Description: string;
   street: string;
   city: string;
   state: string;
@@ -16,8 +17,17 @@ export class ValGeocodingRequest {
   clientIdentifierId: string;  // Mandatory DB field
   clientLocationId: number;    // Mandatory DB field
 
-  constructor(initializer: any) {
-    Object.assign(this, initializer);
+  constructor();
+  constructor(partial: Partial<ValGeocodingRequest>);
+  constructor(location: ImpGeofootprintLocation, useOriginalAddress?: boolean);
+  constructor(data?: ImpGeofootprintLocation | Partial<ValGeocodingRequest>, useOriginalAddress: boolean = false) {
+    if (data != null) {
+      if (data instanceof ImpGeofootprintLocation) {
+        this.fromLocation(data, useOriginalAddress);
+      } else {
+        Object.assign(this, data);
+      }
+    }
   }
 
   public canBeGeocoded() : boolean {
@@ -26,7 +36,8 @@ export class ValGeocodingRequest {
   }
 
   public hasLatAndLong() : boolean {
-    return this.hasOwnProperty('longitude') && this.hasOwnProperty('latitude') && this.longitude != null && this.latitude != null;
+    const notEmpty = (s: string) => s != null && s.trim() !== '';
+    return notEmpty(this.longitude) && notEmpty(this.latitude);
   }
 
   public cleanUploadRequest() : ValGeocodingRequest {
@@ -36,12 +47,12 @@ export class ValGeocodingRequest {
   }
 
   public toGeocodingResponse() : ValGeocodingResponse {
-    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code','Description', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
+    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code', 'Description', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
     const result = new ValGeocodingResponse({
       Name: this.name,
       Market: this.Market,
       'Market Code': this['Market Code'],
-      'Description': this['Description'],
+      Description: this.Description,
       Number: this.number,
       Address: this.street,
       City: this.city,
@@ -59,4 +70,22 @@ export class ValGeocodingRequest {
     return result;
   }
 
+  private fromLocation(loc: ImpGeofootprintLocation, useOriginal: boolean) {
+    this.name = loc.locationName;
+    this.number = loc.locationNumber;
+    this.Market = loc.marketName;
+    this['Market Code'] = loc.marketCode;
+    this.Description = loc.description;
+    this.street = useOriginal ? loc.origAddress1 : loc.locAddress;
+    this.city = useOriginal ? loc.origCity : loc.locCity;
+    this.state = useOriginal ? loc.origState : loc.locState;
+    this.zip = useOriginal ? loc.origPostalCode : loc.locZip;
+    this.latitude = loc.ycoord == null ? null : loc.ycoord.toLocaleString();
+    this.longitude = loc.xcoord == null ? null : loc.xcoord.toLocaleString();
+    if (loc.impGeofootprintLocAttribs != null) {
+      loc.impGeofootprintLocAttribs.forEach(attribute => {
+        this[attribute.attributeCode] = attribute.attributeValue;
+      });
+    }
+  }
 }

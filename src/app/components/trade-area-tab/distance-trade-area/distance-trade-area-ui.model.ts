@@ -1,8 +1,8 @@
-import { TradeAreaMergeSpec } from '../../../services/app-trade-area.service';
+import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 
 export interface DistanceTradeAreaUiModel {
   tradeAreas: TradeAreaModel[];
-  mergeType: TradeAreaMergeSpec;
+  mergeType: TradeAreaMergeTypeCodes;
 }
 
 export interface TradeAreaModel {

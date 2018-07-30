@@ -23,8 +23,6 @@ export interface ParseResponse<T> {
 
 export class FileService {
 
-  public static uniqueSet: Set<string> = new Set<string>();
-
   constructor() {}
 
   /**
@@ -33,10 +31,11 @@ export class FileService {
    * @param {string[]} dataRows - and array of delimited strings representing the main data of the file
    * @param {ParseRule[]} parsers - an array of rules used to identify which columns go to which output fields, and any manipulations used on those fields
    * @param {(found: ParseRule[]) => boolean} headerValidator - an optional callback that will be called once when all the headers have been identified by the array of parsers
+   * @param {string[]} existingUniqueValues - an array of existing unique values that will be used when processing the file.
    * @param {string} delimiter - the delimiter used in the strings passed in for the headerRow and dataRow. Defaults to a comma.
    * @returns {ParseResponse<T>}
    */
-  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parsers: ParseRule[], headerValidator: (found: ParseRule[]) => boolean = null, delimiter: string = ',') : ParseResponse<T> {
+  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parsers: ParseRule[], headerValidator: (found: ParseRule[]) => boolean = null, existingUniqueValues: string[] = [], delimiter: string = ',') : ParseResponse<T> {
     const parseEngine = FileService.generateEngine(headerRow, parsers, delimiter); // need a duplicate of the parsers array so we don't add flags to he original source
     if (headerValidator != null && !headerValidator(parseEngine)) return null;
     const result: ParseResponse<T> = {
@@ -44,6 +43,7 @@ export class FileService {
       parsedData: [],
       duplicateKeys: []
     };
+    const uniqueSet = new Set<string>(existingUniqueValues);
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -52,7 +52,7 @@ export class FileService {
       let emptyRow: boolean = true;
       for (let column of columns) {
         column = column.replace(/\s/g, '');
-        if (column !== '') { 
+        if (column !== '') {
           emptyRow = false;
         }
       }
@@ -66,10 +66,10 @@ export class FileService {
         for (let j = 0; j < columns.length; ++j) {
           dataResult[parseEngine[j].outputFieldName] = parseEngine[j].dataProcess(columns[j]);
           if (parseEngine[j].mustBeUnique === true) {
-            if (this.uniqueSet.has(dataResult[parseEngine[j].outputFieldName])) {
+            if (uniqueSet.has(dataResult[parseEngine[j].outputFieldName])) {
               result.duplicateKeys.push(dataResult[parseEngine[j].outputFieldName]);
             } else {
-              this.uniqueSet.add(dataResult[parseEngine[j].outputFieldName]);
+              uniqueSet.add(dataResult[parseEngine[j].outputFieldName]);
             }
           }
         }

@@ -25,7 +25,6 @@ export class BusinessSearchComponent implements OnInit {
 
   @Input() disableShowBusiness;
   @Output()
-  showSideBar: EventEmitter<any> = new EventEmitter<any>();
 
   public name: string;  // Used by parent as a header
   public color: any;

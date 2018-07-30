@@ -5,6 +5,7 @@ import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { MapService } from './map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -91,8 +92,8 @@ export class AppLayerService {
     }
   }
 
-  public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: 'No Merge' | 'Merge Each' | 'Merge All') : void {
-    const mergeBuffers = mergeType !== 'No Merge';
+  public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
+    const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
     const pointMap: Map<number, __esri.Point[]> = groupBy(tradeAreas, 'taRadius', ta => {
       const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
       return new EsriModules.Point({ spatialReference: { wkid: this.config.val_spatialReference }, x, y });
