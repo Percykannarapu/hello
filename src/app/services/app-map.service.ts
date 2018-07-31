@@ -12,6 +12,7 @@ import { EsriUtils } from '../esri-modules/core/esri-utils.service';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
+import { filter } from 'rxjs/operators';
 
 export interface Coordinates {
   xcoord: number;
@@ -51,11 +52,16 @@ export class AppMapService implements OnDestroy {
 
     this.mapService.onReady$.subscribe(ready => {
       if (ready) {
+        const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
         this.isReady.next(true);
-        combineLatest(this.appStateService.analysisLevel$, this.rendererService.rendererDataReady$).subscribe(
+        combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
+          filter(() => !this.useWebGLHighlighting)
+        ).subscribe(
           ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
         );
-        combineLatest(this.appStateService.analysisLevel$, this.appStateService.uniqueSelectedGeocodes$).subscribe(
+        combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
+          filter(() => this.useWebGLHighlighting)
+        ).subscribe(
           ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
         );
         this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
@@ -236,7 +242,6 @@ export class AppMapService implements OnDestroy {
   }
 
   private setupRenderer(dataLength: number, currentAnalysisLevel: string) : void {
-    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || this.useWebGLHighlighting) return;
     console.log('setting renderer');
     const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(portalId);
@@ -285,7 +290,6 @@ export class AppMapService implements OnDestroy {
   }
 
   private setHighlight(geocodes: string[], currentAnalysisLevel: string) {
-    if (currentAnalysisLevel == null || currentAnalysisLevel === '' || !this.useWebGLHighlighting) return;
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
     const query = new EsriModules.Query({
