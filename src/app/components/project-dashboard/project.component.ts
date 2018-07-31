@@ -378,7 +378,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
       console.log('close conformation box');
     }
 
-    private accept(){
+    public accept(){
       const impProject = this.stateService.currentProject$.getValue();
       const locData = this.impGeofootprintLocationService.get();
       let errorString = null;
@@ -398,7 +398,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
               });
     }
 
-    private reject(){
+    public reject(){
       this.onLoadProject(this.loadEvent); 
       this.customDialogDisplay = false;
     }
