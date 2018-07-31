@@ -293,7 +293,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
       const impProject = this.stateService.currentProject$.getValue();
       const locData = this.impGeofootprintLocationService.get();
       if ( locData.length > 0 || this.impGeofootprintGeoService.get().length > 0){
-        this.display1 = true;
+        this.customDialogDisplay = true;
         this.loadEvent = event;
        /* this.confirmationService.confirm({
           message: 'Would you like to save your work before proceeding?',
@@ -394,13 +394,13 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
                 const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                 this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
                 this.onLoadProject(this.loadEvent);
-                this.display1 = false;
+                this.customDialogDisplay = false;
               });
     }
 
     private reject(){
       this.onLoadProject(this.loadEvent); 
-      this.display1 = false;
+      this.customDialogDisplay = false;
     }
 
     /*public reorderColumn(event){
