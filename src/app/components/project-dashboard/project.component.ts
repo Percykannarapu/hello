@@ -34,7 +34,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
     public selectedTimeLine = 'sixMonths';
     public todayDate = new Date();
     public display: boolean;
-    public display1: boolean;
+    public customDialogDisplay: boolean;
     public selectedRow;
     public loadEvent: any;
 
