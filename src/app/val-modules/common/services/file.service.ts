@@ -21,6 +21,13 @@ export interface ParseResponse<T> {
   duplicateKeys: string[];
 }
 
+export interface Parser<T> {
+  columnParsers: ParseRule[];
+  columnDelimiter?: string;
+  headerValidator?: (found: ParseRule[]) => boolean;
+  dataValidator?: (currentRow: T) => boolean;
+}
+
 export class FileService {
 
   constructor() {}
@@ -29,15 +36,18 @@ export class FileService {
    * Parses a delimited file into an array of data structures
    * @param {string} headerRow - the delimited row representing the header
    * @param {string[]} dataRows - and array of delimited strings representing the main data of the file
-   * @param {ParseRule[]} parsers - an array of rules used to identify which columns go to which output fields, and any manipulations used on those fields
-   * @param {(found: ParseRule[]) => boolean} headerValidator - an optional callback that will be called once when all the headers have been identified by the array of parsers
+   * @param {Parser<T>} parser - an object encapsulating the rules used to identify which columns go to which output fields, and any manipulations used on those fields
    * @param {string[]} existingUniqueValues - an array of existing unique values that will be used when processing the file.
-   * @param {string} delimiter - the delimiter used in the strings passed in for the headerRow and dataRow. Defaults to a comma.
    * @returns {ParseResponse<T>}
    */
-  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parsers: ParseRule[], headerValidator: (found: ParseRule[]) => boolean = null, existingUniqueValues: string[] = [], delimiter: string = ',') : ParseResponse<T> {
-    const parseEngine = FileService.generateEngine(headerRow, parsers, delimiter); // need a duplicate of the parsers array so we don't add flags to he original source
-    if (headerValidator != null && !headerValidator(parseEngine)) return null;
+  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parser: Parser<T>, existingUniqueValues: string[] = []) : ParseResponse<T> {
+    //set up parser defaults
+    if (parser.columnDelimiter == null) parser.columnDelimiter = ',';
+    if (parser.headerValidator == null) parser.headerValidator = () => true;
+    if (parser.dataValidator == null) parser.dataValidator = () => true;
+
+    const parseEngine = FileService.generateEngine(headerRow, parser); // need a duplicate of the parsers array so we don't add flags to he original source
+    if (!parser.headerValidator(parseEngine)) return null;
     const result: ParseResponse<T> = {
       failedRows: [],
       parsedData: [],
@@ -48,56 +58,56 @@ export class FileService {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
       const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '');
-      const columns = csvRow.split(delimiter);
-      let emptyRow: boolean = true;
-      for (let column of columns) {
-        column = column.replace(/\s/g, '');
-        if (column !== '') {
-          emptyRow = false;
-        }
-      }
-      if (emptyRow) {
-        continue; // US7729: we don't want to flag the row as failed if it was just empty
-      }
+      const columns = csvRow.split(parser.columnDelimiter);
       if (columns.length !== parseEngine.length) {
         result.failedRows.push(dataRows[i]);
       } else {
         const dataResult: T = {} as T;
+        let emptyRowCheck = '';
         for (let j = 0; j < columns.length; ++j) {
-          dataResult[parseEngine[j].outputFieldName] = parseEngine[j].dataProcess(columns[j]);
+          const currentColumnValue = parseEngine[j].dataProcess(columns[j]);
+          dataResult[parseEngine[j].outputFieldName] = currentColumnValue;
+          emptyRowCheck += currentColumnValue.toString().trim();
           if (parseEngine[j].mustBeUnique === true) {
-            if (uniqueSet.has(dataResult[parseEngine[j].outputFieldName])) {
-              result.duplicateKeys.push(dataResult[parseEngine[j].outputFieldName]);
+            if (uniqueSet.has(currentColumnValue)) {
+              result.duplicateKeys.push(currentColumnValue);
             } else {
-              uniqueSet.add(dataResult[parseEngine[j].outputFieldName]);
+              uniqueSet.add(currentColumnValue);
             }
           }
         }
-        result.parsedData.push(dataResult);
+        if (emptyRowCheck.length === 0) continue; // Don't flag the row as failed if it was empty - just ignore it
+        if (parser.dataValidator(dataResult)) {
+          result.parsedData.push(dataResult);
+        } else {
+          result.failedRows.push(dataRows[i]);
+        }
       }
     }
     return result;
   }
 
-  private static generateEngine(headerRow: string, parsers: ParseRule[], delimiter: string) : ParseRule[] {
+  private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {
+    const delimiter = parser.columnDelimiter;
+    const columnParsers = Array.from(parser.columnParsers);
     const regExString = `(".*?"|[^\\s"${delimiter}][^"${delimiter}]+[^\\s"${delimiter}])(?=\\s*${delimiter}|\\s*$)`;
     const regex = new RegExp(regExString, 'gi');
     const headerColumns = headerRow.includes('"') ? headerRow.match(regex) : headerRow.split(delimiter);
     const result: ParseRule[] = [];
-    const requiredHeaders: ParseRule[] = parsers.filter(p => p.required === true);
-    const uniqueHeaders: ParseRule[] = parsers.filter(p => p.mustBeUnique === true);
+    const requiredHeaders: ParseRule[] = columnParsers.filter(p => p.required === true);
+    const uniqueHeaders: ParseRule[] = columnParsers.filter(p => p.mustBeUnique === true);
     // reset the column parser for a new file
-    parsers.forEach(p => {
+    columnParsers.forEach(p => {
       p.found = false;
       if (p.dataProcess == null) p.dataProcess = (data => data);
     });
     for (let i = 0; i < headerColumns.length; ++i) {
       let matched = false;
       if (headerColumns[i].startsWith('"') && headerColumns[i].endsWith('"')) headerColumns[i] = headerColumns[i].substring(1, headerColumns[i].length - 1);
-      for (const parser of parsers) {
-        if (!parser.found && FileService.matchHeader(headerColumns[i], parser)) {
-          parser.found = true;
-          result.push(parser);
+      for (const columnParser of columnParsers) {
+        if (!columnParser.found && FileService.matchHeader(headerColumns[i], columnParser)) {
+          columnParser.found = true;
+          result.push(columnParser);
           matched = true;
           break;
         }

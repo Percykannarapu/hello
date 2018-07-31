@@ -1,7 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { siteListUploadRules } from './upload.rules';
-import { FileService, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
+import { FileService, Parser, ParseResponse } from '../../val-modules/common/services/file.service';
 import { FileUpload } from 'primeng/primeng';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import * as XLSX from 'xlsx';
@@ -24,9 +23,14 @@ import { Observable } from 'rxjs/Observable';
 import { filter, take } from 'rxjs/operators';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 
+const tradeAreaUpload: Parser<ValGeocodingRequest> = {
+  columnParsers: [
+    { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'STORE', required: true},
+    { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'Geo', required: true},
+  ]
+};
 
 class GeoLocations {
-
   constructor(private geocode: string, private location:  ImpGeofootprintLocation, private message?: string){}
   geocode1: string = this.geocode;
   loc: ImpGeofootprintLocation = this.location;
@@ -42,7 +46,6 @@ export class UploadTradeAreasComponent {
   public listType1: string = 'Site';
   private tradeAreasForInsert: ImpGeofootprintTradeArea[] = [];
   public impGeofootprintLocations: ImpGeofootprintLocation[];
-  private csvParseRules: ParseRule[] = siteListUploadRules;
   public failedGeoLocList: GeoLocations[] = [];
   public  geoLocList: GeoLocations[] = [];
   public analysisLevel$: Observable<string>;
@@ -86,10 +89,11 @@ export class UploadTradeAreasComponent {
     this.stateService.uniqueIdentifiedGeocodes$.pipe(
       filter(geos => geos != null && geos.length > 0),
       take(1)
-    ).subscribe (geos => {
-     this.tradeAreaService.zoomToTradeArea();
-  });
+    ).subscribe (() => {
+      this.tradeAreaService.zoomToTradeArea();
+    });
   }
+
   public parseExcelFile(event: any) : void {
     console.log('process excel data::');
 
@@ -128,9 +132,8 @@ export class UploadTradeAreasComponent {
       // Create a counter metric
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
 
-
       // Parse the data into headers and rows
-      const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, this.csvParseRules);
+      const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
       const headerCheck: string[] = header.split(/,/);
 
       // Continue if there are two header columns
@@ -282,15 +285,8 @@ export class UploadTradeAreasComponent {
     } catch (e) {
       this.fileUploadEl1.clear();
      // this.fileUploadEl1.basicFileInput.nativeElement.value = '';
-      this.handleError(`${e}`);
+      console.log('Error during trade area upload', e);
     }
-  }
-
-  private uploadTradeAreas(impGeofootprintLocations) {
-  //Helper method for selecting polys with matched site #
-    this.tradeAreasForInsert = [];
-    console.log('Do the action ::', impGeofootprintLocations);
-
   }
 
   //Create a custom trade area
@@ -304,25 +300,5 @@ export class UploadTradeAreasComponent {
     impGeofootprintGeo.xcoord = point.x;
     impGeofootprintGeo.ycoord = point.y;
     return impGeofootprintGeo;
-
-  }
-
-  private handleError(message: string) : void {
-    //this.displayGcSpinner = false;
-    //  this.messageService.add({ severity: 'error', summary: 'Trade Area Error', detail: message });
-   //  this.appMessageService.showGrowlError(`Trade Area Error:`, `You must select an Analysis Level before uploading a custom trade area.`);
-  }
-
-  private onResubmit(row: GeoLocations){
-    console.log('onResubmit::::', row);
-    let resubmitRecord: string = 'NUMBER,GEO' + '\n';
-    resubmitRecord = resubmitRecord + row.loc.locationNumber + ',' + row.geocode1 + '\n' ;
-    this.onFileUpload(resubmitRecord);
-
-  }
-
-  private onRemove(row: GeoLocations){
-    const index = this.failedGeoLocList.indexOf(row);
-    this.failedGeoLocList.splice(index, 1);
   }
 }

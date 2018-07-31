@@ -9,7 +9,7 @@ import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
-import { FileService, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
+import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 
 @Injectable()
 export class AppGeocodingService {
@@ -24,11 +24,11 @@ export class AppGeocodingService {
     this.duplicateKeyMap.set('Competitor', []);
   }
 
-  public createRequestsFromRaw(dataRows: string[], siteType: string, rules: ParseRule[], headerValidator: (found: ParseRule[]) => boolean) : ValGeocodingRequest[] {
+  public createRequestsFromRaw(dataRows: string[], siteType: string, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {
     const header: string = dataRows.shift();
     let result = [];
     try {
-      const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, rules, headerValidator, this.duplicateKeyMap.get(siteType));
+      const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
       if (data.failedRows.length > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.messageService.showGrowlError('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
