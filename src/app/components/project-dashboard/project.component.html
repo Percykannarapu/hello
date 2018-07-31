@@ -95,6 +95,15 @@
               </div>
     <p-footer>
     </p-footer>
+    <p-dialog  [(visible)]="display1" header="Save Work" [width]="450" [minWidth]="200" [minY]="70">
+        <span>
+                Would you like to save your work before proceeding?
+        </span>
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" (click)="accept()" label="Yes"></button>
+            <button type="button" pButton icon="pi pi-close" (click)="reject()" label="No" class="ui-button-secondary"></button>
+        </p-footer>
+    </p-dialog>    
 </p-dialog>
 
 <!-- <div class="ui-g">

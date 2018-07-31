@@ -34,7 +34,9 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
     public selectedTimeLine = 'sixMonths';
     public todayDate = new Date();
     public display: boolean;
+    public display1: boolean;
     public selectedRow;
+    public loadEvent: any;
 
 
     overlaySub: Subscription;
@@ -291,7 +293,9 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
       const impProject = this.stateService.currentProject$.getValue();
       const locData = this.impGeofootprintLocationService.get();
       if ( locData.length > 0 || this.impGeofootprintGeoService.get().length > 0){
-        this.confirmationService.confirm({
+        this.display1 = true;
+        this.loadEvent = event;
+       /* this.confirmationService.confirm({
           message: 'Would you like to save your work before proceeding?',
           header: 'Save Work',
           icon: 'ui-icon-save',
@@ -317,7 +321,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
            // console.log('test reject::', e);
            // console.log('test reject', document.getElementById('myDialog'));
             this.onLoadProject(event); }
-        });
+        });*/
       }
       else{
         this.onLoadProject(event);
@@ -372,6 +376,31 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
 
     private close(){
       console.log('close conformation box');
+    }
+
+    private accept(){
+      const impProject = this.stateService.currentProject$.getValue();
+      const locData = this.impGeofootprintLocationService.get();
+      let errorString = null;
+      if (impProject.projectName == null || impProject.projectName == '')
+           errorString = 'imPower Project Name is required<br>';
+      if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+           errorString += 'Analysis level is required';
+      if (errorString != null) {
+          this.messageService.showGrowlError('Error Saving Project', errorString);
+          return;
+      }
+              this.impProjectService.saveProject().subscribe(impPro => {
+                const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
+                this.onLoadProject(this.loadEvent);
+                this.display1 = false;
+              });
+    }
+
+    private reject(){
+      this.onLoadProject(this.loadEvent); 
+      this.display1 = false;
     }
 
     /*public reorderColumn(event){
