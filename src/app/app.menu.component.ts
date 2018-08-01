@@ -29,6 +29,8 @@ import { MapService } from './services/map.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
+import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
+import { AppLocationService } from './services/app-location.service';
 
 
 @Component({
@@ -70,7 +72,9 @@ export class AppMenuComponent implements OnInit {
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
         private mapService: MapService,
-        private layerService: EsriLayerService) { }
+        private layerService: EsriLayerService,
+        private domainFactory: ImpDomainFactoryService,
+        private appLocationService: AppLocationService ) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -364,7 +368,10 @@ export class AppMenuComponent implements OnInit {
                     return;
                 }
                         this.saveProject();
-                        this.appProjectService.ngDialog.next(true);
+                        setTimeout(() => {
+                            this.clearProject();
+                            this.appProjectService.ngDialog.next(true);
+                        }, 1000);
                 },
                 reject: () => {
                     this.clearProject();
@@ -425,58 +432,54 @@ export class AppMenuComponent implements OnInit {
     }
 
     public clearProject(){
-       this.esriMapService.map.layers.forEach(lyr => {
-            //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-            if (lyr) {
-              lyr.visible = false;
-              if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-                //this.esriMapService.map.layers.remove(lyr);
-                this.layerService.clearAll();
-              }
-            }
-       });
-       this.appStateService.clearUserInterface.next(true);
-       this.messageService.clearGrowlMessages();
-       //GeocoderComponent.prototype.clearFields();
-       //TradeAreaDefineComponent.prototype.clearTradeArea();
-        this.impGeofootprintGeoService.clearAll();
-        this.attributeService.clearAll();
-        this.impGeofootprintTradeAreaService.clearAll(); //this is not working
-        this.impGeofootprintLocationService.clearAll();
-        this.impGeofootprintLocAttribService.clearAll();
-
+        this.esriMapService.map.layers.forEach(lyr => {
+             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
+             if (lyr) {
+               lyr.visible = false;
+               if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
+                 //this.esriMapService.map.layers.remove(lyr);
+                 this.layerService.clearAll();
+               }
+             }
+        });
+        this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
-        this.impGeofootprintVarService.clearAll();
-        this.impGeofootprintMasterService.clearAll();
-        this.appStateService.clearUserInterface.next(false);
-        //this.impProjectService.clearAll();
-
-
-
-        const newProject = new ImpProject();
-        newProject.impGeofootprintMasters.push(new ImpGeofootprintMaster());
-        this.impProjectService.add([newProject]);
-
-        //console.log('color box values:::', this.metricService.metrics.entries());
-        //I trided to clear the map, but it didnt work, need to get back later
-        this.metricService.metrics.clear();
-        this.metricService.add('CAMPAIGN', 'Household Count', '0');
-        this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
-        this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
-        this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
-
-        this.metricService.add('AUDIENCE', 'Median Household Income', '0');
-        this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
-        this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
-        this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
-
-        this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
-        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
-        this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
-
-        //remove('CAMPAIGN', 'Household Count');
-    }
+        this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+        this.appStateService.clearUserInterface.next(true);
+        this.messageService.clearGrowlMessages();
+        //GeocoderComponent.prototype.clearFields();
+        //TradeAreaDefineComponent.prototype.clearTradeArea();
+         this.impGeofootprintGeoService.clearAll();
+         this.attributeService.clearAll();
+         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
+         this.impGeofootprintLocationService.clearAll();
+         this.impGeofootprintVarService.clearAll();
+         this.impGeofootprintLocAttribService.clearAll();
+         
+         this.appStateService.clearUserInterface.next(false);
+ 
+         const newProject = this.domainFactory.createProject();
+         this.impProjectService.add([newProject]);
+ 
+         //console.log('color box values:::', this.metricService.metrics.entries());
+         //I trided to clear the map, but it didnt work, need to get back later
+         this.metricService.metrics.clear();
+         this.metricService.add('CAMPAIGN', 'Household Count', '0');
+         this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+         this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
+         this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
+ 
+         this.metricService.add('AUDIENCE', 'Median Household Income', '0');
+         this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
+         this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+         this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+ 
+         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
+         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+ 
+     }
 
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
