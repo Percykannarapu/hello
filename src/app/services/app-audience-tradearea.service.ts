@@ -269,6 +269,8 @@ export class ValAudienceTradeareaService {
         YCOORD: location.ycoord,
         HOMEGEOCODE: location.homeGeocode
       };
+      if (taConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
+        taConfig.analysisLevel = 'dtz';
       audienceTALocations.push(taLocation);
     }
     return taConfig;
