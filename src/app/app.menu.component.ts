@@ -367,11 +367,15 @@ export class AppMenuComponent implements OnInit {
                     this.messageService.showGrowlError('Error Saving Project', errorString);
                     return;
                 }
-                        this.saveProject();
-                        setTimeout(() => {
-                            this.clearProject();
-                            this.appProjectService.ngDialog.next(true);
-                        }, 1000);
+                this.impProjectService.saveProject().subscribe(impPro => {
+                    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                    this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
+                    setTimeout(() => {
+                        this.clearProject();
+                        this.appProjectService.ngDialog.next(true);
+                    }, 1000);
+                });
+                        
                 },
                 reject: () => {
                     this.clearProject();
