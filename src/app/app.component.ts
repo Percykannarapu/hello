@@ -85,7 +85,9 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
                 private projectService: ImpProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService,
-                private domainFactory: ImpDomainFactoryService) { }
+                private domainFactory: ImpDomainFactoryService) {
+      console.log('Checking for CI dev commit');
+    }
 
 
     ngOnInit() {
