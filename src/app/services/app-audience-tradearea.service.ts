@@ -87,6 +87,7 @@ export class ValAudienceTradeareaService {
   private lastDigCategoryId: number;
   private lastWeight: number;
   private geoCache: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
+  private failedLocations: ImpGeofootprintLocation[] = [];
 
   /**
    * Create an audience trade are for each location that has been created
@@ -122,6 +123,14 @@ export class ValAudienceTradeareaService {
           this.varService.clearAll();
           for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
             this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
+          }
+          if (this.failedLocations.length > 0) {
+            let warningMessge = 'Unable to find data for the following locations:<br>';
+            for (const failedLoc of this.failedLocations) {
+              warningMessge += failedLoc.locationName + '<br>';
+            }
+            this.messagingService.showGrowlWarning('Audience Trade Area Warning', warningMessge);
+            this.failedLocations = [];
           }
           this.geoService.add(this.geoCache);
           this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, taConfig);
@@ -338,6 +347,10 @@ export class ValAudienceTradeareaService {
    * @param location the location that the trade area is associated with
    */
   private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
+    if (!geos || geos.length < 1 || !location) {
+      console.warn('No geos found when attempting to create AudienceTA');
+      return;
+    }
     const tradeArea = this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Audience);
     tradeArea.impGeofootprintGeos = geos;
     geos.forEach(geo => geo.impGeofootprintTradeArea = tradeArea);
@@ -357,6 +370,7 @@ export class ValAudienceTradeareaService {
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
+      this.failedLocations.push(location);
       return;
     }
     for (let i = 0; i < taResponseMap.size; i++) {
