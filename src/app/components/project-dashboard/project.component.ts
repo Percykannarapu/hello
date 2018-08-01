@@ -358,6 +358,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
         }
       } );
       this.display = false;
+      this.selectedListType = 'myProject';
       
     }
 
