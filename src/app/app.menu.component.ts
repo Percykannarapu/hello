@@ -30,6 +30,7 @@ import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpG
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 import { AppLocationService } from './services/app-location.service';
+import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 
 
 @Component({
