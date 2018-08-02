@@ -1,45 +1,44 @@
 <div class="ui-g">
-    <div class="ui-g-5">
-      <div class="ui-g-12">
-        <div class="ui-g-3">
-          <label>Define for:</label>
-        </div>
-        <div class="ui-g-3">
-          <p-radioButton name="uploadListType1" value="Site" label="Sites" [(ngModel)]="listType1"></p-radioButton>
-        </div>
-        <div class="ui-g-5">
-          <p-radioButton name="uploadListType1" value="Competitor" label="Competitors" [(ngModel)]="listType1"></p-radioButton>
-        </div>
+  <div class="ui-g-5">
+    <div class="ui-g-12">
+      <div class="ui-g-3">
+        <label>Define for:</label>
       </div>
-      <div class="ui-g-12">
-          <div class="ui-g-6">
-              <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="!(analysisLevel$ | async)"
-                            pTooltip="CSV or Excel format required: Location #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
-              </p-fileUpload>
-              <div *ngIf="!(analysisLevel$ | async)" class="warning-label" >
-                Please select an Analysis Level before uploading a custom trade area
-              </div>
-            </div>
+      <div class="ui-g-3">
+        <p-radioButton name="uploadListType1" value="Site" label="Sites" [(ngModel)]="listType1"></p-radioButton>
+      </div>
+      <div class="ui-g-5">
+        <p-radioButton name="uploadListType1" value="Competitor" label="Competitors" [(ngModel)]="listType1"></p-radioButton>
       </div>
     </div>
-          <div *ngIf="failedGeoLocList.length > 0" class="ui-g-7">
-      <p-dataTable [value]="failedGeoLocList" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
-        <p-header>Detected {{(failedGeoLocList.length) || 0}} {{analysisLevel$ | async}} upload failures out of {{geoLocList.length}} rows</p-header>
-        <!-- <p-column field="Number" [hidden]="true"></p-column> -->
-        <p-column field="geocode" header="Geocode" [editable]="true"></p-column>
-        <p-column field="loc.locationNumber" header="Number" [editable]="true"></p-column>
-        <p-column field="message" header="Status" [editable]="false"></p-column>
-
-        <p-column header="Resubmit">
-          <ng-template let-h="rowData" pTemplate="body">
-            <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
-          </ng-template>
-        </p-column>
-        <p-column header="Remove">
-          <ng-template let-h="rowData" pTemplate="body">
-            <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
-          </ng-template>
-        </p-column>
-      </p-dataTable>
+    <div class="ui-g-12">
+      <div class="ui-g-6">
+        <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="!(currentAnalysisLevel$ | async)"
+                      pTooltip="CSV or Excel format required: Location #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
+        </p-fileUpload>
+        <div *ngIf="!(currentAnalysisLevel$ | async)" class="warning-label" >
+          Please select an Analysis Level before uploading a custom trade area
+        </div>
+      </div>
     </div>
   </div>
+  <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
+    <p-dataTable [value]="uploadFailures" [rows]="5" [paginator]="true" [editable]="true" [immutable]="false">
+      <p-header>Detected {{(uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows</p-header>
+      <p-column field="geocode" header="Geocode" [editable]="true"></p-column>
+      <p-column field="store" header="Number" [editable]="true"></p-column>
+      <p-column field="message" header="Status" [editable]="false"></p-column>
+
+      <p-column header="Resubmit">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onResubmit(h)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+      </p-column>
+      <p-column header="Remove">
+        <ng-template let-h="rowData" pTemplate="body">
+          <button (click)="onRemove(h)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
+        </ng-template>
+      </p-column>
+    </p-dataTable>
+  </div>
+</div>
