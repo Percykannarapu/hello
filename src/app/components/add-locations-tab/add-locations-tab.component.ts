@@ -8,7 +8,7 @@ import { UsageService } from '../../services/usage.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { siteListUploadRules, siteUploadHeaderValidator } from './upload.rules';
+import { siteListUpload } from './upload.rules';
 import { AppMessagingService } from '../../services/app-messaging.service';
 
 @Component({
@@ -17,8 +17,8 @@ import { AppMessagingService } from '../../services/app-messaging.service';
 })
 export class AddLocationsTabComponent implements OnInit {
 
-  hasFailures$ = this.appLocationService.hasFailures$;
-  totalCount$ = this.appLocationService.totalCount$;
+  hasFailures$: Observable<boolean>;
+  totalCount$: Observable<number>;
   failures$: Observable<ImpGeofootprintLocation[]>;
 
   siteTypes = ImpClientLocationTypeCodes;
@@ -34,10 +34,12 @@ export class AddLocationsTabComponent implements OnInit {
     this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
       map(([sites, competitors]) => [...sites, ...competitors])
     );
+    this.hasFailures$ = this.appLocationService.hasFailures$;
+    this.totalCount$ = this.appLocationService.totalCount$;
   }
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
-    const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUploadRules, siteUploadHeaderValidator);
+    const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
     this.processSiteRequests(requests, siteType);
   }
 
@@ -66,8 +68,8 @@ export class AddLocationsTabComponent implements OnInit {
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-    const pluralizer = sites.length > 1 ? 's' : '';
-    this.messageService.startSpinnerDialog(this.spinnerKey, `Geocoding ${sites.length} ${siteType}${pluralizer}`);
+    const pluralize = sites.length > 1 ? 's' : '';
+    this.messageService.startSpinnerDialog(this.spinnerKey, `Geocoding ${sites.length} ${siteType}${pluralize}`);
     const locationCache: ImpGeofootprintLocation[] = [];
     this.appLocationService.geocode(sites, siteType).subscribe(
       locations => locationCache.push(...locations),

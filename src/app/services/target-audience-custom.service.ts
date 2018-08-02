@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FileService, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
+import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppMessagingService } from './app-messaging.service';
 import { UsageService } from './usage.service';
@@ -14,9 +14,11 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 
-const audienceUploadRules: ParseRule[] = [
-  { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
-];
+const audienceUpload: Parser<CustomAudienceData> = {
+  columnParsers: [
+    { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
+  ]
+};
 
 interface CustomAudienceData {
   geocode: string;
@@ -62,9 +64,9 @@ export class TargetAudienceCustomService {
     if (loading) return; // loading will be false when the load is actually done
     try {
       const project = this.stateService.currentProject$.getValue();
-      const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
-      const geocodes: string[] = project.getImpGeofootprintGeos().map(geo => geo.geocode);
-      const columnNames: Set<string> = new Set<string>();
+      // const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
+      // const geocodes: string[] = project.getImpGeofootprintGeos().map(geo => geo.geocode);
+      // const columnNames: Set<string> = new Set<string>();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom').length > 0) {
         this.projectVarService.clearAll();
         this.projectVarService.add(project.impProjectVars);
@@ -82,7 +84,7 @@ export class TargetAudienceCustomService {
             audienceCounter: projectVar.sortOrder
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
-          columnNames.add(audience.audienceName);
+          // columnNames.add(audience.audienceName);
           const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
           const geoMap = new Map<string, ImpGeofootprintVar>();
           for (const geoVar of relatedGeoVars) {
@@ -126,7 +128,7 @@ export class TargetAudienceCustomService {
     }
     const result = new ImpGeofootprintVar({ geocode, varPk: newVarPk, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {
-      result.valueString = (value === 'null')? ' ' : value;
+      result.valueString = (value === 'null') ? ' ' : value;
       result.fieldconte = 'CHAR';
       result.isString = true;
     } else {
@@ -151,7 +153,7 @@ export class TargetAudienceCustomService {
     const header: string = rows.shift();
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
-      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData<CustomAudienceData>(header, rows, audienceUploadRules);
+      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
       const failCount = data.failedRows.length;
       const successCount = data.parsedData.length;
 
