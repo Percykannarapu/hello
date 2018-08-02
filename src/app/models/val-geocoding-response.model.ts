@@ -57,6 +57,7 @@ export class ValGeocodingResponse {
       marketName: this.Market != null ? this.Market.trim() : '',
       marketCode: this['Market Code'] != null ? this['Market Code'].trim() : '',
       description: this['Description'] != null ? this['Description'].trim() : '',
+      groupName: this['Group'] != null ? this['Group'].trim() : '',
       locAddress: this.Address,
       locCity: this.City,
       locState: this.State,
