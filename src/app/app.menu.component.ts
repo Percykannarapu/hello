@@ -393,6 +393,9 @@ export class AppMenuComponent implements OnInit {
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
                   this.clearProject();
+                  setTimeout(() => {
+                    this.clearProject();
+                  }, 1000);
                 }
             });
         }

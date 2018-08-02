@@ -119,6 +119,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
         if (result.userId != null){
           this.overlaySub = this.appProjectService.getngDialogObs().subscribe(bool => {
             this.display = bool;
+            this.selectedListType = 'myProject';
               const updatedateFrom = this.todayDate;
               const updatedDateTo = new Date();
               updatedateFrom.setMonth(updatedateFrom.getMonth() - 6);
