@@ -422,9 +422,13 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
     }
 
     public reject(){
-      this.onLoadProject(this.loadEvent); 
-      this.customDialogDisplay = false;
       this.clearProject();
+      setTimeout(() => {
+        this.onLoadProject(this.loadEvent); 
+        this.customDialogDisplay = false;
+        }, 1000);
+     
+      
     }
 
     public clearProject(){
