@@ -21,6 +21,13 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
+import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
+import { MetricService } from '../../val-modules/common/services/metric.service';
+import { ImpGeofootprintMasterService } from '../../val-modules/targeting/services/ImpGeofootprintMaster.service';
+import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 
 @Component({
@@ -54,7 +61,15 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
                 private usageService: UsageService,
                 private messageService: AppMessagingService,
                 private impProjectService: ImpProjectService,
-                private confirmationService: ConfirmationService){
+                private confirmationService: ConfirmationService,
+                private layerService: EsriLayerService,
+                public metricService: MetricService,
+                private domainFactory: ImpDomainFactoryService,
+                private attributeService: ImpGeofootprintGeoAttribService,
+                private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
+                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+                private impGeofootprintVarService: ImpGeofootprintVarService,
+                private impGeofootprintMasterService: ImpGeofootprintMasterService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -394,31 +409,69 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
               this.impProjectService.saveProject().subscribe(impPro => {
                 const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                 this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
-                this.onLoadProject(this.loadEvent);
                 this.customDialogDisplay = false;
+                setTimeout(() => {
+                  this.clearProject();
+                  }, 100);
+               
+                setTimeout(() => {
+                  this.onLoadProject(this.loadEvent);
+                  }, 1000);
+                
               });
     }
 
     public reject(){
       this.onLoadProject(this.loadEvent); 
       this.customDialogDisplay = false;
+      this.clearProject();
     }
 
-    /*public reorderColumn(event){
-      console.log('event fired for column alter');
-      let i = 0;
-        const newOrderedColumns = [];
-        for (const col of this.selectedColumns){
-            if (event.newValue == i) {
-              newOrderedColumns.push(event.column);
-              newOrderedColumns.push(col);
-            }else if (event.prevValue == i) {
+    public clearProject(){
+      this.esriMapService.map.layers.forEach(lyr => {
+           //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
+           if (lyr) {
+             lyr.visible = false;
+             if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
+               //this.esriMapService.map.layers.remove(lyr);
+               this.layerService.clearAll();
+             }
+           }
+      });
+      this.impGeofootprintMasterService.clearAll();
+      this.impProjectService.clearAll();
+      this.appProjectService.clearAll();
+      this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+      this.stateService.clearUserInterface.next(true);
+      this.messageService.clearGrowlMessages();
+      //GeocoderComponent.prototype.clearFields();
+      //TradeAreaDefineComponent.prototype.clearTradeArea();
+       this.impGeofootprintGeoService.clearAll();
+       this.attributeService.clearAll();
+       this.impGeofootprintTradeAreaService.clearAll(); //this is not working
+       this.impGeofootprintLocationService.clearAll();
+       this.impGeofootprintVarService.clearAll();
+       this.impGeofootprintLocAttribService.clearAll();
+       
+       this.stateService.clearUserInterface.next(false);
 
-            }else {
-              newOrderedColumns.push(col);
-          }
-          ++i;
-        }
-        this.selectedColumns = newOrderedColumns;
-    }*/
+       const newProject = this.domainFactory.createProject();
+       this.impProjectService.add([newProject]);
+
+       this.metricService.metrics.clear();
+       this.metricService.add('CAMPAIGN', 'Household Count', '0');
+       this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+       this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
+       this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
+
+       this.metricService.add('AUDIENCE', 'Median Household Income', '0');
+       this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
+       this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+       this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+
+       this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
+       this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+       this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+
+   }
   }
