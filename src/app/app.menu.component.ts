@@ -381,7 +381,7 @@ export class AppMenuComponent implements OnInit {
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
-                   // this.clearProject();
+                    this.clearProject();
                     setTimeout(() => {
                         this.clearProject();
                     }, 1000);
