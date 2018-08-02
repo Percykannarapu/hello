@@ -381,7 +381,7 @@ export class AppMenuComponent implements OnInit {
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
-                   // this.clearProject();
+                    this.clearProject();
                     setTimeout(() => {
                         this.clearProject();
                     }, 1000);
@@ -393,6 +393,9 @@ export class AppMenuComponent implements OnInit {
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
                   this.clearProject();
+                  setTimeout(() => {
+                    this.clearProject();
+                  }, 1000);
                 }
             });
         }
@@ -414,32 +417,39 @@ export class AppMenuComponent implements OnInit {
         this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
-        this.impGeofootprintVarService.clearAll();
-        this.impGeofootprintLocAttribService.clearAll();
-        
-        this.appStateService.clearUserInterface.next(false);
-
-        const newProject = this.domainFactory.createProject();
-        this.impProjectService.add([newProject]);
-
-        //console.log('color box values:::', this.metricService.metrics.entries());
-        //I trided to clear the map, but it didnt work, need to get back later
-        this.metricService.metrics.clear();
-        this.metricService.add('CAMPAIGN', 'Household Count', '0');
-        this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
-        this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
-        this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
-
-        this.metricService.add('AUDIENCE', 'Median Household Income', '0');
-        this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
-        this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
-        this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
-
-        this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
-        this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
-        this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
-
-    }
+        this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+        this.appStateService.clearUserInterface.next(true);
+        this.messageService.clearGrowlMessages();
+        //GeocoderComponent.prototype.clearFields();
+        //TradeAreaDefineComponent.prototype.clearTradeArea();
+         this.impGeofootprintGeoService.clearAll();
+         this.attributeService.clearAll();
+         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
+         this.impGeofootprintLocationService.clearAll();
+         this.impGeofootprintVarService.clearAll();
+         this.impGeofootprintLocAttribService.clearAll();
+         
+         this.appStateService.clearUserInterface.next(false);
+  
+         const newProject = this.domainFactory.createProject();
+         this.impProjectService.add([newProject]);
+  
+         this.metricService.metrics.clear();
+         this.metricService.add('CAMPAIGN', 'Household Count', '0');
+         this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
+         this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
+         this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
+  
+         this.metricService.add('AUDIENCE', 'Median Household Income', '0');
+         this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
+         this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+         this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+  
+         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
+         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
+  
+     }
 
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
