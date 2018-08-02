@@ -3,7 +3,6 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { MenuItem } from 'primeng/primeng';
 import { AppComponent } from './app.component';
 import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
-import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
@@ -30,6 +29,8 @@ import { MapService } from './services/map.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
+import { AppLocationService } from './services/app-location.service';
+import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 
 
 @Component({
@@ -72,7 +73,8 @@ export class AppMenuComponent implements OnInit {
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
         private mapService: MapService,
         private layerService: EsriLayerService,
-        private domainFactory: ImpDomainFactoryService) { }
+        private domainFactory: ImpDomainFactoryService,
+        private appLocationService: AppLocationService) { } 
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -379,7 +381,7 @@ export class AppMenuComponent implements OnInit {
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
-                    this.clearProject();
+                   // this.clearProject();
                     setTimeout(() => {
                         this.clearProject();
                     }, 1000);
@@ -397,35 +399,25 @@ export class AppMenuComponent implements OnInit {
 
     }
 
-    public clearProject(){
-       this.esriMapService.map.layers.forEach(lyr => {
-            //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-            if (lyr) {
-              lyr.visible = false;
-              if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-                //this.esriMapService.map.layers.remove(lyr);
-                this.layerService.clearAll();
-              }
-            }
-       });
-       this.appStateService.clearUserInterface.next(true);
-       this.messageService.clearGrowlMessages();
-       //GeocoderComponent.prototype.clearFields();
-       //TradeAreaDefineComponent.prototype.clearTradeArea();
-        this.impGeofootprintGeoService.clearAll();
-        this.attributeService.clearAll();
-        this.impGeofootprintTradeAreaService.clearAll(); //this is not working
-        this.impGeofootprintLocationService.clearAll();
-        this.impGeofootprintLocAttribService.clearAll();
 
+    public clearProject(){
+        this.esriMapService.map.layers.forEach(lyr => {
+             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
+             if (lyr) {
+               lyr.visible = false;
+               if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
+                 //this.esriMapService.map.layers.remove(lyr);
+                 this.layerService.clearAll();
+               }
+             }
+        });
+        this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
         this.impGeofootprintVarService.clearAll();
-        this.impGeofootprintMasterService.clearAll();
+        this.impGeofootprintLocAttribService.clearAll();
+        
         this.appStateService.clearUserInterface.next(false);
-        //this.impProjectService.clearAll();
-
-
 
         const newProject = this.domainFactory.createProject();
         this.impProjectService.add([newProject]);
@@ -447,7 +439,6 @@ export class AppMenuComponent implements OnInit {
         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
 
-        //remove('CAMPAIGN', 'Household Count');
     }
 
     private saveProject(){
