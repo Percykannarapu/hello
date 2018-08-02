@@ -117,7 +117,7 @@ import { AuthService } from './services/auth.service';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { TargetAudienceService } from './services/target-audience.service';
-import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { AppDiscoveryService } from './services/app-discovery.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceMetricService } from './services/target-audience-metric.service';
 import { AppGeocodingService } from './services/app-geocoding.service';
@@ -287,7 +287,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
       // from val-modules
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
-      ImpGeofootprintLocAttribService, ImpDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
+      ImpGeofootprintLocAttribService, AppDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
       MetricService, RestDataService, TransactionManager,
       // from primeng
       MessageService, ConfirmationService,

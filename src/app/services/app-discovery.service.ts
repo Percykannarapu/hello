@@ -1,0 +1,273 @@
+
+/** A temporary service to manage the ImpDiscoveryUI model data
+ **
+ ** This class contains code operates against data in its data store.
+ ** See the contents of val-modules/common/services/datastore.service.ts to see built in
+ ** methods that all data services have.
+ **
+ **/
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { filter, map, take, tap } from 'rxjs/operators';
+import { AppStateService } from './app-state.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
+import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
+import { filterByFields, mapBy } from '../val-modules/common/common.utils';
+
+export interface ProjectTrackerData {
+  projectId: number;
+  projectName: string;
+  targetor: string;
+  clientName: string;
+  accountNumber: string;
+}
+
+export class CounterMetrics {
+  constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
+  ) { }
+}
+
+@Injectable()
+export class AppDiscoveryService {
+  private radCacheRetrieved: boolean = false;
+  private radCache: ImpRadLookup[] = [];
+  private currentRadSuggestions = new BehaviorSubject<ImpRadLookup[]>([]);
+  private selectedRadLookup = new BehaviorSubject<ImpRadLookup>(null);
+  public radSearchSuggestions$: Observable<ImpRadLookup[]> = this.currentRadSuggestions.asObservable();
+  public selectedRadLookup$: Observable<ImpRadLookup> = this.selectedRadLookup.asObservable();
+
+  private trackerCacheRetrieved: boolean = false;
+  private trackerCache: ProjectTrackerData[] = [];
+  private currentTrackerSuggestions = new BehaviorSubject<ProjectTrackerData[]>([]);
+  private selectedProjectTracker = new BehaviorSubject<ProjectTrackerData>(null);
+  public trackerSearchSuggestions$: Observable<ProjectTrackerData[]> = this.currentTrackerSuggestions.asObservable();
+  public selectedProjectTracker$: Observable<ProjectTrackerData> = this.selectedProjectTracker.asObservable();
+
+  private readonly radCategoryCodes: { name: string, code: string }[];
+  public radCategoryCodeByName: Map<string, string>;
+  public radCategoryNameByCode: Map<string, string>;
+
+  constructor(private restDataService: RestDataService,
+               private appStateService: AppStateService,
+               private impRadService: ImpRadLookupService) {
+    this.radCategoryCodes = [
+      { name: 'N/A',                            code: 'NA'},
+      { name: 'Auto Service/Parts',             code: 'AS03'},
+      { name: 'Discounts Stores',               code: 'DS01'},
+      { name: 'Education',                      code: 'ED01'},
+      { name: 'Financial Services',             code: 'FS01'},
+      { name: 'Full Service Restaurants',       code: 'FSR03'},
+      { name: 'Hardware_Home Improvement Ctrs', code: 'HI03'},
+      { name: 'Health and Beauty',              code: 'HB01'},
+      { name: 'Healthcare',                     code: 'HC01'},
+      { name: 'Healthcare_Optical',             code: 'OP01'},
+      { name: 'Home Furnishing_Mattress',       code: 'HF01'},
+      { name: 'Home Services',                  code: 'HS01'},
+      { name: 'Non-profit',                     code: 'NP01'},
+      { name: 'Professional',                   code: 'PF01'},
+      { name: 'QSR Pizza',                      code: 'QSR01'},
+      { name: 'Quick Service Restaurants',      code: 'FSR01'},
+      { name: 'Reminder',                       code: 'REM'},
+      { name: 'Research',                       code: 'RES'},
+      { name: 'Ritual',                         code: 'RIT'},
+      { name: 'Specialty Stores',               code: 'SP01'},
+      { name: 'Telecommunications',             code: 'TE03'},
+    ];
+    this.radCategoryCodeByName = mapBy(this.radCategoryCodes, 'name', (r) => r.code);
+    this.radCategoryNameByCode = mapBy(this.radCategoryCodes, 'code', (r) => r.name);
+    this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => this.setSelectedValues(project));
+  }
+
+  private setSelectedValues(project: ImpProject) {
+    if (project.radProduct != null && project.industryCategoryCode != null) {
+      this.selectRadProduct(project);
+    }
+    if (project.projectTrackerId != null) {
+      this.selectProjectTracker(project);
+    }
+  }
+
+  private selectRadProduct(project: ImpProject) {
+    if (!this.radCacheRetrieved) {
+      this.getRadData().subscribe(null, null, () => this.selectRadProduct(project));
+    } else {
+      const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
+      if (radItem != null) this.selectedRadLookup.next(radItem);
+    }
+  }
+
+  private selectProjectTracker(project: ImpProject) {
+    if (!this.trackerCacheRetrieved) {
+      this.getProjectTrackerData().subscribe(null, null, () => this.selectProjectTracker(project));
+    } else {
+      const trackerItem = this.trackerCache.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
+      if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
+    }
+  }
+
+  private formatDate(date) : string {
+    const zeroPad = Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 }).format;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
+  }
+
+  private getProjectTrackerData() : Observable<ProjectTrackerData[]> {
+    const updatedDateTo = new Date();
+    updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+    const updatedDateFrom = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+    return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
+            TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
+      map((result: any) => result.payload.rows),
+      tap(
+        data => this.trackerCache.push(...data),
+        err => {
+          console.error('There was an error retrieving the Project Tracker Cache', err);
+          this.trackerCacheRetrieved = true;
+        },
+        () => {
+          this.trackerCacheRetrieved = true;
+        })
+    );
+  }
+
+  private getRadData() : Observable<ImpRadLookup[]> {
+    const result = this.impRadService.storeObservable.pipe(
+      filter(data => data != null && data.length > 0),
+      take(1),
+      tap(
+        data => {
+          data.forEach(d => d['Category Code'] = this.radCategoryCodeByName.get(d.category));
+          this.radCache.push(...data);
+        },
+        err => {
+          console.error('There was an error retrieving the Project Tracker Cache', err);
+          this.radCacheRetrieved = true;
+        },
+        () => {
+          this.radCacheRetrieved = true;
+          this.sortRadCache();
+        })
+    );
+    this.impRadService.get(true);
+    return result;
+  }
+
+  private sortRadCache() : void {
+    const excludeSet = new Set(['reminder', 'research', 'ritual']);
+    this.radCache.sort((a, b) => {
+      const result = a.category.localeCompare(b.category, undefined, {});
+      const aExcluded = excludeSet.has(a.category.toLowerCase());
+      const bExcluded = excludeSet.has(b.category.toLowerCase());
+      if (aExcluded === bExcluded) return result;
+      if (aExcluded && !bExcluded) return 1;
+      return -1;
+    });
+  }
+
+  public discoveryUsageMetricsCreate(actionName: string) : CounterMetrics[] {
+    const impProject: ImpProject = this.appStateService.currentProject$.getValue();
+    const counterMetrics = [];
+    let usageMetricName = null;
+
+    if (impProject.radProduct != null || impProject.radProduct != '') {
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'product', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, impProject.radProduct, null));
+    }
+    if (impProject.industryCategoryCode != null || impProject.industryCategoryCode != '') {
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'category', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, impProject.industryCategoryCode, null));
+    }
+    if (impProject.methAnalysis != null) {
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'analysis-level', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, impProject.methAnalysis, null));
+    }
+    if (impProject.estimatedBlendedCpm != null) {
+      const blendedCpm = impProject.estimatedBlendedCpm != null ? impProject.estimatedBlendedCpm : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'blended-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, blendedCpm));
+    }
+    if (impProject.smValassisCpm != null) {
+      const valassisCpm = impProject.smValassisCpm != null ? impProject.smValassisCpm : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'valassis-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, valassisCpm));
+    }
+    if (impProject.smAnneCpm != null) {
+      const anneCPM = impProject.smAnneCpm != null ? impProject.smAnneCpm : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'anne-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, anneCPM));
+    }
+    if (impProject.smSoloCpm != null) {
+      const soloCpm = impProject.smSoloCpm != null ? impProject.smSoloCpm : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'solo-cpm', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, soloCpm));
+    }
+    if (impProject.totalBudget != null) {
+      const totalBudget = impProject.totalBudget != null ? impProject.totalBudget : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'dollar-budget', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, totalBudget));
+    }
+    if (impProject.isCircBudget) {
+      const circBudget = impProject.totalBudget != null ? impProject.totalBudget : null;
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'circ-budget', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, null, circBudget));
+    }
+    if (impProject.impGeofootprintMasters[0].methSeason != null) {
+      usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'season', action: actionName });
+      counterMetrics.push(new CounterMetrics(usageMetricName, impProject.impGeofootprintMasters[0].methSeason, null));
+    }
+    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-pob-geo', action: actionName });
+    const ispob = impProject.isExcludePob ? 1 : 0;
+    counterMetrics.push(new CounterMetrics(usageMetricName, ispob.toString(), null));
+
+    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-valassis-geo', action: actionName });
+    const isvalGeo = impProject.isIncludeValassis ? 1 : 0;
+    counterMetrics.push(new CounterMetrics(usageMetricName, isvalGeo.toString(), null));
+
+    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-anne-geo', action: actionName });
+    const isAnneGeo = impProject.isIncludeAnne ? 1 : 0;
+    counterMetrics.push(new CounterMetrics(usageMetricName, isAnneGeo.toString(), null));
+
+    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'include-solo-geo', action: actionName });
+    const isSoloGeo = impProject.isIncludeSolo ? 1 : 0;
+    counterMetrics.push(new CounterMetrics(usageMetricName, isSoloGeo.toString(), null));
+
+    return counterMetrics;
+  }
+
+  public updateTrackerSuggestions(searchTerm: string) {
+    if (!this.trackerCacheRetrieved) {
+      // need to populate the cache before filtering suggestions
+      this.getProjectTrackerData().subscribe(null, null, () => this.updateTrackerSuggestions(searchTerm));
+    } else {
+      // cache exists, filter suggestions
+      if (searchTerm == null || searchTerm.trim().length === 0) {
+        this.currentTrackerSuggestions.next(Array.from(this.trackerCache));
+      } else {
+        const foundItems = this.trackerCache.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
+        this.currentTrackerSuggestions.next(foundItems);
+      }
+    }
+  }
+
+  public updateRadSuggestions(searchTerm: string) {
+    console.log('Updating Rad Suggestions', this);
+    if (!this.radCacheRetrieved) {
+      // need to populate the cache before filtering suggestions
+      this.getRadData().subscribe(null, null, () => this.updateRadSuggestions(searchTerm));
+    } else {
+      // cache exists, filter suggestions
+      if (searchTerm == null || searchTerm.trim().length === 0) {
+        this.currentRadSuggestions.next(Array.from(this.radCache));
+      } else {
+        const foundItems = this.radCache.filter(filterByFields(searchTerm, ['category', 'product']));
+        this.currentRadSuggestions.next(foundItems);
+      }
+    }
+  }
+}

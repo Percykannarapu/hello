@@ -4,7 +4,7 @@
     <div class="ui-g card">
       <div class="ui-g-4">
         <span class="md-inputfield">
-          <input id="projectId" type="text" pInputText [disabled]="true" value="{{impProject?.projectId}}" class="val-full-width">
+          <input id="projectId" type="text" pInputText class="val-full-width" formControlName="projectId">
           <label for="projectId">imPower ID</label>
         </span>
       </div>
@@ -19,15 +19,18 @@
 
       <div class="ui-g-10">
         <span class="md-inputfield">
-          <p-autoComplete id="projectTrackerLookup" [suggestions]="trackerDataFiltered" (onSelect)="onProjectTrackerSelect($event)" (completeMethod)="filterProjectTracker($event)"
-                          [minLength]="3" [dropdown]="true" formControlName="projectTrackerData" field="display"
-                          inputStyleClass="val-full-width" styleClass="val-full-width">
+          <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
+                          [minLength]="3" [dropdown]="true" formControlName="selectedProjectTracker"
+                          [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
+            <ng-template let-trackerItem pTemplate="item">
+              {{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})
+            </ng-template>
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>
         </span>
       </div>
       <div class="ui-g-2">
-        <button pButton type="button" (click)="refreshProjectTrackerData()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
+        <button pButton type="button" (click)="refreshTrackerData.emit()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
       </div>
 
       <div class="ui-g-4">
@@ -40,11 +43,14 @@
     <div class="ui-g card">
       <div class="ui-g-10">
         <span class="md-inputfield">
-          <p-autoComplete id="radLookup" [minLength]="0" [dropdown]="true" [suggestions]="radDataFiltered" field="display"
-                          (completeMethod)="filterRadData($event)" styleClass="val-full-width" inputStyleClass="val-full-width"
-                          formControlName="selectedRadLookupValue">
+          <p-autoComplete id="radLookup" styleClass="val-full-width" inputStyleClass="val-full-width"
+                          [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup"
+                          [suggestions]="radSuggestions" (completeMethod)="radSearchRequest.emit($event.query)">
+            <ng-template let-radItem pTemplate="item">
+              {{radItem.category}}&nbsp;-&nbsp;{{radItem.product}}
+            </ng-template>
           </p-autoComplete>
-          <label for="radLookup">Performance Prediction Category-Product</label>
+          <label for="radLookup">Performance Prediction Category - Product</label>
         </span>
       </div>
     </div>
@@ -106,7 +112,7 @@
           </div>
           <div class="ui-g-12 val-grid-no-pad-left">
             <span class="ui-float-label">
-              <input id="circBudget" type="text" formControlName="circBudget" pInputText>
+              <input id="circBudget" type="text" formControlName="circulationBudget" pInputText>
               <label for="circBudget">Circ Budget</label>
             </span>
           </div>
@@ -116,7 +122,7 @@
         </div>
         <div class="ui-g-11 ui-g-offset-1">
           <div class="ui-g-12 val-grid-no-pad-left">
-            <p-radioButton name="cpmType" value="blended" label="Blended" formControlName="cpmType"></p-radioButton>
+            <p-radioButton name="cpmType" [value]="cpmTypes.Blended" label="Blended" formControlName="cpmType"></p-radioButton>
           </div>
           <div class="ui-g-11 ui-g-offset-1">
             <div class="ui-g-12">
@@ -127,7 +133,7 @@
             </div>
           </div>
           <div class="ui-g-12 val-grid-no-pad-left">
-            <p-radioButton name="cpmType" value="ownerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
+            <p-radioButton name="cpmType" [value]="cpmTypes.OwnerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
           </div>
           <div class="ui-g-11 ui-g-offset-1">
             <div class="ui-g-12">

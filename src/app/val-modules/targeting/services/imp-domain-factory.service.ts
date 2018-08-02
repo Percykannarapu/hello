@@ -37,10 +37,11 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createLocation(parent: ImpGeofootprintMaster) : ImpGeofootprintLocation {
+  createLocation(parent: ImpGeofootprintMaster, locationInfo: Partial<ImpGeofootprintLocation>) : ImpGeofootprintLocation {
     if (parent == null) throw new Error('Location factory requires a valid ImpGeofootprintMaster instance');
-    const result = new ImpGeofootprintLocation();
+    const result = new ImpGeofootprintLocation(locationInfo);
     result.impGeofootprintMaster = parent;
+    parent.impGeofootprintLocations.push(result);
     return result;
   }
 

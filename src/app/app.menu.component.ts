@@ -8,7 +8,7 @@ import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION }
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './services/usage.service';
 import { TargetAudienceService } from './services/target-audience.service';
-import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { AppDiscoveryService } from './services/app-discovery.service';
 import { MetricService } from './val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Subject } from 'rxjs';
@@ -56,7 +56,7 @@ export class AppMenuComponent implements OnInit {
         public impGeofootprintLocationService: ImpGeofootprintLocationService,
         private audienceService: TargetAudienceService,
         public usageService: UsageService,
-        public impDiscoveryService: ImpDiscoveryService,
+        public impDiscoveryService: AppDiscoveryService,
         public metricService: MetricService,
         private appStateService: AppStateService,
         private confirmationService: ConfirmationService,

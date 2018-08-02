@@ -13,7 +13,7 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { AppMapService, Coordinates } from './app-map.service';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { AppDiscoveryService } from './app-discovery.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { AppConfig } from '../app.config';
 import { RestResponse } from '../models/RestResponse';

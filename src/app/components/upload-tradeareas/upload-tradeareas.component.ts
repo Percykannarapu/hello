@@ -1,4 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
+import { mapBy } from '../../val-modules/common/common.utils';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
 import { FileUpload } from 'primeng/primeng';
 import * as XLSX from 'xlsx';
@@ -31,7 +32,8 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
   columnParsers: [
     { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'store', required: true},
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true},
-  ]
+  ],
+  headerValidator: (found: ParseRule[]) => found.length === 2
 };
 
 @Component({
@@ -118,8 +120,7 @@ export class UploadTradeAreasComponent {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     try {
-      const headerValidation = (found: ParseRule[]) => found.length === 2;
-      const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload, headerValidation);
+      const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
       if (data != null) {
         const failedCount = data.failedRows ? data.failedRows.length : 0;
         const successCount = data.parsedData ? data.parsedData.length : 0;
@@ -143,30 +144,28 @@ export class UploadTradeAreasComponent {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
-    const cleanTradeAreas = new Set<TradeAreaDefinition>();
-    const locationNumberMap: Map<string, ImpGeofootprintLocation>  = new Map<string, ImpGeofootprintLocation>();
-    this.totalUploadedRowCount += data.length;
+    const allLocations: ImpGeofootprintLocation[] = this.impGeofootprintLocationService.get();
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const matchedTradeAreas = new Set<TradeAreaDefinition>();
 
-    this.impGeofootprintLocationService.get().forEach(loc => {
-      locationNumberMap.set(loc.locationNumber.toString(), loc);
-    });
+    this.totalUploadedRowCount += data.length;
 
     // make sure we can find an associated location for each uploaded data row
     data.forEach(taDef => {
-      if (locationNumberMap.has(taDef.store)){
-        cleanTradeAreas.add(taDef);
+      if (locationsByNumber.has(taDef.store)){
+        matchedTradeAreas.add(taDef);
       } else {
         taDef.message = 'Site number not found';
         this.uploadFailures = [...this.uploadFailures, taDef];
       }
     });
-    this.usageService.createCounterMetric(usageMetricName, `success~=${cleanTradeAreas.size}~error=${this.uploadFailures.length}`, data.length - 1);
+    this.usageService.createCounterMetric(usageMetricName, `success~=${matchedTradeAreas.size}~error=${this.uploadFailures.length}`, data.length - 1);
 
     const outfields = ['geocode', 'latitude', 'longitude'];
     const queryResult = new Map<string, {latitude: number, longitude: number}>();
-    const geosToQuery = new Set(Array.from(cleanTradeAreas).map(ta => ta.geocode));
+    const geosToQuery = new Set(Array.from(matchedTradeAreas).map(ta => ta.geocode));
 
-    const sub1 = this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
+    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
       map(graphics => graphics.map(g => g.attributes)),
       map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
     ).subscribe(
@@ -175,13 +174,13 @@ export class UploadTradeAreasComponent {
       () => {
         const geosToAdd: ImpGeofootprintGeo[] = [];
         const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
-        cleanTradeAreas.forEach(ta => {
+        matchedTradeAreas.forEach(ta => {
           // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
           if (!queryResult.has(ta.geocode)) {
             ta.message = 'Geocode not found';
             this.uploadFailures = [...this.uploadFailures, ta];
           } else {
-            const loc = locationNumberMap.get(ta.store);
+            const loc = locationsByNumber.get(ta.store);
             const layerData = queryResult.get(ta.geocode);
             // make sure the lat/lon data from the layer is valid
             if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
@@ -191,10 +190,10 @@ export class UploadTradeAreasComponent {
               const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
               let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType === TradeAreaTypeCodes.Custom)[0];
               if (currentTradeArea == null) {
-                currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom, true, 4);
+                currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
                 tradeAreasToAdd.push(currentTradeArea);
               }
-              const newGeo = this.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
+              const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
               geosToAdd.push(newGeo);
             }
           }
@@ -202,52 +201,6 @@ export class UploadTradeAreasComponent {
         // stuff all the results into appropriate data stores
         this.impGeoService.add(geosToAdd);
         this.impGeofootprintTradeAreaService.add(tradeAreasToAdd);
-        if (sub1) sub1.unsubscribe();
       });
   }
-
-  private createGeo(ta: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number) : ImpGeofootprintGeo {
-    const result: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-    result.geocode = geocode;
-    result.isActive = ta.isActive;
-    result.impGeofootprintLocation = ta.impGeofootprintLocation;
-    result.impGeofootprintTradeArea = ta;
-    result.distance = distance;
-    result.xcoord = x;
-    result.ycoord = y;
-    ta.impGeofootprintGeos.push(result);
-    return result;
-  }
 }
-
-// results => {
-//   graphics.forEach(graphic => {
-//     if (geoLocMap.has(graphic.attributes['geocode'])){
-//       const geocode = graphic.attributes['geocode'];
-//       const loc: ImpGeofootprintLocation = geoLocMap.get(geocode);
-//       geocodeResultSet.add(geocode);
-//       const latitude: number = graphic.attributes['latitude'];
-//       const longitude: number = graphic.attributes['longitude'];
-//       const geocodeDistance: number = EsriUtils.getDistance(longitude, latitude, loc.xcoord, loc.ycoord);
-//       const point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-//       const geoData = data.parsedData.filter(g => g.Geo === geocode);
-//       if (geoData.length > 0) {
-//
-//         const tas = tradeAreasForInsert.filter(ta => ta.impGeofootprintLocation === loc);
-//         if (tas.length <= 0) {
-//           const newTA = this.domainFactory.createTradeArea(loc, 4, TradeAreaTypes.Custom, true);
-//           tradeAreasForInsert.push(newTA);
-//           tas.push(newTA);
-//         }
-//
-//         geoData.forEach(geo => {
-//           tas.forEach(ta => {
-//             const newGeo = this.createGeo(geocodeDistance, point, loc, ta, graphic.attributes['geocode']);
-//             ta.impGeofootprintGeos.push(newGeo);
-//             geosToAdd.push(newGeo);
-//           });
-//         });
-//       }
-//     }
-//   });
-// },

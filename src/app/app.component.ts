@@ -4,8 +4,6 @@ import { AppConfig } from './app.config';
 import {Message} from 'primeng/primeng';
 import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
-import { ImpProject } from './val-modules/targeting/models/ImpProject';
-import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 
@@ -85,9 +83,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
                 private projectService: ImpProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService,
-                private domainFactory: ImpDomainFactoryService) {
-      console.log('Checking for CI dev commit');
-    }
+                private domainFactory: ImpDomainFactoryService) { }
 
 
     ngOnInit() {

@@ -16,7 +16,7 @@ import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
-import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { AppDiscoveryService } from '../../services/app-discovery.service';
 import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -138,7 +138,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
-               private impDiscoveryService: ImpDiscoveryService,
+               private impDiscoveryService: AppDiscoveryService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,

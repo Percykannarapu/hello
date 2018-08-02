@@ -45,3 +45,8 @@ export namespace TradeAreaMergeTypeCodes {
     return TradeAreaMergeTypeCodes[code];
   }
 }
+
+export enum ProjectCpmTypeCodes {
+  Blended,
+  OwnerGroup
+}
