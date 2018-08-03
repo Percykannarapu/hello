@@ -30,6 +30,26 @@ export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>
 }
 
 /**
+ * Maps an array by the contents of a field identified by its name
+ * Note this method assumes that there will only be one instance for each key value
+ * @param {T[]} items: The array to group
+ * @param {K} fieldName: The name of the field to extract grouping info from
+ * @param {(T) => R} itemTransformer: Optional callback to transform each item before the final grouping
+ * @returns {Map<T[K], T>}
+ */
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer: (T) => R) : Map<T[K], R>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer?: (T) => R) : Map<T[K], (T | R)> {
+  const result = new Map<T[K], (T | R)>();
+  if (items == null || items.length === 0) return result;
+  const tx: ((T) => T | R) = itemTransformer != null ? itemTransformer : (i) => i;
+  items.forEach(i => {
+    result.set(i[fieldName], tx(i));
+  });
+  return result;
+}
+
+/**
  * Flattens a two dimensional array. Use completeFlatten() for an 3+ or arbitrary dimensional array
  * @param {T[][]} items
  * @returns {T[]}
@@ -56,3 +76,13 @@ export function completeFlatten<T>(items: any[]) : T[] {
   return arr;
 }
 
+
+export function filterByFields<T, K extends keyof T>(searchTerm: string, fieldsToSearch: K[]) : (value: T, index: number, array: T[]) => boolean {
+  return (value: T, index: number, array: T[]) => {
+    for (const fieldName of fieldsToSearch) {
+      const match = value[fieldName] != null ? value[fieldName].toString().toLowerCase().includes(searchTerm.toLowerCase()) : false;
+      if (match) return true; // break out early if we find a match
+    }
+    return false; // no matches were found
+  };
+}

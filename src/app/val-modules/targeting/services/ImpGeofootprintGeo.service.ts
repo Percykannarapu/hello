@@ -758,13 +758,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return result;
    }
 
+   private getProjectVarFieldName(pv: ImpProjectVar) : string {
+     if (pv.source.includes('Online')) {
+       const sourceName = pv.source.split('_')[1];
+       return `${pv.fieldname} (${sourceName})`;
+     } else {
+       return pv.fieldname;
+     }
+   }
+
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
    // console.log('exportVar handler for #V-ATTRIBUTES fired');
       const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
       const usableVars = new Set(this.impProjectVarService.get()
                           .filter(pv => pv.isIncludedInGeofootprint)
-                          .map(pv => pv.fieldname));
+                          .map(pv => this.getProjectVarFieldName(pv)));
       const usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
       this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));

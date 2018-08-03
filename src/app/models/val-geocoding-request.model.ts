@@ -37,7 +37,7 @@ export class ValGeocodingRequest {
   }
 
   public hasLatAndLong() : boolean {
-    const notEmpty = (s: string) => s != null && s.trim() !== '';
+    const notEmpty = (s: any) => s != null && s.toString().trim() !== '';
     return notEmpty(this.longitude) && notEmpty(this.latitude);
   }
 

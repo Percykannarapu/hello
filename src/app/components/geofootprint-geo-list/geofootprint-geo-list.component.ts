@@ -16,7 +16,7 @@ import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
-import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
+import { AppDiscoveryService } from '../../services/app-discovery.service';
 import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -138,7 +138,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
-               private impDiscoveryService: ImpDiscoveryService,
+               private impDiscoveryService: AppDiscoveryService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
@@ -375,6 +375,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
+  private getProjectVarFieldName(pv: ImpProjectVar) : string {
+    if (pv.source.includes('Online')) {
+      const sourceName = pv.source.split('_')[1];
+      return `${pv.fieldname} (${sourceName})`;
+    } else {
+      return pv.fieldname;
+    }
+  }
+
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
@@ -491,7 +500,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Get all of the variables for this geo
           const usableVars = new Set(this.impProjectVarService.get()
                                .filter(pv => pv.isIncludedInGeoGrid)
-                               .map(pv => pv.fieldname));
+                               .map(pv => this.getProjectVarFieldName(pv)));
           const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
           const varCache = groupBy(geovars, 'geocode');
           (geovars || []).forEach(geovar => {

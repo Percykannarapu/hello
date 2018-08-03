@@ -1,5 +1,3 @@
-import { ImpProject } from '../../targeting/models/ImpProject';
-
 export enum DAOBaseStatus
 {
    UNCHANGED = "UNCHANGED"
@@ -41,12 +39,4 @@ export class BaseModel
       });
    }
 
-}
-
-export interface Constructable<T extends BaseModel> { new(defaults: Partial<T>): T; }
-
-export class ModelFactory {
-   static createModelInstance<T extends BaseModel>(ctor: Constructable<T>, defaults: Partial<T>): T {
-       return new ctor(defaults);
-   }
 }

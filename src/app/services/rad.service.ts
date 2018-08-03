@@ -11,7 +11,7 @@ import { UserService } from './user.service';
 import { take, withLatestFrom, tap, map } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpDiscoveryService } from './ImpDiscoveryUI.service';
+import { AppDiscoveryService } from './app-discovery.service';
 import { Message } from '../../../node_modules/@angular/compiler/src/i18n/i18n_ast';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class RadService {
   private predictedResp: number;
 
   constructor(private appStateService: AppStateService,
-              private discoveryService: ImpDiscoveryService,
+              private discoveryService: AppDiscoveryService,
               private appConfig: AppConfig,
               private metricService: MetricService,
               private httpClient: HttpClient,
@@ -50,12 +50,11 @@ export class RadService {
    * Filter the RAD data based on the data available in the ImpDiscoveryService
    */
   private filterRad(currentProject: ImpProject) {
-    const categoryLookup = Array.from(this.discoveryService.radCategoryCodeByName.entries());
-    const currentCategory = categoryLookup.filter(([key, value]) => value === currentProject.industryCategoryCode).map(([key]) => key);
+    const currentCategoryName = this.discoveryService.radCategoryNameByCode.get(currentProject.industryCategoryCode);
     //filter down the RAD data based on the current product and category
-    if (this.radData != null && currentCategory.length > 0) {
+    if (this.radData != null && currentCategoryName != null) {
       this.filteredRadData = this.radData.filter(f =>
-         f.category === currentCategory[0]
+         f.category === currentCategoryName
          && f.product === currentProject.radProduct);
     }
   }

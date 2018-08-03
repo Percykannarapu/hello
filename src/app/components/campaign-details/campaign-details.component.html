@@ -1,0 +1,12 @@
+<p-tabView>
+  <p-tabPanel header="Discovery">
+    <val-discovery-input [storeData]="currentDiscoveryData$ | async"
+                         [projectTrackerSuggestions]="currentProjectTrackerSuggestions$ | async"
+                         [radSuggestions]="currentRadSuggestions$ | async"
+                         (formChanged)="onDiscoveryFormChanged($event)"
+                         (refreshTrackerData)="onTrackerRefresh()"
+                         (radSearchRequest)="onRadSearch($event)"
+                         (trackerSearchRequest)="onTrackerSearch($event)">
+    </val-discovery-input>
+  </p-tabPanel>
+</p-tabView>

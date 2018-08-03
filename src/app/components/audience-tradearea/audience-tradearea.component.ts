@@ -1,12 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
-import { MultiSelectModule, Dropdown } from 'primeng/primeng';
 import { SmartTile, ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition } from '../../models/audience-data.model';
-import { ImpDiscoveryService } from '../../services/ImpDiscoveryUI.service';
-import { filter, map, retry } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -57,7 +55,7 @@ export class AudienceTradeareaComponent implements OnInit {
       map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
     ).subscribe(targetingVar => this.updateVars(targetingVar));
 
-    this.stateService.getClearUserInterfaceObs().subscribe(bool => {
+    this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearFields();
     });
   }
@@ -150,7 +148,7 @@ export class AudienceTradeareaComponent implements OnInit {
         }
       },
       error => {
-        console.error('Error while creating audience tradearea');
+        console.error('Error while creating audience tradearea', error);
         this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       });

@@ -30,17 +30,41 @@ export class ImpDomainFactoryService {
   }
 
   createProject() : ImpProject {
-    const result = new ImpProject();
-    const master = new ImpGeofootprintMaster();
+    const result = new ImpProject({
+      isActive: true,
+      isIncludeAnne: true,
+      isIncludeSolo: true,
+      isIncludeValassis: true,
+      isExcludePob: false,
+      methAnalysis: null,
+      clientIdentifierTypeCode: 'CAR_LIST',
+      consumerPurchFreqCode: 'REMINDER',
+      goalCode: 'ACQUISITION',
+      objectiveCode: 'INCREASE_PENETRATION',
+      isValidated: true,
+      isSingleDate: true,
+      isMustCover: true,
+      isRunAvail: true,
+      isHardPdi: true,
+      isIncludeNonWeekly: true,
+      isCircBudget: false,
+      isDollarBudget: false,
+      projectName: null,
+      projectId: null
+    });
+    const master = new ImpGeofootprintMaster({
+      methSeason: null
+    });
     master.impProject = result;
     result.impGeofootprintMasters.push(master);
     return result;
   }
 
-  createLocation(parent: ImpGeofootprintMaster) : ImpGeofootprintLocation {
+  createLocation(parent: ImpGeofootprintMaster, locationInfo: Partial<ImpGeofootprintLocation>) : ImpGeofootprintLocation {
     if (parent == null) throw new Error('Location factory requires a valid ImpGeofootprintMaster instance');
-    const result = new ImpGeofootprintLocation();
+    const result = new ImpGeofootprintLocation(locationInfo);
     result.impGeofootprintMaster = parent;
+    parent.impGeofootprintLocations.push(result);
     return result;
   }
 

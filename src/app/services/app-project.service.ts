@@ -258,6 +258,9 @@ export class AppProjectService extends DataStore<ImpProject>
                  }
                }
 
+               // temporary: remove project prefs
+               impProject.impProjectPrefs = [];
+
                // Create Geofootprint Array if needed
                console.log('ImpProject.service.saveProject - populating geofootprint master');
                if (!impProject.impGeofootprintMasters)

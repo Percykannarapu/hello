@@ -129,8 +129,8 @@ export class TargetAudienceOnlineService {
       audienceIdentifier: `${digId}`,
       audienceSourceType: 'Online',
       audienceSourceName: source,
-      exportInGeoFootprint: false,
-      showOnGrid: false,
+      exportInGeoFootprint: true,
+      showOnGrid: true,
       showOnMap: false,
       allowNationalExport: true,
       exportNationally: false,
@@ -319,10 +319,10 @@ export class TargetAudienceOnlineService {
     if (description == null)
       return throwError({ fullId, msg: `A fullId was passed into the Apio National Extract Refresh function that couldn't be found in the description list` });
 
-    return merge(...observables, 4).pipe(
+      return merge(...observables, 4).pipe(
       map(data => data.map(d => {
         const result = { Geocode: d.geocode };    
-        result[`${description.audienceName}_${source}_DMA`] = Math.round(Number(d.dmaScore));      
+        result[`${description.audienceName}_${source}_DMA`] = Math.round(Number(d.dmaScore));
         result[`${description.audienceName}_${source}_National`] = Math.round(Number(d.nationalScore));
         return result;
       }))

@@ -99,7 +99,7 @@ import { MapService } from './services/map.service';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
-import { DiscoveryInputComponent } from './components/discovery-input/discovery-input.component';
+import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { RestDataInterceptor, RestDataService } from './val-modules/common/services/restdata.service';
 import { TransactionManager } from './val-modules/common/services/TransactionManager.service';
@@ -118,7 +118,7 @@ import { AuthService } from './services/auth.service';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { TargetAudienceService } from './services/target-audience.service';
-import { ImpDiscoveryService } from './services/ImpDiscoveryUI.service';
+import { AppDiscoveryService } from './services/app-discovery.service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceMetricService } from './services/target-audience-metric.service';
 import { AppGeocodingService } from './services/app-geocoding.service';
@@ -159,6 +159,7 @@ import { SiteTypeSelectorComponent } from './components/common/site-type-selecto
 import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
+import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 
 @NgModule({
     imports: [
@@ -276,7 +277,8 @@ import { ManualEntryComponent } from './components/add-locations-tab/manual-entr
         SiteTypeSelectorComponent,
         AddLocationsTabComponent,
         FailedGeocodeGridComponent,
-        ManualEntryComponent
+        ManualEntryComponent,
+        CampaignDetailsComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -287,7 +289,7 @@ import { ManualEntryComponent } from './components/add-locations-tab/manual-entr
       // from val-modules
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
-      ImpGeofootprintLocAttribService, ImpDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
+      ImpGeofootprintLocAttribService, AppDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
       MetricService, RestDataService, TransactionManager,
       // from primeng
       MessageService, ConfirmationService,
