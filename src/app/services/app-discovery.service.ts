@@ -17,12 +17,25 @@ import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLoo
 import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { filterByFields, mapBy } from '../val-modules/common/common.utils';
 
-export interface ProjectTrackerData {
+export class RadLookupUIModel extends ImpRadLookup {
+  get display() : string {
+    return `${this.category} - ${this.product}`;
+  }
+}
+
+export class ProjectTrackerUIModel {
   projectId: number;
   projectName: string;
   targetor: string;
   clientName: string;
   accountNumber: string;
+  get display() : string {
+    const targetor = this.targetor == null || this.targetor === '' ? 'Unassigned' : this.targetor;
+    return `${this.projectId}  ${this.projectName} (${targetor})`;
+  }
+  constructor(data: Partial<ProjectTrackerUIModel>) {
+    Object.assign(this, data);
+  }
 }
 
 export class CounterMetrics {
@@ -33,18 +46,18 @@ export class CounterMetrics {
 @Injectable()
 export class AppDiscoveryService {
   private radCacheRetrieved: boolean = false;
-  private radCache: ImpRadLookup[] = [];
-  private currentRadSuggestions = new BehaviorSubject<ImpRadLookup[]>([]);
-  private selectedRadLookup = new BehaviorSubject<ImpRadLookup>(null);
-  public radSearchSuggestions$: Observable<ImpRadLookup[]> = this.currentRadSuggestions.asObservable();
-  public selectedRadLookup$: Observable<ImpRadLookup> = this.selectedRadLookup.asObservable();
+  private radCache: RadLookupUIModel[] = [];
+  private currentRadSuggestions = new BehaviorSubject<RadLookupUIModel[]>([]);
+  private selectedRadLookup = new BehaviorSubject<RadLookupUIModel>(null);
+  public radSearchSuggestions$: Observable<RadLookupUIModel[]> = this.currentRadSuggestions.asObservable();
+  public selectedRadLookup$: Observable<RadLookupUIModel> = this.selectedRadLookup.asObservable();
 
   private trackerCacheRetrieved: boolean = false;
-  private trackerCache: ProjectTrackerData[] = [];
-  private currentTrackerSuggestions = new BehaviorSubject<ProjectTrackerData[]>([]);
-  private selectedProjectTracker = new BehaviorSubject<ProjectTrackerData>(null);
-  public trackerSearchSuggestions$: Observable<ProjectTrackerData[]> = this.currentTrackerSuggestions.asObservable();
-  public selectedProjectTracker$: Observable<ProjectTrackerData> = this.selectedProjectTracker.asObservable();
+  private trackerCache: ProjectTrackerUIModel[] = [];
+  private currentTrackerSuggestions = new BehaviorSubject<ProjectTrackerUIModel[]>([]);
+  private selectedProjectTracker = new BehaviorSubject<ProjectTrackerUIModel>(null);
+  public trackerSearchSuggestions$: Observable<ProjectTrackerUIModel[]> = this.currentTrackerSuggestions.asObservable();
+  public selectedProjectTracker$: Observable<ProjectTrackerUIModel> = this.selectedProjectTracker.asObservable();
 
   private readonly radCategoryCodes: { name: string, code: string }[];
   public radCategoryCodeByName: Map<string, string>;
@@ -92,7 +105,10 @@ export class AppDiscoveryService {
 
   private selectRadProduct(project: ImpProject) {
     if (!this.radCacheRetrieved) {
-      this.getRadData().subscribe(null, null, () => this.selectRadProduct(project));
+      this.getRadData().subscribe(null, null, () => {
+        this.updateRadSuggestions('');
+        this.selectRadProduct(project);
+      });
     } else {
       const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
       if (radItem != null) this.selectedRadLookup.next(radItem);
@@ -101,7 +117,10 @@ export class AppDiscoveryService {
 
   private selectProjectTracker(project: ImpProject) {
     if (!this.trackerCacheRetrieved) {
-      this.getProjectTrackerData().subscribe(null, null, () => this.selectProjectTracker(project));
+      this.getProjectTrackerData().subscribe(null, null, () => {
+        this.updateTrackerSuggestions('');
+        this.selectProjectTracker(project);
+      });
     } else {
       const trackerItem = this.trackerCache.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
       if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
@@ -116,7 +135,7 @@ export class AppDiscoveryService {
     return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
   }
 
-  private getProjectTrackerData() : Observable<ProjectTrackerData[]> {
+  private getProjectTrackerData() : Observable<ProjectTrackerUIModel[]> {
     const updatedDateTo = new Date();
     updatedDateTo.setDate(updatedDateTo.getDate() + 1);
     const updatedDateFrom = new Date();
@@ -124,6 +143,7 @@ export class AppDiscoveryService {
     return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
             TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
       map((result: any) => result.payload.rows),
+      map(data => data.map(tracker => new ProjectTrackerUIModel(tracker))),
       tap(
         data => this.trackerCache.push(...data),
         err => {
@@ -136,10 +156,11 @@ export class AppDiscoveryService {
     );
   }
 
-  private getRadData() : Observable<ImpRadLookup[]> {
+  private getRadData() : Observable<RadLookupUIModel[]> {
     const result = this.impRadService.storeObservable.pipe(
       filter(data => data != null && data.length > 0),
       take(1),
+      map(data => data.map(rad => new RadLookupUIModel(rad))),
       tap(
         data => {
           data.forEach(d => d['Category Code'] = this.radCategoryCodeByName.get(d.category));
@@ -256,7 +277,6 @@ export class AppDiscoveryService {
   }
 
   public updateRadSuggestions(searchTerm: string) {
-    console.log('Updating Rad Suggestions', this);
     if (!this.radCacheRetrieved) {
       // need to populate the cache before filtering suggestions
       this.getRadData().subscribe(null, null, () => this.updateRadSuggestions(searchTerm));

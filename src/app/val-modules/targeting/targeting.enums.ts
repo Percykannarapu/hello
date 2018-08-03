@@ -47,6 +47,12 @@ export namespace TradeAreaMergeTypeCodes {
 }
 
 export enum ProjectCpmTypeCodes {
-  Blended,
-  OwnerGroup
+  Blended = 'Blended',
+  OwnerGroup = 'OwnerGroup'
+}
+
+export namespace ProjectCpmTypeCodes {
+  export function parse(code: string) : ProjectCpmTypeCodes {
+    return ProjectCpmTypeCodes[code];
+  }
 }

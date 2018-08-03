@@ -20,11 +20,11 @@
       <div class="ui-g-10">
         <span class="md-inputfield">
           <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
-                          [minLength]="3" [dropdown]="true" formControlName="selectedProjectTracker"
+                          [minLength]="3" [dropdown]="true" formControlName="selectedProjectTracker" field="display"
                           [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
-            <ng-template let-trackerItem pTemplate="item">
-              {{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})
-            </ng-template>
+            <!--<ng-template let-trackerItem pTemplate="item">-->
+              <!--{{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})-->
+            <!--</ng-template>-->
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>
         </span>
@@ -34,7 +34,7 @@
       </div>
 
       <div class="ui-g-4">
-        <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
+        <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisUIOption"
                     placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
       </div>
       <div class="ui-g-8">&nbsp;</div>
@@ -44,11 +44,11 @@
       <div class="ui-g-10">
         <span class="md-inputfield">
           <p-autoComplete id="radLookup" styleClass="val-full-width" inputStyleClass="val-full-width"
-                          [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup"
+                          [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup" field="display"
                           [suggestions]="radSuggestions" (completeMethod)="radSearchRequest.emit($event.query)">
-            <ng-template let-radItem pTemplate="item">
-              {{radItem.category}}&nbsp;-&nbsp;{{radItem.product}}
-            </ng-template>
+            <!--<ng-template let-radItem pTemplate="item">-->
+              <!--{{radItem.category}}&nbsp;-&nbsp;{{radItem.product}}-->
+            <!--</ng-template>-->
           </p-autoComplete>
           <label for="radLookup">Performance Prediction Category - Product</label>
         </span>
@@ -73,28 +73,28 @@
             <label>Include POBs?</label>
           </div>
           <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includePob"></p-inputSwitch>
+            <p-inputSwitch formControlName="includePob"></p-inputSwitch>
           </div>
 
           <div class="ui-g-8">
             <label>Include Valassis geographies?</label>
           </div>
           <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeValassis"></p-inputSwitch>
+            <p-inputSwitch formControlName="includeValassis"></p-inputSwitch>
           </div>
 
           <div class="ui-g-8">
             <label>Include ANNE geographies?</label>
           </div>
           <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeAnne"></p-inputSwitch>
+            <p-inputSwitch formControlName="includeAnne"></p-inputSwitch>
           </div>
 
           <div class="ui-g-8">
             <label>Include Solo geographies?</label>
           </div>
           <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeSolo"></p-inputSwitch>
+            <p-inputSwitch formControlName="includeSolo"></p-inputSwitch>
           </div>
         </div>
       </div>

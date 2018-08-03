@@ -3,9 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
-import { ProjectTrackerData } from '../../../services/app-discovery.service';
-import { ImpRadLookup } from '../../../val-modules/targeting/models/ImpRadLookup';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
+import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
 
 @Component({
   selector: 'val-discovery-input',
@@ -23,8 +22,8 @@ export class DiscoveryInputComponent implements OnInit {
       this.discoveryForm.markAsPristine();
     }
   }
-  @Input() radSuggestions: ImpRadLookup[];
-  @Input() projectTrackerSuggestions: ProjectTrackerData[];
+  @Input() radSuggestions: RadLookupUIModel[];
+  @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
 
   @Output() formChanged = new EventEmitter<ValDiscoveryUIModel>();
   @Output() refreshTrackerData = new EventEmitter();
@@ -59,7 +58,7 @@ export class DiscoveryInputComponent implements OnInit {
       selectedProjectTracker: null,
       selectedRadLookup: null,
       selectedSeason: null,
-      selectedAnalysisLevel: ['', Validators.required],
+      selectedAnalysisUIOption: [null, Validators.required],
       includePob: true,
       includeValassis: true,
       includeAnne: true,
@@ -100,6 +99,7 @@ export class DiscoveryInputComponent implements OnInit {
         this.discoveryForm.controls['cpmSolo'].disable();
         this.discoveryForm.controls['cpmBlended'].disable();
     }
+    this.setAnalysisLevelDropDown(currentForm.selectedAnalysisLevel);
   }
 
   private onFormChanged(currentData: ValDiscoveryUIModel) : void {
@@ -113,7 +113,22 @@ export class DiscoveryInputComponent implements OnInit {
         currentData.cpmBlended = null;
         break;
     }
+    currentData.selectedAnalysisLevel = this.getAnalysisLevelFromDropDown();
     this.formChanged.emit(currentData);
+  }
+
+  private setAnalysisLevelDropDown(analysisLevel: string) : void {
+    if (analysisLevel == null || analysisLevel.trim().length === 0) {
+      this.discoveryForm.controls['selectedAnalysisUIOption'].reset();
+    } else {
+      const analysisOption = this.allAnalysisLevels.find(l => l.value === analysisLevel);
+      this.discoveryForm.controls['selectedAnalysisUIOption'].setValue(analysisOption);
+    }
+  }
+
+  private getAnalysisLevelFromDropDown() : string {
+    const currentAnalysisSelection = this.discoveryForm.controls['selectedAnalysisUIOption'].value;
+    return currentAnalysisSelection == null ? null : currentAnalysisSelection.value;
   }
 }
 

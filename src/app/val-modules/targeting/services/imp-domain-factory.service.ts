@@ -30,8 +30,31 @@ export class ImpDomainFactoryService {
   }
 
   createProject() : ImpProject {
-    const result = new ImpProject();
-    const master = new ImpGeofootprintMaster();
+    const result = new ImpProject({
+      isActive: true,
+      isIncludeAnne: true,
+      isIncludeSolo: true,
+      isIncludeValassis: true,
+      isExcludePob: false,
+      methAnalysis: null,
+      clientIdentifierTypeCode: 'CAR_LIST',
+      consumerPurchFreqCode: 'REMINDER',
+      goalCode: 'ACQUISITION',
+      objectiveCode: 'INCREASE_PENETRATION',
+      isValidated: true,
+      isSingleDate: true,
+      isMustCover: true,
+      isRunAvail: true,
+      isHardPdi: true,
+      isIncludeNonWeekly: true,
+      isCircBudget: false,
+      isDollarBudget: false,
+      projectName: null,
+      projectId: null
+    });
+    const master = new ImpGeofootprintMaster({
+      methSeason: null
+    });
     master.impProject = result;
     result.impGeofootprintMasters.push(master);
     return result;

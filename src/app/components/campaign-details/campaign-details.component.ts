@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
 import { User } from '../../models/User';
-import { AppDiscoveryService, ProjectTrackerData } from '../../services/app-discovery.service';
+import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
 import { UsageService } from '../../services/usage.service';
 import { UserService } from '../../services/user.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpRadLookup } from '../../val-modules/targeting/models/ImpRadLookup';
 import { AppStateService } from '../../services/app-state.service';
 import { filter, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
@@ -20,8 +19,8 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
 export class CampaignDetailsComponent implements OnInit {
 
   currentDiscoveryData$: Observable<ValDiscoveryUIModel>;
-  currentRadSuggestions$: Observable<ImpRadLookup[]>;
-  currentProjectTrackerSuggestions$: Observable<ProjectTrackerData[]>;
+  currentRadSuggestions$: Observable<RadLookupUIModel[]>;
+  currentProjectTrackerSuggestions$: Observable<ProjectTrackerUIModel[]>;
 
   private previousForm: ValDiscoveryUIModel = null;
   private usageTargetMap: { [key: string] : string };

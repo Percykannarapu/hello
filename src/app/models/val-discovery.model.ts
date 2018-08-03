@@ -1,13 +1,13 @@
-import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ProjectTrackerData } from '../services/app-discovery.service';
 import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
 
 export class ValDiscoveryUIModel {
   projectId: number;
   projectName: string;
-  selectedProjectTracker: ProjectTrackerData;
-  selectedRadLookup: ImpRadLookup;
+  selectedProjectTracker: ProjectTrackerUIModel;
+  selectedRadLookup: RadLookupUIModel;
   selectedSeason: string;
   selectedAnalysisLevel: string;
   includePob: boolean;
@@ -32,8 +32,10 @@ export class ValDiscoveryUIModel {
     return today.getMonth() >= 4 && today.getMonth() <= 8;
   }
 
-  public static createFromProject(project: ImpProject, radItem: ImpRadLookup, trackerItem: ProjectTrackerData) : ValDiscoveryUIModel {
-    console.log('Creating a new form', project);
+  public static createFromProject(project: ImpProject, radItem: RadLookupUIModel, trackerItem: ProjectTrackerUIModel) : ValDiscoveryUIModel {
+    const cpmTypeAttribute = project.impProjectPrefs.filter(pref => pref.attributeCode === 'CPM_TYPE')[0];
+    const materializedCpmType = project.estimatedBlendedCpm ? ProjectCpmTypeCodes.Blended : (project.smAnneCpm || project.smSoloCpm || project.smValassisCpm ? ProjectCpmTypeCodes.OwnerGroup : null);
+    const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.attributeValue) : materializedCpmType;
     const newFormValues = {
       projectId: project.projectId,
       projectName: project.projectName,
@@ -43,15 +45,15 @@ export class ValDiscoveryUIModel {
       cpmValassis: project.smValassisCpm ? project.smValassisCpm.toString() : null,
       cpmSolo: project.smSoloCpm ? project.smSoloCpm.toString() : null,
       cpmBlended: project.estimatedBlendedCpm ? project.estimatedBlendedCpm.toString() : null,
-      cpmType: project.estimatedBlendedCpm ? ProjectCpmTypeCodes.Blended : (project.smAnneCpm || project.smSoloCpm || project.smValassisCpm ? ProjectCpmTypeCodes.OwnerGroup : null),
+      cpmType: usableCpmType,
       includeAnne: project.isIncludeAnne == null ? true : project.isIncludeAnne,
       includeSolo: project.isIncludeSolo == null ? true : project.isIncludeSolo,
       includeValassis: project.isIncludeValassis == null ? true : project.isIncludeValassis,
       includePob: project.isExcludePob == null ? true : !project.isExcludePob,
       selectedAnalysisLevel: project.methAnalysis,
       selectedSeason: project.impGeofootprintMasters[0].methSeason,
-      projectTrackerData: trackerItem ? trackerItem : null,
-      selectedRadLookupValue: radItem ? radItem : null
+      selectedProjectTracker: trackerItem ? trackerItem : null,
+      selectedRadLookup: radItem ? radItem : null
     };
     if (newFormValues.selectedSeason == null || newFormValues.selectedSeason === '') {
       newFormValues.selectedSeason = this.isSummer() ? 'S' : 'W';
@@ -64,24 +66,14 @@ export class ValDiscoveryUIModel {
     const circBudget = this.toNumber(this.circulationBudget);
 
     // Populate the ImpProject model
-    projectToUpdate.clientIdentifierTypeCode = 'CAR_LIST';
+
     projectToUpdate.clientIdentifierName     =  this.selectedProjectTracker ? this.selectedProjectTracker.clientName : null;
     projectToUpdate.customerNumber           =  this.selectedProjectTracker && this.selectedProjectTracker.accountNumber ? this.selectedProjectTracker.accountNumber : null;
-    projectToUpdate.consumerPurchFreqCode    = 'REMINDER';
-    projectToUpdate.goalCode                 = 'ACQUISITION';
-    projectToUpdate.objectiveCode            = 'INCREASE_PENETRATION';
     projectToUpdate.industryCategoryCode     = this.selectedRadLookup != null ? this.selectedRadLookup['Category Code'] : '';
     projectToUpdate.methAnalysis       = this.selectedAnalysisLevel;
     projectToUpdate.totalBudget        = (dollarBudget != null && dollarBudget !== 0 ? dollarBudget : circBudget);
-    projectToUpdate.isValidated        = true;
     projectToUpdate.isCircBudget       = (circBudget != null && circBudget !== 0);
-    projectToUpdate.isActive           = true;
-    projectToUpdate.isSingleDate       = true;
-    projectToUpdate.isMustCover        = true;
     projectToUpdate.isDollarBudget     = (dollarBudget != null && dollarBudget !== 0);
-    projectToUpdate.isRunAvail         = true;
-    projectToUpdate.isHardPdi          = true;
-    projectToUpdate.isIncludeNonWeekly = true;
     projectToUpdate.isIncludeValassis  = this.includeValassis;
     projectToUpdate.isExcludePob       = !this.includePob;
     projectToUpdate.isIncludeAnne      = this.includeAnne;
@@ -94,6 +86,14 @@ export class ValDiscoveryUIModel {
     projectToUpdate.smSoloCpm          = this.toNumber(this.cpmSolo);
     projectToUpdate.radProduct         = this.selectedRadLookup ? this.selectedRadLookup.product : null;
     projectToUpdate.impGeofootprintMasters[0].methSeason = this.selectedSeason;
+
+    let cpmTypeAttribute = projectToUpdate.impProjectPrefs.filter(pref => pref.attributeCode === 'CPM_TYPE')[0];
+    if (cpmTypeAttribute == null) {
+      cpmTypeAttribute = new ImpProjectPref({ attributeCode: 'CPM_TYPE', isActive: true });
+      projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
+    }
+    cpmTypeAttribute.attributeValue = this.cpmType;
+    console.log('Discovery Form changed, new Project values:', projectToUpdate);
   }
 
   private toNumber(value: string) : number | null {
