@@ -322,8 +322,8 @@ export class TargetAudienceOnlineService {
       return merge(...observables, 4).pipe(
       map(data => data.map(d => {
         const result = { Geocode: d.geocode };    
-        result[`${description.audienceName}_DMA`] = Math.round(Number(d.dmaScore));      
-        result[`${description.audienceName}_National`] = Math.round(Number(d.nationalScore));
+        result[`${description.audienceName}_${source}_DMA`] = Math.round(Number(d.dmaScore));
+        result[`${description.audienceName}_${source}_National`] = Math.round(Number(d.nationalScore));
         return result;
       }))
     );

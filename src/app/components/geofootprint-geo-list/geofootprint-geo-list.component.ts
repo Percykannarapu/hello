@@ -375,6 +375,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
+  private getProjectVarFieldName(pv: ImpProjectVar) : string {
+    if (pv.source.includes('Online')) {
+      const sourceName = pv.source.split('_')[1];
+      return `${pv.fieldname} (${sourceName})`;
+    } else {
+      return pv.fieldname;
+    }
+  }
+
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
@@ -491,7 +500,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Get all of the variables for this geo
           const usableVars = new Set(this.impProjectVarService.get()
                                .filter(pv => pv.isIncludedInGeoGrid)
-                               .map(pv => pv.fieldname));
+                               .map(pv => this.getProjectVarFieldName(pv)));
           const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
           const varCache = groupBy(geovars, 'geocode');
           (geovars || []).forEach(geovar => {
