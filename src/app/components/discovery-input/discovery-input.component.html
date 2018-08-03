@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="form-group" style="padding: 0.75em 0.75em 0em 0.75em; background: #C1D3D1;">
   <form novalidate  [formGroup]="discoveryForm">
 
     <div class="ui-g card">
@@ -8,7 +8,7 @@
           <label for="projectId">imPower ID</label>
         </span>
       </div>
-      <div class="ui-g-8">&nbsp;</div>
+      <div class="ui-g-8"></div>
 
       <div class="ui-g-10">
         <span class="md-inputfield">
@@ -32,9 +32,9 @@
 
       <div class="ui-g-4">
         <p-dropdown [options]="allAnalysisLevels" optionLabel="label" formControlName="selectedAnalysisLevel"
-                    placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
+                    placeholder="Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
       </div>
-      <div class="ui-g-8">&nbsp;</div>
+      <div class="ui-g-8"></div>
     </div>
 
     <div class="ui-g card">
@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <div class="ui-g">
+    <div class="ui-g" style="line-height: 0.05em;">
       <div class="card ui-g-6">
         <div class="ui-g-12">
           <label>Counts</label>
@@ -62,33 +62,29 @@
         <div class="ui-g-12" style="padding-top: 2em">
           <label>Apply Geography Filters</label>
         </div>
-        <div class="ui-g-11  ui-g-offset-1">
-          <div class="ui-g-8">
+        <div class="ui-g-11 ui-g-offset-1">
+          <div class="ui-g-12">
+            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includePob"></p-inputSwitch>
+            <a class="val-spacer-left-half"></a>
             <label>Include POBs?</label>
           </div>
-          <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includePob"></p-inputSwitch>
-          </div>
 
-          <div class="ui-g-8">
+          <div class="ui-g-12">
+            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeValassis"></p-inputSwitch>
+            <a class="val-spacer-left-half"></a>
             <label>Include Valassis geographies?</label>
           </div>
-          <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeValassis"></p-inputSwitch>
-          </div>
 
-          <div class="ui-g-8">
+          <div class="ui-g-12">
+            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeAnne"></p-inputSwitch>
+            <a class="val-spacer-left-half"></a>
             <label>Include ANNE geographies?</label>
           </div>
-          <div class="ui-g-4">
-            <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeAnne"></p-inputSwitch>
-          </div>
 
-          <div class="ui-g-8">
-            <label>Include Solo geographies?</label>
-          </div>
-          <div class="ui-g-4">
+          <div class="ui-g-12">
             <p-inputSwitch onLabel="Yes" offLabel="No" formControlName="includeSolo"></p-inputSwitch>
+            <a class="val-spacer-left-half"></a>
+            <label>Include Solo geographies?</label>
           </div>
         </div>
       </div>
@@ -119,17 +115,15 @@
             <p-radioButton name="cpmType" value="blended" label="Blended" formControlName="cpmType"></p-radioButton>
           </div>
           <div class="ui-g-11 ui-g-offset-1">
-            <div class="ui-g-12">
               <span class="ui-float-label">
                 <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
                 <label for="cpm">CPM</label>
               </span>
-            </div>
           </div>
           <div class="ui-g-12 val-grid-no-pad-left">
             <p-radioButton name="cpmType" value="ownerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
           </div>
-          <div class="ui-g-11 ui-g-offset-1">
+          <div class="ui-g-12 ui-g-offset-1 val-grid-no-pad">
             <div class="ui-g-12">
               <span class="ui-float-label">
                 <input id="includeValassisCPM" type="text" formControlName="cpmValassis" pInputText>

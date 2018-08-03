@@ -4,10 +4,9 @@
   </div>
   <div class="ui-g-12">
     <i class="fa fa-search"></i>
-    <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
+    <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
   </div>
-  <hr>
-  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa-fontAwesome fa-circle-o-notch"
+  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch"
           [value]="currentNodes"
           [selection]="currentSelectedNodes"
           (onNodeSelect)="selectVariable($event.node)"

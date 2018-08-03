@@ -44,7 +44,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     return {
       label: undefined, // template in the html markup does this since we have spacing requirements
       data: variable,
-      icon: `fa-fontAwesome ${selectable ? 'fa-file-o' : 'fa-lock'}`,
+      icon: `fa fa-fontAwesome ${selectable ? 'fa fa-file-o' : 'fa fa-lock'}`,
       type: selectable ? undefined : 'disabled',
       selectable: selectable,
       leaf: true,

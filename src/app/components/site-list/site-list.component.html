@@ -1,25 +1,23 @@
-<div class="ui-g">
-  <div class="ui-g-12">
-    <div class="ui-g-1">
+<div class="ui-g ui-g-nopad">
+   <div class="ui-g-6">
       <label>Manage for:</label>
-    </div>
-    <div class="ui-g-1">
+      <a class="val-spacer-left"></a>
       <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-    </div>
-    <div class="ui-g-2">
+      <a class="val-spacer-left"></a>
       <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-    </div>
-    <div  class="ui-g-2 ui-g-nopad">
+   </div>
+   <div class="ui-g-6 ui-g-nopad">
       <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
-    </div>
-  </div>
+   </div>
 
   <div class="ui-g-12">
-    <p-dataTable [globalFilter]="filter"
+    <p-dataTable [globalFilter]="filter" class="val-table"
                  [value]="currentAllSites$ | async"
                  [selection]="currentActiveSites$ | async"
+                 scrollable="true" scrollWidth="100%"
                  selectionMode="multiple"
-                 [expandableRows]="true" [resizableColumns]="true"
+                 [expandableRows]="true"
+                 [resizableColumns]="true" columnResizeMode="expand"
                  [rows]="8" [paginator]="true"
                  [headerCheckboxToggleAllPages]="true"
                  columnResizeMode="expand" [responsive]="true"
@@ -61,7 +59,9 @@
       </p-column>
       <p-column *ngFor="let locationColumn of selectedColumns"
                 [field]="locationColumn.field"
-                [header]="locationColumn.header">
+                [header]="locationColumn.header"
+                [style]="{'width': locationColumn.size}"
+                >
       </p-column>
 
       <ng-template let-site pTemplate="rowexpansion">

@@ -76,6 +76,7 @@ import {
   TreeModule,
   TreeTableModule
 } from 'primeng/primeng';
+import { TableModule } from 'primeng/table';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { AppComponent } from './app.component';
@@ -225,6 +226,7 @@ import { ManualEntryComponent } from './components/add-locations-tab/manual-entr
         SpinnerModule,
         SplitButtonModule,
         StepsModule,
+        TableModule,
         TabMenuModule,
         TabViewModule,
         TerminalModule,

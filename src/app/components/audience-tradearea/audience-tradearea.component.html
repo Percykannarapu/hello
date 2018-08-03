@@ -1,79 +1,64 @@
-<div class="ui-g">
-  <div class="card ui-g-6">
-    <p-accordion>
-      <p-accordionTab header="Interest and In-Market">
-        <val-online-audience-apio></val-online-audience-apio>
-      </p-accordionTab>
-      <p-accordionTab header="Visit Likelihood">
-        <val-online-audience-vlh></val-online-audience-vlh>
-      </p-accordionTab>
-      <p-accordionTab header="Pixel Data">
-        <val-online-audience-pixel></val-online-audience-pixel>
-      </p-accordionTab>
-    </p-accordion>
-    <!--<p-tabView>
-      <p-tabPanel header="Online Audiences">
-        <val-online-audience-apio></val-online-audience-apio>
-      </p-tabPanel>
-      <p-tabPanel header="Offline Audiences">
-        <val-offline-audience-tda></val-offline-audience-tda>
-      </p-tabPanel>
-    </p-tabView>-->
-  </div>
-  <div class="ui-g-6 card">
-    <p>Trade Area Configuration</p>
-    <div class="ui-g-6">
-      <span class="ui-float-label">
-        <input id="ata-min-miles" type="text" size="30" pInputText [(ngModel)]="minRadius">
-        <label for="ata-min-miles">Minimum must cover radius</label>
-      </span>
-    </div>
-    <div class="ui-g-6">
-      <span class="ui-float-label">
-        <input id="ata-max-miles" type="text" size="30" pInputText [(ngModel)]="maxRadius" style="width: 100%">
-        <label for="ata-max-miles" style="width: 100%">Maximum radius</label>
-      </span>
-    </div>
-    <div class="ui-g-12"></div>
-    <div class="ui-g-6">
-      Driving variable in addition to distance:
-    </div>
-    <div class="ui-g-6">
-      <p-dropdown #audienceTAVar (onChange)="onVarDropdownChange($event)" [options]="varSelectorOptions" [(ngModel)]="selectedVar"
-        placeholder="Select a variable" [style]="{ width: '100%' }"></p-dropdown>
-    </div>
-    <div class="ui-g-12"></div>
-    <div class="ui-g-6">
-      Weight % of the variable vs. distance:
-    </div>
-    <div class="ui-g-6">
-      <p-spinner [(ngModel)]="sliderVal" [min]="0" [max]="100" [step]="5" [style]="{width: '100%'}" ></p-spinner>
-    </div>
-    <div class="ui-g-12"></div>
-    <!--<div class="ui-g-6">
-      Tiles to include in geo selection:
-    </div>
-    <div class="ui-g-6">
-      <p-multiSelect defaultLabel="Choose tiles" [style]="{'width':'100%'}" [options]="tileSelectorOptions" [(ngModel)]="tileSelectorValues"></p-multiSelect>
-    </div>
-    <div class="ui-g-12"></div>-->
-    <div class="ui-g-6">
-      Variable score type:
-    </div>
-    <div class="ui-g-6">
-      <p-selectButton #audienceTAVar [options]="scoreTypeOptions" [(ngModel)]="selectedScoreType"
-        placeholder="Select a score type" [style]="{ width: '100%' }"></p-selectButton>
-    </div>
-    <div class="ui-g-12"></div>
-    <div class="ui-g-6">
-      Include all geography in must cover radius:
-    </div>
-    <div class="ui-g-6">
-      <p-checkbox (onChange)="onSelectMustCover()" binary="true" pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
-    </div>
-    <div class="ui-g-12"></div>
-    <div class="ui-g-12">
-      <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
-    </div>
-  </div>
+<div class="ui-g" style="background: #D8E5D1; margin-bottom: 0%;">
+   <div class="card ui-g-6" style="padding: 0em 3px 0em 0em; margin-bottom: 0%;">
+      <p-accordion [lazy]="true">
+         <p-accordionTab header="Interest and In-Market">
+            <val-online-audience-apio></val-online-audience-apio>
+         </p-accordionTab>
+         <p-accordionTab header="Visit Likelihood">
+            <val-online-audience-vlh></val-online-audience-vlh>
+         </p-accordionTab>
+         <p-accordionTab header="Pixel Data">
+            <val-online-audience-pixel></val-online-audience-pixel>
+         </p-accordionTab>
+      </p-accordion>
+   </div>
+   <div class="ui-g-6 card" style="padding: 0%; background: #D8E5D1; margin-bottom: 0%;">
+      <div class="ui-g-12" style="background: #4977A3; color:white;">Trade Area Configuration</div>
+      <div class="ui-g-12 card">
+         <div class="ui-g-6">
+            <span class="ui-float-label">
+               <input id="ata-min-miles" type="text" size="30" pInputText [(ngModel)]="minRadius" style="width:97%">
+               <label for="ata-min-miles">Minimum must cover radius</label>
+            </span>
+         </div>
+         <div class="ui-g-6">
+            <span class="ui-float-label">
+               <input id="ata-max-miles" type="text" size="30" pInputText [(ngModel)]="maxRadius" style="width: 100%">
+               <label for="ata-max-miles" style="width: 100%">Maximum radius</label>
+            </span>
+         </div>
+         <div class="ui-g-6">
+            Driving variable in addition to distance:
+         </div>
+         <div class="ui-g-6">
+            <p-dropdown #audienceTAVar (onChange)="onVarDropdownChange($event)" [options]="varSelectorOptions" [(ngModel)]="selectedVar"
+            placeholder="Select a variable" [style]="{'width':'100%'}"></p-dropdown>
+         </div>
+      </div>
+      <div class="ui-g-12 card">
+         <div class="ui-g-7">
+            Weight % of the variable vs. distance:
+         </div>
+         <div class="ui-g-5">
+            <p-spinner [(ngModel)]="sliderVal" [min]="0" [max]="100" [step]="5" [style]="{width: '100%'}" ></p-spinner>
+         </div>
+         <div class="ui-g-7">
+            Variable score type:
+         </div>
+         <div class="ui-g-5">
+            <p-selectButton #audienceTAVar [options]="scoreTypeOptions" [(ngModel)]="selectedScoreType"
+            placeholder="Select a score type" [style]="{ width: '95%' }"></p-selectButton>
+         </div>
+      </div>
+      <div class="ui-g-12 card" style="padding-bottom: 0%; margin-bottom: 0%;">
+         <div class="ui-g-12">
+            <label style="width: 100%">Include all geography in must cover radius:</label>
+            <a class="val-spacer-left"></a>
+            <p-checkbox (onChange)="onSelectMustCover()" binary="true" pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
+         </div>
+         <div class="ui-g-12">
+            <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
+         </div>
+      </div>
+   </div>
 </div>

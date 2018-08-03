@@ -33,22 +33,22 @@ export class SiteListComponent implements OnInit {
   public allColumns: any[] = [
     { field: 'locationNumber',       header: 'Number',           size: '60px'},
     { field: 'locationName',         header: 'Name',             size: '120px'},
-    { field: 'locAddress',           header: 'Address',          size: '120px'},
+    { field: 'locAddress',           header: 'Address',          size: '200px'},
     { field: 'locCity',              header: 'City',             size: '70px'},
-    { field: 'locState',             header: 'State',            size: '40px'},
+    { field: 'locState',             header: 'State',            size: '50px'},
     { field: 'locZip',               header: 'ZIP',              size: '75px'},
     { field: 'marketName',           header: 'Market',           size: '85px'},
-    { field: 'marketCode',           header: 'Market Code',      size: '85px'},
+    { field: 'marketCode',           header: 'Market Code',      size: '90px'},
     { field: 'groupName',            header: 'Group',            size: '85px'},
-    { field: 'recordStatusCode',     header: 'Geocode Status',   size: '70px'},
+    { field: 'recordStatusCode',     header: 'Geocode Status',   size: '120px'},
     { field: 'ycoord',               header: 'Latitude',         size: '80px'},
     { field: 'xcoord',               header: 'Longitude',        size: '80px'},
-    { field: 'geocoderMatchCode',    header: 'Match Code',       size: '70px'},
-    { field: 'geocoderLocationCode', header: 'Match Quality',    size: '70px'},
-    { field: 'origAddress1',         header: 'Original Address', size: '70px'},
-    { field: 'origCity',             header: 'Original City',    size: '70px'},
-    { field: 'origState',            header: 'Original State',   size: '38px'},
-    { field: 'origPostalCode',       header: 'Original Zip',     size: '70px'}
+    { field: 'geocoderMatchCode',    header: 'Match Code',       size: '90px'},
+    { field: 'geocoderLocationCode', header: 'Match Quality',    size: '95px'},
+    { field: 'origAddress1',         header: 'Original Address', size: '120px'},
+    { field: 'origCity',             header: 'Original City',    size: '90px'},
+    { field: 'origState',            header: 'Original State',   size: '95px'},
+    { field: 'origPostalCode',       header: 'Original Zip',     size: '90px'}
   ];
   public selectedColumns: any[] = [];
   public attributeColumns: string[];

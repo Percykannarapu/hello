@@ -70,7 +70,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     return {
       label: variable.categoryName,
       data: variable,
-      icon: 'fa-fontAwesome fa-file-o',
+      icon: 'fa fa-fontAwesome fa-file-o',
       leaf: true,
     };
   }

@@ -1,11 +1,10 @@
 <div class="ui-g business-search">
   <div class="ui-g-7 card card-w-title">
-    <div class="ui-g">
       <div class="ui-g-12 category-dd">
           <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" (onChange)="categoryChange()" placeholder="Select SIC Category (optional)"
             [autoWidth]="false"></p-dropdown>
         </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-12">
         <span class="md-inputfield">
           <input #searchModel type="text" pInputText id="search" (input)="filterCategory(searchModel.value)" />
           <label for="search">Search SIC codes</label>
@@ -13,8 +12,8 @@
       </div>
 
       <p-pickList [source]="sourceCategories" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
-        targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'225px', 'width': '225px'}"
-        [targetStyle]="{'height':'225px', 'width': '225px'}">
+        targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'200px', 'width': '225px'}"
+        [targetStyle]="{'height':'200px', 'width': '225px'}">
         <ng-template let-category pTemplate="item">
           <div class="ui-helper-clearfix">
             <!-- <div *ngFor = "let item of categoryList">
@@ -25,55 +24,55 @@
         </ng-template>
       </p-pickList>
       <form novalidate>
-        <div class="ui-g-12 p-t-15">
+        <div class="ui-g-12">
           <span class="md-inputfield">
             <input id="businessName" type="text" pInputText name="businessName" [(ngModel)]="model.name" />
             <label for="businessName">Business Name</label>
           </span>
         </div>
-        <div class="ui-g-12 p-t-15">
+        <div class="ui-g-12">
           <span class="md-inputfield">
             <input id="city" type="text" pInputText name="city" [(ngModel)]="model.city" />
             <label for="city">City</label>
           </span>
         </div>
-        <div class="ui-g-6 p-t-15">
+        <div class="ui-g-6">
           <span class="md-inputfield">
             <input id="state" type="text" pInputText name="state" [(ngModel)]="model.state" />
             <label for="state">State</label>
           </span>
         </div>
-        <div class="ui-g-6 p-t-15">
+        <div class="ui-g-6">
           <span class="md-inputfield">
             <input id="zip" type="text" pInputText name="zip" [(ngModel)]="model.zip" />
             <label for="zip">ZIP</label>
           </span>
         </div>
-        <div class="ui-g-6 p-t-15">
+        <div class="ui-g-6">
           <span class="md-inputfield">
             <input id="countyFips" type="text" pInputText name="countyName" [(ngModel)]="model.countyName" />
             <label for="countyFips">County FIPs</label>
           </span>
         </div>
-        <div class="ui-g-6 p-t-15">
+        <div class="ui-g-6">
           <span class="md-inputfield">
             <input id="market" type="text" pInputText />
             <label for="market">Market Code</label>
           </span>
         </div>
-        <div class="ui-g-6 p-t-15">
+        <div class="ui-g-6">
           <span class="md-inputfield">
-            <input id="distance" type="text" pInputText name="radius" [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"
-            />
+            <input id="distance" type="text" pInputText name="radius" [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"/>
             <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
           </span>
         </div>
-        <div class="ui-g-12">
+        <div class="ui-g-6">
           <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()" [disabled]="disableShowBusiness"></button>
         </div>
+        <div class="ui-g-12">
+            <label style="font-size: 0.15em">Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
+        </div>
       </form>
-      <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
-    </div>
   </div>
   <div class="ui-g-5 card card-w-title">
     <div class="ui-g-12">

@@ -1,11 +1,11 @@
 <div class="ui-g">
   <div class="ui-g-12">
-    <i class="fa-fontAwesome fa ui-bars"></i>
-    <span>{{label}}</span>
-    <i class="fa-fontAwesome fa ui-bars"></i>
-    <p-radioButton name="siteType" [value]="SiteType.Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
-    <i class="fa-fontAwesome fa ui-bars"></i>
-    <p-radioButton name="siteType" [value]="SiteType.Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
+      <a class="val-spacer-left"></a>
+      <span>{{label}}</span>
+      <a class="val-spacer-left"></a>
+      <p-radioButton name="siteType" [value]="SiteType.Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
+      <a class="val-spacer-left"></a>
+      <p-radioButton name="siteType" [value]="SiteType.Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
   </div>
   <ng-content select="site-content" *ngIf="selectedSiteType === SiteType.Site"></ng-content>
   <ng-content select="competitor-content" *ngIf="selectedSiteType === SiteType.Competitor"></ng-content>

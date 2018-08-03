@@ -11,7 +11,6 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    @Input() header:         string = 'Header';
    @Input() boxStyle:       string = 'colorbox-1';
    @Input() popupStyle:     string = 'green-panel';
-   @Input() popupWidth:     string = '40%';
    @Input() icon:           string;
    @Input() model:          Map<string, string>;
    @Input() flags:          Map<string, boolean>;
@@ -21,8 +20,6 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    metric: string = null;
    metricValue: string;
    isFlagged: boolean;
-
-   popupWidthStr: string = '"{\'width\':\'20%\'}"';
 
    constructor(private appService: AppBusinessSearchService) {
      this.appService.closeOverLayPanel.subscribe((value) => {
@@ -44,7 +41,6 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    }
 
    private generateColorBoxValues(){
-    this.popupWidthStr = '{\'width\':\'' + this.popupWidth + '\'}';
     const keys = Array.from(this.model.keys());
 
     this.index = 0;
