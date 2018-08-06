@@ -1,5 +1,5 @@
 <div class="ui-g" style="background: #D8E5D1; margin-bottom: 0%;">
-   <div class="card ui-g-6" style="padding: 0em 3px 0em 0em; margin-bottom: 0%;">
+   <div class="card ui-g-5" style="padding: 0em 3px 0em 0em; margin-bottom: 0%;">
       <p-accordion [lazy]="true">
          <p-accordionTab header="Interest and In-Market">
             <val-online-audience-apio></val-online-audience-apio>
@@ -12,7 +12,7 @@
          </p-accordionTab>
       </p-accordion>
    </div>
-   <div class="ui-g-6 card" style="padding: 0%; background: #D8E5D1; margin-bottom: 0%;">
+   <div class="ui-g-7 card" style="padding: 0%; background: #D8E5D1; margin-bottom: 0%;">
       <div class="ui-g-12" style="background: #4977A3; color:white;">Trade Area Configuration</div>
       <div class="ui-g-12 card">
          <div class="ui-g-6">
@@ -42,10 +42,10 @@
          <div class="ui-g-5">
             <p-spinner [(ngModel)]="sliderVal" [min]="0" [max]="100" [step]="5" [style]="{width: '100%'}" ></p-spinner>
          </div>
-         <div class="ui-g-7">
+         <div class="ui-g-6">
             Variable score type:
          </div>
-         <div class="ui-g-5">
+         <div class="ui-g-6">
             <p-selectButton #audienceTAVar [options]="scoreTypeOptions" [(ngModel)]="selectedScoreType"
             placeholder="Select a score type" [style]="{ width: '95%' }"></p-selectButton>
          </div>

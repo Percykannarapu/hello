@@ -2,12 +2,18 @@
    <div class="ui-g-12">
       <i class="fa fa-search"></i>
       <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
-      <a class="val-spacer-right-2"></a>
+      <!-- <a class="val-spacer-right-2"></a>
+      <p-checkbox [binary]="true" (onChange)="includeFolder$.next($event)" label="Include folder in search"></p-checkbox> -->
+   </div>
+   <div class="ui-g-12">
       <p-checkbox [binary]="true" (onChange)="includeFolder$.next($event)" label="Include folder in search"></p-checkbox>
    </div>
    <div class="ui-g-12">
       <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
-      <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)" styleClass="val-spacer-left"></p-radioButton>
+   </div>
+   <div class="ui-g-12">
+      <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
+      <!-- <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)" styleClass="val-spacer-left"></p-radioButton> -->
    </div>
    <div class="ui-g-12">
    <p-tree loadingIcon="fa fa-fontAwesome fa fa-circle-o-notch" selectionMode="checkbox"
