@@ -535,17 +535,17 @@ export class MapService {
     private setupMapGroup(group: __esri.GroupLayer, layerDefinitions: LayerDefinition[]) {
       this.pauseLayerWatch(this.pausableWatches);
       // Add this action to the popup so it is always available in this view
-      const measureThisAction = {
+      const measureThisAction = new EsriModules.ActionButton({
         title: 'Measure Length',
         id: 'measure-this',
         className: 'esri-icon-share'
-      };
+      });
       // Add this action to the popup so it is always available in this view
-      const selectThisAction = {
+      const selectThisAction = new EsriModules.ActionButton({
         title: 'Select Polygon',
         id: 'select-this',
         className: 'esri-icon-plus-circled'
-      };
+      });
 
       layerDefinitions.filter(i => i != null && i.id != null ).forEach(layerDef => {
         const isUrlRequest = layerDef.id.toLowerCase().startsWith('http');

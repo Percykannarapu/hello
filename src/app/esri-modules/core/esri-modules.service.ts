@@ -11,6 +11,7 @@ export class EsriModules {
     'esri/Basemap',
     'esri/views/MapView',
     'esri/core/Collection',
+    'esri/support/actions/ActionButton',
     'esri/renderers/smartMapping/creators/color',
     'esri/renderers/smartMapping/symbology/color',
     'esri/renderers/smartMapping/statistics/histogram',
@@ -47,6 +48,7 @@ export class EsriModules {
   public static BaseMap: typeof __esri.Basemap;
   public static MapView: typeof __esri.MapView;
   public static Collection: __esri.Collection;
+  public static ActionButton: typeof __esri.ActionButton;
   public static colorRendererCreator: typeof __esri.color;
   public static symbologyColor: typeof __esri.symbologyColor;
   public static histogram: typeof __esri.histogram;
@@ -102,6 +104,7 @@ export class EsriModules {
       EsriModules.BaseMap,
       EsriModules.MapView,
       EsriModules.Collection,
+      EsriModules.ActionButton,
       EsriModules.colorRendererCreator,
       EsriModules.symbologyColor,
       EsriModules.histogram,
