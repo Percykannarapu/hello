@@ -1,6 +1,6 @@
-<div class="ui-g-5">
+<div class="ui-g-12">
   <form novalidate  [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)" autocomplete="off">
-      <div class="ui-g-12">
+      <div class="ui-g-6">
         <div class="ui-inputgroup">
           <span class="md-inputfield">
             <input pInputText id="numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
@@ -12,77 +12,84 @@
           </span>
         </div>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-6"></div>
+      <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="nameInput" class="ui-g-12" formControlName="name" autocomplete="off" />
           <label for="nameInput">Name</label>
         </span>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-2"></div>
+      <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="streetInput" class="ui-g-12" formControlName="street" autocomplete="off" />
           <label for="streetInput">Street</label>
         </span>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-2"></div>
+      <div class="ui-g-6 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="cityInput" class="ui-g-12" formControlName="city" autocomplete="off" />
           <label for="cityInput">City</label>
         </span>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-2 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="stateInput" class="ui-g-12" formControlName="state" autocomplete="off" />
           <label for="stateInput">State</label>
         </span>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-2 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="zipInput" class="ui-g-12" formControlName="zip" autocomplete="off" />
           <label for="zipInput">ZIP Code</label>
         </span>
       </div>
-      <div class="ui-g-12 p-t-15">
+      <div class="ui-g-2 p-t-15"></div>
+      <div class="ui-g-8 p-t-15">
         <span class="md-inputfield">
           <input pInputText id="marketInput" class="ui-g-12" formControlName="Market" autocomplete="off" />
           <label for="marketInput">Market</label>
         </span>
       </div>
-      <div class="ui-g-6 p-t-15">
-        <div class="ui-inputgroup">
-          <span class="md-inputfield">
-            <input pInputText id="latInput" class="ui-g-12" formControlName="latitude" autocomplete="off" />
-            <span class="ui-inputgroup-addon" *ngIf="!hasErrors('latitude')">&nbsp;</span>
-            <span class="ui-inputgroup-addon" *ngIf="hasErrors('latitude')">
-              <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['latitude'])"></i>
-            </span>
-            <label for="latInput">Latitude (Y)</label>
-          </span>
-        </div>
-      </div>
-      <div class="ui-g-6 p-t-15">
-        <div class="ui-inputgroup">
-          <span class="md-inputfield">
-            <input pInputText id="lonInput" class="ui-g-11" formControlName="longitude" autocomplete="off" />
-            <span class="ui-inputgroup-addon" *ngIf="!hasErrors('longitude')">&nbsp;</span>
-            <span class="ui-inputgroup-addon" *ngIf="hasErrors('longitude')">
-              <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['longitude'])"></i>
-            </span>
-            <label for="lonInput">Longitude (X)</label>
-          </span>
-        </div>
+      <div class="ui-g-4"></div>
+      <div class="ui-g-12 ui-g-nopad">
+         <div class="ui-g-4 p-t-15">
+            <div class="ui-inputgroup">
+               <span class="md-inputfield">
+                  <input pInputText id="latInput" class="ui-g-12" formControlName="latitude" autocomplete="off" />
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('latitude')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('latitude')">
+                  <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['latitude'])"></i>
+                  </span>
+                  <label for="latInput">Latitude (Y)</label>
+               </span>
+            </div>
+         </div>
+         <div class="ui-g-4 p-t-15">
+            <div class="ui-inputgroup">
+               <span class="md-inputfield">
+                  <input pInputText id="lonInput" class="ui-g-11" formControlName="longitude" autocomplete="off" />
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('longitude')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('longitude')">
+                  <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['longitude'])"></i>
+                  </span>
+                  <label for="lonInput">Longitude (X)</label>
+               </span>
+            </div>
+         </div>
+         <div class="ui-g-4"></div>
       </div>
       <div class="ui-g-12 ui-g-nopad">
-        <div class="ui-g-6">
-          <button (click)="manualEntryForm.reset()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
-        </div>
-        <div class="ui-g-6">
-          <button type="submit" label="Submit" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="manualEntryForm.invalid"></button>
-        </div>
-      </div>
-      <div *ngIf="showLoadButtons" class="ui-g-6">
-        <p-splitButton styleClass="ui-g-nopad" label="Load Presets" icon="ui-icon-map" (onClick)="loadVPW()" [model]="loadItems"></p-splitButton>
+         <div class="ui-g-4">
+            <button (click)="manualEntryForm.reset()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
+         </div>
+         <div class="ui-g-4">
+            <button type="submit" label="Submit" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="manualEntryForm.invalid"></button>
+         </div>
+         <div class="ui-g-4" *ngIf="showLoadButtons">
+            <p-splitButton styleClass="ui-g-nopad" label="Load Presets" icon="ui-icon-map" (onClick)="loadVPW()" [model]="loadItems"></p-splitButton>
+         </div>
       </div>
   </form>
 </div>
-<div class="ui-g-7">&nbsp;</div>
