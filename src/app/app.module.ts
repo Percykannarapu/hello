@@ -77,6 +77,7 @@ import {
   TreeTableModule
 } from 'primeng/primeng';
 import { TableModule } from 'primeng/table';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { AppComponent } from './app.component';
@@ -220,6 +221,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         RadioButtonModule,
         RatingModule,
         ScheduleModule,
+        ScrollPanelModule,
         SelectButtonModule,
         SidebarModule,
         SlideMenuModule,
