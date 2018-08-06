@@ -83,6 +83,7 @@ export class TargetAudienceCustomService {
             allowNationalExport: false,
             audienceCounter: projectVar.sortOrder
           };
+          this.varPkCache.set(audience.audienceName, this.varService.getNextStoreId());
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           // columnNames.add(audience.audienceName);
           const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
