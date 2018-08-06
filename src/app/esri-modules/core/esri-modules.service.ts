@@ -1,7 +1,6 @@
 import { EventEmitter, Inject, Injectable } from '@angular/core';
 import * as esriLoader from 'esri-loader';
 import { EsriWidgets } from './esri-widgets';
-import { EsriLoaderWrapperService } from '../../services/esri-loader-wrapper.service';
 import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
 @Injectable()
@@ -11,7 +10,6 @@ export class EsriModules {
     'esri/Map',
     'esri/Basemap',
     'esri/views/MapView',
-    'esri/support/Action',
     'esri/core/Collection',
     'esri/renderers/smartMapping/creators/color',
     'esri/renderers/smartMapping/symbology/color',
@@ -48,7 +46,6 @@ export class EsriModules {
   public static Map: typeof __esri.Map;
   public static BaseMap: typeof __esri.Basemap;
   public static MapView: typeof __esri.MapView;
-  public static Action: typeof __esri.Action;
   public static Collection: __esri.Collection;
   public static colorRendererCreator: typeof __esri.color;
   public static symbologyColor: typeof __esri.symbologyColor;
@@ -88,8 +85,6 @@ export class EsriModules {
 
   constructor(@Inject(EsriLoaderToken) private config: EsriLoaderConfig) {
     console.log('Constructing esri-modules');
-    // todo: remove when this wrapper is no longer needed
-    EsriLoaderWrapperService.esriLoader = this;
     esriLoader.loadCss(`${this.config.esriConfig.url}esri/css/main.css`);
     esriLoader.loadScript(this.config.esriConfig).then(() => {
       this.deferredLoad = esriLoader.loadModules(EsriModules.names.concat(EsriWidgets.moduleNames));
@@ -106,7 +101,6 @@ export class EsriModules {
       EsriModules.Map,
       EsriModules.BaseMap,
       EsriModules.MapView,
-      EsriModules.Action,
       EsriModules.Collection,
       EsriModules.colorRendererCreator,
       EsriModules.symbologyColor,
