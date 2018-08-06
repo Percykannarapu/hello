@@ -320,7 +320,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             });
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
-            const serviceUrl = 'v1/targeting/base/vlh?projectId=' + this.impProject.projectId;
+            const serviceUrl = `v1/targeting/base/vlh?fileName=${filename}`;
             const csvData = this.prepareCSV(exportColumns, locations);
             this.downloadExport(filename, csvData);
             let csvString: string = '';
