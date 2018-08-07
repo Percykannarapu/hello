@@ -1,6 +1,6 @@
 /** An IMPTARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
  **
- ** Generated from VAL_BASE_GEN - v1.04
+ ** Generated from VAL_BASE_GEN - v1.05
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -65,6 +65,13 @@ export class ImpProject extends BaseModel
    public radProduct:                string;         /// RAD_PRODUCT
    public taSiteMergeType:           string;         /// Trade area merge type for sites
    public taCompetitorMergeType:     string;         /// Trade area merge type for competitors
+   public audTaMinRadiu:             number;         /// Audience Trade Area minimum must cover radius (in miles)
+   public audTaMaxRadiu:             number;         /// Audience Trade Area minimum must cover radius (in miles)
+   public audTaVarPk:                number;         /// ID of the driving variable to generate the audience trade area (CATEGORY_ID for online audiences and PK for offline/TDA)
+   public audTaVarSource:            string;         /// Data Source (ex: TDA, Interest, In-Market, Pixel, Polk, IMS, IRI Data)
+   public audTaVarWeight:            number;         /// Weight percentage of the variable vs. distance
+   public audTaIndexBase:            string;         /// Whether National or DMA index scoring base is used to generate the audience trade area
+   public audTaIsMustCover:          number;         /// Whether to select all geography in the minimum audience trade area radius by default
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
@@ -141,6 +148,33 @@ export class ImpProject extends BaseModel
       Object.assign(this, data);
    }
 
+   // Set tree property and push it down the hierarchy
+   /*public setTreeProperty(propName: string, propValue: any)
+   {
+      if (!this.hasOwnProperty(propName)) {
+         Object.defineProperty(this, propName, {
+            enumerable: false,
+            configurable: true,
+            writable: true
+         });
+      }
+      this[propName] = propValue;
+      // Ask the children to set the tree property
+      this.impGeofootprintMasters.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impProjectPrefs.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impProjectVars.forEach(fe => fe.setTreeProperty(propName, propValue));
+   }
+
+   // Removes a tree property from this level down
+   public removeTreeProperty(propName: string)
+   {
+      delete this[propName];
+      // Ask the children to remove the tree property
+      this.impGeofootprintMasters.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impProjectPrefs.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impProjectVars.forEach(fe => fe.removeTreeProperty(propName   ));
+   }*/
+
    // Convert JSON objects into Models
    public convertToModel()
    {
@@ -161,7 +195,7 @@ export class ImpProject extends BaseModel
 
       // Prevent load from firing off the creation of trade areas
       let tas: ReadonlyArray<ImpGeofootprintTradeArea> = this.getImpGeofootprintTradeAreas();
-      tas.forEach(ta => ta['isComplete'] = true);
+      tas.forEach(ta => ta['isComplete'] = true); 
    }
 
    /**
@@ -215,7 +249,14 @@ export class ImpProject extends BaseModel
          ['smSoloCpm',                    'number'],
          ['radProduct',                   'string'],
          ['taSiteMergeType',              'string'],
-         ['taCompetitorMergeType',        'string']
+         ['taCompetitorMergeType',        'string'],
+         ['audTaMinRadiu',                'number'],
+         ['audTaMaxRadiu',                'number'],
+         ['audTaVarPk',                   'number'],
+         ['audTaVarSource',               'string'],
+         ['audTaVarWeight',               'number'],
+         ['audTaIndexBase',               'string'],
+         ['audTaIsMustCover',             'number']
          ]);
    }
 
