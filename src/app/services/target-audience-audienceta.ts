@@ -138,7 +138,8 @@ export class TargetAudienceAudienceTA {
             maxRadius: null,
             minRadius: null,
             scoreType: null,
-            weight: null
+            weight: null,
+            includeMustCover: null
         };
         return audienceTAConfig;
     }

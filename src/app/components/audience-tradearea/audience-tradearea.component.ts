@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { SmartTile, ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
-import { AudienceDataDefinition } from '../../models/audience-data.model';
-import { map } from 'rxjs/operators';
+import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../models/audience-data.model';
+import { map, distinctUntilChanged, filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -29,6 +30,8 @@ export class AudienceTradeareaComponent implements OnInit {
   public includeMustCover: boolean = false;
   public source: string = null;
 
+  public configForm: FormGroup;
+
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private errorTitle: string = 'Audience Trade Area Error';
   private audienceSourceMap: Map<string, string> = new Map<string, string>();
@@ -38,9 +41,11 @@ export class AudienceTradeareaComponent implements OnInit {
     private targetAudienceService: TargetAudienceService,
     private stateService: AppStateService,
     private usageService: UsageService,
-    private impLocationService: ImpGeofootprintLocationService) { }
+    private impLocationService: ImpGeofootprintLocationService,
+    private fb: FormBuilder) { }
 
   ngOnInit() {
+
     this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_HIGH, value: SmartTile.EXTREMELY_HIGH});
     this.tileSelectorOptions.push({label: SmartTile.HIGH, value: SmartTile.HIGH});
     this.tileSelectorOptions.push({label: SmartTile.ABOVE_AVERAGE, value: SmartTile.ABOVE_AVERAGE});
@@ -51,6 +56,17 @@ export class AudienceTradeareaComponent implements OnInit {
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
 
+    this.configForm = this.fb.group({
+      'minRadius': ['', Validators.required],
+      'maxRadius': ['', Validators.required],
+      'audience': [null, Validators.required],
+      'weight': [65, Validators.required],
+      'scoreType': ['DMA', Validators.required],
+      'includeMustCover': [false]
+    });
+
+    this.configForm.valueChanges.pipe(distinctUntilChanged()).subscribe(f => this.onFormChange(f));
+
     this.targetAudienceService.audiences$.pipe(
       map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
     ).subscribe(targetingVar => this.updateVars(targetingVar));
@@ -58,6 +74,20 @@ export class AudienceTradeareaComponent implements OnInit {
     this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearFields();
     });
+  }
+
+  public onFormChange(form: any) {
+    const audienceTAConfig: AudienceTradeAreaConfig = {
+      analysisLevel: this.stateService.analysisLevel$.getValue().toLowerCase(),
+      digCategoryId: this.getVarId(),
+      locations: null,
+      maxRadius: form.maxRadius,
+      minRadius: form.minRadius,
+      scoreType: form.scoreType,
+      weight: form.weight,
+      includeMustCover: form.includeMustCover
+    };
+    this.audienceTradeareaService.updateAudienceTAConfig(audienceTAConfig);
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
@@ -108,39 +138,15 @@ export class AudienceTradeareaComponent implements OnInit {
     const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
 
-    if (!this.minRadius || !this.maxRadius) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
-      return;
-    }
-    if (isNaN(this.maxRadius) || isNaN(this.minRadius)) {
-      this.messagingService.showGrowlError(this.errorTitle, 'Invalid input, please enter a valid minimum trade area and a valid maximum trade area');
-      return;
-    }
-    if (Number(this.maxRadius) <= Number(this.minRadius)) {
-      this.messagingService.showGrowlError(this.errorTitle, 'The maximum radius must be larger than the minimum radius');
-      return;
-    }
-    if (!this.selectedVar) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must select a variable before creating a trade area');
-      return;
-    }
-    const id: number = this.getVarId();
-    if (!id) {
-      this.messagingService.showGrowlError(this.errorTitle, 'Unable to determine ID for the selected variable');
-      return;
-    }
-    if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must select an Analysis Level before applying a trade area to Sites');
-      return;
-    }
+    
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
 
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${this.minRadius}
-~maxRadius=${this.maxRadius}~varPk=${id}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${this.sliderVal}
+~maxRadius=${this.maxRadius}~varPk=${this.getVarId()}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${this.sliderVal}
 ~scoreType=${this.selectedScoreType}~includeAllInMustCover=${this.includeMustCover ? 1 : 0}`;
 
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
-    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, id, this.sliderVal, this.selectedScoreType, this.includeMustCover)
+    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, this.getVarId(), this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
         if (!result) {
