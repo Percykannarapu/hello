@@ -78,7 +78,7 @@ export class AudienceTradeareaComponent implements OnInit {
 
   public onFormChange(form: any) {
     const audienceTAConfig: AudienceTradeAreaConfig = {
-      analysisLevel: this.stateService.analysisLevel$.getValue().toLowerCase(),
+      analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
       digCategoryId: this.getVarId(),
       locations: null,
       maxRadius: form.maxRadius,
