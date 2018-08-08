@@ -199,7 +199,6 @@ export class TargetAudienceAudienceTA {
         let varPk = null;
         const geofootprintVars: ImpGeofootprintVar[] = [];
         const taByLocationNum = mapByExtended(this.tradeAreaService.get().filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Audience), item => item.impGeofootprintLocation.locationNumber);
-        console.log('Trade Area grouping', taByLocationNum);
         for (const location of Array.from(taResponseCache.keys())) {
             const geoResponses: Map<number, AudienceTradeareaResponse> = taResponseCache.get(location);
             const geoResponseKeys = Array.from(geoResponses.keys());
@@ -227,7 +226,6 @@ export class TargetAudienceAudienceTA {
                 }
             }
         }
-        console.log('Created Audience TA geovars:', geofootprintVars);
         this.varService.add(geofootprintVars);
         return geofootprintVars;
     }
