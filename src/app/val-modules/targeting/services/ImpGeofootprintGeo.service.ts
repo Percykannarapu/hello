@@ -14,6 +14,7 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable, empty, EMPTY } from 'rxjs';
+import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ColumnDefinition } from './../../common/services/datastore.service';
 import { HttpClient } from '@angular/common/http';
 import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
@@ -759,13 +760,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    }
 
    private getProjectVarFieldName(pv: ImpProjectVar) : string {
-     if (pv.source.includes('Online')) {
+     if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
        const sourceName = pv.source.split('_')[1];
        return `${pv.fieldname} (${sourceName})`;
      } else {
        return pv.fieldname;
      }
    }
+
+  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+    } else {
+      return gv.customVarExprDisplay;
+    }
+  }
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -774,7 +783,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const usableVars = new Set(this.impProjectVarService.get()
                           .filter(pv => pv.isIncludedInGeofootprint)
                           .map(pv => this.getProjectVarFieldName(pv)));
-      const usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
+      const usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
       usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));

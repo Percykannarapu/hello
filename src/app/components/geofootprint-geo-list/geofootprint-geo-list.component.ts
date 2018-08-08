@@ -24,6 +24,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 import { groupBy } from '../../val-modules/common/common.utils';
+import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -376,11 +377,19 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-    if (pv.source.includes('Online')) {
+    if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
       const sourceName = pv.source.split('_')[1];
       return `${pv.fieldname} (${sourceName})`;
     } else {
       return pv.fieldname;
+    }
+  }
+
+  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+    } else {
+      return gv.customVarExprDisplay;
     }
   }
 
@@ -501,7 +510,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
           const usableVars = new Set(this.impProjectVarService.get()
                                .filter(pv => pv.isIncludedInGeoGrid)
                                .map(pv => this.getProjectVarFieldName(pv)));
-          const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
+          const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+
           const varCache = groupBy(geovars, 'geocode');
           (geovars || []).forEach(geovar => {
             if (geovar.isString)

@@ -10,20 +10,35 @@ declare global {
  * Groups an array by the contents of a field identified by its name
  * @param {T[]} items: The array to group
  * @param {K} fieldName: The name of the field to extract grouping info from
- * @param {(T) => R} itemTransformer: Optional callback to transform each item before the final grouping
- * @returns {Map<T[K], T[]>}
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<T[K], (T | R)[]>}
  */
 export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T[]>;
-export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer: (T) => R) : Map<T[K], R[]>;
-export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer?: (T) => R) : Map<T[K], (T | R)[]> {
-  const result = new Map<T[K], (T | R)[]>();
+export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector: (T) => R) : Map<T[K], R[]>;
+export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector?: (T) => R) : Map<T[K], (T | R)[]> {
+  return groupByExtended(items, (i) => i[fieldName], valueSelector);
+}
+
+/**
+ * Groups an array by the result of a keySelector function
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<K, (T | R)[]>}
+ */
+export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T[]>;
+export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (T) => R) : Map<K, R[]>;
+export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (T) => R) : Map<K, (T | R)[]> {
+  const result = new Map<K, (T | R)[]>();
   if (items == null || items.length === 0) return result;
-  const tx: ((T) => T | R) = itemTransformer != null ? itemTransformer : (i) => i;
+  const tx: ((T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
   items.forEach(i => {
-    if (result.has(i[fieldName])) {
-      result.get(i[fieldName]).push(tx(i));
+    const currentKey = keySelector(i);
+    const currentValue = tx(i);
+    if (result.has(currentKey)) {
+      result.get(currentKey).push(currentValue);
     } else {
-      result.set(i[fieldName], [tx(i)]);
+      result.set(currentKey, [currentValue]);
     }
   });
   return result;
@@ -34,17 +49,31 @@ export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>
  * Note this method assumes that there will only be one instance for each key value
  * @param {T[]} items: The array to group
  * @param {K} fieldName: The name of the field to extract grouping info from
- * @param {(T) => R} itemTransformer: Optional callback to transform each item before the final grouping
- * @returns {Map<T[K], T>}
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<T[K], T | R>}
  */
 export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer: (T) => R) : Map<T[K], R>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, itemTransformer?: (T) => R) : Map<T[K], (T | R)> {
-  const result = new Map<T[K], (T | R)>();
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector: (T) => R) : Map<T[K], R>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector?: (T) => R) : Map<T[K], T | R> {
+  return mapByExtended(items, (i) => i[fieldName], valueSelector);
+}
+
+/**
+ * Maps an array by the result of a keySelector function
+ * Note this method assumes that there will only be one instance for each key value
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<T[K], T | R>}
+ */
+export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T>;
+export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (T) => R) : Map<K, R>;
+export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (T) => R) : Map<K, T | R> {
+  const result = new Map<K, T | R>();
+  const tx: ((T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
   if (items == null || items.length === 0) return result;
-  const tx: ((T) => T | R) = itemTransformer != null ? itemTransformer : (i) => i;
   items.forEach(i => {
-    result.set(i[fieldName], tx(i));
+    result.set(keySelector(i), tx(i));
   });
   return result;
 }
@@ -59,7 +88,7 @@ export function simpleFlatten<T>(items: T[][]) : T[] {
 }
 
 /**
- * Flattens any arbitrarily-deep nested array structure. Use simpleFlatten for a more performant solution to 2-dimensional arrays.
+ * Flattens any arbitrarily-deep nested array structure. Use simpleFlatten() for a more performant solution to 2-dimensional arrays.
  * @param {T[]} items
  * @returns {T[]}
  */
@@ -76,7 +105,11 @@ export function completeFlatten<T>(items: any[]) : T[] {
   return arr;
 }
 
-
+/**
+ * A filtering callback to be used in conjunction with array.filter() to allow a search for a value in one or more fields
+ * @param searchTerm - The string to find
+ * @param fieldsToSearch - An array of field names to search
+ */
 export function filterByFields<T, K extends keyof T>(searchTerm: string, fieldsToSearch: K[]) : (value: T, index: number, array: T[]) => boolean {
   return (value: T, index: number, array: T[]) => {
     for (const fieldName of fieldsToSearch) {

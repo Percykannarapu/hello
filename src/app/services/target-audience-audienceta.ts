@@ -1,23 +1,22 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { TargetAudienceService } from './target-audience.service';
-import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
-import { map, shareReplay } from 'rxjs/operators';
-import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
-import { chunkArray } from '../app.utils';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from './usage.service';
-import { AppStateService } from './app-state.service';
-import { simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { RestResponse } from '../models/RestResponse';
+import { mapByExtended } from '../val-modules/common/common.utils';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
+import { UsageService } from './usage.service';
 
 interface AudienceTradeareaResponse {
     maxRadius: number;
@@ -196,22 +195,20 @@ export class TargetAudienceAudienceTA {
 
     }
 
-    /**
-     * 
-   * @param geocode The geocode of the new variable
-   * @param type The variable type, string or number
-   * @param fieldDisplay The display name of the new variable
-   * @param valueString If the type is a string, the string value
-   * @param valueNumber If the type is a number, the number value
-   * @param numberType If the number is a vlaue the number type, index or percent
-   */
     private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>) : ImpGeofootprintVar[] {
         let varPk = null;
         const geofootprintVars: ImpGeofootprintVar[] = [];
-
+        const taByLocationNum = mapByExtended(this.tradeAreaService.get().filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Audience), item => item.impGeofootprintLocation.locationNumber);
+        console.log('Trade Area grouping', taByLocationNum);
         for (const location of Array.from(taResponseCache.keys())) {
             const geoResponses: Map<number, AudienceTradeareaResponse> = taResponseCache.get(location);
-            for (const geoResponseId of Array.from(geoResponses.keys())) {
+            const geoResponseKeys = Array.from(geoResponses.keys());
+            if (geoResponseKeys.length > 0 && !taByLocationNum.has(location)) {
+              console.error('There is a Custom Audience TA geoResponse object with no associated Trade Area object. [locationNumber, geoResponses]:', [location, geoResponses]);
+              continue;
+            }
+            const currentTradeArea = taByLocationNum.get(location);
+            for (const geoResponseId of geoResponseKeys) {
                 for (const geoVarKey of Array.from(this.geoVarMap.keys())) {
                     if (this.varPkCache.has(geoVarKey)) {
                         varPk = this.varPkCache.get(geoVarKey);
@@ -219,39 +216,42 @@ export class TargetAudienceAudienceTA {
                         varPk = this.varService.getNextStoreId();
                         this.varPkCache.set(geoVarKey, varPk);
                     }
-                    const geoResponse = geoResponses.get(geoResponseId);
+                    const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
                     let geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
                     if (this.geoVarMap.get(geoVarKey) === 'string') {
-                        geoVar = this.createGeoVar(varPk, geoResponse.geocode, 'string', geoVarKey, geoResponse[this.geoVarFieldMap.get(geoVarKey)]);
+                        geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'string', geoVarKey, geoResponse.categoryName, geoResponse[this.geoVarFieldMap.get(geoVarKey)]);
                     } else {
-                        geoVar = this.createGeoVar(varPk, geoResponse.geocode, 'number', geoVarKey, null, geoResponse[this.geoVarFieldMap.get(geoVarKey)], 'index');
+                        geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'number', geoVarKey, geoResponse.categoryName, null, geoResponse[this.geoVarFieldMap.get(geoVarKey)], 'index');
                     }
                     geofootprintVars.push(geoVar);
                 }
-
             }
         }
+        console.log('Created Audience TA geovars:', geofootprintVars);
         this.varService.add(geofootprintVars);
         return geofootprintVars;
     }
 
     /**
    * Create geoffotprint variables for the for the geos that are being selected
-   * @param pk The primary key of the new 
+   * @param currentTradeArea The Trade Area object to attach this geovar to.
+   * @param pk The primary key of the new
    * @param geocode The geocode of the new variable
    * @param type The variable type, string or number
    * @param fieldDisplay The display name of the new variable
+   * @param audienceName The audience name for the variable
    * @param valueString If the type is a string, the string value
    * @param valueNumber If the type is a number, the number value
    * @param numberType If the number is a vlaue the number type, index or percent
    */
-    private createGeoVar(pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
+    private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
         const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
         newVar.varPk = pk;
         newVar.gvId = this.varService.getNextStoreId();
         newVar.geocode = geocode;
         newVar.isActive = true;
         newVar.customVarExprDisplay = fieldDisplay;
+        newVar.fieldname = audienceName;
         if (type === 'string') {
             newVar.valueString = valueString;
             newVar.isString = true;
@@ -265,6 +265,8 @@ export class TargetAudienceAudienceTA {
                 newVar.fieldconte = 'PERCENT';
             }
         }
+        newVar.impGeofootprintTradeArea = currentTradeArea;
+        currentTradeArea.impGeofootprintVars.push(newVar);
         return newVar;
     }
 

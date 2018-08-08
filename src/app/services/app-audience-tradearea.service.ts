@@ -121,8 +121,10 @@ export class ValAudienceTradeareaService {
           this.fetchData = false;
           this.geoService.clearAll();
           this.varService.clearAll();
+          const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
-            this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
+            const newTradeArea = this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
+            if (newTradeArea != null) newTradeAreas.push(newTradeArea);
           }
           if (this.failedLocations.length > 0) {
             let warningMessge = 'Unable to find data for the following locations:<br>';
@@ -132,6 +134,7 @@ export class ValAudienceTradeareaService {
             this.messagingService.showGrowlWarning('Audience Trade Area Warning', warningMessge);
             this.failedLocations = [];
           }
+          this.tradeareaService.add(newTradeAreas);
           this.geoService.add(this.geoCache);
           this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, taConfig);
           this.drawRadiusRings(minRadius, maxRadius);
@@ -346,14 +349,15 @@ export class ValAudienceTradeareaService {
    * @param geos An array of geos that will be attached to the trade area being created
    * @param location the location that the trade area is associated with
    */
-  private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) {
+  private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) : ImpGeofootprintTradeArea {
     if (!geos || geos.length < 1 || !location) {
       console.warn('No geos found when attempting to create AudienceTA');
-      return;
+      return null;
     }
     const tradeArea = this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Audience);
     tradeArea.impGeofootprintGeos = geos;
     geos.forEach(geo => geo.impGeofootprintTradeArea = tradeArea);
+    return tradeArea;
   }
 
   /**

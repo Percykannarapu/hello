@@ -34,6 +34,15 @@ export enum TradeAreaTypeCodes {
   Manual = 'Manual'
 }
 
+export namespace TradeAreaTypeCodes {
+  export function parse(code: string) : TradeAreaTypeCodes {
+    for (const key of Object.keys(TradeAreaTypeCodes)) {
+      if (code.toUpperCase() === TradeAreaTypeCodes[key].toUpperCase()) return TradeAreaTypeCodes[key];
+    }
+    throw new Error('Invalid Trade Area Type Code');
+  }
+}
+
 export enum TradeAreaMergeTypeCodes {
   NoMerge = 'No Merge',
   MergeEach = 'Merge Each',
