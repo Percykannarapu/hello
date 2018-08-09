@@ -18,16 +18,9 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
   styleUrls: ['./audience-tradearea.component.css']
 })
 export class AudienceTradeareaComponent implements OnInit {
-  public sliderVal: number = null;
-  public tileSelectorOptions: SelectItem[] = [];
-  public tileSelectorValues: SmartTile[] = [];
   public varSelectorOptions: SelectItem[] = [];
   public selectedVar: string; //the variable that has been selected in the UI dropdown menu
   public scoreTypeOptions: SelectItem[] = [];
-  public selectedScoreType: string = 'DMA';
-  public minRadius: number;
-  public maxRadius: number;
-  public includeMustCover: boolean = false;
   public source: string = null;
 
   public configForm: FormGroup;
@@ -46,21 +39,14 @@ export class AudienceTradeareaComponent implements OnInit {
 
   ngOnInit() {
 
-    this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_HIGH, value: SmartTile.EXTREMELY_HIGH});
-    this.tileSelectorOptions.push({label: SmartTile.HIGH, value: SmartTile.HIGH});
-    this.tileSelectorOptions.push({label: SmartTile.ABOVE_AVERAGE, value: SmartTile.ABOVE_AVERAGE});
-    this.tileSelectorOptions.push({label: SmartTile.AVERAGE, value: SmartTile.AVERAGE});
-    this.tileSelectorOptions.push({label: SmartTile.BELOW_AVERAGE, value: SmartTile.BELOW_AVERAGE});
-    this.tileSelectorOptions.push({label: SmartTile.LOW, value: SmartTile.LOW});
-    this.tileSelectorOptions.push({label: SmartTile.EXTREMELY_LOW, value: SmartTile.EXTREMELY_LOW});
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
 
     this.configForm = this.fb.group({
-      'minRadius': ['', Validators.required],
-      'maxRadius': ['', Validators.required],
+      'minRadius': [null, Validators.required],
+      'maxRadius': [null, Validators.required],
       'audience': [null, Validators.required],
-      'weight': [65, Validators.required],
+      'weight': [null, Validators.required],
       'scoreType': ['DMA', Validators.required],
       'includeMustCover': [false]
     });
@@ -91,6 +77,7 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
+    const weight = this.configForm.get('weight');
     const vars: SelectItem[] = [];
     for (const targetingVar of targetingVars) {
       const selectItem: SelectItem = {label: targetingVar.audienceName, value: targetingVar.audienceName};
@@ -102,11 +89,11 @@ export class AudienceTradeareaComponent implements OnInit {
     if (this.selectedVar == null && this.varSelectorOptions.length > 0) {
       this.selectedVar = this.varSelectorOptions[0].value;
     }
-    if (this.selectedVar != null && this.sliderVal == null) {
+    if (this.selectedVar != null && weight == null) {
       if (this.audienceSourceMap.get(this.selectedVar) === 'VLH') {
-        this.sliderVal = 100;
+        this.configForm.patchValue({ weight: 100 });
       } else {
-        this.sliderVal = 65;
+        this.configForm.patchValue({ weight: 65 });
       }
     }
   }
@@ -114,9 +101,9 @@ export class AudienceTradeareaComponent implements OnInit {
   public onVarDropdownChange(event: any) {
     this.source = event.value;
     if (this.audienceSourceMap.has(event.value) && this.audienceSourceMap.get(event.value) === 'VLH') {
-      this.sliderVal = 100;
+      this.configForm.patchValue({ weight: 100 });
     } else {
-      this.sliderVal = 65;
+      this.configForm.patchValue({ weight: 65 });
     }
   }
 
@@ -129,21 +116,16 @@ export class AudienceTradeareaComponent implements OnInit {
     return id;
   }
 
-  public onSelectMustCover() {
-    this.includeMustCover = !this.includeMustCover;
-    console.log('AARON: MUST COVER', this.includeMustCover);
-  }
-
   public onClickApply() {
     const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
-
+    const audienceTAConfig = this.audienceTradeareaService.getAudienceTAConfig();
     
     
 
-    const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${this.minRadius}
-~maxRadius=${this.maxRadius}~varPk=${this.getVarId()}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${this.sliderVal}
-~scoreType=${this.selectedScoreType}~includeAllInMustCover=${this.includeMustCover ? 1 : 0}`;
+    const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${audienceTAConfig.minRadius}
+~maxRadius=${audienceTAConfig.maxRadius}~varPk=${this.getVarId()}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${audienceTAConfig.weight}
+~scoreType=${audienceTAConfig.scoreType}~includeAllInMustCover=${audienceTAConfig.includeMustCover ? 1 : 0}`;
 
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
@@ -161,16 +143,9 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   public clearFields(){
-    this.sliderVal = null;
-    this.tileSelectorOptions = [];
-    this.tileSelectorValues = [];
     this.varSelectorOptions = [];
     this.selectedVar = null;
     //this.scoreTypeOptions = [];
-    this.selectedScoreType = 'DMA';
-    this.minRadius = null;
-    this.maxRadius = null;
-    this.includeMustCover = false;
     this.source = null;
     this.selectedVars = [];
     this.errorTitle = 'Audience Trade Area Error';
