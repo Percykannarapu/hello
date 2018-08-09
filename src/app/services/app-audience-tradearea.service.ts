@@ -147,6 +147,13 @@ export class ValAudienceTradeareaService {
   }
 
   /**
+   * Getter for the AudienceTAConfig
+   */
+  public getAudienceTAConfig() {
+    return this.audienceTAConfig;
+  }
+
+  /**
    * Create an audience trade are for each location that has been created
    * @param minRadius The minimum, must cover radius, for the trade areas
    * @param maxRadius The maximum radius for the trade areas
@@ -155,7 +162,7 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+  public createAudienceTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
     try {
       const validate: boolean | string[] = this.validateTradeArea();
@@ -187,7 +194,7 @@ export class ValAudienceTradeareaService {
         try {
           this.parseResponse(response);
           if (this.taResponses.size < 1) {
-            console.warn('No data found when running audience trade area:', this.audienceTAConfig);
+            console.warn('No data found when running audience trade area:', audienceTAConfig);
             this.messagingService.showGrowlWarning('Audience Trade Area Warning', 'No data was found for your input parameters');
             this.audienceTaSubject.next(true);
             return;
@@ -197,7 +204,7 @@ export class ValAudienceTradeareaService {
           this.varService.clearAll();
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
-            const newTradeArea = this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
+            const newTradeArea = this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
           }
           if (this.failedLocations.length > 0) {
@@ -210,8 +217,8 @@ export class ValAudienceTradeareaService {
           }
           this.tradeareaService.add(newTradeAreas);
           this.geoService.add(this.geoCache);
-          this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, this.audienceTAConfig);
-          this.drawRadiusRings(minRadius, maxRadius);
+          this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
+          this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
           this.messagingService.stopSpinnerDialog('AUDIENCETA');
@@ -228,7 +235,7 @@ export class ValAudienceTradeareaService {
           this.messagingService.stopSpinnerDialog('AUDIENCETA');
         });
     } else {
-      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType, mustCover).subscribe(res => {
+      this.rerunTradearea(audienceTAConfig).subscribe(res => {
         if (res) {
           this.audienceTaSubject.next(true);
         } else {
@@ -275,12 +282,12 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+  private rerunTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
-          this.drawRadiusRings(minRadius, maxRadius);
+          this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
+          this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
         }
         obs.next(true);
       } catch (error) {
@@ -442,12 +449,12 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : ImpGeofootprintGeo[] {
+  private createGeos(audienceTAConfig, location: ImpGeofootprintLocation) : ImpGeofootprintGeo[] {
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const taResponseMap = this.taResponses.get(location.locationNumber);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
-    const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+    const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       this.failedLocations.push(location);
@@ -465,13 +472,13 @@ export class ValAudienceTradeareaService {
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
+      if (taResponse.distance <= audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
-      if (mustCover && taResponse.distance <= minRadius) {
+      if (audienceTAConfig.includeMustCover && taResponse.distance <= audienceTAConfig.minRadius) {
         newGeo.isActive = true;
       }
-      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
+      if (taResponse.distance > audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
       if (!newGeo.isActive) {

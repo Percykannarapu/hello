@@ -146,7 +146,7 @@ export class AudienceTradeareaComponent implements OnInit {
 ~scoreType=${this.selectedScoreType}~includeAllInMustCover=${this.includeMustCover ? 1 : 0}`;
 
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
-    this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, this.getVarId(), this.sliderVal, this.selectedScoreType, this.includeMustCover)
+    this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
       .subscribe(result => {
         
         if (!result) {
