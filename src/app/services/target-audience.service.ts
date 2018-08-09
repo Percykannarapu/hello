@@ -316,14 +316,14 @@ export class TargetAudienceService implements OnDestroy {
           }
         }
       );
-    }    
-     if (selectedAudiences.length > 0) {
+    }
+    if (selectedAudiences.length > 0) {
       // set up a watch process
       this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$)
         .subscribe(
-        ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos,selectedAudiences)
-        );    
-    }   
+          ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
+        );
+    }
   }
 
   private unsubEverything() {

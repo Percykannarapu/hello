@@ -337,7 +337,7 @@ export class AppMenuComponent implements OnInit {
             this.messageService.showGrowlError('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
         } else {
             if (impProject.projectTrackerId != null) {
-                const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+                const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
                 const fileName = 'visit_locations_' + impProject.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
                 this.impGeofootprintLocationService.exportStore(fileName, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, impProject, true, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
                 const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'vlh-site-list', action: 'send' });
