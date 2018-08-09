@@ -156,6 +156,7 @@ export class ValAudienceTradeareaService {
    * @param scoreType The score type, DMA or National
    */
   public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+    this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
     try {
       const validate: boolean | string[] = this.validateTradeArea();
       if (validate !== true) {
@@ -164,6 +165,7 @@ export class ValAudienceTradeareaService {
           growlMessage += message + '<br>';
         }
         this.messagingService.showGrowlError('Audience Trade Area Error', growlMessage);
+        this.messagingService.stopSpinnerDialog('AUDIENCETA');
         return;
       }
     } catch (error) {
@@ -210,21 +212,20 @@ export class ValAudienceTradeareaService {
           this.geoService.add(this.geoCache);
           this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(minRadius, maxRadius);
-          this.lastMinRadius = minRadius;
-          this.lastMaxRadius = maxRadius;
-          this.lastDigCategoryId = digCategoryId;
-          this.lastWeight = weight;
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         } catch (error) {
           console.error(error);
           this.audienceTaSubject.next(false);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         }
       },
         err => {
           console.error(err);
           this.audienceTaSubject.next(false);
           this.fetchData = true;
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         });
     } else {
       this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType, mustCover).subscribe(res => {
@@ -232,12 +233,14 @@ export class ValAudienceTradeareaService {
           this.audienceTaSubject.next(true);
         } else {
           this.audienceTaSubject.next(false);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         }
       },
         err => {
           console.error(err);
           this.audienceTaSubject.next(false);
           this.fetchData = true;
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         });
     }
     return this.audienceTaSubject.asObservable();

@@ -139,7 +139,7 @@ export class AudienceTradeareaComponent implements OnInit {
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
 
     
-    this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
+    
 
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${this.minRadius}
 ~maxRadius=${this.maxRadius}~varPk=${this.getVarId()}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${this.sliderVal}
@@ -148,7 +148,7 @@ export class AudienceTradeareaComponent implements OnInit {
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
     this.audienceTradeareaService.createAudienceTradearea(this.minRadius, this.maxRadius, this.tileSelectorValues, this.getVarId(), this.sliderVal, this.selectedScoreType, this.includeMustCover)
       .subscribe(result => {
-        this.messagingService.stopSpinnerDialog('AUDIENCETA');
+        
         if (!result) {
           this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
         }
