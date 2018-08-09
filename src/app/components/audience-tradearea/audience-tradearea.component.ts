@@ -5,6 +5,7 @@ import { SmartTile, ValAudienceTradeareaService } from '../../services/app-audie
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../models/audience-data.model';
+import { Observable } from 'rxjs';
 import { map, distinctUntilChanged, filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
@@ -20,7 +21,6 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 export class AudienceTradeareaComponent implements OnInit {
   public varSelectorOptions: SelectItem[] = [];
   public scoreTypeOptions: SelectItem[] = [];
-
   public configForm: FormGroup;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
@@ -35,6 +35,8 @@ export class AudienceTradeareaComponent implements OnInit {
     private fb: FormBuilder) { }
 
   ngOnInit() {
+
+    this.audienceTradeareaService.audienceTAConfig$.pipe(distinctUntilChanged()).subscribe(c => this.onConfigChange(c));
 
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
@@ -56,6 +58,17 @@ export class AudienceTradeareaComponent implements OnInit {
 
     this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearFields();
+    });
+  }
+
+  private onConfigChange(config: AudienceTradeAreaConfig) {
+    console.log('AARON: UPDATING CONFIG FROM AUDIENCE TA SERVICE', config);
+    this.configForm.patchValue({
+      minRadius: config.minRadius,
+      maxRadius: config.maxRadius,
+      weight: config.weight,
+      scoreType: config.scoreType,
+      includeMustCover: config.includeMustCover
     });
   }
 

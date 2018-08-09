@@ -4,6 +4,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppRendererService, OutlineSetup, SmartRendererSetup } from './app-renderer.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -97,18 +98,49 @@ export class ValAudienceTradeareaService {
    * @param config The updated configuration
    */
   public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
+    console.log('AARON: UPDATING CONFIG', config);
     const project = this.stateService.currentProject$.getValue();
-    this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
-    project.audTaIndexBase = this.audienceTAConfig.scoreType;
-    project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
-    project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
-    project.audTaMinRadiu = this.audienceTAConfig.minRadius;
-    project.audTaVarPk = this.audienceTAConfig.digCategoryId;
-    project.audTaVarWeight = this.audienceTAConfig.weight;
-    project.audTaVarSource
+    let dirty: boolean = false;
+    if (this.audienceTAConfig == null) 
+      
+    if (this.audienceTAConfig.analysisLevel !== config.analysisLevel) dirty = true;
+    if (this.audienceTAConfig.digCategoryId !== config.digCategoryId) dirty = true;
+    if (this.audienceTAConfig.includeMustCover !== config.includeMustCover) dirty = true;
+    if (this.audienceTAConfig.maxRadius !== config.maxRadius) dirty = true;
+    if (this.audienceTAConfig.minRadius !== config.minRadius) dirty = true;
+    if (this.audienceTAConfig.scoreType !== config.scoreType) dirty = true;
+    if (this.audienceTAConfig.weight !== config.weight) dirty = true;
+    if (dirty) {
+      this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
+      project.audTaIndexBase = this.audienceTAConfig.scoreType;
+      project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
+      project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
+      project.audTaMinRadiu = this.audienceTAConfig.minRadius;
+      project.audTaVarPk = this.audienceTAConfig.digCategoryId;
+      project.audTaVarWeight = this.audienceTAConfig.weight;
+    }
     this.audienceTAConfig$.next(this.audienceTAConfig);
   }
 
+  /**
+   * When a project is loaded we need to create an
+   * AudienceTAConfig if we have the data available
+   */
+  private onLoad() {
+    console.log('AARON: LOADED PROJECT FOR AUDIENCE TA');
+    const project = this.stateService.currentProject$.getValue();
+    const audienceTAConfig: AudienceTradeAreaConfig = {
+      analysisLevel: this.stateService.analysisLevel$.getValue(),
+      digCategoryId: project.audTaVarPk,
+      includeMustCover: project.audTaIsMustCover === 1 ? true : false,
+      maxRadius: project.audTaMaxRadiu,
+      minRadius: project.audTaMinRadiu,
+      scoreType: project.audTaIndexBase,
+      weight: project.audTaVarWeight,
+      locations: null // we don't populate this until we run the trade area
+    };
+    this.updateAudienceTAConfig(audienceTAConfig);
+  }
 
   /**
    * Attach the locations to the AudienceTAConfig
@@ -576,10 +608,21 @@ export class ValAudienceTradeareaService {
     private targetAudienceTAService: TargetAudienceAudienceTA,
     private messagingService: AppMessagingService,
     private domainFactory: ImpDomainFactoryService) {
-    this.initializeSortMap();
-    this.locationService.storeObservable.subscribe(location => {
-      // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
-      this.fetchData = true;
-    });
+      this.audienceTAConfig = {
+        analysisLevel: null,
+        digCategoryId: null,
+        includeMustCover: null,
+        locations: null,
+        maxRadius: null,
+        minRadius: null,
+        scoreType: null,
+        weight: null
+      };
+      this.initializeSortMap();
+      this.locationService.storeObservable.subscribe(location => {
+        // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
+        this.fetchData = true;
+      });
+      this.stateService.projectIsLoading$.pipe(filter(l => l === false)).subscribe(l => this.onLoad());
   }
 }
