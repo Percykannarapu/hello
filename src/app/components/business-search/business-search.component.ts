@@ -106,7 +106,8 @@ export class BusinessSearchComponent implements OnInit {
       eliminateBlankFirmNames: 'True',
       siteLimit: '2000',
       sites: currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord })),
-      sics: this.targetCategories.map(category => ({ sic: category.sic }))
+      sics: this.targetCategories.map(category => ({ sic: category.sic })),
+      locations: currentLocations
     };
     let hasError = false;
     if (request.sites.length === 0) {
@@ -121,6 +122,7 @@ export class BusinessSearchComponent implements OnInit {
       this.messagingService.showGrowlError('Business Search Error', 'Please enter a radius');
       hasError = true;
     }
+    console.log('business Search Request:::', JSON.stringify(request));
     let sic = request.sites != null ? 'SIC=' + request['sics'].map(sic3 =>  sic3.sic ) + '~' : '';
     sic = sic.substring(0, 100);
     const miles = request['radius'] != null ? 'Miles=' + request['radius'] + '~' : '';
