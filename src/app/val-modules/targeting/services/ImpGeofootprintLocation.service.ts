@@ -324,7 +324,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             const csvData = this.prepareCSV(exportColumns, locations);
             this.downloadExport(filename, csvData);
             let csvString: string = '';
-            filename = filename.substring(0, 8);
+           // filename = filename.substring(0, 8);
             const serviceUrl = `v1/targeting/base/vlh?fileName=${filename}`;
             
             csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
