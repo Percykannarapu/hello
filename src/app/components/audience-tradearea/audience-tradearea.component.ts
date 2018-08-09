@@ -19,14 +19,11 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 })
 export class AudienceTradeareaComponent implements OnInit {
   public varSelectorOptions: SelectItem[] = [];
-  public selectedVar: string; //the variable that has been selected in the UI dropdown menu
   public scoreTypeOptions: SelectItem[] = [];
-  public source: string = null;
 
   public configForm: FormGroup;
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
-  private errorTitle: string = 'Audience Trade Area Error';
   private audienceSourceMap: Map<string, string> = new Map<string, string>();
 
   constructor(private audienceTradeareaService: ValAudienceTradeareaService,
@@ -77,7 +74,7 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
-    const weight = this.configForm.get('weight');
+    const weight = this.configForm.get('weight').value;
     const vars: SelectItem[] = [];
     for (const targetingVar of targetingVars) {
       const selectItem: SelectItem = {label: targetingVar.audienceName, value: targetingVar.audienceName};
@@ -86,20 +83,21 @@ export class AudienceTradeareaComponent implements OnInit {
       this.audienceSourceMap.set(targetingVar.audienceName, targetingVar.audienceSourceName);
     }
     this.varSelectorOptions = vars;
-    if (this.selectedVar == null && this.varSelectorOptions.length > 0) {
-      this.selectedVar = this.varSelectorOptions[0].value;
+    if (this.configForm.get('audience') == null && this.varSelectorOptions.length > 0) {
+      this.configForm.patchValue({ audience: this.varSelectorOptions[0].value });
     }
-    if (this.selectedVar != null && weight == null) {
-      if (this.audienceSourceMap.get(this.selectedVar) === 'VLH') {
+    if (this.configForm.get('audience').value != null && weight == null) {
+      if (this.audienceSourceMap.get(this.configForm.get('audience').value) === 'VLH') {
         this.configForm.patchValue({ weight: 100 });
       } else {
         this.configForm.patchValue({ weight: 65 });
       }
     }
+    this.configForm.markAsDirty();
+    this.configForm.updateValueAndValidity();
   }
 
   public onVarDropdownChange(event: any) {
-    this.source = event.value;
     if (this.audienceSourceMap.has(event.value) && this.audienceSourceMap.get(event.value) === 'VLH') {
       this.configForm.patchValue({ weight: 100 });
     } else {
@@ -108,8 +106,10 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   private getVarId() : number {
-    const targetingVar: AudienceDataDefinition[] = this.selectedVars.filter(v => v.audienceName === this.selectedVar);
-    const id: number = Number(targetingVar[0].secondaryId.replace(',', ''));
+    const targetingVar: AudienceDataDefinition[] = this.selectedVars.filter(v => v.audienceName === this.configForm.get('audience').value);
+    let id: number;
+    if (targetingVar.length > 0)
+      id = Number(targetingVar[0].secondaryId.replace(',', ''));
     if (Number.isNaN(id)) {
       return null;
     }
@@ -120,35 +120,39 @@ export class AudienceTradeareaComponent implements OnInit {
     const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
     const audienceTAConfig = this.audienceTradeareaService.getAudienceTAConfig();
-    
+    const errorTitle: string = 'Audience Trade Area Error';
     
 
-    const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}~siteCount=${siteCount}~minRadius=${audienceTAConfig.minRadius}
-~maxRadius=${audienceTAConfig.maxRadius}~varPk=${this.getVarId()}~audienceName=${this.selectedVar}~source=${this.audienceSourceMap.get(this.selectedVar)}~weight=${audienceTAConfig.weight}
-~scoreType=${audienceTAConfig.scoreType}~includeAllInMustCover=${audienceTAConfig.includeMustCover ? 1 : 0}`;
+    const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
+                        ~siteCount=${siteCount}
+                        ~minRadius=${audienceTAConfig.minRadius}
+                        ~maxRadius=${audienceTAConfig.maxRadius}
+                        ~varPk=${this.getVarId()}
+                        ~audienceName=${this.configForm.get('audience').value}
+                        ~source=${this.audienceSourceMap.get(this.configForm.get('audience').value)}
+                        ~weight=${audienceTAConfig.weight}
+                        ~scoreType=${audienceTAConfig.scoreType}
+                        ~includeAllInMustCover=${audienceTAConfig.includeMustCover ? 1 : 0}`;
 
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
       .subscribe(result => {
         
         if (!result) {
-          this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
+          this.messagingService.showGrowlError(errorTitle, 'Error while creating Audience Trade Area');
         }
       },
       error => {
         console.error('Error while creating audience tradearea', error);
-        this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
+        this.messagingService.showGrowlError(errorTitle, 'Error while creating Audience Trade Area');
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       });
   }
 
   public clearFields(){
     this.varSelectorOptions = [];
-    this.selectedVar = null;
     //this.scoreTypeOptions = [];
-    this.source = null;
     this.selectedVars = [];
-    this.errorTitle = 'Audience Trade Area Error';
     this.audienceSourceMap = new Map<string, string>();
   }
 

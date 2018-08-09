@@ -93,10 +93,19 @@ export class ValAudienceTradeareaService {
 
   /**
    * Update the audience trade area configuration
+   * also push the updated config into the project for persistence
    * @param config The updated configuration
    */
   public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
+    const project = this.stateService.currentProject$.getValue();
     this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
+    project.audTaIndexBase = this.audienceTAConfig.scoreType;
+    project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
+    project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
+    project.audTaMinRadiu = this.audienceTAConfig.minRadius;
+    project.audTaVarPk = this.audienceTAConfig.digCategoryId;
+    project.audTaVarWeight = this.audienceTAConfig.weight;
+    project.audTaVarSource
     this.audienceTAConfig$.next(this.audienceTAConfig);
   }
 
