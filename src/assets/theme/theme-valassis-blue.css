@@ -30702,3 +30702,12 @@ body .ui-terminal .ui-terminal-input {
    position: relative;
    margin: -20px 0px 24px;
 }
+
+.val-toast-top-right .ui-toast-close-icon {
+  font-size: 1em;
+}
+
+.val-toast-top-right span.ui-toast-icon {
+  font-size: 2em;
+  font-weight: bold;
+}

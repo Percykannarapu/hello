@@ -14,23 +14,11 @@ enum MenuOrientation {
     HORIZONTAL
 }
 
-export enum mapFunctions {
-    SelectPoly = 0,
-    DrawPoint = 1,
-    DrawLine = 2,
-    DrawPoly = 3,
-    RemoveGraphics = 4,
-    Popups = 5,
-    Labels = 6,
-    MeasureLine = 7
-  }
-
 declare var jQuery: any;
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss']
+    templateUrl: './app.component.html'
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 

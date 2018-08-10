@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MessageService } from 'primeng/components/common/messageservice';
+import { MessageService } from 'primeng/api';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable()
@@ -14,26 +14,26 @@ export class AppMessagingService {
   public spinnerMessage$: Observable<string> = this.spinnerMessage.asObservable();
   public spinnerState$: Observable<boolean> = this.spinnerState.asObservable();
 
-  constructor(private growlService: MessageService) { }
+  constructor(private toastService: MessageService) { }
 
-  public showGrowlError(title: string, message: string) : void {
-    this.growlService.add({ severity: 'error', summary: title, detail: message });
+  public showGrowlError(title: string, message: string, sticky: boolean = true) : void {
+    this.toastService.add({ severity: 'error', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlWarning(title: string, message: string) : void {
-    this.growlService.add({ severity: 'warn', summary: title, detail: message});
+  public showGrowlWarning(title: string, message: string, sticky: boolean = true) : void {
+    this.toastService.add({ severity: 'warn', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlSuccess(title: string, message: string) : void {
-    this.growlService.add({ severity: 'success', summary: title, detail: message });
+  public showGrowlSuccess(title: string, message: string, sticky: boolean = true) : void {
+    this.toastService.add({ severity: 'success', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlInfo(title: string, message: string) : void {
-    this.growlService.add({ severity: 'info', summary: title, detail: message});
+  public showGrowlInfo(title: string, message: string, sticky: boolean = true) : void {
+    this.toastService.add({ severity: 'info', summary: title, detail: message, sticky: sticky });
   }
 
   public clearGrowlMessages() : void {
-    this.growlService.clear();
+    this.toastService.clear();
   }
 
   public startSpinnerDialog(key: string, message: string) {

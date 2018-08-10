@@ -6,9 +6,9 @@
             <input pInputText id="numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
             <span class="ui-inputgroup-addon" *ngIf="!hasErrors('number')">&nbsp;</span>
             <span class="ui-inputgroup-addon" *ngIf="hasErrors('number')">
-              <i class="fa ui-icon-error error-icon" title="Site Number is required"></i>
+              <i class="ui-icon-error error-icon" title="Site Number is required"></i>
             </span>
-            <label class="validation-float-label" for="numberInput">Number</label>
+            <label class="validation-float-label" for="numberInput">Number (required)</label>
           </span>
         </div>
       </div>
@@ -60,7 +60,7 @@
                   <input pInputText id="latInput" class="ui-g-12" formControlName="latitude" autocomplete="off" />
                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('latitude')">&nbsp;</span>
                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('latitude')">
-                  <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['latitude'])"></i>
+                    <i class="ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['latitude'])"></i>
                   </span>
                   <label for="latInput">Latitude (Y)</label>
                </span>
@@ -72,7 +72,7 @@
                   <input pInputText id="lonInput" class="ui-g-11" formControlName="longitude" autocomplete="off" />
                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('longitude')">&nbsp;</span>
                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('longitude')">
-                  <i class="fa ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['longitude'])"></i>
+                    <i class="ui-icon-error error-icon" [title]="manualEntryForm.getError('latLon', ['longitude'])"></i>
                   </span>
                   <label for="lonInput">Longitude (X)</label>
                </span>

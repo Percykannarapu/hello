@@ -3,9 +3,9 @@ import { Parser, ParseRule } from '../../val-modules/common/services/file.servic
 
 const latLongProcessor = (data: string) => {
   if (data != null && data !== '' && !Number.isNaN(Number(data)))
-    return Number(data);
+    return data;
   else
-    return null;
+    return '';
 };
 
 export const siteListUpload: Parser<ValGeocodingRequest> = {

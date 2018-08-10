@@ -87,27 +87,7 @@
 
   <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
   <div class="ui-g-12 no_vertical_space">
-    <!-- ESRI Map -->
-    <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
-      <p-sidebar [(visible)]="display" styleClass="ui-sidebar-lg val-flush-to-edges" position="left" >
-        <div class="ug-g-12">
-          <label class="ui-datatable-header ui-widget-header">Map Side Panel</label>
-        </div>
-      </p-sidebar>
-      <div id="outerMapDiv" class="val-flush-to-edges">
-        <p-toolbar class="val-thin-toolbar>">
-          <div class="val-flush-to-edges">
-            <!-- <i style="margin-left: 20px"></i> -->
-            <!-- button pButton type="button" label="New" icon="fa-plus"></button -->
-            <!-- button pButton type="button" label="Open" icon="fa-folder-open"></button -->
-            <!-- <i class="fa fa-bars"></i> -->
-
-            <val-esri-layer-select>Loading Layer-Select...</val-esri-layer-select>
-          </div>
-        </p-toolbar>
-        <val-esri-map>Loading Map...</val-esri-map>
-      </div>
-    </p-panel>
+    <val-map></val-map>
     <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true">
       <p-header style="text-align: center;" pTooltip="Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}">Locations / Geographies</p-header>
 
@@ -118,16 +98,4 @@
   <div>
     <br><br><br>
   </div>
-
-  <!-- TODO:  This needs to be moved
-  <div class="ui-g ui-fluid">
-      <p-dialog [closable]="true" header="Drawing Buffer" [(visible)]="displayDBSpinner" [contentStyle]="{'overflow':'visible'}"
-        width="300">
-        <div class="ui-g-3"></div>
-        <div class="ui-g-5">
-          <p-progressSpinner></p-progressSpinner>
-        </div>
-        <div class="ui-g-4"></div>
-      </p-dialog>
-  </div> -->
 </div>

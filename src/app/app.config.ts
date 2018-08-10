@@ -68,13 +68,13 @@ export class AppConfig implements EsriLoaderConfig {
      console.log('app.config.getLayerIdForAnalysisLevel - analysisLevel: ', analysisLevel);
     switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
-        return boundary ? this.layerIds.zip.topVars.id : this.layerIds.zip.centroids.id;
+        return boundary ? this.layerIds.zip.boundaries.id : this.layerIds.zip.centroids.id;
       case 'atz':
-        return boundary ? this.layerIds.atz.topVars.id : this.layerIds.atz.centroids.id;
+        return boundary ? this.layerIds.atz.boundaries.id : this.layerIds.atz.centroids.id;
       case 'digital atz':
-        return boundary ? this.layerIds.digital_atz.digitalTopVars.id : this.layerIds.digital_atz.digitalCentroids.id;
+        return boundary ? this.layerIds.digital_atz.boundaries.id : this.layerIds.digital_atz.centroids.id;
       case 'pcr':
-        return boundary ? this.layerIds.pcr.topVars.id : this.layerIds.pcr.centroids.id;
+        return boundary ? this.layerIds.pcr.boundaries.id : this.layerIds.pcr.centroids.id;
       default:
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }

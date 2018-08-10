@@ -217,7 +217,7 @@ export class EsriQueryService {
         });
         const queryCall = () => {
           layerView.queryFeatures(query).then(results => {
-            observer.next(results);
+            observer.next(results.features);
             observer.complete();
           });
         };
