@@ -147,8 +147,14 @@ export class AppLayerService {
   }
 
   public setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
-    this.layerService.setAllGroupVisibilities(false);
     const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
+    const otherGroupKeys = Object.values(this.analysisLevelToGroupNameMap).filter(key => key !== groupKey);
+    otherGroupKeys.forEach(key => {
+      const otherLayer = this.appConfig.layerIds[key];
+      if (otherLayer != null && this.layerService.groupExists(otherLayer.group.name)) {
+        this.layerService.getGroup(otherLayer.group.name).visible = false;
+      }
+    });
     if (groupKey != null) {
       const layerGroup = this.appConfig.layerIds[groupKey];
       if (layerGroup != null && this.layerService.groupExists(layerGroup.group.name)) {

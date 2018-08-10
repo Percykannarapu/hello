@@ -63,14 +63,18 @@ export class EsriLayerService {
     }
   }
 
-  public createGroup(groupName: string, isVisible: boolean) : void {
+  public createGroup(groupName: string, isVisible: boolean, addToTopOfList: boolean = false) : void {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriModules.GroupLayer({
       title: groupName,
       listMode: 'show-children',
       visible: isVisible
     });
-    this.mapService.map.layers.unshift(group);
+    if (addToTopOfList) {
+      this.mapService.map.layers.add(group);
+    } else {
+      this.mapService.map.layers.unshift(group);
+    }
     this.groupRefs.set(groupName, group);
   }
 
@@ -95,7 +99,7 @@ export class EsriLayerService {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
-      this.createGroup(groupName, true);
+      this.createGroup(groupName, true, true);
     }
     const group = this.groupRefs.get(groupName);
     let fields: any[];
@@ -170,12 +174,6 @@ export class EsriLayerService {
     if (this.mapService.map == null || this.mapService.map.allLayers == null) return;
     this.mapService.map.allLayers.forEach(l => {
       if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
-    });
-  }
-
-  public setAllGroupVisibilities(isVisible: boolean) : void {
-    Array.from(this.groupRefs.values()).forEach(group => {
-      group.visible = isVisible;
     });
   }
 
