@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -10,9 +10,9 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { AppLayerService } from './app-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
+import { MapStateTypeCodes } from '../models/app.enums';
 
 export enum Season {
   Summer = 'summer',
@@ -25,6 +25,9 @@ export enum Season {
 export class AppStateService {
 
   public applicationIsReady$: Observable<boolean>;
+
+  private currentMapState = new BehaviorSubject<MapStateTypeCodes>(MapStateTypeCodes.Popups);
+  public currentMapState$ = this.currentMapState.asObservable();
 
   private projectIsLoading = new BehaviorSubject<boolean>(false);
   public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
@@ -60,6 +63,10 @@ export class AppStateService {
     return this.projectService.loadProject(projectId, true).pipe(
       tap(null, null, () => this.projectIsLoading.next(false))
     );
+  }
+
+  public setMapState(newState: MapStateTypeCodes) : void {
+    this.currentMapState.next(newState);
   }
 
   private setupApplicationReadyObservable() : void {

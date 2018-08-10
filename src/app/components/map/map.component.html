@@ -1,0 +1,17 @@
+<p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
+  <div id="outerMapDiv" class="val-flush-to-edges">
+    <val-map-toolbar
+      [currentAnalysisLevel]="currentAnalysisLevel$ | async"
+      [currentMapState]="mapState$ | async"
+      (popupButtonClicked)="onMapStateChange(states.Popups)"
+      (singleSelectClicked)="onMapStateChange(states.SelectPoly)"
+      (multiSelectClicked)="onMapStateChange(states.DrawPoly)"
+      (measureToolClicked)="onMapStateChange(states.MeasureLine)"
+      (clearGraphicsClicked)="onMapStateChange(states.RemoveGraphics)"
+      (clearSelectionsClicked)="onClearSelections()"
+      (revertClicked)="onRevert()"
+      (zoomClicked)="onZoom()"
+    ></val-map-toolbar>
+    <val-esri-map [cursor]="cursor$ | async">Loading Map...</val-esri-map>
+  </div>
+</p-panel>

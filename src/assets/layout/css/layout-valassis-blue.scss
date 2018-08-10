@@ -12,3 +12,7 @@ $lightMenuRouterLinkActiveColor: #2e5473;
 $horizontalLightMenuRouterLinkActiveColor: #9fa8da;
 
 @import '../../sass/layout/_layout';
+
+.val-toast-top-right {
+  top: 93px !important;
+}

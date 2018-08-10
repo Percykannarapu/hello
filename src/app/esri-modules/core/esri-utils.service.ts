@@ -6,6 +6,14 @@ export class EsriUtils {
     return l != null && l.type === 'feature';
   }
 
+  public static layerIsPortalFeature(l: __esri.Layer) : l is __esri.FeatureLayer {
+    if (this.layerIsFeature(l)) {
+      return l.portalItem != null;
+    } else {
+      return false;
+    }
+  }
+
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
     return g != null && g.type === 'point';
   }

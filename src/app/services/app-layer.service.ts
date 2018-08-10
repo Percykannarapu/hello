@@ -6,12 +6,14 @@ import { groupBy } from '../val-modules/common/common.utils';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { MapService } from './map.service';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { combineLatest } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { combineLatest, merge, Observable } from 'rxjs';
+import { filter, finalize, map, tap } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from './usage.service';
+import { LayerDefinition } from '../../environments/environment';
 
 const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
 
@@ -35,9 +37,21 @@ const defaultLocationPopupFields = [
 @Injectable()
 export class AppLayerService {
 
-  constructor(private layerService: EsriLayerService, private moduleService: EsriModules,
-               private locationService: ImpGeofootprintLocationService, private appStateService: AppStateService,
-               private config: AppConfig) {
+  private analysisLevelToGroupNameMap = {
+    'ZIP': 'zip',
+    'ATZ': 'atz',
+    'Digital ATZ': 'digital_atz',
+    'PCR': 'pcr'
+  };
+
+  private pausableWatches: __esri.PausableWatchHandle[] = [];
+
+  constructor(private layerService: EsriLayerService,
+               private moduleService: EsriModules,
+               private locationService: ImpGeofootprintLocationService,
+               private appStateService: AppStateService,
+               private usageService: UsageService,
+               private appConfig: AppConfig) {
     this.moduleService.onReady(() => {
       // set up the location rendering using stars colored by site type
       const locationSplit$ = combineLatest(this.locationService.storeObservable, this.appStateService.projectIsLoading$).pipe(
@@ -53,7 +67,7 @@ export class AppLayerService {
 
       this.appStateService.analysisLevel$
         .pipe(filter(al => al != null && al.length > 0))
-        .subscribe(al => this.setDefaultLayers(al));
+        .subscribe(al => this.setDefaultLayerVisibility(al));
 
       this.appStateService.projectIsLoading$
         .pipe(filter(isLoading => isLoading))
@@ -96,7 +110,7 @@ export class AppLayerService {
     const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
     const pointMap: Map<number, __esri.Point[]> = groupBy(tradeAreas, 'taRadius', ta => {
       const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-      return new EsriModules.Point({ spatialReference: { wkid: this.config.val_spatialReference }, x, y });
+      return new EsriModules.Point({ spatialReference: { wkid: this.appConfig.val_spatialReference }, x, y });
     });
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriModules.Color(colorVal);
@@ -132,30 +146,94 @@ export class AppLayerService {
     });
   }
 
-  public setDefaultLayers(currentAnalysisLevel: string) : void {
-    MapService.DmaGroupLayer.visible = false;
-    MapService.ZipGroupLayer.visible = false;
-    MapService.AtzGroupLayer.visible = false;
-    MapService.DigitalAtzGroupLayer.visible = false;
-    MapService.PcrGroupLayer.visible = false;
-    MapService.WrapGroupLayer.visible = false;
-    MapService.CountyGroupLayer.visible = false;
+  public setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
+    this.layerService.setAllGroupVisibilities(false);
+    const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
+    if (groupKey != null) {
+      const layerGroup = this.appConfig.layerIds[groupKey];
+      if (layerGroup != null && this.layerService.groupExists(layerGroup.group.name)) {
+        this.layerService.getGroup(layerGroup.group.name).visible = true;
+      }
+    }
+  }
 
-    switch (currentAnalysisLevel) {
-      case 'Digital ATZ':
-        MapService.DigitalAtzGroupLayer.visible = true;
-        break;
-      case 'ATZ':
-        MapService.AtzGroupLayer.visible = true;
-        break;
-      case 'ZIP':
-        MapService.ZipGroupLayer.visible = true;
-        break;
-      case 'PCR':
-        MapService.PcrGroupLayer.visible = true;
-        break;
-      default:
-        console.error(`ValMapService.setDefaultLayers - Unknown Analysis Level selected: ${currentAnalysisLevel}`);
+  public initializeLayers() : Observable<__esri.FeatureLayer> {
+    const layerGroupKeys = Object.keys(this.appConfig.layerIds);
+    const layerGroups = new Map<string, LayerDefinition[]>();
+    layerGroupKeys.forEach(key => {
+      const layerGroup = this.appConfig.layerIds[key];
+      layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
+      this.setupGroup(layerGroup.group.name);
+    });
+    this.pauseLayerWatch(this.pausableWatches);
+    const results: Observable<__esri.FeatureLayer>[] = [];
+    layerGroups.forEach((value, key) => {
+      const layerObservables = this.setupLayerGroup(key, value.filter(l => l != null));
+      results.push(...layerObservables);
+    });
+    return merge(...results, 2).pipe(
+      finalize(() => {
+        this.layerService.setupLayerWatches();
+        this.resumeLayerWatch(this.pausableWatches);
+      })
+    );
+  }
+
+  private setupLayerGroup(groupName: string, layerDefinitions: LayerDefinition[]) : Observable<__esri.FeatureLayer>[]{
+    const group = this.layerService.getGroup(groupName);
+    const layerObservables: Observable<__esri.FeatureLayer>[] = [];
+    layerDefinitions.forEach(layerDef => {
+      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+        tap(newLayer => {
+          this.addPopupToLayer(newLayer, layerDef);
+          this.pausableWatches.push(EsriModules.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
+          group.add(newLayer);
+        })
+      );
+      layerObservables.push(current);
+    });
+    return layerObservables;
+  }
+
+  private setupGroup(groupName: string) : void {
+    this.layerService.createGroup(groupName, false);
+    const group = this.layerService.getGroup(groupName);
+    if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
+    this.pausableWatches.push(EsriModules.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
+  }
+
+  private addPopupToLayer(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
+    const measureThisAction = new EsriModules.ActionButton({
+      title: 'Measure Length',
+      id: 'measure-this',
+      className: 'esri-icon-share'
+    });
+    const selectThisAction = new EsriModules.ActionButton({
+      title: 'Select Polygon',
+      id: 'select-this',
+      className: 'esri-icon-plus-circled'
+    });
+    const localPopUpFields = new Set(layerDef.popUpFields);
+    const popupTitle = layerDef.popupTitle;
+    const compare = (f1, f2) => {
+      const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
+      const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
+      return firstIndex - secondIndex;
+    };
+    if (layerDef.popUpFields.length > 0) {
+      newLayer.on('layerview-create', e => {
+        const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+        const template = new EsriModules.PopupTemplate({ title: popupTitle, actions: [selectThisAction, measureThisAction] });
+        const fieldInfos = localLayer.fields.map(f => ({ fieldName: f.name, label: f.alias, visible: localPopUpFields.has(f.name) }));
+        fieldInfos.sort(compare);
+        template.content = [{
+          type: 'fields',
+          fieldInfos: fieldInfos
+        }];
+        localLayer.popupTemplate = template;
+      });
+    } else {
+      newLayer.popupEnabled = false;
     }
   }
 
@@ -176,5 +254,39 @@ export class AppLayerService {
 
   private clearLayers() {
     this.layerService.clearAll();
+  }
+
+  /**
+   * Collect usage metrics when a layer is disabled or enabled
+   * @param layer The layer to collect usage metrics on
+   */
+  private collectLayerUsage(layer: __esri.Layer) {
+    const layerActivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'activated' });
+    const layerDeactivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'deactivated' });
+    if (layer.visible) {
+      this.usageService.createCounterMetric(layerActivated, layer.title, null);
+    } else {
+      this.usageService.createCounterMetric(layerDeactivated, layer.title, null);
+    }
+  }
+
+  /**
+   * Stop the ESRI watchUtils from watching the visible property on a layer
+   * @argument pausableWatches An array of __esri.PausableWatchHandle
+   */
+  private pauseLayerWatch(pausableWatches: Array<__esri.PausableWatchHandle>) {
+    for (const watch of pausableWatches) {
+      watch.pause();
+    }
+  }
+
+  /**
+   * Resume watching the visible property on layers with the ESRI watch utils
+   * @argument pausableWatches An array of __esri.PausableWatchHandle
+   */
+  private resumeLayerWatch(pausableWatches: Array<__esri.PausableWatchHandle>) {
+    for (const watch of pausableWatches) {
+      watch.resume();
+    }
   }
 }

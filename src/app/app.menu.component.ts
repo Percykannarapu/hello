@@ -15,7 +15,6 @@ import { Subject } from 'rxjs';
 import { AppStateService } from './services/app-state.service';
 import { withLatestFrom } from 'rxjs/operators';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
-import { DAOBaseStatus } from './val-modules/api/models/BaseModel';
 import { UserService } from './services/user.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -25,7 +24,6 @@ import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
-import { MapService } from './services/map.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
@@ -71,7 +69,6 @@ export class AppMenuComponent implements OnInit {
         private esriMapService: EsriMapService,
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
-        private mapService: MapService,
         private layerService: EsriLayerService,
         private domainFactory: ImpDomainFactoryService,
         private appLocationService: AppLocationService) { } 

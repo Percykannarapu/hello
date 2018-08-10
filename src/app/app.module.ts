@@ -33,7 +33,6 @@ import {
   FileUploadModule,
   GalleriaModule,
   GMapModule,
-  GrowlModule,
   InputMaskModule,
   InputSwitchModule,
   InputTextareaModule,
@@ -94,9 +93,6 @@ import { EsriMapComponent } from './components/esri-map/esri-map.component';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
-import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
-import { EsriMapToolsComponent } from './components/esri-map-tools/esri-map-tools.component';
-import { MapService } from './services/map.service';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
@@ -161,6 +157,9 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
+import { MapComponent } from './components/map/map.component';
+import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.component';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
     imports: [
@@ -196,7 +195,6 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         FileUploadModule,
         GalleriaModule,
         GMapModule,
-        GrowlModule,
         InputMaskModule,
         InputSwitchModule,
         InputTextModule,
@@ -234,6 +232,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         TabViewModule,
         TerminalModule,
         TieredMenuModule,
+        ToastModule,
         ToggleButtonModule,
         ToolbarModule,
         TooltipModule,
@@ -257,8 +256,6 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         GeofootprintGeoListComponent,
         MessageComponent,
         BusinessSearchComponent,
-        EsriLayerSelectComponent,
-        EsriMapToolsComponent,
         ColorBoxComponent,
         SiteListComponent,
         DiscoveryInputComponent,
@@ -280,7 +277,9 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         AddLocationsTabComponent,
         FailedGeocodeGridComponent,
         ManualEntryComponent,
-        CampaignDetailsComponent
+        CampaignDetailsComponent,
+        MapComponent,
+        MapToolbarComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -299,7 +298,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
       CookieService,
       // from main application
       AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
-      MapService, AuthService, MapDispatchService, RadService, UsageService, UserService, ImpRadLookupService,
+      AuthService, MapDispatchService, RadService, UsageService, UserService, ImpRadLookupService,
       TargetAudienceService, TargetAudienceMetricService, ImpProjectTrackerService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
