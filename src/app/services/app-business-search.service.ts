@@ -63,7 +63,6 @@ export interface BusinessSearchRequest {
   siteLimit: '2000';
   sites: { x: number, y: number, homeGeocode: string, locationName: string }[];
   sics: { sic: string }[];
-  locations: ImpGeofootprintLocation[];
 }
 
 
