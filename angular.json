@@ -34,14 +34,6 @@
             ]
           },
           "configurations": {
-            "agol": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.agol.ts"
-                }
-              ]
-            },
             "qa": {
               "optimization": true,
               "outputHashing": "all",
@@ -128,9 +120,6 @@
             "browserTarget": "esri-angular-first-look:build"
           },
           "configurations": {
-            "agol": {
-              "browserTarget": "esri-angular-first-look:build:agol"
-            },
             "qa": {
               "browserTarget": "esri-angular-first-look:build:qa"
             },

@@ -1,13 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, skip, filter, startWith } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, filter, startWith } from 'rxjs/operators';
 import { UsageService } from './usage.service';
-import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../models/audience-data.model';
+import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
@@ -16,8 +15,6 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
-import { TargetAudienceTdaService } from './target-audience-tda.service';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -414,5 +411,9 @@ export class TargetAudienceService implements OnDestroy {
   private getNationalData(audience: AudienceDataDefinition, analysisLevel: string) : Observable<any[]> {
     const sourceKey = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     return this.nationalSources.get(sourceKey)(analysisLevel, audience.audienceIdentifier);
+  }
+
+  public getShadingVar(geocode: string) : ImpGeofootprintVar {
+    return this.shadingData.getValue().get(geocode);
   }
 }

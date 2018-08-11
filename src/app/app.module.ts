@@ -160,6 +160,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
 import { MapComponent } from './components/map/map.component';
 import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.component';
 import { ToastModule } from 'primeng/toast';
+import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
 
 @NgModule({
     imports: [
@@ -279,7 +280,8 @@ import { ToastModule } from 'primeng/toast';
         ManualEntryComponent,
         CampaignDetailsComponent,
         MapComponent,
-        MapToolbarComponent
+        MapToolbarComponent,
+        EsriGeographyPopupComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -304,6 +306,7 @@ import { ToastModule } from 'primeng/toast';
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],
     bootstrap: [AppComponent],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    entryComponents: [EsriGeographyPopupComponent]
 })
 export class AppModule { }

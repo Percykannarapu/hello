@@ -3,28 +3,11 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `angular-cli.json`.
 
+import { AllLayers } from './environment-definitions';
+
 export const environment = {
   production: false
 };
-
-export interface LayerDefinition {
-  id: string;
-  name: string;
-  defaultVisibility: boolean;
-  popupTitle: string;
-  minScale: number;
-  popUpFields: string[];
-}
-
-export interface LayerGroupDefinition {
-  group: { name: string };
-  centroids?: LayerDefinition;
-  boundaries: LayerDefinition;
-}
-
-export interface AllLayers {
-  [key: string] : LayerGroupDefinition;
-}
 
 export class EnvironmentData {
 
@@ -104,7 +87,11 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
+        useCustomPopUp: true,
+        customPopUpDefinition: {
+          rootFields: ['dma_name', 'county_name'],
+          standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
+        }
       }
     },
     atz: {
@@ -125,7 +112,11 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
+        useCustomPopUp: true,
+        customPopUpDefinition: {
+          rootFields: ['dma_name', 'county_name'],
+          standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
+        }
       }
     },
     digital_atz: {
@@ -146,7 +137,11 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 600000,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+        useCustomPopUp: true,
+        customPopUpDefinition: {
+          rootFields: ['dma_name', 'county_name'],
+          standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+        }
       }
     },
     pcr: {
@@ -167,7 +162,11 @@ export class EnvironmentData {
         defaultVisibility: true,
         popupTitle: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 600000,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language' ]
+        useCustomPopUp: true,
+        customPopUpDefinition: {
+          rootFields: ['dma_name', 'county_name'],
+          standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
+        }
       }
     },
     wrap: {

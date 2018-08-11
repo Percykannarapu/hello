@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
+import { merge, Observable } from 'rxjs';
+import { filter, finalize, tap } from 'rxjs/operators';
+import { LayerDefinition } from '../../environments/environment-definitions';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
+import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { combineLatest, merge, Observable } from 'rxjs';
-import { filter, finalize, map, tap } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppStateService } from './app-state.service';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
-import { LayerDefinition } from '../../environments/environment';
 
 const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
 
@@ -37,6 +37,8 @@ const defaultLocationPopupFields = [
 @Injectable()
 export class AppLayerService {
 
+  static ObjectIdCache = 0;
+
   private analysisLevelToGroupNameMap = {
     'ZIP': 'zip',
     'ATZ': 'atz',
@@ -48,22 +50,13 @@ export class AppLayerService {
 
   constructor(private layerService: EsriLayerService,
                private moduleService: EsriModules,
-               private locationService: ImpGeofootprintLocationService,
                private appStateService: AppStateService,
                private usageService: UsageService,
+               private generator: AppComponentGeneratorService,
                private appConfig: AppConfig) {
     this.moduleService.onReady(() => {
-      // set up the location rendering using stars colored by site type
-      const locationSplit$ = combineLatest(this.locationService.storeObservable, this.appStateService.projectIsLoading$).pipe(
-        filter(([locations, isLoading]) => locations != null && !isLoading),
-        map(([locations]) => [locations.filter(l => l.clientLocationTypeCode === 'Site'), locations.filter(l => l.clientLocationTypeCode === 'Competitor')]),
-      );
-      locationSplit$.pipe(
-        map(([sites]) => sites),
-      ).subscribe(sites => this.updateSiteLayer('Site', sites));
-      locationSplit$.pipe(
-        map(([sites, competitors]) => competitors),
-      ).subscribe(competitors => this.updateSiteLayer('Competitor', competitors));
+      this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
+      this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
       this.appStateService.analysisLevel$
         .pipe(filter(al => al != null && al.length > 0))
@@ -75,7 +68,7 @@ export class AppLayerService {
     });
   }
 
-  public updateSiteLayer(siteType: string, sites: ImpGeofootprintLocation[]) : void {
+  public updateSiteLayer(siteType: SuccessfulLocationTypeCodes, sites: ImpGeofootprintLocation[]) : void {
     console.log('Updating Site Layer Visuals', [siteType, sites]);
     const groupName = `${siteType}s`;
     const layerName = `Project ${groupName}`;
@@ -164,13 +157,11 @@ export class AppLayerService {
   }
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {
-    const layerGroupKeys = Object.keys(this.appConfig.layerIds);
     const layerGroups = new Map<string, LayerDefinition[]>();
-    layerGroupKeys.forEach(key => {
-      const layerGroup = this.appConfig.layerIds[key];
+    for (const layerGroup of Object.values(this.appConfig.layerIds)) {
       layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
       this.setupGroup(layerGroup.group.name);
-    });
+    }
     this.pauseLayerWatch(this.pausableWatches);
     const results: Observable<__esri.FeatureLayer>[] = [];
     layerGroups.forEach((value, key) => {
@@ -191,7 +182,7 @@ export class AppLayerService {
     layerDefinitions.forEach(layerDef => {
       const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
         tap(newLayer => {
-          this.addPopupToLayer(newLayer, layerDef);
+          this.setupLayerPopup(newLayer, layerDef);
           this.pausableWatches.push(EsriModules.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
           group.add(newLayer);
         })
@@ -208,7 +199,19 @@ export class AppLayerService {
     this.pausableWatches.push(EsriModules.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
   }
 
-  private addPopupToLayer(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
+  private setupLayerPopup(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
+    const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
+    if (popupEnabled) {
+      newLayer.on('layerview-create', e => {
+        const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+        localLayer.popupTemplate = this.createPopupTemplate(localLayer, layerDef);
+      });
+    } else {
+      newLayer.popupEnabled = false;
+    }
+  }
+
+  private createPopupTemplate(target: __esri.FeatureLayer, layerDef: LayerDefinition) : __esri.PopupTemplate {
     const measureThisAction = new EsriModules.ActionButton({
       title: 'Measure Length',
       id: 'measure-this',
@@ -219,28 +222,21 @@ export class AppLayerService {
       id: 'select-this',
       className: 'esri-icon-plus-circled'
     });
-    const localPopUpFields = new Set(layerDef.popUpFields);
-    const popupTitle = layerDef.popupTitle;
-    const compare = (f1, f2) => {
-      const firstIndex =  layerDef.popUpFields.indexOf(f1.fieldName);
-      const secondIndex = layerDef.popUpFields.indexOf(f2.fieldName);
-      return firstIndex - secondIndex;
-    };
-    if (layerDef.popUpFields.length > 0) {
-      newLayer.on('layerview-create', e => {
-        const localLayer = (e.layerView.layer as __esri.FeatureLayer);
-        const template = new EsriModules.PopupTemplate({ title: popupTitle, actions: [selectThisAction, measureThisAction] });
-        const fieldInfos = localLayer.fields.map(f => ({ fieldName: f.name, label: f.alias, visible: localPopUpFields.has(f.name) }));
-        fieldInfos.sort(compare);
-        template.content = [{
-          type: 'fields',
-          fieldInfos: fieldInfos
-        }];
-        localLayer.popupTemplate = template;
-      });
+    const definedFields = layerDef.useCustomPopUp === true ?
+      layerDef.customPopUpDefinition.rootFields.concat(layerDef.customPopUpDefinition.standardFields) :
+      layerDef.popUpFields;
+    const fieldsToUse = new Set<string>(definedFields);
+    const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
+    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
+    fieldInfos.sort(byDefinedFieldIndex);
+    const result = new EsriModules.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
+    if (layerDef.useCustomPopUp === true) {
+      result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
     } else {
-      newLayer.popupEnabled = false;
+      result.fieldInfos = fieldInfos;
+      result.content = [{ type: 'fields' }];
     }
+    return result;
   }
 
   private createSiteGraphic(site: ImpGeofootprintLocation) : __esri.Graphic {
@@ -249,7 +245,7 @@ export class AppLayerService {
         x: site.xcoord,
         y: site.ycoord
       }),
-      attributes: { parentId: (site.locationNumber || '').toString() },
+      attributes: { parentId: ++AppLayerService.ObjectIdCache },
       visible: site.isActive
     });
     for (const [field, value] of Object.entries(site)) {

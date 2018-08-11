@@ -46,12 +46,16 @@ export class AppMapService implements OnDestroy {
 
   private currentMapState: MapStateTypeCodes;
 
-  constructor(private layerService: EsriLayerService, private mapService: EsriMapService,
+  constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
-              private config: AppConfig, private metricsService: ValMetricsService,
-              private appStateService: AppStateService, private queryService: EsriQueryService,
-              private messagingService: AppMessagingService, private rendererService: AppRendererService,
-              private usageService: UsageService) {
+              private rendererService: AppRendererService,
+              private messagingService: AppMessagingService,
+              private queryService: EsriQueryService,
+              private layerService: EsriLayerService,
+              private mapService: EsriMapService,
+              private metricsService: ValMetricsService,
+              private usageService: UsageService,
+              private config: AppConfig) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
     this.appStateService.currentMapState$.subscribe(newState => this.handleMapStateChange(newState));

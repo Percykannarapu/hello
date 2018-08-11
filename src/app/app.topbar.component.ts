@@ -14,7 +14,7 @@ import { AppMessagingService } from './services/app-messaging.service';
               <ul class="topbar-items">
                 <li *ngIf="username"><span style="color: white">Welcome, {{username}}</span></li>
                 <li>
-                  <a href="#" (click)="onClearMessages()" pTooltip="Clear all Growl Messages">
+                  <a href="#" (click)="onClearMessages()" pTooltip="Clear all Messages">
                     <i class="topbar-icon material-icons" style="margin-top: -0.3em; font-size: 2em">cancel</i>
                   </a>
                 </li>
