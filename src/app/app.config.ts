@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationParams } from './services/esri-identity.service';
-import { EnvironmentData } from '../environments/environment';
+import { environment, EnvironmentData } from '../environments/environment';
 import { EsriConfigOptions, EsriLoaderConfig } from './esri-modules/configuration';
+import { LoggingConfiguration, LogLevels } from './val-modules/common/services/logging.service';
 
 @Injectable()
-export class AppConfig implements EsriLoaderConfig {
+export class AppConfig implements EsriLoaderConfig, LoggingConfiguration {
 
   // The name of the environment
   public environmentName = EnvironmentData.environmentName;
+
+  // The log level
+  logLevel: LogLevels = environment.logLevel;
 
   // OAuth information
   public clientId = EnvironmentData.clientId;

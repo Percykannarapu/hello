@@ -1,7 +1,9 @@
+import { LogLevels } from '../app/val-modules/common/services/logging.service';
 import { AllLayers } from './environment-definitions';
 
 export const environment = {
-  production: true
+  production: true,
+  logLevel: LogLevels.ERROR
 };
 
 export class EnvironmentData {

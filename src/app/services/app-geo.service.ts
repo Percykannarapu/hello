@@ -3,7 +3,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';

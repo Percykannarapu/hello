@@ -12,7 +12,7 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../../esri-modules/core/esri-utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';

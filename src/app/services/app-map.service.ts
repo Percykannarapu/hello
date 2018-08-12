@@ -5,9 +5,10 @@ import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { AppComponentGeneratorService } from './app-component-generator.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
@@ -50,6 +51,7 @@ export class AppMapService implements OnDestroy {
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
               private messagingService: AppMessagingService,
+              private componentGenerator: AppComponentGeneratorService,
               private queryService: EsriQueryService,
               private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -100,8 +102,13 @@ export class AppMapService implements OnDestroy {
         this.mapService.createHiddenWidget(EsriModules.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
         this.mapService.createBasicWidget(EsriModules.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
+        const popup = this.mapService.mapView.popup;
+        if (this.useWebGLHighlighting) {
+          popup.highlightEnabled = false;
+        }
+
         // Event handler that fires each time a popup action is clicked.
-        this.mapService.mapView.popup.on('trigger-action', (event) => {
+        popup.on('trigger-action', (event) => {
           // Execute the measureThis() function if the measure-this action is clicked
           if (event.action.id === 'measure-this') {
             this.measureThis();
@@ -112,9 +119,9 @@ export class AppMapService implements OnDestroy {
           }
         });
 
-        if (this.useWebGLHighlighting) {
-          this.mapService.mapView.popup.highlightEnabled = false;
-        }
+        EsriUtils.watch(popup, 'visible').subscribe(result => {
+          if (result.newValue === false) this.componentGenerator.cleanUpGeoPopup();
+        });
     });
   }
 
@@ -162,7 +169,7 @@ export class AppMapService implements OnDestroy {
           x: Number(selectedGraphic.attributes.longitude),
           y: Number(selectedGraphic.attributes.latitude),
         };
-        this.collectSelectionUsage(selectedGraphic, 'ui=singleSelectTool');
+        this.collectSelectionUsage(selectedGraphic, 'singleSelectTool');
         this.selectSingleGeocode(geocode, geometry);
       }
     }, err => console.error('Error during click event handling', err));
@@ -225,7 +232,7 @@ export class AppMapService implements OnDestroy {
       const latitude = graphic.attributes.latitude;
       const longitude = graphic.attributes.longitude;
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-      this.collectSelectionUsage(graphic, 'ui=multiSelectTool');
+      this.collectSelectionUsage(graphic, 'multiSelectTool');
       events.push({ geocode, geometry: point });
     });
     this.geoSelected.next(events);
@@ -296,8 +303,9 @@ export class AppMapService implements OnDestroy {
   /**
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
    * @param graphic The feature the user manually selected on the map
+   * @param selectionType The UI mechanism used to select the feature
    */
-  public collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
+  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
@@ -312,7 +320,7 @@ export class AppMapService implements OnDestroy {
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
-      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~${selectionType}`;
+      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~ui=${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
@@ -321,7 +329,7 @@ export class AppMapService implements OnDestroy {
         this.usageService.createCounterMetric(geoselected, metricText, null);
       }
     } else {
-      const metricText = `${geocode}~${hhc}~${0}~${0}~${selectionType}`;
+      const metricText = `${geocode}~${hhc}~${0}~${0}~ui=${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
@@ -405,7 +413,7 @@ export class AppMapService implements OnDestroy {
       y: Number(selectedFeature.attributes.latitude)
     };
     this.selectSingleGeocode(geocode, geometry);
-    this.collectSelectionUsage(selectedFeature, 'ui=popupAction');
+    this.collectSelectionUsage(selectedFeature, 'popupAction');
   }
 
   private measureThis() {

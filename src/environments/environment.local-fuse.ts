@@ -3,10 +3,12 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `angular-cli.json`.
 
+import { LogLevels } from '../app/val-modules/common/services/logging.service';
 import { AllLayers } from './environment-definitions';
 
 export const environment = {
-  production: false
+  production: false,
+  logLevel: LogLevels.INFO
 };
 
 export class EnvironmentData {

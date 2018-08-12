@@ -3,13 +3,15 @@ import { EsriModules } from '../core/esri-modules.service';
 import { EsriMapService } from '../core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { EsriUtils } from '../core/esri-utils.service';
+import { EsriUtils } from '../core/esri-utils';
 import { Subject } from 'rxjs';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
 @Injectable()
 export class EsriLayerService {
+
+  private popupsPermanentlyDisabled = new Set<__esri.Layer>();
 
   private groupRefs = new Map<string, __esri.GroupLayer>();
   private layerRefs = new Map<string, __esri.FeatureLayer>();
@@ -121,6 +123,8 @@ export class EsriLayerService {
       title: layerName
     });
 
+    if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
+
     group.layers.unshift(layer);
     this.layerRefs.set(layerName, layer);
     return layer;
@@ -172,9 +176,11 @@ export class EsriLayerService {
 
   public setAllPopupStates(popupsEnabled: boolean) : void {
     if (this.mapService.map == null || this.mapService.map.allLayers == null) return;
-    this.mapService.map.allLayers.forEach(l => {
-      if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
-    });
+    this.mapService.map.allLayers
+      .filter(l => !this.popupsPermanentlyDisabled.has(l))
+      .forEach(l => {
+        if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
+      });
   }
 
   /**

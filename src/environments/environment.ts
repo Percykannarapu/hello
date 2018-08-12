@@ -4,10 +4,12 @@
 // The list of which env maps to which file can be found in `angular.json`
 // in the projects->esri-angular-first-look->architect->build->configurations section.
 
+import { LogLevels } from '../app/val-modules/common/services/logging.service';
 import { AllLayers } from './environment-definitions';
 
 export const environment = {
-  production: false
+  production: false,
+  logLevel: LogLevels.INFO
 };
 
 export class EnvironmentData {

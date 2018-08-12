@@ -90,6 +90,7 @@ import { AppLayerService } from './services/app-layer.service';
 import { EsriModules } from './esri-modules/core/esri-modules.service';
 import { UserService } from './services/user.service';
 import { EsriMapComponent } from './components/esri-map/esri-map.component';
+import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
@@ -290,6 +291,7 @@ import { EsriGeographyPopupComponent } from './components/esri-geography-popup/e
       {provide: EsriLoaderToken, useClass: AppConfig},
       EsriModules, EsriIdentityService, EsriMapService, EsriLayerService, EsriQueryService,
       // from val-modules
+      {provide: LoggingConfigurationToken, useClass: AppConfig},
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
       ImpGeofootprintLocAttribService, AppDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,

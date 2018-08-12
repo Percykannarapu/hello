@@ -4,7 +4,7 @@ import { Observable, merge, EMPTY } from 'rxjs';
 import { EsriModules } from '../core/esri-modules.service';
 import { expand, filter, map, retryWhen, scan, take } from 'rxjs/operators';
 import * as utils from '../../app.utils';
-import { EsriUtils } from '../core/esri-utils.service';
+import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from '../core/esri-map.service';
 import { EsriConfigOptions, EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
