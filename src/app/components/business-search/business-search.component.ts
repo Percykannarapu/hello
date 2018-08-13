@@ -95,7 +95,8 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onSearchBusiness() {
-    const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
+    this.searchResults = [];
+      const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     const request: BusinessSearchRequest = {
       radius: this.model.radius,
       name: this.model.name,
