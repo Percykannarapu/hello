@@ -45,7 +45,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
     return {
       label: variable.displayName,
       data: variable,
-      icon: 'fa-fontAwesome fa-file-o',
+      icon: 'fa fa-fontAwesome fa-file-o',
       leaf: true,
     };
   }
