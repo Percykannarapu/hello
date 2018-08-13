@@ -79,11 +79,7 @@ export class CampaignDetailsComponent implements OnInit {
       this.impProjectService.makeDirty();
     }
   }
-
-  onTrackerRefresh() : void {
-    this.onTrackerSearch('');
-  }
-
+ 
   onTrackerSearch(searchTerm: string) : void {
     this.appDiscoveryService.updateTrackerSuggestions(searchTerm);
   }

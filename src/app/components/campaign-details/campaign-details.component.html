@@ -4,7 +4,6 @@
                          [projectTrackerSuggestions]="currentProjectTrackerSuggestions$ | async"
                          [radSuggestions]="currentRadSuggestions$ | async"
                          (formChanged)="onDiscoveryFormChanged($event)"
-                         (refreshTrackerData)="onTrackerRefresh()"
                          (radSearchRequest)="onRadSearch($event)"
                          (trackerSearchRequest)="onTrackerSearch($event)">
     </val-discovery-input>
