@@ -59,10 +59,13 @@ export class AudienceTradeareaComponent implements OnInit {
     this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearFields();
     });
+
+    this.stateService.projectIsLoading$.pipe(filter(l => true)).subscribe(l => {
+      this.updateVars(this.targetAudienceService.getAudiences());  
+    });
   }
 
   private onConfigChange(config: AudienceTradeAreaConfig) {
-    console.log('AARON: UPDATING CONFIG FROM AUDIENCE TA SERVICE', config);
     this.configForm.patchValue({
       minRadius: config.minRadius,
       maxRadius: config.maxRadius,
@@ -96,7 +99,7 @@ export class AudienceTradeareaComponent implements OnInit {
       this.audienceSourceMap.set(targetingVar.audienceName, targetingVar.audienceSourceName);
     }
     this.varSelectorOptions = vars;
-    if (this.configForm.get('audience') == null && this.varSelectorOptions.length > 0) {
+    if (this.configForm.get('audience').value == null && this.varSelectorOptions.length > 0) {
       this.configForm.patchValue({ audience: this.varSelectorOptions[0].value });
     }
     if (this.configForm.get('audience').value != null && weight == null) {

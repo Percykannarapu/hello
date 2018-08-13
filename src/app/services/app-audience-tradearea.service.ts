@@ -127,7 +127,6 @@ export class ValAudienceTradeareaService {
    * AudienceTAConfig if we have the data available
    */
   private onLoad() {
-    console.log('AARON: LOADED PROJECT FOR AUDIENCE TA');
     const project = this.stateService.currentProject$.getValue();
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue(),
