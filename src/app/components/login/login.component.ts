@@ -31,7 +31,7 @@ export class LoginComponent implements OnInit {
    */
   public onSubmit(loginForm: NgForm) {
     if (loginForm.value.username === '' || loginForm.value.password === '') {
-      this.messageService.showGrowlError('Login Error', 'You must enter both a username and password');
+      this.messageService.showErrorNotification('Login Error', 'You must enter both a username and password');
       return;
     }
     this.messageService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
@@ -46,7 +46,7 @@ export class LoginComponent implements OnInit {
       }
       else {
         this.messageService.stopSpinnerDialog(this.spinnerKey);
-        this.messageService.showGrowlError('Login Error', 'Please check your username and password and try again');
+        this.messageService.showErrorNotification('Login Error', 'Please check your username and password and try again');
       }
     });
 
@@ -63,11 +63,11 @@ export class LoginComponent implements OnInit {
         this.messageService.stopSpinnerDialog(this.spinnerKey);
         this.router.navigate(['/']);
       } else {
-        this.messageService.showGrowlError('Login Error', 'Unable to look up user info');
+        this.messageService.showErrorNotification('Login Error', 'Unable to look up user info');
         this.messageService.stopSpinnerDialog(this.spinnerKey);
       }
     }, err => {
-      this.messageService.showGrowlError('Login Error', 'Unable to look up user info');
+      this.messageService.showErrorNotification('Login Error', 'Unable to look up user info');
       this.messageService.stopSpinnerDialog(this.spinnerKey);
     });
   }

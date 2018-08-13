@@ -16,23 +16,23 @@ export class AppMessagingService {
 
   constructor(private toastService: MessageService) { }
 
-  public showGrowlError(title: string, message: string, sticky: boolean = true) : void {
+  public showErrorNotification(title: string, message: string, sticky: boolean = true) : void {
     this.toastService.add({ severity: 'error', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlWarning(title: string, message: string, sticky: boolean = true) : void {
+  public showWarningNotification(title: string, message: string, sticky: boolean = true) : void {
     this.toastService.add({ severity: 'warn', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlSuccess(title: string, message: string, sticky: boolean = true) : void {
+  public showSuccessNotification(title: string, message: string, sticky: boolean = true) : void {
     this.toastService.add({ severity: 'success', summary: title, detail: message, sticky: sticky });
   }
 
-  public showGrowlInfo(title: string, message: string, sticky: boolean = true) : void {
+  public showInfoNotification(title: string, message: string, sticky: boolean = true) : void {
     this.toastService.add({ severity: 'info', summary: title, detail: message, sticky: sticky });
   }
 
-  public clearGrowlMessages() : void {
+  public clearNotifications() : void {
     this.toastService.clear();
   }
 

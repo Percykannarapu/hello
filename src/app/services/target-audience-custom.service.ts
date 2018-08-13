@@ -180,7 +180,7 @@ export class TargetAudienceCustomService {
             this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
           }
           console.log(this.dataCache);
-          this.messagingService.showGrowlSuccess('Audience Upload Success', 'Upload Complete');
+          this.messagingService.showSuccessNotification('Audience Upload Success', 'Upload Complete');
         }
       }
     } catch (e) {
@@ -189,7 +189,7 @@ export class TargetAudienceCustomService {
   }
 
   private handleError(message: string) : void {
-    this.messagingService.showGrowlError('Audience Upload Error', message);
+    this.messagingService.showErrorNotification('Audience Upload Error', message);
   }
 
   private clearVarsFromHierarchy() {

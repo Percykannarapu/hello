@@ -31,18 +31,18 @@ export class AppGeocodingService {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
       if (data.failedRows.length > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-        this.messageService.showGrowlError('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
+        this.messageService.showErrorNotification('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       }
       if (data.duplicateKeys.length > 0) {
         const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
         const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
-        this.messageService.showGrowlError('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
+        this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
       } else {
         result = data.parsedData.map(d => new ValGeocodingRequest(d));
         this.duplicateKeyMap.get(siteType).push(...result.map(r => r.number));
       }
     } catch (e) {
-      this.messageService.showGrowlError('Geocoding Error', `${e}`);
+      this.messageService.showErrorNotification('Geocoding Error', `${e}`);
     }
     return result;
   }
@@ -76,9 +76,9 @@ export class AppGeocodingService {
             this.usageService.createCounterMetric(usageMetricName, metricText, allLocations.length);
           }
           if (failCount === 0) {
-            this.messageService.showGrowlSuccess('Success', 'Geocoding Success');
+            this.messageService.showSuccessNotification('Success', 'Geocoding Success');
           } else {
-            this.messageService.showGrowlError('Error', 'Geocoding Error');
+            this.messageService.showErrorNotification('Error', 'Geocoding Error');
           }
         }),
     );

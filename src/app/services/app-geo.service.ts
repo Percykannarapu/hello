@@ -162,7 +162,7 @@ export class AppGeoService {
       },
       err => {
         console.error(err);
-        this.messagingService.showGrowlError('Error', 'There was an error during geo selection');
+        this.messagingService.showErrorNotification('Error', 'There was an error during geo selection');
       },
       () => {
         if (sub) sub.unsubscribe();

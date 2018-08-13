@@ -201,6 +201,6 @@ export class AppTopbarComponent implements OnInit{
     }
 
     onClearMessages() {
-      this.appMessagingService.clearGrowlMessages();
+      this.appMessagingService.clearNotifications();
     }
 }

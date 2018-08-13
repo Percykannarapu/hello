@@ -114,7 +114,7 @@ export class ValAudienceTradeareaService {
           this.parseResponse(response);
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', taConfig);
-            this.messagingService.showGrowlWarning('Audience Trade Area Warning', 'No data was found for your input parameters');
+            this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
             this.audienceTaSubject.next(true);
             return;
           }
@@ -131,7 +131,7 @@ export class ValAudienceTradeareaService {
             for (const failedLoc of this.failedLocations) {
               warningMessge += failedLoc.locationName + '<br>';
             }
-            this.messagingService.showGrowlWarning('Audience Trade Area Warning', warningMessge);
+            this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessge);
             this.failedLocations = [];
           }
           this.tradeareaService.add(newTradeAreas);

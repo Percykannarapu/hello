@@ -185,7 +185,7 @@ export class AppLocationService {
         err => {
           console.error('There was an error retrieving the home geos', err);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
+          this.messageService.showErrorNotification('Home Geo', 'There was an error during Home Geo calculation.');
         },
         () => {
           featureCache.forEach((features, homeGeoKey) => {
@@ -193,7 +193,7 @@ export class AppLocationService {
           });
           this.setPrimaryHomeGeocode(analysisLevel);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
+          this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
           if (sub) sub.unsubscribe();
         }
       );

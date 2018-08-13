@@ -252,11 +252,11 @@ export class TargetAudienceService implements OnDestroy {
       );
     } else {
       if (audiences.length === 0) {
-        this.messagingService.showGrowlError('National Extract Export', 'A variable must be selected for a national extract before exporting.');
+        this.messagingService.showErrorNotification('National Extract Export', 'A variable must be selected for a national extract before exporting.');
       } else if (analysisLevel == null || analysisLevel.length === 0) {
-        this.messagingService.showGrowlError('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
+        this.messagingService.showErrorNotification('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
       } else {
-        this.messagingService.showGrowlError('National Extract Export', 'The project must be saved before exporting a national extract.');
+        this.messagingService.showErrorNotification('National Extract Export', 'The project must be saved before exporting a national extract.');
       }
     }
   }
@@ -294,7 +294,7 @@ export class TargetAudienceService implements OnDestroy {
     this.varService.clearAll(selectedAudiences.length === 0);
     this.clearVarsFromHierarchy();
     if (shadingAudience.length > 1) {
-      this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
+      this.messagingService.showErrorNotification('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
       // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
@@ -397,7 +397,7 @@ export class TargetAudienceService implements OnDestroy {
       vars => accumulator.push(...vars),
       err => {
         console.error('There was an error retrieving audience data', err);
-        this.messagingService.showGrowlError('Audience Error', 'There was an error retrieving audience data');
+        this.messagingService.showErrorNotification('Audience Error', 'There was an error retrieving audience data');
         this.messagingService.stopSpinnerDialog(this.spinnerKey);
       },
       () => {

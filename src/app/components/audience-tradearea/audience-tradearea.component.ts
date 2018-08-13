@@ -109,28 +109,28 @@ export class AudienceTradeareaComponent implements OnInit {
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
 
     if (!this.minRadius || !this.maxRadius) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
+      this.messagingService.showErrorNotification(this.errorTitle, 'You must include both a minumum trade area and a maximum trade area');
       return;
     }
     if (isNaN(this.maxRadius) || isNaN(this.minRadius)) {
-      this.messagingService.showGrowlError(this.errorTitle, 'Invalid input, please enter a valid minimum trade area and a valid maximum trade area');
+      this.messagingService.showErrorNotification(this.errorTitle, 'Invalid input, please enter a valid minimum trade area and a valid maximum trade area');
       return;
     }
     if (Number(this.maxRadius) <= Number(this.minRadius)) {
-      this.messagingService.showGrowlError(this.errorTitle, 'The maximum radius must be larger than the minimum radius');
+      this.messagingService.showErrorNotification(this.errorTitle, 'The maximum radius must be larger than the minimum radius');
       return;
     }
     if (!this.selectedVar) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must select a variable before creating a trade area');
+      this.messagingService.showErrorNotification(this.errorTitle, 'You must select a variable before creating a trade area');
       return;
     }
     const id: number = this.getVarId();
     if (!id) {
-      this.messagingService.showGrowlError(this.errorTitle, 'Unable to determine ID for the selected variable');
+      this.messagingService.showErrorNotification(this.errorTitle, 'Unable to determine ID for the selected variable');
       return;
     }
     if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
-      this.messagingService.showGrowlError(this.errorTitle, 'You must select an Analysis Level before applying a trade area to Sites');
+      this.messagingService.showErrorNotification(this.errorTitle, 'You must select an Analysis Level before applying a trade area to Sites');
       return;
     }
     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
@@ -144,12 +144,12 @@ export class AudienceTradeareaComponent implements OnInit {
       .subscribe(result => {
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
         if (!result) {
-          this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
+          this.messagingService.showErrorNotification(this.errorTitle, 'Error while creating Audience Trade Area');
         }
       },
       error => {
         console.error('Error while creating audience tradearea', error);
-        this.messagingService.showGrowlError(this.errorTitle, 'Error while creating Audience Trade Area');
+        this.messagingService.showErrorNotification(this.errorTitle, 'Error while creating Audience Trade Area');
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       });
   }

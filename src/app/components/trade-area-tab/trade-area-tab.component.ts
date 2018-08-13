@@ -89,11 +89,11 @@ export class TradeAreaTabComponent implements OnInit {
     let isValid = true;
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     if (!this.siteCounts.has(siteType) || this.siteCounts.get(siteType) < 1) {
-      this.messagingService.showGrowlError('Trade Area Error', `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s`);
+      this.messagingService.showErrorNotification('Trade Area Error', `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s`);
       isValid = false;
     }
     if (isValid && (currentAnalysisLevel == null || currentAnalysisLevel === '') && siteType === ImpClientLocationTypeCodes.Site) {
-      this.messagingService.showGrowlError('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
+      this.messagingService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
       isValid = false;
     }
     const newRadii = newModel.tradeAreas.map(ta => ta.radius);
