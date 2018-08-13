@@ -6,13 +6,14 @@ import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppComponentGeneratorService } from './app-component-generator.service';
+import { AppLoggingService } from './app-logging.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
 import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
-import { filter, take } from 'rxjs/operators';
+import { debounceTime, filter, take } from 'rxjs/operators';
 import { MapStateTypeCodes } from '../models/app.enums';
 import { AppMessagingService } from './app-messaging.service';
 import { EsriGraphicTypeCodes } from '../esri-modules/esri.enums';
@@ -57,6 +58,7 @@ export class AppMapService implements OnDestroy {
               private mapService: EsriMapService,
               private metricsService: ValMetricsService,
               private usageService: UsageService,
+              private logger: AppLoggingService,
               private config: AppConfig) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
@@ -119,8 +121,11 @@ export class AppMapService implements OnDestroy {
           }
         });
 
-        EsriUtils.watch(popup, 'visible').subscribe(result => {
-          if (result.newValue === false) this.componentGenerator.cleanUpGeoPopup();
+        EsriUtils.watch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
+          this.logger.debug('Popup visible watch fired', result);
+          if (result.newValue === false) {
+            this.componentGenerator.cleanUpGeoPopup();
+          }
         });
     });
   }
