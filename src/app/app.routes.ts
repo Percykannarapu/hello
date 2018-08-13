@@ -2,6 +2,7 @@ import {Routes, RouterModule} from '@angular/router';
 import {ModuleWithProviders} from '@angular/core';
 import {DashboardComponent} from './components/dashboard/dashboard.component';
 import {LoginComponent} from './components/login/login.component';
+import { SampleComponent } from './poc/sample/sample.component';
 import { AuthService } from './services/auth.service';
 import { PocMapComponent } from './poc/poc.map';
 import { PocComponent } from './poc/poc.component';
@@ -14,6 +15,7 @@ export const routes: Routes = [
 
     {path: 'poc', component: PocComponent},
     {path: 'poc map', component: PocMapComponent},
+    {path: 'sample', component: SampleComponent}
    ];
 
 export const AppRoutes: ModuleWithProviders = RouterModule.forRoot(routes);
