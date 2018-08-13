@@ -27,9 +27,7 @@
 
         <app-rightpanel></app-rightpanel>
 
-        <!--<p-growl [sticky]="true"></p-growl>-->
-        <p-toast styleClass="val-toast-top-right"></p-toast>
-        <p-confirmDialog appendTo="body" icon="fa fa-question-circle" width="500"></p-confirmDialog>
+        <p-confirmDialog icon="fa fa-FontAwesome fa-question-circle" width="500"></p-confirmDialog>
         <div class="ui-g ui-fluid">
           <p-dialog [closable]="true" [header]="currentSpinnerMessage$ | async" [visible]="currentSpinnerState$ | async" [contentStyle]="{'overflow':'visible'}" width="300">
             <div class="ui-g-3"></div>
@@ -43,4 +41,5 @@
         <div class="layout-mask"></div>
     </div>
 
+  <p-toast styleClass="val-toast-top-right"></p-toast>
 </div>
