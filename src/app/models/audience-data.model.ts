@@ -26,6 +26,7 @@ export interface AudienceTradeAreaConfig {
   maxRadius: number;
   weight: number;
   locations: Array<AudienceTradeareaLocation>;
+  includeMustCover: boolean;
 }
 
 export interface AudienceTradeareaLocation {

@@ -4,6 +4,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppRendererService, OutlineSetup, SmartRendererSetup } from './app-renderer.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -75,6 +76,8 @@ interface AudienceTradeareaResponse {
   providedIn: 'root'
 })
 export class ValAudienceTradeareaService {
+  public audienceTAConfig$: Subject<AudienceTradeAreaConfig> = new Subject<AudienceTradeAreaConfig>();
+  private audienceTAConfig: AudienceTradeAreaConfig;
   private mockVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
   private audienceTaSubject: Subject<boolean> = new Subject<boolean>();
   private sortMap: Map<string, number> = new Map<string, number>();
@@ -90,6 +93,107 @@ export class ValAudienceTradeareaService {
   private failedLocations: ImpGeofootprintLocation[] = [];
 
   /**
+   * Update the audience trade area configuration
+   * also push the updated config into the project for persistence
+   * @param config The updated configuration
+   */
+  public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
+    console.log('AARON: UPDATING CONFIG', config);
+    const project = this.stateService.currentProject$.getValue();
+    let dirty: boolean = false;
+    if (this.audienceTAConfig == null) 
+      
+    if (this.audienceTAConfig.analysisLevel !== config.analysisLevel) dirty = true;
+    if (this.audienceTAConfig.digCategoryId !== config.digCategoryId) dirty = true;
+    if (this.audienceTAConfig.includeMustCover !== config.includeMustCover) dirty = true;
+    if (this.audienceTAConfig.maxRadius !== config.maxRadius) dirty = true;
+    if (this.audienceTAConfig.minRadius !== config.minRadius) dirty = true;
+    if (this.audienceTAConfig.scoreType !== config.scoreType) dirty = true;
+    if (this.audienceTAConfig.weight !== config.weight) dirty = true;
+    if (dirty) {
+      this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
+      project.audTaIndexBase = this.audienceTAConfig.scoreType;
+      project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
+      project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
+      project.audTaMinRadiu = this.audienceTAConfig.minRadius;
+      project.audTaVarPk = this.audienceTAConfig.digCategoryId;
+      project.audTaVarWeight = this.audienceTAConfig.weight;
+    }
+    this.audienceTAConfig$.next(this.audienceTAConfig);
+  }
+
+  /**
+   * When a project is loaded we need to create an
+   * AudienceTAConfig if we have the data available
+   */
+  private onLoad() {
+    const project = this.stateService.currentProject$.getValue();
+    const audienceTAConfig: AudienceTradeAreaConfig = {
+      analysisLevel: this.stateService.analysisLevel$.getValue(),
+      digCategoryId: project.audTaVarPk,
+      includeMustCover: project.audTaIsMustCover === 1 ? true : false,
+      maxRadius: project.audTaMaxRadiu,
+      minRadius: project.audTaMinRadiu,
+      scoreType: project.audTaIndexBase,
+      weight: project.audTaVarWeight,
+      locations: null // we don't populate this until we run the trade area
+    };
+    this.updateAudienceTAConfig(audienceTAConfig);
+  }
+
+  /**
+   * Attach the locations to the AudienceTAConfig
+   * We don't want to do this every time we update the config,
+   * only when we actually run it, since it loops over all locations
+   */
+  private attachLocations() {
+    this.audienceTAConfig.locations = [];
+    for (const location of this.locationService.get()) {
+      const taLocation: AudienceTradeareaLocation = {
+        LOCATIONNAME: location.locationNumber,
+        XCOORD: location.xcoord,
+        YCOORD: location.ycoord,
+        HOMEGEOCODE: location.homeGeocode
+      };
+      this.audienceTAConfig.locations.push(taLocation);
+    }
+  }
+
+  /**
+   * Validate that the AudienceTAConfig is in a good and runnable state
+   * this must be done before we invoke the backend service
+   */
+  private validateTradeArea() : true | string[] {
+    const errors: string[] = [];
+    if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
+      errors.push('You must include both a minumum trade area and a maximum trade area');
+    }
+    if (isNaN(this.audienceTAConfig.maxRadius) || isNaN(this.audienceTAConfig.minRadius)) {
+      errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area');
+    }
+    if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
+      errors.push('The maximum radius must be larger than the minimum radius');
+    }
+    if (!this.audienceTAConfig.digCategoryId) {
+      errors.push('You must select a variable before creating a trade area');
+    }
+    if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
+      errors.push('You must select an Analysis Level before applying a trade area to Sites');
+    }
+    if (errors.length > 0) {
+      return errors;
+    }
+    return true;
+  }
+
+  /**
+   * Getter for the AudienceTAConfig
+   */
+  public getAudienceTAConfig() {
+    return this.audienceTAConfig;
+  }
+
+  /**
    * Create an audience trade are for each location that has been created
    * @param minRadius The minimum, must cover radius, for the trade areas
    * @param maxRadius The maximum radius for the trade areas
@@ -98,22 +202,39 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  public createAudienceTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
-    const taConfig: AudienceTradeAreaConfig = this.buildTAConfig(minRadius, maxRadius, digCategoryId, weight, scoreType, mustCover);
-    this.attachVariables();
-    this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
+  public createAudienceTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
+    this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
+    try {
+      const validate: boolean | string[] = this.validateTradeArea();
+      if (validate !== true) {
+        let growlMessage = '';
+        for (const message of validate) {
+          growlMessage += message + '<br>';
+        }
+        this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage);
+        this.messagingService.stopSpinnerDialog('AUDIENCETA');
+        return;
+      }
+    } catch (error) {
+      return Observable.create(o => o.next(false));
+    }
+
+    this.attachLocations();
+    if (this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
+      this.audienceTAConfig.analysisLevel = 'dtz';
 
     //for now we are going to force always fetching data,
     //there is a bug where if you add a location since the
     //last time you ran an audience TA the rerun detection doesn't work
+    //this.determineRerun(minRadius, maxRadius, digCategoryId, weight);
     this.fetchData = true;
 
     if (this.fetchData) {
-    this.sendRequest(taConfig).subscribe(response => {
+      this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
           this.parseResponse(response);
           if (this.taResponses.size < 1) {
-            console.warn('No data found when running audience trade area:', taConfig);
+            console.warn('No data found when running audience trade area:', this.audienceTAConfig);
             this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
             this.audienceTaSubject.next(true);
             return;
@@ -123,7 +244,7 @@ export class ValAudienceTradeareaService {
           this.varService.clearAll();
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
-            const newTradeArea = this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
+            const newTradeArea = this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
           }
           if (this.failedLocations.length > 0) {
@@ -136,37 +257,38 @@ export class ValAudienceTradeareaService {
           }
           this.tradeareaService.add(newTradeAreas);
           this.geoService.add(this.geoCache);
-          this.targetAudienceTAService.addAudiences(this.taResponses, digCategoryId, taConfig);
-          this.drawRadiusRings(minRadius, maxRadius);
-          this.lastMinRadius = minRadius;
-          this.lastMaxRadius = maxRadius;
-          this.lastDigCategoryId = digCategoryId;
-          this.lastWeight = weight;
+          this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
+          this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         } catch (error) {
           console.error(error);
           this.audienceTaSubject.next(false);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         }
       },
-      err => {
-        console.error(err);
-        this.audienceTaSubject.next(false);
-        this.fetchData = true;
-      });
+        err => {
+          console.error(err);
+          this.audienceTaSubject.next(false);
+          this.fetchData = true;
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+        });
     } else {
-      this.rerunTradearea(minRadius, maxRadius, tiles, digCategoryId, weight, scoreType, mustCover).subscribe(res => {
+      this.rerunTradearea(audienceTAConfig).subscribe(res => {
         if (res) {
           this.audienceTaSubject.next(true);
         } else {
           this.audienceTaSubject.next(false);
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
         }
       },
-      err => {
-        console.error(err);
-        this.audienceTaSubject.next(false);
-        this.fetchData = true;
-      });
+        err => {
+          console.error(err);
+          this.audienceTaSubject.next(false);
+          this.fetchData = true;
+          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+        });
     }
     return this.audienceTaSubject.asObservable();
   }
@@ -182,7 +304,7 @@ export class ValAudienceTradeareaService {
   private determineRerun(minRadius: number, maxRadius: number, digCategoryId: number, weight: number) {
     if (minRadius !== this.lastMinRadius)
       this.fetchData = true;
-    if (maxRadius !==  this.lastMaxRadius)
+    if (maxRadius !== this.lastMaxRadius)
       this.fetchData = true;
     if (digCategoryId !== this.lastDigCategoryId)
       this.fetchData = true;
@@ -200,12 +322,12 @@ export class ValAudienceTradeareaService {
    * @param weight The weight of the selected variable vs the distance
    * @param scoreType The score type, DMA or National
    */
-  private rerunTradearea(minRadius: number, maxRadius: number, tiles: Array<SmartTile>, digCategoryId: number, weight: number, scoreType: string, mustCover: boolean) : Observable<boolean> {
+  private rerunTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(minRadius, tiles, location, mustCover, digCategoryId), location);
-          this.drawRadiusRings(minRadius, maxRadius);
+          this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
+          this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
         }
         obs.next(true);
       } catch (error) {
@@ -219,10 +341,10 @@ export class ValAudienceTradeareaService {
    * @param taConfig The AudienceTradeareaConfig to send to Fuse
    */
   private sendRequest(taConfig: AudienceTradeAreaConfig) : Observable<RestResponse> {
+    delete taConfig.includeMustCover; //this field is not supposed to be part of the payload
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
     const url: string = this.appConfig.valServiceBase + 'v1/targeting/base/audiencetradearea';
-    //const url: string = 'https://servicesdev.valassislab.com/services/v1/targeting/base/audiencetradearea';
-    return this.httpClient.post<RestResponse>(url, JSON.stringify(taConfig), {headers: headers});
+    return this.httpClient.post<RestResponse>(url, JSON.stringify(taConfig), { headers: headers });
   }
 
   /**
@@ -247,7 +369,7 @@ export class ValAudienceTradeareaService {
       }
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
       geoVar.valueString = taResponse.combinedIndexTileName;
-      rendererData.push({geocode: taResponse.geocode, data: geoVar});
+      rendererData.push({ geocode: taResponse.geocode, data: geoVar });
     }
     rendererData = rendererData.sort((a, b) => this.compare(a, b));
 
@@ -273,6 +395,7 @@ export class ValAudienceTradeareaService {
       minRadius: Number(minRadius),
       scoreType: scoreType,
       weight: weight / 100,
+      includeMustCover: mustCover
     };
     for (const location of this.locationService.get()) {
       const taLocation: AudienceTradeareaLocation = {
@@ -339,7 +462,7 @@ export class ValAudienceTradeareaService {
   private createRenderer() {
     const rendererData: Array<any> = new Array<any>();
     for (const geofootprintVar of this.mockVars) {
-      rendererData.push({geocode: geofootprintVar.geocode, data: geofootprintVar.valueString});
+      rendererData.push({ geocode: geofootprintVar.geocode, data: geofootprintVar.valueString });
     }
     this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
   }
@@ -366,12 +489,12 @@ export class ValAudienceTradeareaService {
    * @param activeSmartTiles An array of SmartTile values that will be used to select geos
    * @returns An array of ImpGeofootprintGeo
    */
-  private createGeos(minRadius: number, activeSmartTiles: SmartTile[], location: ImpGeofootprintLocation, mustCover: boolean, digCategoryId: number) : ImpGeofootprintGeo[] {
+  private createGeos(audienceTAConfig, location: ImpGeofootprintLocation) : ImpGeofootprintGeo[] {
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const taResponseMap = this.taResponses.get(location.locationNumber);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
-    const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId)[0];
+    const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       this.failedLocations.push(location);
@@ -389,13 +512,13 @@ export class ValAudienceTradeareaService {
       newGeo.impGeofootprintLocation = location;
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
+      if (taResponse.distance <= audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
-      if (mustCover && taResponse.distance <= minRadius) {
+      if (audienceTAConfig.includeMustCover && taResponse.distance <= audienceTAConfig.minRadius) {
         newGeo.isActive = true;
       }
-      if (taResponse.distance > minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
+      if (taResponse.distance > audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
       }
       if (!newGeo.isActive) {
@@ -484,10 +607,21 @@ export class ValAudienceTradeareaService {
     private targetAudienceTAService: TargetAudienceAudienceTA,
     private messagingService: AppMessagingService,
     private domainFactory: ImpDomainFactoryService) {
-    this.initializeSortMap();
-    this.locationService.storeObservable.subscribe(location => {
-      // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
-      this.fetchData = true;
-    });
+      this.audienceTAConfig = {
+        analysisLevel: null,
+        digCategoryId: null,
+        includeMustCover: null,
+        locations: null,
+        maxRadius: null,
+        minRadius: null,
+        scoreType: null,
+        weight: null
+      };
+      this.initializeSortMap();
+      this.locationService.storeObservable.subscribe(location => {
+        // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
+        this.fetchData = true;
+      });
+      this.stateService.projectIsLoading$.pipe(filter(l => l === false)).subscribe(l => this.onLoad());
   }
 }
