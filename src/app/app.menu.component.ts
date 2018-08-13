@@ -401,24 +401,12 @@ export class AppMenuComponent implements OnInit {
 
 
     public clearProject(){
-        this.esriMapService.map.layers.forEach(lyr => {
-             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-             if (lyr) {
-               lyr.visible = false;
-               if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-                 //this.esriMapService.map.layers.remove(lyr);
-                 this.layerService.clearAll();
-               }
-             }
-        });
         this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
         this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
         this.appStateService.clearUserInterface.next(true);
         this.messageService.clearNotifications();
-        //GeocoderComponent.prototype.clearFields();
-        //TradeAreaDefineComponent.prototype.clearTradeArea();
          this.impGeofootprintGeoService.clearAll();
          this.attributeService.clearAll();
          this.impGeofootprintTradeAreaService.clearAll(); //this is not working

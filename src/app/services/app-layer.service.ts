@@ -12,6 +12,7 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
+import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 import { UsageService } from './usage.service';
 
@@ -53,6 +54,7 @@ export class AppLayerService {
                private appStateService: AppStateService,
                private usageService: UsageService,
                private generator: AppComponentGeneratorService,
+               private logger: AppLoggingService,
                private appConfig: AppConfig) {
     this.moduleService.onReady(() => {
       this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
@@ -64,7 +66,7 @@ export class AppLayerService {
 
       this.appStateService.projectIsLoading$
         .pipe(filter(isLoading => isLoading))
-        .subscribe(() => this.clearLayers());
+        .subscribe(() => this.clearClientLayers());
     });
   }
 
@@ -139,19 +141,15 @@ export class AppLayerService {
     });
   }
 
-  public setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
+  private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
+    this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
     const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-    const otherGroupKeys = Object.values(this.analysisLevelToGroupNameMap).filter(key => key !== groupKey);
-    otherGroupKeys.forEach(key => {
-      const otherLayer = this.appConfig.layerIds[key];
-      if (otherLayer != null && this.layerService.groupExists(otherLayer.group.name)) {
-        this.layerService.getGroup(otherLayer.group.name).visible = false;
-      }
-    });
+    this.logger.debug('New visible groupKey', groupKey);
+    this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (groupKey != null) {
       const layerGroup = this.appConfig.layerIds[groupKey];
-      if (layerGroup != null && this.layerService.groupExists(layerGroup.group.name)) {
-        this.layerService.getGroup(layerGroup.group.name).visible = true;
+      if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
+        this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
       }
     }
   }
@@ -160,7 +158,7 @@ export class AppLayerService {
     const layerGroups = new Map<string, LayerDefinition[]>();
     for (const layerGroup of Object.values(this.appConfig.layerIds)) {
       layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
-      this.setupGroup(layerGroup.group.name);
+      this.setupPortalGroup(layerGroup.group.name);
     }
     this.pauseLayerWatch(this.pausableWatches);
     const results: Observable<__esri.FeatureLayer>[] = [];
@@ -177,7 +175,7 @@ export class AppLayerService {
   }
 
   private setupLayerGroup(groupName: string, layerDefinitions: LayerDefinition[]) : Observable<__esri.FeatureLayer>[]{
-    const group = this.layerService.getGroup(groupName);
+    const group = this.layerService.getPortalGroup(groupName);
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
     layerDefinitions.forEach(layerDef => {
       const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
@@ -192,9 +190,9 @@ export class AppLayerService {
     return layerObservables;
   }
 
-  private setupGroup(groupName: string) : void {
-    this.layerService.createGroup(groupName, false);
-    const group = this.layerService.getGroup(groupName);
+  private setupPortalGroup(groupName: string) : void {
+    this.layerService.createPortalGroup(groupName, false);
+    const group = this.layerService.getPortalGroup(groupName);
     if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
     this.pausableWatches.push(EsriModules.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
   }
@@ -254,8 +252,8 @@ export class AppLayerService {
     return graphic;
   }
 
-  private clearLayers() {
-    this.layerService.clearAll();
+  private clearClientLayers() {
+    this.layerService.clearClientLayers();
   }
 
   /**

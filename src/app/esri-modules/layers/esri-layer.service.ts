@@ -14,14 +14,16 @@ export class EsriLayerService {
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
 
   private groupRefs = new Map<string, __esri.GroupLayer>();
+  private portalGroupRefs = new Map<string, __esri.GroupLayer>();
   private layerRefs = new Map<string, __esri.FeatureLayer>();
+  private portalRefs = new Map<string, __esri.FeatureLayer>();
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
   constructor(private modules: EsriModules, private mapService: EsriMapService) { }
 
-  public clearAll() : void {
+  public clearClientLayers() : void {
     const layers = Array.from(this.layerRefs.values());
     const groups = Array.from(this.groupRefs.values());
     layers.forEach(layer => {
@@ -37,16 +39,28 @@ export class EsriLayerService {
     return this.groupRefs.has(groupName);
   }
 
+  public portalGroupExists(groupName: string) : boolean {
+    return this.portalGroupRefs.has(groupName);
+  }
+
   public layerExists(layerName: string) : boolean {
     return this.layerRefs.has(layerName);
+  }
+
+  public portalLayerExists(layerName: string) : boolean {
+    return this.portalRefs.has(layerName);
   }
 
   public getGroup(groupName: string) : __esri.GroupLayer {
     return this.groupRefs.get(groupName);
   }
 
-  public getLayer(layerName: string) : __esri.FeatureLayer {
-    return this.layerRefs.get(layerName);
+  public getPortalGroup(groupName: string) : __esri.GroupLayer {
+    return this.portalGroupRefs.get(groupName);
+  }
+
+  public getAllPortalGroups() : __esri.GroupLayer[] {
+    return Array.from(this.portalGroupRefs.values());
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
@@ -65,18 +79,25 @@ export class EsriLayerService {
     }
   }
 
-  public createGroup(groupName: string, isVisible: boolean, addToTopOfList: boolean = false) : void {
+  public createPortalGroup(groupName: string, isVisible: boolean) : void {
+    if (this.portalGroupRefs.has(groupName)) return;
+    const group = new EsriModules.GroupLayer({
+      title: groupName,
+      listMode: 'show-children',
+      visible: isVisible
+    });
+    this.mapService.map.layers.unshift(group);
+    this.portalGroupRefs.set(groupName, group);
+  }
+
+  private createClientGroup(groupName: string, isVisible: boolean) : void {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriModules.GroupLayer({
       title: groupName,
       listMode: 'show-children',
       visible: isVisible
     });
-    if (addToTopOfList) {
-      this.mapService.map.layers.add(group);
-    } else {
-      this.mapService.map.layers.unshift(group);
-    }
+    this.mapService.map.layers.add(group);
     this.groupRefs.set(groupName, group);
   }
 
@@ -89,6 +110,7 @@ export class EsriLayerService {
         currentLayer.visible = defaultVisibility;
         currentLayer.title = layerTitle;
         currentLayer.minScale = minScale;
+        this.portalRefs.set(portalId, currentLayer);
         subject.next(currentLayer);
         subject.complete();
       }).catch(reason => {
@@ -101,7 +123,7 @@ export class EsriLayerService {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
-      this.createGroup(groupName, true, true);
+      this.createClientGroup(groupName, true);
     }
     const group = this.groupRefs.get(groupName);
     let fields: any[];
