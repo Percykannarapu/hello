@@ -98,7 +98,6 @@ export class ValAudienceTradeareaService {
    * @param config The updated configuration
    */
   public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
-    console.log('AARON: UPDATING CONFIG', config);
     const project = this.stateService.currentProject$.getValue();
     let dirty: boolean = false;
     if (this.audienceTAConfig == null) 
