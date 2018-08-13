@@ -143,7 +143,7 @@ import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpG
 import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
-import { AudienceTradeareaComponent } from './components/audience-tradearea/audience-tradearea.component';
+import { AudienceTradeareaComponent } from './components/trade-area-tab/audience-tradearea/audience-tradearea.component';
 import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';

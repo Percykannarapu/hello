@@ -1,12 +1,12 @@
 import { Component, OnInit, SimpleChanges, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
-import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../models/audience-data.model';
+import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../../models/audience-data.model';
 import { Observable } from 'rxjs';
 import { map, distinctUntilChanged, filter } from 'rxjs/operators';
-import { AppStateService } from '../../services/app-state.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
+import { AppStateService } from '../../../services/app-state.service';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 
 @Component({
