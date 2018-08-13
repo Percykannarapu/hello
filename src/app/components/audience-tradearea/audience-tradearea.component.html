@@ -55,7 +55,7 @@
                 <div class="ui-g-12">
                     <label style="width: 100%">Include all geography in must cover radius:</label>
                     <a class="val-spacer-left"></a>
-                    <p-checkbox (onChange)="onSelectMustCover()" formControlName="includeMustCover" binary="true" pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
+                    <p-checkbox formControlName="includeMustCover" binary="true" pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
                 </div>
                 <div class="ui-g-12">
                     <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
