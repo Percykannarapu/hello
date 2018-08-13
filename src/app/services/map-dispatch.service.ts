@@ -7,19 +7,8 @@ import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 @Injectable()
 export class MapDispatchService {
 
-  public onMapReady: Promise<any>;
-
-  constructor(private mapService: EsriMapService, private queryService: EsriQueryService) {
-    this.init();
-  }
-
-  private init() : void {
-    console.log('Dispatch Service Init called');
-    this.onMapReady = this.mapService.onReady$.pipe(
-      filter(result => result),
-      take(1)
-    ).toPromise();
-  }
+  constructor(private mapService: EsriMapService,
+               private queryService: EsriQueryService) {}
 
   public getMapView() : __esri.MapView {
     return this.mapService.mapView;

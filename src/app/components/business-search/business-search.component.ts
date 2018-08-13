@@ -95,7 +95,8 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   public onSearchBusiness() {
-    const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
+    this.searchResults = [];
+      const currentLocations: ImpGeofootprintLocation[] = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     const request: BusinessSearchRequest = {
       radius: this.model.radius,
       name: this.model.name,
@@ -105,21 +106,20 @@ export class BusinessSearchComponent implements OnInit {
       countyName: this.model.countyName,
       eliminateBlankFirmNames: 'True',
       siteLimit: '2000',
-      sites: currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord })),
-      sics: this.targetCategories.map(category => ({ sic: category.sic })),
-      locations: currentLocations
+      sites: currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord, homeGeocode: loc.homeGeocode, locationName: loc.locationName })),
+      sics: this.targetCategories.map(category => ({ sic: category.sic }))
     };
     let hasError = false;
     if (request.sites.length === 0) {
-      this.messagingService.showGrowlError('Business Search Error', 'You must have at least one Client Site specified');
+      this.messagingService.showErrorNotification('Business Search Error', 'You must have at least one Client Site specified');
       hasError = true;
     }
     if (request.sics.length === 0) {
-      this.messagingService.showGrowlError('Business Search Error', 'You must have at least one SIC specified');
+      this.messagingService.showErrorNotification('Business Search Error', 'You must have at least one SIC specified');
       hasError = true;
     }
     if (request.radius === undefined || request.radius.length === 0) {
-      this.messagingService.showGrowlError('Business Search Error', 'Please enter a radius');
+      this.messagingService.showErrorNotification('Business Search Error', 'Please enter a radius');
       hasError = true;
     }
     console.log('business Search Request:::', JSON.stringify(request));
@@ -200,7 +200,7 @@ export class BusinessSearchComponent implements OnInit {
         this.appService.closeOverLayPanel.next(true);
       }
     } else {
-      this.messagingService.showGrowlError('Error', `Please select Site or Competitor for importing Business Search results.`);
+      this.messagingService.showErrorNotification('Error', `Please select Site or Competitor for importing Business Search results.`);
     }
   }
 }

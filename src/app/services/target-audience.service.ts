@@ -1,13 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, skip, filter, startWith } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take, tap, filter, startWith } from 'rxjs/operators';
 import { UsageService } from './usage.service';
-import { AppGeoService } from './app-geo.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../models/audience-data.model';
+import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
@@ -16,8 +15,6 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
-import { TargetAudienceTdaService } from './target-audience-tda.service';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -242,10 +239,10 @@ export class TargetAudienceService implements OnDestroy {
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace('/', '_');
+            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace(/\//g, '_');
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = audiences[0].audienceName.replace('/', '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+            const sheetName = audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
           } finally {
@@ -255,11 +252,11 @@ export class TargetAudienceService implements OnDestroy {
       );
     } else {
       if (audiences.length === 0) {
-        this.messagingService.showGrowlError('National Extract Export', 'A variable must be selected for a national extract before exporting.');
+        this.messagingService.showErrorNotification('National Extract Export', 'A variable must be selected for a national extract before exporting.');
       } else if (analysisLevel == null || analysisLevel.length === 0) {
-        this.messagingService.showGrowlError('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
+        this.messagingService.showErrorNotification('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
       } else {
-        this.messagingService.showGrowlError('National Extract Export', 'The project must be saved before exporting a national extract.');
+        this.messagingService.showErrorNotification('National Extract Export', 'The project must be saved before exporting a national extract.');
       }
     }
   }
@@ -297,7 +294,7 @@ export class TargetAudienceService implements OnDestroy {
     this.varService.clearAll(selectedAudiences.length === 0);
     this.clearVarsFromHierarchy();
     if (shadingAudience.length > 1) {
-      this.messagingService.showGrowlError('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
+      this.messagingService.showErrorNotification('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
       // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
@@ -400,7 +397,7 @@ export class TargetAudienceService implements OnDestroy {
       vars => accumulator.push(...vars),
       err => {
         console.error('There was an error retrieving audience data', err);
-        this.messagingService.showGrowlError('Audience Error', 'There was an error retrieving audience data');
+        this.messagingService.showErrorNotification('Audience Error', 'There was an error retrieving audience data');
         this.messagingService.stopSpinnerDialog(this.spinnerKey);
       },
       () => {
@@ -414,5 +411,9 @@ export class TargetAudienceService implements OnDestroy {
   private getNationalData(audience: AudienceDataDefinition, analysisLevel: string) : Observable<any[]> {
     const sourceKey = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     return this.nationalSources.get(sourceKey)(analysisLevel, audience.audienceIdentifier);
+  }
+
+  public getShadingVar(geocode: string) : ImpGeofootprintVar {
+    return this.shadingData.getValue().get(geocode);
   }
 }

@@ -61,9 +61,8 @@ export interface BusinessSearchRequest {
   countyName: string;
   eliminateBlankFirmNames: 'True';
   siteLimit: '2000';
-  sites: { x: number, y: number }[];
+  sites: { x: number, y: number, homeGeocode: string, locationName: string }[];
   sics: { sic: string }[];
-  locations: ImpGeofootprintLocation[];
 }
 
 

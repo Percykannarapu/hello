@@ -11,7 +11,7 @@ import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
@@ -55,35 +55,12 @@ export class AppLocationService {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
-    const locationsNeedingHomeGeos$ = allLocations$.pipe(
-      map(locations => locations.filter(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0)),
-      map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
-    );
-
-    this.appStateService.analysisLevel$
-      .pipe(filter(al => al != null && al.length > 0))
-      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
-
-    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.projectIsLoading$).pipe(
-      filter(([locations, level, isLoading]) => locations.length > 0 && level != null && level.length > 0 && !isLoading)
-    ).subscribe(
-      ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
-    );
-
     const locationsWithType$ = allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0))
     );
-    this.allClientLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Site'))
-    );
-    this.activeClientLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Site' && l.isActive === true))
-    );
-    this.allCompetitorLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Competitor'))
-    );
-    this.activeCompetitorLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Competitor' && l.isActive === true))
+    const locationsNeedingHomeGeos$ = allLocations$.pipe(
+      map(locations => locations.filter(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0)),
+      map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
@@ -100,8 +77,22 @@ export class AppLocationService {
     );
     this.hasFailures$ = this.failureCount$.pipe(map(count => count > 0));
 
+    this.allClientLocations$ = this.appStateService.allClientLocations$;
+    this.allCompetitorLocations$ = this.appStateService.allCompetitorLocations$;
+    this.activeClientLocations$ = this.appStateService.activeClientLocations$;
+    this.activeCompetitorLocations$ = this.appStateService.activeCompetitorLocations$;
+
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
+    this.appStateService.analysisLevel$
+      .pipe(filter(al => al != null && al.length > 0))
+      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
+
+    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.projectIsLoading$).pipe(
+      filter(([locations, level, isLoading]) => locations.length > 0 && level != null && level.length > 0 && !isLoading)
+    ).subscribe(
+      ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
+    );
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -194,7 +185,7 @@ export class AppLocationService {
         err => {
           console.error('There was an error retrieving the home geos', err);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
+          this.messageService.showErrorNotification('Home Geo', 'There was an error during Home Geo calculation.');
         },
         () => {
           featureCache.forEach((features, homeGeoKey) => {
@@ -202,7 +193,7 @@ export class AppLocationService {
           });
           this.setPrimaryHomeGeocode(analysisLevel);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
+          this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
           if (sub) sub.unsubscribe();
         }
       );

@@ -212,7 +212,7 @@ export class ValAudienceTradeareaService {
         for (const message of validate) {
           growlMessage += message + '<br>';
         }
-        this.messagingService.showGrowlError('Audience Trade Area Error', growlMessage);
+        this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage);
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
         return;
       }
@@ -235,8 +235,8 @@ export class ValAudienceTradeareaService {
         try {
           this.parseResponse(response);
           if (this.taResponses.size < 1) {
-            console.warn('No data found when running audience trade area:', audienceTAConfig);
-            this.messagingService.showGrowlWarning('Audience Trade Area Warning', 'No data was found for your input parameters');
+            console.warn('No data found when running audience trade area:', this.audienceTAConfig);
+            this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
             this.audienceTaSubject.next(true);
             return;
           }
@@ -253,7 +253,7 @@ export class ValAudienceTradeareaService {
             for (const failedLoc of this.failedLocations) {
               warningMessge += failedLoc.locationName + '<br>';
             }
-            this.messagingService.showGrowlWarning('Audience Trade Area Warning', warningMessge);
+            this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessge);
             this.failedLocations = [];
           }
           this.tradeareaService.add(newTradeAreas);

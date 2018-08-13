@@ -1,18 +1,20 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { AppLayerService } from './app-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
+import { MapStateTypeCodes } from '../models/app.enums';
 
 export enum Season {
   Summer = 'summer',
@@ -24,7 +26,12 @@ export enum Season {
 })
 export class AppStateService {
 
+  private refreshDynamicContent = new Subject<any>();
+  public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable();
   public applicationIsReady$: Observable<boolean>;
+
+  private currentMapState = new BehaviorSubject<MapStateTypeCodes>(MapStateTypeCodes.Popups);
+  public currentMapState$ = this.currentMapState.asObservable();
 
   private projectIsLoading = new BehaviorSubject<boolean>(false);
   public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
@@ -37,6 +44,11 @@ export class AppStateService {
   public projectId$: CachedObservable<number> = new BehaviorSubject<number>(null);
   public season$: CachedObservable<Season> = new BehaviorSubject<Season>(null);
 
+  public allClientLocations$: Observable<ImpGeofootprintLocation[]>;
+  public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
+  public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
+  public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
+
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
 
@@ -45,12 +57,14 @@ export class AppStateService {
   public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(private projectService: ImpProjectService,
-               private geoService: ImpGeofootprintGeoService,
-               private tradeAreaService: ImpGeofootprintTradeAreaService,
-               private esriMapService: EsriMapService,
-               private esriLayerService: EsriLayerService) {
+              private locationService: ImpGeofootprintLocationService,
+              private geoService: ImpGeofootprintGeoService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private esriMapService: EsriMapService,
+              private esriLayerService: EsriLayerService) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
+    this.setupLocationObservables();
     this.setupGeocodeObservables();
     this.setupTradeAreaObservables();
   }
@@ -60,6 +74,14 @@ export class AppStateService {
     return this.projectService.loadProject(projectId, true).pipe(
       tap(null, null, () => this.projectIsLoading.next(false))
     );
+  }
+
+  public setMapState(newState: MapStateTypeCodes) : void {
+    this.currentMapState.next(newState);
+  }
+
+  public refreshDynamicControls() : void {
+    this.refreshDynamicContent.next();
   }
 
   private setupApplicationReadyObservable() : void {
@@ -107,6 +129,25 @@ export class AppStateService {
       map(master => (master.methSeason.toUpperCase() === 'S' ? 'summer' : 'winter') as Season),
       distinctUntilChanged()
     ).subscribe(this.season$ as BehaviorSubject<Season>);
+  }
+
+  private setupLocationObservables() : void {
+    const locationsWithType$ = this.locationService.storeObservable.pipe(
+      filter(locations => locations != null),
+      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0)
+    );
+    this.allClientLocations$ = locationsWithType$.pipe(
+      filterArray(l => l.clientLocationTypeCode === 'Site')
+    );
+    this.allCompetitorLocations$ = locationsWithType$.pipe(
+      filterArray(l => l.clientLocationTypeCode === 'Competitor')
+    );
+    this.activeClientLocations$ = this.allClientLocations$.pipe(
+      filterArray(l => l.isActive === true)
+    );
+    this.activeCompetitorLocations$ = this.allCompetitorLocations$.pipe(
+      filterArray(l => l.isActive === true)
+    );
   }
 
   private setupGeocodeObservables() : void {

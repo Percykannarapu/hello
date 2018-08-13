@@ -824,7 +824,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
      
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
-         this.messageService.showGrowlError('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
+         this.messageService.showErrorNotification('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
          return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
       }
 

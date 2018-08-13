@@ -404,7 +404,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
       if (impProject.methAnalysis == null || impProject.methAnalysis == '')
            errorString += 'Analysis level is required';
       if (errorString != null) {
-          this.messageService.showGrowlError('Error Saving Project', errorString);
+          this.messageService.showErrorNotification('Error Saving Project', errorString);
           return;
       }
               this.impProjectService.saveProject().subscribe(impPro => {
@@ -448,7 +448,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
       this.appProjectService.clearAll();
       this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
       this.stateService.clearUserInterface.next(true);
-      this.messageService.clearGrowlMessages();
+      this.messageService.clearNotifications();
       //GeocoderComponent.prototype.clearFields();
       //TradeAreaDefineComponent.prototype.clearTradeArea();
        this.impGeofootprintGeoService.clearAll();

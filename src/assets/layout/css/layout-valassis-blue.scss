@@ -12,3 +12,11 @@ $lightMenuRouterLinkActiveColor: #2e5473;
 $horizontalLightMenuRouterLinkActiveColor: #9fa8da;
 
 @import '../../sass/layout/_layout';
+
+.val-toast-top-right {
+  top: 93px !important;
+}
+
+.val-custom-popup-tree-table table > tbody > tr > td.val-custom-cell {
+  padding: 0.25em 1em;
+}

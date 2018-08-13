@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationParams } from './services/esri-identity.service';
-import { EnvironmentData } from '../environments/environment';
+import { environment, EnvironmentData } from '../environments/environment';
 import { EsriConfigOptions, EsriLoaderConfig } from './esri-modules/configuration';
+import { LoggingConfiguration, LogLevels } from './val-modules/common/services/logging.service';
 
 @Injectable()
-export class AppConfig implements EsriLoaderConfig {
+export class AppConfig implements EsriLoaderConfig, LoggingConfiguration {
 
   // The name of the environment
   public environmentName = EnvironmentData.environmentName;
+
+  // The log level
+  logLevel: LogLevels = environment.logLevel;
 
   // OAuth information
   public clientId = EnvironmentData.clientId;
@@ -68,13 +72,13 @@ export class AppConfig implements EsriLoaderConfig {
      console.log('app.config.getLayerIdForAnalysisLevel - analysisLevel: ', analysisLevel);
     switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
-        return boundary ? this.layerIds.zip.topVars.id : this.layerIds.zip.centroids.id;
+        return boundary ? this.layerIds.zip.boundaries.id : this.layerIds.zip.centroids.id;
       case 'atz':
-        return boundary ? this.layerIds.atz.topVars.id : this.layerIds.atz.centroids.id;
+        return boundary ? this.layerIds.atz.boundaries.id : this.layerIds.atz.centroids.id;
       case 'digital atz':
-        return boundary ? this.layerIds.digital_atz.digitalTopVars.id : this.layerIds.digital_atz.digitalCentroids.id;
+        return boundary ? this.layerIds.digital_atz.boundaries.id : this.layerIds.digital_atz.centroids.id;
       case 'pcr':
-        return boundary ? this.layerIds.pcr.topVars.id : this.layerIds.pcr.centroids.id;
+        return boundary ? this.layerIds.pcr.boundaries.id : this.layerIds.pcr.centroids.id;
       default:
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }

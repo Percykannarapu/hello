@@ -85,7 +85,7 @@ export class AddLocationsTabComponent implements OnInit {
 
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
     this.messageService.stopSpinnerDialog(this.spinnerKey);
-    this.messageService.showGrowlError(errorHeader, errorMessage);
+    this.messageService.showErrorNotification(errorHeader, errorMessage);
     console.error(errorMessage, errorObject);
   }
 }

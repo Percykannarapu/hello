@@ -9,7 +9,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { AppConfig } from '../../app.config';
 import { EsriQueryService } from '../../esri-modules/layers/esri-query.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../../esri-modules/core/esri-utils';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';

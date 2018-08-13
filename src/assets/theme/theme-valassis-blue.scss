@@ -7,3 +7,12 @@ $accentLightColor: #f0a630;
 $accentTextColor: #ffffff;
 
 @import '../sass/theme/_theme';
+
+.val-toast-top-right .ui-toast-close-icon {
+  font-size: 1em;
+}
+
+.val-toast-top-right span.ui-toast-icon {
+  font-size: 2em;
+  font-weight: bold;
+}

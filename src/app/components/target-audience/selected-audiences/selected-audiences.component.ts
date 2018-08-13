@@ -103,7 +103,7 @@ export class SelectedAudiencesComponent implements OnInit {
       // this.usageService.createCounterMetrics(counterMetricsColorBox);
     }
     if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
-      this.appMessagingService.showGrowlWarning('Apply Selected Audience', 'You must select an Analysis Level in order to apply the selected audience variable(s)');
+      this.appMessagingService.showWarningNotification('Apply Selected Audience', 'You must select an Analysis Level in order to apply the selected audience variable(s)');
       return;
     }
     this.varService.applyAudienceSelection();

@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {  MenuItem } from 'primeng/primeng';
-import { MapService } from '../../services/map.service';
 import { ColorBoxComponent } from '../color-box/color-box.component';
 import { AppBusinessSearchService } from '../../services/app-business-search.service';
 import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
@@ -48,8 +47,7 @@ export class DashboardComponent implements OnInit {
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
     // They need to be injected somewhere so they can run properly
-    constructor(private mapService: MapService,
-                private appService: AppBusinessSearchService,
+    constructor(private appService: AppBusinessSearchService,
                 private metricService: MetricService,
                 private radService: RadService,
                 private targetAudienceService: TargetAudienceMetricService,

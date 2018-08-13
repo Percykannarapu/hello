@@ -152,12 +152,12 @@ export class AudienceTradeareaComponent implements OnInit {
       .subscribe(result => {
         
         if (!result) {
-          this.messagingService.showGrowlError(errorTitle, 'Error while creating Audience Trade Area');
+          this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
         }
       },
       error => {
         console.error('Error while creating audience tradearea', error);
-        this.messagingService.showGrowlError(errorTitle, 'Error while creating Audience Trade Area');
+        this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
       });
   }

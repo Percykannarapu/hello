@@ -1,18 +1,22 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subscription, BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { AppComponentGeneratorService } from './app-component-generator.service';
 import { ValMetricsService } from './app-metrics.service';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
-import { filter } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
+import { MapStateTypeCodes } from '../models/app.enums';
+import { AppMessagingService } from './app-messaging.service';
+import { EsriGraphicTypeCodes } from '../esri-modules/esri.enums';
+import { AppLayerService } from './app-layer.service';
 
 export interface Coordinates {
   xcoord: number;
@@ -29,7 +33,6 @@ export interface GeoClickEvent {
 
 @Injectable()
 export class AppMapService implements OnDestroy {
-  private isReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
@@ -40,34 +43,43 @@ export class AppMapService implements OnDestroy {
   private defaultSymbol: __esri.SimpleFillSymbol;
   private rendererRetries: number = 0;
 
-  public onReady$: Observable<boolean> = this.isReady.asObservable();
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
 
-  constructor(private layerService: EsriLayerService, private mapService: EsriMapService,
-              private config: AppConfig, private metricsService: ValMetricsService,
-              private appStateService: AppStateService, private queryService: EsriQueryService,
-              private messageService: MessageService, private rendererService: AppRendererService,
-              private usageService: UsageService) {
+  private currentMapState: MapStateTypeCodes;
+
+  constructor(private appStateService: AppStateService,
+              private appLayerService: AppLayerService,
+              private rendererService: AppRendererService,
+              private messagingService: AppMessagingService,
+              private componentGenerator: AppComponentGeneratorService,
+              private queryService: EsriQueryService,
+              private layerService: EsriLayerService,
+              private mapService: EsriMapService,
+              private metricsService: ValMetricsService,
+              private usageService: UsageService,
+              private config: AppConfig) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
-    this.mapService.onReady$.subscribe(ready => {
-      if (ready) {
-        const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-        this.isReady.next(true);
-        combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
-          filter(() => !this.useWebGLHighlighting)
-        ).subscribe(
-          ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
-        );
-        combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
-          filter(() => this.useWebGLHighlighting)
-        ).subscribe(
-          ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
-        );
-        this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
-          if (this.layerSelectionRefresh) this.layerSelectionRefresh();
-        });
-      }
+    this.appStateService.currentMapState$.subscribe(newState => this.handleMapStateChange(newState));
+
+    this.mapService.onReady$.pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
+      combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
+        filter(() => !this.useWebGLHighlighting)
+      ).subscribe(
+        ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
+      );
+      combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
+        filter(() => this.useWebGLHighlighting)
+      ).subscribe(
+        ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
+      );
+      this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
+        if (this.layerSelectionRefresh) this.layerSelectionRefresh();
+      });
     });
   }
 
@@ -77,10 +89,73 @@ export class AppMapService implements OnDestroy {
   }
 
   public setupMap() : void {
+    // Create the layer groups and load the portal items
+    this.appLayerService.initializeLayers().subscribe(
+      null,
+      null,
+      () => {
+        // setup the map widgets
+        this.mapService.createBasicWidget(EsriModules.widgets.Home);
+        this.mapService.createHiddenWidget(EsriModules.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
+        this.mapService.createHiddenWidget(EsriModules.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
+        this.mapService.createHiddenWidget(EsriModules.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend'});
+        this.mapService.createHiddenWidget(EsriModules.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        this.mapService.createBasicWidget(EsriModules.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
+        const popup = this.mapService.mapView.popup;
+        if (this.useWebGLHighlighting) {
+          popup.highlightEnabled = false;
+        }
+
+        // Event handler that fires each time a popup action is clicked.
+        popup.on('trigger-action', (event) => {
+          // Execute the measureThis() function if the measure-this action is clicked
+          if (event.action.id === 'measure-this') {
+            this.measureThis();
+          }
+          // Execute the selectThis() function if the select-this action is clicked
+          if (event.action.id === 'select-this') {
+            this.selectThis();
+          }
+        });
+
+        EsriUtils.watch(popup, 'visible').subscribe(result => {
+          if (result.newValue === false) this.componentGenerator.cleanUpGeoPopup();
+        });
+    });
+  }
+
+  public handleMapStateChange(newMapState: MapStateTypeCodes) : void {
+    this.currentMapState = newMapState;
+    this.mapService.resetDrawing();
+    switch (newMapState) {
+      case MapStateTypeCodes.DrawPoly:
+        this.layerService.setAllPopupStates(false);
+        this.mapService.startDrawing(EsriGraphicTypeCodes.Rectangle)
+          .subscribe(geometry => this.handleDrawRectangleEvent(geometry as __esri.Polygon));
+        break;
+      case MapStateTypeCodes.MeasureLine:
+        this.layerService.setAllPopupStates(false);
+        this.mapService.startDrawing(EsriGraphicTypeCodes.Polyline)
+          .subscribe(geometry => this.mapService.measurePolyLine(geometry as __esri.Polyline));
+        break;
+      case MapStateTypeCodes.Popups:
+        this.layerService.setAllPopupStates(true);
+        break;
+      case MapStateTypeCodes.RemoveGraphics:
+        this.mapService.mapView.graphics.removeAll();
+        setTimeout(() => this.appStateService.setMapState(MapStateTypeCodes.Popups), 0);
+        break;
+      case MapStateTypeCodes.SelectPoly:
+        this.layerService.setAllPopupStates(false);
+        break;
+      default:
+        break;
+    }
   }
 
   public handleClickEvent(location:  __esri.MapViewClickEvent) {
+    if (this.currentMapState !== MapStateTypeCodes.SelectPoly) return;
     console.log('Inside AppMapService click event handler');
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
     if (analysisLevel == null || analysisLevel.length === 0) return;
@@ -94,10 +169,33 @@ export class AppMapService implements OnDestroy {
           x: Number(selectedGraphic.attributes.longitude),
           y: Number(selectedGraphic.attributes.latitude),
         };
-        this.collectSelectionUsage(selectedGraphic, 'ui=singleSelectTool');
+        this.collectSelectionUsage(selectedGraphic, 'singleSelectTool');
         this.selectSingleGeocode(geocode, geometry);
       }
     }, err => console.error('Error during click event handling', err));
+  }
+
+  private handleDrawRectangleEvent(geometry: __esri.Polygon) {
+    if (this.currentMapState !== MapStateTypeCodes.DrawPoly) return;
+    // console.log('polygons:::::', polygons);
+    console.log('handling rectangle draw complete', geometry);
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
+    this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
+    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const graphicsList = [];
+    const sub = this.queryService.queryLayerView(boundaryLayerId, false,  geometry.extent).subscribe(
+      graphics => graphicsList.push(...graphics),
+      err => console.error('There was an error selecting multiple geometries', err),
+      () => {
+        console.log('Query complete, processing', graphicsList);
+        this.selectMultipleGeocode(graphicsList);
+        this.mapService.mapView.graphics.removeAll();
+        setTimeout(() => {
+          this.appStateService.setMapState(MapStateTypeCodes.DrawPoly);
+          this.messagingService.stopSpinnerDialog('selectGeos');
+        }, 0);
+        if (sub) sub.unsubscribe();
+      });
   }
 
   public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
@@ -134,7 +232,7 @@ export class AppMapService implements OnDestroy {
       const latitude = graphic.attributes.latitude;
       const longitude = graphic.attributes.longitude;
       const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-      this.collectSelectionUsage(graphic, 'ui=multiSelectTool');
+      this.collectSelectionUsage(graphic, 'multiSelectTool');
       events.push({ geocode, geometry: point });
     });
     this.geoSelected.next(events);
@@ -205,8 +303,9 @@ export class AppMapService implements OnDestroy {
   /**
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
    * @param graphic The feature the user manually selected on the map
+   * @param selectionType The UI mechanism used to select the feature
    */
-  public collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
+  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
@@ -221,7 +320,7 @@ export class AppMapService implements OnDestroy {
     const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
-      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~${selectionType}`;
+      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~ui=${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
@@ -230,7 +329,7 @@ export class AppMapService implements OnDestroy {
         this.usageService.createCounterMetric(geoselected, metricText, null);
       }
     } else {
-      const metricText = `${geocode}~${hhc}~${0}~${0}~${selectionType}`;
+      const metricText = `${geocode}~${hhc}~${0}~${0}~ui=${selectionType}`;
       if (this.currentGeocodes.has(geocode)) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
@@ -304,5 +403,28 @@ export class AppMapService implements OnDestroy {
         if (sub) sub.unsubscribe();
       });
     });
+  }
+
+  private selectThis() {
+    const selectedFeature = this.mapService.mapView.popup.selectedFeature;
+    const geocode: string = selectedFeature.attributes.geocode;
+    const geometry = {
+      x: Number(selectedFeature.attributes.longitude),
+      y: Number(selectedFeature.attributes.latitude)
+    };
+    this.selectSingleGeocode(geocode, geometry);
+    this.collectSelectionUsage(selectedFeature, 'popupAction');
+  }
+
+  private measureThis() {
+    const geom: __esri.Geometry = this.mapService.mapView.popup.selectedFeature.geometry;
+    const distance: number = EsriModules.geometryEngine.geodesicLength(geom, 'miles');
+    const area: number = EsriModules.geometryEngine.geodesicArea(<any>geom, 'square-miles');
+    const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
+    const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
+
+    this.mapService.mapView.popup.content =
+      '<div style="background-color:DarkBlue;color:white"><b>' +
+      'Length: ' + distanceStr + ' miles.<br>Area: ' + areaStr + ' square-miles.</b></div>';
   }
 }
