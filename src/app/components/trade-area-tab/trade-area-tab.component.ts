@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { filter, map, take, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs/Subject';
+import { filter, map, take, tap, distinctUntilChanged } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
@@ -11,6 +12,10 @@ import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area/distance-trade-area-ui.model';
+import { AudienceTradeAreaConfig, AudienceDataDefinition } from '../../models/audience-data.model';
+import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -40,6 +45,9 @@ export class TradeAreaTabComponent implements OnInit {
   competitorTradeAreas$: Observable<TradeAreaModel[]>;
   siteMergeType$: Observable<TradeAreaMergeTypeCodes>;
   competitorMergeType$: Observable<TradeAreaMergeTypeCodes>;
+  audienceTAConfig$: Observable<AudienceTradeAreaConfig>;
+  currentAudiences$: Observable<AudienceDataDefinition[]>;
+  currentLocationsCount$: Subject<number> = new Subject<number>();
 
   siteTypes = ImpClientLocationTypeCodes;
 
@@ -51,7 +59,10 @@ export class TradeAreaTabComponent implements OnInit {
                private tradeAreaService: AppTradeAreaService,
                private usageService: UsageService,
                private appLocationService: AppLocationService,
-               private config: AppConfig) { }
+               private config: AppConfig,
+               private audienceTradeareaService: ValAudienceTradeareaService,
+               private targetAudienceService: TargetAudienceService,
+               private locationService: ImpGeofootprintLocationService) { }
 
   ngOnInit() {
     // keep track of locations - need this for validation upon submit of radius trade areas
@@ -77,6 +88,14 @@ export class TradeAreaTabComponent implements OnInit {
       mapToUiTradeAreas(this.defaultTradeArea),
       tap(models => this.tradeAreaUiCache.set(ImpClientLocationTypeCodes.Competitor, models))
     );
+
+    this.audienceTAConfig$ = this.audienceTradeareaService.audienceTAConfig$.pipe(distinctUntilChanged());
+    this.currentAudiences$ = this.targetAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
+    );
+    this.locationService.storeObservable.subscribe(l => {
+      this.currentLocationsCount$.next(l.length);
+    });
   }
 
   onDistanceTradeAreasChanged(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) {
@@ -125,5 +144,46 @@ export class TradeAreaTabComponent implements OnInit {
 
   onDistanceMergeTypeChanged(newMergeType: TradeAreaMergeTypeCodes, siteType: SuccessfulLocationTypeCodes) : void {
     this.tradeAreaService.updateMergeType(newMergeType, siteType);
+  }
+
+  onUpdatedAudienceTAData(form: any) {
+    const audienceTAConfig: AudienceTradeAreaConfig = {
+      analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
+      digCategoryId: this.getVarId(form.audience),
+      locations: null,
+      maxRadius: form.maxRadius,
+      minRadius: form.minRadius,
+      scoreType: form.scoreType,
+      weight: form.weight,
+      includeMustCover: form.includeMustCover
+    };
+    this.audienceTradeareaService.updateAudienceTAConfig(audienceTAConfig);
+  }
+
+  private getVarId(audienceName: string) : number {
+    const targetingVar: AudienceDataDefinition[] = this.targetAudienceService.getAudiences().filter(v => v.audienceName === audienceName);
+    let id: number;
+    if (targetingVar.length > 0)
+      id = Number(targetingVar[0].secondaryId.replace(',', ''));
+    if (Number.isNaN(id)) {
+      return null;
+    }
+    return id;
+  }
+
+  onRunAudienceTA(run: boolean) {
+    if (!run) return;
+    const errorTitle: string = 'Audience Trade Area Error';
+    this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
+    .subscribe(result => {
+      if (!result) {
+        this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
+      }
+    },
+    error => {
+      console.error('Error while creating audience tradearea', error);
+      this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
+      this.messagingService.stopSpinnerDialog('AUDIENCETA');
+    });
   }
 }

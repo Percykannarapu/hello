@@ -1,16 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, SimpleChanges, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
-import { SmartTile, ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../models/audience-data.model';
 import { Observable } from 'rxjs';
 import { map, distinctUntilChanged, filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 
 @Component({
@@ -18,7 +14,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
   templateUrl: './audience-tradearea.component.html',
   styleUrls: ['./audience-tradearea.component.css']
 })
-export class AudienceTradeareaComponent implements OnInit {
+export class AudienceTradeareaComponent implements OnInit, OnChanges {
   public varSelectorOptions: SelectItem[] = [];
   public scoreTypeOptions: SelectItem[] = [];
   public configForm: FormGroup;
@@ -26,17 +22,17 @@ export class AudienceTradeareaComponent implements OnInit {
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private audienceSourceMap: Map<string, string> = new Map<string, string>();
 
-  constructor(private audienceTradeareaService: ValAudienceTradeareaService,
-    private messagingService: AppMessagingService,
-    private targetAudienceService: TargetAudienceService,
-    private stateService: AppStateService,
+  @Input() currentAudienceTAConfig: AudienceTradeAreaConfig;
+  @Input() currentAudiences: AudienceDataDefinition[];
+  @Input() currentLocationsCount: number;
+  @Output() updatedFormData: EventEmitter<FormGroup> = new EventEmitter<FormGroup>();
+  @Output() runAudienceTA: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  constructor(private stateService: AppStateService,
     private usageService: UsageService,
-    private impLocationService: ImpGeofootprintLocationService,
     private fb: FormBuilder) { }
 
   ngOnInit() {
-
-    this.audienceTradeareaService.audienceTAConfig$.pipe(distinctUntilChanged()).subscribe(c => this.onConfigChange(c));
 
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
@@ -50,19 +46,22 @@ export class AudienceTradeareaComponent implements OnInit {
       'includeMustCover': [false]
     });
 
-    this.configForm.valueChanges.pipe(distinctUntilChanged()).subscribe(f => this.onFormChange(f));
-
-    this.targetAudienceService.audiences$.pipe(
-      map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
-    ).subscribe(targetingVar => this.updateVars(targetingVar));
+    this.configForm.valueChanges.pipe(distinctUntilChanged()).subscribe(f => {
+      this.updatedFormData.emit(f);
+    });
 
     this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearFields();
     });
+  }
 
-    this.stateService.projectIsLoading$.pipe(filter(l => true)).subscribe(l => {
-      this.updateVars(this.targetAudienceService.getAudiences());  
-    });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.currentAudienceTAConfig != null) {
+      this.onConfigChange(changes.currentAudienceTAConfig.currentValue);
+    }
+    if (changes.currentAudiences != null) {
+      this.updateVars(changes.currentAudiences.currentValue);
+    }
   }
 
   private onConfigChange(config: AudienceTradeAreaConfig) {
@@ -73,20 +72,6 @@ export class AudienceTradeareaComponent implements OnInit {
       scoreType: config.scoreType,
       includeMustCover: config.includeMustCover
     });
-  }
-
-  public onFormChange(form: any) {
-    const audienceTAConfig: AudienceTradeAreaConfig = {
-      analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
-      digCategoryId: this.getVarId(),
-      locations: null,
-      maxRadius: form.maxRadius,
-      minRadius: form.minRadius,
-      scoreType: form.scoreType,
-      weight: form.weight,
-      includeMustCover: form.includeMustCover
-    };
-    this.audienceTradeareaService.updateAudienceTAConfig(audienceTAConfig);
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
@@ -133,36 +118,19 @@ export class AudienceTradeareaComponent implements OnInit {
   }
 
   public onClickApply() {
-    const siteCount = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length;
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
-    const audienceTAConfig = this.audienceTradeareaService.getAudienceTAConfig();
-    const errorTitle: string = 'Audience Trade Area Error';
-    
-
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
-                        ~siteCount=${siteCount}
-                        ~minRadius=${audienceTAConfig.minRadius}
-                        ~maxRadius=${audienceTAConfig.maxRadius}
+                        ~siteCount=${this.currentLocationsCount}
+                        ~minRadius=${this.currentAudienceTAConfig.minRadius}
+                        ~maxRadius=${this.currentAudienceTAConfig.maxRadius}
                         ~varPk=${this.getVarId()}
                         ~audienceName=${this.configForm.get('audience').value}
                         ~source=${this.audienceSourceMap.get(this.configForm.get('audience').value)}
-                        ~weight=${audienceTAConfig.weight}
-                        ~scoreType=${audienceTAConfig.scoreType}
-                        ~includeAllInMustCover=${audienceTAConfig.includeMustCover ? 1 : 0}`;
-
+                        ~weight=${this.currentAudienceTAConfig.weight}
+                        ~scoreType=${this.currentAudienceTAConfig.scoreType}
+                        ~includeAllInMustCover=${this.currentAudienceTAConfig.includeMustCover ? 1 : 0}`;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
-    this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
-      .subscribe(result => {
-        
-        if (!result) {
-          this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
-        }
-      },
-      error => {
-        console.error('Error while creating audience tradearea', error);
-        this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
-        this.messagingService.stopSpinnerDialog('AUDIENCETA');
-      });
+    this.runAudienceTA.emit(true);
   }
 
   public clearFields(){
