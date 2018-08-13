@@ -80,7 +80,7 @@ export class ValDiscoveryUIModel {
     projectToUpdate.isIncludeAnne      = this.includeAnne;
     projectToUpdate.isIncludeSolo      = this.includeSolo;
     projectToUpdate.projectTrackerId   = this.selectedProjectTracker != null ? this.selectedProjectTracker.projectId : null;
-    projectToUpdate.projectName        = this.selectedProjectTracker != null && this.projectName.length === 0 ? this.selectedProjectTracker.projectName : this.projectName ;
+    projectToUpdate.projectName        = this.selectedProjectTracker != null && this.selectedProjectTracker.projectName != null && this.projectName == null ? this.selectedProjectTracker.projectName : this.projectName ;
     projectToUpdate.estimatedBlendedCpm = this.toNumber(this.cpmBlended);
     projectToUpdate.smValassisCpm      = this.toNumber(this.cpmValassis);
     projectToUpdate.smAnneCpm          = this.toNumber(this.cpmAnne);
