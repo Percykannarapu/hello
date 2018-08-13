@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
 import { User } from '../../models/User';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
+import { AppLoggingService } from '../../services/app-logging.service';
 import { UsageService } from '../../services/usage.service';
 import { UserService } from '../../services/user.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { AppStateService } from '../../services/app-state.service';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 
@@ -29,6 +30,7 @@ export class CampaignDetailsComponent implements OnInit {
               private appDiscoveryService: AppDiscoveryService,
               private userService: UserService,
               private impProjectService: ImpProjectService,
+              private logger: AppLoggingService,
               private usageService: UsageService) { }
 
   ngOnInit() {
@@ -36,7 +38,8 @@ export class CampaignDetailsComponent implements OnInit {
       combineLatest(this.appStateService.applicationIsReady$, this.appStateService.currentProject$, this.appDiscoveryService.selectedRadLookup$, this.appDiscoveryService.selectedProjectTracker$)
         .pipe(
           filter(([appIsReady]) => appIsReady),
-          map(([appIsReady, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker))
+          map(([appIsReady, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker)),
+          tap(UIData => this.logger.debug('Discovery UI data changed', UIData))
         );
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
     this.currentProjectTrackerSuggestions$ = this.appDiscoveryService.trackerSearchSuggestions$;

@@ -168,7 +168,6 @@ export class AppLayerService {
     });
     return merge(...results, 2).pipe(
       finalize(() => {
-        this.layerService.setupLayerWatches();
         this.resumeLayerWatch(this.pausableWatches);
       })
     );

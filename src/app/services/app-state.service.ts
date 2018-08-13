@@ -15,6 +15,7 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { MapStateTypeCodes } from '../models/app.enums';
+import { AppLoggingService } from './app-logging.service';
 
 export enum Season {
   Summer = 'summer',
@@ -61,7 +62,8 @@ export class AppStateService {
               private geoService: ImpGeofootprintGeoService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private esriMapService: EsriMapService,
-              private esriLayerService: EsriLayerService) {
+              private esriLayerService: EsriLayerService,
+              private logger: AppLoggingService) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
     this.setupLocationObservables();
@@ -87,6 +89,7 @@ export class AppStateService {
   private setupApplicationReadyObservable() : void {
     this.applicationIsReady$ =
       combineLatest(this.esriMapService.onReady$, this.esriLayerService.layersReady$, this.projectIsLoading$).pipe(
+        tap(([mapReady, layersReady, projectLoading]) => this.logger.debug('Application Is Ready constituents: ', { mapReady, layersReady, projectLoading })),
         map(([mapReady, layersReady, projectLoading]) => mapReady && layersReady && !projectLoading)
       );
   }

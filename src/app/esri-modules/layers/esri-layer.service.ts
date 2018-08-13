@@ -111,6 +111,7 @@ export class EsriLayerService {
         currentLayer.title = layerTitle;
         currentLayer.minScale = minScale;
         this.portalRefs.set(portalId, currentLayer);
+        EsriUtils.watch(currentLayer, 'loaded').subscribe(result => this.determineLayerStatuses(result.target));
         subject.next(currentLayer);
         subject.complete();
       }).catch(reason => {
@@ -221,18 +222,6 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
-    }
-  }
-
-  /**
-   * Set up the layer watches on newly created layers so we can notify
-   * the rest of the app when the layers have finished loading
-   */
-  public setupLayerWatches() {
-    const allLayers = this.mapService.map.allLayers.toArray();
-    for (const layer of allLayers) {
-      this.layerStatuses.set(layer.title, false);
-      EsriModules.watchUtils.watch(layer, 'loaded', e => this.determineLayerStatuses(layer));
     }
   }
 }
