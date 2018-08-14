@@ -118,6 +118,9 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
+    for (const pv of this.projectVarService.get()) {
+      this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
+    }
     const projectVar = new ImpProjectVar();
     try {
       const source = audience.audienceSourceType + '_' + audience.audienceSourceName;

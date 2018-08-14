@@ -107,6 +107,7 @@ export class TargetAudienceAudienceTA {
                         secondaryId: this.reloadSecondaryId(projectVar),
                         audienceTAConfig: this.reloadAudienceTaConfig()
                     };
+                    this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
                     this.audienceService.addAudience(
                         audience,
                         (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
