@@ -394,7 +394,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
       const locData = this.impGeofootprintLocationService.get();
       let errorString = null;
       if (impProject.projectName == null || impProject.projectName == '')
-           errorString = 'imPower Project Name is required<br>';
+           errorString = 'imPower Project Name is required';
       if (impProject.methAnalysis == null || impProject.methAnalysis == '')
            errorString += 'Analysis level is required';
       if (errorString != null) {

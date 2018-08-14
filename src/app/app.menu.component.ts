@@ -29,6 +29,7 @@ import { ImpGeofootprintMasterService } from './val-modules/targeting/services/I
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 import { AppLocationService } from './services/app-location.service';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
+import { FileService } from './val-modules/common/services/file.service';
 
 
 @Component({
@@ -368,7 +369,7 @@ export class AppMenuComponent implements OnInit {
                     this.appStateService.projectId$.getValue();
                     let errorString = '';
                     if (impProject.projectName == null || impProject.projectName == '')
-                         errorString = 'imPower Project Name is required<br>';
+                         errorString = 'imPower Project Name is required';
                     if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                          errorString += 'Analysis level is required';
                     if (errorString.length !== 0) {
@@ -405,6 +406,7 @@ export class AppMenuComponent implements OnInit {
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
         this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+        this.impGeofootprintLocationService.clearAll();
         this.appStateService.clearUserInterface.next(true);
         this.messageService.clearNotifications();
          this.impGeofootprintGeoService.clearAll();
@@ -440,7 +442,7 @@ export class AppMenuComponent implements OnInit {
         const impProject = this.appStateService.currentProject$.getValue();
         let errorString = '';
             if (impProject.projectName == null || impProject.projectName == '')
-                errorString = 'imPower Project Name is required<br>';
+                errorString = 'imPower Project Name is required';
             if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                 errorString += 'Analysis level is required';
             if (errorString.length !== 0 ) {
