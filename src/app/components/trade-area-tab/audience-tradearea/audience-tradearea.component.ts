@@ -65,6 +65,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   }
 
   private onConfigChange(config: AudienceTradeAreaConfig) {
+    if (this.configForm == null) return; // this can happen when the app is first starting up
     this.configForm.patchValue({
       minRadius: config.minRadius,
       maxRadius: config.maxRadius,
@@ -75,6 +76,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {
+    if (this.configForm == null) return; // this can happen when the app is first starting up
     const weight = this.configForm.get('weight').value;
     const vars: SelectItem[] = [];
     for (const targetingVar of targetingVars) {
