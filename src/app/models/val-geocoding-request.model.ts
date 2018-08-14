@@ -1,13 +1,17 @@
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingResponse } from './val-geocoding-response.model';
 
+const isEmpty = (s: any) => s == null || s.toString().trim().length === 0;
+const isNumber = (s: any) => !isEmpty(s) && !Number.isNaN(Number(s));
+const isBetween = (min: number, max: number, s: any) => isNumber(s) && s >= min && s <= max;
+
 export class ValGeocodingRequest {
   name: string;
   number: string;
   Market: string;
   'Market Code': string;
-  'Description': string;
-  'Group': string;
+  Description: string;
+  Group: string;
   street: string;
   city: string;
   state: string;
@@ -31,14 +35,19 @@ export class ValGeocodingRequest {
     }
   }
 
-  public canBeGeocoded() : boolean {
-    const notEmpty = (s: string) => s != null && s.trim() !== '';
-    return this.hasLatAndLong() || notEmpty(this.zip) || (notEmpty(this.state) && notEmpty(this.city));
+  // values are not empty, numeric, and inside the specified bounds
+  public hasGoodLatAndLong() : boolean {
+    return isBetween(-180, 180, this.longitude) && isBetween(-90, 90, this.latitude);
   }
 
-  public hasLatAndLong() : boolean {
-    const notEmpty = (s: any) => s != null && s.toString().trim() !== '';
-    return notEmpty(this.longitude) && notEmpty(this.latitude);
+  // values are not empty, and either non-numeric, or numeric and outside the specified bounds
+  public hasBadLatAndLong() : boolean {
+    return !this.hasNoLatAndLong() && !this.hasGoodLatAndLong();
+  }
+
+  // either value is empty
+  public hasNoLatAndLong() : boolean {
+    return isEmpty(this.longitude) || isEmpty(this.latitude);
   }
 
   public cleanUploadRequest() : ValGeocodingRequest {
@@ -47,23 +56,31 @@ export class ValGeocodingRequest {
     return this;
   }
 
-  public toGeocodingResponse() : ValGeocodingResponse {
-    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code', 'Description', 'Group', 'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
+  public toGeocodingResponse(status: 'PROVIDED' | 'BAD XY') : ValGeocodingResponse {
+    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code', 'Description', 'Group',
+                               'street', 'city', 'state', 'zip', 'latitude', 'longitude'];
     const result = new ValGeocodingResponse({
       Name: this.name,
       Market: this.Market,
       'Market Code': this['Market Code'],
-      'Description': this['Description'],
-      'Group': this['Group'],
+      Description: this.Description,
+      Group: this.Group,
       Number: this.number,
-      Address: this.street,
-      City: this.city,
-      State: this.state,
-      ZIP: this.zip,
       Latitude: this.latitude,
       Longitude: this.longitude,
-      'Geocode Status': 'PROVIDED'
+      'Geocode Status': status
     });
+    if (status === 'PROVIDED') {
+      result.Address = this.street;
+      result.City = this.city;
+      result.State = this.state;
+      result.ZIP = this.zip;
+    } else {
+      result['Original Address'] = this.street;
+      result['Original City'] = this.city;
+      result['Original State'] = this.state;
+      result['Original ZIP'] = this.zip;
+    }
     for (const [k, v] of Object.entries(this)) {
       if (nonAttributeProps.indexOf(k) < 0 && typeof v !== 'function') {
         result[k] = v;

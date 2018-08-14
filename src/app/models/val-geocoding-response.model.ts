@@ -12,11 +12,9 @@ export class ValGeocodingResponse {
   Number: string;
   Name: string;
   Market: string;
+  Description: string;
+  Group: string;
   'Market Code': string;
-  'Description': string;
-  'Group': string;
-  get LatLon() : string { return `${this.Latitude}, ${this.Longitude}`; }
-  set LatLon(value: string) {  this.parseLatLon(value); }
   'Original Address': string;
   'Original City': string;
   'Original State': string;
@@ -28,7 +26,7 @@ export class ValGeocodingResponse {
 
   constructor(initializer: any) {
     Object.assign(this, initializer);
-    if (this['Geocode Status'] !== 'PROVIDED') {
+    if (this['Geocode Status'] !== 'PROVIDED' && this['Geocode Status'] !== 'BAD XY') {
       if (this['Match Quality'] === 'E' || (this['Match Code'].startsWith('E') && !this['Match Quality'].startsWith('Z'))) {
         this['Geocode Status'] = 'ERROR';
       } else if ((this['Match Quality'].startsWith('Z') && !this['Match Quality'].startsWith('ZT9')) /*|| this['Match Code'] === 'Z'*/) {
@@ -39,19 +37,11 @@ export class ValGeocodingResponse {
     }
   }
 
-  private parseLatLon(value: string) : void {
-        const temp = value.split(',');
-        if (temp[0] != null && !Number.isNaN(Number(temp[0])) && temp[1] != null && !Number.isNaN(Number(temp[1])) ) {
-          this.userHasEdited = true;
-          this.Latitude = temp[0];
-          this.Longitude = temp[1];
-        }
-
-  }
-
   public toGeoLocation(siteType?: string, analysisLevel?: string) : ImpGeofootprintLocation {
-
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Market','Market Code','Group','Description', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
+    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP',
+                                'Number', 'Name', 'Market', 'Market Code', 'Group', 'Description',
+                                'Original Address', 'Original City', 'Original State', 'Original ZIP',
+                                'Match Code', 'Match Quality', 'Geocode Status'];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name != null ? this.Name.trim() : '',
       marketName: this.Market != null ? this.Market.trim() : '',
@@ -131,24 +121,6 @@ export class ValGeocodingResponse {
           impGeofootprintLocation: result
         });
         result.impGeofootprintLocAttribs.push(locationAttribute);
-      }
-    }
-    return result;
-  }
-
-  public toGeocodingRequest() : ValGeocodingRequest {
-    const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 'Name', 'Original Address', 'Original City', 'Original State', 'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status'];
-    const result: ValGeocodingRequest = new ValGeocodingRequest({
-      name:  this.Name,
-      number: this.Number,
-      street: this['Original Address'],
-      city: this['Original City'],
-      state: this['Original State'],
-      zip: this['Original ZIP']
-    });
-    for (const [k, v] of Object.entries(this)) {
-      if (nonAttributeProps.indexOf(k) < 0 && typeof v !== 'function') {
-        result[k] = v;
       }
     }
     return result;

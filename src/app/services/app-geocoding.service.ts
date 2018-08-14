@@ -51,9 +51,10 @@ export class AppGeocodingService {
   }
 
   public getGeocodingResponse(sites: ValGeocodingRequest[], siteType: string) : Observable<ValGeocodingResponse[]> {
-    const providedSites: ValGeocodingResponse[] = sites.filter(s => s.hasLatAndLong()).map(s => s.toGeocodingResponse());
-    const otherSites = sites.filter(s => !s.hasLatAndLong()).map(s => s.cleanUploadRequest());
-    const observables: Observable<ValGeocodingResponse[]>[] = [of(providedSites)];
+    const providedSites: ValGeocodingResponse[] = sites.filter(s => s.hasGoodLatAndLong()).map(s => s.toGeocodingResponse('PROVIDED'));
+    const badLatLongSites: ValGeocodingResponse[] = sites.filter(s => s.hasBadLatAndLong()).map(s => s.toGeocodingResponse('BAD XY'));
+    const otherSites = sites.filter(s => s.hasNoLatAndLong()).map(s => s.cleanUploadRequest());
+    const observables: Observable<ValGeocodingResponse[]>[] = [of(providedSites), of(badLatLongSites)];
     const allLocations: ValGeocodingResponse[] = [];
 
     if (otherSites.length > 0) {
