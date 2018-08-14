@@ -125,7 +125,8 @@ export class ValAudienceTradeareaService {
    * When a project is loaded we need to create an
    * AudienceTAConfig if we have the data available
    */
-  private onLoad() {
+  private onLoad(loading: boolean) {
+    if (loading) return;
     const project = this.stateService.currentProject$.getValue();
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue(),
@@ -138,6 +139,7 @@ export class ValAudienceTradeareaService {
       locations: null // we don't populate this until we run the trade area
     };
     this.updateAudienceTAConfig(audienceTAConfig);
+    this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
   }
 
   /**
@@ -444,6 +446,7 @@ export class ValAudienceTradeareaService {
    * @param location The location associated with the trade are
    */
   private drawRadiusRings(minRadius: number, maxRadius: number) {
+    if (minRadius == null || maxRadius == null) return;
     const ringMap: Map<Coordinates, number[]> = new Map<Coordinates, number[]>();
     for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
       const coordinates: Coordinates = { xcoord: location.xcoord, ycoord: location.ycoord };
@@ -621,6 +624,6 @@ export class ValAudienceTradeareaService {
         // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
         this.fetchData = true;
       });
-      this.stateService.projectIsLoading$.pipe(filter(l => l === false)).subscribe(l => this.onLoad());
+      this.stateService.projectIsLoading$.subscribe(l => this.onLoad(l));
   }
 }
