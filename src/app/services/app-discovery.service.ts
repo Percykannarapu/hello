@@ -255,7 +255,7 @@ export class AppDiscoveryService {
   public updateTrackerSuggestions(searchTerm: string) {
       this.getProjectTrackerData(searchTerm).subscribe(items => {
           if (items.length === 0) {
-             this.appMessagingService.showErrorNotification('Error:', 'Please enter a valid Project Tracker ID', true); 
+             this.appMessagingService.showErrorNotification('Error:', 'No Project Tracker ID Found.', true); 
           } else {  
           const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
           this.currentTrackerSuggestions.next(foundItems);
