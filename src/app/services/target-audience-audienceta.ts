@@ -80,9 +80,7 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
 
-        // We cannot currently load AudienceTA audiences since there 
-        // is no support for saving the audience trade area configuration
-        //this.appStateService.projectIsLoading$.subscribe(loading => this.onLoadProject(loading));
+        this.appStateService.projectIsLoading$.subscribe(loading => this.onLoadProject(loading));
 
     }
 
@@ -251,13 +249,16 @@ export class TargetAudienceAudienceTA {
         newVar.isActive = true;
         newVar.customVarExprDisplay = fieldDisplay;
         newVar.fieldname = audienceName;
+        newVar.isCustom = false;
         if (type === 'string') {
             newVar.valueString = valueString;
             newVar.isString = true;
+            newVar.isNumber = false;
             newVar.fieldconte = 'CHAR';
         } else {
             newVar.valueNumber = valueNumber;
             newVar.isNumber = true;
+            newVar.isString = false;
             if (numberType === 'index') {
                 newVar.fieldconte = 'INDEX';
             } else {
