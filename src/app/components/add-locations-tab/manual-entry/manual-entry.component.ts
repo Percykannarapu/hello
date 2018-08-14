@@ -3,6 +3,7 @@ import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from
 import { MenuItem } from 'primeng/primeng';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import * as Presets from './manual-entry-presets';
+import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
   selector: 'val-manual-entry',
@@ -17,7 +18,11 @@ export class ManualEntryComponent implements OnInit {
   manualEntryForm: FormGroup;
   loadItems: MenuItem[];
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder,
+              private appStateService: AppStateService) {
+                this.appStateService.getClearUserInterfaceObs().subscribe(flag => this.clearFields(flag)); 
+
+  }
 
   ngOnInit() {
     this.manualEntryForm = this.fb.group({
@@ -74,5 +79,12 @@ export class ManualEntryComponent implements OnInit {
         return null;
       }
     };
+  }
+
+  public clearFields(flag: boolean){
+    if (flag){
+        this.manualEntryForm.reset();
+    }
+
   }
 }
