@@ -368,14 +368,15 @@ export class AppMenuComponent implements OnInit {
                     this.usageService.createCounterMetric(usageMetricName, null, null);
                     this.appStateService.projectId$.getValue();
                     let errorString = '';
-                    if (impProject.projectName == null || impProject.projectName == '')
-                         errorString = 'imPower Project Name is required';
-                    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                         errorString += 'Analysis level is required';
-                    if (errorString.length !== 0) {
+                    if (impProject.projectName == null || impProject.projectName == ''){
+                        errorString = 'imPower Project Name is required';
+                    }
+                    if (impProject.methAnalysis == null || impProject.methAnalysis == ''){
+                        errorString  = errorString + '\n Analysis Level is required';
                         this.messageService.showErrorNotification('Error Saving Project', errorString);
                         return;
                     }
+                   
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
@@ -441,14 +442,14 @@ export class AppMenuComponent implements OnInit {
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
         let errorString = '';
-            if (impProject.projectName == null || impProject.projectName == '')
-                errorString = 'imPower Project Name is required';
-            if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                errorString += 'Analysis level is required';
-            if (errorString.length !== 0 ) {
-                this.messageService.showErrorNotification('Error Saving Project', errorString);
-                return;
-            }
+        if (impProject.projectName == null || impProject.projectName == ''){
+            errorString = 'imPower Project Name is required';
+        }
+        if (impProject.methAnalysis == null || impProject.methAnalysis == ''){
+            errorString  = errorString + '\n Analysis Level is required';
+            this.messageService.showErrorNotification('Error Saving Project', errorString);
+            return;
+        }
         this.impProjectService.saveProject().subscribe(impPro => {
             const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
             this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
