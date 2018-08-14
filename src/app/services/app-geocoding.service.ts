@@ -71,17 +71,19 @@ export class AppGeocodingService {
         locations => allLocations.push(...locations),
         null,
         () => {
-          const successCount = allLocations.filter(loc => loc['Geocode Status'] === 'SUCCESS' || loc['Geocode Status'] === 'PROVIDED').length;
-          const failCount = allLocations.length - successCount;
+          const successCount = allLocations.filter(loc => loc['Geocode Status'] === 'SUCCESS').length;
+          const providedCount = allLocations.filter(loc => loc['Geocode Status'] === 'PROVIDED').length;
+          const goodCount = successCount + providedCount;
+          const failCount = allLocations.length - goodCount;
           if (allLocations.length > 1) {
             const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
-            const metricText = `success=${successCount}~error=${failCount}`;
+            const metricText = `success=${goodCount}~error=${failCount}`;
             this.usageService.createCounterMetric(usageMetricName, metricText, allLocations.length);
           }
-          if (failCount === 0) {
-            this.messageService.showSuccessNotification('Success', 'Geocoding Success');
-          } else {
+          if (failCount > 0) {
             this.messageService.showErrorNotification('Error', 'Geocoding Error');
+          } else if (successCount > 0) {
+            this.messageService.showSuccessNotification('Success', 'Geocoding Success');
           }
         }),
     );
@@ -91,6 +93,5 @@ export class AppGeocodingService {
     if (flag){
         this.duplicateKeyMap.clear();
     }
-
   }
 }
