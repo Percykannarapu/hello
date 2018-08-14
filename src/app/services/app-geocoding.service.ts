@@ -10,6 +10,7 @@ import { AppConfig } from '../app.config';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
+import { AppStateService } from './app-state.service';
 
 @Injectable()
 export class AppGeocodingService {
@@ -19,9 +20,11 @@ export class AppGeocodingService {
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
               private usageService: UsageService,
-              private config: AppConfig) {
+              private config: AppConfig,
+              private appStateService: AppStateService) {
     this.duplicateKeyMap.set('Site', []);
     this.duplicateKeyMap.set('Competitor', []);
+    this.appStateService.getClearUserInterfaceObs().subscribe(flag => this.clearFields(flag));
   }
 
   public createRequestsFromRaw(dataRows: string[], siteType: string, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {
@@ -82,5 +85,12 @@ export class AppGeocodingService {
           }
         }),
     );
+  }
+
+  private clearFields(flag: boolean){
+    if (flag){
+        this.duplicateKeyMap.clear();
+    }
+
   }
 }
