@@ -93,6 +93,9 @@ export class AppGeocodingService {
   private clearFields(flag: boolean){
     if (flag){
         this.duplicateKeyMap.clear();
+        this.duplicateKeyMap = new Map<string, string[]>();
+        this.duplicateKeyMap.set('Site', []);
+        this.duplicateKeyMap.set('Competitor', []);
     }
   }
 }
