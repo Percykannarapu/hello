@@ -118,15 +118,18 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
-    for (const pv of this.projectVarService.get()) {
-      this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
+    let newId = this.projectVarService.getNextStoreId();
+    if (newId <= this.projectVarService.get().length) {
+      for (const pv of this.projectVarService.get()) {
+        newId = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
+      }
     }
     const projectVar = new ImpProjectVar();
     try {
       const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
       projectVar.pvId = id ? id : null;
       projectVar.baseStatus = DAOBaseStatus.INSERT;
-      projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : this.projectVarService.getNextStoreId();
+      projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
       projectVar.isShadedOnMap = audience.showOnMap;
       projectVar.isIncludedInGeoGrid = audience.showOnGrid;
       projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
