@@ -26,7 +26,6 @@ export class DiscoveryInputComponent implements OnInit {
   @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
 
   @Output() formChanged = new EventEmitter<ValDiscoveryUIModel>();
-  @Output() refreshTrackerData = new EventEmitter();
   @Output() radSearchRequest = new EventEmitter<string>();
   @Output() trackerSearchRequest = new EventEmitter<string>();
 
@@ -130,5 +129,6 @@ export class DiscoveryInputComponent implements OnInit {
     const currentAnalysisSelection = this.discoveryForm.controls['selectedAnalysisUIOption'].value;
     return currentAnalysisSelection == null ? null : currentAnalysisSelection.value;
   }
+  
 }
 
