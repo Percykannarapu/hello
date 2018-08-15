@@ -14,7 +14,14 @@
             <div #layoutMenuScroller class="nano">
                 <div class="nano-content menu-scroll-content">
                     <app-inline-profile *ngIf="profileMode=='inline'&&!isHorizontal()"></app-inline-profile>
-                    <app-menu [reset]="resetMenu"></app-menu>
+                    <div class="ui-g">
+                      <div class="ui-g-8 ui-g-nopad">
+                        <app-menu [reset]="resetMenu"></app-menu>
+                      </div>
+                      <div class="ui-g-4">
+                        <val-project-name></val-project-name>
+                      </div>
+                    </div>
                 </div>
             </div>
         </div>

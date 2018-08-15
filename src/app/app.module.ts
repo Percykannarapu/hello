@@ -163,6 +163,7 @@ import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.co
 import { ToastModule } from 'primeng/toast';
 import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
 import { SampleComponent } from './poc/sample/sample.component';
+import { ProjectNameComponent } from './components/project-name/project-name.component';
 
 @NgModule({
     imports: [
@@ -284,7 +285,8 @@ import { SampleComponent } from './poc/sample/sample.component';
         MapComponent,
         MapToolbarComponent,
         EsriGeographyPopupComponent,
-        SampleComponent
+        SampleComponent,
+        ProjectNameComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
