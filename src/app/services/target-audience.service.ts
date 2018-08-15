@@ -117,6 +117,32 @@ export class TargetAudienceService implements OnDestroy {
     return 0;
   }
 
+  public moveAudienceUp(audience: AudienceDataDefinition) {
+    if (audience == null || audience.audienceCounter === 0) {
+      return; // in this case we are already at the top of the list
+    }
+    const audienceList = Array.from(this.audienceMap.values());
+    for (let i = 0; i < audienceList.length; i++) {
+      const audienceKey = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
+      const currentKey = this.createKey(audienceList[i].audienceSourceType, audienceList[i].audienceSourceName);
+      if (audienceKey + audience.audienceName === currentKey + audienceList[i].audienceName) {
+        let swapTargets = audienceList.filter(a => a.audienceCounter < audience.audienceCounter);
+        swapTargets = swapTargets.sort((a, b) => this.compare(a, b));
+        const swapTarget = swapTargets[swapTargets.length - 1];
+        const newPosition = swapTarget.audienceCounter;
+        const oldPosition = audience.audienceCounter;
+        audience.audienceCounter = newPosition;
+        swapTarget.audienceCounter = oldPosition;
+        break;
+      }
+    }
+    this.audiences.next(audienceList.sort((a, b) => this.compare(a, b)));
+    this.appStateService.currentProject$.getValue().impProjectVars = [];
+    for (const newAudience of audienceList ) {
+      this.createProjectVar(newAudience);
+    }
+  }
+
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
     let newId = this.projectVarService.getNextStoreId();
     if (newId <= this.projectVarService.get().length) {

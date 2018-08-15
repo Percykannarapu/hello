@@ -8,6 +8,11 @@
                    [paginator]="true"
                    [alwaysShowPaginator]="false"
                    [immutable]="false">
+        <p-column header="Move Up" [style]="{ width: '5%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <button (click)="onMoveUp(audience)" icon="fa fa-fontAwesome fa-arrow-up" pButton style="margin: auto; display: block" pTooltip="Move this audience up"></button>
+          </ng-template>
+        </p-column>
         <p-column header="Map" field="showOnMap" [style]="{ width: '6%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <div class="val-center-controls">
@@ -52,7 +57,7 @@
             {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
           </ng-template>
         </p-column>
-        <p-column header="Delete" [style]="{ width: '10%' }">
+        <p-column header="Delete" [style]="{ width: '5%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
           </ng-template>

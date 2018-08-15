@@ -193,4 +193,8 @@ export class SelectedAudiencesComponent implements OnInit {
     this.varService.applyAudienceSelection();
       
   }
+
+  public onMoveUp(audience: AudienceDataDefinition) {
+    this.varService.moveAudienceUp(audience);
+  }
 }
