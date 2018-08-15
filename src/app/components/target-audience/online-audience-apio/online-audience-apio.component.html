@@ -1,7 +1,7 @@
-<div class="ui-g val-wide-tree">
+<div class="ui-g">
    <div class="ui-g-12">
      <i class="fa fa-search"></i>
-     <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search">
+     <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" [ngClass]="{ 'val-wide-search': useNarrowLayout }">
      <span *ngIf="!useNarrowLayout" class="val-spacer-left"></span>
      <br *ngIf="useNarrowLayout">
      <span [ngClass]="{ 'val-padding-top': useNarrowLayout }">
@@ -16,8 +16,8 @@
        <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
      </span>
    </div>
-   <div class="ui-g-12">
-     <p-tree loadingIcon="fa fa-fontAwesome fa fa-circle-o-notch" selectionMode="checkbox"
+   <div class="ui-g-12 val-wide-tree">
+     <p-tree loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
            [loading]="loading" [value]="currentNodes"
            [selection]="currentSelectedNodes"
            (onNodeSelect)="selectVariable($event.node)"

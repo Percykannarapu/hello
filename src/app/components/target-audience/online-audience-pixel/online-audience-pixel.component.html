@@ -1,4 +1,4 @@
-<div class="val-wide-tree">
+<div class="ui-g">
   <div class="ui-g-12">
     Pixel Id - First Fire Date - Fire Count are listed below
   </div>
@@ -6,18 +6,20 @@
     <i class="fa fa-search"></i>
     <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
   </div>
-  <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch"
-          [value]="currentNodes"
-          [selection]="currentSelectedNodes"
-          (onNodeSelect)="selectVariable($event.node)"
-          (onNodeUnselect)="removeVariable($event.node)">
-    <ng-template let-node pTemplate="disabled">
+  <div class="ui-g-12 val-wide-tree">
+    <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw"
+            [value]="currentNodes"
+            [selection]="currentSelectedNodes"
+            (onNodeSelect)="selectVariable($event.node)"
+            (onNodeUnselect)="removeVariable($event.node)">
+      <ng-template let-node pTemplate="disabled">
       <span class="unselectable">
         {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
       </span>
-    </ng-template>
-    <ng-template let-node pTemplate="default">
+      </ng-template>
+      <ng-template let-node pTemplate="default">
         {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
-    </ng-template>
-  </p-tree>
+      </ng-template>
+    </p-tree>
+  </div>
 </div>

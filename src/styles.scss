@@ -97,7 +97,7 @@
 }
 
 // when a p-dataTable has drop downs, you need to apply this class, as well as set overflow: visible on the p-column with the drop-down
-.val-table-with-dropdowns div.ui-datatable-resizable {
+.val-table-with-dropdowns div.ui-datatable {
   overflow: visible;
 }
 

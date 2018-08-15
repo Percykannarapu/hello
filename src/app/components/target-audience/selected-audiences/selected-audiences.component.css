@@ -7,3 +7,7 @@
   text-align: center;
   width: 100%;
 }
+
+.val-card-no-margin {
+  margin-bottom: 0;
+}

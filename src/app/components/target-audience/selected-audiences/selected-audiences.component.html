@@ -1,77 +1,84 @@
 <div class="ui-g">
-  <div *ngIf="hasAudiences" class="card ui-g-12 val-table-with-dropdowns">
-    <p-dataTable [value]="audiences$ | async"
-                 [resizableColumns]="true"
-                 [rows]="10"
-                 [paginator]="true"
-                 [alwaysShowPaginator]="false"
-                 [immutable]="false"
-                 columnResizeMode="expand">
-      <p-column header="Map" field="showOnMap" [style]="{ width: '8%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <div class="val-center-controls">
-            <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
-          </div>
-        </ng-template>
-      </p-column>
-      <p-column header="Grid" field="showOnGrid" [style]="{ width: '8%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <div class="val-center-controls">
-            <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
-          </div>
-        </ng-template>
-      </p-column>
-      <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '8%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <div class="val-center-controls">
-            <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
-          </div>
-        </ng-template>
-      </p-column>
-      <p-column header="National" field="exportNationally" [style]="{ width: '8%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <div class="val-center-controls">
-            <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
-          </div>
-        </ng-template>
-      </p-column>
-      <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          <p-dropdown
-            *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
-            [options]="audience.dataSetOptions"
-            [(ngModel)]="audience.selectedDataSet"
-            [autoWidth]="false"
-            (onChange)="onIndexBaseChange(audience)"></p-dropdown>
-        </ng-template>
-      </p-column>
-      <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
-      <p-column header="Source" [style]="{ width: '23%' }">
-        <ng-template let-col let-audience="rowData" pTemplate="body">
-          {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
-        </ng-template>
-      </p-column>
-      <p-column header="Delete" [style]="{ width: '10%' }">
+  <div *ngIf="hasAudiences" class="ui-g-12 val-table-with-dropdowns">
+    <div class="card val-card-no-margin ui-g">
+      <!--[resizableColumns]="true"-->
+      <!--columnResizeMode="expand"-->
+      <p-dataTable [value]="audiences$ | async"
+                   [rows]="10"
+                   [paginator]="true"
+                   [alwaysShowPaginator]="false"
+                   [immutable]="false"
+                   styleClass="ui-g-6">
+        <p-column header="Map" field="showOnMap" [style]="{ width: '6%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <div class="val-center-controls">
+              <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
+            </div>
+          </ng-template>
+        </p-column>
+        <p-column header="Grid" field="showOnGrid" [style]="{ width: '6%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <div class="val-center-controls">
+              <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
+            </div>
+          </ng-template>
+        </p-column>
+        <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '6%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <div class="val-center-controls">
+              <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
+            </div>
+          </ng-template>
+        </p-column>
+        <p-column header="National" field="exportNationally" [style]="{ width: '6%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <div class="val-center-controls">
+              <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
+            </div>
+          </ng-template>
+        </p-column>
+        <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <p-dropdown
+              *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
+              [options]="audience.dataSetOptions"
+              [(ngModel)]="audience.selectedDataSet"
+              [autoWidth]="false"
+              (onChange)="onIndexBaseChange(audience)"></p-dropdown>
+          </ng-template>
+        </p-column>
+        <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
+        <p-column header="Source" [style]="{ width: '21%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
+          </ng-template>
+        </p-column>
+        <p-column header="Delete" [style]="{ width: '10%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
           </ng-template>
-      </p-column>
-    </p-dataTable>
+        </p-column>
+      </p-dataTable>
+    </div>
   </div>
 
-  <div *ngIf="showRenderControls" class="card ui-g-12">
-    <div class="ui-g-6">
-      <div class="ui-g-4"><label>Theme</label></div>
-      <div class="ui-g-8">
-        <p-dropdown [options]="allThemes"
-                    (onChange)="onThemeChange($event)"
-                    [autoWidth]="false"
-                    [style]="{ width:'200px' }"></p-dropdown>
+  <div *ngIf="showRenderControls" class="ui-g-12">
+    <div class="card ui-g val-card-no-margin">
+      <div class="ui-g-6 ui-g-nopad">
+        <div class="ui-g-4"><label>Theme</label></div>
+        <div class="ui-g-8">
+          <p-dropdown [options]="allThemes"
+                      (onChange)="onThemeChange($event)"
+                      [autoWidth]="false"
+                      [style]="{ width:'200px' }"></p-dropdown>
+        </div>
       </div>
     </div>
   </div>
 
-  <button *ngIf="hasAudiences" pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
+  <div *ngIf="hasAudiences" class="ui-g-12">
+    <button pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
+  </div>
 
   <div *ngIf="!hasAudiences" class="ui-g-12">
     Please select or upload Audience Data from one of the other tabs.
