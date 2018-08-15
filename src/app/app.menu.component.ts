@@ -368,11 +368,11 @@ export class AppMenuComponent implements OnInit {
                     this.usageService.createCounterMetric(usageMetricName, null, null);
                     this.appStateService.projectId$.getValue();
                     let errorString = '';
-                    if (impProject.projectName == null || impProject.projectName == ''){
+                    if (impProject.projectName == null || impProject.projectName == '')
                         errorString = 'imPower Project Name is required';
-                    }
-                    if (impProject.methAnalysis == null || impProject.methAnalysis == ''){
+                    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                         errorString  = errorString + '\n Analysis Level is required';
+                    if (errorString != null){
                         this.messageService.showErrorNotification('Error Saving Project', errorString);
                         return;
                     }
@@ -442,11 +442,11 @@ export class AppMenuComponent implements OnInit {
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
         let errorString = '';
-        if (impProject.projectName == null || impProject.projectName == ''){
+        if (impProject.projectName == null || impProject.projectName == '')
             errorString = 'imPower Project Name is required';
-        }
-        if (impProject.methAnalysis == null || impProject.methAnalysis == ''){
+        if (impProject.methAnalysis == null || impProject.methAnalysis == '')
             errorString  = errorString + '\n Analysis Level is required';
+        if (errorString != null){
             this.messageService.showErrorNotification('Error Saving Project', errorString);
             return;
         }

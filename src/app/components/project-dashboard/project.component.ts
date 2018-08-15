@@ -393,13 +393,13 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
       const impProject = this.stateService.currentProject$.getValue();
       const locData = this.impGeofootprintLocationService.get();
       let errorString = null;
-      if (impProject.projectName == null || impProject.projectName == ''){
-        errorString = 'imPower Project Name is required';
-      }
-      if (impProject.methAnalysis == null || impProject.methAnalysis == ''){
-          errorString  = errorString + '\n Analysis Level is required';
-          this.messageService.showErrorNotification('Error Saving Project', errorString);
-          return;
+      if (impProject.projectName == null || impProject.projectName == '')
+            errorString = 'imPower Project Name is required';
+      if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+            errorString  = errorString + '\n Analysis Level is required';
+      if (errorString != null){
+            this.messageService.showErrorNotification('Error Saving Project', errorString);
+            return;
       }
               this.impProjectService.saveProject().subscribe(impPro => {
                 const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
