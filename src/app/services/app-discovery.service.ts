@@ -8,7 +8,7 @@
  **/
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, pipe } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { filter, map, take, tap } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
