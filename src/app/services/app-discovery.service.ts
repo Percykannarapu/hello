@@ -97,12 +97,8 @@ export class AppDiscoveryService {
   }
 
   private setSelectedValues(project: ImpProject) {
-    if (project.radProduct != null && project.industryCategoryCode != null) {
       this.selectRadProduct(project);
-    }
-    if (project.projectTrackerId != null) {
       this.selectProjectTracker(project);
-    }
   }
 
   private selectRadProduct(project: ImpProject) {
@@ -112,17 +108,26 @@ export class AppDiscoveryService {
         this.selectRadProduct(project);
       });
     } else {
-      const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
-      if (radItem != null) this.selectedRadLookup.next(radItem);
-    }
+        if (project.radProduct == null && project.industryCategoryCode == null) {
+            this.selectedRadLookup.next(null);
+        }
+        else {
+          const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
+          if (radItem != null) this.selectedRadLookup.next(radItem);
+        }
+      }
   }
 
   private selectProjectTracker(project: ImpProject) {
+    if (project.projectTrackerId == null){
+      this.selectedProjectTracker.next(null);
+    } else {
       this.getProjectTrackerData(project.projectTrackerId).subscribe(items => {
         const trackerItem = items.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
         if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
       }, null, () => {
       });
+    }
   }
 
   private formatDate(date) : string {
@@ -261,7 +266,7 @@ export class AppDiscoveryService {
           this.currentTrackerSuggestions.next(foundItems);
         }
       }, 
-      err => console.error('There was an error retrieving the Project Tracker Data', err), 
+      err => this.logger.error('There was an error retrieving the Project Tracker Data', err), 
       () => {}
     );
   }
