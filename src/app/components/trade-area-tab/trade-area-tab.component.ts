@@ -161,7 +161,7 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   private getVarId(audienceName: string) : number {
-    const targetingVar: AudienceDataDefinition[] = this.targetAudienceService.getAudiences().filter(v => v.audienceName === audienceName);
+    const targetingVar: AudienceDataDefinition[] = this.targetAudienceService.getAudiences().filter(v => v.audienceName === audienceName && v.audienceSourceName === 'Online');
     let id: number;
     if (targetingVar.length > 0)
       id = Number(targetingVar[0].secondaryId.replace(',', ''));

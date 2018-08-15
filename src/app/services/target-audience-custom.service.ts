@@ -126,6 +126,11 @@ export class TargetAudienceCustomService {
       newVarPk = this.varPkCache.get(column);
     } else {
       newVarPk = this.varService.getNextStoreId();
+      if (newVarPk <= Array.from(this.varPkCache.keys()).length) {
+        for (const i of Array.from(this.varPkCache)) {
+          newVarPk = this.varService.getNextStoreId();
+        }
+      }
     }
     const result = new ImpGeofootprintVar({ geocode, varPk: newVarPk, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
     if (Number.isNaN(Number(value))) {

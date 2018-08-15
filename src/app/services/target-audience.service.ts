@@ -381,7 +381,10 @@ export class TargetAudienceService implements OnDestroy {
     sources.forEach(s => {
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
-        const ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
+        let ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
+        if (s.split('/')[0] === 'Custom') {
+          ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName)).map(a => a.audienceIdentifier);
+        }
         const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
         if (taAudiences.length > 0) {
           const doneAudienceTAs: Set<string> = new Set<string>();
