@@ -137,9 +137,9 @@ export class TargetAudienceService implements OnDestroy {
       }
     }
     this.audiences.next(audienceList.sort((a, b) => this.compare(a, b)));
-    this.appStateService.currentProject$.getValue().impProjectVars = [];
+    this.projectVarService.clearAll();
     for (const newAudience of audienceList ) {
-      this.createProjectVar(newAudience);
+      this.projectVarService.add([this.createProjectVar(newAudience)]);
     }
   }
 
