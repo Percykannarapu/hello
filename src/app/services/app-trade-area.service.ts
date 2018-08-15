@@ -81,6 +81,8 @@ export class AppTradeAreaService {
     combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, ta, m));
     combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Competitor, ta, m));
 
+    this.stateService.getClearUserInterfaceObs().pipe(filter(flag => flag)).subscribe(( ) => this.currentDefaults.clear());
+
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
@@ -191,11 +193,12 @@ export class AppTradeAreaService {
   private applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     locations.forEach(location => {
-      for (let i = 0; i < tradeAreas.length; ++i) {
-        if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
-          newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius));
+      if (tradeAreas != null && tradeAreas.length > 0)
+        for (let i = 0; i < tradeAreas.length; ++i) {
+          if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
+            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius));
+          }
         }
-      }
     }); // locations for each
     this.impTradeAreaService.add(newTradeAreas);
   }

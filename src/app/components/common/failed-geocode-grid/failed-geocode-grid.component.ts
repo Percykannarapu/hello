@@ -18,7 +18,7 @@ export class FailedGeocodeGridComponent {
   private edited = new Set<ImpGeofootprintLocation>();
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
-    return site.recordStatusCode !== 'ERROR';
+    return site.recordStatusCode !== 'ERROR' && site.recordStatusCode !== '';
   }
 
   getCoordinates(site: ImpGeofootprintLocation) : string {
@@ -46,6 +46,14 @@ export class FailedGeocodeGridComponent {
         this.edited.add(site);
         return;
       }
+    } else if (enteredValue == null || enteredValue.length === 0) {
+      site.recordStatusCode = '';
+      site.geocoderMatchCode = '';
+      site.geocoderLocationCode = '';
+      site.xcoord = null;
+      site.ycoord = null;
+      this.edited.add(site);
+      return;
     }
     event.target.value = ''; // clear the text area
   }

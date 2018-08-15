@@ -30737,3 +30737,19 @@ body .ui-terminal .ui-terminal-input {
   font-size: 2em;
   font-weight: bold;
 }
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li {
+  background-color: #4177a1;
+}
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li:not(.ui-state-active):not(.ui-state-disabled):hover {
+  background-color: #91b8d6!important;
+}
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li.ui-state-active {
+  background-color: #EF9300;
+}
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li > a {
+  color: white !important;
+}

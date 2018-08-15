@@ -61,7 +61,7 @@ export class AppLayerService {
       this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
       this.appStateService.analysisLevel$
-        .pipe(filter(al => al != null && al.length > 0))
+        //.pipe(filter(al => al != null && al.length > 0))
         .subscribe(al => this.setDefaultLayerVisibility(al));
 
       this.appStateService.projectIsLoading$
@@ -143,15 +143,20 @@ export class AppLayerService {
 
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
     this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
-    const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-    this.logger.debug('New visible groupKey', groupKey);
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
-    if (groupKey != null) {
-      const layerGroup = this.appConfig.layerIds[groupKey];
-      if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
-        this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
+    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
+        const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
+        this.logger.debug('New visible groupKey', groupKey);
+   
+      if (groupKey != null) {
+        const layerGroup = this.appConfig.layerIds[groupKey];
+        if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
+          this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
+        }
       }
+
     }
+    
   }
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {

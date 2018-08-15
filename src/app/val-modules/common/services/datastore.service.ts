@@ -822,12 +822,16 @@ export class DataStore<T>
       let field: any;
 
       // Write Headers
+      let fieldsForRow: string[] = [];
       for (let column of columns)
       {
          field = column.header;
          // Add the header surround in double quotes if not already
-         row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
+         fieldsForRow.push(field);
+       //  row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
       }
+      row = fieldsForRow.join(',');
+      fieldsForRow = [];
 
       // If we have built headers, push it to the result
       if (row != '')
@@ -838,6 +842,7 @@ export class DataStore<T>
       {
          // Begin a new line for every row of data
          row = '';
+         fieldsForRow = [];
 
          // Loop through each column determining its final value
          for (let column of columns)
@@ -859,8 +864,10 @@ export class DataStore<T>
          // console.log(this.storeName, 'column: ' + column.header + ' = ' + field + ' (' + typeof(column.row) + ')');
 
             // Add the final value in field to the row
-            row += (field != null) ? field + ',' : ',';
+            fieldsForRow.push(field);
+           // row += (field != null) ? field + ',' : ',';
          }
+         row = fieldsForRow.join(',');
          // If we have built a row, push it to the result
          if (row != '')
             csvData.push(row);

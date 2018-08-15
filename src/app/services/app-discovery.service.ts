@@ -8,7 +8,7 @@
  **/
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, pipe } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { filter, map, take, tap } from 'rxjs/operators';
 import { AppStateService } from './app-state.service';
@@ -255,7 +255,7 @@ export class AppDiscoveryService {
   public updateTrackerSuggestions(searchTerm: string) {
       this.getProjectTrackerData(searchTerm).subscribe(items => {
           if (items.length === 0) {
-             this.appMessagingService.showErrorNotification('Error:', 'Please enter a valid Project Tracker ID', true); 
+             this.appMessagingService.showErrorNotification('Error:', 'No Project Tracker ID Found.', true); 
           } else {  
           const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
           this.currentTrackerSuggestions.next(foundItems);

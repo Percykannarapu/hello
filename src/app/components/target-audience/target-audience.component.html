@@ -7,26 +7,26 @@
           Online Audience not available at the PCR level
         </div>
       </div>
-      <p-accordion *ngIf="(analysisLevel$ | async) !== 'PCR'" [lazy]="true">
-        <p-accordionTab header="Interest and In-Market">
+      <p-tabView *ngIf="(analysisLevel$ | async) !== 'PCR'" class="val-child-tabs">
+        <p-tabPanel header="Interest and In-Market">
           <val-online-audience-apio [useNarrowLayout]="false"></val-online-audience-apio>
-        </p-accordionTab>
-        <p-accordionTab header="Visit Likelihood">
+        </p-tabPanel>
+        <p-tabPanel header="Visit Likelihood">
           <val-online-audience-vlh></val-online-audience-vlh>
-        </p-accordionTab>
-        <p-accordionTab header="Pixel Data">
+        </p-tabPanel>
+        <p-tabPanel header="Pixel Data">
           <val-online-audience-pixel></val-online-audience-pixel>
-        </p-accordionTab>
-      </p-accordion>
+        </p-tabPanel>
+      </p-tabView>
     </ng-template>
   </p-tabPanel>
 
   <p-tabPanel header="Offline Audience">
-    <p-accordion>
-      <p-accordionTab header="TDA" [selected]="true">
+    <p-tabView class="val-child-tabs">
+      <p-tabPanel header="TDA">
         <val-offline-audience-tda></val-offline-audience-tda>
-      </p-accordionTab>
-    </p-accordion>
+      </p-tabPanel>
+    </p-tabView>
   </p-tabPanel>
 
   <p-tabPanel header="Custom">

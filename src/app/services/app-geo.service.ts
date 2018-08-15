@@ -114,7 +114,6 @@ export class AppGeoService {
       // keep locations where finished radius count matches all radius count
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
       // halt the sequence if there are no locations remaining
-      tap(locations => console.log('Locations after all observable filters', JSON.stringify(locations))),
       filter(locations => locations.length > 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
