@@ -23,14 +23,14 @@
         <p-column header="Grid" field="showOnGrid" [style]="{ width: '6%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <div class="val-center-controls">
-              <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
+              <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
             </div>
           </ng-template>
         </p-column>
         <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '6%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <div class="val-center-controls">
-              <p-checkbox [(ngModel)]="audience[col.field]" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
+              <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
             </div>
           </ng-template>
         </p-column>

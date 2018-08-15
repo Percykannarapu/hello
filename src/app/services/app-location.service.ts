@@ -138,7 +138,6 @@ export class AppLocationService {
   }
 
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
-    this.logger.error('Testing Stack Trace');
     return this.geocodingService.getGeocodingResponse(data, siteType).pipe(
       map(responses => responses.map(r => r.toGeoLocation(siteType, this.appStateService.analysisLevel$.getValue())))
     );

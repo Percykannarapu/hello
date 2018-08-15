@@ -150,6 +150,7 @@ export class TargetAudienceService implements OnDestroy {
         newId = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
       }
     }
+    const currentProject = this.appStateService.currentProject$.getValue();
     const projectVar = new ImpProjectVar();
     try {
       const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
@@ -170,6 +171,8 @@ export class TargetAudienceService implements OnDestroy {
       projectVar.isActive = true;
       projectVar.uploadFileName = audience.audienceSourceType.match('Custom') ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.audienceCounter;
+      projectVar.impProject = currentProject;
+      currentProject.impProjectVars.push(projectVar);
     } catch (error) {
       console.log(error);
       return null;
@@ -209,7 +212,7 @@ export class TargetAudienceService implements OnDestroy {
   private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
     const sourceType = projectVar.source.split('_')[0];
     const sourceName = projectVar.source.split('_')[1];
-    const id = projectVar.varPk;
+    const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
     if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
       return true;
     }
