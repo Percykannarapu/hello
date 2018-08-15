@@ -26,6 +26,7 @@ export interface Parser<T> {
   columnDelimiter?: string;
   headerValidator?: (found: ParseRule[]) => boolean;
   dataValidator?: (currentRow: T) => boolean;
+  fileValidator?: (allData: T[]) => boolean;
 }
 
 export class FileService {
@@ -45,6 +46,7 @@ export class FileService {
     if (parser.columnDelimiter == null) parser.columnDelimiter = ',';
     if (parser.headerValidator == null) parser.headerValidator = () => true;
     if (parser.dataValidator == null) parser.dataValidator = () => true;
+    if (parser.fileValidator == null) parser.fileValidator = () => true;
 
     const parseEngine = FileService.generateEngine(headerRow, parser); // need a duplicate of the parsers array so we don't add flags to he original source
     if (!parser.headerValidator(parseEngine)) return null;
@@ -84,7 +86,11 @@ export class FileService {
         }
       }
     }
-    return result;
+    if (!parser.fileValidator(result.parsedData)) {
+      return null;
+    } else {
+      return result;
+    }
   }
 
   private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {
