@@ -1,0 +1,69 @@
+<div class="ui-g" style="background: #D8E5D1; margin-bottom: 0%;">
+  <div class="ui-g-6 card">
+    <p-tabView>
+      <p-tabPanel header="Interest and In-Market">
+        <val-online-audience-apio [useNarrowLayout]="true"></val-online-audience-apio>
+      </p-tabPanel>
+      <p-tabPanel header="Visit Likelihood">
+        <val-online-audience-vlh></val-online-audience-vlh>
+      </p-tabPanel>
+      <p-tabPanel header="Pixel Data">
+        <val-online-audience-pixel></val-online-audience-pixel>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+  <div class="ui-g-6 card">
+    <p-panel header="Trade Area Configuration">
+      <form class="ui-g" novalidate [formGroup]="configForm" autocomplete="off">
+        <div class="ui-g-12 ui-g-nopad">
+          <div class="ui-g-6">
+                    <span class="ui-float-label">
+                        <input id="ata-min-miles" type="text" size="30" pInputText formControlName="minRadius"
+                               style="width:97%">
+                        <label for="ata-min-miles">Minimum must cover radius</label>
+                    </span>
+          </div>
+          <div class="ui-g-6">
+                    <span class="ui-float-label">
+                        <input id="ata-max-miles" type="text" size="30" pInputText formControlName="maxRadius"
+                               style="width: 100%">
+                        <label for="ata-max-miles" style="width: 100%">Maximum radius</label>
+                    </span>
+          </div>
+          <div class="ui-g-6">
+            Driving variable in addition to distance:
+          </div>
+          <div class="ui-g-6">
+            <p-dropdown #audienceTAVar (onChange)="onVarDropdownChange($event)" [options]="varSelectorOptions"
+                        formControlName="audience"
+                        placeholder="Select a variable" [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+        </div>
+        <div class="ui-g-12 ui-g-nopad">
+          <div class="ui-g-7">
+            Weight % of the variable vs. distance:
+          </div>
+          <p-spinner formControlName="weight" [min]="0" [max]="100" [step]="5" [inputStyle]="{width: '100%'}"
+                     class="ui-g-5"></p-spinner>
+          <div class="ui-g-6">
+            Variable score type:
+          </div>
+          <div class="ui-g-6">
+            <p-selectButton #audienceTAVar [options]="scoreTypeOptions" formControlName="scoreType"
+                            placeholder="Select a score type"
+                            [style]="{ width: '95%' }"></p-selectButton>
+          </div>
+        </div>
+        <div class="ui-g-12">
+          <label style="width: 100%">Include all geography in must cover radius:</label>
+          <a class="val-spacer-left"></a>
+          <p-checkbox formControlName="includeMustCover" binary="true"
+                      pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
+        </div>
+        <div class="ui-g-12">
+          <button type="button" label="Apply Trade Area Configuration" pButton (click)="onClickApply()"></button>
+        </div>
+      </form>
+    </p-panel>
+  </div>
+</div>

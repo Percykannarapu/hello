@@ -2,6 +2,7 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
+import { AppLoggingService } from '../services/app-logging.service';
 
 export class ValDiscoveryUIModel {
   projectId: number;
@@ -64,7 +65,6 @@ export class ValDiscoveryUIModel {
   public updateProjectItem(projectToUpdate: ImpProject) : void {
     const dollarBudget = this.toNumber(this.dollarBudget);
     const circBudget = this.toNumber(this.circulationBudget);
-
     // Populate the ImpProject model
 
     projectToUpdate.clientIdentifierName     =  this.selectedProjectTracker ? this.selectedProjectTracker.clientName : null;
@@ -78,8 +78,8 @@ export class ValDiscoveryUIModel {
     projectToUpdate.isExcludePob       = !this.includePob;
     projectToUpdate.isIncludeAnne      = this.includeAnne;
     projectToUpdate.isIncludeSolo      = this.includeSolo;
-    projectToUpdate.projectTrackerId   = this.selectedProjectTracker != null ? this.selectedProjectTracker.projectId : null;
-    projectToUpdate.projectName        = this.projectName;
+    projectToUpdate.projectTrackerId   = this.selectedProjectTracker != null && this.selectedProjectTracker.projectId != null ? this.selectedProjectTracker.projectId : null;
+    projectToUpdate.projectName        = this.selectedProjectTracker != null && this.selectedProjectTracker.projectName != null && this.projectName == null ? this.selectedProjectTracker.projectName : this.projectName ;
     projectToUpdate.estimatedBlendedCpm = this.toNumber(this.cpmBlended);
     projectToUpdate.smValassisCpm      = this.toNumber(this.cpmValassis);
     projectToUpdate.smAnneCpm          = this.toNumber(this.cpmAnne);

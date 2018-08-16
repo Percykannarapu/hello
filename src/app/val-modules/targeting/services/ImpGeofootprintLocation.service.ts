@@ -320,11 +320,13 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             });
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
-            const serviceUrl = `v1/targeting/base/vlh?fileName=${filename}`;
+           
             const csvData = this.prepareCSV(exportColumns, locations);
             this.downloadExport(filename, csvData);
             let csvString: string = '';
-
+           // filename = filename.substring(0, 8);
+            const serviceUrl = `v1/targeting/base/vlh?fileName=${filename}`;
+            
             csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
             // for (const row of csvData) {
             //   // console.log()
@@ -335,16 +337,16 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
               console.log('Response from vlh', res);
               if (res.returnCode === 200) {
-                    this.messageService.showGrowlSuccess('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
-              } else this.messageService.showGrowlError('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
+                    this.messageService.showSuccessNotification('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
+              } else this.messageService.showErrorNotification('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
               });
           }
         } else {
           // DE1742: display an error message if attempting to export an empty data store
           if (exportType && exportType.toLocaleUpperCase() === 'SITES') {
-            this.messageService.showGrowlError('Error exporting sites list', 'You must first add site locations');
+            this.messageService.showErrorNotification('Error exporting sites list', 'You must first add site locations');
           } else if (exportType && exportType.toLocaleUpperCase() === 'COMPETITORS' ) {
-            this.messageService.showGrowlError('Error exporting competitors list', 'You must first add competitor locations');
+            this.messageService.showErrorNotification('Error exporting competitors list', 'You must first add competitor locations');
           }
         }
       }

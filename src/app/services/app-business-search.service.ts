@@ -5,6 +5,7 @@ import { AppConfig } from '../app.config';
 import { map } from 'rxjs/operators';
 import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export interface BusinessSearchResponse {
   firm: string;
@@ -60,9 +61,11 @@ export interface BusinessSearchRequest {
   countyName: string;
   eliminateBlankFirmNames: 'True';
   siteLimit: '2000';
-  sites: { x: number, y: number }[];
+  sites: { x: number, y: number, homeGeocode: string, locationName: string }[];
   sics: { sic: string }[];
 }
+
+
 
 export interface BusinessSearchCategory {
   category: number;

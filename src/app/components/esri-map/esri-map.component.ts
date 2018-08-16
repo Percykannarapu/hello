@@ -1,12 +1,12 @@
-import { MapService } from '../../services/map.service';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
-import { mapFunctions } from '../../app.component';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { EsriModules } from '../../esri-modules/core/esri-modules.service';
 import { AppMapService } from '../../services/app-map.service';
 import { MapDispatchService } from '../../services/map-dispatch.service';
 import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { filter, take } from 'rxjs/operators';
+import { AppStateService } from '../../services/app-state.service';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const CENTER_LONG_KEY = 'IMPOWER-MAP-CENTER-LONGITUDE';
@@ -20,26 +20,24 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
-  // map container dimensions
-  public width: number;
   public height: number = 400;
-  public highlight = null;
 
   @Input() zoom: number;
   @Input() centerLng: number;
   @Input() centerLat: number;
-  @Input() rotation: number;
+  @Input() cursor: string;
 
   @Output() viewCreated = new EventEmitter();
 
-  // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
   @ViewChild('esriMapContainer') private mapContainerEl: ElementRef;
   private mapView: __esri.MapView;
 
-  constructor(public mapService: MapService, private mapDispatch: MapDispatchService,
-              private modules: EsriModules, private newMapService: AppMapService,
-              private esriMapService: EsriMapService, private esriLayerService: EsriLayerService) { }
+  constructor(private appMapService: AppMapService,
+               private mapDispatch: MapDispatchService,
+               private modules: EsriModules,
+               private esriLayerService: EsriLayerService,
+               private esriMapService: EsriMapService) { }
 
   private static replaceCopyrightElement() {
     // Angular doesn't particularly like to modify existing DOM elements, so we have to drop down to raw JS for this
@@ -56,32 +54,36 @@ export class EsriMapComponent implements OnInit {
 
   private init() : void {
     console.log('Initializing Esri Map Component');
-    const mapParams = {
+    const mapParams: __esri.MapProperties = {
       basemap: EsriModules.BaseMap.fromId('streets'),
       layers: []
     };
-    const viewParams = {
+    const viewParams: __esri.MapViewProperties = {
       center: { longitude: -98.5795, latitude: 39.8282 },
       zoom: 4,
+      highlightOptions : {
+        color: [0, 255, 0],
+        fillOpacity: 0.65,
+        haloOpacity: 0
+      },
       spatialReference: {
         wkid: 102100
       }
     };
     this.esriMapService.loadMap(mapParams, viewParams, this.mapViewEl);
-    this.mapDispatch.onMapReady.then(() => {
+    this.esriMapService.onReady$.pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
       this.mapView = this.mapDispatch.getMapView();
-      this.mapService.createMapView();
-      this.mapService.setMapLayers(['PCR', 'DIG_ATZ', 'ATZ', 'ZIP', 'WRAP', 'COUNTY', 'DMA']);
-      this.mapService.hideMapLayers();
+      this.appMapService.setupMap();
       this.mapDispatch.onMapViewClick().subscribe(event => this.clickHandler(event));
       EsriMapComponent.replaceCopyrightElement();
       this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
-      this.esriLayerService.setupLayerWatches(this.mapDispatch.getMapView().map.layers.toArray());
       this.setMapHeight();
       this.setMapCenter();
       this.setMapZoom();
       this.setMapViewPoint();
-      this.disableNavigation(this.mapView);
     });
   }
 
@@ -141,120 +143,6 @@ export class EsriMapComponent implements OnInit {
   }
 
   private clickHandler(event: __esri.MapViewClickEvent){
-    console.log('Inside Component click event handler');
-    if (this.mapService.mapFunction === mapFunctions.SelectPoly) {
-      this.newMapService.handleClickEvent(event);
-    }
+    this.appMapService.handleClickEvent(event);
   }
-
-  public getCursor() {
-    switch (this.mapService.mapFunction) {
-      case mapFunctions.SelectPoly:
-        return 'copy';
-      case mapFunctions.DrawPoint:
-        return 'cell';
-      case mapFunctions.MeasureLine:
-        return 'crosshair';
-      case mapFunctions.DrawLine:
-        return 'crosshair';
-      case mapFunctions.DrawPoly:
-        return 'crosshair';
-      case mapFunctions.RemoveGraphics:
-        return 'default';
-      case mapFunctions.Popups:
-        return 'default';
-      case mapFunctions.Labels:
-        return 'default';
-    }
-  }
-
-  /* requires webGL enabled revisit after 4.6 upgrade
-  private enableHighlightOnPointerMove(layer: __esri.FeatureLayer, view: __esri.MapView) {
-    view.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
-      view.on("pointer-move", (event) => {
-        view.hitTest(event)
-          .then((r) => {
-
-            // remove the previous highlight
-            if (this.highlight) {
-                this.highlight.remove();
-                this.highlight = null;
-            }
-
-            // if a feature is returned, highlight it
-            // and display its attributes in the popup
-            // if no features are returned, then close the popup
-            let id: number = null;
-
-            if (r.results.length > 0) {
-              const feature = r.results[0].graphic;
-              feature.popupTemplate = layer.popupTemplate;
-              id = feature.attributes.OBJECTID;
-              this.highlight = layerView.highlight([id]);
-              const selectionId = view.popup.selectedFeature ?
-                view.popup.selectedFeature.attributes.OBJECTID :
-                null;
-
-              if (this.highlight && (id !== selectionId)) {
-                view.popup.open({
-                  features: [feature],
-                  updateLocationEnabled: true
-                });
-              }
-            } else {
-              if (view.popup.visible) {
-                view.popup.close();
-                view.popup.clear();
-              }
-            }
-          });
-      });
-    });
-  }
-  */
-
-  // stops propagation of default behavior when an event fires
-  private stopEvtPropagation(evt: __esri.MapViewClickEvent) {
-    evt.stopPropagation();
-  }
-
-  // disables all navigation in the view
-  private disableNavigation(view: __esri.MapView) {
-    //view.popup.dockEnabled = true;
-
-    // Removes the zoom action on the popup
-    // view.popup.actions = [];
-
-    // disable mouse wheel scroll zooming on the view
-    // view.on("mouse-wheel", this.stopEvtPropagation);
-
-    // disable zooming via double-click on the view
-    // view.on("double-click", this.stopEvtPropagation);
-
-    // disable zooming out via double-click + Control on the view
-    // view.on("double-click", ["Control"], this.stopEvtPropagation);
-
-    // disables pinch-zoom and panning on the view
-    // view.on("drag", this.stopEvtPropagation);
-
-    // disable the view's zoom box to prevent the Shift + drag
-    // and Shift + Control + drag zoom gestures.
-    // view.on("drag", ["Shift"], this.stopEvtPropagation);
-    // view.on("drag", ["Shift", "Control"], this.stopEvtPropagation);
-
-    /*
-    // prevents zooming and rotation with the indicated keys
-    view.on("key-down", (evt) => {
-      var prohibitedKeys = ["+", "-", "_", "=", "a", "d"];
-      var keyPressed = evt.key.toLowerCase();
-      if (prohibitedKeys.indexOf(keyPressed) !== -1) {
-        evt.stopPropagation();
-      }
-    });
-    */
-
-    return view;
-  }
-
-
 }

@@ -173,7 +173,7 @@ export class AppProjectService extends DataStore<ImpProject>
            if (!silent)
            {
              this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
-             this.appMessagingService.showGrowlError('Project Load', 'Project failed to load.');
+             this.appMessagingService.showErrorNotification('Project Load', 'Project failed to load.');
            }
            if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();
            console.warn('Error loading project', err);
@@ -181,7 +181,7 @@ export class AppProjectService extends DataStore<ImpProject>
          }, () => {
            if (!silent) {
              this.appMessagingService.stopSpinnerDialog('PROJECTLOAD');
-             this.appMessagingService.showGrowlSuccess('Project Load', 'Project ' + projectId + ' loaded successfully.');
+             this.appMessagingService.showSuccessNotification('Project Load', 'Project ' + projectId + ' loaded successfully.');
            }
 
            const loadedProject: ImpProject = new ImpProject(results[0]);
@@ -609,7 +609,7 @@ export class AppProjectService extends DataStore<ImpProject>
                            , err => {
                               // Alert the user to the failed save
                               this.appMessagingService.stopSpinnerDialog('PROJECTSAVE');
-                              this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
+                              this.appMessagingService.showErrorNotification('Project Save', 'Project failed to save.');
                               console.warn('Error Saving project', err);
                               this.projectTransactionManager.stopTransaction();
                               subject.error('Project failed to save.'); // Error in subsequent catch
@@ -618,7 +618,7 @@ export class AppProjectService extends DataStore<ImpProject>
             catch (error)
             {
                this.appMessagingService.stopSpinnerDialog('PROJECTSAVE');
-               this.appMessagingService.showGrowlError('Project Save', 'Project failed to save.');
+               this.appMessagingService.showErrorNotification('Project Save', 'Project failed to save.');
                console.error('ImpProject.service.saveProject - Error saving project: ', error);
                this.transactionManager.stopTransaction();
                subject.error(error); // Error in subsequent catch
@@ -640,7 +640,7 @@ export class AppProjectService extends DataStore<ImpProject>
              () => { console.log('tap complete'); }),
          catchError((err) => {
             console.warn('Error loading project', err);
-            this.appMessagingService.showGrowlError('Project Save', 'Project failed to reload after save.');
+            this.appMessagingService.showErrorNotification('Project Save', 'Project failed to reload after save.');
             success = false; // Let the finalize know that the process failed
             return EMPTY;  // is same as subject.complete() this way because don't have access to a subject
          }),
@@ -651,7 +651,7 @@ export class AppProjectService extends DataStore<ImpProject>
             // Alert the user to the successful save
             if (success)
             {
-               this.appMessagingService.showGrowlSuccess('Project Save', 'Project ' + impProject.projectId + ' saved successfully.');
+               this.appMessagingService.showSuccessNotification('Project Save', 'Project ' + impProject.projectId + ' saved successfully.');
                console.log('Project ' + impProject.projectId + ' saved successfully.  Should have seen a growl');
             }
          })

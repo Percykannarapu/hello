@@ -1,8 +1,13 @@
-<p-accordion class="ui-g" [lazy]="true">
-  <p-accordionTab header="Audience">
-    <val-audience-tradearea>Loading Audience Trade Areas...</val-audience-tradearea>
-  </p-accordionTab>
-  <p-accordionTab header="Distance">
+<p-tabView class="val-child-tabs">
+  <p-tabPanel header="Audience">
+    <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
+                            [currentAudiences]="(currentAudiences$ | async)"
+                            [currentLocationsCount]="(currentLocationsCount$ | async)"
+                            (updatedFormData)="onUpdatedAudienceTAData($event)"
+                            (runAudienceTA)="onRunAudienceTA($event)">
+      Loading Audience Trade Areas...</val-audience-tradearea>
+  </p-tabPanel>
+  <p-tabPanel header="Distance">
     <val-site-type-selector label="Define for:">
       <site-content>
         <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
@@ -25,8 +30,8 @@
         </val-distance-trade-area>
       </competitor-content>
     </val-site-type-selector>
-  </p-accordionTab>
-  <p-accordionTab header="Custom">
+  </p-tabPanel>
+  <p-tabPanel header="Custom">
     <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
-  </p-accordionTab>
-</p-accordion>
+  </p-tabPanel>
+</p-tabView>

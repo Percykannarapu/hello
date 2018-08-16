@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -23,6 +23,9 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   private selectedNodeMap: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
   private allNodes: ApioTreeNode[] = [];
+
+  @Input() useNarrowLayout: boolean;
+
   public currentNodes: ApioTreeNode[] = [];
   public currentSelectedNodes: ApioTreeNode[];
 

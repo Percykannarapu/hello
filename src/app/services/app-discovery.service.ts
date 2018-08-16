@@ -16,6 +16,8 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
 import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { filterByFields, mapBy } from '../val-modules/common/common.utils';
+import { AppMessagingService } from './app-messaging.service';
+import { AppLoggingService } from './app-logging.service';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -52,8 +54,6 @@ export class AppDiscoveryService {
   public radSearchSuggestions$: Observable<RadLookupUIModel[]> = this.currentRadSuggestions.asObservable();
   public selectedRadLookup$: Observable<RadLookupUIModel> = this.selectedRadLookup.asObservable();
 
-  private trackerCacheRetrieved: boolean = false;
-  private trackerCache: ProjectTrackerUIModel[] = [];
   private currentTrackerSuggestions = new BehaviorSubject<ProjectTrackerUIModel[]>([]);
   private selectedProjectTracker = new BehaviorSubject<ProjectTrackerUIModel>(null);
   public trackerSearchSuggestions$: Observable<ProjectTrackerUIModel[]> = this.currentTrackerSuggestions.asObservable();
@@ -65,7 +65,9 @@ export class AppDiscoveryService {
 
   constructor(private restDataService: RestDataService,
                private appStateService: AppStateService,
-               private impRadService: ImpRadLookupService) {
+               private impRadService: ImpRadLookupService,
+               private appMessagingService: AppMessagingService,
+               private logger: AppLoggingService) {
     this.radCategoryCodes = [
       { name: 'N/A',                            code: 'NA'},
       { name: 'Auto Service/Parts',             code: 'AS03'},
@@ -95,12 +97,8 @@ export class AppDiscoveryService {
   }
 
   private setSelectedValues(project: ImpProject) {
-    if (project.radProduct != null && project.industryCategoryCode != null) {
       this.selectRadProduct(project);
-    }
-    if (project.projectTrackerId != null) {
       this.selectProjectTracker(project);
-    }
   }
 
   private selectRadProduct(project: ImpProject) {
@@ -110,20 +108,25 @@ export class AppDiscoveryService {
         this.selectRadProduct(project);
       });
     } else {
-      const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
-      if (radItem != null) this.selectedRadLookup.next(radItem);
-    }
+        if (project.radProduct == null && project.industryCategoryCode == null) {
+            this.selectedRadLookup.next(null);
+        }
+        else {
+          const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
+          if (radItem != null) this.selectedRadLookup.next(radItem);
+        }
+      }
   }
 
   private selectProjectTracker(project: ImpProject) {
-    if (!this.trackerCacheRetrieved) {
-      this.getProjectTrackerData().subscribe(null, null, () => {
-        this.updateTrackerSuggestions('');
-        this.selectProjectTracker(project);
-      });
+    if (project.projectTrackerId == null){
+      this.selectedProjectTracker.next(null);
     } else {
-      const trackerItem = this.trackerCache.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
-      if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
+      this.getProjectTrackerData(project.projectTrackerId).subscribe(items => {
+        const trackerItem = items.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
+        if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
+      }, null, () => {
+      });
     }
   }
 
@@ -135,25 +138,18 @@ export class AppDiscoveryService {
     return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
   }
 
-  private getProjectTrackerData() : Observable<ProjectTrackerUIModel[]> {
+  private getProjectTrackerData(searchString) : Observable<ProjectTrackerUIModel[]> {
     const updatedDateTo = new Date();
     updatedDateTo.setDate(updatedDateTo.getDate() + 1);
     const updatedDateFrom = new Date();
     updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
-    return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impimsprojectsview&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
-            TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
-      map((result: any) => result.payload.rows),
-      map(data => data.map(tracker => new ProjectTrackerUIModel(tracker))),
-      tap(
-        data => this.trackerCache.push(...data),
-        err => {
-          console.error('There was an error retrieving the Project Tracker Cache', err);
-          this.trackerCacheRetrieved = true;
-        },
-        () => {
-          this.trackerCacheRetrieved = true;
-        })
-    );
+      return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impImsprojectsViewSearch&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
+            TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber&searchString=${searchString}&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
+              // tap(rawResult => this.logger.info('Fuse response', rawResult)),
+          map((result: any) => result.payload.rows || []),
+          map(data => data.map(tracker => new ProjectTrackerUIModel(tracker))),
+
+    );  
   }
 
   private getRadData() : Observable<RadLookupUIModel[]> {
@@ -167,7 +163,7 @@ export class AppDiscoveryService {
           this.radCache.push(...data);
         },
         err => {
-          console.error('There was an error retrieving the Project Tracker Cache', err);
+          this.logger.error('There was an error retrieving the Rad Data Cache', err);
           this.radCacheRetrieved = true;
         },
         () => {
@@ -262,18 +258,17 @@ export class AppDiscoveryService {
   }
 
   public updateTrackerSuggestions(searchTerm: string) {
-    if (!this.trackerCacheRetrieved) {
-      // need to populate the cache before filtering suggestions
-      this.getProjectTrackerData().subscribe(null, null, () => this.updateTrackerSuggestions(searchTerm));
-    } else {
-      // cache exists, filter suggestions
-      if (searchTerm == null || searchTerm.trim().length === 0) {
-        this.currentTrackerSuggestions.next(Array.from(this.trackerCache));
-      } else {
-        const foundItems = this.trackerCache.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
-        this.currentTrackerSuggestions.next(foundItems);
-      }
-    }
+      this.getProjectTrackerData(searchTerm).subscribe(items => {
+          if (items.length === 0) {
+             this.appMessagingService.showErrorNotification('Error:', 'No Project Tracker ID Found.', true); 
+          } else {  
+          const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
+          this.currentTrackerSuggestions.next(foundItems);
+        }
+      }, 
+      err => this.logger.error('There was an error retrieving the Project Tracker Data', err), 
+      () => {}
+    );
   }
 
   public updateRadSuggestions(searchTerm: string) {

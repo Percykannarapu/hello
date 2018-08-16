@@ -12,7 +12,7 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { EsriUtils } from '../../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../../esri-modules/core/esri-utils';
 import { EsriMapService } from '../../esri-modules/core/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
@@ -24,6 +24,7 @@ import { ImpProjectService } from '../../val-modules/targeting/services/ImpProje
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 import { groupBy } from '../../val-modules/common/common.utils';
+import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -376,11 +377,19 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-    if (pv.source.includes('Online')) {
+    if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
       const sourceName = pv.source.split('_')[1];
       return `${pv.fieldname} (${sourceName})`;
     } else {
       return pv.fieldname;
+    }
+  }
+
+  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+    } else {
+      return gv.customVarExprDisplay;
     }
   }
 
@@ -415,6 +424,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Sort the geos
       this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
+
+       // Get all of the variables
+       const usableVars = new Set(this.impProjectVarService.get()
+         .filter(pv => pv.isIncludedInGeoGrid)
+         .map(pv => this.getProjectVarFieldName(pv)));
+       const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+       const varCache = groupBy(geovars, 'geocode');
 
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
@@ -496,49 +512,44 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo['dma'] = attribute.attributeValue;
            });
          }
-         
-         // Get all of the variables for this geo
-          const usableVars = new Set(this.impProjectVarService.get()
-                               .filter(pv => pv.isIncludedInGeoGrid)
-                               .map(pv => this.getProjectVarFieldName(pv)));
-          const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(gv.customVarExprDisplay));
-          const varCache = groupBy(geovars, 'geocode');
-          (geovars || []).forEach(geovar => {
+
+          const currentVars = varCache.get(geo.geocode) || [];
+          currentVars.forEach(geovar => {
             if (geovar.isString)
-               gridGeo[geovar.varPk.toString()] = geovar.valueString;
+              gridGeo[geovar.varPk.toString()] = geovar.valueString;
             else
             {
-               // Format them
-               switch (geovar.fieldconte) {
-                  case 'COUNT':
-                  case 'MEDIAN':
-                  case 'INDEX':
-                     gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
-                     break;
+              // Format them
+              switch (geovar.fieldconte) {
+                case 'COUNT':
+                case 'MEDIAN':
+                case 'INDEX':
+                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
+                  break;
 
-                  case 'PERCENT':
-                  case 'RATIO':
-                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
-                     break;
+                case 'PERCENT':
+                case 'RATIO':
+                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
+                  break;
 
-                  default:
-                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
-                     break;
-               }
+                default:
+                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
+                  break;
+              }
             }
             // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar);
 
             // Create grid columns for the variables
             if (!this.flatGeoGridExtraColumns.find(f => f.label === geovar.varPk.toString()))
             {
-               //console.log("---------------------------------------------------------------------------------------");
-               const colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8));
-               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
-               //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
-               this.flatGeoGridExtraColumns.push({label: geovar.varPk.toString(), value: {field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px', styleClass: colStyleClass}});
-               //console.log("---------------------------------------------------------------------------------------");
+              //console.log("---------------------------------------------------------------------------------------");
+              const colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8));
+              const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
+              //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
+              this.flatGeoGridExtraColumns.push({label: geovar.varPk.toString(), value: {field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px', styleClass: colStyleClass}});
+              //console.log("---------------------------------------------------------------------------------------");
             }
-         });
+          });
 
          geoGridData.push(gridGeo);
       });

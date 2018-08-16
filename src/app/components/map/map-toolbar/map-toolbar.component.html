@@ -1,0 +1,29 @@
+<p-toolbar>
+  <div class="val-flush-to-edges">
+    <div class="ui-g ui-toolbar-group-left">
+      <button (click)="popupButtonClicked.emit()"   [ngClass]="{ 'active': currentMapState === states.Popups }" title="Show Popups"              class="action-button esri-icon-comment"></button>
+      <button (click)="singleSelectClicked.emit()"  [ngClass]="{ 'active': currentMapState === states.SelectPoly }" title="Add/Remove Single Geo"    class="action-button esri-icon-plus-circled"></button>
+      <button (click)="multiSelectClicked.emit()"   [ngClass]="{ 'active': currentMapState === states.DrawPoly }" title="Add/Remove Multiple Geos" class="action-button esri-icon-checkbox-unchecked"></button>
+      <button (click)="measureToolClicked.emit()"   [ngClass]="{ 'active': currentMapState === states.MeasureLine }" title="Measure Line"             class="action-button esri-icon-share"></button>
+      <button (click)="clearGraphicsClicked.emit()" [ngClass]="{ 'active': currentMapState === states.RemoveGraphics }" title="Clear graphics"           class="action-button esri-icon-trash"></button>
+
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <button  label="Clear All"  pButton (click)="clearSelectionsClicked.emit()"  title="Clear All Selections"></button>
+      <button  label="Revert"     pButton (click)="revertClicked.emit()"   title="Revert to Trade Area" ></button>
+
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <button  label="Zoom to TA" pButton (click)="zoomClicked.emit()"  title="Zoom to TA"></button>
+    </div>
+
+    <div class="ui-g ui-toolbar-group-right">
+      <div class="ui-g-12 val-restore-padding">
+        <span *ngIf="currentAnalysisLevel != null && currentAnalysisLevel !== ''; else noAnalysisLevel">
+          <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
+        </span>
+        <ng-template #noAnalysisLevel>
+          <span><strong>No Analysis Level Selected</strong></span>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</p-toolbar>

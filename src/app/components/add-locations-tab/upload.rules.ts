@@ -3,9 +3,9 @@ import { Parser, ParseRule } from '../../val-modules/common/services/file.servic
 
 const latLongProcessor = (data: string) => {
   if (data != null && data !== '' && !Number.isNaN(Number(data)))
-    return Number(data);
+    return data;
   else
-    return null;
+    return '';
 };
 
 export const siteListUpload: Parser<ValGeocodingRequest> = {
@@ -34,13 +34,5 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     }
     if ((!cityFound || !stateFound) && !zipFound) throw new Error('Either a Postal Code or City + State columns must be present in the file.');
     return true;
-  },
-  dataValidator: currentRow => {
-    let isValid = true;
-    if (currentRow.latitude != null) {
-      const latitudeValue = Number(currentRow.latitude);
-      if (latitudeValue < -90 || latitudeValue > 90) isValid = false;
-    }
-    return isValid;
   }
 };

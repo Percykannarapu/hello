@@ -1,11 +1,10 @@
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-
 export interface AudienceDataDefinition {
   audienceName: string;
   audienceIdentifier: string;
   showOnMap: boolean;
   showOnGrid: boolean;
   exportInGeoFootprint: boolean;
+  disableUISplit?: boolean;
   exportNationally: boolean;
   allowNationalExport: boolean;
   nationalCsvTransform?: (fieldName: string) => { name: string, field: string }[];
@@ -26,6 +25,7 @@ export interface AudienceTradeAreaConfig {
   maxRadius: number;
   weight: number;
   locations: Array<AudienceTradeareaLocation>;
+  includeMustCover: boolean;
 }
 
 export interface AudienceTradeareaLocation {

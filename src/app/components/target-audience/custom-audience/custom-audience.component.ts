@@ -40,7 +40,7 @@ export class CustomAudienceComponent {
             const csvData  = xlsx.utils.sheet_to_csv(ws);
             this.audienceService.parseFileData(csvData, name);
           } catch (e) {
-            this.messagingService.showGrowlError('Audience Upload Error', e);
+            this.messagingService.showErrorNotification('Audience Upload Error', e);
           } finally {
             this.messagingService.stopSpinnerDialog(this.spinnerId);
           }
@@ -51,7 +51,7 @@ export class CustomAudienceComponent {
           try {
             this.audienceService.parseFileData(reader.result, name);
           } catch (e) {
-            this.messagingService.showGrowlError('Audience Upload Error', e);
+            this.messagingService.showErrorNotification('Audience Upload Error', e);
           } finally {
             this.messagingService.stopSpinnerDialog(this.spinnerId);
           }

@@ -1,9 +1,24 @@
+import { Observable } from 'rxjs';
 import { EsriModules } from './esri-modules.service';
+
+export interface WatchResult<T, K extends keyof T> {
+  newValue: T[K];
+  oldValue: T[K];
+  target: T;
+}
 
 export class EsriUtils {
 
   public static layerIsFeature(l: __esri.Layer) : l is __esri.FeatureLayer {
     return l != null && l.type === 'feature';
+  }
+
+  public static layerIsPortalFeature(l: __esri.Layer) : l is __esri.FeatureLayer {
+    if (this.layerIsFeature(l)) {
+      return l.portalItem != null;
+    } else {
+      return false;
+    }
   }
 
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
@@ -51,5 +66,14 @@ export class EsriUtils {
 
   public static clone<T>(original: T) : T {
     return EsriModules.lang.clone(original);
+  }
+
+  public static watch<T extends __esri.Accessor, K extends keyof T>(instance: T, prop: K) : Observable<WatchResult<T, K>> {
+    return Observable.create(subject => {
+      const handle = EsriModules.watchUtils.watch(instance, prop, (newVal, oldVal, propName, target) => {
+        subject.next({ newValue: newVal, oldValue: oldVal, target: target });
+      });
+      return () => handle.remove();
+    });
   }
 }

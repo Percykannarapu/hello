@@ -15,7 +15,6 @@ import { Subject } from 'rxjs';
 import { AppStateService } from './services/app-state.service';
 import { withLatestFrom } from 'rxjs/operators';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
-import { DAOBaseStatus } from './val-modules/api/models/BaseModel';
 import { UserService } from './services/user.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -25,12 +24,12 @@ import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
 import { EsriMapService } from './esri-modules/core/esri-map.service';
-import { MapService } from './services/map.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
 import { AppLocationService } from './services/app-location.service';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
+import { FileService } from './val-modules/common/services/file.service';
 
 
 @Component({
@@ -71,7 +70,6 @@ export class AppMenuComponent implements OnInit {
         private esriMapService: EsriMapService,
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
-        private mapService: MapService,
         private layerService: EsriLayerService,
         private domainFactory: ImpDomainFactoryService,
         private appLocationService: AppLocationService) { } 
@@ -334,17 +332,17 @@ export class AppMenuComponent implements OnInit {
     public getCustomSites() {
         const impProject = this.appStateService.currentProject$.getValue();
         if (impProject.projectId == null) {
-            this.messageService.showGrowlError('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
+            this.messageService.showErrorNotification('Send Custom Sites', `The project must be saved before sending the custom site list to Valassis Digital.`);
         } else {
             if (impProject.projectTrackerId != null) {
-                const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+                const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
                 const fileName = 'visit_locations_' + impProject.projectId + '_' + this.environmentName + '_' + fmtDate + '.csv';
                 this.impGeofootprintLocationService.exportStore(fileName, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, impProject, true, loc => loc.clientLocationTypeCode === 'Site', 'SITES');
                 const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'vlh-site-list', action: 'send' });
                 const usageMetricText = 'clientName=' + impProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + impProject.projectTrackerId + '~' + 'fileName=' + fileName;
                 this.usageService.createCounterMetric(usageMetricName, usageMetricText, this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === 'Site').length);
             } else {
-                this.messageService.showGrowlError('Send Custom Sites', `A valid Project Tracker ID must be specified before sending custom sites to Valassis Digital.`);
+                this.messageService.showErrorNotification('Send Custom Sites', `A valid Project Tracker ID must be specified before sending custom sites to Valassis Digital.`);
             }
         }
     }
@@ -371,13 +369,14 @@ export class AppMenuComponent implements OnInit {
                     this.appStateService.projectId$.getValue();
                     let errorString = '';
                     if (impProject.projectName == null || impProject.projectName == '')
-                         errorString = 'imPower Project Name is required<br>';
+                        errorString = 'imPower Project Name is required';
                     if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                         errorString += 'Analysis level is required';
-                    if (errorString.length !== 0) {
-                        this.messageService.showGrowlError('Error Saving Project', errorString);
+                        errorString  = errorString + '\n Analysis Level is required';
+                    if (errorString != null){
+                        this.messageService.showErrorNotification('Error Saving Project', errorString);
                         return;
                     }
+                   
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
@@ -404,24 +403,13 @@ export class AppMenuComponent implements OnInit {
 
 
     public clearProject(){
-        this.esriMapService.map.layers.forEach(lyr => {
-             //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-             if (lyr) {
-               lyr.visible = false;
-               if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-                 //this.esriMapService.map.layers.remove(lyr);
-                 this.layerService.clearAll();
-               }
-             }
-        });
         this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
         this.appProjectService.clearAll();
         this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+        this.impGeofootprintLocationService.clearAll();
         this.appStateService.clearUserInterface.next(true);
-        this.messageService.clearGrowlMessages();
-        //GeocoderComponent.prototype.clearFields();
-        //TradeAreaDefineComponent.prototype.clearTradeArea();
+        this.messageService.clearNotifications();
          this.impGeofootprintGeoService.clearAll();
          this.attributeService.clearAll();
          this.impGeofootprintTradeAreaService.clearAll(); //this is not working
@@ -454,14 +442,14 @@ export class AppMenuComponent implements OnInit {
     private saveProject(){
         const impProject = this.appStateService.currentProject$.getValue();
         let errorString = '';
-            if (impProject.projectName == null || impProject.projectName == '')
-                errorString = 'imPower Project Name is required<br>';
-            if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                errorString += 'Analysis level is required';
-            if (errorString.length !== 0 ) {
-                this.messageService.showGrowlError('Error Saving Project', errorString);
-                return;
-            }
+        if (impProject.projectName == null || impProject.projectName == '')
+            errorString = 'imPower Project Name is required';
+        if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+            errorString  = errorString + '\n Analysis Level is required';
+        if (errorString !== ''){
+            this.messageService.showErrorNotification('Error Saving Project', errorString);
+            return;
+        }
         this.impProjectService.saveProject().subscribe(impPro => {
             const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
             this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);

@@ -7,3 +7,28 @@ $accentLightColor: #f0a630;
 $accentTextColor: #ffffff;
 
 @import '../sass/theme/_theme';
+
+.val-toast-top-right {
+  .ui-toast-close-icon {
+    font-size: 1em;
+  }
+  span.ui-toast-icon {
+    font-size: 2em;
+    font-weight: bold;
+  }
+}
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav {
+  > li {
+    background-color: #4177a1;
+  }
+  > li.ui-state-active {
+    background-color: #EF9300;
+  }
+  > li:not(.ui-state-active):not(.ui-state-disabled):hover {
+    background-color: #91b8d6!important;
+  }
+  > li a {
+    color: white !important;
+  }
+}

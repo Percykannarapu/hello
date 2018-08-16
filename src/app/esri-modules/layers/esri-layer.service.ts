@@ -3,25 +3,27 @@ import { EsriModules } from '../core/esri-modules.service';
 import { EsriMapService } from '../core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import { EsriUtils } from '../core/esri-utils';
+import { Subject } from 'rxjs';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
 @Injectable()
 export class EsriLayerService {
 
+  private popupsPermanentlyDisabled = new Set<__esri.Layer>();
+
   private groupRefs = new Map<string, __esri.GroupLayer>();
+  private portalGroupRefs = new Map<string, __esri.GroupLayer>();
   private layerRefs = new Map<string, __esri.FeatureLayer>();
+  private portalRefs = new Map<string, __esri.FeatureLayer>();
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
   constructor(private modules: EsriModules, private mapService: EsriMapService) { }
 
-  public static isFeatureLayer(layer: __esri.Layer) : layer is __esri.FeatureLayer {
-    return layer && layer.type === 'feature';
-  }
-
-  public clearAll() : void {
+  public clearClientLayers() : void {
     const layers = Array.from(this.layerRefs.values());
     const groups = Array.from(this.groupRefs.values());
     layers.forEach(layer => {
@@ -37,21 +39,36 @@ export class EsriLayerService {
     return this.groupRefs.has(groupName);
   }
 
+  public portalGroupExists(groupName: string) : boolean {
+    return this.portalGroupRefs.has(groupName);
+  }
+
   public layerExists(layerName: string) : boolean {
     return this.layerRefs.has(layerName);
+  }
+
+  public portalLayerExists(layerName: string) : boolean {
+    return this.portalRefs.has(layerName);
+  }
+
+  public getGroup(groupName: string) : __esri.GroupLayer {
+    return this.groupRefs.get(groupName);
+  }
+
+  public getPortalGroup(groupName: string) : __esri.GroupLayer {
+    return this.portalGroupRefs.get(groupName);
+  }
+
+  public getAllPortalGroups() : __esri.GroupLayer[] {
+    return Array.from(this.portalGroupRefs.values());
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
     let result: __esri.FeatureLayer = null;
     this.mapService.map.allLayers.forEach(l => {
-      if (EsriLayerService.isFeatureLayer(l) && l.portalItem && l.portalItem.id === portalId) result = l;
+      if (EsriUtils.layerIsFeature(l) && l.portalItem && l.portalItem.id === portalId) result = l;
     });
     return result;
-  }
-
-  public getClientLayerByName(layerName: string) : __esri.FeatureLayer {
-    if (this.layerExists(layerName)) return this.layerRefs.get(layerName);
-    return null;
   }
 
   public removeLayer(layerName: string) : void {
@@ -62,7 +79,18 @@ export class EsriLayerService {
     }
   }
 
-  public createGroup(groupName: string, isVisible: boolean) : void {
+  public createPortalGroup(groupName: string, isVisible: boolean) : void {
+    if (this.portalGroupRefs.has(groupName)) return;
+    const group = new EsriModules.GroupLayer({
+      title: groupName,
+      listMode: 'show-children',
+      visible: isVisible
+    });
+    this.mapService.map.layers.unshift(group);
+    this.portalGroupRefs.set(groupName, group);
+  }
+
+  private createClientGroup(groupName: string, isVisible: boolean) : void {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriModules.GroupLayer({
       title: groupName,
@@ -73,11 +101,30 @@ export class EsriLayerService {
     this.groupRefs.set(groupName, group);
   }
 
+  public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean) : Observable<__esri.FeatureLayer> {
+    const isUrlRequest = portalId.toLowerCase().startsWith('http');
+    const loader: any = isUrlRequest ? EsriModules.Layer.fromArcGISServerUrl : EsriModules.Layer.fromPortalItem;
+    const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
+    return Observable.create(subject => {
+      loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
+        currentLayer.visible = defaultVisibility;
+        currentLayer.title = layerTitle;
+        currentLayer.minScale = minScale;
+        this.portalRefs.set(portalId, currentLayer);
+        EsriUtils.watch(currentLayer, 'loaded').subscribe(result => this.determineLayerStatuses(result.target));
+        subject.next(currentLayer);
+        subject.complete();
+      }).catch(reason => {
+        subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
+      });
+    });
+  }
+
   public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], layerType: layerGeometryType, popupEnabled: boolean, popupContent?: string) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
-      this.createGroup(groupName, true);
+      this.createClientGroup(groupName, true);
     }
     const group = this.groupRefs.get(groupName);
     let fields: any[];
@@ -98,6 +145,8 @@ export class EsriLayerService {
       popupTemplate: new EsriModules.PopupTemplate({ content: (popupContent == null ? '{*}' : popupContent) }),
       title: layerName
     });
+
+    if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
 
     group.layers.unshift(layer);
     this.layerRefs.set(layerName, layer);
@@ -144,12 +193,17 @@ export class EsriLayerService {
     }
   }
 
-  public getLayer(layerName: string) : __esri.FeatureLayer {
-    return this.layerRefs.get(layerName);
-  }
-
   public getAllLayerNames() : string[] {
     return this.mapService.map.allLayers.map(l => l.title).toArray();
+  }
+
+  public setAllPopupStates(popupsEnabled: boolean) : void {
+    if (this.mapService.map == null || this.mapService.map.allLayers == null) return;
+    this.mapService.map.allLayers
+      .filter(l => !this.popupsPermanentlyDisabled.has(l))
+      .forEach(l => {
+        if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
+      });
   }
 
   /**
@@ -168,18 +222,6 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
-    }
-  }
-
-  /**
-   * Set up the layer watches on newly created layers so we can notify
-   * the rest of the app when the layers have finished loading
-   * @param layers an array of Esri Layers to set up the watches on
-   */
-  public setupLayerWatches(layers: Array<__esri.Layer>) {
-    for (const layer of layers) {
-      this.layerStatuses.set(layer.title, false);
-      EsriModules.watchUtils.watch(layer, 'loaded', e => this.determineLayerStatuses(layer));
     }
   }
 }

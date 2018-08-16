@@ -11,7 +11,7 @@ import { MetricService } from '../val-modules/common/services/metric.service';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
@@ -20,6 +20,10 @@ import { simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { filterArray } from '../val-modules/common/common.rxjs';
+import { AppLoggingService } from './app-logging.service';
+
+const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +44,6 @@ export class AppLocationService {
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
 
-
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
               private appStateService: AppStateService,
@@ -51,39 +54,18 @@ export class AppLocationService {
               private metricsService: MetricService,
               private config: AppConfig,
               private esriMapService: EsriMapService,
+              private logger: AppLoggingService,
               private domainFactory: ImpDomainFactoryService) {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
-    const locationsNeedingHomeGeos$ = allLocations$.pipe(
-      map(locations => locations.filter(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0)),
-      map(locations => locations.filter(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))))
-    );
-
-    this.appStateService.analysisLevel$
-      .pipe(filter(al => al != null && al.length > 0))
-      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
-
-    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.projectIsLoading$).pipe(
-      filter(([locations, level, isLoading]) => locations.length > 0 && level != null && level.length > 0 && !isLoading)
-    ).subscribe(
-      ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
-    );
-
     const locationsWithType$ = allLocations$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0))
     );
-    this.allClientLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Site'))
-    );
-    this.activeClientLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Site' && l.isActive === true))
-    );
-    this.allCompetitorLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Competitor'))
-    );
-    this.activeCompetitorLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Competitor' && l.isActive === true))
+    const locationsNeedingHomeGeos$ = allLocations$.pipe(
+      filterArray(loc => loc['homeGeoFound'] == null),
+      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0),
+      filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
@@ -100,8 +82,22 @@ export class AppLocationService {
     );
     this.hasFailures$ = this.failureCount$.pipe(map(count => count > 0));
 
+    this.allClientLocations$ = this.appStateService.allClientLocations$;
+    this.allCompetitorLocations$ = this.appStateService.allCompetitorLocations$;
+    this.activeClientLocations$ = this.appStateService.activeClientLocations$;
+    this.activeCompetitorLocations$ = this.appStateService.activeCompetitorLocations$;
+
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
+    this.appStateService.analysisLevel$
+      .pipe(filter(al => al != null && al.length > 0))
+      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
+
+    combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.projectIsLoading$).pipe(
+      filter(([locations, level, isLoading]) => locations.length > 0 && level != null && level.length > 0 && !isLoading)
+    ).subscribe(
+      ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
+    );
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -171,8 +167,8 @@ export class AppLocationService {
   private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
     const observables: Observable<[string, any[]]>[] = [];
     for (const currentAnalysisLevel of this.analysisLevelsForHomeGeo) {
-      const homeGeoKey = `Home ${currentAnalysisLevel}`;
-      console.log(`Recalculating "${homeGeoKey}" for ${locations.length} sites`);
+      const homeGeoKey = getHomeGeoKey(currentAnalysisLevel);
+      this.logger.debug(`Recalculating "${homeGeoKey}" for ${locations.length} sites`);
       const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
       observables.push(
         this.queryService.queryPoint(layerId, toUniversalCoordinates(locations), true, ['geocode', 'pob']).pipe(
@@ -183,7 +179,7 @@ export class AppLocationService {
     if (observables.length > 0) {
       this.messageService.startSpinnerDialog('HomeGeoCalcKey', 'Calculating Home Geos');
       const featureCache = new Map<string, any[]>();
-      const sub = merge(...observables, 4).subscribe(
+      merge(...observables, 4).subscribe(
         ([key, newFeatures]) => {
           if (featureCache.has(key)) {
             featureCache.get(key).push(...newFeatures);
@@ -192,18 +188,17 @@ export class AppLocationService {
           }
         },
         err => {
+          this.logger.errorWithNotification('Home Geo', 'There was an error during Home Geo calculation.', err);
           console.error('There was an error retrieving the home geos', err);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlError('Home Geo', 'There was an error during Home Geo calculation.');
         },
         () => {
           featureCache.forEach((features, homeGeoKey) => {
             this.createAttributesFromFeatures(features, homeGeoKey, locations);
           });
-          this.setPrimaryHomeGeocode(analysisLevel);
+          this.flagHomeGeos(locations, analysisLevel);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showGrowlSuccess('Home Geo', 'Home Geo calculation is complete.');
-          if (sub) sub.unsubscribe();
+          this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
         }
       );
     }
@@ -236,12 +231,12 @@ export class AppLocationService {
   }
 
   private setPrimaryHomeGeocode(analysisLevel: string) {
-    console.log('Setting primary geo for ', analysisLevel);
+    this.logger.info(`Setting primary home geo for ${analysisLevel}`);
     if (analysisLevel == null) {
       const currentLocations = this.impLocationService.get();
       currentLocations.forEach(l => l.homeGeocode = null);
     } else {
-      const homeGeoKey = `Home ${analysisLevel}`; // TODO: This was copy pasta'd
+      const homeGeoKey = getHomeGeoKey(analysisLevel);
       const currentAttributes = this.impLocAttributeService.get().filter(a => a.attributeCode === homeGeoKey);
       for (const attribute of currentAttributes) {
         if (attribute.impGeofootprintLocation != null) {
@@ -254,5 +249,20 @@ export class AppLocationService {
 
   private setCounts(count: number, siteType: string) {
     this.metricsService.add('LOCATIONS', `# of ${siteType}s`, count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+  }
+
+  private flagHomeGeos(locations: ImpGeofootprintLocation[], currentAnalysisLevel: string) : void {
+    this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
+    const homeKey = getHomeGeoKey(currentAnalysisLevel);
+    locations.forEach(loc => {
+      if (loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0 &&
+        !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))) {
+        loc['homeGeoFound'] = false;
+      } else {
+        loc['homeGeoFound'] = true;
+        const currentHomeGeo = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === homeKey)[0];
+        loc.homeGeocode = currentHomeGeo != null ? currentHomeGeo.attributeValue : null;
+      }
+    });
   }
 }

@@ -33,7 +33,6 @@ import {
   FileUploadModule,
   GalleriaModule,
   GMapModule,
-  GrowlModule,
   InputMaskModule,
   InputSwitchModule,
   InputTextareaModule,
@@ -92,12 +91,10 @@ import { AppLayerService } from './services/app-layer.service';
 import { EsriModules } from './esri-modules/core/esri-modules.service';
 import { UserService } from './services/user.service';
 import { EsriMapComponent } from './components/esri-map/esri-map.component';
+import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { BusinessSearchComponent } from './components/business-search/business-search.component';
-import { EsriLayerSelectComponent } from './components/esri-layer-select/esri-layer-select.component';
-import { EsriMapToolsComponent } from './components/esri-map-tools/esri-map-tools.component';
-import { MapService } from './services/map.service';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
@@ -147,7 +144,7 @@ import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpG
 import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
-import { AudienceTradeareaComponent } from './components/audience-tradearea/audience-tradearea.component';
+import { AudienceTradeareaComponent } from './components/trade-area-tab/audience-tradearea/audience-tradearea.component';
 import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
@@ -162,6 +159,12 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
+import { MapComponent } from './components/map/map.component';
+import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.component';
+import { ToastModule } from 'primeng/toast';
+import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
+import { SampleComponent } from './poc/sample/sample.component';
+import { ProjectNameComponent } from './components/project-name/project-name.component';
 
 @NgModule({
     imports: [
@@ -197,7 +200,6 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         FileUploadModule,
         GalleriaModule,
         GMapModule,
-        GrowlModule,
         InputMaskModule,
         InputSwitchModule,
         InputTextModule,
@@ -235,6 +237,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         TabViewModule,
         TerminalModule,
         TieredMenuModule,
+        ToastModule,
         ToggleButtonModule,
         ToolbarModule,
         TooltipModule,
@@ -258,8 +261,6 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         GeofootprintGeoListComponent,
         MessageComponent,
         BusinessSearchComponent,
-        EsriLayerSelectComponent,
-        EsriMapToolsComponent,
         ColorBoxComponent,
         SiteListComponent,
         DiscoveryInputComponent,
@@ -281,7 +282,12 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
         AddLocationsTabComponent,
         FailedGeocodeGridComponent,
         ManualEntryComponent,
-        CampaignDetailsComponent
+        CampaignDetailsComponent,
+        MapComponent,
+        MapToolbarComponent,
+        EsriGeographyPopupComponent,
+        SampleComponent,
+        ProjectNameComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
@@ -290,6 +296,7 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
       {provide: EsriLoaderToken, useClass: AppConfig},
       EsriModules, EsriIdentityService, EsriMapService, EsriLayerService, EsriQueryService,
       // from val-modules
+      {provide: LoggingConfigurationToken, useClass: AppConfig},
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
       ImpGeofootprintLocAttribService, AppDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
@@ -300,12 +307,13 @@ import { CampaignDetailsComponent } from './components/campaign-details/campaign
       CookieService,
       // from main application
       AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
-      MapService, AuthService, MapDispatchService, RadService, UsageService, UserService, ImpRadLookupService,
+      AuthService, MapDispatchService, RadService, UsageService, UserService, ImpRadLookupService,
       TargetAudienceService, TargetAudienceMetricService, ImpProjectTrackerService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],
     bootstrap: [AppComponent],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    entryComponents: [EsriGeographyPopupComponent]
 })
 export class AppModule { }

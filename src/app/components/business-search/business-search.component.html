@@ -99,7 +99,7 @@
                         <li *ngIf="searchResults.length > 0">
                            <div style="padding: 1px">
                               <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All"></p-checkbox>
-                              <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchResults = [];"></button>
+                          <!--    <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchResults = [];"></button>-->
                            </div>
                         </li>
                         <li *ngFor="let x of searchResults">

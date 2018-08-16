@@ -3,7 +3,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
-import { EsriUtils } from '../esri-modules/core/esri-utils.service';
+import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -114,7 +114,6 @@ export class AppGeoService {
       // keep locations where finished radius count matches all radius count
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
       // halt the sequence if there are no locations remaining
-      tap(locations => console.log('Locations after all observable filters', JSON.stringify(locations))),
       filter(locations => locations.length > 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
@@ -162,7 +161,7 @@ export class AppGeoService {
       },
       err => {
         console.error(err);
-        this.messagingService.showGrowlError('Error', 'There was an error during geo selection');
+        this.messagingService.showErrorNotification('Error', 'There was an error during geo selection');
       },
       () => {
         if (sub) sub.unsubscribe();

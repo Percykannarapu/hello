@@ -1,4 +1,5 @@
-import {Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit} from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck } from '@angular/core';
+import { AppStateService } from './services/app-state.service';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
 import {Message} from 'primeng/primeng';
@@ -6,6 +7,7 @@ import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
+import { AppComponentGeneratorService } from './services/app-component-generator.service';
 
 enum MenuOrientation {
     STATIC,
@@ -14,25 +16,13 @@ enum MenuOrientation {
     HORIZONTAL
 }
 
-export enum mapFunctions {
-    SelectPoly = 0,
-    DrawPoint = 1,
-    DrawLine = 2,
-    DrawPoly = 3,
-    RemoveGraphics = 4,
-    Popups = 5,
-    Labels = 6,
-    MeasureLine = 7
-  }
-
 declare var jQuery: any;
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss']
+    templateUrl: './app.component.html'
 })
-export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
+export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     layoutCompact = true;
 
@@ -83,7 +73,8 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
                 private projectService: ImpProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService,
-                private domainFactory: ImpDomainFactoryService) { }
+                private domainFactory: ImpDomainFactoryService,
+                private stateService: AppStateService) { }
 
 
     ngOnInit() {
@@ -106,6 +97,10 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
         setTimeout(() => {
             jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
         }, 10);
+    }
+
+    ngDoCheck() {
+      this.stateService.refreshDynamicControls();
     }
 
     onLayoutClick() {

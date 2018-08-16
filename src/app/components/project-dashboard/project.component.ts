@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
+import { AppLayerService } from '../../services/app-layer.service';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { UserService } from '../../services/user.service';
 import { AppProjectService } from '../../services/app-project.service';
@@ -62,7 +63,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
                 private messageService: AppMessagingService,
                 private impProjectService: ImpProjectService,
                 private confirmationService: ConfirmationService,
-                private layerService: EsriLayerService,
+                private layerService: AppLayerService,
                 public metricService: MetricService,
                 private domainFactory: ImpDomainFactoryService,
                 private attributeService: ImpGeofootprintGeoAttribService,
@@ -350,15 +351,8 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
     private onLoadProject(event: { projectId: number }) : void {
       const locData = this.impGeofootprintLocationService.get();
       this.stateService.loadProject(event.projectId).subscribe(project => {
-       // this.onLoadProject(project);
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
         this.usageService.createCounterMetric(usageMetricName, null, null);
-        this.esriMapService.map.layers.forEach(lyr => {
-          if (lyr.title != null && lyr.title.includes(project.methAnalysis)){
-              lyr.visible = true;
-              console.log('project loaded', project.methAnalysis);
-          }
-        });
         const taData = project.getImpGeofootprintTradeAreas();
         if (taData != null && taData.length > 0) {
           console.log('Subing to zoom');
@@ -400,12 +394,12 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
       const locData = this.impGeofootprintLocationService.get();
       let errorString = null;
       if (impProject.projectName == null || impProject.projectName == '')
-           errorString = 'imPower Project Name is required<br>';
+            errorString = 'imPower Project Name is required';
       if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-           errorString += 'Analysis level is required';
-      if (errorString != null) {
-          this.messageService.showGrowlError('Error Saving Project', errorString);
-          return;
+            errorString  = errorString + '\n Analysis Level is required';
+      if (errorString != null){
+            this.messageService.showErrorNotification('Error Saving Project', errorString);
+            return;
       }
               this.impProjectService.saveProject().subscribe(impPro => {
                 const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
@@ -433,24 +427,12 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
     }
 
     public clearProject(){
-      this.esriMapService.map.layers.forEach(lyr => {
-           //console.log('layers to remove:::', lyr.title, '/n dtls::::: ', lyr);
-           if (lyr) {
-             lyr.visible = false;
-             if (lyr.title === 'Sites' || lyr.title === 'Competitors'){
-               //this.esriMapService.map.layers.remove(lyr);
-               this.layerService.clearAll();
-             }
-           }
-      });
       this.impGeofootprintMasterService.clearAll();
       this.impProjectService.clearAll();
       this.appProjectService.clearAll();
       this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
       this.stateService.clearUserInterface.next(true);
-      this.messageService.clearGrowlMessages();
-      //GeocoderComponent.prototype.clearFields();
-      //TradeAreaDefineComponent.prototype.clearTradeArea();
+      this.messageService.clearNotifications();
        this.impGeofootprintGeoService.clearAll();
        this.attributeService.clearAll();
        this.impGeofootprintTradeAreaService.clearAll(); //this is not working

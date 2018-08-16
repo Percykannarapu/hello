@@ -1,0 +1,15 @@
+<p-treeTable [value]="data" (onNodeExpand)="onExpand($event.node)" (onNodeCollapse)="onCollapse($event.node)" styleClass="val-custom-popup-tree-table">
+  <ng-template pTemplate="header">
+  </ng-template>
+  <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+    <tr>
+      <td class="val-custom-cell">
+        <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+        {{rowData.name}}
+      </td>
+      <td class="val-custom-cell">
+        {{rowData.value}}
+      </td>
+    </tr>
+  </ng-template>
+</p-treeTable>

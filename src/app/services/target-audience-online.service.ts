@@ -165,7 +165,8 @@ export class TargetAudienceOnlineService {
             showOnGrid: projectVar.isIncludedInGeoGrid,
             showOnMap: projectVar.isShadedOnMap,
             selectedDataSet: projectVar.indexBase,
-            audienceCounter: projectVar.sortOrder
+            audienceCounter: projectVar.sortOrder,
+            secondaryId: projectVar.varPk.toString()
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('interest')) {
