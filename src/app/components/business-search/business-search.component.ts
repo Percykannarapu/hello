@@ -105,7 +105,7 @@ export class BusinessSearchComponent implements OnInit {
       zip: this.model.zip,
       countyName: this.model.countyName,
       eliminateBlankFirmNames: 'True',
-      siteLimit: '2000',
+      siteLimit: '20000',
       sites: currentLocations.map(loc => ({ x: loc.xcoord, y: loc.ycoord, homeGeocode: loc.homeGeocode != null ? loc.homeGeocode : loc.locZip.substring(0, 5), 
         locationName: loc.locationName })),
       sics: this.targetCategories.map(category => ({ sic: category.sic }))
