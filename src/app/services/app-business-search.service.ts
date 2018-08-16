@@ -60,7 +60,7 @@ export interface BusinessSearchRequest {
   zip: string;
   countyName: string;
   eliminateBlankFirmNames: 'True';
-  siteLimit: '2000';
+  siteLimit: '20000';
   sites: { x: number, y: number, homeGeocode: string, locationName: string }[];
   sics: { sic: string }[];
 }
