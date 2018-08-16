@@ -86,3 +86,31 @@ export function filterByFields<T, K extends keyof T>(searchTerm: string, fieldsT
     return false; // no matches were found
   };
 }
+
+export function resolveFieldData(data: any, field: any): any {
+   if(data && field) {
+       if (isFunction(field)) {
+           return field(data);
+       }
+       else if(field.indexOf('.') == -1) {
+           return data[field];
+       }
+       else {
+           let fields: string[] = field.split('.');
+           let value = data;
+           for(let i = 0, len = fields.length; i < len; ++i) {
+               if (value == null) {
+                   return null;
+               }
+               value = value[fields[i]];
+           }
+           return value;
+       }
+   }
+   else {
+       return null;
+   }
+}
+
+export function isFunction (obj: any) { !!(obj && obj.constructor && obj.call && obj.apply); }
+

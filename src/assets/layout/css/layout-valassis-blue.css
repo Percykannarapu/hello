@@ -2275,10 +2275,10 @@
     text-align: right;
  }
  
+ .val-table div.ui-table-header.ui-widget-header,
  .val-table div.ui-datatable-header.ui-widget-header {
     padding: 0em .75em;
  }
- 
  
  .val-table div.ui-chkbox-box.ui-widget.ui-corner-all {
     height: 1.0em;
@@ -2291,30 +2291,35 @@
     width: 1.0em;   
  }
  
+ .val-table .ui-table .ui-datatable-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box,
  .val-table .ui-datatable .ui-datatable-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box {
     border-color: #3a3a3a;
     height: 1.0em;
     width: 1.0em;   
  }
  
+ .val-table body.ui-table.ui-datatable-thead.th.ui-selection-column.ui-chkbox-box,
  .val-table body.ui-datatable.ui-datatable-thead.th.ui-selection-column.ui-chkbox-box {
     border-color: #3a3a3a;
     height: 1.0em;
     width: 1.0em;   
  }
- 
+
+ .val-table body.ui-table.ui-datatable-data.tr.ui-state-highlight.td.ui-selection-column.ui-chkbox-box,
  .val-table body.ui-datatable.ui-datatable-data.tr.ui-state-highlight.td.ui-selection-column.ui-chkbox-box {
     border-color: #757575;
     height: 1.0em;
     width: 1.0em;
  }
- 
+
+ .val-table body .ui-table .ui-table-data td.ui-selection-column .ui-chkbox-box,
  .val-table body .ui-datatable .ui-datatable-data td.ui-selection-column .ui-chkbox-box {
     border-color: #757575;
     height: 1.0em;
     width: 1.0em;
  }
  
+ .val-table body .ui-table .ui-table-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box,
  .val-table body .ui-datatable .ui-datatable-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box {
     border-color: #757575;
     height: 1.0em;

@@ -80,6 +80,7 @@ import { TableModule } from 'primeng/table';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
+import { ObjectUtils } from 'primeng/components/utils/objectutils';
 import { AppComponent } from './app.component';
 import { AppMenuComponent, AppSubMenuComponent } from './app.menu.component';
 import { AppTopbarComponent } from './app.topbar.component';

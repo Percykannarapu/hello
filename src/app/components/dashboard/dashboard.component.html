@@ -8,6 +8,7 @@
                   [model]="metricMapBlue"
                   [flags]="flagMapBlue"
                   displayOverlay="true"
+                  dismissable="true"
                   #campaignColorBox>
      <val-campaign-details></val-campaign-details>
    </val-color-box>
@@ -15,19 +16,20 @@
 
  <div class="ui-g-12 ui-md-6 ui-lg-3">
     <!-- Home for Green Sites Box Overlay -->
+    <!-- onSetDismissable(true) -->
     <val-color-box header="Locations"
                    boxStyle="colorboxPicker-green"
                    icon="my_location"
                    [model]="metricMapGreen"
                    displayOverlay="true"
+                   dismissable="false"
                    #locationsColorBox>
-      <!-- <p-tabView styleClass="ui-tabview-panels-nopad"> -->
       <p-tabView>
         <p-tabPanel header="Add Locations">
           <val-add-locations-tab></val-add-locations-tab>
         </p-tabPanel>
         <p-tabPanel header="Manage Locations">
-          <val-site-list>Loading Site List...</val-site-list>
+          <val-site-list (setContainerDismissable)="onChangeDismiss($event)">Loading Site List...</val-site-list>
         </p-tabPanel>
         <p-tabPanel header="Define Trade Areas">
           <val-trade-area-tab>Loading Trade Areas...</val-trade-area-tab>
@@ -44,6 +46,7 @@
                     [model]="metricMapPurple"
                     [flags]="flagMapPurple"
                     displayOverlay="true"
+                    dismissable="true"
                     #audienceColorBox>
       <val-target-audience></val-target-audience>
     </val-color-box>
@@ -62,6 +65,7 @@
                      [model]="metricMapTeal"
                      [flags]="flagMapTeal"
                      displayOverlay="false"
+                     dismissable="true"
                      #performanceColorBox>
       <!-- For now we are removing the tab panel since there is no content for it currently
       <p-tabView>

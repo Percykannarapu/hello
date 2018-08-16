@@ -1,7 +1,5 @@
 <!-- Color Box Overlay Container -->
-<!-- <p-overlayPanel #op class="{{boxStyle}}" [style]="[(popupWidthStr)]" [showCloseIcon]="true"> -->
-<p-overlayPanel #op class="{{boxStyle}}" [showCloseIcon]="true" > <!-- [style]="{'width':'50%'}"  -->
-<!-- [dismissable]="false" // disables to hide the overlay when outside is clicked. -->
+<p-overlayPanel #op class="{{boxStyle}}" [showCloseIcon]="true" [dismissable]="false"> <!-- [dismissable]="dismissable" [style]="[(popupWidthStr)]" -->
    <ng-content></ng-content>
 </p-overlayPanel>
 

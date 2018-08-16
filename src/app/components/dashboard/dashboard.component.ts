@@ -142,4 +142,10 @@ export class DashboardComponent implements OnInit {
         this.display = $event;
         //this.mapService.plotMarker($event.x, $event.y);
     }
+
+    // Currently unused
+    onChangeDismiss(event) {
+       //console.log("dashboard.component.onChangeDismiss", event);
+       this.locationsColorBox.onChangeDismiss(event);
+    }
 }
