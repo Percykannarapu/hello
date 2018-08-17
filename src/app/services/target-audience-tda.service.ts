@@ -172,6 +172,11 @@ export class TargetAudienceTdaService {
       result.fieldconte = rawData.fieldconte;
     }
     result.isCustom = false;
+    for (const audience of this.audienceService.getAudiences()) {
+      if (result.customVarExprDisplay === audience.audienceName && audience.audienceSourceName === 'TDA') {
+        result.varPosition = audience.audienceCounter;
+      }
+    }
     if (!isForShading) {
       for (const ta of Array.from(geoCache.keys())) {
         const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);

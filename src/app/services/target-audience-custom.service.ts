@@ -141,6 +141,11 @@ export class TargetAudienceCustomService {
       result.isNumber = true;
     }
     result.isCustom = false;
+    for (const audience of this.audienceService.getAudiences()) {
+      if (fileName + column === audience.audienceSourceName + audience.audienceIdentifier) {
+        result.varPosition = audience.audienceCounter;
+      }
+    }
     for (const ta of Array.from(geoCache.keys())) {
       const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
       if (geoMap.has(geocode)) {
@@ -174,11 +179,11 @@ export class TargetAudienceCustomService {
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
           const geoCache = this.buildGeoCache();
           for (const column of columnNames) {
+            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
+            this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
             const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName, geoCache));
             const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));
             this.dataCache.set(column, geoDataMap);
-            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
-            this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
             const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
           }

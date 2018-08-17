@@ -264,6 +264,11 @@ export class TargetAudienceAudienceTA {
                 newVar.fieldconte = 'PERCENT';
             }
         }
+        for (const audience of this.audienceService.getAudiences()) {
+            if (newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+                newVar.varPosition = audience.audienceCounter;
+            }
+        }
         newVar.impGeofootprintTradeArea = currentTradeArea;
         currentTradeArea.impGeofootprintVars.push(newVar);
         return newVar;

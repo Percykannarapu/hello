@@ -213,6 +213,11 @@ export class TargetAudienceOnlineService {
       isActive: true,
       isCustom: false
     });
+    for (const audience of this.audienceService.getAudiences()) {
+      if (description.audienceSourceType === audience.audienceSourceType && description.audienceSourceName === audience.audienceSourceName && description.audienceName === audience.audienceName) {
+        result.varPosition = audience.audienceCounter;
+      }
+    }
     if (!isForShading) {
       for (const ta of Array.from(geoCache.keys())) {
         const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
