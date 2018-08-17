@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, debounceTime } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/primeng';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -186,7 +186,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
       this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
-                                    .pipe(map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
+                                    .pipe(debounceTime(2000), map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
 
       // Original good
       // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
