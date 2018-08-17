@@ -214,7 +214,7 @@ export class ValAudienceTradeareaService {
         }
         this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage);
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
-        return;
+        return Observable.create(o => o.next(false));
       }
     } catch (error) {
       return Observable.create(o => o.next(false));
