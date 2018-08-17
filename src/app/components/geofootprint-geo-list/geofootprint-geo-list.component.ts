@@ -127,6 +127,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  geoGridAdditionalColumns: string[] = [];
    public  geoGridCache: Map<ImpGeofootprintLocation, any[]> = new Map();
 
+   public  variableColOrder:Map<string, number> = new Map<string, number>();
+
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -554,9 +556,49 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          geoGridData.push(gridGeo);
       });
 
+      // Sort the geo variable columns
+      //this.sortFlatGeoGridExtraColumns();
+
       //console.log("createComposite - returning geoGridData: ", geoGridData);
       return geoGridData;
    }
+
+   public sortFlatGeoGridExtraColumns() {
+      // Mock the order we want
+      this.variableColOrder = new Map<string, number>();
+      this.variableColOrder.set('Comics (Interest)', 1);
+      this.variableColOrder.set('Anime & Manga (Interest)', 2);
+      this.variableColOrder.set('Cartoons (Interest)',3);
+
+      // Add the sort order to the object
+      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.value.header)) ? this.variableColOrder.get(col.value.header) : 0;
+
+      // Sort the array of columns
+      this.flatGeoGridExtraColumns.sort(this.sortVarColumns);
+
+      console.log("SORTED FLAT GEOGRID");
+      console.log("================================================");
+      this.flatGeoGridExtraColumns.forEach(col => console.log(col.value));
+      console.log("================================================");
+   }
+
+   public sortVarColumns (a, b) : number
+   {
+      let aValue: number = a['sortOrder'];
+      let bValue: number = b['sortOrder'];
+
+      if (a == null || b == null || aValue == null || bValue == null)
+         return 0;
+
+      if (aValue === bValue)
+         return 0;
+      else
+         if (aValue > bValue)
+            return -1;
+         else
+            return 1;
+   }
+
 
    // Add additional data to the geo array
    /*
