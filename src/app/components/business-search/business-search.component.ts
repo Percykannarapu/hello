@@ -6,6 +6,8 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
+import { AppLocationService } from '../../services/app-location.service';
+import { filter } from 'rxjs/internal/operators/filter';
 
 interface SelectableSearchResult {
   data: BusinessSearchResponse;
@@ -38,11 +40,12 @@ export class BusinessSearchComponent implements OnInit {
   filteredCategories: BusinessSearchCategory[] = [];
   competitors: any = [];
   sites: any;
+  sicCodes = null;
   businessCategories: BusinessSearchCategory[];
 
   constructor(private appService: AppBusinessSearchService, private messagingService: AppMessagingService,
               private locationService: ImpGeofootprintLocationService, private usageService: UsageService,
-              private appStateService: AppStateService) {
+              private appStateService: AppStateService, private appLocationService: AppLocationService) {
     this.dropdownList = [
       { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
       { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
@@ -69,6 +72,7 @@ export class BusinessSearchComponent implements OnInit {
       this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
+    this.appStateService.getClearUserInterfaceObs().pipe(filter(flag => flag)).subscribe( () => this.clearFields());
   }
 
   categoryChange() : void {
@@ -85,6 +89,7 @@ export class BusinessSearchComponent implements OnInit {
   }
 
   filterCategory(value) {
+    this.sicCodes = value;
     if (!value) {
       this.assignCopy();
     } else if (value.length > 2) {
@@ -123,7 +128,7 @@ export class BusinessSearchComponent implements OnInit {
       this.messagingService.showErrorNotification('Business Search Error', 'Please enter a radius');
       hasError = true;
     }
-    console.log('business Search Request:::', JSON.stringify(request));
+    //console.log('business Search Request:::', JSON.stringify(request));
     let sic = request.sites != null ? 'SIC=' + request['sics'].map(sic3 =>  sic3.sic ) + '~' : '';
     sic = sic.substring(0, 100);
     const miles = request['radius'] != null ? 'Miles=' + request['radius'] + '~' : '';
@@ -196,6 +201,7 @@ export class BusinessSearchComponent implements OnInit {
       this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
       if (locationsForInsert.length > 0) {
         const currentMaster = this.appStateService.currentMaster$.getValue();
+        this.appLocationService.persistLocationsAndAttributes(locationsForInsert);
         currentMaster.impGeofootprintLocations.push(...locationsForInsert);
         this.locationService.add(locationsForInsert);
         this.appService.closeOverLayPanel.next(true);
@@ -203,5 +209,23 @@ export class BusinessSearchComponent implements OnInit {
     } else {
       this.messagingService.showErrorNotification('Error', `Please select Site or Competitor for importing Business Search results.`);
     }
+  }
+
+  private clearFields(){
+    this.searchResults = [];
+    this.selectedCategory = null;
+    this.sourceCategories = [];
+    this.targetCategories = [];
+   // this.filteredCategories = [];
+    this.model.name = null;
+    this.model.city = null;
+    this.model.state = null;
+    this.model.zip = null;
+    this.model.radius = null;
+    this.model.marketName = null;
+    this.model.countyName = null;
+    this.model.sics = null;
+    this.sicCodes = null;
+    //this.model.
   }
 }
