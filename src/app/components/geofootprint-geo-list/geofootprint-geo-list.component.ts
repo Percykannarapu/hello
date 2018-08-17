@@ -571,7 +571,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.variableColOrder.set('Cartoons (Interest)',3);
 
       // Add the sort order to the object
-      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.value.header)) ? this.variableColOrder.get(col.value.header) : 0;
+      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.value.header)) ? this.variableColOrder.get(col.value.header) : 0);
 
       // Sort the array of columns
       this.flatGeoGridExtraColumns.sort(this.sortVarColumns);
