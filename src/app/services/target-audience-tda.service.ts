@@ -111,8 +111,6 @@ export class TargetAudienceTdaService {
     try {
       const project = this.appStateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
-        this.projectVarService.clearAll();
-        this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,

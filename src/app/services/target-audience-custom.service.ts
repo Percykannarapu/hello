@@ -68,8 +68,6 @@ export class TargetAudienceCustomService {
       // const geocodes: string[] = project.getImpGeofootprintGeos().map(geo => geo.geocode);
       // const columnNames: Set<string> = new Set<string>();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom').length > 0) {
-        this.projectVarService.clearAll();
-        this.projectVarService.add(project.impProjectVars);
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom')) {
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,

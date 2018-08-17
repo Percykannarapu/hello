@@ -91,8 +91,6 @@ export class TargetAudienceAudienceTA {
             let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
             projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
             if (projectVars.length > 0) {
-                this.projectVarService.clearAll();
-                this.projectVarService.add(project.impProjectVars);
                 for (const projectVar of projectVars) {
                     const audience: AudienceDataDefinition = {
                         audienceName: projectVar.fieldname,
