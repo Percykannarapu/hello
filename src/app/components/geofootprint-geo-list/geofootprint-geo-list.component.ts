@@ -25,6 +25,7 @@ import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar'
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 import { groupBy } from '../../val-modules/common/common.utils';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { TargetAudienceService } from '../../services/target-audience.service';
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -146,7 +147,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
                private impProjectVarService: ImpProjectVarService,
-               private usageService: UsageService) { }
+               private usageService: UsageService,
+               private targetAudienceService: TargetAudienceService) { }
 
    ngOnInit()
    {
@@ -557,29 +559,31 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       });
 
       // Sort the geo variable columns
-      //this.sortFlatGeoGridExtraColumns();
+      this.sortFlatGeoGridExtraColumns();
 
       //console.log("createComposite - returning geoGridData: ", geoGridData);
       return geoGridData;
    }
 
    public sortFlatGeoGridExtraColumns() {
-      // Mock the order we want
       this.variableColOrder = new Map<string, number>();
-      this.variableColOrder.set('Comics (Interest)', 1);
-      this.variableColOrder.set('Anime & Manga (Interest)', 2);
-      this.variableColOrder.set('Cartoons (Interest)',3);
+      for ( const audience of this.targetAudienceService.getAudiences()) {
+        if (audience.audienceSourceType === 'Online') {
+          if (audience.audienceSourceName === 'Interest') {
+            this.variableColOrder.set(audience.audienceName + ' (Interest)', audience.audienceCounter);    
+          } else {
+            this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);    
+          }
+        } else {
+          this.variableColOrder.set(audience.audienceName, audience.audienceCounter);
+        }
+      }
 
       // Add the sort order to the object
       this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.value.header)) ? this.variableColOrder.get(col.value.header) : 0);
 
       // Sort the array of columns
-      this.flatGeoGridExtraColumns.sort(this.sortVarColumns);
-
-      console.log("SORTED FLAT GEOGRID");
-      console.log("================================================");
-      this.flatGeoGridExtraColumns.forEach(col => console.log(col.value));
-      console.log("================================================");
+      this.flatGeoGridExtraColumns.sort((a, b) => this.sortVarColumns(a, b));
    }
 
    public sortVarColumns (a, b) : number
@@ -594,9 +598,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          return 0;
       else
          if (aValue > bValue)
-            return -1;
-         else
             return 1;
+         else
+            return -1;
    }
 
 
