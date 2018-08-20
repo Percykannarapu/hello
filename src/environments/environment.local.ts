@@ -27,7 +27,8 @@ export class EnvironmentData {
   // this must be set to false now for local environments so we get an OAUTH token
   public static authenticated = false;
 
-  public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
+  //public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
+  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 
   public static esri = {
