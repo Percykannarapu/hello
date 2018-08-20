@@ -1,6 +1,6 @@
 /** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_TRADE_AREAS
  **
- ** Generated from VAL_BASE_GEN - v1.04
+ ** Generated from VAL_BASE_GEN - v1.06
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
@@ -50,6 +50,31 @@ export class ImpGeofootprintTradeArea extends BaseModel
       Object.assign(this, data);
    }
 
+   // Set tree property and push it down the hierarchy
+   public setTreeProperty(propName: string, propValue: any)
+   {
+      if (!this.hasOwnProperty(propName)) {
+         Object.defineProperty(this, propName, {
+            enumerable: false,
+            configurable: true,
+            writable: true
+         });
+      }
+      this[propName] = propValue;
+      // Ask the children to set the tree property
+      this.impGeofootprintGeos.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impGeofootprintVars.forEach(fe => fe.setTreeProperty(propName, propValue));
+   }
+
+   // Removes a tree property from this level down
+   public removeTreeProperty(propName: string)
+   {
+      delete this[propName];
+      // Ask the children to remove the tree property
+      this.impGeofootprintGeos.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impGeofootprintVars.forEach(fe => fe.removeTreeProperty(propName   ));
+   }
+
    // Convert JSON objects into Models
    public convertToModel()
    {
@@ -64,6 +89,9 @@ export class ImpGeofootprintTradeArea extends BaseModel
       // Ask the children to convert into models
       this.impGeofootprintGeos.forEach(fe => fe.convertToModel());
       this.impGeofootprintVars.forEach(fe => fe.convertToModel());
+
+      // Set the isComplete flag indicating the load is complete
+      this.setTreeProperty('isComplete', true);
    }
 
    /**

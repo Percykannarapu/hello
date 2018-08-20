@@ -1,6 +1,6 @@
 /** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS
  **
- ** Generated from VAL_BASE_GEN - v1.04
+ ** Generated from VAL_BASE_GEN - v1.06
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -15,46 +15,55 @@ import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 
 export class ImpGeofootprintLocation extends BaseModel
 {
-   public glId:                        number;                        /// Primary key, uniquely identifying a locations row
-   public cgmId:                       number;/// Foreign key to imp_geofootprint_master.cgm_id
-   public projectId:                   number;/// The IMPower Project ID
-   public clientLocationId:            number;/// Optional Foreign Key to Client Library Location
-   public clientLocationTypeCode:      string;
-   public clientIdentifierTypeCode:    string;
-   public clientIdentifierId:          number;
-   public locationIdDisplay:           string;                        /// LOCATION ID displayed on UI
-   public locationNumber:              string;
-   public locationName:                string;                        /// Name of the location
-   public marketName:                  string;           
-   public marketCode:                  string;                       /// Market Code
-   public description:                 string;                       ///Description
-   public groupName:                   string;
-   public xcoord:                      number;                        /// X Location coordinate
-   public ycoord:                      number;                        /// Y Location coordinate
-   public homeGeocode:                 string;                        /// Identifies the location home geography
-   public homeGeoName:                 string;                        /// Name of the home geography
-   public geoProfileId:                number;                        /// Identifies the geography profile
-   public geoProfileTypeAbbr:          string;                        /// Type of geo profile
-   public origAddress1:                string;
-   public origCity:                    string;
-   public origState:                   string;
-   public origPostalCode:              string;
-   public locFranchisee:               string;                        /// Store franchisee
-   public locAddress:                  string;                        /// Store address
-   public locCity:                     string;                        /// Store city
-   public locState:                    string;                        /// Store state
-   public locZip:                      string;                        /// Store zip code
-   public locSortOrder:                number;                        /// Locations sort order
-   public geocoderMatchCode:           string;
-   public geocoderLocationCode:        string;
-   public recordStatusCode:            string;
-   public isActive:                    boolean;                        /// Is Active
+   public glId:                      number;         /// Primary key, uniquely identifying a locations row
+   public cgmId:                     number;         /// Foreign key to imp_geofootprint_master.cgm_id
+   public projectId:                 number;         /// The IMPower Project ID
+   public clientLocationId:          number;         /// Optional Foreign Key to Client Library Location
+   public clientLocationTypeCode:    string;
+   public clientIdentifierTypeCode:  string;
+   public clientIdentifierId:        number;
+   public locationIdDisplay:         string;         /// LOCATION ID displayed on UI
+   public locationName:              string;         /// Name of the location
+   public marketName:                string;         /// Name of the market eg: Detroit
+   public groupName:                 string;
+   public xcoord:                    number;         /// X Location coordinate
+   public ycoord:                    number;         /// Y Location coordinate
+   public homeGeocode:               string;         /// Identifies the location home geography
+   public homeGeoName:               string;         /// Name of the home geography
+   public geoProfileId:              number;         /// Identifies the geography profile
+   public geoProfileTypeAbbr:        string;         /// Type of geo profile
+   public origAddress1:              string;
+   public origCity:                  string;
+   public origState:                 string;
+   public origPostalCode:            string;
+   public locFranchisee:             string;         /// Store franchisee
+   public locAddress:                string;         /// Store address
+   public locCity:                   string;         /// Store city
+   public locState:                  string;         /// Store state
+   public locZip:                    string;         /// Store zip code
+   public locSortOrder:              number;         /// Locations sort order
+   public geocoderMatchCode:         string;
+   public geocoderLocationCode:      string;         /// Location Quality Code returned by the Address Broker geocoding software eg: AS0, It is the most common code
+   public recordStatusCode:          string;
+   public isActive:                  boolean;        /// Is Active
+   public locationNumber:            string;
+   public marketCode:                string;
+   public description:               string;
+   public homeZip:                   string;
+   public homeAtz:                   string;
+   public homeDigitalAtz:            string;
+   public homePcr:                   string;
+   public radius1:                   number;
+   public radius2:                   number;
+   public radius3:                   number;
+   public homeCountyFip:             string;
+   public homeDmaCode:               string;
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public impGeofootprintLocAttribs:   Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
-   public impGeofootprintTradeAreas:   Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
+   public impGeofootprintLocAttribs:      Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
+   public impGeofootprintTradeAreas:      Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
    // ----------------------------------------------------------------------------
 
    // -------------------------------------------
@@ -89,14 +98,40 @@ export class ImpGeofootprintLocation extends BaseModel
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    getImpGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
       let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
-      (this .impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[])));
+      (this.impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[])));
       return _result;
    }
+
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintLocation>) {
       super();
       Object.assign(this, data);
+   }
+
+   // Set tree property and push it down the hierarchy
+   public setTreeProperty(propName: string, propValue: any)
+   {
+      if (!this.hasOwnProperty(propName)) {
+         Object.defineProperty(this, propName, {
+            enumerable: false,
+            configurable: true,
+            writable: true
+         });
+      }
+      this[propName] = propValue;
+      // Ask the children to set the tree property
+      this.impGeofootprintLocAttribs.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impGeofootprintTradeAreas.forEach(fe => fe.setTreeProperty(propName, propValue));
+   }
+
+   // Removes a tree property from this level down
+   public removeTreeProperty(propName: string)
+   {
+      delete this[propName];
+      // Ask the children to remove the tree property
+      this.impGeofootprintLocAttribs.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impGeofootprintTradeAreas.forEach(fe => fe.removeTreeProperty(propName   ));
    }
 
    // Convert JSON objects into Models
@@ -113,6 +148,9 @@ export class ImpGeofootprintLocation extends BaseModel
       // Ask the children to convert into models
       this.impGeofootprintLocAttribs.forEach(fe => fe.convertToModel());
       this.impGeofootprintTradeAreas.forEach(fe => fe.convertToModel());
+
+      // Set the isComplete flag indicating the load is complete
+      this.setTreeProperty('isComplete', true);
    }
 
    /**
@@ -127,7 +165,6 @@ export class ImpGeofootprintLocation extends BaseModel
          ['glId',                         'number'],
          ['clientIdentifierId',           'number'],
          ['locationIdDisplay',            'string'],
-         ['locationNumber',               'number'],
          ['locationName',                 'string'],
          ['marketName',                   'string'],
          ['groupName',                    'string'],
@@ -150,7 +187,19 @@ export class ImpGeofootprintLocation extends BaseModel
          ['geocoderMatchCode',            'string'],
          ['geocoderLocationCode',         'string'],
          ['recordStatusCode',             'string'],
-         ['isActive',                     'boolean']
+         ['isActive',                     'boolean'],
+         ['locationNumber',               'string'],
+         ['marketCode',                   'string'],
+         ['description',                  'string'],
+         ['homeZip',                      'string'],
+         ['homeAtz',                      'string'],
+         ['homeDigitalAtz',               'string'],
+         ['homePcr',                      'string'],
+         ['radius1',                      'number'],
+         ['radius2',                      'number'],
+         ['radius3',                      'number'],
+         ['homeCountyFip',                'string'],
+         ['homeDmaCode',                  'string']
          ]);
    }
 

@@ -1,6 +1,6 @@
 /** An IMPTARGETING domain class representing the table: IMPOWER.IMP_GEOFOOTPRINT_GEOS
  **
- ** Generated from VAL_BASE_GEN - v1.04
+ ** Generated from VAL_BASE_GEN - v1.06
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
@@ -54,10 +54,31 @@ export class ImpGeofootprintGeo extends BaseModel
       Object.assign(this, data);
    }
 
+   // Set tree property and push it down the hierarchy
+   public setTreeProperty(propName: string, propValue: any)
+   {
+      if (!this.hasOwnProperty(propName)) {
+         Object.defineProperty(this, propName, {
+            enumerable: false,
+            configurable: true,
+            writable: true
+         });
+      }
+      this[propName] = propValue;
+   }
+
+   // Removes a tree property from this level down
+   public removeTreeProperty(propName: string)
+   {
+      delete this[propName];
+   }
+
    // Convert JSON objects into Models
    public convertToModel()
    {
-     this.impGeofootprintGeoAttribs = this.impGeofootprintGeoAttribs || [];
+
+      // Set the isComplete flag indicating the load is complete
+      this.setTreeProperty('isComplete', true);
    }
 
    /**
@@ -109,4 +130,5 @@ export class ImpGeofootprintGeo extends BaseModel
     * @returns A string containing the class data.
     */
    public toString = () => JSON.stringify(this, null, '   ');
+
 }

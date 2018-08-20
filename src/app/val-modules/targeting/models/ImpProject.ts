@@ -1,6 +1,6 @@
 /** An IMPTARGETING domain class representing the table: IMPOWER.IMP_PROJECTS
  **
- ** Generated from VAL_BASE_GEN - v1.05
+ ** Generated from VAL_BASE_GEN - v1.06
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
@@ -149,7 +149,7 @@ export class ImpProject extends BaseModel
    }
 
    // Set tree property and push it down the hierarchy
-   /*public setTreeProperty(propName: string, propValue: any)
+   public setTreeProperty(propName: string, propValue: any)
    {
       if (!this.hasOwnProperty(propName)) {
          Object.defineProperty(this, propName, {
@@ -173,7 +173,7 @@ export class ImpProject extends BaseModel
       this.impGeofootprintMasters.forEach(fe => fe.removeTreeProperty(propName   ));
       this.impProjectPrefs.forEach(fe => fe.removeTreeProperty(propName   ));
       this.impProjectVars.forEach(fe => fe.removeTreeProperty(propName   ));
-   }*/
+   }
 
    // Convert JSON objects into Models
    public convertToModel()
@@ -193,9 +193,12 @@ export class ImpProject extends BaseModel
       this.impProjectPrefs.forEach(fe => fe.convertToModel());
       this.impProjectVars.forEach(fe => fe.convertToModel());
 
-      // Prevent load from firing off the creation of trade areas
+      // Set the isComplete flag indicating the load is complete
+      this.setTreeProperty('isComplete', true);
+
+      // Prevent load from firing off the creation of trade areas (May not be necessary with setTreeProperty)
       let tas: ReadonlyArray<ImpGeofootprintTradeArea> = this.getImpGeofootprintTradeAreas();
-      tas.forEach(ta => ta['isComplete'] = true); 
+      tas.forEach(ta => ta['isComplete'] = true);
    }
 
    /**
