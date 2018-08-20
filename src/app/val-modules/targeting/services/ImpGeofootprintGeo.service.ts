@@ -782,17 +782,29 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
       const usableVars = new Set(this.impProjectVarService.get()
                           .filter(pv => pv.isIncludedInGeofootprint)
+                          .sort((a, b) => this.sortVars(a, b))
                           .map(pv => this.getProjectVarFieldName(pv)));
-      const usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      let usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
       usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
-      attributeNames.sort();
       attributeNames.forEach(name => {
+         if (name.includes(',')) name = `"${name}"`;
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
-   };
+   }
+
+   private sortVars(a, b) {
+      if (a.varPosition > b.varPosition) {
+        return 1;
+      }
+      if (a.varPosition < b.varPosition) {
+        return -1;
+      }
+      return 0;
+    }
 
    // -----------------------------------------------------------
    // EXPORT METHODS
