@@ -791,6 +791,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
+         if (name.includes(',')) name = `"${name}"`;
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
    }
