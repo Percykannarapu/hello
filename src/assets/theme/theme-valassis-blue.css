@@ -28931,6 +28931,7 @@ body .ui-tabview {
       body .ui-tabview .ui-tabview-nav > li.ui-state-default a {
         color: #757575; }
       body .ui-tabview .ui-tabview-nav > li:not(.ui-state-active):not(.ui-state-disabled):hover {
+        border-color: black;
         background-color: #ffffff; }
       body .ui-tabview .ui-tabview-nav > li.ui-state-active {
         background-color: #ffffff;
@@ -30743,17 +30744,27 @@ body .ui-terminal .ui-terminal-input {
 }
 
 .val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li {
-  background-color: #4177a1;
+   border-color: #436A90;
+   background-color: #4177a1;
+}
+
+.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li.ui-state-active {
+   border-color: #CE8300;
+   background-color: #EF9300;
 }
 
 .val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li:not(.ui-state-active):not(.ui-state-disabled):hover {
   background-color: #91b8d6!important;
 }
 
-.val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li.ui-state-active {
-  background-color: #EF9300;
-}
-
 .val-child-tabs > .ui-tabview > ul.ui-tabview-nav > li > a {
   color: white !important;
+}
+
+.val-gray-tab .ui-tabview.ui-tabview-top > .ui-tabview-nav {
+   background-color: #DFDFDF;
+}
+
+.val-green-tab .ui-tabview.ui-tabview-top > .ui-tabview-nav {
+   background-color: #D9E5D0;
 }
