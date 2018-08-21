@@ -109,6 +109,7 @@ export class ValAudienceTradeareaService {
     if (this.audienceTAConfig.minRadius !== config.minRadius) dirty = true;
     if (this.audienceTAConfig.scoreType !== config.scoreType) dirty = true;
     if (this.audienceTAConfig.weight !== config.weight) dirty = true;
+    if (this.audienceTAConfig.audienceName !== config.audienceName) dirty = true;
     if (dirty) {
       this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
       project.audTaIndexBase = this.audienceTAConfig.scoreType;
@@ -117,6 +118,7 @@ export class ValAudienceTradeareaService {
       project.audTaMinRadiu = this.audienceTAConfig.minRadius;
       project.audTaVarPk = this.audienceTAConfig.digCategoryId;
       project.audTaVarWeight = this.audienceTAConfig.weight;
+      project.audTaVarSource = this.audienceTAConfig.audienceName;
     }
     this.audienceTAConfig$.next(this.audienceTAConfig);
   }
@@ -136,7 +138,8 @@ export class ValAudienceTradeareaService {
       minRadius: project.audTaMinRadiu,
       scoreType: project.audTaIndexBase,
       weight: project.audTaVarWeight,
-      locations: null // we don't populate this until we run the trade area
+      locations: null, // we don't populate this until we run the trade area
+      audienceName: project.audTaVarSource
     };
     this.updateAudienceTAConfig(audienceTAConfig);
     this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
@@ -342,10 +345,12 @@ export class ValAudienceTradeareaService {
    * @param taConfig The AudienceTradeareaConfig to send to Fuse
    */
   private sendRequest(taConfig: AudienceTradeAreaConfig) : Observable<RestResponse> {
-    delete taConfig.includeMustCover; //this field is not supposed to be part of the payload
+    const payload: AudienceTradeAreaConfig = Object.assign(taConfig);
+    delete payload.includeMustCover;
+    delete payload.audienceName;
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
     const url: string = this.appConfig.valServiceBase + 'v1/targeting/base/audiencetradearea';
-    return this.httpClient.post<RestResponse>(url, JSON.stringify(taConfig), { headers: headers });
+    return this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
   }
 
   /**
