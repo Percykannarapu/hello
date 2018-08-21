@@ -167,13 +167,13 @@ export class ValAudienceTradeareaService {
   private validateTradeArea() : true | string[] {
     const errors: string[] = [];
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
-      errors.push('You must include both a minumum trade area and a maximum trade area');
+      errors.push('You must include both a minumum trade area and a maximum trade area. ');
     }
     if (isNaN(this.audienceTAConfig.maxRadius) || isNaN(this.audienceTAConfig.minRadius)) {
-      errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area');
+      errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
     }
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
-      errors.push('The maximum radius must be larger than the minimum radius');
+      errors.push('The maximum radius must be larger than the minimum radius. ');
     }
     if (!this.audienceTAConfig.digCategoryId) {
       errors.push('You must select a variable before creating a trade area');
@@ -210,7 +210,7 @@ export class ValAudienceTradeareaService {
       if (validate !== true) {
         let growlMessage = '';
         for (const message of validate) {
-          growlMessage += message + '<br>';
+          growlMessage +=  message + '\n \n';
         }
         this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage);
         this.messagingService.stopSpinnerDialog('AUDIENCETA');
