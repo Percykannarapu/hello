@@ -26,6 +26,7 @@ export interface AudienceTradeAreaConfig {
   weight: number;
   locations: Array<AudienceTradeareaLocation>;
   includeMustCover: boolean;
+  audienceName?: string;
 }
 
 export interface AudienceTradeareaLocation {

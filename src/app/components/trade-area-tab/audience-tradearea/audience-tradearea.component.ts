@@ -69,6 +69,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
     this.configForm.patchValue({
       minRadius: config.minRadius,
       maxRadius: config.maxRadius,
+      audience: config.audienceName,
       weight: config.weight,
       scoreType: config.scoreType,
       includeMustCover: config.includeMustCover

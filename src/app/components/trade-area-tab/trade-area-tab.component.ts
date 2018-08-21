@@ -155,7 +155,8 @@ export class TradeAreaTabComponent implements OnInit {
       minRadius: form.minRadius,
       scoreType: form.scoreType,
       weight: form.weight,
-      includeMustCover: form.includeMustCover
+      includeMustCover: form.includeMustCover,
+      audienceName: form.audience
     };
     this.audienceTradeareaService.updateAudienceTAConfig(audienceTAConfig);
   }
