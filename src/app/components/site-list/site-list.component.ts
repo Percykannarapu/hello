@@ -254,6 +254,7 @@ export class SiteListComponent implements OnInit {
 
       let fgId = 0;
       const siteGridData: FlatSite[] = [];
+      let attributeCols: any[] = [];
 
       locs.forEach(loc => {
          //const gridSite: FlatSite = new Object() as FlatSite;
@@ -266,20 +267,24 @@ export class SiteListComponent implements OnInit {
             gridSite[col.field] = resolveFieldData(loc, col.field);
          });
       
-         console.log("createComposite - adding loc: " + loc.locationName);
+         //console.log("createComposite - adding loc: " + loc.locationName);
          loc.impGeofootprintLocAttribs.forEach(attribute => {
-            console.log("createComposite attribute:", attribute);
+            //console.log("createComposite attribute:", attribute);
             gridSite[attribute.attributeCode] = attribute.attributeValue;
 
             let column={'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
-            this.flatSiteGridColumns.push(column);
-            this.columnOptions.push({ label: column.header, value: column });
-            this.selectedColumns.push(column);
-   
-//            [{field: 'locationNumber',       header: 'Number',           width: '5em',   styleClass: ''},         
+
+            // If the column isn't already in the list, add it
+            if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
+            {
+               attributeCols.push(column);
+               this.flatSiteGridColumns.push(column);
+               this.columnOptions.push({ label: column.header, value: column });
+               this.selectedColumns.push(column);
+            }
          });
 
-         console.log("gridSite: ", gridSite);
+         //console.log("gridSite: ", gridSite);
          siteGridData.push(gridSite);
       });
 
