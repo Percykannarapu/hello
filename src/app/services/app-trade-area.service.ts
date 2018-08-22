@@ -215,16 +215,22 @@ export class AppTradeAreaService {
   private drawTradeAreas(siteType: SuccessfulLocationTypeCodes, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
+    const radii = currentTradeAreas.map(ta => ta.taRadius);
     if (mergeType !== TradeAreaMergeTypeCodes.MergeAll) {
       // all circles will be drawn
       drawnTradeAreas.push(...currentTradeAreas);
     } else {
       // only the largest circle will be drawn
-      const radii = currentTradeAreas.map(ta => ta.taRadius);
       const maxRadius = Math.max(...radii);
       drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
     }
     console.log(`Drawing ${siteType} trade areas`, drawnTradeAreas);
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
+    const taValues: any[] = [];
+    radii.forEach(radius => {
+      taValues.push({radius: radius , selected: true });
+        //this.currentDefaults.set(siteType, {radius: 4 , selected: true });
+    });
+    this.currentDefaults.set(siteType, taValues);
   }
 }
