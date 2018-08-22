@@ -261,17 +261,26 @@ export class SiteListComponent implements OnInit {
          gridSite.fgId = fgId++;
          gridSite.loc = loc;
 
-         // Grid doesn't work will with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
+         // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatSiteGridColumns.forEach(col => {
             gridSite[col.field] = resolveFieldData(loc, col.field);
          });
       
          console.log("createComposite - adding loc: " + loc.locationName);
          loc.impGeofootprintLocAttribs.forEach(attribute => {
+            console.log("createComposite attribute:", attribute);
             gridSite[attribute.attributeCode] = attribute.attributeValue;
+
+            let column={'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
+            this.flatSiteGridColumns.push(column);
+            this.columnOptions.push({ label: column.header, value: column });
+            this.selectedColumns.push(column);
+   
+//            [{field: 'locationNumber',       header: 'Number',           width: '5em',   styleClass: ''},         
          });
 
-        siteGridData.push(gridSite);
+         console.log("gridSite: ", gridSite);
+         siteGridData.push(gridSite);
       });
 
       console.log("createComposite - returning siteGridData: ", siteGridData);

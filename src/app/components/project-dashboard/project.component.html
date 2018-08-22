@@ -59,12 +59,12 @@
                                  </div>
                                  <div class="ui-g-2">
                                     <span class="md-inputfield">
-                                     <input #filter id="filter" type="text" (blur)="onSearch($event.target.value, currentProjectData.length)" pInputText size="30" style="color: rgba(255, 255, 255, 0.315);">
+                                     <input #filter id="filter" type="text" (blur)="onSearch($event.target.value, (currentProjectData != null) ? currentProjectData.length : 0)" pInputText size="30" style="color: rgba(255, 255, 255, 0.315);">
                                      <label for="filter" style="color: white;">Search Projects</label>
                                     </span>
                                   </div>
                                   <div class="ui-g-7">
-                                          <label style="text-align: center;" tooltipPosition="top">Projects: {{currentProjectData.length}}</label>
+                                          <label style="text-align: center;" tooltipPosition="top">Projects: {{(currentProjectData != null) ? currentProjectData.length : 0}}</label>
                                   </div>
                                   <div class="ui-g-2" style="float:right; color: white;" [style]="{'width':'25px'}">
                                           <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>

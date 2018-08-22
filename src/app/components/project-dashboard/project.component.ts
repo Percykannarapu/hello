@@ -382,7 +382,7 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
     private searchFilterMetric(){
       const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
-      this.usageService.createCounterMetric(usageMetricName, metricText, this.currentProjectData.length);
+      this.usageService.createCounterMetric(usageMetricName, metricText, (this.currentProjectData != null) ? this.currentProjectData.length : 0);
     }
 
     private close(){
