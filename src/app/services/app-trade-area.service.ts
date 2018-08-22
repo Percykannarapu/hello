@@ -226,10 +226,10 @@ export class AppTradeAreaService {
     }
     console.log(`Drawing ${siteType} trade areas`, drawnTradeAreas);
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
+    // reset the defaults that get applied to new locations
     const taValues: any[] = [];
     radii.forEach(radius => {
       taValues.push({radius: radius , selected: true });
-        //this.currentDefaults.set(siteType, {radius: 4 , selected: true });
     });
     this.currentDefaults.set(siteType, taValues);
   }
