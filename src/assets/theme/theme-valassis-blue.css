@@ -28128,7 +28128,7 @@ body {
       position: relative; }
       body .ui-multiselect-panel.ui-widget .ui-multiselect-header .ui-chkbox {
         float: none;
-        margin: 0 .5em 0 -.125em;
+        margin: 0 .5em 0 -.3em;
         position: static; }
         body .ui-multiselect-panel.ui-widget .ui-multiselect-header .ui-chkbox .ui-chkbox-box {
           border-color: #ffffff; }
@@ -28183,8 +28183,8 @@ body {
           -webkit-transition: background-color 0.3s;
           transition: background-color 0.3s; }
     body .ui-multiselect-panel.ui-widget .ui-multiselect-item {
-      font-size: 1em;
-      padding: 0.625em 0.875em;
+      font-size: 0.70em;
+      padding: 0.08em 0.875em;
       color: #212121;
       -moz-border-radius: 0;
       -webkit-border-radius: 0;
