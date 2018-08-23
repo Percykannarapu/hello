@@ -104,6 +104,8 @@
                   <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueOrigState$ | async"      defaultLabel="All" [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
                   <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
              <!-- <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC"    defaultLabel="All Matches"  [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'equals');"></p-dropdown> -->
+
+                  <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                </th>
             </tr>            
          </ng-template>
