@@ -86,13 +86,14 @@ export class FileService {
         }
       }
     }
-    if (!parser.fileValidator(result.parsedData)) {
+    if (!parser.fileValidator(result.parsedData)) { 
+      // for ( let i = 0 ; i < dataRows.length; i++) 
+      //     result.failedRows.push(dataRows[i]);
+      // result.failedRows.push(null);
       return null;
-    } else {
+    } 
       return result;
-    }
   }
-
   private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {
     const delimiter = parser.columnDelimiter;
     const columnParsers = Array.from(parser.columnParsers);

@@ -75,6 +75,10 @@ export class SiteListComponent implements OnInit {
     {field: 'origPostalCode',       header: 'Original Zip',     width: '8em',   styleClass: ''},
     {field: 'Latitude (Optional)',  header: 'Latitude',         width: '6em',   styleClass: 'val-text-right'},
     {field: 'Longitude (Optional)', header: 'Longitude',        width: '6em',   styleClass: 'val-text-right'},
+    {field: 'radius1',              header: 'RADIUS1',          width: '7em',   styleClass: ''},
+    {field: 'radius2',              header: 'RADIUS2',          width: '7em',   styleClass: ''},
+    {field: 'radius3',              header: 'RADIUS3',          width: '7em',   styleClass: ''},
+
    ];
 
    public selectedColumns: any[] = [];

@@ -190,7 +190,7 @@ export class AppTradeAreaService {
     );
   }
 
-  private applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
+  public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     locations.forEach(location => {
       if (tradeAreas != null && tradeAreas.length > 0)
