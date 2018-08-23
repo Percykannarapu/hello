@@ -34,5 +34,37 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     }
     if ((!cityFound || !stateFound) && !zipFound) throw new Error('Either a Postal Code or City + State columns must be present in the file.');
     return true;
+  },
+  fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
+    let hasBlank: boolean = false;
+    let numValues: number = 0;
+    let result: boolean = true;
+    const errorMessage: string = 'Failed';
+
+    try {
+      allData.forEach(geo => {
+        if ((geo['RADIUS1'] === '0' || geo['RADIUS1'] == null || geo['RADIUS1'] === '') || 
+              (geo['RADIUS2'] === '0' || geo['RADIUS2'] == null || geo['RADIUS2'] === '') ||
+                (geo['RADIUS3'] === '0' || geo['RADIUS3'] == null || geo['RADIUS3'] === '')) {
+              hasBlank = true;
+        } 
+        else {
+          numValues++;
+        }
+        if (hasBlank && numValues > 0) {
+          result = false;
+          throw new Error(errorMessage);
+        }
+      });
+    }
+    catch (e) {
+      if ((<Error>e).message === errorMessage) {
+        console.error('Upload failed because there was a Blank or ZERO Radius');
+        result = false;
+      } else {
+        throw new Error(e);
+      }
+    }
+    return result;
   }
 };

@@ -145,17 +145,43 @@ export class AppLocationService {
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
-
     data.forEach(l =>
-      { if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
+      { 
+        if (l.locationNumber == null || l.locationNumber.length === 0 ) {
+        l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
         l.impGeofootprintMaster = currentMaster;
+      }
+       if (l.impGeofootprintLocAttribs.length !== 0){
+        const ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
+        const ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
+        const ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
+        const tradeAreas: any[] = [];
+        if (ta1.length !== 0){
+          const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true }; 
+          tradeAreas.push(tradeArea1);
+        }
+        if (ta2.length !== 0){
+          const tradeArea2 =  {radius: Number(ta2[0].attributeValue), selected: true };
+          tradeAreas.push(tradeArea2);
+        }
+        if (ta3.length !== 0){
+        const tradeArea3 = {radius: Number(ta3[0].attributeValue), selected: true };
+        tradeAreas.push(tradeArea3);
+        }
+        const locs: any[] = [];
+        locs.push(l);
+        console.log('locs:::', locs);
+        this.appTradeAreaService.applyRadiusTradeAreasToLocations(tradeAreas, locs);
+       } 
       });
+    
     data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+
   }
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {

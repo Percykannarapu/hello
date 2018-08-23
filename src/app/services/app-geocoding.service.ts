@@ -32,18 +32,24 @@ export class AppGeocodingService {
     let result = [];
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
+     if (data == null ){
+      this.messageService.showErrorNotification('Site List Upload Error', `Please define radii values for all ${siteType}s .`);
+     } else {
       if (data.failedRows.length > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.messageService.showErrorNotification('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
-      }
-      if (data.duplicateKeys.length > 0) {
-        const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
-        const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
-        this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
       } else {
-        result = data.parsedData.map(d => new ValGeocodingRequest(d));
-        this.duplicateKeyMap.get(siteType).push(...result.map(r => r.number));
+        if (data.duplicateKeys.length > 0) {
+          const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
+          const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
+          this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
+        } else {
+          result = data.parsedData.map(d => new ValGeocodingRequest(d));
+          this.duplicateKeyMap.get(siteType).push(...result.map(r => r.number));
+        }
       }
+    }
+     
     } catch (e) {
       this.messageService.showErrorNotification('Geocoding Error', `${e}`);
     }
