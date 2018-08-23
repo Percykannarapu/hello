@@ -43,7 +43,9 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
 
     try {
       allData.forEach(geo => {
-        if (geo['RADIUS1'] === '0' || geo['RADIUS1'] == null || geo['RADIUS1'] === '') {
+        if ((geo['RADIUS1'] === '0' || geo['RADIUS1'] == null || geo['RADIUS1'] === '') || 
+              (geo['RADIUS2'] === '0' || geo['RADIUS2'] == null || geo['RADIUS2'] === '') ||
+                (geo['RADIUS3'] === '0' || geo['RADIUS3'] == null || geo['RADIUS3'] === '')) {
               hasBlank = true;
         } 
         else {
