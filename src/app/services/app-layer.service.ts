@@ -105,7 +105,11 @@ export class AppLayerService {
     const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
     const pointMap: Map<number, __esri.Point[]> = groupBy(tradeAreas, 'taRadius', ta => {
       const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-      return new EsriModules.Point({ spatialReference: { wkid: this.appConfig.val_spatialReference }, x, y });
+      const point = new EsriModules.Point({ spatialReference: { wkid: this.appConfig.val_spatialReference }, x, y });
+      if (ta.taName != null) {
+        point['taName'] = ta.taName;
+      }
+      return point;
     });
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriModules.Color(colorVal);
@@ -134,9 +138,18 @@ export class AppLayerService {
           });
         });
         const groupName = `${siteType}s`;
-        const layerName = `${siteType} - ${radius} Mile Trade Area`;
-        this.layerService.removeLayer(layerName);
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+        let layerName = `${siteType} - ${radius} Mile Trade Area`;
+        if (points[0]['taName'] != null) {
+          const taName = points[0]['taName'];
+          layerName = `${siteType} - ${taName}`;
+        }
+        if (!this.layerService.layerExists(layerName)) {
+          this.layerService.removeLayer(layerName);
+          this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+        } else {
+          this.layerService.addGraphicsToLayer(layerName, graphics);
+        }
+        
       });
     });
   }
