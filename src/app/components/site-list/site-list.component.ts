@@ -1,9 +1,10 @@
+import { ImpGeofootprintLocAttrib } from './../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { map } from 'rxjs/operators';
+import { map, debounceTime } from 'rxjs/operators';
 import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -37,9 +38,14 @@ export class SiteListComponent implements OnInit {
    public allSiteCount$: Observable<number>;
    public activeSiteCount$: Observable<number>;
 
+   public currentAllAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
+   public currentActiveAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
+
    // Observables for flattened rows of locations and attributes
    public flatAllSites$: Observable<FlatSite[]>;
    public flatActiveSites$: Observable<FlatSite[]>;
+
+//   public flatAllAttribSites$: Observable<FlatSite[]>;
 
    // Observables for unique values to filter on in the grid
    public uniqueCity$: Observable<SelectItem[]>;
@@ -55,26 +61,33 @@ export class SiteListComponent implements OnInit {
    public columnOptions: SelectItem[] = [];
 
    public flatSiteGridColumns: any[] =
-   [{field: 'locationNumber',       header: 'Number',           width: '5em',   styleClass: ''},
-    {field: 'locationName',         header: 'Name',             width: '20em',  styleClass: '', filterMatchMode: 'contains'},
-    {field: 'locAddress',           header: 'Address',          width: '20em',  styleClass: ''},
-    {field: 'locCity',              header: 'City',             width: '10em',  styleClass: ''},
-    {field: 'locState',             header: 'State',            width: '4em',   styleClass: 'val-text-center'},
-    {field: 'locZip',               header: 'ZIP',              width: '8em',   styleClass: ''},
-    {field: 'marketName',           header: 'Market',           width: '8em',   styleClass: ''},
-    {field: 'marketCode',           header: 'Market Code',      width: '7em',   styleClass: ''},
-    {field: 'groupName',            header: 'Group',            width: '8em',   styleClass: ''},
-    {field: 'recordStatusCode',     header: 'Geocode Status',   width: '9em',   styleClass: 'val-text-center'},
-    {field: 'ycoord',               header: 'Latitude',         width: '6em',   styleClass: 'val-text-right'},
-    {field: 'xcoord',               header: 'Longitude',        width: '6em',   styleClass: 'val-text-right'},
-    {field: 'geocoderMatchCode',    header: 'Match Code',       width: '7em',   styleClass: 'val-text-center'},
-    {field: 'geocoderLocationCode', header: 'Match Quality',    width: '8em',   styleClass: 'val-text-center'},
-    {field: 'origAddress1',         header: 'Original Address', width: '20em',  styleClass: ''},
-    {field: 'origCity',             header: 'Original City',    width: '10em',  styleClass: ''},
-    {field: 'origState',            header: 'Original State',   width: '5em',   styleClass: 'val-text-center'},
-    {field: 'origPostalCode',       header: 'Original Zip',     width: '8em',   styleClass: ''},
-    {field: 'Latitude (Optional)',  header: 'Latitude',         width: '6em',   styleClass: 'val-text-right'},
-    {field: 'Longitude (Optional)', header: 'Longitude',        width: '6em',   styleClass: 'val-text-right'},
+   [{field: 'locationNumber',       header: 'Number',            width: '5em',   styleClass: ''},
+    {field: 'locationName',         header: 'Name',              width: '20em',  styleClass: '', filterMatchMode: 'contains'},
+    {field: 'locAddress',           header: 'Address',           width: '20em',  styleClass: ''},
+    {field: 'locCity',              header: 'City',              width: '10em',  styleClass: ''},
+    {field: 'locState',             header: 'State',             width: '4em',   styleClass: 'val-text-center'},
+    {field: 'locZip',               header: 'ZIP',               width: '8em',   styleClass: ''},
+    {field: 'marketName',           header: 'Market',            width: '8em',   styleClass: ''},
+    {field: 'marketCode',           header: 'Market Code',       width: '7em',   styleClass: ''},
+    {field: 'description',          header: 'Description',       width: '10em',  styleClass: ''},
+    {field: 'groupName',            header: 'Group',             width: '8em',   styleClass: ''},
+    {field: 'radius1',              header: 'Radius 1',          width: '6em',   styleClass: 'val-text-right'},
+    {field: 'radius2',              header: 'Radius 2',          width: '6em',   styleClass: 'val-text-right'},
+    {field: 'radius3',              header: 'Radius 3',          width: '6em',   styleClass: 'val-text-right'},
+    {field: 'ycoord',               header: 'Latitude',          width: '6em',   styleClass: 'val-text-right'},
+    {field: 'xcoord',               header: 'Longitude',         width: '6em',   styleClass: 'val-text-right'},
+    {field: 'recordStatusCode',     header: 'Geocode Status',    width: '9em',   styleClass: 'val-text-center'},
+    {field: 'homeGeocodeIssue',     header: 'Home Geocode Issue',width: '20em',  styleClass: ''},
+    {field: 'Home ZIP',             header: 'Home ZIP',          width: '6em',   styleClass: ''},
+    {field: 'Home ATZ',             header: 'Home ATZ',          width: '6em',   styleClass: ''},
+    {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '6em',   styleClass: ''},
+    {field: 'Home PCR',             header: 'Home PCR',          width: '6em',   styleClass: ''},
+    {field: 'geocoderMatchCode',    header: 'Match Code',        width: '7em',   styleClass: 'val-text-center'},
+    {field: 'geocoderLocationCode', header: 'Location Code',     width: '8em',   styleClass: 'val-text-center'},
+    {field: 'origAddress1',         header: 'Original Address',  width: '20em',  styleClass: ''},
+    {field: 'origCity',             header: 'Original City',     width: '10em',  styleClass: ''},
+    {field: 'origState',            header: 'Original State',    width: '5em',   styleClass: 'val-text-center'},
+    {field: 'origPostalCode',       header: 'Original Zip',      width: '8em',   styleClass: ''},
    ];
 
    public selectedColumns: any[] = [];
@@ -113,6 +126,8 @@ export class SiteListComponent implements OnInit {
       // Rollup attributes into flat location lines
       this.flatAllSites$ = this.currentAllSites$.pipe(map(locs => this.createComposite(locs)));
       this.flatActiveSites$ = this.flatAllSites$.pipe(filterArray(flatLoc => flatLoc.loc.isActive === true));
+
+// this.flatAllAttribSites$ = this.attributeService.storeObservable.pipe(map(attribs => this.createCompositeFromAttribs(attribs)));
 
       // Create an observable for unique cities (By hand method)
       this.uniqueCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
@@ -249,8 +264,10 @@ export class SiteListComponent implements OnInit {
    {
       const UnselLocCount: number = locs.filter(loc => loc.isActive === false).length;
       console.log("-".padEnd(80, "-"));
-      console.log('createComposite: locs: ', (locs != null) ? locs.length : null, ', Unselected Geos', UnselLocCount/*, ', attributes: ', (locAttributes != null) ? locAttributes.length : null*/);
+      console.log('createComposite: locs: ', (locs != null) ? locs.length : null, ', Unselected Locs', UnselLocCount/*, ', attributes: ', (locAttributes != null) ? locAttributes.length : null*/);
       console.log("-".padEnd(80, "-"));
+      // This shows that at the time this fires, the new "Home" location attributes are not on the location
+      //console.log("locs", locs.toString());
 
       let fgId = 0;
       const siteGridData: FlatSite[] = [];
@@ -269,7 +286,7 @@ export class SiteListComponent implements OnInit {
       
          //console.log("createComposite - adding loc: " + loc.locationName);
          loc.impGeofootprintLocAttribs.forEach(attribute => {
-            //console.log("createComposite attribute:", attribute);
+            console.log("createComposite attribute:", attribute);
             gridSite[attribute.attributeCode] = attribute.attributeValue;
 
             let column={'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
@@ -292,6 +309,21 @@ export class SiteListComponent implements OnInit {
       console.log("-".padEnd(80, "-"));
       return siteGridData;
    }
+
+   // createCompositeFromAttribs (attribs: ImpGeofootprintLocAttrib[]) : FlatSite[]
+   // {
+   //    console.log("-------------------------------------------------------------------------");
+   //    console.log("createCompositeFromAttribs - fired")
+   //    console.log("-------------------------------------------------------------------------");
+   //    let flatSites: FlatSite[] = [];
+
+   //    attribs.forEach(attrib => {
+   //       console.log("createCompositeFromAttribs - attribute:", attrib);
+   //    });
+   //    console.log("-------------------------------------------------------------------------");
+
+   //    return flatSites;
+   // }
 
    // Disabling dismissable events until we can get access to change detection in sub panels
    onSetDismissable(dismissable: boolean)

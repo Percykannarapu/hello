@@ -77,7 +77,22 @@
                <th style="width:  4em; background: #b3d4ed"></th>
                <th style="width:  4em; background: #b3d4ed"></th>
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
-                  <input *ngSwitchCase="'locationName'" pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'locationNumber'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'locationName'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'locAddress'"        pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'locZip'"            pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'description'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'groupName'"         pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'radius1'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'radius2'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'radius3'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'homeGeocodeIssue'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'Home ZIP'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'Home ATZ'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'Home Digital ATZ'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'Home PCR'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'origAddress1'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'origPostalCode'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
 
                   <p-multiSelect *ngSwitchCase="'locState'"             appendTo="body" [options]="uniqueState$ | async"          defaultLabel="All" [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
                   <p-multiSelect *ngSwitchCase="'locCity'"              appendTo="body" [options]="uniqueCity$ | async"           defaultLabel="All" [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
