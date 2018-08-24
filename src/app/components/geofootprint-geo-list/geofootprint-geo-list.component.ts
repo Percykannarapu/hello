@@ -571,6 +571,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
         if (audience.audienceSourceType === 'Online') {
           if (audience.audienceSourceName === 'Interest') {
             this.variableColOrder.set(audience.audienceName + ' (Interest)', audience.audienceCounter);    
+          } else if (audience.audienceSourceName === 'VLH') { 
+            this.variableColOrder.set(audience.audienceName + ' (VLH)', audience.audienceCounter);
+          } else if (audience.audienceSourceName === 'Pixel') { 
+            this.variableColOrder.set(audience.audienceName + ' (Pixel)', audience.audienceCounter);
           } else {
             this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);    
           }
