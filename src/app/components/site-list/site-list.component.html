@@ -19,6 +19,7 @@
                [selection]="flatActiveSites$ | async"
                [resizableColumns]="true" columnResizeMode="expand"
                [reorderableColumns]="true"
+               sortMode="multiple"
                scrollable="true" scrollWidth="100%"
                [paginator]="true" [rows]="10"
                (onRowUnselect)="onRowSelect($event, false)"
@@ -68,8 +69,9 @@
                <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
                <th style="width: 4em">Zoom</th>
                <th style="width: 4em">Delete</th>
-               <th *ngFor="let col of selectedColumns" [class]="col.styleClass" pResizableColumn  pReorderableColumn>
+               <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
                   {{col.header}}
+                  <p-sortIcon [field]="col.field"></p-sortIcon>
                </th>
             </tr>
             <tr style="background: #b3d4ed">
@@ -105,7 +107,7 @@
                   <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
              <!-- <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC"    defaultLabel="All Matches"  [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'equals');"></p-dropdown> -->
 
-                  <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, 'contains')">
                </th>
             </tr>            
          </ng-template>

@@ -27475,6 +27475,7 @@ body {
     border-style: solid;
     -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
+       margin-bottom: 6px;
     border-radius: 0px; }
     body .ui-inputtext:focus, body .ui-inputtext.ui-state-focus {
       border-width: 0 0 2px 0;
@@ -29344,13 +29345,15 @@ body .ui-table .ui-sortable-column {
   body .ui-table .ui-sortable-column a, body .ui-table .ui-sortable-column a:hover {
     color: #757575; }
   body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover {
-    background-color: #e8e8e8;
+    background-color: #5b99c9;
+    border-top-color: #000000;
+    border-bottom-color: #000000;
     color: #000000; }
     body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover a, body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover a:hover {
-      background-color: #e8e8e8;
+      background-color: #5b99c9;
       color: #000000; }
   body .ui-table .ui-sortable-column.ui-state-highlight {
-    background-color: #E5F4FF;
+    background-color: #b3d4ed;
     color: #212121;
     border-top-color: #E5F4FF; }
     body .ui-table .ui-sortable-column.ui-state-highlight a, body .ui-table .ui-sortable-column.ui-state-highlight a:hover {

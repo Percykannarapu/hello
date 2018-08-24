@@ -1,10 +1,11 @@
+import { layerGeometryType } from './../../esri-modules/layers/esri-layer.service';
 import { ImpGeofootprintLocAttrib } from './../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
-import { Observable, combineLatest } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { map, debounceTime } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -61,33 +62,33 @@ export class SiteListComponent implements OnInit {
    public columnOptions: SelectItem[] = [];
 
    public flatSiteGridColumns: any[] =
-   [{field: 'locationNumber',       header: 'Number',            width: '5em',   styleClass: ''},
-    {field: 'locationName',         header: 'Name',              width: '20em',  styleClass: '', filterMatchMode: 'contains'},
-    {field: 'locAddress',           header: 'Address',           width: '20em',  styleClass: ''},
-    {field: 'locCity',              header: 'City',              width: '10em',  styleClass: ''},
-    {field: 'locState',             header: 'State',             width: '4em',   styleClass: 'val-text-center'},
-    {field: 'locZip',               header: 'ZIP',               width: '7em',   styleClass: ''},
-    {field: 'marketName',           header: 'Market',            width: '8em',   styleClass: ''},
-    {field: 'marketCode',           header: 'Market Code',       width: '7em',   styleClass: ''},
-    {field: 'description',          header: 'Description',       width: '10em',  styleClass: ''},
-    {field: 'groupName',            header: 'Group',             width: '8em',   styleClass: ''},
-    {field: 'radius1',              header: 'Radius 1',          width: '7em',   styleClass: 'val-text-right'},
-    {field: 'radius2',              header: 'Radius 2',          width: '7em',   styleClass: 'val-text-right'},
-    {field: 'radius3',              header: 'Radius 3',          width: '7em',   styleClass: 'val-text-right'},
-    {field: 'ycoord',               header: 'Latitude',          width: '6em',   styleClass: 'val-text-right'},
-    {field: 'xcoord',               header: 'Longitude',         width: '6em',   styleClass: 'val-text-right'},
-    {field: 'recordStatusCode',     header: 'Geocode Status',    width: '9em',   styleClass: 'val-text-center'},
-    {field: 'homeGeocodeIssue',     header: 'Home Geocode Issue',width: '20em',  styleClass: ''},
-    {field: 'Home ZIP',             header: 'Home ZIP',          width: '7em',   styleClass: ''},
-    {field: 'Home ATZ',             header: 'Home ATZ',          width: '7em',   styleClass: ''},
-    {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '7em',   styleClass: ''},
-    {field: 'Home PCR',             header: 'Home PCR',          width: '7em',   styleClass: ''},
-    {field: 'geocoderMatchCode',    header: 'Match Code',        width: '5em',   styleClass: 'val-text-center'},
-    {field: 'geocoderLocationCode', header: 'Location Code',     width: '5em',   styleClass: 'val-text-center'},
-    {field: 'origAddress1',         header: 'Original Address',  width: '20em',  styleClass: ''},
-    {field: 'origCity',             header: 'Original City',     width: '10em',  styleClass: ''},
-    {field: 'origState',            header: 'Original State',    width: '5em',   styleClass: 'val-text-center'},
-    {field: 'origPostalCode',       header: 'Original ZIP',      width: '7em',   styleClass: ''},
+   [{field: 'locationNumber',       header: 'Number',            width: '7em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locationName',         header: 'Name',              width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locAddress',           header: 'Address',           width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locCity',              header: 'City',              width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locState',             header: 'State',             width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'locZip',               header: 'ZIP',               width: '7em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'marketName',           header: 'Market',            width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'marketCode',           header: 'Market Code',       width: '9em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'description',          header: 'Description',       width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'groupName',            header: 'Group',             width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'radius1',              header: 'Radius 1',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'radius2',              header: 'Radius 2',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'radius3',              header: 'Radius 3',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'ycoord',               header: 'Latitude',          width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'xcoord',               header: 'Longitude',         width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'recordStatusCode',     header: 'Geocode Status',    width: '10em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'homeGeocodeIssue',     header: 'Home Geocode Issue',width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home ZIP',             header: 'Home ZIP',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home ATZ',             header: 'Home ATZ',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '11em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home PCR',             header: 'Home PCR',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'geocoderMatchCode',    header: 'Match Code',        width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'geocoderLocationCode', header: 'Location Code',     width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'origAddress1',         header: 'Original Address',  width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'origCity',             header: 'Original City',     width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'origState',            header: 'Original State',    width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'origPostalCode',       header: 'Original ZIP',      width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
    ];
 
    public selectedColumns: any[] = [];
@@ -97,7 +98,7 @@ export class SiteListComponent implements OnInit {
                private attributeService: ImpGeofootprintLocAttribService,
                private confirmationService: ConfirmationService,
                private tradeAreaService: ImpGeofootprintTradeAreaService,
-               private geoService:  ImpGeofootprintGeoService,
+               private geoService: ImpGeofootprintGeoService,
                private geoAttributeService: ImpGeofootprintGeoAttribService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
@@ -274,16 +275,15 @@ export class SiteListComponent implements OnInit {
       let attributeCols: any[] = [];
 
       locs.forEach(loc => {
-         //const gridSite: FlatSite = new Object() as FlatSite;
          let gridSite: FlatSite = new FlatSite();
          gridSite.fgId = fgId++;
          gridSite.loc = loc;
 
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatSiteGridColumns.forEach(col => {
-            gridSite[col.field] = resolveFieldData(loc, col.field);
+           gridSite[col.field] = resolveFieldData(loc, col.field) || "";
          });
-      
+         
          //console.log("createComposite - adding loc: " + loc.locationName);
          loc.impGeofootprintLocAttribs.forEach(attribute => {
             console.log("createComposite attribute:", attribute);
