@@ -140,8 +140,16 @@ export class AppLayerService {
         const groupName = `${siteType}s`;
         let layerName = `${siteType} - ${radius} Mile Trade Area`;
         if (points[0]['taName'] != null) {
-          const taName = points[0]['taName'];
-          layerName = `${siteType} - ${taName}`;
+            if (points[0]['taName'] === 'Site Radius 1'){
+              const taName = 'Trade Area 1';
+              layerName = `${siteType} - ${taName}`;
+            } else if (points[0]['taName'] === 'Site Radius 2'){
+              const taName = 'Trade Area 2';
+              layerName = `${siteType} - ${taName}`;
+            } else if (points[0]['taName'] === 'Site Radius 3') {
+              const taName = 'Trade Area 3';
+              layerName = `${siteType} - ${taName}`;
+            }
         }
         if (!this.layerService.layerExists(layerName)) {
           this.layerService.removeLayer(layerName);

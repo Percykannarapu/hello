@@ -33,7 +33,7 @@ export class AppGeocodingService {
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
      if (data == null ){
-      this.messageService.showErrorNotification('Site List Upload Error', `Please define radii values for all ${siteType}s .`);
+      this.messageService.showErrorNotification('Site List Upload Error', `Please define radii values >0 and <= 50 for all ${siteType}s.`);
      } else {
       if (data.failedRows.length > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);

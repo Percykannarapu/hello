@@ -1,11 +1,4 @@
 
-/** A temporary service to manage the ImpDiscoveryUI model data
- **
- ** This class contains code operates against data in its data store.
- ** See the contents of val-modules/common/services/datastore.service.ts to see built in
- ** methods that all data services have.
- **
- **/
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -16,6 +9,7 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
 import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { filterByFields, mapBy } from '../val-modules/common/common.utils';
+import { mapArray } from '../val-modules/common/common.rxjs';
 import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
 
@@ -108,14 +102,13 @@ export class AppDiscoveryService {
         this.selectRadProduct(project);
       });
     } else {
-        if (project.radProduct == null && project.industryCategoryCode == null) {
-            this.selectedRadLookup.next(null);
-        }
-        else {
-          const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
-          if (radItem != null) this.selectedRadLookup.next(radItem);
-        }
+      if (project.radProduct == null && project.industryCategoryCode == null) {
+          this.selectedRadLookup.next(null);
+      } else {
+        const radItem = this.radCache.filter(rad => rad.product === project.radProduct && rad['Category Code'] === project.industryCategoryCode)[0];
+        if (radItem != null) this.selectedRadLookup.next(radItem);
       }
+    }
   }
 
   private selectProjectTracker(project: ImpProject) {
@@ -153,31 +146,33 @@ export class AppDiscoveryService {
   }
 
   private getRadData() : Observable<RadLookupUIModel[]> {
+    const localCache: RadLookupUIModel[] = [];
     const result = this.impRadService.storeObservable.pipe(
       filter(data => data != null && data.length > 0),
       take(1),
-      map(data => data.map(rad => new RadLookupUIModel(rad))),
+      mapArray(radItem => new RadLookupUIModel(radItem)),
       tap(
         data => {
           data.forEach(d => d['Category Code'] = this.radCategoryCodeByName.get(d.category));
-          this.radCache.push(...data);
+          localCache.push(...data);
         },
         err => {
           this.logger.error('There was an error retrieving the Rad Data Cache', err);
           this.radCacheRetrieved = true;
         },
         () => {
+          this.sortRadCache(localCache);
+          this.radCache = localCache;
           this.radCacheRetrieved = true;
-          this.sortRadCache();
         })
     );
     this.impRadService.get(true);
     return result;
   }
 
-  private sortRadCache() : void {
+  private sortRadCache(data: RadLookupUIModel[]) : void {
     const excludeSet = new Set(['reminder', 'research', 'ritual']);
-    this.radCache.sort((a, b) => {
+    data.sort((a, b) => {
       const result = a.category.localeCompare(b.category, undefined, {});
       const aExcluded = excludeSet.has(a.category.toLowerCase());
       const bExcluded = excludeSet.has(b.category.toLowerCase());
