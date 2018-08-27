@@ -285,6 +285,11 @@ export class AppMenuComponent implements OnInit {
     }
     public getGeofootprintAll() {
         const impProject = this.appStateService.currentProject$.getValue();
+        if (impProject.projectId == null || impProject.projectTrackerId == null)
+        { this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
+        }
+        else
+        {
         const impAnalysis = impProject.methAnalysis;
         this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impAnalysis, impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, impAnalysis);
         // update the metric count when export geos
@@ -302,13 +307,17 @@ export class AppMenuComponent implements OnInit {
         this.usageService.creategaugeMetrics(counterMetricsColorBox);
         //this.usageService.createCounterMetrics(counterMetricsDiscover);
         //this.usageService.createCounterMetrics(counterMetricsColorBox);
-
-
+        }
     }
     public getGeofootprintSelected() {
         const impProject = this.appStateService.currentProject$.getValue();
         const impProjectId = impProject.projectId;
-        const analysisLevel = this.appStateService.analysisLevel$.getValue();
+        if (impProject.projectId == null || impProject.projectTrackerId == null)
+        { this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
+        }
+        else
+        {
+         const analysisLevel = this.appStateService.analysisLevel$.getValue();
         this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(analysisLevel, impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, analysisLevel, geo => geo.isActive === true);
         // update the metric count when export geos
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
@@ -325,7 +334,7 @@ export class AppMenuComponent implements OnInit {
         this.usageService.creategaugeMetrics(counterMetricsColorBox);
         //this.usageService.createCounterMetrics(counterMetricsDiscover);
         //this.usageService.createCounterMetrics(counterMetricsColorBox);
-
+        }
 
     }
 
@@ -376,7 +385,6 @@ export class AppMenuComponent implements OnInit {
                         this.messageService.showErrorNotification('Error Saving Project', errorString);
                         return;
                     }
-                   
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
