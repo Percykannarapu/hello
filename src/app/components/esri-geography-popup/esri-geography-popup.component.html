@@ -7,8 +7,11 @@
         <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
         {{rowData.name}}
       </td>
-      <td class="val-custom-cell">
+      <td *ngIf="!rowData.isNumber" class="val-custom-cell">
         {{rowData.value}}
+      </td>
+      <td *ngIf="rowData.isNumber" class="val-custom-cell">
+        {{rowData.value | number: rowData.digitsInfo}}
       </td>
     </tr>
   </ng-template>

@@ -42,17 +42,24 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
     return attributes.map(field => ({
       data: {
         name: field.label,
-        value: this.attributes[field.fieldName]
+        value: this.attributes[field.fieldName],
+        isNumber: !Number.isNaN(Number(this.attributes[field.fieldName])),
+        digitsInfo: '1.0-2'
       },
       leaf: true
     }));
   }
 
   private buildVarNode(geoVar: ImpGeofootprintVar) : TreeNode {
+    const fieldType = (geoVar.fieldconte || '').toUpperCase();
+    const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
+    const digitsInfo = `1.${digits}-${digits}`;
     return {
       data: {
         name: geoVar.customVarExprDisplay,
-        value: geoVar.isNumber ? geoVar.valueNumber : geoVar.valueString
+        value: geoVar.isNumber ? geoVar.valueNumber : geoVar.valueString,
+        isNumber: geoVar.isNumber,
+        digitsInfo: digitsInfo
       },
       leaf: true
     };
