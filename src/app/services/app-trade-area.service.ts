@@ -228,8 +228,12 @@ export class AppTradeAreaService {
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
     // reset the defaults that get applied to new locations
     if (this.currentDefaults.get(siteType).length < 1 && radii.length > 0){
+      const unique = (value, index, self) => {
+        return self.indexOf(value) === index;
+      };
+      const uniqueValues = radii.filter(unique);
       const taValues: any[] = [];
-      radii.forEach(radius => {
+      uniqueValues.forEach(radius => {
         taValues.push({radius: radius , selected: true });
       });
       this.currentDefaults.set(siteType, taValues);
