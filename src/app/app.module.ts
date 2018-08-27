@@ -79,7 +79,6 @@ import { TableModule } from 'primeng/table';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
-import { ObjectUtils } from 'primeng/components/utils/objectutils';
 import { AppComponent } from './app.component';
 import { AppMenuComponent, AppSubMenuComponent } from './app.menu.component';
 import { AppTopbarComponent } from './app.topbar.component';
@@ -164,7 +163,7 @@ import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.co
 import { ToastModule } from 'primeng/toast';
 import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
 import { SampleComponent } from './poc/sample/sample.component';
-import { ProjectNameComponent } from './components/project-name/project-name.component';
+import { NgStringPipesModule } from 'angular-pipes';
 
 @NgModule({
     imports: [
@@ -244,7 +243,8 @@ import { ProjectNameComponent } from './components/project-name/project-name.com
         TreeModule,
         TreeTableModule,
         TargetingModule,
-        CommonModule
+        CommonModule,
+        NgStringPipesModule
     ],
     declarations: [
         AppComponent,
@@ -286,8 +286,7 @@ import { ProjectNameComponent } from './components/project-name/project-name.com
         MapComponent,
         MapToolbarComponent,
         EsriGeographyPopupComponent,
-        SampleComponent,
-        ProjectNameComponent
+        SampleComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

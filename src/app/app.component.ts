@@ -1,13 +1,13 @@
 import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { AppStateService } from './services/app-state.service';
 import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
-import {Message} from 'primeng/primeng';
 import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
+import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
-import { AppComponentGeneratorService } from './services/app-component-generator.service';
 
 enum MenuOrientation {
     STATIC,
@@ -19,8 +19,9 @@ enum MenuOrientation {
 declare var jQuery: any;
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html'
+    selector: 'val-app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
@@ -60,14 +61,14 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     menuHoverActive: boolean;
 
-    growlMessages: Message[] = [];
-
     @ViewChild('layoutContainer') layourContainerViewChild: ElementRef;
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
     public currentSpinnerMessage$: Observable<string>;
     public currentSpinnerState$: Observable<boolean>;
+
+    currentProject$: Observable<ImpProject>;
 
     constructor(private esriIdentityService: EsriIdentityService,
                 private projectService: ImpProjectService,
@@ -84,6 +85,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
         this.projectService.add([startProject]);
         this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;
         this.currentSpinnerState$ = this.messaging.spinnerState$;
+        this.currentProject$ = this.stateService.currentProject$;
     }
 
     ngOnDestroy() {
