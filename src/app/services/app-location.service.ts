@@ -117,23 +117,53 @@ export class AppLocationService {
     return items.join('~');
   }
 
-  public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
-    if (sites == null || sites.length === 0) return;
+   public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
+      if (sites == null || sites.length === 0) return;
+      const masters = new Set<ImpGeofootprintMaster>(sites.map(l => l.impGeofootprintMaster));
+      const siteSet = new Set<ImpGeofootprintLocation>(sites);
+      try
+      {
+         // remove the sites from the hierarchy
+         masters.forEach(m => (m != null) ? m.impGeofootprintLocations = (m.impGeofootprintLocations != null) ? m.impGeofootprintLocations.filter(l => !siteSet.has(l)) : null : null);
+         sites.forEach(l => (l != null) ? l.impGeofootprintMaster = null : null);
 
-    const masters = new Set<ImpGeofootprintMaster>(sites.map(l => l.impGeofootprintMaster));
-    const siteSet = new Set<ImpGeofootprintLocation>(sites);
-    // remove the sites from the hierarchy
-    masters.forEach(m => m.impGeofootprintLocations = m.impGeofootprintLocations.filter(l => !siteSet.has(l)));
-    sites.forEach(l => l.impGeofootprintMaster = null);
-    // delete from data stores
-    const tradeAreas = simpleFlatten(sites.map(l => l.impGeofootprintTradeAreas));
-    this.appTradeAreaService.deleteTradeAreas(tradeAreas);
-    const attributes = simpleFlatten(sites.map(l => l.impGeofootprintLocAttribs));
-    if (attributes.length > 0) this.impLocAttributeService.remove(attributes);
-    this.impLocationService.remove(sites);
-  }
+         // remove the trade areas from the data store
+         const tradeAreas = simpleFlatten(sites.map(l => l.impGeofootprintTradeAreas));
+         if (tradeAreas.length > 0)
+            this.appTradeAreaService.deleteTradeAreas(tradeAreas);
 
-  public notifySiteChanges() : void {
+         // remove the location attributes from the data store
+         const attributes = simpleFlatten(sites.map(l => l.impGeofootprintLocAttribs));
+         if (attributes.length > 0)
+            this.impLocAttributeService.remove(attributes);
+
+         // remove the locations
+         if (sites.length > 0)
+            this.impLocationService.remove(sites);
+      }
+      catch(error)
+      {
+         console.log("deleteLocations - EXCEPTION", error);
+      }
+   }
+
+  public ORIGINALdeleteLocations(sites: ImpGeofootprintLocation[]) : void {
+   if (sites == null || sites.length === 0) return;
+
+   const masters = new Set<ImpGeofootprintMaster>(sites.map(l => l.impGeofootprintMaster));
+   const siteSet = new Set<ImpGeofootprintLocation>(sites);
+   // remove the sites from the hierarchy
+   masters.forEach(m => m.impGeofootprintLocations = m.impGeofootprintLocations.filter(l => !siteSet.has(l)));
+   sites.forEach(l => l.impGeofootprintMaster = null);
+   // delete from data stores
+   const tradeAreas = simpleFlatten(sites.map(l => l.impGeofootprintTradeAreas));
+   this.appTradeAreaService.deleteTradeAreas(tradeAreas);
+   const attributes = simpleFlatten(sites.map(l => l.impGeofootprintLocAttribs));
+   if (attributes.length > 0) this.impLocAttributeService.remove(attributes);
+   this.impLocationService.remove(sites);
+ }
+
+ public notifySiteChanges() : void {
     this.impLocationService.makeDirty();
   }
 
