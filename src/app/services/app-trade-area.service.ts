@@ -113,6 +113,10 @@ export class AppTradeAreaService {
     this.impTradeAreaService.remove(tradeAreas);
   }
 
+  public insertTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+    this.impTradeAreaService.add(tradeAreas);
+  }
+
   public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean }[], siteType: SuccessfulLocationTypeCodes) : void {
     if (tradeAreas == null || tradeAreas.length === 0) {
       console.error('Invalid Trade Area request', { tradeAreas, siteType });
@@ -189,8 +193,7 @@ export class AppTradeAreaService {
       }
     );
   }
-
-  public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
+  public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintTradeArea[] {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     locations.forEach(location => {
       if (tradeAreas != null && tradeAreas.length > 0)
@@ -199,7 +202,12 @@ export class AppTradeAreaService {
             newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius));
           }
         }
-    }); // locations for each
+    });  
+
+    return newTradeAreas;
+  }
+  public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
+    const newTradeAreas: ImpGeofootprintTradeArea[] = this.createRadiusTradeAreasForLocations(tradeAreas, locations);
     this.impTradeAreaService.add(newTradeAreas);
   }
 

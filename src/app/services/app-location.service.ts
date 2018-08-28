@@ -18,10 +18,12 @@ import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import { AppTradeAreaService } from './app-trade-area.service';
+import { AppTradeAreaService, DEFAULT_MERGE_TYPE } from './app-trade-area.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 
@@ -55,7 +57,8 @@ export class AppLocationService {
               private config: AppConfig,
               private esriMapService: EsriMapService,
               private logger: AppLoggingService,
-              private domainFactory: ImpDomainFactoryService) {
+              private domainFactory: ImpDomainFactoryService,
+              private stateService: AppStateService) {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
@@ -175,36 +178,45 @@ export class AppLocationService {
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
-    data.forEach(l =>
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    if (this.appStateService.analysisLevel$.getValue() != null){
+      data.forEach(l =>
       { 
         if (l.locationNumber == null || l.locationNumber.length === 0 ) {
-        l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
-        l.impGeofootprintMaster = currentMaster;
-      }
+           l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
+           l.impGeofootprintMaster = currentMaster;
+        }
        if (l.impGeofootprintLocAttribs.length !== 0){
-        const ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
-        const ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
-        const ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
-        const tradeAreas: any[] = [];
-        if (ta1.length !== 0){
-          const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true }; 
-          tradeAreas.push(tradeArea1);
-        }
-        if (ta2.length !== 0){
-          const tradeArea2 =  {radius: Number(ta2[0].attributeValue), selected: true };
-          tradeAreas.push(tradeArea2);
-        }
-        if (ta3.length !== 0){
-        const tradeArea3 = {radius: Number(ta3[0].attributeValue), selected: true };
-        tradeAreas.push(tradeArea3);
-        }
-        const locs: any[] = [];
-        locs.push(l);
-        console.log('locs:::', locs);
-        this.appTradeAreaService.applyRadiusTradeAreasToLocations(tradeAreas, locs);
-       } 
+          const ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
+          const ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
+          const ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
+          const tradeAreas: any[] = [];
+        
+          if (ta1.length !== 0){
+            const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true }; 
+            tradeAreas.push(tradeArea1);
+          }
+          if (ta2.length !== 0){
+            const tradeArea2 =  {radius: Number(ta2[0].attributeValue), selected: true };
+            tradeAreas.push(tradeArea2);
+          }
+          if (ta3.length !== 0){
+            const tradeArea3 = {radius: Number(ta3[0].attributeValue), selected: true };
+            tradeAreas.push(tradeArea3);
+          }
+          const locs: any[] = [];
+          locs.push(l);
+          newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
+        } 
       });
+    this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
+    this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
+    this.appTradeAreaService.insertTradeAreas(newTradeAreas);
     
+    } else {
+      this.messageService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
+    }
+     
     data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
