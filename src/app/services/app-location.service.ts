@@ -214,19 +214,17 @@ export class AppLocationService {
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
     if (this.appStateService.analysisLevel$.getValue() == null && (ta1.length !== 0 || ta2.length !== 0 || ta3.length !== 0) ) {
-      this.messageService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);   
+      this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);   
+      this.geocodingService.clearFields(true);
     } else {
-    this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-
-    }
-     
+    this.appTradeAreaService.insertTradeAreas(newTradeAreas);    
     data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
-
+    }
   }
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
