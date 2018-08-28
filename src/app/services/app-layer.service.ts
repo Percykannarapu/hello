@@ -103,13 +103,11 @@ export class AppLayerService {
 
   public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
     const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
-    const pointMap: Map<number, __esri.Point[]> = groupBy(tradeAreas, 'taRadius', ta => {
+    tradeAreas.sort((a, b) => a.taName.localeCompare(b.taName));
+    const pointMap: Map<string, {p: __esri.Point, r: number}[]> = groupBy(tradeAreas, 'taName', ta => {
       const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
       const point = new EsriModules.Point({ spatialReference: { wkid: this.appConfig.val_spatialReference }, x, y });
-      if (ta.taName != null) {
-        point['taName'] = ta.taName;
-      }
-      return point;
+      return { p: point, r: ta.taRadius };
     });
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriModules.Color(colorVal);
@@ -123,11 +121,12 @@ export class AppLayerService {
         width: 2
       }
     });
-    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.endsWith('Trade Area'));
+    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Radius'));
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
     let layerId = 0;
-    pointMap.forEach((points, radius) => {
-      const radii = Array(points.length).fill(radius);
+    pointMap.forEach((pointData, name) => {
+      const points = pointData.map(pd => pd.p);
+      const radii = pointData.map(pd => pd.r);
       EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
         const graphics = geometry.map(g => {
@@ -138,26 +137,9 @@ export class AppLayerService {
           });
         });
         const groupName = `${siteType}s`;
-        let layerName = `${siteType} - ${radius} Mile Trade Area`;
-        if (points[0]['taName'] != null) {
-            if (points[0]['taName'] === 'Site Radius 1'){
-              const taName = 'Trade Area 1';
-              layerName = `${siteType} - ${taName}`;
-            } else if (points[0]['taName'] === 'Site Radius 2'){
-              const taName = 'Trade Area 2';
-              layerName = `${siteType} - ${taName}`;
-            } else if (points[0]['taName'] === 'Site Radius 3') {
-              const taName = 'Trade Area 3';
-              layerName = `${siteType} - ${taName}`;
-            }
-        }
-        if (!this.layerService.layerExists(layerName)) {
-          this.layerService.removeLayer(layerName);
-          this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-        } else {
-          this.layerService.addGraphicsToLayer(layerName, graphics);
-        }
-        
+        const layerName = `${siteType} - ${name}`;
+        this.layerService.removeLayer(layerName);
+        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
       });
     });
   }
@@ -166,18 +148,15 @@ export class AppLayerService {
     this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
-        const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-        this.logger.debug('New visible groupKey', groupKey);
-   
+      const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
+      this.logger.debug('New visible groupKey', groupKey);
       if (groupKey != null) {
         const layerGroup = this.appConfig.layerIds[groupKey];
         if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
           this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
         }
       }
-
     }
-    
   }
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {
