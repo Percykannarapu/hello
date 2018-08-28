@@ -22,6 +22,9 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     { headerIdentifier: ['marketCode', 'mktcode', 'market code', 'Market Code'], outputFieldName: 'Market Code'},
     { headerIdentifier: ['description', 'desc', 'Description'], outputFieldName: 'Description'},
     { headerIdentifier: ['group', 'groupname', ' group name', 'Group Name', 'Group'], outputFieldName: 'Group'}
+    { headerIdentifier: ['radius1', 'radius 1', 'RADIUS1', 'RADIUS 1', 'Radius1', 'Radius 1'], outputFieldName: 'RADIUS1' },
+    { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
+    { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' }
   ],
   headerValidator: (foundHeaders: ParseRule[]) : boolean => {
     let cityFound = false;
