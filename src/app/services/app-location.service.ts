@@ -179,17 +179,19 @@ export class AppLocationService {
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    if (this.appStateService.analysisLevel$.getValue() != null){
-      data.forEach(l =>
+    let ta1: ImpGeofootprintLocAttrib[] = [];
+    let ta2: ImpGeofootprintLocAttrib[] = [];
+    let ta3: ImpGeofootprintLocAttrib[] = [];
+     data.forEach(l =>
       { 
         if (l.locationNumber == null || l.locationNumber.length === 0 ) {
            l.locationNumber = this.impLocationService.getNextLocationNumber().toString() ;
            l.impGeofootprintMaster = currentMaster;
         }
        if (l.impGeofootprintLocAttribs.length !== 0){
-          const ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
-          const ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
-          const ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
+          ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
+          ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
+          ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
           const tradeAreas: any[] = [];
         
           if (ta1.length !== 0){
@@ -211,10 +213,11 @@ export class AppLocationService {
       });
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
-    this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-    
+    if (this.appStateService.analysisLevel$.getValue() == null && (ta1.length !== 0 || ta2.length !== 0 || ta3.length !== 0) ) {
+      this.messageService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);   
     } else {
-      this.messageService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
+    this.appTradeAreaService.insertTradeAreas(newTradeAreas);
+
     }
      
     data
