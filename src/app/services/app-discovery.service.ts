@@ -12,6 +12,7 @@ import { filterByFields, mapBy } from '../val-modules/common/common.utils';
 import { mapArray } from '../val-modules/common/common.rxjs';
 import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
+import { RestResponse } from '../models/RestResponse';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -168,6 +169,11 @@ export class AppDiscoveryService {
     );
     this.impRadService.get(true);
     return result;
+  }
+
+  public getProjectData(projectId: number) : Observable<ImpProject[]> {
+   return this.restDataService.get(`v1/targeting/base/impproject/${projectId}/search?q=impproject`).
+   pipe(map( ( res: any) => res.payload.rows || []));
   }
 
   private sortRadCache(data: RadLookupUIModel[]) : void {

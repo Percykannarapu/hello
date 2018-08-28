@@ -13,7 +13,7 @@ import { MetricService } from './val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Subject } from 'rxjs';
 import { AppStateService } from './services/app-state.service';
-import { withLatestFrom } from 'rxjs/operators';
+import { withLatestFrom, map, tap } from 'rxjs/operators';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { UserService } from './services/user.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
@@ -285,55 +285,66 @@ export class AppMenuComponent implements OnInit {
     }
     public getGeofootprintAll() {
         const impProject = this.appStateService.currentProject$.getValue();
-        if (impProject.projectId == null || impProject.projectTrackerId == null)
-        { this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
-        }
-        else
-        {
-        const impAnalysis = impProject.methAnalysis;
-        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impAnalysis, impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, impAnalysis);
-        // update the metric count when export geos
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
-        this.usageService.createCounterMetric(usageMetricName, 'includeAllGeography ', this.impGeofootprintGeoService.get().length);
+        if (impProject.projectId == null || impProject.projectTrackerId == null){ 
+            this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
+        } else {
+            this.impDiscoveryService.getProjectData(impProject.projectId).subscribe(response => {
+                const trackerId = response[0].projectTrackerId;
+                if (trackerId == null){
+                    this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting.`);
+                } else {
+                    const impAnalysis = impProject.methAnalysis;
+                    this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(impAnalysis, impProject.projectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, impAnalysis);
+                    // update the metric count when export geos
+                    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+                    this.usageService.createCounterMetric(usageMetricName, 'includeAllGeography ', this.impGeofootprintGeoService.get().length);
 
-        //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
-        //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
+                    //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');  
+                    //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
 
-        const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
-        const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
-        // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
+                    const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
+                    const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+                    // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
 
-        this.usageService.creategaugeMetrics(counterMetricsDiscover);
-        this.usageService.creategaugeMetrics(counterMetricsColorBox);
-        //this.usageService.createCounterMetrics(counterMetricsDiscover);
-        //this.usageService.createCounterMetrics(counterMetricsColorBox);
+                    this.usageService.creategaugeMetrics(counterMetricsDiscover);
+                    this.usageService.creategaugeMetrics(counterMetricsColorBox);
+                    //this.usageService.createCounterMetrics(counterMetricsDiscover);
+                    //this.usageService.createCounterMetrics(counterMetricsColorBox);
+                }
+            });
         }
     }
     public getGeofootprintSelected() {
         const impProject = this.appStateService.currentProject$.getValue();
         const impProjectId = impProject.projectId;
-        if (impProject.projectId == null || impProject.projectTrackerId == null)
-        { this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
-        }
-        else
-        {
-         const analysisLevel = this.appStateService.analysisLevel$.getValue();
-        this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(analysisLevel, impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, analysisLevel, geo => geo.isActive === true);
-        // update the metric count when export geos
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
-        this.usageService.createCounterMetric(usageMetricName, 'includeSelectedGeography', this.impGeofootprintGeoService.get().length);
+        if (impProject.projectId == null || impProject.projectTrackerId == null) { 
+            this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting`);
+        } else {
+            this.impDiscoveryService.getProjectData(impProjectId).subscribe(response => {
+                const trackerId = response[0].projectTrackerId;
+                if (trackerId == null){
+                    this.messageService.showErrorNotification('Geofootprint Export Error', `The project must be saved with a valid Project Tracker ID before exporting.`);
+                } else {
+                const analysisLevel = this.appStateService.analysisLevel$.getValue();
+                this.impGeofootprintGeoService.exportStore(this.impGeofootprintGeoService.getFileName(analysisLevel, impProjectId), EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, analysisLevel, geo => geo.isActive === true);
+                // update the metric count when export geos
+                const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'geofootprint', action: 'export' });
+                this.usageService.createCounterMetric(usageMetricName, 'includeSelectedGeography', this.impGeofootprintGeoService.get().length);
 
-        //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
-        //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
-        const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
-        const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+                //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
+                //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
+                const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
+                const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
 
-        // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
+                // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
 
-        this.usageService.creategaugeMetrics(counterMetricsDiscover);
-        this.usageService.creategaugeMetrics(counterMetricsColorBox);
-        //this.usageService.createCounterMetrics(counterMetricsDiscover);
-        //this.usageService.createCounterMetrics(counterMetricsColorBox);
+                this.usageService.creategaugeMetrics(counterMetricsDiscover);
+                this.usageService.creategaugeMetrics(counterMetricsColorBox);
+                //this.usageService.createCounterMetrics(counterMetricsDiscover);
+                //this.usageService.createCounterMetrics(counterMetricsColorBox);
+                }
+            });
+        
         }
 
     }
