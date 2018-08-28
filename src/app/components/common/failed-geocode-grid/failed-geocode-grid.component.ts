@@ -64,5 +64,13 @@ export class FailedGeocodeGridComponent {
     }
     this.accept.emit(site);
   }
+
+  googleMap(site: ImpGeofootprintLocation) : void{
+
+    const googleMapUri = `https://www.google.com/maps/place/${site.locAddress},${site.locCity},${site.locState},${site.locZip}`;
+    //window.location.href = googleMapUri;
+    window.open(googleMapUri);
+
+  }
 }
 
