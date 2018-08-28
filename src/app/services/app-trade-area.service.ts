@@ -17,6 +17,7 @@ import { calculateStatistics } from '../app.utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { distinctUntilArrayContentsChanged } from '../val-modules/common/common.rxjs';
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 
@@ -58,10 +59,12 @@ export class AppTradeAreaService {
       map(([tradeAreas]) => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'))
+      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),
+      distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
     const competitorTradeAreas$ = radiusTradeAreas$.pipe(
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'))
+      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
+      distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
 
     this.stateService.currentProject$.pipe(
