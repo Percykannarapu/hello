@@ -25,6 +25,8 @@ import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { AppMessagingService } from './app-messaging.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { simpleFlatten } from '../val-modules/common/common.utils';
+import { AppTradeAreaService } from './app-trade-area.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -244,22 +246,25 @@ export class ValAudienceTradeareaService {
             return;
           }
           this.fetchData = false;
-          this.geoService.clearAll();
-          this.varService.clearAll();
+          const allLocations = this.stateService.currentMaster$.getValue().impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site');
+          const existingAudienceTAs = simpleFlatten(allLocations.map(l => l.impGeofootprintTradeAreas)).filter(ta => ta.taType === 'AUDIENCE');
+          if (existingAudienceTAs.length > 0) {
+            this.appTradeAreaService.deleteTradeAreas(existingAudienceTAs);
+          }
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-          for (const location of this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site')) {
+          for (const location of allLocations) {
             const newTradeArea = this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
           }
           if (this.failedLocations.length > 0) {
-            let warningMessge = 'Unable to find data for the following locations:<br>';
+            let warningMessage = 'Unable to find data for the following locations:<br>';
             for (const failedLoc of this.failedLocations) {
-              warningMessge += failedLoc.locationName + '<br>';
+              warningMessage += failedLoc.locationName + '<br>';
             }
-            this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessge);
+            this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessage);
             this.failedLocations = [];
           }
-          this.tradeareaService.add(newTradeAreas);
+          this.appTradeAreaService.insertTradeAreas(newTradeAreas);
           this.geoService.add(this.geoCache);
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
@@ -509,7 +514,6 @@ export class ValAudienceTradeareaService {
     }
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
-      const newVars: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
       const taResponse = taResponseMap.get(i);
       if (!taResponse || !taResponse.geocode) {
         console.warn('Unable to find valid audience TA response for location: ', location);
@@ -602,8 +606,8 @@ export class ValAudienceTradeareaService {
    */
   constructor(private varService: ImpGeofootprintVarService,
     private stateService: AppStateService,
+    private appTradeAreaService: AppTradeAreaService,
     private locationService: ImpGeofootprintLocationService,
-    private tradeareaService: ImpGeofootprintTradeAreaService,
     private geoService: ImpGeofootprintGeoService,
     private rendererService: AppRendererService,
     private geoAttribService: ImpGeofootprintGeoAttribService,
