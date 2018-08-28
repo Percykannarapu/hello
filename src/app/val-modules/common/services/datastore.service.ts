@@ -823,15 +823,18 @@ export class DataStore<T>
 
       // Write Headers
       let fieldsForRow: string[] = [];
-      for (let column of columns)
+      for (const column of columns)
       {
-         field = column.header;
+         if (typeof column.header === 'string' && column.header.includes(',')) {
+           field = `"${column.header}"`;
+         } else {
+           field = column.header;
+         }
          // Add the header surround in double quotes if not already
          fieldsForRow.push(field);
        //  row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
       }
       row = fieldsForRow.join(',');
-      fieldsForRow = [];
 
       // If we have built headers, push it to the result
       if (row != '')

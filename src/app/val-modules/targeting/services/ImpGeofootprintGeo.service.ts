@@ -13,15 +13,13 @@ import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { Observable, empty, EMPTY } from 'rxjs';
+import { Observable, EMPTY } from 'rxjs';
 import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ColumnDefinition } from './../../common/services/datastore.service';
 import { HttpClient } from '@angular/common/http';
-import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
 
 // Imports for exporting CSVs
 import { encode } from 'punycode';
-import * as $ from 'jquery';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
@@ -791,7 +789,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
-         if (name.includes(',')) name = `"${name}"`;
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });
    }
@@ -825,14 +822,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
 
-      this.varCache = new Map<string, ImpGeofootprintVar[]>();
-      for (const geoVar of this.impGeofootprintVarService.get()) {
-            if (this.varCache.has(geoVar.geocode)) {
-               this.varCache.get(geoVar.geocode).push(geoVar);
-            } else {
-               this.varCache.set(geoVar.geocode, [geoVar]);
-            }
-      }
+      this.varCache = groupBy(this.impGeofootprintVarService.get(), 'geocode');
      
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
