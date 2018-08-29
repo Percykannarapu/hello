@@ -48,6 +48,8 @@ export class TradeAreaTabComponent implements OnInit {
   audienceTAConfig$: Observable<AudienceTradeAreaConfig>;
   currentAudiences$: Observable<AudienceDataDefinition[]>;
   currentLocationsCount$: Subject<number> = new Subject<number>();
+  hasSiteProvidedTradeAreas$: Observable<boolean>;
+  hasCompetitorProvidedTradeAreas$: Observable<boolean>;
 
   siteTypes = ImpClientLocationTypeCodes;
 
@@ -96,6 +98,9 @@ export class TradeAreaTabComponent implements OnInit {
     this.locationService.storeObservable.subscribe(l => {
       this.currentLocationsCount$.next(l.length);
     });
+
+    this.hasSiteProvidedTradeAreas$ = this.stateService.hasSiteProvidedTradeAreas$.pipe(distinctUntilChanged());
+    this.hasCompetitorProvidedTradeAreas$ = this.stateService.hasCompetitorProvidedTradeAreas$.pipe(distinctUntilChanged());
   }
 
   onDistanceTradeAreasChanged(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) {

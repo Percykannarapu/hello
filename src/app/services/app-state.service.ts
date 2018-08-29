@@ -16,6 +16,7 @@ import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { MapStateTypeCodes } from '../models/app.enums';
 import { AppLoggingService } from './app-logging.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export enum Season {
   Summer = 'summer',
@@ -57,6 +58,12 @@ export class AppStateService {
   public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
+  private hasSiteProvidedTradeAreas = new BehaviorSubject<boolean>(false);
+  public hasSiteProvidedTradeAreas$: Observable<boolean> = this.hasSiteProvidedTradeAreas.asObservable();
+
+  private hasCompetitorProvidedTradeAreas = new BehaviorSubject<boolean>(false);
+  public hasCompetitorProvidedTradeAreas$: Observable<boolean> = this.hasCompetitorProvidedTradeAreas.asObservable();
+
   constructor(private projectService: ImpProjectService,
               private locationService: ImpGeofootprintLocationService,
               private geoService: ImpGeofootprintGeoService,
@@ -80,6 +87,17 @@ export class AppStateService {
 
   public setMapState(newState: MapStateTypeCodes) : void {
     this.currentMapState.next(newState);
+  }
+
+  public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
+    switch (siteType) {
+      case ImpClientLocationTypeCodes.Competitor:
+        this.hasCompetitorProvidedTradeAreas.next(newValue);
+        break;
+      case ImpClientLocationTypeCodes.Site:
+        this.hasSiteProvidedTradeAreas.next(newValue);
+        break;
+    }
   }
 
   public refreshDynamicControls() : void {
