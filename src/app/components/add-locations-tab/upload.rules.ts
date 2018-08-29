@@ -13,7 +13,11 @@ const radiusIsBlank = (field: any) => {
 };
 
 const radiusIsValid = (field: any) => {
-  return field == undefined || (Number(field) > 0 && Number(field) <= 50);
+  return (Number(field) > 0 && Number(field) <= 50);
+};
+
+const radiusIsZero = (field: any) => {
+  return field != null && field !== '' && Number(field) === 0;
 };
 
 export const siteListUpload: Parser<ValGeocodingRequest> = {
@@ -47,27 +51,37 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     return true;
   },
   fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
-    let hasBlank: boolean = false;
-    let numValues: number = 0;
+    let hasBlank1: boolean = false;
+    let hasBlank2: boolean = false;
+    let hasBlank3: boolean = false;
+    let numValues1: number = 0;
+    let numValues2: number = 0;
+    let numValues3: number = 0;
     let result: boolean = true;
     const errorMessage: string = 'Failed';
 
     try {
       allData.forEach(geo => {
-        if (radiusIsBlank(geo['RADIUS1']) && radiusIsBlank(geo['RADIUS2']) && radiusIsBlank(geo['RADIUS3'])) {
-          hasBlank = true;
-        } else {
-          if (radiusIsValid(geo['RADIUS1']) && radiusIsValid(geo['RADIUS2']) && radiusIsValid(geo['RADIUS3'])) {
-            numValues++;
-          } else {
-            result = false;
-            throw new Error(errorMessage);
-          }
-
+        hasBlank1 = radiusIsBlank(geo['RADIUS1']) || hasBlank1;
+        hasBlank2 = radiusIsBlank(geo['RADIUS2']) || hasBlank2;
+        hasBlank3 = radiusIsBlank(geo['RADIUS3']) || hasBlank3;
+        if (radiusIsValid(geo['RADIUS1'])) numValues1++;
+        if (radiusIsValid(geo['RADIUS2'])) numValues2++;
+        if (radiusIsValid(geo['RADIUS3'])) numValues3++;
+        if (radiusIsZero(geo['RADIUS1']) || radiusIsZero(geo['RADIUS2']) || radiusIsZero(geo['RADIUS3'])) {
+          result = false;
+          throw new Error(errorMessage);
         }
-
       });
-      if (numValues > 0 && hasBlank) {
+      if ((hasBlank1 && numValues1 > 0) || (hasBlank2 && numValues2 > 0) || (hasBlank3 && numValues3 > 0)) {
+        result = false;
+        throw new Error(errorMessage);
+      }
+      if ((!hasBlank1 && numValues1 === 0) || (!hasBlank2 && numValues2 === 0) || (!hasBlank3 && numValues3 === 0)) {
+        result = false;
+        throw new Error(errorMessage);
+      }
+      if ((numValues1 > 0 && numValues1 !== allData.length) || (numValues2 > 0 && numValues2 !== allData.length) || (numValues3 > 0 && numValues3 !== allData.length)) {
         result = false;
         throw new Error(errorMessage);
       }
