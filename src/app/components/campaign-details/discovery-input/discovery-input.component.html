@@ -19,7 +19,7 @@
          <div class="ui-g-10">
          <span class="md-inputfield">
             <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
-                           [minLength]="3" [dropdown]="false" formControlName="selectedProjectTracker" field="display"
+                           [minLength]="3" [dropdown]="false" [forceSelection] = "true" formControlName="selectedProjectTracker" field="display"
                            [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
                <!--<ng-template let-trackerItem pTemplate="item">-->
                <!--{{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})-->
