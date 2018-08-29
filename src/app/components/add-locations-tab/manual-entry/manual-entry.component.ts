@@ -53,8 +53,7 @@ export class ManualEntryComponent implements OnInit {
 
   onSubmit(formData: any) {
     this.submitSite.emit(new ValGeocodingRequest(formData));
-    //Number=006~Name=Westland~Street=35725 Warren Rd~City=Westland~State=MI~ZIP=48185~X=-83.395953~Y=42.338554~Status=SUCCESS~MatchCode=S80~LocationCode=AS0
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'single-site', action: 'add' });
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-site', action: 'add' });
     const mktValue = formData.Market != null ? `~Market=${formData.Market}` : null;
     let metricsText = `Number=${formData.number}~Name=${formData.name}~Street=${formData.street}~City=${formData.city}~State=${formData.state}~ZIP=${formData.zip}`;
     metricsText = mktValue != null ? metricsText + mktValue : metricsText;
