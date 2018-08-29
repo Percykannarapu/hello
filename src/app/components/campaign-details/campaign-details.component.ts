@@ -65,10 +65,10 @@ export class CampaignDetailsComponent implements OnInit {
   onDiscoveryFormChanged(newValues: ValDiscoveryUIModel) : void {
     const currentProject: ImpProject = this.appStateService.currentProject$.getValue();
     const currentUser: User = this.userService.getUser();
-    if (this.previousForm != null) {
+   // if (this.previousForm != null) {
       this.logUsageMetricForChange(this.previousForm, newValues);
-    }
-    this.previousForm = new ValDiscoveryUIModel({ ...newValues });
+    //}
+    
     if (currentProject != null) {
       newValues.updateProjectItem(currentProject);
       // Update audit columns
@@ -93,59 +93,138 @@ export class CampaignDetailsComponent implements OnInit {
 
   private logUsageMetricForChange(previousForm: ValDiscoveryUIModel, currentForm: ValDiscoveryUIModel) : void {
     // retrieve the list of field names from the form data
-    const formFieldNames = Object.keys(previousForm);
-    formFieldNames.forEach(fieldName => {
-      const previousValue = previousForm[fieldName];
-      const currentValue = currentForm[fieldName];
-      const usageTarget = this.usageTargetMap[fieldName];
-      // only log values that are tracked and have changed
-      if (usageTarget != null && previousValue !== currentValue && currentValue != null) {
-        console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
-        let newText = null;
-        let changeText = null;
-        if (usageTarget === 'analysis-level' &&  currentValue != null){
-           newText = `New=${currentValue.value}`;
-           const preValue = previousValue != null ? previousValue.value  : null ;
-           changeText = `${newText}~Old=${preValue}`;
-        }else{
-           newText = `New=${currentValue}`;
-           changeText = `${newText}~Old=${previousValue}`;
+    if (previousForm == null && currentForm != null && currentForm.selectedAnalysisLevel != null){
+      const newval = `New=${currentForm.selectedAnalysisLevel}`;
+      const usageTarget = this.usageTargetMap['selectedAnalysisLevel'];
+      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: usageTarget, action: 'changed' });
+      this.usageService.createCounterMetric(usageMetricName, newval, null);
+      this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+    }
+    else if (previousForm != null){
+      const formFieldNames = Object.keys(previousForm);
+      formFieldNames.forEach(fieldName => {
+        const previousValue = previousForm[fieldName];
+        const currentValue = currentForm[fieldName];
+        const usageTarget = this.usageTargetMap[fieldName];
+        // only log values that are tracked and have changed
+        if (usageTarget != null && previousValue !== currentValue && currentValue != null) {
+          console.log(`Logging a change for ${fieldName}`, [previousValue, currentValue]);
+          let newText = null;
+          let changeText = null;
+          if (usageTarget === 'analysis-level' &&  currentValue.value != null){
+             newText = `New=${currentValue.value}`;
+             const preValue = previousValue != null ? previousValue.value  : null ;
+             changeText = `${newText}~Old=${preValue}`;
+             this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+          }else{
+             newText = `New=${currentValue}`;
+             changeText = `${newText}~Old=${previousValue}`;
+             this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+          }
+  
+          const metricsText = previousValue == null || previousValue === '' ? newText : changeText;
+          const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: usageTarget, action: 'changed' });
+          this.usageService.createCounterMetric(usageMetricName, metricsText, null);
         }
-
-        const metricsText = previousValue == null || previousValue === '' ? newText : changeText;
-        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: usageTarget, action: 'changed' });
-        this.usageService.createCounterMetric(usageMetricName, metricsText, null);
-      }
-    });
+      });
+    }
     // custom metrics that aren't picked up by the above code
     if (currentForm.selectedProjectTracker != null) {
-      const previousValue = previousForm.selectedProjectTracker != null ? previousForm.selectedProjectTracker.projectId : null;
-      if (previousValue != null && currentForm.selectedProjectTracker.projectId !== previousValue){
+      let metricsText = null;
+      const previousValue = previousForm != null && previousForm.selectedProjectTracker != null ? previousForm.selectedProjectTracker.projectId : null;
+      if ((currentForm.selectedProjectTracker.projectId != null && previousValue == null) && currentForm.selectedProjectTracker.projectId !== previousValue){
         const newText = `New=${currentForm.selectedProjectTracker.projectId}`;
         const changeText = `${newText}~Old=${previousValue}`;
-        const metricsText = previousValue == null ? newText : changeText;
+        metricsText = previousValue == null ? newText : changeText;
         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
       }
+      else if (currentForm.selectedProjectTracker.projectId != null && previousValue != null && currentForm.selectedProjectTracker.projectId !== previousValue){
+        const newText = `New=${currentForm.selectedProjectTracker.projectId}`;
+        const changeText = `${newText}~Old=${previousValue}`;
+        metricsText = previousValue == null ? newText : changeText;
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project-tracker-id', action: 'changed' });
+        this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+      }
+      
     }
     if (currentForm.selectedRadLookup != null) {
       const productMetric: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'product', action: 'changed' });
-      const previousProduct = previousForm.selectedRadLookup != null ? previousForm.selectedRadLookup.product : null;
-      if (previousProduct != null && currentForm.selectedRadLookup.product !== previousProduct){
+      const previousProduct = previousForm != null && previousForm.selectedRadLookup != null ? previousForm.selectedRadLookup.product : null;
+      if (currentForm.selectedRadLookup.product != null && previousProduct != null && currentForm.selectedRadLookup.product !== previousProduct){
         const newProductText = `New=${currentForm.selectedRadLookup.product}`;
         const changeProductText = `${newProductText}~Old=${previousProduct}`;
         const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
         this.usageService.createCounterMetric(productMetric, productMetricText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+      }
+      else if (currentForm.selectedRadLookup.product != null && previousProduct == null ){
+        const newProductText = `New=${currentForm.selectedRadLookup.product}`;
+        const changeProductText = `${newProductText}~Old=${previousProduct}`;
+        const productMetricText = previousProduct == null || previousProduct === '' ? newProductText : changeProductText;
+        this.usageService.createCounterMetric(productMetric, productMetricText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
       }
 
       const categoryMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'category', action: 'changed' });
-      const previousCategory = previousForm.selectedRadLookup != null ? previousForm.selectedRadLookup.category : null;
-      if (previousCategory != null && currentForm.selectedRadLookup.category !== previousCategory){
+      const previousCategory = previousForm != null && previousForm.selectedRadLookup != null ? previousForm.selectedRadLookup.category : null;
+      if (currentForm.selectedRadLookup.category != null && previousCategory != null && currentForm.selectedRadLookup.category !== previousCategory){
         const newCategoryText = `New=${currentForm.selectedRadLookup.category}`;
         const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
         const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
         this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+      }else if (currentForm.selectedRadLookup.category != null && previousCategory == null){
+        const newCategoryText = `New=${currentForm.selectedRadLookup.category}`;
+        const changeCategoryText = `${newCategoryText}~Old=${previousCategory}`;
+        const categoryMetricText = previousCategory == null || previousCategory === '' ? newCategoryText : changeCategoryText;
+        this.usageService.createCounterMetric(categoryMetric, categoryMetricText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
       }
     }
+
+    if (currentForm.cpmValassis != null) {
+       const previousCpmValue = previousForm != null && previousForm.cpmValassis != null ? previousForm.cpmValassis : null;
+       if (currentForm.cpmValassis != null && previousForm == null){
+         const newText = `New=${currentForm.cpmValassis}`;
+         const changeText = `${newText}~Old=${previousCpmValue}`;
+         const metricsText = previousCpmValue == null ? newText : changeText;
+         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'valassis-cpm', action: 'changed' });
+         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+         this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+       }
+       else if (currentForm.cpmValassis != null &&  previousCpmValue != null && currentForm.cpmValassis != previousCpmValue){
+        const newText = `New=${currentForm.cpmValassis}`;
+        const changeText = `${newText}~Old=${previousCpmValue}`;
+        const metricsText = previousCpmValue == null ? newText : changeText;
+        const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'valassis-cpm', action: 'changed' });
+        this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+        this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+       }
+    }
+    
+    if (currentForm.cpmBlended != null) {
+      const previousCpmBlendedValue = previousForm != null && previousForm.cpmBlended != null ? previousForm.cpmBlended : null;
+      if (currentForm.cpmBlended != null && previousForm == null){
+        const newText = `New=${currentForm.cpmBlended}`;
+         const changeText = `${newText}~Old=${previousCpmBlendedValue}`;
+         const metricsText = previousCpmBlendedValue == null ? newText : changeText;
+         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'blended-cpm', action: 'changed' });
+         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+         this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+      }
+      else if (currentForm.cpmBlended != null && previousForm != null && currentForm.cpmBlended != previousForm.cpmBlended){
+        const newText = `New=${currentForm.cpmBlended}`;
+         const changeText = `${newText}~Old=${previousCpmBlendedValue}`;
+         const metricsText = previousCpmBlendedValue == null ? newText : changeText;
+         const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'blended-cpm', action: 'changed' });
+         this.usageService.createCounterMetric(usageMetricName, metricsText, null);
+         this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
+
+      }
+    }
+
   }
 }
