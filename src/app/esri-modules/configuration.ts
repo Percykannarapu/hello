@@ -5,6 +5,7 @@ export interface EsriConfigOptions extends ILoadScriptOptions, Partial<__esri.co
   defaultSpatialRef: number;
   maxPointsPerBufferQuery: number;
   maxPointsPerAttributeQuery: number;
+  defaultViewPoint: any;
 }
 
 export interface EsriLoaderConfig {
