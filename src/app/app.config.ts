@@ -33,7 +33,16 @@ export class AppConfig implements EsriLoaderConfig, LoggingConfiguration {
     },
     defaultSpatialRef: 4326,
     maxPointsPerBufferQuery: 25,
-    maxPointsPerAttributeQuery: 50
+    maxPointsPerAttributeQuery: 50,
+    defaultViewPoint: {
+      rotation: 0,
+      scale: 36978595.474472,
+      targetGeometry: {
+        spatialReference: { latestWkid: 3857, wkid: 102100 },
+        x: -10654486.633699631,
+        y: 4560114.263682211
+      }
+    }
   };
 
    esriIdentityParams: AuthenticationParams = {

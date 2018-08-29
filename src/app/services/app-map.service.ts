@@ -97,7 +97,8 @@ export class AppMapService implements OnDestroy {
       null,
       () => {
         // setup the map widgets
-        this.mapService.createBasicWidget(EsriModules.widgets.Home);
+        const vp = this.config.esriConfig.defaultViewPoint;
+        this.mapService.createBasicWidget(EsriModules.widgets.Home, { viewpoint: EsriModules.Viewpoint.fromJSON(vp) });
         this.mapService.createHiddenWidget(EsriModules.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
         this.mapService.createHiddenWidget(EsriModules.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
         this.mapService.createHiddenWidget(EsriModules.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend'});
