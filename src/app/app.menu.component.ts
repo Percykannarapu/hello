@@ -302,8 +302,8 @@ export class AppMenuComponent implements OnInit {
                     //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');  
                     //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
 
-                    const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
-                    const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+                    const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+                    const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
                     // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
 
                     this.usageService.creategaugeMetrics(counterMetricsDiscover);
@@ -333,8 +333,8 @@ export class AppMenuComponent implements OnInit {
 
                 //this.discoveryUseageMetricService.createDiscoveryMetric('location-geofootprint-export');
                 //this.discoveryUseageMetricService.createColorBoxMetrics('location-geofootprint-export');
-                const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('location-geofootprint-export');
-                const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('location-geofootprint-export');
+                const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+                const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
 
                 // console.log('counterMetricsColorBox:::', counterMetricsColorBox);
 
