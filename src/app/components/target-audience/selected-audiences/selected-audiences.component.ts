@@ -11,6 +11,7 @@ import { Observable } from 'rxjs';
 import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { AppMessagingService } from '../../../services/app-messaging.service';
+import { AppDiscoveryService } from '../../../services/app-discovery.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -28,7 +29,7 @@ export class SelectedAudiencesComponent implements OnInit {
   constructor(private varService: TargetAudienceService, private usageService: UsageService,
     private appStateService: AppStateService, private metricService: MetricService,
     private appMessagingService: AppMessagingService,
-    private confirmationService: ConfirmationService) {
+    private confirmationService: ConfirmationService, private impDiscoveryService: AppDiscoveryService) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -95,12 +96,12 @@ export class SelectedAudiencesComponent implements OnInit {
 
       this.usageService.createCounterMetric(usageMetricName, metricText, null);
 
-      // const counterMetricsDiscover = this.discoService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
-      // const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
-      // this.usageService.creategaugeMetrics(counterMetricsDiscover);
-      // this.usageService.creategaugeMetrics(counterMetricsColorBox);
-      // this.usageService.createCounterMetrics(counterMetricsDiscover);
-      // this.usageService.createCounterMetrics(counterMetricsColorBox);
+      const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
+      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
+      this.usageService.creategaugeMetrics(counterMetricsDiscover);
+      this.usageService.creategaugeMetrics(counterMetricsColorBox);
+      this.usageService.createCounterMetrics(counterMetricsDiscover);
+      this.usageService.createCounterMetrics(counterMetricsColorBox);
     }
     if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
       this.appMessagingService.showWarningNotification('Apply Selected Audience', 'You must select an Analysis Level in order to apply the selected audience variable(s)');

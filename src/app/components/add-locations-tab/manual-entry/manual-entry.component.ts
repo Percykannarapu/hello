@@ -4,6 +4,8 @@ import { MenuItem } from 'primeng/primeng';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import * as Presets from './manual-entry-presets';
 import { AppStateService } from '../../../services/app-state.service';
+import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
+import { UsageService } from '../../../services/usage.service';
 
 @Component({
   selector: 'val-manual-entry',
@@ -19,7 +21,7 @@ export class ManualEntryComponent implements OnInit {
   loadItems: MenuItem[];
 
   constructor(private fb: FormBuilder,
-              private appStateService: AppStateService) {
+              private appStateService: AppStateService, private usageService: UsageService) {
                 this.appStateService.getClearUserInterfaceObs().subscribe(flag => this.clearFields(flag)); 
 
   }
@@ -51,6 +53,12 @@ export class ManualEntryComponent implements OnInit {
 
   onSubmit(formData: any) {
     this.submitSite.emit(new ValGeocodingRequest(formData));
+    //Number=006~Name=Westland~Street=35725 Warren Rd~City=Westland~State=MI~ZIP=48185~X=-83.395953~Y=42.338554~Status=SUCCESS~MatchCode=S80~LocationCode=AS0
+    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'single-site', action: 'add' });
+    const mktValue = formData.Market != null ? `~MarketValue=${formData.Market}` : null;
+    let metricsText = `Number=${formData.number}~Name=${formData.name}~Street=${formData.street}~City=${formData.city}~State=${formData.state}~ZIP=${formData.zip}`;
+    metricsText = mktValue != null ? metricsText + mktValue : metricsText;
+    this.usageService.createCounterMetric(usageMetricName, metricsText, null);
   }
 
   loadVPW() {
