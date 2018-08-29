@@ -42,7 +42,7 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     let hasBlank: boolean = false;
     let inValid: boolean = false;
     let numValues: number = 0;
-    let result: boolean = false;
+    let result: boolean = true;
     const errorMessage: string = 'Failed';
 
     try {
@@ -52,18 +52,24 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
           (geo['RADIUS3'] === '0' || geo['RADIUS3'] == null || geo['RADIUS3'] === '')) {
 
           hasBlank = true;
-          throw new Error(errorMessage);
-        }
-        else {
+        } else {
           if ((Number(geo['RADIUS1']) > 50) || (Number(geo['RADIUS2']) > 50) || (Number(geo['RADIUS3']) > 50)) {
             inValid = true;
-            throw new Error('Defined radii cannot be greater than 50 miles.');
+            result = false;
           } else {
-            result = true;
             numValues++;
           }
+
         }
+        
       });
+      if (hasBlank && numValues > 0){
+        result = false;
+        throw new Error(errorMessage);
+      }
+      if (inValid) {
+        throw new Error('Defined radii cannot be greater than 50 miles.');
+      }
     }
     catch (e) {
       if ((<Error>e).message === errorMessage) {
