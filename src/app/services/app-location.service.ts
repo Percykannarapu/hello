@@ -57,8 +57,7 @@ export class AppLocationService {
               private config: AppConfig,
               private esriMapService: EsriMapService,
               private logger: AppLoggingService,
-              private domainFactory: ImpDomainFactoryService,
-              private stateService: AppStateService) {
+              private domainFactory: ImpDomainFactoryService) {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
@@ -144,9 +143,9 @@ export class AppLocationService {
          if (sites.length > 0)
             this.impLocationService.remove(sites);
       }
-      catch(error)
+      catch (error)
       {
-         console.log("deleteLocations - EXCEPTION", error);
+         console.log('deleteLocations - EXCEPTION', error);
       }
    }
 
@@ -182,6 +181,8 @@ export class AppLocationService {
     let ta1: ImpGeofootprintLocAttrib[] = [];
     let ta2: ImpGeofootprintLocAttrib[] = [];
     let ta3: ImpGeofootprintLocAttrib[] = [];
+    let hasProvidedSite = false;
+    let hasProvidedCompetitor = false;
      data.forEach(l =>
       { 
         if (l.locationNumber == null || l.locationNumber.length === 0 ) {
@@ -193,17 +194,23 @@ export class AppLocationService {
           ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
           ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
           const tradeAreas: any[] = [];
-        
+
           if (ta1.length !== 0){
-            const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true }; 
+            const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true };
+            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
             tradeAreas.push(tradeArea1);
           }
           if (ta2.length !== 0){
             const tradeArea2 =  {radius: Number(ta2[0].attributeValue), selected: true };
+            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
             tradeAreas.push(tradeArea2);
           }
           if (ta3.length !== 0){
             const tradeArea3 = {radius: Number(ta3[0].attributeValue), selected: true };
+            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
             tradeAreas.push(tradeArea3);
           }
           const locs: any[] = [];
@@ -211,6 +218,8 @@ export class AppLocationService {
           newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
         } 
       });
+    this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
+    this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
     if (this.appStateService.analysisLevel$.getValue() == null && (ta1.length !== 0 || ta2.length !== 0 || ta3.length !== 0) ) {

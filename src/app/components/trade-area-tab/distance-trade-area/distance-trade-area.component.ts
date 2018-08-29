@@ -17,6 +17,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
   @Input() currentMergeType: TradeAreaMergeTypeCodes;
   @Input() maxRadius: number;
   @Input() numTradeAreas: number;
+  @Input() hasProvidedTradeAreas: boolean;
 
   @Output() mergeTypeChange = new EventEmitter<TradeAreaMergeTypeCodes>();
   @Output() tradeAreaApply = new EventEmitter<DistanceTradeAreaUiModel>();

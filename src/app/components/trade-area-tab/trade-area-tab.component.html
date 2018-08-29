@@ -14,6 +14,7 @@
                                  [currentMergeType]="(siteMergeType$ | async)"
                                  [maxRadius]="maxRadius"
                                  [numTradeAreas]="maxTradeAreaCount"
+                                 [hasProvidedTradeAreas]="(hasSiteProvidedTradeAreas$ | async)"
                                  (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Site)"
                                  (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)">
           Loading Site Trade Areas...
@@ -24,6 +25,7 @@
                                  [currentMergeType]="(competitorMergeType$ | async)"
                                  [maxRadius]="maxRadius"
                                  [numTradeAreas]="maxTradeAreaCount"
+                                 [hasProvidedTradeAreas]="(hasCompetitorProvidedTradeAreas$ | async)"
                                  (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Competitor)"
                                  (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Competitor)">
           Loading Competitor Trade Areas...
