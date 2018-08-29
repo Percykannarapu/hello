@@ -8,6 +8,14 @@ const latLongProcessor = (data: string) => {
     return '';
 };
 
+const radiusIsBlank = (field: any) => {
+  return field === '0' || field == null || field === '';
+};
+
+const radiusIsValid = (field: any) => {
+  return field == undefined || (Number(field) > 0 && Number(field) <= 50);
+};
+
 export const siteListUpload: Parser<ValGeocodingRequest> = {
   columnParsers: [
     { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street' },
@@ -40,38 +48,30 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
   },
   fileValidator: (allData: ValGeocodingRequest[]): boolean => {
     let hasBlank: boolean = false;
-    let inValid: boolean = false;
     let numValues: number = 0;
     let result: boolean = true;
     const errorMessage: string = 'Failed';
 
     try {
       allData.forEach(geo => {
-        if ((geo['RADIUS1'] === '0' || geo['RADIUS1'] == null || geo['RADIUS1'] === '') ||
-          (geo['RADIUS2'] === '0' || geo['RADIUS2'] == null || geo['RADIUS2'] === '') ||
-          (geo['RADIUS3'] === '0' || geo['RADIUS3'] == null || geo['RADIUS3'] === '')) {
-
+        if (radiusIsBlank(geo['RADIUS1']) && radiusIsBlank(geo['RADIUS2']) && radiusIsBlank(geo['RADIUS3'])) {
           hasBlank = true;
         } else {
-          if ((Number(geo['RADIUS1']) > 50) || (Number(geo['RADIUS2']) > 50) || (Number(geo['RADIUS3']) > 50)) {
-            inValid = true;
-            result = false;
-          } else {
+          if (radiusIsValid(geo['RADIUS1']) && radiusIsValid(geo['RADIUS2']) && radiusIsValid(geo['RADIUS3'])) {
             numValues++;
+          } else {
+            result = false;
+            throw new Error(errorMessage);
           }
 
         }
-        
+
       });
-      if (hasBlank && numValues > 0){
+      if (numValues > 0 && hasBlank) {
         result = false;
         throw new Error(errorMessage);
       }
-      if (inValid) {
-        throw new Error('Defined radii cannot be greater than 50 miles.');
-      }
-    }
-    catch (e) {
+    } catch (e) {
       if ((<Error>e).message === errorMessage) {
         console.error('Upload failed because there was a Blank or ZERO Radius');
       } else {
