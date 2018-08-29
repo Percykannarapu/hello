@@ -201,7 +201,7 @@ export class BusinessSearchComponent implements OnInit {
       this.usageService.createCounterMetric(usageMetricName, metricName, locationsForInsert.length);
       if (locationsForInsert.length > 0) {
         const currentMaster = this.appStateService.currentMaster$.getValue();
-        this.appLocationService.persistLocationsAndAttributes(locationsForInsert);
+        //this.appLocationService.persistLocationsAndAttributes(locationsForInsert);
         currentMaster.impGeofootprintLocations.push(...locationsForInsert);
         this.locationService.add(locationsForInsert);
         this.appService.closeOverLayPanel.next(true);
