@@ -9,7 +9,7 @@ const latLongProcessor = (data: string) => {
 };
 
 const radiusIsBlank = (field: any) => {
-  return field === '0' || field == null || field === '';
+  return field == null || field === '';
 };
 
 const radiusIsValid = (field: any) => {
@@ -34,7 +34,7 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
     { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' }
   ],
-  headerValidator: (foundHeaders: ParseRule[]): boolean => {
+  headerValidator: (foundHeaders: ParseRule[]) : boolean => {
     let cityFound = false;
     let stateFound = false;
     let zipFound = false;
@@ -46,7 +46,7 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     if ((!cityFound || !stateFound) && !zipFound) throw new Error('Either a Postal Code or City + State columns must be present in the file.');
     return true;
   },
-  fileValidator: (allData: ValGeocodingRequest[]): boolean => {
+  fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
     let hasBlank: boolean = false;
     let numValues: number = 0;
     let result: boolean = true;
