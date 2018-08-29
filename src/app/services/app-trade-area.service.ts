@@ -13,7 +13,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMerge
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { calculateStatistics } from '../app.utils';
+import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -172,30 +172,47 @@ export class AppTradeAreaService {
   public zoomToTradeArea() {
     const latitudes: number[] = [];
     const longitudes: number[] = [];
-    const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue(), false);
-    const geocodes = this.stateService.uniqueIdentifiedGeocodes$.getValue();
-    if (layerId == null || geocodes == null || geocodes.length === 0) return;
-    const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
-    const sub = query$.subscribe(
-      selections => {
-        selections.forEach(g => {
-          if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
-            latitudes.push(Number(g.attributes.latitude));
-          }
-          if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
-            longitudes.push(Number(g.attributes.longitude));
-          }
-        });
-      },
-      err => { console.error('Error getting lats and longs from layer', err); },
-      () => {
-        const xStats = calculateStatistics(longitudes);
-        const yStats = calculateStatistics(latitudes);
-        this.esriMapService.zoomOnMap(xStats, yStats, geocodes.length);
-        if (sub) sub.unsubscribe();
-      }
-    );
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+
+    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0) {
+      // analysisLevel exists - zoom to Trade Area
+      const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, false);
+      const geocodes = this.stateService.uniqueIdentifiedGeocodes$.getValue();
+      if (layerId == null || geocodes == null || geocodes.length === 0) return;
+      const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
+      query$.subscribe(
+        selections => {
+          selections.forEach(g => {
+            if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
+              latitudes.push(Number(g.attributes.latitude));
+            }
+            if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
+              longitudes.push(Number(g.attributes.longitude));
+            }
+          });
+        },
+        err => { console.error('Error getting lats and longs from layer', err); },
+        () => this.calculateStatsAndZoom(latitudes, longitudes)
+      );
+    } else {
+      // analysisLevel doesn't exist yet - zoom to site list
+      const currentSiteCoords = this.impLocationService.get()
+        .filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
+        .map(loc => toUniversalCoordinates(loc));
+      currentSiteCoords.forEach(coordinate => {
+        latitudes.push(coordinate.y);
+        longitudes.push(coordinate.x);
+      });
+      this.calculateStatsAndZoom(latitudes, longitudes);
+    }
   }
+
+  private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {
+    const xStats = calculateStatistics(longitudes);
+    const yStats = calculateStatistics(latitudes);
+    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
+  }
+
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintTradeArea[] {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     locations.forEach(location => {
