@@ -1,6 +1,5 @@
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ValGeocodingRequest } from './val-geocoding-request.model';
 
 export class ValGeocodingResponse {
   Latitude: string;
