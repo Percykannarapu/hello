@@ -66,10 +66,11 @@ export class FailedGeocodeGridComponent {
   }
 
   googleMap(site: ImpGeofootprintLocation) : void{
-
+    const strWindowFeatures = 'location=yes,height=570,width=520,scrollbars=yes,status=yes';
     const googleMapUri = `https://www.google.com/maps/place/${site.locAddress},${site.locCity},${site.locState},${site.locZip}`;
     //window.location.href = googleMapUri;
-    window.open(googleMapUri);
+    //window.location.href = googleMapUri;
+    window.open(googleMapUri, '_blank', 'height=1000px,width=1000px');
 
   }
 }
