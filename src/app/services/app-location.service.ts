@@ -165,18 +165,22 @@ export class AppLocationService {
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
-    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    //  Commenting  this piece to roll back US6863 from 8/30 release -Percy 
+    /* const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     let ta1: ImpGeofootprintLocAttrib[] = [];
     let ta2: ImpGeofootprintLocAttrib[] = [];
     let ta3: ImpGeofootprintLocAttrib[] = [];
     let hasProvidedSite = false;
-    let hasProvidedCompetitor = false;
+    let hasProvidedCompetitor = false; */
      data.forEach(l =>
       {
         l.impGeofootprintMaster = currentMaster;
         if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
-
-       if (l.impGeofootprintLocAttribs.length !== 0){
+      });  
+       // Commenting  this piece to roll back US6863 from 8/30 release -Percy  
+       
+       
+      /* if (l.impGeofootprintLocAttribs.length !== 0){
           ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
           ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
           ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
@@ -213,7 +217,8 @@ export class AppLocationService {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);   
       this.geocodingService.clearFields(true);
     } else {
-    this.appTradeAreaService.insertTradeAreas(newTradeAreas);    
+    this.appTradeAreaService.insertTradeAreas(newTradeAreas); */ 
+    
     data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
@@ -221,7 +226,7 @@ export class AppLocationService {
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
     }
-  }
+  
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
     const xStats = calculateStatistics(locations.map(d => d.xcoord));

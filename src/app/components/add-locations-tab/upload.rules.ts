@@ -34,9 +34,12 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     { headerIdentifier: ['marketCode', 'mktcode', 'market code', 'Market Code'], outputFieldName: 'Market Code' },
     { headerIdentifier: ['description', 'desc', 'Description'], outputFieldName: 'Description' },
     { headerIdentifier: ['group', 'groupname', ' group name', 'Group Name', 'Group'], outputFieldName: 'Group' },
-    { headerIdentifier: ['radius1', 'radius 1', 'RADIUS1', 'RADIUS 1', 'Radius1', 'Radius 1'], outputFieldName: 'RADIUS1' },
-    { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
-    { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' }
+    { headerIdentifier: ['IMP_RADIUS1'], outputFieldName: 'RADIUS1' },
+    { headerIdentifier: ['IMP_RADIUS2'], outputFieldName: 'RADIUS2' },
+    { headerIdentifier: ['IMP_RADIUS3'], outputFieldName: 'RADIUS3' }
+    // { headerIdentifier: ['radius1', 'radius 1', 'RADIUS1', 'RADIUS 1', 'Radius1', 'Radius 1'], outputFieldName: 'RADIUS1' },
+    // { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
+    // { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' }
   ],
   headerValidator: (foundHeaders: ParseRule[]) : boolean => {
     let cityFound = false;
@@ -50,7 +53,8 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     if ((!cityFound || !stateFound) && !zipFound) throw new Error('Either a Postal Code or City + State columns must be present in the file.');
     return true;
   },
-  fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
+};
+  /* fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
     let hasBlank1: boolean = false;
     let hasBlank2: boolean = false;
     let hasBlank3: boolean = false;
@@ -94,4 +98,4 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     }
     return result;
   }
-};
+}; */
