@@ -10,12 +10,15 @@ import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { siteListUpload } from './upload.rules';
 import { AppMessagingService } from '../../services/app-messaging.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'val-add-locations-tab',
   templateUrl: './add-locations-tab.component.html'
 })
 export class AddLocationsTabComponent implements OnInit {
+
+  isProd: boolean = environment.production;
 
   hasFailures$: Observable<boolean>;
   totalCount$: Observable<number>;
