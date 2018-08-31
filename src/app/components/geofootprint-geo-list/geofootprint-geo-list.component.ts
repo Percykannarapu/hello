@@ -391,7 +391,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
   private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
     if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+      if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
+        return gv.customVarExprDisplay;
+      } else {
+        return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
+      }
     } else {
       return gv.customVarExprDisplay;
     }
@@ -575,6 +579,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             this.variableColOrder.set(audience.audienceName + ' (VLH)', audience.audienceCounter);
           } else if (audience.audienceSourceName === 'Pixel') { 
             this.variableColOrder.set(audience.audienceName + ' (Pixel)', audience.audienceCounter);
+          } else if (audience.audienceSourceName === 'Audience-TA') { 
+            this.variableColOrder.set(audience.secondaryId, audience.audienceCounter);
           } else {
             this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);    
           }
