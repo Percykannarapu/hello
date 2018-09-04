@@ -10,6 +10,7 @@ const numberOrNull = (value: any) => value == null || value === '' || Number.isN
 @Component({
   selector: 'val-distance-trade-area',
   templateUrl: './distance-trade-area.component.html',
+  styleUrls: ['./distance-trade-area.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DistanceTradeAreaComponent implements OnInit, OnChanges {

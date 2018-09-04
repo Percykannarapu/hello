@@ -20,11 +20,12 @@ export class ManualEntryComponent implements OnInit {
   manualEntryForm: FormGroup;
   loadItems: MenuItem[];
 
-  constructor(private fb: FormBuilder,
-              private appStateService: AppStateService, private usageService: UsageService) {
-                this.appStateService.getClearUserInterfaceObs().subscribe(flag => this.clearFields(flag)); 
+  get latitude() { return this.manualEntryForm.get('latitude'); }
+  get longitude() { return this.manualEntryForm.get('longitude'); }
 
-  }
+  constructor(private fb: FormBuilder,
+              private appStateService: AppStateService,
+              private usageService: UsageService) {}
 
   ngOnInit() {
     this.manualEntryForm = this.fb.group({
@@ -44,6 +45,7 @@ export class ManualEntryComponent implements OnInit {
       { label: 'Tecumseh', icon: 'ui-icon-map', command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
       { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' }
     ];
+    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.manualEntryForm.reset());
   }
 
   hasErrors(controlKey: string) : boolean {
@@ -86,12 +88,5 @@ export class ManualEntryComponent implements OnInit {
         return null;
       }
     };
-  }
-
-  public clearFields(flag: boolean){
-    if (flag){
-        this.manualEntryForm.reset();
-    }
-
   }
 }

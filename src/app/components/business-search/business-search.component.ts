@@ -72,7 +72,7 @@ export class BusinessSearchComponent implements OnInit {
       this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
-    this.appStateService.getClearUserInterfaceObs().pipe(filter(flag => flag)).subscribe( () => this.clearFields());
+    this.appStateService.getClearUserInterfaceObs().subscribe( () => this.clearFields());
   }
 
   categoryChange() : void {
