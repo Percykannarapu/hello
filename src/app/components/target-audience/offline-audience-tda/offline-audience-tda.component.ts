@@ -65,7 +65,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.stateService.getClearUserInterfaceObs().subscribe(bool => {
+    this.stateService.getClearUserInterfaceObs().subscribe(() => {
       this.clearSelections();
     });
   }

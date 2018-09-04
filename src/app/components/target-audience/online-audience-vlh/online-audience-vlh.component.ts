@@ -49,11 +49,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
-      if (bool){
-         this.clearSelectedFields();
-      }
-    });
+    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
   }
 
   ngAfterViewInit() : void {

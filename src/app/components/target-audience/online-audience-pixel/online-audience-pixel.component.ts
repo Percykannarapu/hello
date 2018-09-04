@@ -66,11 +66,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
-      if (bool){
-         this.clearSelectedFields();
-      }
-    });
+    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
   }
 
   public selectVariable(event: TreeNode) : void {
