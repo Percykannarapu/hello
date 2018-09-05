@@ -18,6 +18,7 @@ import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { distinctUntilArrayContentsChanged } from '../val-modules/common/common.rxjs';
+import { AppLoggingService } from './app-logging.service';
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 
@@ -40,7 +41,8 @@ export class AppTradeAreaService {
               private appConfig: AppConfig,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
-              private domainFactory: ImpDomainFactoryService) {
+              private domainFactory: ImpDomainFactoryService,
+              private logger: AppLoggingService) {
     this.mergeSpecs.set(ImpClientLocationTypeCodes.Site, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
     this.mergeSpecs.set(ImpClientLocationTypeCodes.Competitor, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
@@ -84,7 +86,7 @@ export class AppTradeAreaService {
     combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, ta, m));
     combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Competitor, ta, m));
 
-    this.stateService.getClearUserInterfaceObs().pipe(filter(flag => flag)).subscribe(( ) => this.currentDefaults.clear());
+    this.stateService.getClearUserInterfaceObs().subscribe(( ) => this.currentDefaults.clear());
 
   }
 
@@ -241,6 +243,8 @@ export class AppTradeAreaService {
   }
 
   private drawTradeAreas(siteType: SuccessfulLocationTypeCodes, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
+    this.logger.info('Drawing Trade Areas for', siteType);
+    this.logger.debug('Draw Trade Area parameters', { siteType, tradeAreas, mergeType });
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
     const radii = currentTradeAreas.map(ta => ta.taRadius);
@@ -252,14 +256,10 @@ export class AppTradeAreaService {
       const maxRadius = Math.max(...radii);
       drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
     }
-    console.log(`Drawing ${siteType} trade areas`, drawnTradeAreas);
     this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
     // reset the defaults that get applied to new locations
-    if (this.currentDefaults.get(siteType).length < 1 && radii.length > 0){
-      const unique = (value, index, self) => {
-        return self.indexOf(value) === index;
-      };
-      const uniqueValues = radii.filter(unique);
+    if ((this.currentDefaults.get(siteType) == null || this.currentDefaults.get(siteType).length === 0) && radii.length > 0) {
+      const uniqueValues = new Set(radii);
       const taValues: any[] = [];
       uniqueValues.forEach(radius => {
         taValues.push({radius: radius , selected: true });

@@ -6,7 +6,9 @@
           <div class="ui-inputgroup">
             <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" [style]="{'width':'65px', 'float': 'right'}"></p-toggleButton>
             <input type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
-            <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon"><i class="fa fa-check" style="color:rgb(10, 112, 25);"></i></span>
+            <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
+              <i class="fa fa-check"></i>
+            </span>
           </div>
         </div>
 

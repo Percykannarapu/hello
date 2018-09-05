@@ -392,7 +392,7 @@ export class AppMenuComponent implements OnInit {
                         errorString = 'imPower Project Name is required';
                     if (impProject.methAnalysis == null || impProject.methAnalysis == '')
                         errorString  = errorString + '\n Analysis Level is required';
-                    if (errorString != null){
+                    if (errorString !== ''){
                         this.messageService.showErrorNotification('Error Saving Project', errorString);
                         return;
                     }

@@ -94,11 +94,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       distinctUntilChanged()
     );
     combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
-    this.stateSetvice.getClearUserInterfaceObs().subscribe(bool => {
-        if (bool){
-          this.clearSelections();
-        }
-    });
+    this.stateSetvice.getClearUserInterfaceObs().subscribe(() => this.clearSelections());
   }
 
   public selectVariable(event: ApioTreeNode) : void {
