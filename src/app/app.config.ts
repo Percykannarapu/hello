@@ -70,6 +70,8 @@ export class AppConfig implements EsriLoaderConfig, LoggingConfiguration {
 
    public layerIds = EnvironmentData.layerIds;
 
+   public serviceUrls = EnvironmentData.serviceUrls;
+
    public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
 
    // Can be used to hide/show debugging info

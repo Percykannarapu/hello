@@ -4,9 +4,10 @@ import { EsriMapService } from '../core/esri-map.service';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { EsriUtils } from '../core/esri-utils';
-import { Subject } from 'rxjs';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
+
+const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
 @Injectable()
 export class EsriLayerService {
@@ -151,6 +152,22 @@ export class EsriLayerService {
     group.layers.unshift(layer);
     this.layerRefs.set(layerName, layer);
     return layer;
+  }
+
+  public createDataSet(sourceGraphics: __esri.Graphic[], objectIdFieldName: string = 'OBJECTID') : __esri.FeatureSet {
+    if (sourceGraphics.length === 0) return null;
+    const fields = [];
+    if (sourceGraphics[0].attributes != null) {
+      const newFields = Object.keys(sourceGraphics[0].attributes)
+        .filter(k => k !== objectIdFieldName)
+        .map(k => ({ name: k, alias: k, type: getSimpleType(sourceGraphics[0].attributes[k]) }));
+      fields.push(...newFields);
+    }
+    fields.push({ name: objectIdFieldName, alias: 'OBJECTID', type: 'esriFieldTypeOID' });
+    return new EsriModules.FeatureSet({
+      features: sourceGraphics,
+      fields: fields
+    });
   }
 
   public addGraphicsToLayer(layerName: string, graphics: __esri.Graphic[]) : void {

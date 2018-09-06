@@ -5,36 +5,39 @@ import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
-import { Observable, merge, combineLatest } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { filter, map, startWith } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
 import { AppConfig } from '../app.config';
 import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriMapService } from '../esri-modules/core/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
-import { simpleFlatten } from '../val-modules/common/common.utils';
+import { mapBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import { AppTradeAreaService, DEFAULT_MERGE_TYPE } from './app-trade-area.service';
+import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
+import { EsriGeoprocessorService } from '../esri-modules/layers/esri-geoprocessor.service';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
+
+const newHomeGeoToAnalysisLevelMap = {
+  homeAtz: getHomeGeoKey('ATZ'),
+  homeCounty: getHomeGeoKey('County'),
+  homeDigitalAtz: getHomeGeoKey('Digital ATZ'),
+  homeDma: getHomeGeoKey('DMA'),
+  homePcr: getHomeGeoKey('PCR'),
+  homeZip: getHomeGeoKey('ZIP')
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppLocationService {
-
-  // TODO: get these into a config file somewhere
-  private analysisLevelsForHomeGeo = ['ZIP', 'ATZ', 'PCR', 'Digital ATZ'];
-
   public allClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
@@ -51,11 +54,12 @@ export class AppLocationService {
               private appStateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
               private geocodingService: AppGeocodingService,
-              private queryService: EsriQueryService,
               private messageService: AppMessagingService,
               private metricsService: MetricService,
               private config: AppConfig,
               private esriMapService: EsriMapService,
+              private esriLayerService: EsriLayerService,
+              private esriGeoprocessingService: EsriGeoprocessorService,
               private logger: AppLoggingService,
               private domainFactory: ImpDomainFactoryService) {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
@@ -153,7 +157,7 @@ export class AppLocationService {
       }
    }
 
- public notifySiteChanges() : void {
+  public notifySiteChanges() : void {
     this.impLocationService.makeDirty();
   }
 
@@ -225,7 +229,7 @@ export class AppLocationService {
         currentMaster.impGeofootprintLocations.push(...data);
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
-    }
+  }
   
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
@@ -235,69 +239,66 @@ export class AppLocationService {
   }
 
   private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
-    const observables: Observable<[string, any[]]>[] = [];
-    for (const currentAnalysisLevel of this.analysisLevelsForHomeGeo) {
-      const homeGeoKey = getHomeGeoKey(currentAnalysisLevel);
-      this.logger.debug(`Recalculating "${homeGeoKey}" for ${locations.length} sites`);
-      const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-      observables.push(
-        this.queryService.queryPoint(layerId, toUniversalCoordinates(locations), true, ['geocode', 'pob']).pipe(
-          map<any[], [string, any[]]>(features => [homeGeoKey, features])
-        )
-      );
-    }
-    if (observables.length > 0) {
+    let objId = 0;
+    const jobData = locations.map(loc => {
+      const coordinates = toUniversalCoordinates(loc);
+      return new EsriModules.Graphic({
+        geometry: new EsriModules.Point(coordinates),
+        attributes: {
+          ...coordinates,
+          parentId: objId++,
+          siteNumber: `${loc.locationNumber}`,
+        }
+      });
+    });
+    const dataSet = this.esriLayerService.createDataSet(jobData, 'parentId');
+    if (dataSet != null) {
+      const payload = {
+        in_features: dataSet
+      };
+      const resultAttributes: any[] = [];
       this.messageService.startSpinnerDialog('HomeGeoCalcKey', 'Calculating Home Geos');
-      const featureCache = new Map<string, any[]>();
-      merge(...observables, 4).subscribe(
-        ([key, newFeatures]) => {
-          if (featureCache.has(key)) {
-            featureCache.get(key).push(...newFeatures);
-          } else {
-            featureCache.set(key, newFeatures);
-          }
+      this.logger.info('Home Geo service call initiated.');
+      this.esriGeoprocessingService.processJob<__esri.FeatureSet>(this.config.serviceUrls.homeGeocode, payload).subscribe(
+        result => {
+          const attributes = result.value.features.map(feature => feature.attributes);
+          this.logger.debug('Home Geo service call returned result', result);
+          resultAttributes.push(...attributes);
         },
         err => {
           this.logger.errorWithNotification('Home Geo', 'There was an error during Home Geo calculation.', err);
-          console.error('There was an error retrieving the home geos', err);
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
         },
         () => {
-          featureCache.forEach((features, homeGeoKey) => {
-            this.createAttributesFromFeatures(features, homeGeoKey, locations);
-          });
-          this.flagHomeGeos(locations, analysisLevel);
+          if (resultAttributes.length > 0) {
+            this.logger.info('Home Geo service call complete');
+            this.logger.debug('Home Geo service complete results', resultAttributes);
+            this.processHomeGeoAttributes(resultAttributes, locations);
+            this.flagHomeGeos(locations, analysisLevel);
+            this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
+          }
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
-          this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
         }
       );
     }
   }
 
-  private createAttributesFromFeatures(graphics: any[], homeGeoKey: string, locations: ImpGeofootprintLocation[]) : void {
-    const attributesToAdd: ImpGeofootprintLocAttrib[] = [];
-    for (const loc of locations) {
-      const locationPoint = new EsriModules.Point({ x: loc.xcoord, y: loc.ycoord });
-      const matches = [];
-      for (const graphic of graphics) {
-        if (EsriUtils.geometryIsPolygon(graphic.geometry)) {
-          if (graphic.geometry.contains(locationPoint)) {
-            matches.push(graphic);
-          }
+  private processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
+    const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
+    const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
+    locations.forEach(loc => {
+      const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
+      Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
+        if (newHomeGeoToAnalysisLevelMap[key] != null && currentAttributes[key] != null) {
+          // the service might return multiple values for a home geo (in case of overlapping geos)
+          // as csv. For now, we're only taking the first result.
+          const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+          const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+          impAttributesToAdd.push(newAttribute);
         }
-      }
-      let bestMatch = null;
-      if (matches.length > 1) {
-        bestMatch = matches.filter(g => g.attributes.pob == null)[0];
-      } else {
-        bestMatch = matches[0];
-      }
-      if (bestMatch != null) {
-        const newAttribute = this.domainFactory.createLocationAttribute(loc, homeGeoKey, bestMatch.attributes.geocode);
-        attributesToAdd.push(newAttribute);
-      }
-    }
-    this.impLocAttributeService.add(attributesToAdd);
+      });
+    });
+    this.impLocAttributeService.add(impAttributesToAdd);
   }
 
   private setPrimaryHomeGeocode(analysisLevel: string) {

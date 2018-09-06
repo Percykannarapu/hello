@@ -207,4 +207,8 @@ export class EnvironmentData {
     //   }
     // }
   };
+
+  public static serviceUrls = {
+    homeGeocode: `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`
+  };
 }
