@@ -40,7 +40,7 @@ export class ValGeocodingResponse {
     const nonAttributeProps = ['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP',
                                 'Number', 'Name', 'Market', 'Market Code', 'Group', 'Description',
                                 'Original Address', 'Original City', 'Original State', 'Original ZIP',
-                                'Match Code', 'Match Quality', 'Geocode Status'];
+                                'Match Code', 'Match Quality', 'Geocode Status', 'RADIUS1', 'RADIUS2', 'RADIUS3' ];
     const result = new ImpGeofootprintLocation({
       locationName: this.Name != null ? this.Name.trim() : '',
       marketName: this.Market != null ? this.Market.trim() : '',
@@ -61,6 +61,9 @@ export class ValGeocodingResponse {
       geocoderMatchCode: this['Match Code'],
       geocoderLocationCode: this['Match Quality'],
       clientIdentifierTypeCode: 'PROJECT_ID',
+      radius1: this['RADIUS1'],
+      radius2: this['RADIUS2'],
+      radius3: this['RADIUS3'],
       isActive: true
     });
     if (result.recordStatusCode === 'SUCCESS' || result.recordStatusCode === 'PROVIDED') {
