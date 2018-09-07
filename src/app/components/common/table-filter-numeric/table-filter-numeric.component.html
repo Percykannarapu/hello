@@ -1,0 +1,32 @@
+<p-overlayPanel #filterOP [showCloseIcon]="true" [dismissable]="true" [style]="{width: '500px'}" [appendTo]="'body'" (onShow)="onShow()">
+   <div style="padding-top:0.02em; padding-bottom:0.02em;">
+      <h4>{{fieldHeader}}: {{rangeStr}}</h4>
+   </div>
+   <div class="ui-g val-flush-to-edges">
+      <div class="ui-g-3">
+         <p-dropdown [options]="rangeOperators" [(ngModel)]="filterData.rangeOperator" optionLabel="name" (onChange)="onChange('rangeOperator', $event)"></p-dropdown>
+      </div>
+      <div class="ui-g-4">
+         <input type="number" pInputText [(ngModel)]="filterData.lowValue" style="width:100%;" (input)="onChange('lowValue', $event)"/>
+      </div>
+      <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-1" style="text-align: center; margin: auto;">
+         and
+      </div>
+      <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-4">
+         <input type="number" pInputText [(ngModel)]="filterData.highValue" style="width:100%;" (input)="onChange('highValue', $event)"/>
+      </div>
+      <div class="ui-g-12 tf-button-background">
+         <div>
+            <label class="tf-label">Clear:</label>
+            <button pButton type="button" label="All" (click)="clearFilter('all')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear filters and return all rows" ></button>
+            <button pButton type="button" label="Min" (click)="clearFilter('min')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear minimum filter"></button>
+            <button pButton type="button" label="Max" (click)="clearFilter('max')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear maximum filter"></button>
+         </div>
+      </div>   
+   </div>      
+</p-overlayPanel>
+
+<div class="val-table">      
+   <button type="text" pButton label="{{rangeLbl}}" pTooltip="{{rangeStr}}" (click)="filterOP.show($event, filterTarget)" class="val-short-button" style="height: 1.1em; line-height: 1.1em; padding: 0px 5px 0px 5px;"></button>
+   <div #filterTarget></div>
+</div>

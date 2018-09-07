@@ -1,115 +1,151 @@
-<!-- <div *ngIf="config.debugMode" class="ui-g-12">
-   <button label="Test Find" pButton (click)="testFind()"></button>
-   <button label="Test Rank" pButton (click)="testRank()"></button>
-   <button label="Test Remove" pButton (click)="testRemove()"></button>
-   <button label="Delete Project" pButton (click)="testDeleteProject()"></button>
-</div> -->
-<div class="ui-g-12">
-   <p-dataTable #geoGrid
-      dataKey="fgId" class="val-table"
-      scrollable="true" scrollWidth="100%"
-      [responsive]="true" sortMode="multiple"
-      [value]="displayedImpGeofootprintGeos$ | async"
-      [selection]="selectedImpGeofootprintGeos$ | async"
-      [headerCheckboxToggleAllPages]="true"
-      [resizableColumns]="true" columnResizeMode="expand"
-      [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
-      [globalFilter]="filter" [reorderableColumns]="true"
-      (onRowClick)="onRowClick($event)"
-      (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
-      (onRowSelect)="onSelectGeocode($event, true)"
-      (onRowUnselect)="onSelectGeocode($event, false)">
-      <!-- GEOGRID HEADER -->
-      <p-header>
-         <div class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
-            <div class="ui-g-12 ui-g-nopad" style="padding: 5px 0px 0px 0px;">
-               <div class="ui-g-4 ui-toolbar-group-left val-flush-to-edges">
-                  <div class="ui-g-1" style="min-width:25px; width:25px">
-                     <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
-                  </div>
-                  <div class="ui-g-11  ui-toolbar-group-left val-flush-to-edges">
-                     <span class="md-inputfield" style="display: flex; justify-content: flex-begin; margin:4px 4px 0 0">
-                        <input #filter id="filter" type="text" pInputText size="50" placeholder="Filter Geographies" style="width:auto; color: white;">
-                     </span>
-                  </div>
+<div class="ui-g ui-g-nopad">
+   <div class="ui-g-12">
+      <p-table #geoGrid
+               class="val-table"
+               [columns]="flatGeoGridColumns"
+               [globalFilterFields]="flatGeoGridColumns"
+               [value]="displayedImpGeofootprintGeos$ | async"
+               [selection]="selectedImpGeofootprintGeos$ | async"               
+               [resizableColumns]="true" columnResizeMode="expand"
+               [reorderableColumns]="true"
+               sortMode="multiple"
+               scrollable="true" scrollWidth="100%"
+               [responsive]="true"
+               [headerCheckboxToggleAllPages]="true"
+               [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
+               (onRowClick)="onRowClick($event)"
+               (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
+               (onRowSelect)="onSelectGeocode($event, true)"
+               (onRowUnselect)="onSelectGeocode($event, false)">
+
+         <!-- This keeps header and detail widths in sync -->
+         <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+               <col style="width: 30px">
+               <col style="width: 30px">
+               <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+            </colgroup>
+         </ng-template>
+
+         <!-- Caption is the area just above the column headers -->
+         <ng-template pTemplate="caption">
+            <div class="ui-g no_vertical_space">
+               <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: left">
+                  <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+                  <input type="text" pInputText size="30" placeholder="Filter Geographies" (input)="geoGrid.filterGlobal($event.target.value, 'contains')" style="width:auto; color: white">
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
-                  <label style="text-align: center;"
+                  <label style="padding: 0; text-align: center;"
                          pTooltip="Selected Geos:   {{numGeosActive}}
                                    Unselected Geos: {{numGeosInactive}}">
                      Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}, Filtered Geos: {{geoGrid.totalRecords}}
                   </label>
                </div>
                <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
-                     <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
-                     <label style="padding: 0px 15px 0px 15px">Remove Dupes </label>
-                     <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
+                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" [class]="val-column-picker-light"></p-multiSelect>
+                  <label style="padding: 0px 15px 0px 15px">Remove Dupes </label>
+                  <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                </div>
-               <!-- dt.filter($event.value, col.field, 'equals') -->
-               <!-- (onChange)="dt.filter($event.value, col.field, 'in')" -->
-               <!-- (onChange)="onDedupeToggle($event, geoGrid)" -->
             </div>
-         </div>
-      </p-header>
-      <!-- GEOGRID COLUMN SELECTION -->
-      <!-- adding display:none to the headerStyle makes the column header disappear, making the columns mis-align with the headers.
-           so I add a "fake" column that has a real header, and a display:none body to offset the row-level data -->
-      <p-column [style]="{ 'display': 'none' }" [headerStyle]="{'width':'30px'}"></p-column>
-      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false" [headerStyle]="{ 'display': 'none' }"></p-column>
+         </ng-template>
 
-      <!-- <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="border: 0px; margin: 3px 0px 0px 1px; padding: 0px; width: 1.1em; height: 1.1em; display: block"></button> -->
-      <!-- <p-button icon="ui-icon-trash" (click)="onRowDelete(rowData)"></p-button> -->
+         <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
+            <tr>
+               <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+               <th style="width: 30px"></th>
+               <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
+                  {{col.header}}
+                  <p-sortIcon [field]="col.field"></p-sortIcon>
+               </th>
+            </tr>
+            <tr style="background: #b3d4ed">
+               <th style="width: 30px; background: #b3d4ed"></th>
+               <th style="width: 30px; background: #b3d4ed"></th>
+               
+               <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationName'"   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locAddress'"     pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locZip'"         pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'home_geo'"                                   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.geocode'"                                pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'city_name'"                                  pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'pob'"                                        pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.isDeduped'"                              pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
 
-      <!-- DELETE BUTTON -->
-      <p-column [style]="{'width':'30px'}">
-         <ng-template let-flatGeo="rowData" pTemplate="body">
-            <div class="ui-g-12 val-flush-to-edges" style="vertical-align:inherit">
-               <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
-                  style="font-size:.8em; border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"
-                  pTooltip="Permanently Remove Geo" tooltipPosition="right" >
-               </button>
-            </div>
+                  <div *ngSwitchCase="'geo.distance'">
+                     <val-table-filter-numeric fieldHeader="Distance" fieldName="geo.distance" (filterApplied)="geoGrid.filter($event, 'geo.distance', 'distanceFilter')" [(minValue)]="distanceRanges[0]" [(maxValue)]="distanceRanges[1]"></val-table-filter-numeric>
+                  </div>
+                  <div *ngSwitchCase="'geo.hhc'">
+                     <val-table-filter-numeric fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')" [(minValue)]="hhcRanges[0]" [(maxValue)]="hhcRanges[1]"></val-table-filter-numeric>
+                  </div>
+                  <div *ngSwitchCase="'cpm'">
+                     <val-table-filter-numeric fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')" [(minValue)]="cpmRanges[0]" [(maxValue)]="cpmRanges[1]"></val-table-filter-numeric>
+                  </div>
+                  <div *ngSwitchCase="'investment'">
+                     <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                  </div>
+
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locState'"   appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"       defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'ownergroup'"                             appendTo="body" [options]="uniqueOwnerGroup$ | async"   defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>                  
+                  <p-multiSelect *ngSwitchCase="'coveragedescription'"                    appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'dma'"                                    appendTo="body" [options]="uniqueDma$ | async"          defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+
+                  <input *ngSwitchCase="'Delete'"  pInputText type="text">
+
+                  <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
+               </th>
+            </tr>            
          </ng-template>
-      </p-column>
-      <!-- GEOGRID STANDARD COLUMNS -->
-      <p-column *ngFor="let col of selectedColumns" [sortable]="true"
-               [header]="col.value.header" [field]="((col.value.field != null) ? col.value.field : null)"
-               [style]="{'width': col.value.width}" [styleClass]="col.value.styleClass">
-         <!-- Template for the header to line up with the data columns -->
-         <ng-template pTemplate="header">
-            <div [style]="{'width': col.value.width}">
-               {{col.value.header}}
-            </div>
+
+         <ng-template pTemplate="body" let-flatGeo let-columns="selectedColumns">
+            <tr [pSelectableRow]="flatGeo">
+               <td>
+                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
+               </td>
+               <td [style]="{'width':'4em'}">
+                  <!-- <button type="button" pButton (click)="onRowDelete(flatGeo.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button> -->
+                  <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
+                     style="font-size:.8em; border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"
+                     pTooltip="Permanently Remove Geo" tooltipPosition="right" >
+                  </button>
+               </td>
+
+               <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
+                  <!-- Add ZoomTo Icon to Geocode -->
+                  <div *ngSwitchCase="'geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
+                     <div class="ui-g-10 .val-flush-to-edges" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null" style="vertical-align:inherit"> <!-- [pTooltip]="getGeoTooltip(row)" -->
+                        {{flatGeo['geo'].geocode}}
+                        <i *ngIf="flatGeo['home_geo']==1" class="fa fa-home" style="vertical-align:inherit; color: black"></i>
+                     </div>
+                     <div class="ui-g-2 .val-flush-to-edges" style="vertical-align:inherit">
+                        <button (click)="onZoomToGeo(flatGeo)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"></button>
+                     </div>
+                  </div>
+
+                  <!-- Format various columns -->
+                  <div *ngSwitchCase="'geo.distance'"> {{flatGeo[col.field] | number:'1.2-2'}} </div>
+                  <div *ngSwitchCase="'geo.hhc'">      {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'cpm'">          {{flatGeo['cpm'] | currency}} </div>
+                  <div *ngSwitchCase="'investment'">   {{flatGeo['investment'] | currency}} </div>
+
+                  <!-- Display all other columns -->
+                  <div *ngSwitchDefault>                  
+                     {{flatGeo[col.field]}}
+                  </div>
+               </td>
+            </tr>
          </ng-template>
-         <!-- Add ZoomTo Icon to Geocode -->
-         <ng-template *ngIf="col.value.header=='Geocode'" let-row="rowData" pTemplate="body">
-            <div class="ui-g-10 .val-flush-to-edges" style="vertical-align:inherit" [pTooltip]="getGeoTooltip(row)">
-               {{row['geo'].geocode}}
-            </div>
-            <div class="ui-g-2 .val-flush-to-edges" style="vertical-align:inherit">
-               <button (click)="onZoomToGeo(row)" icon="ui-icon-zoom-in" pButton style="border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"></button>
-            </div>
+         
+         <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+               <td [attr.colspan]="columns.length">
+                  No geographies found.
+               </td>
+            </tr>
          </ng-template>
-         <!-- Format Distance column-->
-         <ng-template *ngIf="col.value.header=='Distance'" let-row="rowData" pTemplate="body">
-            {{row['geo'].distance | number : '1.2-2'}}
-         </ng-template>
-         <!-- Format hhc column-->
-         <ng-template *ngIf="col.value.header=='HHC'" let-row="rowData" pTemplate="body">
-            {{row['geo'].hhc | number:'1.0-0'}}
-         </ng-template>
-         <!-- Format hhc column-->
-         <ng-template *ngIf="col.value.header=='CPM'" let-row="rowData" pTemplate="body">
-            {{row['cpm'] | currency}}
-         </ng-template>
-         <!-- Format investment column-->
-         <ng-template *ngIf="col.value.header=='Investment'" let-row="rowData" pTemplate="body">
-            {{row['investment'] | currency}}
-         </ng-template>
-      </p-column>
-      <!-- GEOGRID VARIABLE COLUMNS -->
-      <p-column *ngFor="let extraCol of flatGeoGridExtraColumns" [sortable]="true"
-               [field]="((extraCol.value.field != null) ? extraCol.value.field : null)" [header]="extraCol.value.header"
-               [style]="{'width': extraCol.value.width}" [styleClass]="extraCol.value.styleClass"></p-column>
-   </p-dataTable>
+      </p-table>
+   </div>
 </div>

@@ -164,6 +164,7 @@ import { ToastModule } from 'primeng/toast';
 import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
 import { SampleComponent } from './poc/sample/sample.component';
 import { NgStringPipesModule } from 'angular-pipes';
+import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
 
 @NgModule({
     imports: [
@@ -286,7 +287,8 @@ import { NgStringPipesModule } from 'angular-pipes';
         MapComponent,
         MapToolbarComponent,
         EsriGeographyPopupComponent,
-        SampleComponent
+        SampleComponent,
+        TableFilterNumericComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

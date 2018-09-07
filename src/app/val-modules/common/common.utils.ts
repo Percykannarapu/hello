@@ -147,3 +147,7 @@ export function resolveFieldData(data: any, field: any): any {
 
 export function isFunction (obj: any) { !!(obj && obj.constructor && obj.call && obj.apply); }
 
+export function roundTo(value: number, precision: number): number {
+   let pow: number = Math.pow(10, precision);
+   return parseFloat(String(Math.round((value * pow)) / pow));
+}

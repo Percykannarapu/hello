@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { filter, map, debounceTime } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/primeng';
@@ -23,9 +24,11 @@ import { UsageService } from '../../services/usage.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
-import { groupBy } from '../../val-modules/common/common.utils';
+import { groupBy, resolveFieldData, roundTo } from '../../val-modules/common/common.utils';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { TargetAudienceService } from '../../services/target-audience.service';
+import { Table } from 'primeng/table';
+import { FilterData } from '../common/table-filter-numeric/table-filter-numeric.component';
 /*
 import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -47,6 +50,8 @@ export interface FlatGeo {
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
+   @ViewChild('geoGrid') public _geoGrid: Table;  // To add customer filters to the grid
+   
    private discoverySubscription: Subscription;
    private siteSubscription: Subscription;
    private geosSubscription: Subscription;
@@ -61,9 +66,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintLocations: ImpGeofootprintLocation[];
    public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
 
-//   public  impGeofootprintGeos: ImpGeofootprintGeo[];
-//   public  selectedImpGeofootprintGeos: ImpGeofootprintGeo[];
-
    public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
    public  displayedImpGeofootprintGeos$: Observable<FlatGeo[]>;
    public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>;
@@ -71,8 +73,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
    private impGeofootprintVars: ImpGeofootprintVar[];
 
+   // Observables for unique values to filter on in the grid
+   public uniqueCity$: Observable<SelectItem[]>;
+   public uniqueState$: Observable<SelectItem[]>;
+   public uniqueMarket$: Observable<SelectItem[]>;
+   public uniqueOwnerGroup$: Observable<SelectItem[]>;
+   public uniqueCoverageDesc$: Observable<SelectItem[]>;
+   public uniqueDma$: Observable<SelectItem[]>;
+
    public  numGeosActive: number = 0;
    public  numGeosInactive: number = 0;
+
+   // Filter Ranges
+   public  hhcRanges: number[] = [null, null];
+   public  investmentRanges: number[] = [null, null];
+   public  distanceRanges: number[] = [null, null];
+   public  cpmRanges: number[] = [null, null];
 
    public  selectedGeo: FlatGeo;
    public  geoInfoMenuItems: MenuItem[];
@@ -86,38 +102,27 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public rAlign = 'right';
 
-   public  locGridColumns: SelectItem[] = [{label: 'locationName', value: {field: 'locationName', header: 'Location',     width: '30%', style: '{\'width\':\'60%\'}'}},
-                                           {label: 'homeGeocode',  value: {field: 'home_geo',     header: 'Home Geocode', width: '20%', style: '{\'width\':\'20%\'}'}},
-                                           {label: 'ycoord',       value: {field: 'ycoord',       header: 'Lat',          width: '15%', style: '{\'width\':\'10%\'}'}},
-                                           {label: 'xcoord',       value: {field: 'xcoord',       header: 'Long',         width: '15%', style: '{\'width\':\'10%\'}'}},
-                                          ];
-
-   public  geoGridColumns: SelectItem[] = [{label: 'geocode',  value: {field: 'geocode',  header: 'Geocode',  width: '30%', styleClass: ''}},
-                                           {label: 'hhc',      value: {field: 'hhc',      header: 'HHC',      width: '20%', styleClass: 'val-text-right'}},
-                                           {label: 'distance', value: {field: 'distance', header: 'Distance', width: '20%', styleClass: 'val-text-right'}}
-                                          ];
-
-   public  flatGeoGridColumns: SelectItem[] =
-                                         [{label: 'Location Number',      value: {field: 'geo.impGeofootprintLocation.locationNumber',  header: 'Number',               width: '7em',   styleClass: ''}},
-                                          {label: 'Location Name',        value: {field: 'geo.impGeofootprintLocation.locationName',    header: 'Name',                 width: '16em',  styleClass: ''}},
-                                          {label: 'In Market',            value: {field: 'geo.impGeofootprintLocation.marketName',      header: 'Market',               width: '12em',  styleClass: ''}},
-                                          {label: 'Location Address',     value: {field: 'geo.impGeofootprintLocation.locAddress',      header: 'Address',              width: '14em',  styleClass: ''}},
-                                          {label: 'Location City',        value: {field: 'geo.impGeofootprintLocation.locCity',         header: 'City',                 width: '9em',   styleClass: ''}},
-                                          {label: 'Location State',       value: {field: 'geo.impGeofootprintLocation.locState',        header: 'State',                width: '7em',   styleClass: ''}},
-                                          {label: 'Location Zip',         value: {field: 'geo.impGeofootprintLocation.locZip',          header: 'ZIP',                  width: '6.5em', styleClass: ''}},
-                                          {label: 'Location HomeGeocode', value: {field: 'home_geo',                                    header: 'Home Geo Ind',         width: '8.5em', styleClass: ''}},
-                                          {label: 'distance',             value: {field: 'geo.distance',                                header: 'Distance',             width: '7em',   styleClass: 'val-text-right'}},
-                                          {label: 'geocode',              value: {field: 'geo.geocode',                                 header: 'Geocode',              width: '8em',   styleClass: ''}},
-                                          {label: 'City/State',           value: {field: 'city_name',                                   header: 'Geo City, State',      width: '15em',  styleClass: ''}},
-                                          {label: 'hhc',                  value: {field: 'geo.hhc',                                     header: 'HHC',                  width: '6em',   styleClass: 'val-text-right'}},
-                                          {label: 'cpm',                  value: {field: 'cpm',                                         header: 'CPM',                  width: '5em',   styleClass: 'val-text-right'}},
-                                          {label: 'investment',           value: {field: 'investment',                                  header: 'Investment',           width: '8em',   styleClass: 'val-text-right'}},
-                                          {label: 'Owner Group',          value: {field: 'ownergroup',                                  header: 'Owner Group',          width: '9em',   styleClass: ''}},
-                                          {label: 'Coverage Description', value: {field: 'coveragedescription',                         header: 'Coverage Description', width: '12em',  styleClass: ''}},
-                                          {label: 'POB',                  value: {field: 'pob',                                         header: 'POB',                  width: '4em',   styleClass: 'val-text-center'}},
-                                          {label: 'DMA',                  value: {field: 'dma',                                         header: 'DMA',                  width: '12em',  styleClass: ''}},
-                                          {label: 'isDeduped',            value: {field: 'geo.isDeduped',                               header: 'In Deduped',           width: '7em',   styleClass: ''}},
-                                         ];
+   public flatGeoGridColumns: any[] =
+   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',               width: '7em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '16em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',               width: '12em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',              width: '14em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',                 width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',                width: '7em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',                  width: '6.5em', matchMode: 'contains', styleClass: ''},
+    {field: 'home_geo',                                   header: 'Home Geo Ind',         width: '6em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.distance',                               header: 'Distance',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.geocode',                                header: 'Geocode',              width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'city_name',                                  header: 'Geo City, State',      width: '15em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.hhc',                                    header: 'HHC',                  width: '6em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'cpm',                                        header: 'CPM',                  width: '5em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'investment',                                 header: 'Investment',           width: '8em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'ownergroup',                                 header: 'Owner Group',          width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'coveragedescription',                        header: 'Coverage Description', width: '13em',  matchMode: 'contains', styleClass: ''},
+    {field: 'pob',                                        header: 'POB',                  width: '4.5em', matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'dma',                                        header: 'DMA',                  width: '12em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '8em',   matchMode: 'contains', styleClass: ''},
+   ];
 
    public  flatGeoGridExtraColumns: SelectItem[];
    public  selectedColumns: any[] = [];
@@ -170,17 +175,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allVars$ = this.impGeofootprintVarService.storeObservable;
 
       this.geosSubscription = this.allGeos$.subscribe(geos => {
-         //console.log('geofootprint-geo-list.component - geosSubscription fired. Geos: ', geos);
          this.onChangeGeos(geos);
       });
 
       this.attributeSubscription = this.allAttributes$.subscribe(attributes => {
-         //console.log('geofootprint-geo-list.component - attributeSubscription fired. Attributes: ', attributes);
          this.onChangeGeoAttributes(attributes);
       });
 
       this.varSubscription = this.allVars$.subscribe(vars => {
-         //console.log('geofootprint-geo-list.component - varSubscription fired. Vars: ', vars);
          this.onChangeGeoVars(vars);
       });
 
@@ -189,10 +191,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
       this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
                                     .pipe(debounceTime(2000), map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
-
-      // Original good
-      // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
-      //                               .pipe(map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                                .pipe(map((AllGeos) => {
@@ -211,9 +209,60 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Column Picker Model
       for (const column of this.flatGeoGridColumns) {
-         this.columnOptions.push({ label: column.value.header, value: column });
+         this.columnOptions.push({ label: column.header, value: column });
          this.selectedColumns.push(column);
       }
+
+      // Setup a custom filter for the grid
+      this._geoGrid.filterConstraints['numericFilter']  = (value, filter): boolean => FilterData.numericFilter(value, filter);
+      this._geoGrid.filterConstraints['distanceFilter'] = (value, filter): boolean => FilterData.numericFilter(value, filter, 2);
+
+      // ----------------------------------------------------------------------
+      // Table filter observables
+      // ----------------------------------------------------------------------
+
+      // Create an observable for unique cities (By hand method)
+      this.uniqueCity$ = this.allGeos$.pipe(filterArray(geo => geo.isActive === true)
+                                           ,map(geos => Array.from(new Set(geos.map(geo => geo.impGeofootprintLocation.locCity).sort()))
+                                           .map(str => new Object({ label: str, value: str}) as SelectItem)));
+
+      // Create an observable for unique states (By helper methods)
+      this.uniqueState$ = this.allGeos$.pipe(filterArray(geo => geo.isActive === true)
+                                            ,mapArray(geo => geo.impGeofootprintLocation.locState)
+                                            ,distinctArray()
+                                            ,map(arr => arr.sort())
+                                            ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+      // Create an observable for unique market names
+      this.uniqueMarket$ = this.allGeos$.pipe(filterArray(geo => geo.isActive === true)
+                                             ,mapArray(geo => geo.impGeofootprintLocation.marketName)
+                                             ,distinctArray()
+                                             ,map(arr => arr.sort())
+                                             ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+      // Create an observable for unique owner groups
+      this.uniqueOwnerGroup$ = this.allAttributes$.pipe(filterArray(attribute => attribute.isActive === true 
+                                                                 && attribute.attributeCode === "owner_group_primary")
+                                                       ,mapArray(attribute => attribute.attributeValue)
+                                                       ,distinctArray()
+                                                       ,map(arr => arr.sort())
+                                                       ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+      // Create an observable for unique coverage description
+      this.uniqueCoverageDesc$ = this.allAttributes$.pipe(filterArray(attribute => attribute.isActive === true 
+                                                                   && attribute.attributeCode === "cov_desc")
+                                                         ,mapArray(attribute => attribute.attributeValue)
+                                                         ,distinctArray()
+                                                         ,map(arr => arr.sort())
+                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+      // Create an observable for unique coverage description
+      this.uniqueDma$ = this.allAttributes$.pipe(filterArray(attribute => attribute.isActive === true 
+                                                          && attribute.attributeCode === "dma_name")
+                                                ,mapArray(attribute => attribute.attributeValue)
+                                                ,distinctArray()
+                                                ,map(arr => arr.sort())
+                                                ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
    }
 
    ngOnDestroy()
@@ -380,22 +429,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
-  private getProjectVarFieldName(pv: ImpProjectVar) : string {
-    if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
-      const sourceName = pv.source.split('_')[1];
-      return `${pv.fieldname} (${sourceName})`;
-    } else {
-      return pv.fieldname;
-    }
-  }
+   private getProjectVarFieldName(pv: ImpProjectVar) : string {
+      if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
+         const sourceName = pv.source.split('_')[1];
+         return `${pv.fieldname} (${sourceName})`;
+      } else {
+         return pv.fieldname;
+      }
+   }
 
-  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
-    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
-    } else {
-      return gv.customVarExprDisplay;
-    }
-  }
+   private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+      if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+         return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+      } else {
+         return gv.customVarExprDisplay;
+      }
+   }
 
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
@@ -429,18 +478,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Sort the geos
       this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
 
-       // Get all of the variables
-       const usableVars = new Set(this.impProjectVarService.get()
-         .filter(pv => pv.isIncludedInGeoGrid)
-         .map(pv => this.getProjectVarFieldName(pv)));
-       const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
-       const varCache = groupBy(geovars, 'geocode');
+      // Get all of the variables
+      const usableVars = new Set(this.impProjectVarService.get()
+                                     .filter(pv => pv.isIncludedInGeoGrid)
+                                     .map(pv => this.getProjectVarFieldName(pv)));
+      const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      const varCache = groupBy(geovars, 'geocode');
 
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
+
+         // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
+         this.flatGeoGridColumns.forEach(col => {
+            gridGeo[col.field] = resolveFieldData(gridGeo, col.field) || "";
+         });
 
          if (gridGeo.geo.impGeofootprintLocation.locZip != null)
          gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5) ;
@@ -557,6 +611,43 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          geoGridData.push(gridGeo);
       });
+
+      // Set Ranges
+      try
+      {
+         if (geoGridData != null)
+         {
+            this.hhcRanges = [];
+            this.hhcRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['geo.hhc'] < min ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0));
+            this.hhcRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['geo.hhc'] > max ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0));
+            this.hhcRanges.push(this.hhcRanges[0]); // min
+            this.hhcRanges.push(this.hhcRanges[1]); // max
+
+            this.investmentRanges = [];
+            this.investmentRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['investment'] < min ? p['investment'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0));
+            this.investmentRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['investment'] > max ? p['investment'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0));
+            this.investmentRanges.push(this.investmentRanges[0]); // min
+            this.investmentRanges.push(this.investmentRanges[1]); // max
+
+            this.distanceRanges = [];
+            this.distanceRanges.push(geoGridData.reduce((min, p:FlatGeo) => roundTo(p['geo.distance'], 2) < min ? roundTo(p['geo.distance'], 2) : min, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0));
+            this.distanceRanges.push(geoGridData.reduce((max, p:FlatGeo) => roundTo(p['geo.distance'], 2) > max ? roundTo(p['geo.distance'], 2) : max, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0));
+            this.distanceRanges.push(this.distanceRanges[0]); // min
+            this.distanceRanges.push(this.distanceRanges[1]); // max
+
+            this.cpmRanges = [];
+            this.cpmRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['cpm'] < min ? p['cpm'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0));
+            this.cpmRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['cpm'] > max ? p['cpm'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0));
+            this.cpmRanges.push(this.cpmRanges[0]); // min
+            this.cpmRanges.push(this.cpmRanges[1]); // max
+         }
+      }
+      catch(e)
+      {
+         console.error("Error setting range: ", e);
+      }
+      console.log("hhcRanges:        ", this.hhcRanges);
+      console.log("investmentRanges: ", this.investmentRanges);
 
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
