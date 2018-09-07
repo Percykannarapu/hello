@@ -86,12 +86,12 @@ export class FileService {
         }
       }
     }
-    // if (!parser.fileValidator(result.parsedData)) { 
-    //   // for ( let i = 0 ; i < dataRows.length; i++) 
-    //   //     result.failedRows.push(dataRows[i]);
-    //   // result.failedRows.push(null);
-    //   return null;
-    // } 
+    if (!parser.fileValidator(result.parsedData)) { 
+      // for ( let i = 0 ; i < dataRows.length; i++) 
+      //     result.failedRows.push(dataRows[i]);
+      // result.failedRows.push(null);
+      return null;
+    } 
       return result;
   }
   private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {

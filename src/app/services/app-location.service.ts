@@ -16,12 +16,14 @@ import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
 import { mapBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import { AppTradeAreaService } from './app-trade-area.service';
+import { AppTradeAreaService, DEFAULT_MERGE_TYPE } from './app-trade-area.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
 import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriGeoprocessorService } from '../esri-modules/layers/esri-geoprocessor.service';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 
@@ -169,66 +171,57 @@ export class AppLocationService {
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
-    //  Commenting  this piece to roll back US6863 from 8/30 release -Percy 
-    /* const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    let ta1: ImpGeofootprintLocAttrib[] = [];
-    let ta2: ImpGeofootprintLocAttrib[] = [];
-    let ta3: ImpGeofootprintLocAttrib[] = [];
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     let hasProvidedSite = false;
-    let hasProvidedCompetitor = false; */
+    let hasProvidedCompetitor = false; 
      data.forEach(l =>
       {
+        const tradeAreas: any[] = [];
         l.impGeofootprintMaster = currentMaster;
-        if (l.locationNumber == null || l.locationNumber.length === 0 ) l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
-      });  
-       // Commenting  this piece to roll back US6863 from 8/30 release -Percy  
-       
-       
-      /* if (l.impGeofootprintLocAttribs.length !== 0){
-          ta1 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS1' && attr.attributeValue != null );
-          ta2 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS2' && attr.attributeValue != null);
-          ta3 = l.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'RADIUS3' && attr.attributeValue != null);
-          const tradeAreas: any[] = [];
-
-          if (ta1.length !== 0){
-            const tradeArea1 = {radius: Number(ta1[0].attributeValue), selected: true };
-            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
-            tradeAreas.push(tradeArea1);
-          }
-          if (ta2.length !== 0){
-            const tradeArea2 =  {radius: Number(ta2[0].attributeValue), selected: true };
-            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
-            tradeAreas.push(tradeArea2);
-          }
-          if (ta3.length !== 0){
-            const tradeArea3 = {radius: Number(ta3[0].attributeValue), selected: true };
-            hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-            hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
-            tradeAreas.push(tradeArea3);
-          }
-          const locs: any[] = [];
-          locs.push(l);
-          newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
-        } 
+        if (l.locationNumber == null || l.locationNumber.length === 0 ){
+          l.locationNumber = this.impLocationService.getNextLocationNumber().toString();     
+        }
+        if (l.radius1 != null && Number(l.radius1) !== 0) {
+          const tradeArea1 = {radius: Number(l.radius1), selected: true };
+          hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+          hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+          tradeAreas.push(tradeArea1);
+        }
+        if (l.radius2 != null && Number(l.radius2) !== 0) {
+          const tradeArea2 = {radius: Number(l.radius2), selected: true };
+          hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+          hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+          tradeAreas.push(tradeArea2);
+        }
+        if (l.radius3 != null && Number(l.radius3) !== 0) {
+          const tradeArea3 = {radius: Number(l.radius3), selected: true };
+          hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+          hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+          tradeAreas.push(tradeArea3);
+        }
+        const locs: any[] = [];
+        locs.push(l);
+        
+        newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
+      
       });
     this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
     this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
-    if (this.appStateService.analysisLevel$.getValue() == null && (ta1.length !== 0 || ta2.length !== 0 || ta3.length !== 0) ) {
+    if (this.appStateService.analysisLevel$.getValue() == null && newTradeAreas.length !== 0 ) {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);   
-      this.geocodingService.clearFields(true);
+      this.geocodingService.clearDuplicates();
     } else {
-    this.appTradeAreaService.insertTradeAreas(newTradeAreas); */ 
-    
+    this.appTradeAreaService.insertTradeAreas(newTradeAreas); 
     data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
     this.impLocationService.add(data);
     this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+    }
+    
   }
   
 

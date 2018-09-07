@@ -98,7 +98,7 @@ export class AppGeocodingService {
     );
   }
 
-  private clearDuplicates(){
+  public clearDuplicates(){
     this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Site, []);
     this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Competitor, []);
   }
