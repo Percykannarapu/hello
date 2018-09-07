@@ -350,7 +350,7 @@ export class ValAudienceTradeareaService {
    * @param taConfig The AudienceTradeareaConfig to send to Fuse
    */
   private sendRequest(taConfig: AudienceTradeAreaConfig) : Observable<RestResponse> {
-    const payload: AudienceTradeAreaConfig = Object.assign(taConfig);
+    const payload: AudienceTradeAreaConfig = Object.assign({}, taConfig);
     delete payload.includeMustCover;
     delete payload.audienceName;
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');

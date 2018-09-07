@@ -40,7 +40,9 @@ export class EsriModules {
     'esri/geometry/Point',
     'esri/geometry/Multipoint',
     'esri/tasks/support/Query',
-    'esri/geometry/Extent'
+    'esri/geometry/Extent',
+    'esri/tasks/Geoprocessor',
+    'esri/tasks/support/FeatureSet'
 ];
 
   public static config: typeof __esri.config;
@@ -78,6 +80,8 @@ export class EsriModules {
   public static Multipoint: typeof __esri.Multipoint;
   public static Query: typeof __esri.Query;
   public static Extent: typeof __esri.Extent;
+  public static Geoprocessor: typeof __esri.Geoprocessor;
+  public static FeatureSet: typeof __esri.FeatureSet;
 
   public static widgets: EsriWidgets;
 
@@ -133,7 +137,9 @@ export class EsriModules {
       EsriModules.Point,
       EsriModules.Multipoint,
       EsriModules.Query,
-      EsriModules.Extent
+      EsriModules.Extent,
+      EsriModules.Geoprocessor,
+      EsriModules.FeatureSet
     ] = modules;
 
     EsriModules.widgets = new EsriWidgets();

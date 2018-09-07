@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, merge, of } from 'rxjs';
+import { merge, Observable, of } from 'rxjs';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -11,23 +11,23 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { AppStateService } from './app-state.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 @Injectable()
 export class AppGeocodingService {
 
-  private duplicateKeyMap = new Map<string, string[]>();
+  private duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, string[]>();
 
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
               private usageService: UsageService,
               private config: AppConfig,
               private appStateService: AppStateService) {
-    this.duplicateKeyMap.set('Site', []);
-    this.duplicateKeyMap.set('Competitor', []);
-    this.appStateService.getClearUserInterfaceObs().subscribe(flag => this.clearFields(flag));
+    this.clearDuplicates();
+    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearDuplicates());
   }
 
-  public createRequestsFromRaw(dataRows: string[], siteType: string, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {
+  public createRequestsFromRaw(dataRows: string[], siteType: SuccessfulLocationTypeCodes, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {
     const header: string = dataRows.shift();
     let result = [];
     try {
@@ -98,13 +98,8 @@ export class AppGeocodingService {
     );
   }
 
-  public clearFields(flag: boolean){
-    if (flag){
-        this.duplicateKeyMap.clear();
-        this.duplicateKeyMap = new Map<string, string[]>();
-        this.duplicateKeyMap.set('Site', []);
-        this.duplicateKeyMap.set('Competitor', []);
-    }
+  public clearDuplicates(){
+    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Site, []);
+    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Competitor, []);
   }
-
 }

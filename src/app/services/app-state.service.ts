@@ -199,6 +199,6 @@ export class AppStateService {
   }
 
   public getClearUserInterfaceObs() : Observable<boolean> {
-    return this.clearUserInterface.asObservable();
+    return this.clearUserInterface.asObservable().pipe(filter(flag => flag));
   }
 }

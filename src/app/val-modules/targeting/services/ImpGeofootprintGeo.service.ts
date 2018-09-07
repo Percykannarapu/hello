@@ -768,7 +768,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
   private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
     if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+      if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
+            return gv.customVarExprDisplay;
+      } else {
+            return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
+      }
     } else {
       return gv.customVarExprDisplay;
     }

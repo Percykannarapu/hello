@@ -128,14 +128,15 @@ export class TargetAudienceAudienceTA {
             };
             audienceTALocations.push(audienceTALocation);
         }
+        const project = this.appStateService.currentProject$.getValue();
         const audienceTAConfig: AudienceTradeAreaConfig = {
-            analysisLevel: null,
-            digCategoryId: null,
+            analysisLevel: this.appStateService.analysisLevel$.getValue(),
+            digCategoryId: project.audTaVarPk,
             locations: audienceTALocations,
-            maxRadius: null,
-            minRadius: null,
-            scoreType: null,
-            weight: null,
+            maxRadius: project.audTaMaxRadiu,
+            minRadius: project.audTaMinRadiu,
+            scoreType: project.audTaIndexBase,
+            weight: project.audTaVarWeight,
             includeMustCover: null
         };
         return audienceTAConfig;
@@ -301,9 +302,16 @@ export class TargetAudienceAudienceTA {
 
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
         if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
+        const payload = audience.audienceTAConfig;
+        delete payload.includeMustCover;
+        delete payload.audienceName;
+        if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
+        if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
+            payload.analysisLevel = 'dtz';
+        }
         const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
         const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
-        const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(audience.audienceTAConfig), { headers: headers });
+        const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
         return dataObs.pipe(
             map(res => this.createGeofootprintVars(this.parseResponse(res)))
         );

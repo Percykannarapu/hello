@@ -59,11 +59,7 @@ export class SelectedAudiencesComponent implements OnInit {
       this.onLoadProject();
     });
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(bool => {
-      if (bool){
-         this.clearSelectedFields();
-      }
-    });
+    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
   }
 
   private onLoadProject() {

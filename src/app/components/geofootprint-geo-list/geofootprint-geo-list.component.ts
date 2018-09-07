@@ -429,22 +429,26 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
-   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-      if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
-         const sourceName = pv.source.split('_')[1];
-         return `${pv.fieldname} (${sourceName})`;
-      } else {
-         return pv.fieldname;
-      }
-   }
+  private getProjectVarFieldName(pv: ImpProjectVar) : string {
+    if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
+      const sourceName = pv.source.split('_')[1];
+      return `${pv.fieldname} (${sourceName})`;
+    } else {
+      return pv.fieldname;
+    }
+  }
 
-   private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
-      if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-         return `${gv.fieldname} ${gv.customVarExprDisplay}`;
+  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+      if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
+        return gv.customVarExprDisplay;
       } else {
-         return gv.customVarExprDisplay;
+        return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
       }
-   }
+    } else {
+      return gv.customVarExprDisplay;
+    }
+  }
 
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
@@ -666,6 +670,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             this.variableColOrder.set(audience.audienceName + ' (VLH)', audience.audienceCounter);
           } else if (audience.audienceSourceName === 'Pixel') { 
             this.variableColOrder.set(audience.audienceName + ' (Pixel)', audience.audienceCounter);
+          } else if (audience.audienceSourceName === 'Audience-TA') { 
+            this.variableColOrder.set(audience.secondaryId, audience.audienceCounter);
           } else {
             this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);    
           }
