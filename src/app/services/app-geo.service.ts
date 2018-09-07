@@ -170,17 +170,13 @@ export class AppGeoService {
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    const radiiArray: number[] = []; 
-
-    tradeAreas.forEach(ta => {
-      if (ta.taRadius != null && ta.taRadius !== 0){
-        radiiArray.push(ta.taRadius);
-      }
-    });
-    const maxRadius = Math.max(...radiiArray);
+    const radiusToTradeAreaMap: Map<number, ImpGeofootprintTradeArea[]> = groupBy(tradeAreas, 'taRadius');
+    const radii = Array.from(radiusToTradeAreaMap.keys());
+    const maxRadius = Math.max(...radii);
     const allSelectedData: __esri.Graphic[] = [];
     const spinnerKey = 'selectAndPersistRadiusGeos';
     const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
+
     this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
     this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(allLocations), maxRadius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type'])
       .subscribe(
@@ -191,7 +187,10 @@ export class AppGeoService {
         },
         () => {
           const geosToPersist: ImpGeofootprintGeo[] = [];
-            geosToPersist.push(...this.createGeosToPersist(tradeAreas, allSelectedData));
+          for (let i = 0; i < radii.length; ++i) {
+            const previousRadius = i > 0 ? radii[i - 1] : -0.1;
+            geosToPersist.push(...this.createGeosToPersist(radii[i], radiusToTradeAreaMap.get(radii[i]), allSelectedData, previousRadius));
+          }
           this.impGeoService.add(geosToPersist);
           this.messagingService.stopSpinnerDialog(spinnerKey);
         });
@@ -264,13 +263,13 @@ export class AppGeoService {
     this.tradeAreaService.remove(tradeAreasToDelete);
   }
 
-  private createGeosToPersist(tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(radius: number, tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[], previousRadius: number = 0) : ImpGeofootprintGeo[] {
     const geosToSave: ImpGeofootprintGeo[] = [];
     const centroidAttributes: any = centroids.map(c => c.attributes);
     centroidAttributes.forEach(attributes => {
       tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
         const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
-        if (currentDistance <= ta.taRadius) {
+        if (currentDistance <= radius && currentDistance > previousRadius) {
           if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
             const newGeo = this.domainFactory.createGeo(ta, attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
             geosToSave.push(newGeo);
