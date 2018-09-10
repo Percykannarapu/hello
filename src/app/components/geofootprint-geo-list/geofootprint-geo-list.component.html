@@ -24,6 +24,7 @@
                <col style="width: 30px">
                <col style="width: 30px">
                <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+               <col *ngFor="let col of flatGeoGridExtraColumns" [style.width]="col.width">
             </colgroup>
          </ng-template>
 
@@ -54,6 +55,10 @@
                <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
                <th style="width: 30px"></th>
                <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
+                  {{col.header}}
+                  <p-sortIcon [field]="col.field"></p-sortIcon>
+               </th>
+               <th *ngFor="let col of flatGeoGridExtraColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
                   {{col.header}}
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                </th>
@@ -97,6 +102,12 @@
 
                   <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
                </th>
+               <th *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.matchType" style="background: #b3d4ed; overflow: visible;">
+                  <!-- <div *ngSwitchCase="'numeric'">
+                     <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                  </div> -->
+                  <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
+               </th>
             </tr>            
          </ng-template>
 
@@ -136,8 +147,23 @@
                      {{flatGeo[col.field]}}
                   </div>
                </td>
+
+               <!-- GEOGRID VARIABLE COLUMNS -->
+               <td *ngFor="let col of flatGeoGridExtraColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
+                  <div *ngSwitchDefault>                  
+                     {{flatGeo[col.field]}}
+                  </div>
+               </td>
             </tr>
          </ng-template>
+
+         <!-- <ng-template pTemplate="footer" let-columns>
+            <tr>
+               <td *ngFor="let col of columns">
+                  {{col.header}}
+               </td>
+            </tr>
+         </ng-template> -->
          
          <ng-template pTemplate="emptymessage" let-columns>
             <tr>

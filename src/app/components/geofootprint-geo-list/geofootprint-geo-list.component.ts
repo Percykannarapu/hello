@@ -124,7 +124,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '8em',   matchMode: 'contains', styleClass: ''},
    ];
 
-   public  flatGeoGridExtraColumns: SelectItem[];
+   public  flatGeoGridExtraColumns: any[];
    public  selectedColumns: any[] = [];
    public  columnOptions: SelectItem[] = [];
 
@@ -575,10 +575,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
            });
          }
 
-          const currentVars = varCache.get(geo.geocode) || [];
-          currentVars.forEach(geovar => {
+         const currentVars = varCache.get(geo.geocode) || [];
+         currentVars.forEach(geovar => {
             if (geovar.isString)
-              gridGeo[geovar.varPk.toString()] = geovar.valueString;
+               gridGeo[geovar.varPk.toString()] = geovar.valueString;            
             else
             {
               // Format them
@@ -599,19 +599,21 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   break;
               }
             }
-            // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar);
+            // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
 
             // Create grid columns for the variables
-            if (!this.flatGeoGridExtraColumns.find(f => f.label === geovar.varPk.toString()))
+            if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
             {
               //console.log("---------------------------------------------------------------------------------------");
-              const colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8));
+              const colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8) + 45);
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
               //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
-              this.flatGeoGridExtraColumns.push({label: geovar.varPk.toString(), value: {field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px', styleClass: colStyleClass}});
+              this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
+                                                ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? "numeric" : "text"
+                                                ,matchMode: 'contains', styleClass: colStyleClass});
               //console.log("---------------------------------------------------------------------------------------");
             }
-          });
+         });
 
          geoGridData.push(gridGeo);
       });
@@ -681,7 +683,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
 
       // Add the sort order to the object
-      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.value.header)) ? this.variableColOrder.get(col.value.header) : 0);
+      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0);
 
       // Sort the array of columns
       this.flatGeoGridExtraColumns.sort((a, b) => this.sortVarColumns(a, b));
