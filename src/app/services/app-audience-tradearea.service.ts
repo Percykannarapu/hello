@@ -172,13 +172,13 @@ export class ValAudienceTradeareaService {
   private validateTradeArea() : true | string[] {
     const errors: string[] = [];
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
-      errors.push('You must include both a minumum trade area and a maximum trade area. ');
+      errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
     if (isNaN(this.audienceTAConfig.maxRadius) || isNaN(this.audienceTAConfig.minRadius)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
     }
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
-      errors.push('The maximum radius must be larger than the minimum radius. ');
+      errors.push('The maximum radius must be larger than the minimum radius ');
     }
     if (!this.audienceTAConfig.digCategoryId) {
       errors.push('You must select a variable before creating a trade area');
@@ -209,21 +209,24 @@ export class ValAudienceTradeareaService {
    * @param scoreType The score type, DMA or National
    */
   public createAudienceTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
-    this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
-    try {
-      const validate: boolean | string[] = this.validateTradeArea();
-      if (validate !== true) {
-        let growlMessage = '';
-        for (const message of validate) {
-          growlMessage +=  message + '\n \n';
-        }
-        this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage);
-        this.messagingService.stopSpinnerDialog('AUDIENCETA');
-        return Observable.create(o => o.next(false));
-      }
-    } catch (error) {
-      return Observable.create(o => o.next(false));
-    }
+
+     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
+
+   try {
+     const validate: boolean | string[] = this.validateTradeArea();
+     if (validate !== true) {
+       let growlMessage = [] ;
+       for (const message of validate) {
+        growlMessage.push(message);
+       }
+       console.log('growlMessage::::', growlMessage);
+       this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[0]);
+       this.messagingService.stopSpinnerDialog('AUDIENCETA');
+       return Observable.create(o => o.next(false));
+     }
+   } catch (error) {
+     return Observable.create(o => o.next(false));
+   }
 
     this.attachLocations();
     if (this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
