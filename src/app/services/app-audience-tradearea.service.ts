@@ -219,7 +219,7 @@ export class ValAudienceTradeareaService {
        for (const message of validate) {
         growlMessage.push(message);
        }
-       console.log('growlMessage::::', growlMessage);
+ //      console.log('growlMessage::::', growlMessage);
        this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[0]);
        this.messagingService.stopSpinnerDialog('AUDIENCETA');
        return Observable.create(o => o.next(false));
