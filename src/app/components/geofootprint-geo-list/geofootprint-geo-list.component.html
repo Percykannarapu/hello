@@ -36,8 +36,8 @@
                   <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
                   <input type="text" pInputText size="30" placeholder="Filter Geographies" (input)="geoGrid.filterGlobal($event.target.value, 'contains')" style="width:auto; color: white">
                   <label style="padding: 0px 10px 0px 25px">Export</label>
-                  <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
-                  <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
+                  <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
+                  <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label style="padding: 0; text-align: center;"
