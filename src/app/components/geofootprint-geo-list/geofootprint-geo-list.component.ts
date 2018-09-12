@@ -41,6 +41,14 @@ export interface FlatGeo {
    geo: ImpGeofootprintGeo;
 }
 
+export interface ColMetric {
+   tot:  number;
+   cnt?: number;
+   min?: number;
+   max?: number;
+   avg?: number;
+}
+
 // combineLatest(geos$, vars$).pipe(map(([geos, vars]) => createMyNewUIModel(geos, vars)))
 
 @Component({
@@ -89,6 +97,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  investmentRanges: number[] = [null, null];
    public  distanceRanges: number[] = [null, null];
    public  cpmRanges: number[] = [null, null];
+
+   // Filtered Totals
+   public  gridTotals: Map<string, ColMetric> = new Map<string, ColMetric>();
 
    public  selectedGeo: FlatGeo;
    public  geoInfoMenuItems: MenuItem[];
@@ -263,6 +274,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                 ,distinctArray()
                                                 ,map(arr => arr.sort())
                                                 ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+      this.initializeGridTotals();
    }
 
    ngOnDestroy()
@@ -450,6 +463,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     }
   }
 
+   initializeGridTotals() {
+      this.gridTotals.set('hhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('cpm',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('investment', {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('distance',   {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+   }
+
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
@@ -489,11 +509,25 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const geovars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       const varCache = groupBy(geovars, 'geocode');
 
+      // Initialize grid totals
+      this.initializeGridTotals();
+
 //      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
+
+         // Track column metrics
+         this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot + gridGeo.geo.distance
+                                         ,min: (geo.distance < this.gridTotals.get('distance').min) ? gridGeo.geo.distance : this.gridTotals.get('distance').min
+                                         ,max: (geo.distance > this.gridTotals.get('distance').max) ? gridGeo.geo.distance : this.gridTotals.get('distance').max
+                                         });
+
+         this.gridTotals.set('hhc',     {tot: this.gridTotals.get('hhc').tot + geo.hhc
+                                        ,min: (geo.hhc < this.gridTotals.get('hhc').min) ? geo.hhc : this.gridTotals.get('hhc').min
+                                        ,max: (geo.hhc > this.gridTotals.get('hhc').max) ? geo.hhc : this.gridTotals.get('hhc').max
+                                        });
 
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatGeoGridColumns.forEach(col => {
@@ -501,9 +535,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          });
 
          if (gridGeo.geo.impGeofootprintLocation.locZip != null)
-         gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5) ;
-          else
-           ' ';
+            gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
+         else
+            ' ';
 
          // Assign all variable properties to the geo
 //       vars.forEach(v => gridGeo[v] = null);
@@ -517,28 +551,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                            &&  attribute.impGeofootprintGeo.geocode === geo.geocode);*/
 
          // Add attributes the grid is interested in and massage them where needed
-//       attributes.forEach(attribute => {
-        // let attribs: ImpGeofootprintGeoAttrib[] = attributeMap[geo.geocode];
          if (attributeMap[geo.geocode] != null)
          {
             attributeMap[geo.geocode].forEach(attribute => {
                if (attribute.attributeCode === 'pob')
-               gridGeo['pob'] = (attribute.attributeValue === 'B') ? 'Y' : 'N';
+                  gridGeo['pob'] = (attribute.attributeValue === 'B') ? 'Y' : 'N';
 
                if (attribute.attributeCode === 'city_name' && attribute.attributeValue != null)
                   gridGeo['city_name'] = attribute.attributeValue.substring(0,1).toUpperCase() + attribute.attributeValue.substring(1, attribute.attributeValue.length-3).toLowerCase() + ' ' + attribute.attributeValue.substring(attribute.attributeValue.length-2);
 
                if (attribute.attributeCode === 'owner_group_primary')
                {
-                  //  console.log('this.impDiscoveryUI.selectCpmType = ' + this.impDiscoveryUI.selectCpmType);
-                  //  console.log('this.impDiscoveryUI.isCpmBlended  = ' + this.impDiscoveryUI.isCpmBlended);
-                  //  console.log('this.impDiscoveryUI.cpm           = ' + this.impDiscoveryUI.cpm);
-                  //  console.log('this.impDiscoveryUI.valassisCPM   = ' + this.impDiscoveryUI.valassisCPM);
-                  //  console.log('this.impDiscoveryUI.anneCPM       = ' + this.impDiscoveryUI.anneCPM);
-                  //  console.log('this.impDiscoveryUI.soloCPM       = ' + this.impDiscoveryUI.soloCPM);
-                  //  console.log('attribute.attributeValue          = ' + attribute.attributeValue);
-                  //  console.log(gridGeo.geo.geocode + ", isActive: ", gridGeo.geo.isActive, ', filterReasons: ', gridGeo.geo['filterReasons']);
-
                   gridGeo['ownergroup'] = attribute.attributeValue;
                   if (project.estimatedBlendedCpm != null)
                      gridGeo['cpm'] = project.estimatedBlendedCpm;
@@ -561,6 +584,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                            break;
                      }
                   gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
+
+                  // // Track column metrics
+                  // this.gridTotals.set('investment', { tot: this.gridTotals.get('investment').tot + gridGeo['investment']
+                  //                                    ,min: (gridGeo['investment'] < this.gridTotals.get('investment').min) ? gridGeo['investment'] : this.gridTotals.get('investment').min
+                  //                                    ,max: (gridGeo['investment'] > this.gridTotals.get('investment').max) ? gridGeo['investment'] : this.gridTotals.get('investment').max
+                  //                                   });
+                  // this.gridTotals.set('cpm',        {tot: this.gridTotals.get('cpm').tot + gridGeo['cpm']
+                  //                                   ,min: (gridGeo['cpm'] < this.gridTotals.get('cpm').min) ? gridGeo['cpm'] : this.gridTotals.get('cpm').min
+                  //                                   ,max: (gridGeo['cpm'] > this.gridTotals.get('cpm').max) ? gridGeo['cpm'] : this.gridTotals.get('cpm').max
+                  //                                   });
+//                this.gridTotals.set('distance', this.gridTotals.get('distance') + geo.distance);
                }
 
                if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
@@ -586,7 +620,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                 case 'COUNT':
                 case 'MEDIAN':
                 case 'INDEX':
-                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
+                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber);
                   break;
 
                 case 'PERCENT':
@@ -615,9 +649,36 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             }
          });
 
+         // Track column metrics
+         this.gridTotals.set('investment', {tot: this.gridTotals.get('investment').tot + gridGeo['investment']
+                                           ,min: (gridGeo['investment'] < this.gridTotals.get('investment').min) ? gridGeo['investment'] : this.gridTotals.get('investment').min
+                                           ,max: (gridGeo['investment'] > this.gridTotals.get('investment').max) ? gridGeo['investment'] : this.gridTotals.get('investment').max
+                                           });
+         this.gridTotals.set('cpm',        {tot: this.gridTotals.get('cpm').tot + gridGeo['cpm']
+                                           ,min: (gridGeo['cpm'] < this.gridTotals.get('cpm').min) ? gridGeo['cpm'] : this.gridTotals.get('cpm').min
+                                           ,max: (gridGeo['cpm'] > this.gridTotals.get('cpm').max) ? gridGeo['cpm'] : this.gridTotals.get('cpm').max
+                                           });
+
          geoGridData.push(gridGeo);
       });
 
+      // Calculate total columns that aren't summations
+      let colMetric: ColMetric = this.gridTotals.get('distance');
+      colMetric.avg = colMetric.tot / geoGridData.length;
+      this.gridTotals.set('distance', colMetric);
+
+      colMetric = this.gridTotals.get('hhc');
+      colMetric.avg = colMetric.tot / geoGridData.length;
+      this.gridTotals.set('hhc', colMetric);
+
+      colMetric = this.gridTotals.get('investment');
+      colMetric.avg = colMetric.tot / geoGridData.length;
+      this.gridTotals.set('investment', colMetric);
+
+      colMetric = this.gridTotals.get('cpm');
+      colMetric.avg = colMetric.tot / geoGridData.length;
+      this.gridTotals.set('cpm', colMetric);
+      
       // Set Ranges
       try
       {
@@ -654,7 +715,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
       console.log("hhcRanges:        ", this.hhcRanges);
       console.log("investmentRanges: ", this.investmentRanges);
-
+      console.log("_geoGrid", this._geoGrid);
+      console.log("geoGridData", geoGridData);
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
 
@@ -1236,6 +1298,48 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Downside of this is that it doesnt work, but if it did, the grid would just filter itself
       //if (event.checked === true)
       //   geoGrid.filter(1, 'isDeduped', 'equals');
+   }
+
+   onFilter(event: any)
+   {
+      // event.filters: Filters object having a field as the property key and an object with value, matchMode as the property value.
+      // event.filteredValue: Filtered data after running the filtering.   
+      console.log("event: ", event);
+      console.log("filtered: ", event.filteredValue);
+
+      // Initialize totals
+      this.initializeGridTotals();
+
+      event.filteredValue.forEach(element => {
+         this.gridTotals.set('hhc', {tot: this.gridTotals.get('hhc').tot + element.geo.hhc
+                                    ,min: (element.geo.hhc < this.gridTotals.get('hhc').min) ? element.geo.hhc : this.gridTotals.get('hhc').min
+                                    ,max: (element.geo.hhc > this.gridTotals.get('hhc').max) ? element.geo.hhc : this.gridTotals.get('hhc').max
+                                    });
+         this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot + element.cpm
+                                    ,min: (element.cpm < this.gridTotals.get('cpm').min) ? element.cpm : this.gridTotals.get('cpm').min
+                                    ,max: (element.cpm > this.gridTotals.get('cpm').max) ? element.cpm : this.gridTotals.get('cpm').max
+                                    });
+         this.gridTotals.set('investment', {tot: this.gridTotals.get('investment').tot + element.investment
+                                           ,min: (element.investment < this.gridTotals.get('investment').min) ? element.investment : this.gridTotals.get('investment').min
+                                           ,max: (element.investment > this.gridTotals.get('investment').max) ? element.investment : this.gridTotals.get('investment').max
+                                           });
+         this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot + element.geo.distance
+                                         ,min: (element.geo.distance < this.gridTotals.get('distance').min) ? element.geo.distance : this.gridTotals.get('distance').min
+                                         ,max: (element.geo.distance > this.gridTotals.get('distance').max) ? element.geo.distance : this.gridTotals.get('distance').max
+                                         });
+      });
+
+      // Calculated grid totals
+      this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot
+                                 ,cnt: this.gridTotals.get('cpm').cnt
+                                 ,min: this.gridTotals.get('cpm').min
+                                 ,max: this.gridTotals.get('cpm').max
+                                 ,avg: this.gridTotals.get('cpm').tot / event.filteredValue.length});
+      this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot
+                                      ,cnt: this.gridTotals.get('distance').cnt
+                                      ,min: this.gridTotals.get('distance').min
+                                      ,max: this.gridTotals.get('distance').max
+                                      ,avg: this.gridTotals.get('distance').tot / event.filteredValue.length});
    }
 
    testDeleteProject()

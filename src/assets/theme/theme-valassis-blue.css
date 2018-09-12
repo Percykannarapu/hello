@@ -29330,7 +29330,7 @@ body .ui-table .ui-table-thead > tr > th,
 body .ui-table .ui-table-tfoot > tr > td {
   font-weight: 400;
   color: #212121;
-  background-color: #ffffff;
+  background-color: #91b8d6;
   border: 1px solid #acc2ce; }
 body .ui-table .ui-table-thead > tr > th {
    background-color: #91b8d6;
@@ -30773,6 +30773,19 @@ body .ui-terminal .ui-terminal-input {
 
 .val-green-tab .ui-tabview.ui-tabview-top > .ui-tabview-nav {
    background-color: #D9E5D0;
+}
+
+.val-icon-button.ui-button {   
+   padding: 0.002em 0 0.002em 0;
+   height: 2em;
+   line-height: 1.25em; }
+
+.val-icon-button.ui-button.ui-button-text,
+.val-icon-button.ui-button .ui-button-text,
+.val-icon-button.ui-button.ui-button-text-icon-left {
+   padding-left: 0.9em;
+   padding-right: 0.25em;
+   line-height: 1.25em;
 }
 
 .val-short-button .ui-button-text.ui-clickable {

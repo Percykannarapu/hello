@@ -16,7 +16,8 @@
                (onRowClick)="onRowClick($event)"
                (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
                (onRowSelect)="onSelectGeocode($event, true)"
-               (onRowUnselect)="onSelectGeocode($event, false)">
+               (onRowUnselect)="onSelectGeocode($event, false)"
+               (onFilter)="onFilter($event)">
 
          <!-- This keeps header and detail widths in sync -->
          <ng-template pTemplate="colgroup" let-columns>
@@ -34,6 +35,9 @@
                <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: left">
                   <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
                   <input type="text" pInputText size="30" placeholder="Filter Geographies" (input)="geoGrid.filterGlobal($event.target.value, 'contains')" style="width:auto; color: white">
+                  <label style="padding: 0px 10px 0px 25px">Export</label>
+                  <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
+                  <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label style="padding: 0; text-align: center;"
@@ -43,8 +47,8 @@
                   </label>
                </div>
                <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
-                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" [class]="val-column-picker-light"></p-multiSelect>
-                  <label style="padding: 0px 15px 0px 15px">Remove Dupes </label>
+                  <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" [class]="val-column-picker-light"></p-multiSelect>
+                  <label style="padding: 0px 10px 0px 15px">Remove Dupes</label>
                   <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                </div>
             </div>
@@ -157,13 +161,48 @@
             </tr>
          </ng-template>
 
-         <!-- <ng-template pTemplate="footer" let-columns>
+         <ng-template pTemplate="footer" let-columns>
             <tr>
-               <td *ngFor="let col of columns">
-                  {{col.header}}
+               <td style="width: 30px;"></td>
+               <td style="width: 30px;"></td>
+               <td *ngFor="let col of columns" [ngSwitch]="col.field" [class]="col.styleClass">
+                  <div *ngSwitchCase="'geo.distance'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('distance').avg | number:'1.2-2'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('distance').min | number:'1.2-2'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('distance').max | number:'1.2-2'}}</td></tr></table>">
+                     {{gridTotals.get('distance').avg | number:'1.2-2'}}
+                  </div>
+                  <div *ngSwitchCase="'geo.hhc'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('hhc').tot | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('hhc').avg | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('hhc').min | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
+                     {{gridTotals.get('hhc').tot | number:'1.0-0'}}
+                  </div>
+                  <div *ngSwitchCase="'cpm'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('cpm').cnt | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('cpm').min | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('cpm').max | currency}}</td></tr></table>">
+                     {{gridTotals.get('cpm').avg | currency}}
+                  </div>
+                  <div *ngSwitchCase="'investment'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('investment').tot | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('investment').avg | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('investment').cnt | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('investment').min | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
+                     {{gridTotals.get('investment').tot | currency}}
+                  </div>
+               </td>
+               <td *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.field" [class]="col.styleClass">
                </td>
             </tr>
-         </ng-template> -->
+         </ng-template>
          
          <ng-template pTemplate="emptymessage" let-columns>
             <tr>
