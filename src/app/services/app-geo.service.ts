@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom, debounceTime } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri-modules/core/esri-utils';
 import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
-import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
+import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -341,7 +341,10 @@ export class AppGeoService {
     const includePob = !currentProject.isExcludePob;
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<number, ImpGeofootprintGeo[]> = groupByExtended(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only'))), attrib => Number(attrib.attributeValue), attrib => attrib.impGeofootprintGeo);
+    
+    console.log('pob:::', pobGeosMap);
+    if (includePob){
     if (ownerGroupGeosMap.has('VALASSIS')){
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
         geo.isActive = includeValassis;
@@ -366,14 +369,40 @@ export class AppGeoService {
         } else geo['filterReasons'] = null;
       });
     }
-    if (pobGeosMap.has('B')){
-      pobGeosMap.get('B').forEach(geo => {
+  } else{
+    if (ownerGroupGeosMap.has('VALASSIS')){
+      ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
+        geo.isActive = includeValassis;
+        if (geo.isActive === false){
+          geo['filterReasons'] = 'Filtered because: VALASSIS' ;
+        } else geo['filterReasons'] = null;
+      });
+    }
+    if (ownerGroupGeosMap.has('ANNE')){
+      ownerGroupGeosMap.get('ANNE').forEach(geo => {
+        geo.isActive = includeAnne;
+        if (geo.isActive === false){
+          geo['filterReasons'] = 'Filtered because: ANNE' ;
+        } else geo['filterReasons'] = null;
+      });
+    }
+    if (soloGeosMap.has('Solo') ){
+      soloGeosMap.get('Solo').forEach(geo => {
+        geo.isActive = includeSolo;
+        if (geo.isActive === false){
+          geo['filterReasons'] = 'Filtered because: SOLO' ;
+        } else geo['filterReasons'] = null;
+      });
+    }
+    if (pobGeosMap.has(1)){
+      pobGeosMap.get(1).forEach(geo => {
         geo.isActive = includePob;
         if (geo.isActive === false){
           geo['filterReasons'] = 'Filtered because: POB' ;
         } else geo['filterReasons'] = null;
       });
     }
+  }
   }
 
   public filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
@@ -477,7 +506,9 @@ export class AppGeoService {
       map(project => project.isExcludePob),
       distinctUntilChanged()
     );
-   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
+   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
+      // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
+      .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
 
 }
 }
