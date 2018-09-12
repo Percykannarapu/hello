@@ -182,9 +182,9 @@ export class TradeAreaTabComponent implements OnInit {
     const errorTitle: string = 'Audience Trade Area Error';
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
     .subscribe(result => {
-      if (!result) {
-        this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
-      }
+      // if (!result) {
+      //   this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
+      // }
     },
     error => {
       console.error('Error while creating audience tradearea', error);
