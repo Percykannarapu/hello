@@ -171,6 +171,12 @@ export class ValAudienceTradeareaService {
    */
   private validateTradeArea() : true | string[] {
     const errors: string[] = [];
+    if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
+      errors.push('You must select an Analysis Level before applying a trade area to Sites');
+    }
+    if (!this.audienceTAConfig.digCategoryId) {
+      errors.push('You must select a variable before creating a trade area');
+    }
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
@@ -180,11 +186,8 @@ export class ValAudienceTradeareaService {
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
       errors.push('The maximum radius must be larger than the minimum radius ');
     }
-    if (!this.audienceTAConfig.digCategoryId) {
-      errors.push('You must select a variable before creating a trade area');
-    }
-    if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
-      errors.push('You must select an Analysis Level before applying a trade area to Sites');
+    if (this.audienceTAConfig.weight == null) {
+      errors.push('You must enter a value for Weight % of the variable');
     }
     if (errors.length > 0) {
       return errors;
