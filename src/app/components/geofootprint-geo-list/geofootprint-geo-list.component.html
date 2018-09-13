@@ -135,7 +135,7 @@
 
                <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
                   <!-- Add ZoomTo Icon to Geocode -->
-                  <div *ngSwitchCase="'geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
+                  <div *ngSwitchCase="'geo.geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
                      <div class="ui-g-10 .val-flush-to-edges" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null" style="vertical-align:inherit"> <!-- [pTooltip]="getGeoTooltip(row)" -->
                         {{flatGeo['geo'].geocode}}
                         <i *ngIf="flatGeo['home_geo']==1" class="fa fa-home" style="vertical-align:inherit; color: black"></i>
