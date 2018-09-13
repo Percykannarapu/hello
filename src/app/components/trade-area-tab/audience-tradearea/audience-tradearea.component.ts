@@ -121,6 +121,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   }
 
   public onClickApply() {
+    this.runAudienceTA.emit(true);
     const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
                         ~siteCount=${this.currentLocationsCount}
@@ -133,7 +134,6 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
                         ~scoreType=${this.currentAudienceTAConfig.scoreType}
                         ~includeAllInMustCover=${this.currentAudienceTAConfig.includeMustCover ? 1 : 0}`;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
-    this.runAudienceTA.emit(true);
   }
 
   public clearFields(){
