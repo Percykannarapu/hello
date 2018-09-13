@@ -28040,6 +28040,7 @@ body {
     body .ui-dropdown .ui-dropdown-label {
       background: none; }
     body .ui-dropdown .ui-dropdown-label.ui-inputtext {
+       color:black;
        padding-bottom: 0px;
        margin-bottom: 0px;
       font: 1em "Roboto", "Helvetica Neue", sans-serif; }
