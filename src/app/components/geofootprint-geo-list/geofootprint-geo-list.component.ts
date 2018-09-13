@@ -1302,11 +1302,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
            this.usageService.createCounterMetric(geoDeselected, metricText, null);
          }
       }
+
+      // Update geo grid total columns
+      this.setGridTotals();
    }
 
    onSelectAllGeocodes(event: any)
    {
-      console.log("All Geos isActive set to: ", event.checked);
+      console.log("All Geos isActive set to: ", event.checked, ", event: ", event);
       //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
    }
 
@@ -1397,7 +1400,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             numRows = this._geoGrid.filteredValue.length;
 
             this._geoGrid.filteredValue.forEach(element => {
-               if (element.geo.isDeduped === 1 || this.dedupeGrid === false)
+               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
                {
                   this.setGridTotal('hhc',        element.geo.hhc);
                   this.setGridTotal('cpm',        element.cpm);
@@ -1428,7 +1431,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             numRows = this._geoGrid._value.length;
 
             this._geoGrid._value.forEach(element => {
-               if (element.geo.isDeduped === 1 || this.dedupeGrid === false)
+               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
                {
                   this.setGridTotal('hhc',        element.geo.hhc);
                   this.setGridTotal('cpm',        element.cpm);

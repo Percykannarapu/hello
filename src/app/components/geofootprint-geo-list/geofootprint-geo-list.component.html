@@ -11,13 +11,13 @@
                sortMode="multiple"
                scrollable="true" scrollWidth="100%"
                [responsive]="true"
-               [headerCheckboxToggleAllPages]="true"
                [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
                (onRowClick)="onRowClick($event)"
                (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
                (onRowSelect)="onSelectGeocode($event, true)"
                (onRowUnselect)="onSelectGeocode($event, false)"
                (onFilter)="onFilter($event)">
+               <!-- [headerCheckboxToggleAllPages]="true" -->
 
          <!-- This keeps header and detail widths in sync -->
          <ng-template pTemplate="colgroup" let-columns>
@@ -39,11 +39,16 @@
                   <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
                   <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
                </div>
-               <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
-                  <label style="padding: 0; text-align: center;"
+               <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">                  
+                  <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;"
                          pTooltip="Selected Geos:   {{numGeosActive}}
                                    Unselected Geos: {{numGeosInactive}}">
-                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}, Filtered Geos: {{geoGrid.totalRecords}}
+                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{geoGrid.totalRecords}} / {{impGeofootprintGeoService.length()}} (Filtered)
+                  </label>
+                  <label *ngIf="geoGrid.filteredValue == null" style="padding: 0; text-align: center;"
+                         pTooltip="Selected Geos:   {{numGeosActive}}
+                                   Unselected Geos: {{numGeosInactive}}">
+                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}
                   </label>
                </div>
                <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
