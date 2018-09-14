@@ -18,6 +18,7 @@ import { AppBusinessSearchService } from '../../services/app-business-search.ser
 import { AppStateService } from '../../services/app-state.service';
 import { resolveFieldData } from '../../val-modules/common/common.utils';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
+import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export class FlatSite {
    fgId: number;
@@ -220,6 +221,8 @@ export class SiteListComponent implements OnInit {
             this.siteListService.deleteLocations(allLocations);
             this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
             this.appStateService.clearUserInterface.next(true);
+            const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
+            this.appStateService.setProvidedTradeAreas(false, siteCode );
          }
       });
    }
@@ -264,9 +267,9 @@ export class SiteListComponent implements OnInit {
    createComposite(locs: ImpGeofootprintLocation[]) : FlatSite[]
    {
       const UnselLocCount: number = locs.filter(loc => loc.isActive === false).length;
-      console.log("-".padEnd(80, "-"));
-      console.log('createComposite: locs: ', (locs != null) ? locs.length : null, ', Unselected Locs', UnselLocCount/*, ', attributes: ', (locAttributes != null) ? locAttributes.length : null*/);
-      console.log("-".padEnd(80, "-"));
+      //console.log("-".padEnd(80, "-"));
+      //console.log('createComposite: locs: ', (locs != null) ? locs.length : null, ', Unselected Locs', UnselLocCount/*, ', attributes: ', (locAttributes != null) ? locAttributes.length : null*/);
+      //console.log("-".padEnd(80, "-"));
       // This shows that at the time this fires, the new "Home" location attributes are not on the location
       //console.log("locs", locs.toString());
 
@@ -286,7 +289,7 @@ export class SiteListComponent implements OnInit {
          
          //console.log("createComposite - adding loc: " + loc.locationName);
          loc.impGeofootprintLocAttribs.forEach(attribute => {
-            console.log("createComposite attribute:", attribute);
+         // console.log("createComposite attribute:", attribute);
             gridSite[attribute.attributeCode] = attribute.attributeValue;
 
             let column={'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
@@ -305,8 +308,8 @@ export class SiteListComponent implements OnInit {
          siteGridData.push(gridSite);
       });
 
-      console.log("createComposite - returning siteGridData: ", siteGridData);
-      console.log("-".padEnd(80, "-"));
+      //console.log("createComposite - returning siteGridData: ", siteGridData);
+      //console.log("-".padEnd(80, "-"));
       return siteGridData;
    }
 

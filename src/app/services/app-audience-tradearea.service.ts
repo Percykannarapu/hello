@@ -263,9 +263,9 @@ export class ValAudienceTradeareaService {
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
           }
           if (this.failedLocations.length > 0) {
-            let warningMessage = 'Unable to find data for the following locations:<br>';
+            let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
-              warningMessage += failedLoc.locationName + '<br>';
+              warningMessage += failedLoc.locationName + '\n';
             }
             this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessage);
             this.failedLocations = [];

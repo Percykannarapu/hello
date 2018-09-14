@@ -360,17 +360,27 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // COMPONENT METHODS
    // -----------------------------------------------------------
-   public getGeoTooltip(flatGeo: FlatGeo)
+   public getGeoTooltip(flatGeo: FlatGeo): string
    {
-      //console.log('getGeoTooltip: flatGeo: ', flatGeo.geo.geocode, ', filterReasons: ', flatGeo['filterReasons'], ', geo.filterReasons: ', flatGeo.geo['filterReasons']);      if (flatGeo.geo.isActive === false && flatGeo.geo['filterReasons'] == null)
-     if (flatGeo.geo.isActive === false && flatGeo.geo['filterReasons'] == null)
-       return 'Filtered manually';
+      let result: string = null;
 
-    if (flatGeo.geo.isActive === true && flatGeo.geo['filterReasons'] != null && flatGeo.geo['filterReasons'].length > 0)
-         return '*** Manual Override ***\n' + flatGeo.geo['filterReasons'];
+      if (flatGeo == null || flatGeo.geo == null)
+         return result;
 
-      return flatGeo.geo['filterReasons'];
+      if (flatGeo.geo.isActive === false && flatGeo.geo['filterReasons'] == null)
+         result = 'Filtered manually';
+      else
+         if (flatGeo.geo.isActive === true && flatGeo.geo['filterReasons'] != null && flatGeo.geo['filterReasons'].length > 0)
+            result = '*** Manual Override ***\n' + flatGeo.geo['filterReasons'];
+         else
+            if (flatGeo.geo['filterReasons'] != null)
+               result = flatGeo.geo['filterReasons'];
+            else
+               result = null;
+      // console.log('ToolTip: [' + result + '] getGeoTooltip: flatGeo: ', flatGeo.geo.geocode, ', filterReasons: ', flatGeo['filterReasons'], ', geo.filterReasons: ', flatGeo.geo['filterReasons']);
+      return result;
    }
+
    /**
     * The geo passed in will be compared to the list of locations
     * and the closest will be recorded on the geo as well as the distance.
@@ -484,7 +494,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
    {
       const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
-      console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
+      //console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
 
       let fgId = 0;
       const geoGridData: FlatGeo[] = [];
@@ -528,7 +538,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
-
+         
          // // Track column metrics
          // if (gridGeo.geo.isDeduped === 1 || this.dedupeGrid === false)
          // {
@@ -675,6 +685,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          //                                      ,max: (gridGeo['cpm'] > this.gridTotals.get('cpm').max) ? gridGeo['cpm'] : this.gridTotals.get('cpm').max
          //                                      });
          // }
+
+         // Set the tooltip for the geography
+         gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
+
          geoGridData.push(gridGeo);
       });
 

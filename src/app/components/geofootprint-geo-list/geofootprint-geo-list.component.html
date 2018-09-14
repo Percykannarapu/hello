@@ -85,7 +85,7 @@
                   <input *ngSwitchCase="'geo.geocode'"                                pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
                   <input *ngSwitchCase="'city_name'"                                  pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
                   <input *ngSwitchCase="'pob'"                                        pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.isDeduped'"                              pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.isDeduped'"                              pInputText type="number" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
 
                   <div *ngSwitchCase="'geo.distance'">
                      <val-table-filter-numeric fieldHeader="Distance" fieldName="geo.distance" (filterApplied)="geoGrid.filter($event, 'geo.distance', 'distanceFilter')" [(minValue)]="distanceRanges[0]" [(maxValue)]="distanceRanges[1]"></val-table-filter-numeric>
@@ -135,8 +135,8 @@
 
                <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
                   <!-- Add ZoomTo Icon to Geocode -->
-                  <div *ngSwitchCase="'geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
-                     <div class="ui-g-10 .val-flush-to-edges" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null" style="vertical-align:inherit"> <!-- [pTooltip]="getGeoTooltip(row)" -->
+                  <div *ngSwitchCase="'geo.geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
+                     <div class="ui-g-10 .val-flush-to-edges" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null" style="vertical-align:inherit" pTooltip="{{flatGeo['tooltip']}}"> <!-- [pTooltip]="getGeoTooltip(row)" -->
                         {{flatGeo['geo'].geocode}}
                         <i *ngIf="flatGeo['home_geo']==1" class="fa fa-home" style="vertical-align:inherit; color: black"></i>
                      </div>
@@ -146,13 +146,14 @@
                   </div>
 
                   <!-- Format various columns -->
-                  <div *ngSwitchCase="'geo.distance'"> {{flatGeo[col.field] | number:'1.2-2'}} </div>
-                  <div *ngSwitchCase="'geo.hhc'">      {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
-                  <div *ngSwitchCase="'cpm'">          {{flatGeo['cpm'] | currency}} </div>
-                  <div *ngSwitchCase="'investment'">   {{flatGeo['investment'] | currency}} </div>
+                  <div *ngSwitchCase="'geo.isDeduped'"> {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'geo.distance'">  {{flatGeo[col.field] | number:'1.2-2'}} </div>
+                  <div *ngSwitchCase="'geo.hhc'">       {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'cpm'">           {{flatGeo['cpm'] | currency}} </div>
+                  <div *ngSwitchCase="'investment'">    {{flatGeo['investment'] | currency}} </div>
 
                   <!-- Display all other columns -->
-                  <div *ngSwitchDefault>                  
+                  <div *ngSwitchDefault>
                      {{flatGeo[col.field]}}
                   </div>
                </td>
