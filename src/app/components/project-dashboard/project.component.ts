@@ -29,6 +29,7 @@ import { ImpGeofootprintMasterService } from '../../val-modules/targeting/servic
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
 
 
 @Component({
@@ -70,7 +71,8 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
                 private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
                 private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                 private impGeofootprintVarService: ImpGeofootprintVarService,
-                private impGeofootprintMasterService: ImpGeofootprintMasterService){
+                private impGeofootprintMasterService: ImpGeofootprintMasterService,
+                private targetAudienceService: TargetAudienceService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -366,7 +368,13 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
         } else {
           this.appLocationService.zoomToLocations(locData);
         }
-      } );
+      }, null, () => {
+        const audiences = this.targetAudienceService.getAudiences();
+        const mappedAudience = audiences.find(a => a.showOnMap === true);
+        if (mappedAudience != null){
+          this.targetAudienceService.applyAudienceSelection();
+        }
+      });
       this.display = false;
       this.selectedListType = 'myProject';
       
