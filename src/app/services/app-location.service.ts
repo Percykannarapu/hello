@@ -24,6 +24,7 @@ import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
 import { EsriGeoprocessorService } from '../esri-modules/layers/esri-geoprocessor.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 
@@ -50,6 +51,7 @@ export class AppLocationService {
   public failureCount$: Observable<number>;
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
+  public applyTa: boolean;
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -63,7 +65,8 @@ export class AppLocationService {
               private esriLayerService: EsriLayerService,
               private esriGeoprocessingService: EsriGeoprocessorService,
               private logger: AppLoggingService,
-              private domainFactory: ImpDomainFactoryService) {
+              private domainFactory: ImpDomainFactoryService,
+              private confirmationService: ConfirmationService) {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
@@ -205,21 +208,41 @@ export class AppLocationService {
         newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
       
       });
-    this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
-    this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
+   
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
     if (this.appStateService.analysisLevel$.getValue() == null && newTradeAreas.length !== 0 ) {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);   
       this.geocodingService.clearDuplicates();
     } else {
-    this.appTradeAreaService.insertTradeAreas(newTradeAreas); 
-    data
+     this.confirmationService.confirm({
+      message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
+      header: 'Define Trade Areas',
+      icon: 'ui-icon-project',
+       
+      accept: () => {
+        this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
+        this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
+        this.appTradeAreaService.insertTradeAreas(newTradeAreas); 
+        data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
-    this.impLocationService.add(data);
-    this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+      this.impLocationService.add(data);
+      this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+
+      },
+      reject: () => {
+        this.applyTa = false;
+        data
+        .filter(loc => loc.locationName == null || loc.locationName.length === 0)
+        .forEach(loc => loc.locationName = loc.locationNumber);
+          currentMaster.impGeofootprintLocations.push(...data);
+        this.impLocationService.add(data);
+        this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+      }
+  });
+    
     }
     
   }

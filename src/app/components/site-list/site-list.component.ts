@@ -18,6 +18,7 @@ import { AppBusinessSearchService } from '../../services/app-business-search.ser
 import { AppStateService } from '../../services/app-state.service';
 import { resolveFieldData } from '../../val-modules/common/common.utils';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
+import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export class FlatSite {
    fgId: number;
@@ -220,6 +221,8 @@ export class SiteListComponent implements OnInit {
             this.siteListService.deleteLocations(allLocations);
             this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
             this.appStateService.clearUserInterface.next(true);
+            const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
+            this.appStateService.setProvidedTradeAreas(false, siteCode );
          }
       });
    }

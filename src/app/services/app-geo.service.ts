@@ -31,16 +31,16 @@ export class AppGeoService {
   private validAnalysisLevel$: Observable<string>;
 
   constructor(private appStateService: AppStateService,
-              private messagingService: AppMessagingService,
-              private appMapService: AppMapService,
-              private locationService: ImpGeofootprintLocationService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private varService: ImpGeofootprintVarService,
-              private impGeoService: ImpGeofootprintGeoService,
-              private impAttributeService: ImpGeofootprintGeoAttribService,
-              private queryService: EsriQueryService,
-              private config: AppConfig,
-              private domainFactory: ImpDomainFactoryService) {
+    private messagingService: AppMessagingService,
+    private appMapService: AppMapService,
+    private locationService: ImpGeofootprintLocationService,
+    private tradeAreaService: ImpGeofootprintTradeAreaService,
+    private varService: ImpGeofootprintVarService,
+    private impGeoService: ImpGeofootprintGeoService,
+    private impAttributeService: ImpGeofootprintGeoAttribService,
+    private queryService: EsriQueryService,
+    private config: AppConfig,
+    private domainFactory: ImpDomainFactoryService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
@@ -99,23 +99,23 @@ export class AppGeoService {
   private setupHomeGeoSelectionObservable() : void {
     // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
     combineLatest(this.locationService.storeObservable,
-                  this.impGeoService.storeObservable,
-                  this.appStateService.projectIsLoading$).pipe(
-      // halt the sequence if the project is still loading
-      filter(([locations, geos, isLoading]) => !isLoading),
-      // keep only locations identified as sites
-      map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
-      // keep locations that have a home geocode identified
-      map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
-      // keep locations that have trade areas defined
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-      // keep sites that do not already have their home geo selected
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
-      // keep locations where finished radius count matches all radius count
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
-      // halt the sequence if there are no locations remaining
-      filter(locations => locations.length > 0)
-    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+      this.impGeoService.storeObservable,
+      this.appStateService.projectIsLoading$).pipe(
+        // halt the sequence if the project is still loading
+        filter(([locations, geos, isLoading]) => !isLoading),
+        // keep only locations identified as sites
+        map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
+        // keep locations that have a home geocode identified
+        map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
+        // keep locations that have trade areas defined
+        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
+        // keep sites that do not already have their home geo selected
+        map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+        // keep locations where finished radius count matches all radius count
+        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
+        // halt the sequence if there are no locations remaining
+        filter(locations => locations.length > 0)
+      ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
 
   /**
@@ -170,10 +170,10 @@ export class AppGeoService {
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    const radiiArray: number[] = []; 
+    const radiiArray: number[] = [];
 
     tradeAreas.forEach(ta => {
-      if (ta.taRadius != null && ta.taRadius !== 0){
+      if (ta.taRadius != null && ta.taRadius !== 0) {
         radiiArray.push(ta.taRadius);
       }
     });
@@ -191,7 +191,7 @@ export class AppGeoService {
         },
         () => {
           const geosToPersist: ImpGeofootprintGeo[] = [];
-            geosToPersist.push(...this.createGeosToPersist(tradeAreas, allSelectedData));
+          geosToPersist.push(...this.createGeosToPersist(tradeAreas, allSelectedData));
           this.impGeoService.add(geosToPersist);
           this.messagingService.stopSpinnerDialog(spinnerKey);
         });
@@ -207,20 +207,20 @@ export class AppGeoService {
     this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
     this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude'])
       .subscribe(
-      selections => allSelectedData.push(...selections),
-      err => {
-        console.error(err);
-        this.messagingService.stopSpinnerDialog(spinnerKey);
-      },
-      () => {
-        const geosToPersist: ImpGeofootprintGeo[] = [];
-        const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
-        if (homeGeocodes.length > 0){
-          geosToPersist.push(...homeGeocodes);
-        }
-        this.impGeoService.add(geosToPersist);
-        this.messagingService.stopSpinnerDialog(spinnerKey);
-      });
+        selections => allSelectedData.push(...selections),
+        err => {
+          console.error(err);
+          this.messagingService.stopSpinnerDialog(spinnerKey);
+        },
+        () => {
+          const geosToPersist: ImpGeofootprintGeo[] = [];
+          const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
+          if (homeGeocodes.length > 0) {
+            geosToPersist.push(...homeGeocodes);
+          }
+          this.impGeoService.add(geosToPersist);
+          this.messagingService.stopSpinnerDialog(spinnerKey);
+        });
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
@@ -342,70 +342,71 @@ export class AppGeoService {
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const pobGeosMap: Map<number, ImpGeofootprintGeo[]> = groupByExtended(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only'))), attrib => Number(attrib.attributeValue), attrib => attrib.impGeofootprintGeo);
-    
-    console.log('pob:::', pobGeosMap);
-    if (includePob){
-    if (ownerGroupGeosMap.has('VALASSIS')){
-      ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
-        geo.isActive = includeValassis;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: VALASSIS' ;
-        } else geo['filterReasons'] = null;
-      });
+
+    if (includePob) {
+      // If POB is turned on just care about the owner_group geos
+      if (ownerGroupGeosMap.has('VALASSIS')) {
+        ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
+          geo.isActive = includeValassis;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: VALASSIS';
+          } else geo['filterReasons'] = null;
+        });
+      }
+      if (ownerGroupGeosMap.has('ANNE')) {
+        ownerGroupGeosMap.get('ANNE').forEach(geo => {
+          geo.isActive = includeAnne;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: ANNE';
+          } else geo['filterReasons'] = null;
+        });
+      }
+      if (soloGeosMap.has('Solo')) {
+        soloGeosMap.get('Solo').forEach(geo => {
+          geo.isActive = includeSolo;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: SOLO';
+          } else geo['filterReasons'] = null;
+        });
+      }
+    } else {
+      // If POB is turned of care about the owner_group geos and the pob geos
+      if (ownerGroupGeosMap.has('VALASSIS')) {
+        ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
+          geo.isActive = includeValassis;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: VALASSIS';
+          } else geo['filterReasons'] = null;
+        });
+      }
+      if (ownerGroupGeosMap.has('ANNE')) {
+        ownerGroupGeosMap.get('ANNE').forEach(geo => {
+          geo.isActive = includeAnne;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: ANNE';
+          } else geo['filterReasons'] = null;
+        });
+      }
+      if (soloGeosMap.has('Solo')) {
+        soloGeosMap.get('Solo').forEach(geo => {
+          geo.isActive = includeSolo;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: SOLO';
+          } else geo['filterReasons'] = null;
+        });
+      }
+      if (pobGeosMap.has(1)) {
+        pobGeosMap.get(1).forEach(geo => {
+          geo.isActive = includePob;
+          if (geo.isActive === false) {
+            geo['filterReasons'] = 'Filtered because: POB';
+          } else geo['filterReasons'] = null;
+        });
+      }
     }
-    if (ownerGroupGeosMap.has('ANNE')){
-      ownerGroupGeosMap.get('ANNE').forEach(geo => {
-        geo.isActive = includeAnne;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: ANNE' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (soloGeosMap.has('Solo') ){
-      soloGeosMap.get('Solo').forEach(geo => {
-        geo.isActive = includeSolo;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: SOLO' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-  } else{
-    if (ownerGroupGeosMap.has('VALASSIS')){
-      ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
-        geo.isActive = includeValassis;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: VALASSIS' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (ownerGroupGeosMap.has('ANNE')){
-      ownerGroupGeosMap.get('ANNE').forEach(geo => {
-        geo.isActive = includeAnne;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: ANNE' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (soloGeosMap.has('Solo') ){
-      soloGeosMap.get('Solo').forEach(geo => {
-        geo.isActive = includeSolo;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: SOLO' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (pobGeosMap.has(1)){
-      pobGeosMap.get(1).forEach(geo => {
-        geo.isActive = includePob;
-        if (geo.isActive === false){
-          geo['filterReasons'] = 'Filtered because: POB' ;
-        } else geo['filterReasons'] = null;
-      });
-    }
-  }
   }
 
-  public filterGeosOnFlags(geos: ImpGeofootprintGeo[]){
+  public filterGeosOnFlags(geos: ImpGeofootprintGeo[]) {
     this.filterGeosImpl(geos);
     this.impGeoService.update(null, null);
   }
@@ -485,7 +486,7 @@ export class AppGeoService {
     this.impGeoService.add([newGeo]);
   }
 
-  private setupFilterGeosObservable() : void{
+  private setupFilterGeosObservable() : void {
     const valassisFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeValassis),
@@ -506,9 +507,9 @@ export class AppGeoService {
       map(project => project.isExcludePob),
       distinctUntilChanged()
     );
-   combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
+    combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
       // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
       .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
 
-}
+  }
 }
