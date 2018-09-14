@@ -215,6 +215,11 @@ export class AppLocationService {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);   
       this.geocodingService.clearDuplicates();
     } else {
+      if(newTradeAreas.length === 0){
+        this.impLocationService.add(data);
+      this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+
+      } else {
      this.confirmationService.confirm({
       message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
       header: 'Define Trade Areas',
@@ -242,7 +247,7 @@ export class AppLocationService {
         this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
       }
   });
-    
+}
     }
     
   }
