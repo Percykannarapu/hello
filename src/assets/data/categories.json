@@ -8,6 +8,11 @@
       },
       {
         "category": 52,
+        "sic": "5211-13",
+        "name": "PREFINISHING"
+      },
+      {
+        "category": 52,
         "sic": "5211-15",
         "name": "SHINGLES & SHAKES"
       },
