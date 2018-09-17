@@ -1,7 +1,5 @@
 import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck } from '@angular/core';
-import { map } from 'rxjs/operators';
 import { AppStateService } from './services/app-state.service';
-import { EsriIdentityService } from './services/esri-identity.service';
 import { AppConfig } from './app.config';
 import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
@@ -70,8 +68,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     currentProject$: Observable<ImpProject>;
 
-    constructor(private esriIdentityService: EsriIdentityService,
-                private projectService: ImpProjectService,
+    constructor(private projectService: ImpProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService,
                 private domainFactory: ImpDomainFactoryService,
@@ -80,7 +77,6 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
-        this.esriIdentityService.authenticate(this.config.esriIdentityParams);
         const startProject = this.domainFactory.createProject();
         this.projectService.add([startProject]);
         this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;

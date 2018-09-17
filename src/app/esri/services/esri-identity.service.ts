@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
-import {EsriModules} from '../esri-modules/core/esri-modules.service';
-import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { EsriAuthenticationConfig, EsriAuthenticationParams, EsriAuthenticationToken } from '../configuration';
+import { EsriApi } from '../core/esri-api.service';
 
 interface TokenResponse {
   token: string;
@@ -8,27 +9,21 @@ interface TokenResponse {
   ssl: boolean;
 }
 
-export interface AuthenticationParams {
-  generatorUrl: string;
-  tokenServerUrl: string;
-  userName: string;
-  password: string;
-  referer: string;
-}
-
 @Injectable()
 export class EsriIdentityService {
 
   public token: string;
 
-  constructor(private http: HttpClient, private modules: EsriModules) { }
+  constructor(private http: HttpClient,
+              private modules: EsriApi,
+              @Inject(EsriAuthenticationToken) private config: EsriAuthenticationConfig) { }
 
-  public authenticate(params: AuthenticationParams) {
+  public authenticate() {
     this.modules.loadModules(['esri/identity/IdentityManager'])
-      .then(m => this.authImpl(m[0], params));
+      .then(m => this.authImpl(m[0], this.config.esriAuthParams));
   }
 
-  private authImpl(identityManager: __esri.IdentityManager, params: AuthenticationParams) {
+  private authImpl(identityManager: __esri.IdentityManager, params: EsriAuthenticationParams) {
     const headers = new HttpHeaders()
       .set('content-type', 'application/x-www-form-urlencoded');
     const body = new HttpParams()

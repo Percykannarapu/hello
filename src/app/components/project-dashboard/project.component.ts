@@ -9,7 +9,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { calculateStatistics } from '../../app.utils';
-import { EsriMapService } from '../../esri-modules/core/esri-map.service';
+import { EsriMapService } from '../../esri/services/esri-map.service';
 import { AppLocationService } from '../../services/app-location.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
@@ -22,13 +22,14 @@ import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
-import { EsriLayerService } from '../../esri-modules/layers/esri-layer.service';
+import { EsriLayerService } from '../../esri/services/esri-layer.service';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 import { MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintMasterService } from '../../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
 
 
 @Component({
@@ -70,7 +71,8 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
                 private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
                 private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                 private impGeofootprintVarService: ImpGeofootprintVarService,
-                private impGeofootprintMasterService: ImpGeofootprintMasterService){
+                private impGeofootprintMasterService: ImpGeofootprintMasterService,
+                private targetAudienceService: TargetAudienceService){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -366,7 +368,13 @@ import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/ser
         } else {
           this.appLocationService.zoomToLocations(locData);
         }
-      } );
+      }, null, () => {
+        const audiences = this.targetAudienceService.getAudiences();
+        const mappedAudience = audiences.find(a => a.showOnMap === true);
+        if (mappedAudience != null){
+          this.targetAudienceService.applyAudienceSelection();
+        }
+      });
       this.display = false;
       this.selectedListType = 'myProject';
       

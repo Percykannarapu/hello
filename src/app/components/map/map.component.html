@@ -1,17 +1,28 @@
 <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
   <div id="outerMapDiv" class="val-flush-to-edges">
-    <val-map-toolbar
-      [currentAnalysisLevel]="currentAnalysisLevel$ | async"
-      [currentMapState]="mapState$ | async"
-      (popupButtonClicked)="onMapStateChange(states.Popups)"
-      (singleSelectClicked)="onMapStateChange(states.SelectPoly)"
-      (multiSelectClicked)="onMapStateChange(states.DrawPoly)"
-      (measureToolClicked)="onMapStateChange(states.MeasureLine)"
-      (clearGraphicsClicked)="onMapStateChange(states.RemoveGraphics)"
-      (clearSelectionsClicked)="onClearSelections()"
-      (revertClicked)="onRevert()"
-      (zoomClicked)="onZoom()"
-    ></val-map-toolbar>
-    <val-esri-map [cursor]="cursor$ | async">Loading Map...</val-esri-map>
+    <val-esri-map-panel [mapHeight]="mapHeight$ | async"
+                        (polySelected)="onPolysSelected($event)"
+                        (mapReady)="setupApplication()"
+                        (viewChanged)="onViewExtentChanged($event)">
+      <additional-toolbar-buttons>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>
+        <button  label="Revert"     pButton (click)="onRevert()"   title="Revert to Trade Area" ></button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button  label="Zoom to TA" pButton (click)="onZoom()"  title="Zoom to TA"></button>
+      </additional-toolbar-buttons>
+      <additional-toolbar-group>
+        <div class="ui-g ui-toolbar-group-right">
+          <div class="ui-g-12 val-restore-padding">
+        <span *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
+          <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
+        </span>
+            <ng-template #noAnalysisLevel>
+              <span><strong>No Analysis Level Selected</strong></span>
+            </ng-template>
+          </div>
+        </div>
+      </additional-toolbar-group>
+    </val-esri-map-panel>
   </div>
 </p-panel>

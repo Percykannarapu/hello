@@ -7,14 +7,14 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppConfig } from '../app.config';
-import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { EsriQueryService } from '../esri/services/esri-query.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
-import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { distinctUntilArrayContentsChanged } from '../val-modules/common/common.rxjs';
@@ -56,9 +56,9 @@ export class AppTradeAreaService {
       )
       .subscribe(([locations]) => this.onLocationChange(locations));
 
-    const radiusTradeAreas$ = combineLatest(this.impTradeAreaService.storeObservable, this.esriMapService.onReady$).pipe(
-      filter(([tradeAreas, isReady]) => isReady && tradeAreas != null),
-      map(([tradeAreas]) => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
+    const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
+      filter(tradeAreas => tradeAreas != null),
+      map((tradeAreas) => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),

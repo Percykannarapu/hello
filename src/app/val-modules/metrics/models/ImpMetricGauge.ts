@@ -18,6 +18,7 @@ export class ImpMetricGauge
    public metricText:        string;
    public isActive:          number;
    public metricId:          number; 
+   public projectTrackerId:  number;
 
    // IMPOWER.IMP_METRIC_GAUGES - MANY TO ONE RELATIONSHIP MEMBERS
    // ------------------------------------------------------------

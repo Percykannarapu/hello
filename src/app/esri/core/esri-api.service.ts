@@ -1,10 +1,10 @@
-import { EventEmitter, Inject, Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import * as esriLoader from 'esri-loader';
 import { EsriWidgets } from './esri-widgets';
 import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 
 @Injectable()
-export class EsriModules {
+export class EsriApi {
   private static names: string[] = [
     'esri/config',
     'esri/Map',
@@ -46,9 +46,9 @@ export class EsriModules {
 ];
 
   public static config: typeof __esri.config;
-  public static Map: typeof __esri.Map;
+  public static Map: __esri.MapConstructor;
   public static BaseMap: typeof __esri.Basemap;
-  public static MapView: typeof __esri.MapView;
+  public static MapView: __esri.MapViewConstructor;
   public static Collection: __esri.Collection;
   public static ActionButton: typeof __esri.ActionButton;
   public static colorRendererCreator: typeof __esri.color;
@@ -85,81 +85,76 @@ export class EsriModules {
 
   public static widgets: EsriWidgets;
 
-  private isLoaded = new EventEmitter();
-  private deferredLoad: Promise<any>;
-  public isReady = false;
+  constructor(@Inject(EsriLoaderToken) private config: EsriLoaderConfig) {}
 
-  constructor(@Inject(EsriLoaderToken) private config: EsriLoaderConfig) {
-    console.log('Constructing esri-modules');
+  public initialize() : Promise<any> {
+    console.log('Loading Esri CSS and API assets');
     esriLoader.loadCss(`${this.config.esriConfig.url}esri/css/main.css`);
-    esriLoader.loadScript(this.config.esriConfig).then(() => {
-      this.deferredLoad = esriLoader.loadModules(EsriModules.names.concat(EsriWidgets.moduleNames));
-      this.deferredLoad
-        .then(m => this.cacheModules(m))
-        .catch(e => console.error('There was an error loading the Esri Modules: ', e));
-    }).catch(e => console.error('There was an error loading the main Esri script: ', e));
+    return new Promise<any>((resolve, reject) => {
+      esriLoader.loadScript(this.config.esriConfig).then(() => {
+        esriLoader.loadModules(EsriApi.names.concat(EsriWidgets.moduleNames)).then(m => {
+            this.cacheModules(m);
+            resolve();
+          }).catch(e => {
+            console.error('There was an error loading the individual Esri modules: ', e);
+            reject(e);
+        });
+      }).catch(e => {
+        console.error('There was an error loading the main Esri script: ', e);
+        reject(e);
+      });
+    });
   }
 
   private cacheModules(modules: any[]) : void {
     // modules array index must line up with names array index
     [
-      EsriModules.config,
-      EsriModules.Map,
-      EsriModules.BaseMap,
-      EsriModules.MapView,
-      EsriModules.Collection,
-      EsriModules.ActionButton,
-      EsriModules.colorRendererCreator,
-      EsriModules.symbologyColor,
-      EsriModules.histogram,
-      EsriModules.UniqueValueRenderer,
-      EsriModules.SimpleRenderer,
-      EsriModules.lang,
-      EsriModules.geometryEngine,
-      EsriModules.geometryEngineAsync,
-      EsriModules.Layer,
-      EsriModules.GroupLayer,
-      EsriModules.FeatureLayer,
-      EsriModules.watchUtils,
-      EsriModules.PopupTemplate,
-      EsriModules.MapImageLayer,
-      EsriModules.PolyLine,
-      EsriModules.Polygon,
-      EsriModules.Viewpoint,
-      EsriModules.Graphic,
-      EsriModules.SimpleFillSymbol,
-      EsriModules.SimpleMarkerSymbol,
-      EsriModules.SimpleLineSymbol,
-      EsriModules.TextSymbol,
-      EsriModules.Color,
-      EsriModules.Draw,
-      EsriModules.PolygonDrawAction,
-      EsriModules.Point,
-      EsriModules.Multipoint,
-      EsriModules.Query,
-      EsriModules.Extent,
-      EsriModules.Geoprocessor,
-      EsriModules.FeatureSet
+      EsriApi.config,
+      EsriApi.Map,
+      EsriApi.BaseMap,
+      EsriApi.MapView,
+      EsriApi.Collection,
+      EsriApi.ActionButton,
+      EsriApi.colorRendererCreator,
+      EsriApi.symbologyColor,
+      EsriApi.histogram,
+      EsriApi.UniqueValueRenderer,
+      EsriApi.SimpleRenderer,
+      EsriApi.lang,
+      EsriApi.geometryEngine,
+      EsriApi.geometryEngineAsync,
+      EsriApi.Layer,
+      EsriApi.GroupLayer,
+      EsriApi.FeatureLayer,
+      EsriApi.watchUtils,
+      EsriApi.PopupTemplate,
+      EsriApi.MapImageLayer,
+      EsriApi.PolyLine,
+      EsriApi.Polygon,
+      EsriApi.Viewpoint,
+      EsriApi.Graphic,
+      EsriApi.SimpleFillSymbol,
+      EsriApi.SimpleMarkerSymbol,
+      EsriApi.SimpleLineSymbol,
+      EsriApi.TextSymbol,
+      EsriApi.Color,
+      EsriApi.Draw,
+      EsriApi.PolygonDrawAction,
+      EsriApi.Point,
+      EsriApi.Multipoint,
+      EsriApi.Query,
+      EsriApi.Extent,
+      EsriApi.Geoprocessor,
+      EsriApi.FeatureSet
     ] = modules;
 
-    EsriModules.widgets = new EsriWidgets();
-    EsriModules.widgets.loadModules(modules);
+    EsriApi.widgets = new EsriWidgets();
+    EsriApi.widgets.loadModules(modules);
 
-    EsriModules.config.portalUrl = this.config.esriConfig.portalUrl;
-
-    this.isReady = true;
-    this.isLoaded.emit();
+    EsriApi.config.portalUrl = this.config.esriConfig.portalUrl;
   }
 
   public loadModules(modules: string[]) : Promise<any[]> {
     return esriLoader.loadModules(modules, this.config.esriConfig);
-  }
-
-  public onReady(initializer: () => void) : void {
-    if (this.isReady) {
-      initializer();
-    } else {
-      this.isLoaded.subscribe(initializer);
-    }
   }
 }

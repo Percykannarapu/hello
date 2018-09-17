@@ -17,6 +17,7 @@ export class ImpMetricCounter
    public metricValue:       number;
    public metricText:        string;
    public metricId:          number; // The realtionaship back to the MetricName
+   public projectTrackerId:  number;
 
    // IMPOWER.IMP_METRIC_COUNTERS - MANY TO ONE RELATIONSHIP MEMBERS
    // --------------------------------------------------------------

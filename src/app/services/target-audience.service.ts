@@ -1,10 +1,9 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, mergeMap, switchMap, take, tap, filter, startWith } from 'rxjs/operators';
+import { map, tap, filter, startWith } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
-import { MapDispatchService } from './map-dispatch.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
@@ -34,7 +33,6 @@ export class TargetAudienceService implements OnDestroy {
 
   private newSelectedGeos$: Observable<string[]>;
   private newVisibleGeos$: Observable<string[]>;
-  private currentVisibleGeos$: Observable<string[]>;
 
   private nationalSources = new Map<string, nationalSource>();
   private audienceSources = new Map<string, audienceSource>();
@@ -50,23 +48,15 @@ export class TargetAudienceService implements OnDestroy {
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   constructor(private appStateService: AppStateService,
-    private varService: ImpGeofootprintVarService, private projectService: ImpProjectService,
-    private usageService: UsageService, private messagingService: AppMessagingService,
-    private config: AppConfig, private mapDispatchService: MapDispatchService,
-    private projectVarService: ImpProjectVarService) {
-    const layerId$ = this.appStateService.analysisLevel$.pipe(
-      filter(al => al != null && al.length > 0),
-      map(al => this.config.getLayerIdForAnalysisLevel(al)),     // convert it to a layer id
-    );
-
-    this.newVisibleGeos$ = layerId$.pipe(
+              private varService: ImpGeofootprintVarService,
+              private projectService: ImpProjectService,
+              private usageService: UsageService,
+              private messagingService: AppMessagingService,
+              private config: AppConfig,
+              private projectVarService: ImpProjectVarService) {
+    this.newVisibleGeos$ = this.appStateService.uniqueVisibleGeocodes$.pipe(
       tap(() => this.clearShadingData()),   // and clear the data cache
-      switchMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId)), // set up sub on map-visible geocodes
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
-    );
-
-    this.currentVisibleGeos$ = layerId$.pipe(
-      mergeMap(layerId => this.mapDispatchService.geocodesInViewExtent(layerId, true).pipe(take(1)))
     );
 
     this.newSelectedGeos$ = this.appStateService.uniqueSelectedGeocodes$.pipe(
@@ -78,7 +68,7 @@ export class TargetAudienceService implements OnDestroy {
 
     this.appStateService.projectIsLoading$.pipe(
       filter(loading => loading),
-    ).subscribe(loading => {
+    ).subscribe(() => {
       this.audienceMap.clear();
       this.audiences.next(Array.from(this.audienceMap.values()));
     });
@@ -335,9 +325,7 @@ export class TargetAudienceService implements OnDestroy {
       // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
       //   ([analysisLevel, geos]) => this.getShadingData(analysisLevel, geos, shadingAudience[0]));
       // set up a map watch process
-
-      const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
-      const visibleGeos$ = this.mapDispatchService.geocodesInViewExtent(layerId, true);
+      const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
       const newGeos$ = this.newVisibleGeos$.pipe(startWith(null));
       this.shadingSub = combineLatest(this.appStateService.analysisLevel$, newGeos$, visibleGeos$).subscribe(
         ([analysisLevel, newGeos, visibleGeos]) => {

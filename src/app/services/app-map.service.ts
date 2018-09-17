@@ -1,22 +1,20 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
-import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
-import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { EsriLayerService } from '../esri/services/esri-layer.service';
+import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppConfig } from '../app.config';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { EsriApi } from '../esri/core/esri-api.service';
+import { EsriQueryService } from '../esri/services/esri-query.service';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
-import { EsriUtils } from '../esri-modules/core/esri-utils';
+import { EsriUtils } from '../esri/core/esri-utils';
 import { UsageService } from './usage.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
-import { debounceTime, filter, take } from 'rxjs/operators';
-import { MapStateTypeCodes } from '../models/app.enums';
+import { debounceTime, filter } from 'rxjs/operators';
 import { AppMessagingService } from './app-messaging.service';
-import { EsriGraphicTypeCodes } from '../esri-modules/esri.enums';
 import { AppLayerService } from './app-layer.service';
 
 export interface Coordinates {
@@ -46,8 +44,6 @@ export class AppMapService implements OnDestroy {
 
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
 
-  private currentMapState: MapStateTypeCodes;
-
   constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
@@ -62,26 +58,19 @@ export class AppMapService implements OnDestroy {
               private config: AppConfig) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
-    this.appStateService.currentMapState$.subscribe(newState => this.handleMapStateChange(newState));
-
-    this.mapService.onReady$.pipe(
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-      combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
-        filter(() => !this.useWebGLHighlighting)
-      ).subscribe(
-        ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
-      );
-      combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
-        filter(() => this.useWebGLHighlighting)
-      ).subscribe(
-        ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
-      );
-      this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
-        if (this.layerSelectionRefresh) this.layerSelectionRefresh();
-      });
+    const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
+    combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
+      filter(() => !this.useWebGLHighlighting)
+    ).subscribe(
+      ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
+    );
+    combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
+      filter(() => this.useWebGLHighlighting)
+    ).subscribe(
+      ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
+    );
+    this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
+      if (this.layerSelectionRefresh) this.layerSelectionRefresh();
     });
   }
 
@@ -97,13 +86,12 @@ export class AppMapService implements OnDestroy {
       null,
       () => {
         // setup the map widgets
-        const vp = this.config.esriConfig.defaultViewPoint;
-        this.mapService.createBasicWidget(EsriModules.widgets.Home, { viewpoint: EsriModules.Viewpoint.fromJSON(vp) });
-        this.mapService.createHiddenWidget(EsriModules.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
-        this.mapService.createHiddenWidget(EsriModules.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
-        this.mapService.createHiddenWidget(EsriModules.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend'});
-        this.mapService.createHiddenWidget(EsriModules.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
-        this.mapService.createBasicWidget(EsriModules.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
+        this.mapService.createBasicWidget(EsriApi.widgets.Home);
+        this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
+        this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
+        this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend'});
+        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
         const popup = this.mapService.mapView.popup;
         if (this.useWebGLHighlighting) {
@@ -122,7 +110,7 @@ export class AppMapService implements OnDestroy {
           }
         });
 
-        EsriUtils.watch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
+        EsriUtils.setupWatch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
           this.logger.debug('Popup visible watch fired', result);
           if (result.newValue === false) {
             this.componentGenerator.cleanUpGeoPopup();
@@ -131,84 +119,11 @@ export class AppMapService implements OnDestroy {
     });
   }
 
-  public handleMapStateChange(newMapState: MapStateTypeCodes) : void {
-    this.currentMapState = newMapState;
-    this.mapService.resetDrawing();
-    switch (newMapState) {
-      case MapStateTypeCodes.DrawPoly:
-        this.layerService.setAllPopupStates(false);
-        this.mapService.startDrawing(EsriGraphicTypeCodes.Rectangle)
-          .subscribe(geometry => this.handleDrawRectangleEvent(geometry as __esri.Polygon));
-        break;
-      case MapStateTypeCodes.MeasureLine:
-        this.layerService.setAllPopupStates(false);
-        this.mapService.startDrawing(EsriGraphicTypeCodes.Polyline)
-          .subscribe(geometry => this.mapService.measurePolyLine(geometry as __esri.Polyline));
-        break;
-      case MapStateTypeCodes.Popups:
-        this.layerService.setAllPopupStates(true);
-        break;
-      case MapStateTypeCodes.RemoveGraphics:
-        this.mapService.mapView.graphics.removeAll();
-        setTimeout(() => this.appStateService.setMapState(MapStateTypeCodes.Popups), 0);
-        break;
-      case MapStateTypeCodes.SelectPoly:
-        this.layerService.setAllPopupStates(false);
-        break;
-      default:
-        break;
-    }
-  }
-
-  public handleClickEvent(location:  __esri.MapViewClickEvent) {
-    if (this.currentMapState !== MapStateTypeCodes.SelectPoly) return;
-    console.log('Inside AppMapService click event handler');
-    const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    if (analysisLevel == null || analysisLevel.length === 0) return;
-    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const layer = this.layerService.getPortalLayerById(boundaryLayerId);
-    this.mapService.mapView.hitTest(location).then(response => {
-      const selectedGraphic = response.results.filter(r => r.graphic.layer === layer)[0].graphic;
-      if (selectedGraphic != null) {
-        const geocode = selectedGraphic.attributes.geocode;
-        const geometry = {
-          x: Number(selectedGraphic.attributes.longitude),
-          y: Number(selectedGraphic.attributes.latitude),
-        };
-        this.collectSelectionUsage(selectedGraphic, 'singleSelectTool');
-        this.selectSingleGeocode(geocode, geometry);
-      }
-    }, err => console.error('Error during click event handling', err));
-  }
-
-  private handleDrawRectangleEvent(geometry: __esri.Polygon) {
-    if (this.currentMapState !== MapStateTypeCodes.DrawPoly) return;
-    // console.log('polygons:::::', polygons);
-    console.log('handling rectangle draw complete', geometry);
-    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
-    this.messagingService.startSpinnerDialog('selectGeos', 'Processing geo selection...');
-    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-    const graphicsList = [];
-    const sub = this.queryService.queryLayerView(boundaryLayerId, false,  geometry.extent).subscribe(
-      graphics => graphicsList.push(...graphics),
-      err => console.error('There was an error selecting multiple geometries', err),
-      () => {
-        console.log('Query complete, processing', graphicsList);
-        this.selectMultipleGeocode(graphicsList);
-        this.mapService.mapView.graphics.removeAll();
-        setTimeout(() => {
-          this.appStateService.setMapState(MapStateTypeCodes.DrawPoly);
-          this.messagingService.stopSpinnerDialog('selectGeos');
-        }, 0);
-        if (sub) sub.unsubscribe();
-      });
-  }
-
   public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
     if (geometry == null) {
       const eventData: GeoClickEvent[] = [];
       const centroidLayerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-      const centroidSub = this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], false, ['geocode', 'latitude', 'longitude']).subscribe(
+      this.queryService.queryAttributeIn(centroidLayerId, 'geocode', [geocode], false, ['geocode', 'latitude', 'longitude']).subscribe(
         graphics => {
           if (graphics && graphics.length > 0) {
             const event = {
@@ -224,8 +139,7 @@ export class AppMapService implements OnDestroy {
         err => console.error('There was an error querying for a geocode', err),
         () => {
           this.geoSelected.next(eventData);
-          if (centroidSub) centroidSub.unsubscribe();
-        } );
+        });
     } else {
       this.geoSelected.next([{ geocode, geometry }]);
     }
@@ -233,13 +147,17 @@ export class AppMapService implements OnDestroy {
 
   public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
     const events: GeoClickEvent[] = [];
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
+    const layer = this.layerService.getPortalLayerById(layerId);
     graphicsList.forEach(graphic => {
-      const geocode =  graphic.attributes.geocode;
-      const latitude = graphic.attributes.latitude;
-      const longitude = graphic.attributes.longitude;
-      const point: __esri.Point = new EsriModules.Point({latitude: latitude, longitude: longitude});
-      this.collectSelectionUsage(graphic, 'multiSelectTool');
-      events.push({ geocode, geometry: point });
+      if (graphic.layer === layer) {
+        const geocode =  graphic.attributes.geocode;
+        const latitude = graphic.attributes.latitude;
+        const longitude = graphic.attributes.longitude;
+        const point: __esri.Point = new EsriApi.Point({latitude: latitude, longitude: longitude});
+        this.collectSelectionUsage(graphic, 'multiSelectTool');
+        events.push({ geocode, geometry: point });
+      }
     });
     this.geoSelected.next(events);
   }
@@ -259,8 +177,8 @@ export class AppMapService implements OnDestroy {
       for (const radius of radiusSet) {
         const currentLocationBuffers = new Set(locationBuffers.get(location));
         if (currentLocationBuffers.has(radius)) {
-          const p = new EsriModules.Point({
-            spatialReference: { wkid: this.config.val_spatialReference },
+          const p = new EsriApi.Point({
+            spatialReference: { wkid: this.config.esriAppSettings.defaultSpatialRef },
             x: location.xcoord,
             y: location.ycoord
           });
@@ -273,9 +191,9 @@ export class AppMapService implements OnDestroy {
       }
     }
     const colorVal = (locationType === 'Site') ? [0, 0, 255] : [255, 0, 0];
-    const color = new EsriModules.Color(colorVal);
-    const transparent = new EsriModules.Color([0, 0, 0, 0]);
-    const symbol = new EsriModules.SimpleFillSymbol({
+    const color = new EsriApi.Color(colorVal);
+    const transparent = new EsriApi.Color([0, 0, 0, 0]);
+    const symbol = new EsriApi.SimpleFillSymbol({
       style: 'solid',
       color: transparent,
       outline: {
@@ -289,10 +207,10 @@ export class AppMapService implements OnDestroy {
     let layerId = 0;
     pointMap.forEach((points, radius) => {
       const radii = Array(points.length).fill(radius);
-      EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
+      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
         const graphics = geometry.map(g => {
-          return new EsriModules.Graphic({
+          return new EsriApi.Graphic({
             geometry: g,
             symbol: symbol,
             attributes: { parentId: (++layerId).toString() }
@@ -379,7 +297,7 @@ export class AppMapService implements OnDestroy {
           selectedColor: [86, 231, 247, 1.0]
         },
         smartTheme: {
-          baseMap: this.mapService.map.basemap,
+          baseMap: this.mapService.mapView.map.basemap,
           theme: null
         }
       };
@@ -397,7 +315,7 @@ export class AppMapService implements OnDestroy {
   private setHighlight(geocodes: string[], currentAnalysisLevel: string) {
     const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const layer = this.layerService.getPortalLayerById(boundaryLayerId);
-    const query = new EsriModules.Query({
+    const query = new EsriApi.Query({
       where: `geocode in ('${geocodes.join(`','`)}')`
     });
     const sub = this.queryService.executeObjectIdQuery(boundaryLayerId, query).subscribe(ids => {
@@ -424,8 +342,8 @@ export class AppMapService implements OnDestroy {
 
   private measureThis() {
     const geom: __esri.Geometry = this.mapService.mapView.popup.selectedFeature.geometry;
-    const distance: number = EsriModules.geometryEngine.geodesicLength(geom, 'miles');
-    const area: number = EsriModules.geometryEngine.geodesicArea(<any>geom, 'square-miles');
+    const distance: number = EsriApi.geometryEngine.geodesicLength(geom, 'miles');
+    const area: number = EsriApi.geometryEngine.geodesicArea(<any>geom, 'square-miles');
     const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
     const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
 

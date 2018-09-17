@@ -3,8 +3,8 @@ import { combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap, withLatestFrom, debounceTime } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
-import { EsriUtils } from '../esri-modules/core/esri-utils';
-import { EsriQueryService } from '../esri-modules/layers/esri-query.service';
+import { EsriUtils } from '../esri/core/esri-utils';
+import { EsriQueryService } from '../esri/services/esri-query.service';
 import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
@@ -333,7 +333,7 @@ export class AppGeoService {
   private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
     console.log('Filtering Geos Based on Flags');
     const currentProject = this.appStateService.currentProject$.getValue();
-    if (currentProject == null) return;
+    if (currentProject == null || geos == null || geos.length === 0) return;
 
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;

@@ -10,15 +10,8 @@ import { AppState } from './app.state';
 import {
   AccordionModule,
   AutoCompleteModule,
-  BreadcrumbModule,
   ButtonModule,
-  CalendarModule,
-  CarouselModule,
-  ChartModule,
   CheckboxModule,
-  ChipsModule,
-  CodeHighlighterModule,
-  ColorPickerModule,
   ConfirmDialogModule,
   ContextMenuModule,
   DataGridModule,
@@ -26,18 +19,14 @@ import {
   DataScrollerModule,
   DataTableModule,
   DialogModule,
-  DragDropModule,
   DropdownModule,
   EditorModule,
   FieldsetModule,
   FileUploadModule,
-  GalleriaModule,
-  GMapModule,
   InputMaskModule,
   InputSwitchModule,
   InputTextareaModule,
   InputTextModule,
-  LightboxModule,
   ListboxModule,
   MegaMenuModule,
   MenubarModule,
@@ -45,7 +34,6 @@ import {
   MessagesModule,
   MultiSelectModule,
   OrderListModule,
-  OrganizationChartModule,
   OverlayPanelModule,
   PaginatorModule,
   PanelMenuModule,
@@ -55,11 +43,8 @@ import {
   ProgressBarModule,
   ProgressSpinnerModule,
   RadioButtonModule,
-  RatingModule,
-  ScheduleModule,
   SelectButtonModule,
   SharedModule,
-  SidebarModule,
   SlideMenuModule,
   SliderModule,
   SpinnerModule,
@@ -67,7 +52,6 @@ import {
   StepsModule,
   TabMenuModule,
   TabViewModule,
-  TerminalModule,
   TieredMenuModule,
   ToggleButtonModule,
   ToolbarModule,
@@ -86,10 +70,9 @@ import { AppFooterComponent } from './app.footer.component';
 import { AppRightpanelComponent } from './app.rightpanel.component';
 import { AppInlineProfileComponent } from './app.profile.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { EsriModule } from './esri/esri.module';
 import { AppLayerService } from './services/app-layer.service';
-import { EsriModules } from './esri-modules/core/esri-modules.service';
 import { UserService } from './services/user.service';
-import { EsriMapComponent } from './components/esri-map/esri-map.component';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
@@ -113,8 +96,6 @@ import { ImpGeofootprintLocAttribService } from './val-modules/targeting/service
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
-import { EsriMapService } from './esri-modules/core/esri-map.service';
-import { EsriIdentityService } from './services/esri-identity.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { AppDiscoveryService } from './services/app-discovery.service';
 import { RadService } from './services/rad.service';
@@ -124,8 +105,6 @@ import { SiteListComponent } from './components/site-list/site-list.component';
 import { AppTradeAreaService } from './services/app-trade-area.service';
 import { CookieService } from 'ngx-cookie-service';
 import { AppMapService } from './services/app-map.service';
-import { EsriLayerService } from './esri-modules/layers/esri-layer.service';
-import { EsriQueryService } from './esri-modules/layers/esri-query.service';
 import { ValMetricsService } from './services/app-metrics.service';
 import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda.component';
@@ -134,11 +113,10 @@ import { SelectedAudiencesComponent } from './components/target-audience/selecte
 import { AppMessagingService } from './services/app-messaging.service';
 import { AppRendererService } from './services/app-renderer.service';
 import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
-import { EsriLoaderToken } from './esri-modules/configuration';
+import { EsriAppSettingsToken, EsriAuthenticationToken, EsriLoaderToken } from './esri/configuration';
 import { PocComponent } from './poc/poc.component';
 import { PocMapComponent } from './poc/poc.map';
 import { MetricService } from './val-modules/common/services/metric.service';
-import { MapDispatchService } from './services/map-dispatch.service';
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { AppProjectService } from './services/app-project.service';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
@@ -159,9 +137,7 @@ import { FailedGeocodeGridComponent } from './components/common/failed-geocode-g
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { MapComponent } from './components/map/map.component';
-import { MapToolbarComponent } from './components/map/map-toolbar/map-toolbar.component';
 import { ToastModule } from 'primeng/toast';
-import { EsriGeographyPopupComponent } from './components/esri-geography-popup/esri-geography-popup.component';
 import { SampleComponent } from './poc/sample/sample.component';
 import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
@@ -176,15 +152,8 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         BrowserAnimationsModule,
         AccordionModule,
         AutoCompleteModule,
-        BreadcrumbModule,
         ButtonModule,
-        CalendarModule,
-        CarouselModule,
-        ColorPickerModule,
-        ChartModule,
         CheckboxModule,
-        ChipsModule,
-        CodeHighlighterModule,
         ConfirmDialogModule,
         SharedModule,
         ContextMenuModule,
@@ -193,18 +162,14 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         DataScrollerModule,
         DataTableModule,
         DialogModule,
-        DragDropModule,
         DropdownModule,
         EditorModule,
         FieldsetModule,
         FileUploadModule,
-        GalleriaModule,
-        GMapModule,
         InputMaskModule,
         InputSwitchModule,
         InputTextModule,
         InputTextareaModule,
-        LightboxModule,
         ListboxModule,
         MegaMenuModule,
         MenuModule,
@@ -212,7 +177,6 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         MessagesModule,
         MultiSelectModule,
         OrderListModule,
-        OrganizationChartModule,
         OverlayPanelModule,
         PaginatorModule,
         PanelModule,
@@ -222,11 +186,8 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         ProgressBarModule,
         ProgressSpinnerModule,
         RadioButtonModule,
-        RatingModule,
-        ScheduleModule,
         ScrollPanelModule,
         SelectButtonModule,
-        SidebarModule,
         SlideMenuModule,
         SliderModule,
         SpinnerModule,
@@ -235,7 +196,6 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         TableModule,
         TabMenuModule,
         TabViewModule,
-        TerminalModule,
         TieredMenuModule,
         ToastModule,
         ToggleButtonModule,
@@ -245,7 +205,8 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         TreeTableModule,
         TargetingModule,
         CommonModule,
-        NgStringPipesModule
+        NgStringPipesModule,
+        EsriModule
     ],
     declarations: [
         AppComponent,
@@ -258,7 +219,6 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         DashboardComponent,
         PocComponent,
         PocMapComponent,
-        EsriMapComponent,
         GeofootprintGeoListComponent,
         MessageComponent,
         BusinessSearchComponent,
@@ -285,8 +245,6 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         ManualEntryComponent,
         CampaignDetailsComponent,
         MapComponent,
-        MapToolbarComponent,
-        EsriGeographyPopupComponent,
         SampleComponent,
         TableFilterNumericComponent
     ],
@@ -295,7 +253,8 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
       {provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true},
       // from esri-modules
       {provide: EsriLoaderToken, useClass: AppConfig},
-      EsriModules, EsriIdentityService, EsriMapService, EsriLayerService, EsriQueryService,
+      {provide: EsriAuthenticationToken, useClass: AppConfig},
+      {provide: EsriAppSettingsToken, useClass: AppConfig},
       // from val-modules
       {provide: LoggingConfigurationToken, useClass: AppConfig},
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
@@ -308,13 +267,12 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
       CookieService,
       // from main application
       AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
-      AuthService, MapDispatchService, RadService, UsageService, UserService, ImpRadLookupService,
+      AuthService, RadService, UsageService, UserService, ImpRadLookupService,
       TargetAudienceService, TargetAudienceMetricService, ImpProjectTrackerService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],
     bootstrap: [AppComponent],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    entryComponents: [EsriGeographyPopupComponent]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule { }

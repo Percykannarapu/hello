@@ -189,7 +189,6 @@ export class UsageService {
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     const impProjectId = this.stateService.currentProject$.getValue().projectId;
-   // const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();
@@ -203,6 +202,7 @@ export class UsageService {
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
     impMetricCounter.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
+    impMetricCounter.projectTrackerId = this.stateService.currentProject$.getValue().projectTrackerId;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
 
@@ -219,7 +219,6 @@ export class UsageService {
    */
   private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     const impProjectId = this.stateService.projectId$.getValue();
-   // const projectid: string = impProject != null && impProject.projectId != null ? impProject.projectId.toString() : '';
 
     // Create the new counter to be persisted
     const impMetricGauge: ImpMetricGauge = new ImpMetricGauge();
@@ -235,6 +234,7 @@ export class UsageService {
     impMetricGauge.modifyUser = this.userService.getUser().userId;
     impMetricGauge.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
     impMetricGauge.isActive = 1;
+    impMetricGauge.projectTrackerId = this.stateService.currentProject$.getValue().projectTrackerId;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
 
