@@ -1,27 +1,29 @@
 import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
 import { Observable, merge, EMPTY } from 'rxjs';
-import { EsriModules } from '../core/esri-modules.service';
-import { expand, filter, map, retryWhen, scan, take } from 'rxjs/operators';
+import { EsriApi } from '../core/esri-api.service';
+import { expand, map, retryWhen, scan } from 'rxjs/operators';
 import * as utils from '../../app.utils';
 import { EsriUtils } from '../core/esri-utils';
-import { EsriMapService } from '../core/esri-map.service';
-import { EsriConfigOptions, EsriLoaderConfig, EsriLoaderToken } from '../configuration';
+import { EsriMapService } from './esri-map.service';
+import { EsriAppSettings, EsriAppSettingsConfig, EsriAppSettingsToken } from '../configuration';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;
 type compositeData = string[] | number[] | __esri.PointProperties[];
 type pointInputs = __esri.PointProperties | __esri.PointProperties[];
 const SIMULTANEOUS_STREAMS = 3;
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class EsriQueryService {
 
-  private static config: EsriConfigOptions;
+  private static config: EsriAppSettings;
 
-  constructor(@Inject(EsriLoaderToken) config: EsriLoaderConfig,
+  constructor(@Inject(EsriAppSettingsToken) config: EsriAppSettingsConfig,
               private layerService: EsriLayerService,
               private mapService: EsriMapService) {
-    EsriQueryService.config = config.esriConfig;
+    EsriQueryService.config = config.esriAppSettings;
   }
 
   private static dataIsString(d: compositeData) : d is string[] {
@@ -41,7 +43,7 @@ export class EsriQueryService {
   private static createQuery(returnGeometry: boolean, outFields: string[], data: __esri.PointProperties[], bufferInMiles: number) : __esri.Query;
   private static createQuery(returnGeometry: boolean, outFields: string[], data: string[] | number[], queryField: string) : __esri.Query;
   private static createQuery(returnGeometry: boolean, outFields: string[], data: string[] | number[] | __esri.PointProperties[], queryField: string | number) : __esri.Query {
-    const result = new EsriModules.Query({
+    const result = new EsriApi.Query({
       returnGeometry: returnGeometry,
       orderByFields: ['geocode']
     });
@@ -57,10 +59,10 @@ export class EsriQueryService {
     } else if (this.dataIsString(data)) {
       result.where = `${queryField} IN ('${data.join(`','`)}')`;
     } else if (data.length === 1) {
-      result.geometry = new EsriModules.Point(data[0]);
+      result.geometry = new EsriApi.Point(data[0]);
     } else {
       const multiPointData: number[][] = data.map(p => [Number(p.x), Number(p.y)]);
-      result.geometry = new EsriModules.Multipoint({
+      result.geometry = new EsriApi.Multipoint({
         points: multiPointData,
         spatialReference: { wkid: this.config.defaultSpatialRef }
       });
@@ -90,52 +92,42 @@ export class EsriQueryService {
 
   public executeObjectIdQuery(layerId: string, query: __esri.Query) : Observable<number[]> {
     return Observable.create(observer => {
-      this.mapService.onReady$.pipe(
-        filter(ready => ready),
-        take(1)
-      ).subscribe(() => {
-        try {
-          const layer = this.layerService.getPortalLayerById(layerId);
-          layer.queryObjectIds(query).then(
-            ids => {
-              observer.next(ids);
-              observer.complete();
-            },
-            err => observer.error(err)
-          );
-        } catch (ex) {
-          observer.error(ex);
-        }
-      });
+      try {
+        const layer = this.layerService.getPortalLayerById(layerId);
+        layer.queryObjectIds(query).then(
+          ids => {
+            observer.next(ids);
+            observer.complete();
+          },
+          err => observer.error(err)
+        );
+      } catch (ex) {
+        observer.error(ex);
+      }
     });
   }
 
   private queryWithRetry(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {
     return Observable.create(observer => {
-      const sub = this.mapService.onReady$.subscribe(ready => {
-        if (ready) {
-          try {
-            this.mapService.mapView.when(() => {
-              const layer = this.layerService.getPortalLayerById(layerId);
-              layer.when(() => {
-                layer.queryFeatures(query).then(
-                  featureSet => {
-                    observer.next(featureSet);
-                    observer.complete();
-                  },
-                  errReason => observer.error(errReason));
-              }, err => {
-                observer.error(err);
-              });
-            }, err => {
-              observer.error(err);
-            });
-          } catch (ex) {
-            observer.error(ex);
-          }
-        }
-      });
-      return () => sub.unsubscribe();
+      try {
+        this.mapService.mapView.when(() => {
+          const layer = this.layerService.getPortalLayerById(layerId);
+          layer.when(() => {
+            layer.queryFeatures(query).then(
+              featureSet => {
+                observer.next(featureSet);
+                observer.complete();
+              },
+              errReason => observer.error(errReason));
+          }, err => {
+            observer.error(err);
+          });
+        }, err => {
+          observer.error(err);
+        });
+      } catch (ex) {
+        observer.error(ex);
+      }
     }).pipe(
       map((featureSet: __esri.FeatureSet) => ({
         result: featureSet,
@@ -207,31 +199,40 @@ export class EsriQueryService {
     return this.query(layerId, queries, transform);
   }
 
-  public queryLayerView(layerId: string, returnGeometry: boolean = false, extent: __esri.Extent) : Observable<__esri.Graphic[]> {
-    return Observable.create(observer => {
-      const layer = this.layerService.getPortalLayerById(layerId);
-      this.mapService.mapView.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
-        const query = new EsriModules.Query({
-          geometry: extent,
-          returnGeometry: returnGeometry
-        });
-        const queryCall = () => {
-          layerView.queryFeatures(query).then(results => {
-            observer.next(results.features);
-            observer.complete();
-          });
-        };
+  public queryPortalLayerView(layerId: string, returnGeometry: boolean = false, extent: __esri.Extent) : Observable<__esri.Graphic[]> {
+    const layer = this.layerService.getPortalLayerById(layerId);
+    return this.queryLayerView([layer], extent, returnGeometry);
+  }
 
-        if (layerView.updating) {
-          layerView.watch('updating', updating => {
-            if (!updating) {
-              queryCall();
-            }
+  public queryLayerView(layers: __esri.FeatureLayer[], extent: __esri.Extent, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
+    const observableResult: Observable<__esri.Graphic[]>[] = [];
+    for (const currentLayer of layers) {
+      const layerResult = Observable.create(observer => {
+        this.mapService.mapView.whenLayerView(currentLayer).then((layerView: __esri.FeatureLayerView) => {
+          const query = new EsriApi.Query({
+            geometry: extent,
+            returnGeometry: returnGeometry
           });
-        } else {
-          queryCall();
-        }
+          const queryCall = () => {
+            layerView.queryFeatures(query).then(results => {
+              observer.next(results.features);
+              observer.complete();
+            });
+          };
+
+          if (layerView.updating) {
+            layerView.watch('updating', updating => {
+              if (!updating) {
+                queryCall();
+              }
+            });
+          } else {
+            queryCall();
+          }
+        });
       });
-    });
+      observableResult.push(layerResult);
+    }
+    return merge(...observableResult);
   }
 }

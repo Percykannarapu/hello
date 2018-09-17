@@ -1,0 +1,15 @@
+<val-esri-toolbar [currentMapState]="currentMapState | async"
+                  (singleSelectClicked)="currentMapState.next(MapStateTypeCodes.SelectPoly)"
+                  (multiSelectClicked)="currentMapState.next(MapStateTypeCodes.DrawPoly)"
+                  (measureToolClicked)="currentMapState.next(MapStateTypeCodes.MeasureLine)"
+                  (clearGraphicsClicked)="currentMapState.next(MapStateTypeCodes.RemoveGraphics)"
+                  (popupButtonClicked)="currentMapState.next(MapStateTypeCodes.Popups)">
+  <ng-content select="additional-toolbar-buttons" ngProjectAs="additional-toolbar-buttons"></ng-content>
+  <ng-content select="additional-toolbar-group" ngProjectAs="additional-toolbar-group"></ng-content>
+</val-esri-toolbar>
+<val-esri-map [cursor]="cursor$ | async"
+              [height]="mapHeight"
+              (mapClicked)="onMapClick($event)"
+              (viewChanged)="onViewChanged($event)"
+              (viewCreated)="onViewCreated($event)">
+</val-esri-map>

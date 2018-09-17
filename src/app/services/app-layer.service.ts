@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { merge, Observable } from 'rxjs';
 import { filter, finalize, tap } from 'rxjs/operators';
-import { LayerDefinition } from '../../environments/environment-definitions';
+import { LayerDefinition } from '../esri/layer-configuration';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
+import { EsriApi } from '../esri/core/esri-api.service';
+import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -50,24 +50,22 @@ export class AppLayerService {
   private pausableWatches: __esri.PausableWatchHandle[] = [];
 
   constructor(private layerService: EsriLayerService,
-               private moduleService: EsriModules,
+               private moduleService: EsriApi,
                private appStateService: AppStateService,
                private usageService: UsageService,
                private generator: AppComponentGeneratorService,
                private logger: AppLoggingService,
                private appConfig: AppConfig) {
-    this.moduleService.onReady(() => {
-      this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
-      this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
+    this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
+    this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
-      this.appStateService.analysisLevel$
-        //.pipe(filter(al => al != null && al.length > 0))
-        .subscribe(al => this.setDefaultLayerVisibility(al));
+    this.appStateService.analysisLevel$
+    //.pipe(filter(al => al != null && al.length > 0))
+      .subscribe(al => this.setDefaultLayerVisibility(al));
 
-      this.appStateService.projectIsLoading$
-        .pipe(filter(isLoading => isLoading))
-        .subscribe(() => this.clearClientLayers());
-    });
+    this.appStateService.projectIsLoading$
+      .pipe(filter(isLoading => isLoading))
+      .subscribe(() => this.clearClientLayers());
   }
 
   public updateSiteLayer(siteType: SuccessfulLocationTypeCodes, sites: ImpGeofootprintLocation[]) : void {
@@ -79,13 +77,13 @@ export class AppLayerService {
       if (!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName)) {
         const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
         const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
-        layer.popupTemplate = new EsriModules.PopupTemplate({
+        layer.popupTemplate = new EsriApi.PopupTemplate({
           title: '{clientLocationTypeCode}: {locationName}',
           content: [{ type: 'fields' }],
           fieldInfos: defaultLocationPopupFields
         });
-        layer.renderer = new EsriModules.SimpleRenderer({
-          symbol: new EsriModules.SimpleMarkerSymbol({
+        layer.renderer = new EsriApi.SimpleRenderer({
+          symbol: new EsriApi.SimpleMarkerSymbol({
             style: 'path',
             size: 12,
             outline: null,
@@ -106,13 +104,13 @@ export class AppLayerService {
     tradeAreas.sort((a, b) => a.taName.localeCompare(b.taName));
     const pointMap: Map<string, {p: __esri.Point, r: number}[]> = groupBy(tradeAreas, 'taName', ta => {
       const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-      const point = new EsriModules.Point({ spatialReference: { wkid: this.appConfig.val_spatialReference }, x, y });
+      const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
       return { p: point, r: ta.taRadius };
     });
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
-    const color = new EsriModules.Color(colorVal);
-    const transparent = new EsriModules.Color([0, 0, 0, 0]);
-    const symbol = new EsriModules.SimpleFillSymbol({
+    const color = new EsriApi.Color(colorVal);
+    const transparent = new EsriApi.Color([0, 0, 0, 0]);
+    const symbol = new EsriApi.SimpleFillSymbol({
       style: 'solid',
       color: transparent,
       outline: {
@@ -127,10 +125,10 @@ export class AppLayerService {
     pointMap.forEach((pointData, name) => {
       const points = pointData.map(pd => pd.p);
       const radii = pointData.map(pd => pd.r);
-      EsriModules.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
+      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
         const graphics = geometry.map(g => {
-          return new EsriModules.Graphic({
+          return new EsriApi.Graphic({
             geometry: g,
             symbol: symbol,
             attributes: { parentId: (++layerId).toString() }
@@ -151,7 +149,7 @@ export class AppLayerService {
       const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
       this.logger.debug('New visible groupKey', groupKey);
       if (groupKey != null) {
-        const layerGroup = this.appConfig.layerIds[groupKey];
+        const layerGroup = this.appConfig.layers[groupKey];
         if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
           this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
         }
@@ -161,7 +159,7 @@ export class AppLayerService {
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {
     const layerGroups = new Map<string, LayerDefinition[]>();
-    for (const layerGroup of Object.values(this.appConfig.layerIds)) {
+    for (const layerGroup of Object.values(this.appConfig.layers)) {
       layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
       this.setupPortalGroup(layerGroup.group.name);
     }
@@ -185,7 +183,7 @@ export class AppLayerService {
       const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
         tap(newLayer => {
           this.setupLayerPopup(newLayer, layerDef);
-          this.pausableWatches.push(EsriModules.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
+          this.pausableWatches.push(EsriApi.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
           group.add(newLayer);
         })
       );
@@ -198,7 +196,7 @@ export class AppLayerService {
     this.layerService.createPortalGroup(groupName, false);
     const group = this.layerService.getPortalGroup(groupName);
     if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
-    this.pausableWatches.push(EsriModules.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
+    this.pausableWatches.push(EsriApi.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
   }
 
   private setupLayerPopup(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
@@ -214,12 +212,12 @@ export class AppLayerService {
   }
 
   private createPopupTemplate(target: __esri.FeatureLayer, layerDef: LayerDefinition) : __esri.PopupTemplate {
-    const measureThisAction = new EsriModules.ActionButton({
+    const measureThisAction = new EsriApi.ActionButton({
       title: 'Measure Length',
       id: 'measure-this',
       className: 'esri-icon-share'
     });
-    const selectThisAction = new EsriModules.ActionButton({
+    const selectThisAction = new EsriApi.ActionButton({
       title: 'Select Polygon',
       id: 'select-this',
       className: 'esri-icon-plus-circled'
@@ -231,7 +229,7 @@ export class AppLayerService {
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
-    const result = new EsriModules.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
+    const result = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
     if (layerDef.useCustomPopUp === true) {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
     } else {
@@ -242,8 +240,8 @@ export class AppLayerService {
   }
 
   private createSiteGraphic(site: ImpGeofootprintLocation) : __esri.Graphic {
-    const graphic = new EsriModules.Graphic({
-      geometry: new EsriModules.Point({
+    const graphic = new EsriApi.Graphic({
+      geometry: new EsriApi.Point({
         x: site.xcoord,
         y: site.ycoord
       }),

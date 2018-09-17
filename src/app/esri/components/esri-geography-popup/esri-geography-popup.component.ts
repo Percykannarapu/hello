@@ -1,11 +1,6 @@
-import { Component, DoCheck, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, DoCheck, Input, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/api';
-import { combineLatest, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, map, skip } from 'rxjs/operators';
-import { CustomPopUpDefinition } from '../../../environments/environment-definitions';
-import { TargetAudienceService } from '../../services/target-audience.service';
-import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
-import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { CustomPopUpDefinition } from '../../layer-configuration';
 
 interface AttributeFields {
   fieldName: string;
@@ -13,11 +8,18 @@ interface AttributeFields {
   visible?: boolean;
 }
 
+export interface NodeVariable {
+  digitRounding: number;
+  name: string;
+  value: any;
+  isNumber: boolean;
+}
+
 @Component({
   selector: 'val-esri-geometry-popup',
   templateUrl: 'esri-geography-popup.component.html'
 })
-export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
+export class EsriGeographyPopupComponent implements OnInit, DoCheck {
 
   currentGeocode: string = null;
   data: TreeNode[];
@@ -28,15 +30,26 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
       this.dataChanged = true;
     }
   }
+  @Input('geoVars') set geoVars(value: NodeVariable[]) {
+    if (value !== this.currentGeoVars) {
+      this.currentGeoVars = value;
+      this.dataChanged = true;
+    }
+  }
+  @Input('mapVar') set mapVar(value: NodeVariable) {
+    if (value !== this.currentMapVar) {
+      this.currentMapVar = value;
+      this.dataChanged = true;
+    }
+  }
   @Input() attributes: { [key: string] : any };
   @Input() attributeFields: AttributeFields[];
   @Input() customPopupDefinition: CustomPopUpDefinition;
 
   private dataChanged: boolean = false;
   private nodeExpandState: { [key: string] : boolean } = {};
-  private varSub: Subscription;
-
-  constructor(private varService: ImpGeofootprintVarService, private audienceService: TargetAudienceService) { }
+  private currentGeoVars: NodeVariable[] = [];
+  private currentMapVar: NodeVariable = null;
 
   private buildAttributeNodes(attributes: AttributeFields[]) : TreeNode[] {
     return attributes.map(field => ({
@@ -50,14 +63,12 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
     }));
   }
 
-  private buildVarNode(geoVar: ImpGeofootprintVar) : TreeNode {
-    const fieldType = (geoVar.fieldconte || '').toUpperCase();
-    const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
-    const digitsInfo = `1.${digits}-${digits}`;
+  private buildVarNode(geoVar: NodeVariable) : TreeNode {
+    const digitsInfo = `1.${geoVar.digitRounding}-${geoVar.digitRounding}`;
     return {
       data: {
-        name: geoVar.customVarExprDisplay,
-        value: geoVar.isNumber ? geoVar.valueNumber : geoVar.valueString,
+        name: geoVar.name,
+        value: geoVar.value,
         isNumber: geoVar.isNumber,
         digitsInfo: digitsInfo
       },
@@ -67,17 +78,6 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
 
   ngOnInit() {
     this.init();
-    const geoVar$ = this.varService.storeObservable.pipe(skip(1));
-    const mapVar$ = this.audienceService.shadingData$.pipe(
-      filter(dataDictionary => dataDictionary.has(this.currentGeocode)),
-      map(dataDictionary => dataDictionary.get(this.currentGeocode)),
-      distinctUntilChanged()
-    );
-    this.varSub = combineLatest(geoVar$, mapVar$).subscribe(() => this.dataChanged = true);
-  }
-
-  ngOnDestroy() {
-    if (this.varSub) this.varSub.unsubscribe();
   }
 
   ngDoCheck() {
@@ -113,9 +113,8 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
   }
 
   private getShadingNode() : TreeNode {
-    const shadingVar = this.audienceService.getShadingVar(this.currentGeocode);
-    if (shadingVar) {
-      return this.buildVarNode(shadingVar);
+    if (this.currentMapVar) {
+      return this.buildVarNode(this.currentMapVar);
     }
     return null;
   }
@@ -127,8 +126,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
   }
 
   private getSelectedVariableTree() : TreeNode {
-    const geoVars = this.varService.get().filter(v => v.geocode === this.currentGeocode);
-    if (geoVars.length === 0) return null;
+    if (this.currentGeoVars.length === 0) return null;
     return {
       data: {
         name: 'Selected Audiences',
@@ -136,7 +134,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck, OnDestroy {
       },
       leaf: false,
       expanded: false,
-      children: geoVars.map(v => this.buildVarNode(v))
+      children: this.currentGeoVars.map(v => this.buildVarNode(v))
     };
   }
 

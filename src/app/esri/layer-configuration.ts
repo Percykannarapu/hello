@@ -32,3 +32,7 @@ export interface LayerGroupDefinition {
 export interface AllLayers {
   [key: string] : LayerGroupDefinition;
 }
+
+export interface AllLayerIds {
+  [key: string] : { centroid: string, boundary: string };
+}

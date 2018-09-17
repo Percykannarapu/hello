@@ -1,4 +1,4 @@
-import { layerGeometryType } from './../../esri-modules/layers/esri-layer.service';
+import { layerGeometryType } from '../../esri/services/esri-layer.service';
 import { ImpGeofootprintLocAttrib } from './../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
@@ -10,7 +10,7 @@ import { ConfirmationService, SelectItem } from 'primeng/primeng';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { EsriMapService } from '../../esri-modules/core/esri-map.service';
+import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';

@@ -52,7 +52,7 @@
                   </label>
                </div>
                <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
-                  <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" [class]="val-column-picker-light"></p-multiSelect>
+                  <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
                   <label style="padding: 0px 10px 0px 15px">Remove Dupes</label>
                   <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                </div>

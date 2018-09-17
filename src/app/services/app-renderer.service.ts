@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
+import { EsriApi } from '../esri/core/esri-api.service';
 import { AppGeoService } from './app-geo.service';
 import { Subscription, Observable, Subject } from 'rxjs';
 import { calculateStatistics, Statistics } from '../app.utils';
@@ -85,7 +85,7 @@ export class AppRendererService {
     const result = [];
     if (this.rendererIsSmart(rendererSetup)) {
       const smartTheme = rendererSetup.smartTheme.theme || this.currentDefaultTheme;
-      const theme = EsriModules.symbologyColor.getSchemes({
+      const theme = EsriApi.symbologyColor.getSchemes({
         basemap: rendererSetup.smartTheme.baseMap,
         geometryType: 'polygon',
         theme: smartTheme
@@ -102,9 +102,9 @@ export class AppRendererService {
         }));
       }
     } else if (rendererSetup.customColors != null) {
-      result.push(...rendererSetup.customColors.map(rgba => new EsriModules.Color(rgba)));
+      result.push(...rendererSetup.customColors.map(rgba => new EsriApi.Color(rgba)));
     } else {
-      result.push(...tacticianDarkPalette.map(rgba => new EsriModules.Color(rgba)));
+      result.push(...tacticianDarkPalette.map(rgba => new EsriApi.Color(rgba)));
     }
     console.log('Colors', result);
     return result;
@@ -118,14 +118,14 @@ export class AppRendererService {
       currentOutline = outlineOrColor.clone();
     } else {
       currentOutline = {
-        color: Array.isArray(outlineOrColor) ? new EsriModules.Color(outlineOrColor) : outlineOrColor,
+        color: Array.isArray(outlineOrColor) ? new EsriApi.Color(outlineOrColor) : outlineOrColor,
         style: 'solid',
         type: 'simple-line',
         width: outlineWidth
       };
     }
-    return new EsriModules.SimpleFillSymbol({
-      color: Array.isArray(fillColor) ? new EsriModules.Color(fillColor) : fillColor,
+    return new EsriApi.SimpleFillSymbol({
+      color: Array.isArray(fillColor) ? new EsriApi.Color(fillColor) : fillColor,
       style: 'solid',
       outline: currentOutline,
     });
@@ -208,7 +208,7 @@ export class AppRendererService {
       const exemplar = Array.from(this.currentData.values())[0];
       dataTitle = this.dataService.getAudiences(exemplar.customVarExprQuery)[0].audienceName;
     }
-    const newRenderer = new EsriModules.UniqueValueRenderer({
+    const newRenderer = new EsriApi.UniqueValueRenderer({
       defaultSymbol: newDefaultSymbol,
       defaultLabel: unselectedValue,
       field: dataSelector,

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { EsriQueryService } from '../esri/services/esri-query.service';
 import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -12,9 +13,8 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { groupBy } from '../val-modules/common/common.utils';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { EsriMapService } from '../esri-modules/core/esri-map.service';
-import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
-import { MapStateTypeCodes } from '../models/app.enums';
+import { EsriMapService } from '../esri/services/esri-map.service';
+import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { AppLoggingService } from './app-logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 
@@ -32,9 +32,6 @@ export class AppStateService {
   public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable();
   public applicationIsReady$: Observable<boolean>;
 
-  private currentMapState = new BehaviorSubject<MapStateTypeCodes>(MapStateTypeCodes.Popups);
-  public currentMapState$ = this.currentMapState.asObservable();
-
   private projectIsLoading = new BehaviorSubject<boolean>(false);
   public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
 
@@ -51,6 +48,8 @@ export class AppStateService {
   public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
   public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
 
+  private uniqueVisibleGeocodes = new BehaviorSubject<string[]>([]);
+  public uniqueVisibleGeocodes$: CachedObservable<string[]> = this.uniqueVisibleGeocodes;
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
 
@@ -70,6 +69,7 @@ export class AppStateService {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
+              private esriQueryService: EsriQueryService,
               private logger: AppLoggingService) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
@@ -83,10 +83,6 @@ export class AppStateService {
     return this.projectService.loadProject(projectId, true).pipe(
       tap(null, null, () => this.projectIsLoading.next(false))
     );
-  }
-
-  public setMapState(newState: MapStateTypeCodes) : void {
-    this.currentMapState.next(newState);
   }
 
   public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
@@ -104,11 +100,18 @@ export class AppStateService {
     this.refreshDynamicContent.next();
   }
 
+  public setVisibleGeocodes(layerId: string, extent: __esri.Extent) : void {
+    this.esriQueryService.queryPortalLayerView(layerId, false, extent).pipe(
+      mapArray(g => g.attributes.geocode),
+      distinctArray()
+    ).subscribe(geos => this.uniqueVisibleGeocodes.next(geos));
+  }
+
   private setupApplicationReadyObservable() : void {
     this.applicationIsReady$ =
-      combineLatest(this.esriMapService.onReady$, this.esriLayerService.layersReady$, this.projectIsLoading$).pipe(
-        tap(([mapReady, layersReady, projectLoading]) => this.logger.debug('Application Is Ready constituents: ', { mapReady, layersReady, projectLoading })),
-        map(([mapReady, layersReady, projectLoading]) => mapReady && layersReady && !projectLoading)
+      combineLatest(this.esriLayerService.layersReady$, this.projectIsLoading$).pipe(
+        tap(([layersReady, projectLoading]) => this.logger.debug('Application Is Ready constituents: ', { layersReady, projectLoading })),
+        map(([layersReady, projectLoading]) => layersReady && !projectLoading)
       );
   }
 

@@ -9,8 +9,8 @@ import { Observable, combineLatest } from 'rxjs';
 import { filter, map, startWith } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
-import { EsriModules } from '../esri-modules/core/esri-modules.service';
-import { EsriMapService } from '../esri-modules/core/esri-map.service';
+import { EsriApi } from '../esri/core/esri-api.service';
+import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
@@ -20,8 +20,8 @@ import { AppTradeAreaService, DEFAULT_MERGE_TYPE } from './app-trade-area.servic
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
-import { EsriLayerService } from '../esri-modules/layers/esri-layer.service';
-import { EsriGeoprocessorService } from '../esri-modules/layers/esri-geoprocessor.service';
+import { EsriLayerService } from '../esri/services/esri-layer.service';
+import { EsriGeoprocessorService } from '../esri/services/esri-geoprocessor.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
@@ -176,13 +176,13 @@ export class AppLocationService {
     const currentMaster = this.appStateService.currentMaster$.getValue();
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     let hasProvidedSite = false;
-    let hasProvidedCompetitor = false; 
+    let hasProvidedCompetitor = false;
      data.forEach(l =>
       {
         const tradeAreas: any[] = [];
         l.impGeofootprintMaster = currentMaster;
         if (l.locationNumber == null || l.locationNumber.length === 0 ){
-          l.locationNumber = this.impLocationService.getNextLocationNumber().toString();     
+          l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
         }
         if (l.radius1 != null && Number(l.radius1) !== 0) {
           const tradeArea1 = {radius: Number(l.radius1), selected: true };
@@ -204,11 +204,11 @@ export class AppLocationService {
         }
         const locs: any[] = [];
         locs.push(l);
-        
+
         newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, locs));
-      
+
       });
-   
+
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
     if (this.appStateService.analysisLevel$.getValue() == null && newTradeAreas.length !== 0 ) {
@@ -224,11 +224,11 @@ export class AppLocationService {
       message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
       header: 'Define Trade Areas',
       icon: 'ui-icon-project',
-       
+
       accept: () => {
         this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
         this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
-        this.appTradeAreaService.insertTradeAreas(newTradeAreas); 
+        this.appTradeAreaService.insertTradeAreas(newTradeAreas);
         data
       .filter(loc => loc.locationName == null || loc.locationName.length === 0)
       .forEach(loc => loc.locationName = loc.locationNumber);
@@ -249,7 +249,7 @@ export class AppLocationService {
   });
 }
     }
-    
+
   }
   
 
@@ -263,8 +263,8 @@ export class AppLocationService {
     let objId = 0;
     const jobData = locations.map(loc => {
       const coordinates = toUniversalCoordinates(loc);
-      return new EsriModules.Graphic({
-        geometry: new EsriModules.Point(coordinates),
+      return new EsriApi.Graphic({
+        geometry: new EsriApi.Point(coordinates),
         attributes: {
           ...coordinates,
           parentId: objId++,

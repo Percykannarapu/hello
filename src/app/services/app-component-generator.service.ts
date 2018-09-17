@@ -1,8 +1,25 @@
 import { ComponentFactoryResolver, ComponentRef, Injectable, Injector } from '@angular/core';
-import { CustomPopUpDefinition } from '../../environments/environment-definitions';
-import { EsriGeographyPopupComponent } from '../components/esri-geography-popup/esri-geography-popup.component';
+import { Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { CustomPopUpDefinition } from '../esri/layer-configuration';
+import { EsriGeographyPopupComponent, NodeVariable } from '../esri/components/esri-geography-popup/esri-geography-popup.component';
+import { filterArray, mapArray } from '../val-modules/common/common.rxjs';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
+
+const convertToNodeVariable = (variable: ImpGeofootprintVar) : NodeVariable => {
+  const fieldType = (variable.fieldconte || '').toUpperCase();
+  const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
+  return {
+    value: variable.isNumber ? variable.valueNumber : variable.valueString,
+    digitRounding: digits,
+    isNumber: variable.isNumber,
+    name: variable.customVarExprDisplay
+  };
+};
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +28,12 @@ export class AppComponentGeneratorService {
 
   private cachedGeoPopup: ComponentRef<EsriGeographyPopupComponent>;
 
+  private shadingSub: Subscription;
+  private audienceSub: Subscription;
+
   constructor(private appStateService: AppStateService,
+              private targetAudienceService: TargetAudienceService,
+              private impGeofootprintVarService: ImpGeofootprintVarService,
               private logger: AppLoggingService,
               private resolver: ComponentFactoryResolver,
               private injector: Injector) {
@@ -24,16 +46,10 @@ export class AppComponentGeneratorService {
     if (this.cachedGeoPopup == null) {
       this.createGeographyPopup();
     }
-    const component = this.cachedGeoPopup;
     if (this.cachedGeoPopup.instance.currentGeocode !== requestedGeocode) {
-      this.logger.debug('Setting popup values', requestedGeocode, feature.graphic.attributes, fields, popupDefinition);
-      component.instance.geocode = requestedGeocode;
-      component.instance.attributes = feature.graphic.attributes;
-      component.instance.attributeFields = fields;
-      component.instance.customPopupDefinition = popupDefinition;
-      component.changeDetectorRef.detectChanges();
+      this.populateGeographyPopupData(requestedGeocode, feature, fields, popupDefinition);
     }
-    return component.location.nativeElement;
+    return this.cachedGeoPopup.location.nativeElement;
   }
 
   public cleanUpGeoPopup() : void {
@@ -46,6 +62,28 @@ export class AppComponentGeneratorService {
     const factory = this.resolver.resolveComponentFactory(EsriGeographyPopupComponent);
     this.logger.debug('Instantiating new popup component');
     this.cachedGeoPopup = factory.create(this.injector);
+  }
+
+  private populateGeographyPopupData(geocode: any, feature: __esri.Feature, fields: __esri.PopupTemplateFieldInfos[], popupDefinition: CustomPopUpDefinition) : void {
+    this.logger.debug('Setting popup values', geocode, feature.graphic.attributes, fields, popupDefinition);
+    if (this.shadingSub) this.shadingSub.unsubscribe();
+    this.shadingSub = this.targetAudienceService.shadingData$.pipe(
+      filter(dataDictionary => dataDictionary.has(geocode) && this.cachedGeoPopup != null),
+      map(dataDictionary => dataDictionary.get(geocode)),
+      distinctUntilChanged(),
+      map(variable => convertToNodeVariable(variable))
+    ).subscribe(nodeData => this.cachedGeoPopup.instance.mapVar = nodeData);
+    if (this.audienceSub) this.audienceSub.unsubscribe();
+    this.audienceSub = this.impGeofootprintVarService.storeObservable.pipe(
+      filter(() => this.cachedGeoPopup != null),
+      filterArray(v => v.geocode === geocode),
+      mapArray(v => convertToNodeVariable(v))
+    ).subscribe(nodeData => this.cachedGeoPopup.instance.geoVars = nodeData);
+    this.cachedGeoPopup.instance.geocode = geocode;
+    this.cachedGeoPopup.instance.attributes = feature.graphic.attributes;
+    this.cachedGeoPopup.instance.attributeFields = fields;
+    this.cachedGeoPopup.instance.customPopupDefinition = popupDefinition;
+    this.cachedGeoPopup.changeDetectorRef.detectChanges();
   }
 
   private updateDynamicComponents() : void {
