@@ -16,14 +16,11 @@
     </ng-template>
   </p-column>
   
-  <p-column field="locationNumber" header="Number" [editable]="false" [style]="{'width':'6em'}"></p-column>
-  <p-column field="locationName" header="Name" [editable]="false" [style]="{'width':'20em'}"></p-column>
-  <p-column field="origAddress1" header="Address" [editable]="true" [style]="{'width':'30em'}"></p-column>
+  <p-column field="locationNumber" header="Number" [editable]="false" [style]="{'width':'5em'}"></p-column>
+  <p-column field="origAddress1" header="Address" [editable]="true" [style]="{'width':'15em'}"></p-column>
   <p-column field="origCity" header="City" [editable]="true" [style]="{'width':'10em'}"></p-column>
-  <p-column field="origState" header="State" [editable]="true" [style]="{'width':'5em'}"></p-column>
-  <p-column field="origPostalCode" header="ZIP" [editable]="true" [style]="{'width':'5em'}"></p-column>
-  <p-column field="marketName" header="Market" [editable]="true" [style]="{'width':'20em'}"></p-column>
-  <p-column field="recordStatusCode" header="Status" [editable]="false" [style]="{'width':'8em'}"></p-column>
+  <p-column field="origState" header="State" [editable]="true" [style]="{'width':'4em'}"></p-column>
+  <p-column field="origPostalCode" header="ZIP" [editable]="true" [style]="{'width':'4em'}"></p-column>
   <p-column field="coordinates" header="XY" [editable]="true" [style]="{'width':'10em'}">
     <ng-template let-site="rowData" pTemplate="body">
       {{ getCoordinates(site) }}
@@ -32,8 +29,11 @@
       <textarea pInputTextarea rows="2" cols="10" title="XY" (blur)="setCoordinates($event, site)">{{ getCoordinates(site) }}</textarea>
     </ng-template>
   </p-column>
-  <p-column field="geocoderMatchCode" header="Match Code" [editable]="false" [style]="{'width':'8em'}"></p-column>
+  <p-column field="recordStatusCode" header="Status" [editable]="false" [style]="{'width':'6em'}"></p-column>
+  <p-column field="geocoderMatchCode" header="Match Code" [editable]="false" [style]="{'width':'4em'}"></p-column>
   <p-column field="geocoderLocationCode" header="Location Code" [editable]="false" [style]="{'width':'8em'}"></p-column>
+  <p-column field="locationName" header="Name" [editable]="false" [style]="{'width':'15em'}"></p-column>
+  <p-column field="marketName" header="Market" [editable]="true" [style]="{'width':'15em'}"></p-column> 
   <p-column header="Remove" [style]="{'width':'4em'}">
     <ng-template let-site="rowData" pTemplate="body">
       <button (click)="remove.emit(site)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
