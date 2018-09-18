@@ -210,10 +210,16 @@ export class AppLocationService {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);
       this.geocodingService.clearDuplicates();
     } else {
-      if (newTradeAreas.length === 0){
+      const saveLocations = () => {
+        data
+          .filter(loc => loc.locationName == null || loc.locationName.length === 0)
+          .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
         this.impLocationService.add(data);
         this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+      };
+      if (newTradeAreas.length === 0){
+        saveLocations();
       } else {
         this.confirmationService.confirm({
           message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
@@ -223,27 +229,16 @@ export class AppLocationService {
             this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
             this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
             this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-            data
-              .filter(loc => loc.locationName == null || loc.locationName.length === 0)
-              .forEach(loc => loc.locationName = loc.locationNumber);
-            currentMaster.impGeofootprintLocations.push(...data);
-            this.impLocationService.add(data);
-            this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+            saveLocations();
           },
           reject: () => {
             this.applyTa = false;
-            data
-              .filter(loc => loc.locationName == null || loc.locationName.length === 0)
-              .forEach(loc => loc.locationName = loc.locationNumber);
-            currentMaster.impGeofootprintLocations.push(...data);
-            this.impLocationService.add(data);
-            this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+            saveLocations();
           }
         });
       }
     }
   }
-  
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
     const xStats = calculateStatistics(locations.map(d => d.xcoord));
