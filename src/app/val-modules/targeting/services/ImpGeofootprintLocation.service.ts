@@ -416,6 +416,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Original State',     row: (state, data) => data.origState});
             exportColumns.push({ header: 'Original ZIP',       row: (state, data) => data.origPostalCode});
             exportColumns.push({ header: 'Home Digital ATZ',   row: (state, data) => state.exportHomeGeoAttribute(data, 'Digital ATZ')});
+            exportColumns.push({ header: 'Home DMA',           row: (state, data) => state.exportHomeGeoAttribute(data, 'DMA')});
+            exportColumns.push({ header: 'Home County',        row: (state, data) => state.exportHomeGeoAttribute(data, 'County')});
             break;
 
          case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital:
