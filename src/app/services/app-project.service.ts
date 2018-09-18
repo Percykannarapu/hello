@@ -252,11 +252,12 @@ export class AppProjectService extends DataStore<ImpProject>
 
                // populate project vars
                impProject.impProjectVars = this.projectVarService.get();
+               /* comment on DE1988 for now untill we remove delete project on fuse side
                if (this.projectVarService.dbRemoves && this.projectVarService.dbRemoves.length > 0) {
                  for (const dbRemove of this.projectVarService.dbRemoves) {
                    this.projectVarService.add([dbRemove]);
                  }
-               }
+               }*/
 
                // temporary: remove project prefs
                impProject.impProjectPrefs = [];
