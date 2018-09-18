@@ -58,10 +58,10 @@ export class AppStateService {
   public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   private hasSiteProvidedTradeAreas = new BehaviorSubject<boolean>(false);
-  public hasSiteProvidedTradeAreas$: Observable<boolean> = this.hasSiteProvidedTradeAreas.asObservable();
+  public hasSiteProvidedTradeAreas$: CachedObservable<boolean> = this.hasSiteProvidedTradeAreas;
 
   private hasCompetitorProvidedTradeAreas = new BehaviorSubject<boolean>(false);
-  public hasCompetitorProvidedTradeAreas$: Observable<boolean> = this.hasCompetitorProvidedTradeAreas.asObservable();
+  public hasCompetitorProvidedTradeAreas$: CachedObservable<boolean> = this.hasCompetitorProvidedTradeAreas;
 
   constructor(private projectService: ImpProjectService,
               private locationService: ImpGeofootprintLocationService,

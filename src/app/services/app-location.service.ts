@@ -175,8 +175,8 @@ export class AppLocationService {
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    let hasProvidedSite = false;
-    let hasProvidedCompetitor = false;
+    let hasProvidedSite = this.appStateService.hasSiteProvidedTradeAreas$.getValue();
+    let hasProvidedCompetitor = this.appStateService.hasCompetitorProvidedTradeAreas$.getValue();
     data.forEach(l => {
       const tradeAreas: any[] = [];
       l.impGeofootprintMaster = currentMaster;
@@ -185,20 +185,20 @@ export class AppLocationService {
       }
       if (l.radius1 != null && Number(l.radius1) !== 0) {
         const tradeArea1 = {radius: Number(l.radius1), selected: true };
-        hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea1);
       }
       if (l.radius2 != null && Number(l.radius2) !== 0) {
         const tradeArea2 = {radius: Number(l.radius2), selected: true };
-        hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea2);
       }
       if (l.radius3 != null && Number(l.radius3) !== 0) {
         const tradeArea3 = {radius: Number(l.radius3), selected: true };
-        hasProvidedSite = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
+        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
+        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea3);
       }
       newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l]));
