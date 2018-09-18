@@ -14,18 +14,18 @@ export class EsriWidgets {
     'esri/widgets/Sketch/SketchViewModel'
   ];
 
-  public LayerList: typeof __esri.LayerList;
-  public Expand: typeof __esri.Expand;
-  public ColorSlider: typeof __esri.ColorSlider;
-  public Home: typeof __esri.Home;
-  public Search: typeof __esri.widgetsSearch;
-  public Legend: typeof __esri.Legend;
-  public ScaleBar: typeof __esri.ScaleBar;
-  public Locate: typeof __esri.Locate;
-  public Compass: typeof __esri.Compass;
-  public BaseMapGallery: typeof __esri.BasemapGallery;
-  public Print: typeof __esri.Print;
-  public SketchViewModel: typeof __esri.SketchViewModel;
+  public LayerList: __esri.LayerListConstructor;
+  public Expand: __esri.ExpandConstructor;
+  public ColorSlider: __esri.ColorSliderConstructor;
+  public Home: __esri.HomeConstructor;
+  public Search: __esri.widgetsSearchConstructor;
+  public Legend: __esri.LegendConstructor;
+  public ScaleBar: __esri.ScaleBarConstructor;
+  public Locate: __esri.LocateConstructor;
+  public Compass: __esri.CompassConstructor;
+  public BaseMapGallery: __esri.BasemapGalleryConstructor;
+  public Print: __esri.PrintConstructor;
+  public SketchViewModel: __esri.SketchViewModelConstructor;
 
   constructor() {}
 

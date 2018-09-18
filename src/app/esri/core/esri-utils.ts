@@ -33,6 +33,7 @@ export class EsriUtils {
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
     return g != null && g.type === 'point';
   }
+
   public static geometryIsPolygon(g: __esri.Geometry) : g is __esri.Polygon {
     return g != null && g.type === 'polygon';
   }
@@ -45,6 +46,10 @@ export class EsriUtils {
     return s != null && s.type === 'simple-fill';
   }
 
+  public static itemIsPoint(p: any) : p is __esri.Point {
+    return p != null && p.type != null && p.type === 'point';
+  }
+
   public static getDistance(a: __esri.Point, b: __esri.Point) : number;
   public static getDistance(a: __esri.Point, x: number, y: number) : number;
   public static getDistance(x1: number, y1: number, x2: number, y2: number) : number;
@@ -53,17 +58,20 @@ export class EsriUtils {
     let yA: number;
     let xB: number;
     let yB: number;
-    if (typeof param1 !== 'number') {
+    if (this.itemIsPoint(param1)) {
       xA = param1.x;
       yA = param1.y;
-      if (typeof param2 !== 'number') {
+      if (this.itemIsPoint(param2)) {
+        // was called via (a, b)
         xB = param2.x;
         yB = param2.y;
       } else {
+        // was called via (a, x, y)
         xB = param2;
         yB = param3;
       }
     } else {
+      // was called via (x1, y1, x2, y2)
       xA = param1;
       yA = param2 as number;
       xB = param3;

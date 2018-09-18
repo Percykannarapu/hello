@@ -3,10 +3,6 @@ import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettingsConfig, EsriAppSettingsToken } from '../configuration';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 
-interface WidgetConstructor {
-  new (properties?: any) : __esri.Widget;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -26,13 +22,13 @@ export class EsriMapService {
     }
   }
 
-  public createBasicWidget(constructor: WidgetConstructor, properties?: any, position: string = 'top-left') : void {
+  public createBasicWidget(constructor: __esri.WidgetConstructor, properties?: any, position: string = 'top-left') : void {
     const newProperties = { view: this.mapView, ...properties };
     const result = new constructor(newProperties);
     this.addWidget(result, position);
   }
 
-  public createHiddenWidget(constructor: WidgetConstructor, widgetProperties?: any, expanderProperties?: __esri.ExpandProperties, position: string = 'top-left') : void {
+  public createHiddenWidget(constructor: __esri.WidgetConstructor, widgetProperties?: any, expanderProperties?: __esri.ExpandProperties, position: string = 'top-left') : void {
     const newWidgetProps = { view: this.mapView, container: document.createElement('div'), ...widgetProperties };
     const result = new constructor(newWidgetProps);
     const newExpanderProps = { view: this.mapView, ...expanderProperties, content: result.container };
