@@ -100,24 +100,32 @@ export class AppGeoService {
    */
   private setupHomeGeoSelectionObservable() : void {
     // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
-    combineLatest(this.locationService.storeObservable,
-      this.impGeoService.storeObservable,
+    const locationsWithTradeAreas$ = combineLatest(this.locationService.storeObservable,
       this.appStateService.projectIsLoading$).pipe(
         // halt the sequence if the project is still loading
-        filter(([locations, geos, isLoading]) => !isLoading),
+        filter(([locations, isLoading]) => !isLoading),
         // keep only locations identified as sites
         map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
         // keep locations that have a home geocode identified
         map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
         // keep locations that have trade areas defined
         map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-        // keep sites that do not already have their home geo selected
-        map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
         // keep locations where finished radius count matches all radius count
-        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
-        // halt the sequence if there are no locations remaining
-        filter(locations => locations.length > 0)
-      ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)));
+
+    locationsWithTradeAreas$.pipe(
+      // keep sites that do not already have their home geo selected
+      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length > 0)),
+      // halt the sequence if there are no locations remaining
+      filter(locations => locations.length > 0)
+    ).subscribe(() => this.impGeoService.makeDirty());
+
+    combineLatest(locationsWithTradeAreas$, this.impGeoService.storeObservable).pipe(
+      // keep sites that do not already have their home geo selected
+      map(([locations]) => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+      // halt the sequence if there are no locations remaining
+      filter(locations => locations.length > 0)
+    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
 
   /**
