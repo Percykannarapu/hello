@@ -270,13 +270,20 @@ export class AppGeoService {
   private createGeosToPersist(tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
     const geosToSave: ImpGeofootprintGeo[] = [];
     const centroidAttributes: any = centroids.map(c => c.attributes);
+    const tradeAreaSet = new Set<ImpGeofootprintTradeArea>(tradeAreas);
+    const locations = tradeAreas.filter(ta => ta.impGeofootprintLocation != null).map(ta => ta.impGeofootprintLocation);
     centroidAttributes.forEach(attributes => {
-      tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
-        const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
-        if (currentDistance <= ta.taRadius) {
-          if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
-            const newGeo = this.domainFactory.createGeo(ta, attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
-            geosToSave.push(newGeo);
+      locations.forEach(l => {
+        const currentTas = l.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta));
+        currentTas.sort((a, b) => a.taNumber - b.taNumber);
+        for (let i = 0; i < currentTas.length; ++i) {
+          const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, l.xcoord, l.ycoord);
+          const min = i === 0 ? -1 : currentTas[i - 1].taRadius;
+          if (currentDistance <= currentTas[i].taRadius && currentDistance > min) {
+            if (currentTas[i].impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
+              const newGeo = this.domainFactory.createGeo(currentTas[i], attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
+              geosToSave.push(newGeo);
+            }
           }
         }
       });
