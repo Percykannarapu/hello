@@ -9,7 +9,6 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { UsageService } from '../../services/usage.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { EsriApi } from '../../esri/core/esri-api.service';
-import { EsriMapService } from '../../esri/services/esri-map.service';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -25,7 +24,6 @@ export class MapComponent implements OnInit {
 
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
-              private esriMapService: EsriMapService,
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
@@ -37,9 +35,9 @@ export class MapComponent implements OnInit {
     this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
   }
 
-  setupApplication() : void {
-    this.appMapService.setupMap();
-    this.setupMapFromStorage(this.esriMapService.mapView);
+  setupApplication(mapView: __esri.MapView) : void {
+    this.appMapService.setupMap(mapView.viewpoint);
+    this.setupMapFromStorage(mapView);
   }
 
   onClearSelections() : void {

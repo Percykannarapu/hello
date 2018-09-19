@@ -28,7 +28,7 @@ export class EsriMapPanelComponent implements OnInit {
 
   @Output() polySelected = new EventEmitter<__esri.Graphic[]>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
-  @Output() mapReady = new EventEmitter();
+  @Output() mapReady = new EventEmitter<__esri.MapView>();
 
   constructor(private mapService: EsriMapService,
               private layerService: EsriLayerService,
@@ -64,7 +64,7 @@ export class EsriMapPanelComponent implements OnInit {
   onViewCreated(mapView: __esri.MapView) : void {
     this.mapService.mapView = mapView;
     this.currentMapView = mapView;
-    this.mapReady.emit();
+    this.mapReady.emit(mapView);
   }
 
   private initSketchView() : void {

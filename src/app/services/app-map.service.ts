@@ -79,15 +79,14 @@ export class AppMapService implements OnDestroy {
     if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
   }
 
-  public setupMap() : void {
-    // need to turn on the Home widget before we go async so it picks up the default map position as "home"
-    this.mapService.createBasicWidget(EsriApi.widgets.Home);
+  public setupMap(homeView: __esri.Viewpoint) : void {
     // Create the layer groups and load the portal items
-    this.appLayerService.initializeLayers().subscribe(
+    this.appLayerService.initializeLayers().subscribe (
       null,
       null,
       () => {
-        // setup the remaining map widgets
+        // setup the map widgets
+        this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
         this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
         this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
         this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend'});
