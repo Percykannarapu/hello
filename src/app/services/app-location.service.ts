@@ -226,10 +226,10 @@ export class AppLocationService {
           header: 'Define Trade Areas',
           icon: 'ui-icon-project',
           accept: () => {
+            saveLocations();
             this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
             this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
             this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-            saveLocations();
           },
           reject: () => {
             this.applyTa = false;
@@ -323,7 +323,7 @@ export class AppLocationService {
         }
       }
     }
-    this.impLocationService.update(null, null);
+    this.impLocationService.makeDirty();
   }
 
   private setCounts(count: number, siteType: string) {
@@ -343,5 +343,6 @@ export class AppLocationService {
         loc.homeGeocode = currentHomeGeo != null ? currentHomeGeo.attributeValue : null;
       }
     });
+    this.impLocationService.makeDirty();
   }
 }

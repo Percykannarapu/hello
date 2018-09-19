@@ -20,6 +20,7 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppStateService, Season } from './app-state.service';
+import { AppLoggingService } from './app-logging.service';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -40,7 +41,8 @@ export class AppGeoService {
     private impAttributeService: ImpGeofootprintGeoAttribService,
     private queryService: EsriQueryService,
     private config: AppConfig,
-    private domainFactory: ImpDomainFactoryService) {
+    private domainFactory: ImpDomainFactoryService,
+    private logger: AppLoggingService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
@@ -171,7 +173,7 @@ export class AppGeoService {
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const radiiArray: number[] = [];
-
+    this.logger.debug('Select and Persist Radius Geos', tradeAreas);
     tradeAreas.forEach(ta => {
       if (ta.taRadius != null && ta.taRadius !== 0) {
         radiiArray.push(ta.taRadius);
@@ -191,6 +193,7 @@ export class AppGeoService {
         },
         () => {
           const geosToPersist: ImpGeofootprintGeo[] = [];
+          this.logger.debug('Select and Persist Radius Geos query results', allSelectedData);
           geosToPersist.push(...this.createGeosToPersist(tradeAreas, allSelectedData));
           this.impGeoService.add(geosToPersist);
           this.messagingService.stopSpinnerDialog(spinnerKey);
