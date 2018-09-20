@@ -99,7 +99,6 @@ import { AuthService } from './services/auth.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { AppDiscoveryService } from './services/app-discovery.service';
 import { RadService } from './services/rad.service';
-import { TargetAudienceMetricService } from './services/target-audience-metric.service';
 import { AppGeocodingService } from './services/app-geocoding.service';
 import { SiteListComponent } from './components/site-list/site-list.component';
 import { AppTradeAreaService } from './services/app-trade-area.service';
@@ -268,7 +267,7 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
       // from main application
       AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
       AuthService, RadService, UsageService, UserService, ImpRadLookupService,
-      TargetAudienceService, TargetAudienceMetricService, ImpProjectTrackerService,
+      TargetAudienceService, ImpProjectTrackerService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],

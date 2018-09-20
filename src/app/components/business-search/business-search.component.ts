@@ -204,7 +204,7 @@ export class BusinessSearchComponent implements OnInit {
         //this.appLocationService.persistLocationsAndAttributes(locationsForInsert);
         currentMaster.impGeofootprintLocations.push(...locationsForInsert);
         this.locationService.add(locationsForInsert);
-        this.appService.closeOverLayPanel.next(true);
+        this.appStateService.closeOverlays();
       }
     } else {
       this.messagingService.showErrorNotification('Error', `Please select Site or Competitor for importing Business Search results.`);

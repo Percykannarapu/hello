@@ -32,6 +32,9 @@ export class AppStateService {
   public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable();
   public applicationIsReady$: Observable<boolean>;
 
+  private closeOverlayPanel = new Subject<string>();
+  public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();
+
   private projectIsLoading = new BehaviorSubject<boolean>(false);
   public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
 
@@ -98,6 +101,10 @@ export class AppStateService {
 
   public refreshDynamicControls() : void {
     this.refreshDynamicContent.next();
+  }
+
+  public closeOverlays(except?: string) : void {
+    this.closeOverlayPanel.next(except);
   }
 
   public setVisibleGeocodes(layerId: string, extent: __esri.Extent) : void {
