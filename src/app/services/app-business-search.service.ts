@@ -5,7 +5,6 @@ import { AppConfig } from '../app.config';
 import { map } from 'rxjs/operators';
 import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export interface BusinessSearchResponse {
   firm: string;
@@ -65,8 +64,6 @@ export interface BusinessSearchRequest {
   sics: { sic: string }[];
 }
 
-
-
 export interface BusinessSearchCategory {
   category: number;
   sic: string;
@@ -77,9 +74,6 @@ export interface BusinessSearchCategory {
 export class AppBusinessSearchService {
   private readonly businessSearch = 'v1/targeting/base/targetingsearch/search';
   private readonly categoryList = 'assets/data/categories.json';
-
-  // todo: find a better way to do this
-  public closeOverLayPanel: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(private restService: RestDataService, private config: AppConfig, private http: HttpClient) { }
 

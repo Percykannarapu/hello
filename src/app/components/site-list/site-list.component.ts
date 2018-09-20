@@ -32,8 +32,6 @@ export class FlatSite {
 })
 export class SiteListComponent implements OnInit {
 
-   @Output() setContainerDismissable = new EventEmitter<boolean>();
-   
    public selectedListType: 'Site' | 'Competitor';
    public currentAllSites$: Observable<ImpGeofootprintLocation[]>;
    public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
@@ -105,8 +103,7 @@ export class SiteListComponent implements OnInit {
                private geoAttributeService: ImpGeofootprintGeoAttribService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
-               private usageService: UsageService,
-               private appService: AppBusinessSearchService) { }
+               private usageService: UsageService) { }
 
    ngOnInit() {
       this.onListTypeChange('Site');
@@ -231,7 +228,7 @@ export class SiteListComponent implements OnInit {
 
    public onRowZoom(row: ImpGeofootprintLocation) {
       this.esriMapService.zoomOnMap({ min: row.xcoord, max: row.xcoord }, { min: row.ycoord, max: row.ycoord }, 1);
-      this.appService.closeOverLayPanel.next(true);
+      this.appStateService.closeOverlays();
    }
 
    public setLocationHierarchyActiveFlag(location: FlatSite, isActive: boolean) {

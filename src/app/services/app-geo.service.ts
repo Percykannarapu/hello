@@ -100,24 +100,32 @@ export class AppGeoService {
    */
   private setupHomeGeoSelectionObservable() : void {
     // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
-    combineLatest(this.locationService.storeObservable,
-      this.impGeoService.storeObservable,
+    const locationsWithTradeAreas$ = combineLatest(this.locationService.storeObservable,
       this.appStateService.projectIsLoading$).pipe(
         // halt the sequence if the project is still loading
-        filter(([locations, geos, isLoading]) => !isLoading),
+        filter(([locations, isLoading]) => !isLoading),
         // keep only locations identified as sites
         map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
         // keep locations that have a home geocode identified
         map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
         // keep locations that have trade areas defined
         map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-        // keep sites that do not already have their home geo selected
-        map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
         // keep locations where finished radius count matches all radius count
-        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
-        // halt the sequence if there are no locations remaining
-        filter(locations => locations.length > 0)
-      ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)));
+
+    locationsWithTradeAreas$.pipe(
+      // keep sites that do not already have their home geo selected
+      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length > 0)),
+      // halt the sequence if there are no locations remaining
+      filter(locations => locations.length > 0)
+    ).subscribe(() => this.impGeoService.makeDirty());
+
+    combineLatest(locationsWithTradeAreas$, this.impGeoService.storeObservable).pipe(
+      // keep sites that do not already have their home geo selected
+      map(([locations]) => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+      // halt the sequence if there are no locations remaining
+      filter(locations => locations.length > 0)
+    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
 
   /**
@@ -270,13 +278,20 @@ export class AppGeoService {
   private createGeosToPersist(tradeAreas: ImpGeofootprintTradeArea[], centroids: __esri.Graphic[]) : ImpGeofootprintGeo[] {
     const geosToSave: ImpGeofootprintGeo[] = [];
     const centroidAttributes: any = centroids.map(c => c.attributes);
+    const tradeAreaSet = new Set<ImpGeofootprintTradeArea>(tradeAreas);
+    const locations = tradeAreas.filter(ta => ta.impGeofootprintLocation != null).map(ta => ta.impGeofootprintLocation);
     centroidAttributes.forEach(attributes => {
-      tradeAreas.filter(ta => ta.impGeofootprintLocation != null).forEach(ta => {
-        const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, ta.impGeofootprintLocation.xcoord, ta.impGeofootprintLocation.ycoord);
-        if (currentDistance <= ta.taRadius) {
-          if (ta.impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
-            const newGeo = this.domainFactory.createGeo(ta, attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
-            geosToSave.push(newGeo);
+      locations.forEach(l => {
+        const currentTas = l.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta));
+        currentTas.sort((a, b) => a.taNumber - b.taNumber);
+        for (let i = 0; i < currentTas.length; ++i) {
+          const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, l.xcoord, l.ycoord);
+          const min = i === 0 ? -1 : currentTas[i - 1].taRadius;
+          if (currentDistance <= currentTas[i].taRadius && currentDistance > min) {
+            if (currentTas[i].impGeofootprintGeos.filter(geo => geo.geocode === attributes.geocode).length === 0) {
+              const newGeo = this.domainFactory.createGeo(currentTas[i], attributes.geocode, attributes.longitude, attributes.latitude, currentDistance);
+              geosToSave.push(newGeo);
+            }
           }
         }
       });

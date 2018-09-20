@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {  MenuItem } from 'primeng/primeng';
-import { ColorBoxComponent } from '../color-box/color-box.component';
-import { AppBusinessSearchService } from '../../services/app-business-search.service';
-import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
+import { Observable } from 'rxjs';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ColorBoxComponent } from '../color-box/color-box.component';
+import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
 import { RadService } from '../../services/rad.service';
-import { TargetAudienceMetricService } from '../../services/target-audience-metric.service';
 import { UserService } from '../../services/user.service';
 
 @Component({
@@ -44,16 +45,17 @@ export class DashboardComponent implements OnInit {
 
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
 
+    public locations$: Observable<ImpGeofootprintLocation[]>;
+    public geos$: Observable<ImpGeofootprintGeo[]>;
+
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
     // They need to be injected somewhere so they can run properly
-    constructor(private appService: AppBusinessSearchService,
-                private metricService: MetricService,
+    constructor(private metricService: MetricService,
                 private radService: RadService,
-                private targetAudienceService: TargetAudienceMetricService,
                 private userService: UserService,
-                public  impGeofootprintGeoService: ImpGeofootprintGeoService,
-                public  impGeofootprintLocationService: ImpGeofootprintLocationService) { }
+                private impLocationService: ImpGeofootprintLocationService,
+                private impGeoService: ImpGeofootprintGeoService) { }
 
     ngOnInit() {
 
@@ -134,16 +136,13 @@ export class DashboardComponent implements OnInit {
                 }
             ]
         };
+
+        this.locations$ = this.impLocationService.storeObservable;
+        this.geos$ = this.impGeoService.storeObservable;
     }
 
     showSideBar($event) {
         this.display = $event;
         //this.mapService.plotMarker($event.x, $event.y);
-    }
-
-    // Currently unused
-    onChangeDismiss(event) {
-       //console.log("dashboard.component.onChangeDismiss", event);
-       this.locationsColorBox.onChangeDismiss(event);
     }
 }
