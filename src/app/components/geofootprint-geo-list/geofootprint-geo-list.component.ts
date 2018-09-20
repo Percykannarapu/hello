@@ -1,4 +1,3 @@
-import { ImpGeofootprintLocation } from './../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
