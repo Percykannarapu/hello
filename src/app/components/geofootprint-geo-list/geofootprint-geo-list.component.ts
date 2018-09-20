@@ -1,3 +1,5 @@
+import { ImpGeofootprintLocation } from './../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
@@ -597,8 +599,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
            });
          }
 
-         const currentVars = varCache.get(geo.geocode) || [];
-         currentVars.forEach(geovar => {
+         let currentVars = varCache.get(geo.geocode) || [];
+         currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
+            .forEach(geovar => {
+            if (geovar.geocode === "48150B1" && geovar.gvId === 72)
+               console.log("geo var: ", geovar.varPk, ", ", geovar.fieldname, " - ", geovar);
             if (geovar.isString)
                gridGeo[geovar.varPk.toString()] = geovar.valueString;            
             else
