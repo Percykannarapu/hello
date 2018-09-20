@@ -28200,7 +28200,7 @@ body {
         color: #ffffff; }
   body .ui-spinner .ui-spinner-button {
     width: 1em;
-    height: .75em;
+    height: 1.1em; /* .75em; */
     padding: 0;
     margin-right: .25em;
     background-color: transparent;

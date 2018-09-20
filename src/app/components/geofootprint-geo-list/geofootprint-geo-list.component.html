@@ -1,11 +1,13 @@
 <div class="ui-g ui-g-nopad">
    <div class="ui-g-12">
+         <!-- dataKey="geo.ggId" -->
+         <!-- [dataKey]="fgId" -->
       <p-table #geoGrid
                class="val-table"
                [columns]="flatGeoGridColumns"
                [globalFilterFields]="flatGeoGridColumns"
                [value]="displayedImpGeofootprintGeos$ | async"
-               [selection]="selectedImpGeofootprintGeos$ | async"               
+               [selection]="selectedImpGeofootprintGeos$ | async"
                [resizableColumns]="true" columnResizeMode="expand"
                [reorderableColumns]="true"
                sortMode="multiple"
@@ -38,8 +40,11 @@
                   <label style="padding: 0px 10px 0px 25px">Export</label>
                   <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
                   <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
+                  <!-- <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print" class="val-icon-button" (click)="debugPrintGrid()"></button>
+                  <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Toggle"  class="val-icon-button" (click)="gridToggleRowWithCheckbox($event, _geoGrid.value[0])"></button>
+                  <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Sync"  class="val-icon-button" (click)="syncGridSelection()"></button> -->
                </div>
-               <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">                  
+               <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;"
                          pTooltip="Selected Geos:   {{numGeosActive}}
                                    Unselected Geos: {{numGeosInactive}}">
@@ -59,9 +64,12 @@
             </div>
          </ng-template>
 
+         <!-- <p-tableHeaderCheckbox></p-tableHeaderCheckbox> -->
+         <!-- <p-button icon="pi pi-check" class="val-short-button" (onClick)="onToggleFilteredGeocodes(false)"></p-button> -->
          <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
             <tr>
                <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+               <!-- <th style="width: 30px"><p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="onToggleFilteredGeocodes(headerFilter)" [ngStyle]="{'width':'30px'}"></p-checkbox></th> -->
                <th style="width: 30px"></th>
                <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
                   {{col.header}}
@@ -75,7 +83,7 @@
             <tr style="background: #b3d4ed">
                <th style="width: 30px; background: #b3d4ed"></th>
                <th style="width: 30px; background: #b3d4ed"></th>
-               
+
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
                   <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
                   <input *ngSwitchCase="'geo.impGeofootprintLocation.locationName'"   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
@@ -100,12 +108,12 @@
                      <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
                   </div>
 
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locState'"   appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"       defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'ownergroup'"                             appendTo="body" [options]="uniqueOwnerGroup$ | async"   defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>                  
-                  <p-multiSelect *ngSwitchCase="'coveragedescription'"                    appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'dma'"                                    appendTo="body" [options]="uniqueDma$ | async"          defaultLabel="All" [style]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locState'"   appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'ownergroup'"                             appendTo="body" [options]="uniqueOwnerGroup$ | async"   defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'coveragedescription'"                    appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect *ngSwitchCase="'dma'"                                    appendTo="body" [options]="uniqueDma$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
 
                   <input *ngSwitchCase="'Delete'"  pInputText type="text">
 
@@ -123,9 +131,9 @@
          <ng-template pTemplate="body" let-flatGeo let-columns="selectedColumns">
             <tr [pSelectableRow]="flatGeo">
                <td>
-                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
+                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
                </td>
-               <td [style]="{'width':'4em'}">
+               <td [ngStyle]="{'width':'4em'}">
                   <!-- <button type="button" pButton (click)="onRowDelete(flatGeo.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button> -->
                   <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger" 
                      style="font-size:.8em; border: 0px; margin: 0px 0px 0px 0px; padding: 0px; width: 1.2em; height: 1.2em; display: block"
@@ -134,8 +142,8 @@
                </td>
 
                <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
-                  <!-- Add ZoomTo Icon to Geocode -->
-                  <div *ngSwitchCase="'geo.geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
+                  <!-- Add ZoomTo / HomeGeo Icon to Geocode -->
+                  <div *ngSwitchCase="'geo.geocode'" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">                     
                      <div class="ui-g-10 .val-flush-to-edges" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null" style="vertical-align:inherit" pTooltip="{{flatGeo['tooltip']}}"> <!-- [pTooltip]="getGeoTooltip(row)" -->
                         {{flatGeo['geo'].geocode}}
                         <i *ngIf="flatGeo['home_geo']==1" class="fa fa-home" style="vertical-align:inherit; color: black"></i>

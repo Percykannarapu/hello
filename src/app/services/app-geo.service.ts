@@ -439,7 +439,8 @@ export class AppGeoService {
         });
       }
     }
-    this.impAttributeService.add(newAttributes);
+    if (newAttributes.length > 0)
+       this.impAttributeService.add(newAttributes);
   }
 
   private deselectGeosByGeocode(geocode: string) : void {

@@ -1,7 +1,7 @@
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, map, debounceTime } from 'rxjs/operators';
+import { filter, map, debounceTime, withLatestFrom } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/primeng';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -82,15 +82,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private impGeofootprintVars: ImpGeofootprintVar[];
 
    // Observables for unique values to filter on in the grid
-   public uniqueCity$: Observable<SelectItem[]>;
-   public uniqueState$: Observable<SelectItem[]>;
-   public uniqueMarket$: Observable<SelectItem[]>;
-   public uniqueOwnerGroup$: Observable<SelectItem[]>;
-   public uniqueCoverageDesc$: Observable<SelectItem[]>;
-   public uniqueDma$: Observable<SelectItem[]>;
+   public  uniqueCity$: Observable<SelectItem[]>;
+   public  uniqueState$: Observable<SelectItem[]>;
+   public  uniqueMarket$: Observable<SelectItem[]>;
+   public  uniqueOwnerGroup$: Observable<SelectItem[]>;
+   public  uniqueCoverageDesc$: Observable<SelectItem[]>;
+   public  uniqueDma$: Observable<SelectItem[]>;
 
    public  numGeosActive: number = 0;
    public  numGeosInactive: number = 0;
+
+   // Header filter
+   public  headerFilter: boolean = true;
 
    // Filter Ranges
    public  hhcRanges: number[] = [null, null];
@@ -158,7 +161,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
-               private impDiscoveryService: AppDiscoveryService,
+//             private impDiscoveryService: AppDiscoveryService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
@@ -197,27 +200,28 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          this.onChangeGeoVars(vars);
       });
 
-      // setGridData(geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[])
-
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
-      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
-                                    .pipe(debounceTime(2000), map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
+      // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
+      //                               .pipe(debounceTime(2000),map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
+
+      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$)
+                                    .pipe(map(([discovery, geos, attributes]) => this.createComposite(discovery, geos, attributes)));
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                                .pipe(map((AllGeos) => {
                                                   return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); }));
 
-      this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
+      this.selectedImpGeofootprintGeos$ = this.displayedImpGeofootprintGeos$
                                               .pipe(map((AllGeos) => {
-                                                 this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true  && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
-                                                 this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
+                                                 this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length;
+                                                 this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length;
                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
+      // this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
+      //                                         .pipe(map((AllGeos) => {
+      //                                            this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true  && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
+      //                                            this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
+      //                                            return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
 //                                               return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)); }));
-
-      // Good - Just doesn't have the console log
-      //this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$.pipe(
-      //   map(geos => geos.filter(flatGeo => flatGeo.geo.isActive === true))
-      //);
 
       // Column Picker Model
       for (const column of this.flatGeoGridColumns) {
@@ -491,31 +495,30 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       console.log("total cpm:        ", this.gridTotals.get('cpm'));
    }
 
-   createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
+// createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
+   createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[]) : FlatGeo[]
    {
-      const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
+      //const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
       //console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
-
-      let fgId = 0;
+      let min: number;
+      let max: number;
+      let fgId = 0; // fgId is a fabricated flat geo id used by turbo grid to uniquely identify a row for filtering and selection
       const geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
 
+      // Get all of the attributes for the geo
       const  attributeMap = new Map<string, ImpGeofootprintGeoAttrib[]>();
       geoAttributes.forEach(attribute => {if (attribute.attributeCode === 'pob'
                                           ||  attribute.attributeCode === 'owner_group_primary'
                                           ||  attribute.attributeCode === 'cov_frequency'
                                           ||  attribute.attributeCode === 'cov_desc'
                                           ||  attribute.attributeCode === 'dma_name'
-                                          ||  attribute.attributeCode === 'city_name')
-                                             // There has got to be a prettier way than this
+                                          ||  attribute.attributeCode === 'city_name') {
                                              if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
-                                             {
                                                 attributeMap[attribute.impGeofootprintGeo.geocode] = [];
-                                                attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
+                                             attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
                                              }
-                                             else
-                                                attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
-                                         });
+                                          });
 
       // Rank the geos by distance
       this.impGeofootprintGeoService.calculateGeoRanks();
@@ -533,25 +536,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Initialize grid totals
       this.initializeGridTotals();
 
-//      geos.filter(geo => geo.isDeduped === 1 || this.dedupeGrid === false).forEach(geo => {
+      // For every geo, create a FlatGeo to pivot up the variables and attributes
       geos.forEach(geo => {
-         const gridGeo: FlatGeo = new Object() as FlatGeo; // any = new Object();
-         gridGeo.geo = geo;
+         const gridGeo: FlatGeo = new Object() as FlatGeo;
+         gridGeo.geo = geo;         
          gridGeo.fgId = fgId++;
-         
-         // // Track column metrics
-         // if (gridGeo.geo.isDeduped === 1 || this.dedupeGrid === false)
-         // {
-         //    this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot + gridGeo.geo.distance
-         //                                    ,min: (geo.distance < this.gridTotals.get('distance').min) ? gridGeo.geo.distance : this.gridTotals.get('distance').min
-         //                                    ,max: (geo.distance > this.gridTotals.get('distance').max) ? gridGeo.geo.distance : this.gridTotals.get('distance').max
-         //                                    });
-
-         //    this.gridTotals.set('hhc',      {tot: this.gridTotals.get('hhc').tot + geo.hhc
-         //                                    ,min: (geo.hhc < this.gridTotals.get('hhc').min) ? geo.hhc : this.gridTotals.get('hhc').min
-         //                                    ,max: (geo.hhc > this.gridTotals.get('hhc').max) ? geo.hhc : this.gridTotals.get('hhc').max
-         //                                    });
-         // }
 
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatGeoGridColumns.forEach(col => {
@@ -559,20 +548,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          });
 
          if (gridGeo.geo.impGeofootprintLocation.locZip != null)
-            gridGeo.geo.impGeofootprintLocation.locZip= gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
+            gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
          else
             ' ';
-
-         // Assign all variable properties to the geo
-//       vars.forEach(v => gridGeo[v] = null);
-
-         // Get all of the attributes for the geo
-/*good         const attributes = geoAttributes.filter(attribute => (attribute.attributeCode === 'pob'
-                                                           ||  attribute.attributeCode === 'owner_group_primary'
-                                                           ||  attribute.attributeCode === 'cov_frequency'
-                                                           ||  attribute.attributeCode === 'cov_desc'
-                                                           ||  attribute.attributeCode === 'dma_name')
-                                                           &&  attribute.impGeofootprintGeo.geocode === geo.geocode);*/
 
          // Add attributes the grid is interested in and massage them where needed
          if (attributeMap[geo.geocode] != null)
@@ -593,32 +571,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                      switch (attribute.attributeValue)
                      {
                         case 'VALASSIS':
-                           //console.log('Assigning VALASSIS CPM - ' + discovery[0].valassisCPM);
                            gridGeo['cpm'] = project.smValassisCpm;
                            break;
 
                         case 'ANNE':
-                           //console.log('Assigning ANNE CPM - ' + discovery[0].anneCPM);
                            gridGeo['cpm'] = project.smAnneCpm;
                            break;
 
                         default:
-                           //console.log('Assigning SOLO CPM - ' + discovery[0].soloCPM);
                            gridGeo['cpm'] = project.smSoloCpm;
                            break;
                      }
                   gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
-
-                  // // Track column metrics
-                  // this.gridTotals.set('investment', { tot: this.gridTotals.get('investment').tot + gridGeo['investment']
-                  //                                    ,min: (gridGeo['investment'] < this.gridTotals.get('investment').min) ? gridGeo['investment'] : this.gridTotals.get('investment').min
-                  //                                    ,max: (gridGeo['investment'] > this.gridTotals.get('investment').max) ? gridGeo['investment'] : this.gridTotals.get('investment').max
-                  //                                   });
-                  // this.gridTotals.set('cpm',        {tot: this.gridTotals.get('cpm').tot + gridGeo['cpm']
-                  //                                   ,min: (gridGeo['cpm'] < this.gridTotals.get('cpm').min) ? gridGeo['cpm'] : this.gridTotals.get('cpm').min
-                  //                                   ,max: (gridGeo['cpm'] > this.gridTotals.get('cpm').max) ? gridGeo['cpm'] : this.gridTotals.get('cpm').max
-                  //                                   });
-//                this.gridTotals.set('distance', this.gridTotals.get('distance') + geo.distance);
                }
 
                if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
@@ -673,72 +637,32 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             }
          });
 
-         // // Track column metrics
-         // if (gridGeo.geo.isDeduped === 1 || this.dedupeGrid === false)
-         // {
-         //    this.gridTotals.set('investment', {tot: this.gridTotals.get('investment').tot + gridGeo['investment']
-         //                                      ,min: (gridGeo['investment'] < this.gridTotals.get('investment').min) ? gridGeo['investment'] : this.gridTotals.get('investment').min
-         //                                      ,max: (gridGeo['investment'] > this.gridTotals.get('investment').max) ? gridGeo['investment'] : this.gridTotals.get('investment').max
-         //                                      });
-         //    this.gridTotals.set('cpm',        {tot: this.gridTotals.get('cpm').tot + gridGeo['cpm']
-         //                                      ,min: (gridGeo['cpm'] < this.gridTotals.get('cpm').min) ? gridGeo['cpm'] : this.gridTotals.get('cpm').min
-         //                                      ,max: (gridGeo['cpm'] > this.gridTotals.get('cpm').max) ? gridGeo['cpm'] : this.gridTotals.get('cpm').max
-         //                                      });
-         // }
-
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
          geoGridData.push(gridGeo);
       });
 
-      // Calculate total columns that aren't summations
-      // let colMetric: ColMetric = this.gridTotals.get('distance');
-      // colMetric.avg = colMetric.tot / geoGridData.length;
-      // this.gridTotals.set('distance', colMetric);
-
-      // colMetric = this.gridTotals.get('hhc');
-      // colMetric.avg = colMetric.tot / geoGridData.length;
-      // this.gridTotals.set('hhc', colMetric);
-
-      // colMetric = this.gridTotals.get('investment');
-      // colMetric.avg = colMetric.tot / geoGridData.length;
-      // this.gridTotals.set('investment', colMetric);
-
-      // colMetric = this.gridTotals.get('cpm');
-      // colMetric.avg = colMetric.tot / geoGridData.length;
-      // this.gridTotals.set('cpm', colMetric);
-
-      // this.debugLogGridTotals();
-
       // Set Ranges
       try
       {
          if (geoGridData != null)
          {
-            this.hhcRanges = [];
-            this.hhcRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['geo.hhc'] < min ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0));
-            this.hhcRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['geo.hhc'] > max ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0));
-            this.hhcRanges.push(this.hhcRanges[0]); // min
-            this.hhcRanges.push(this.hhcRanges[1]); // max
+            min = geoGridData.reduce((min, p:FlatGeo) => p['geo.hhc'] < min ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+            max = geoGridData.reduce((max, p:FlatGeo) => p['geo.hhc'] > max ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+            this.hhcRanges = [min, max, min, max];
 
-            this.investmentRanges = [];
-            this.investmentRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['investment'] < min ? p['investment'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0));
-            this.investmentRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['investment'] > max ? p['investment'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0));
-            this.investmentRanges.push(this.investmentRanges[0]); // min
-            this.investmentRanges.push(this.investmentRanges[1]); // max
+            min = geoGridData.reduce((min, p:FlatGeo) => p['investment'] < min ? p['investment'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
+            max = geoGridData.reduce((max, p:FlatGeo) => p['investment'] > max ? p['investment'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
+            this.investmentRanges = [min, max, min, max];
 
-            this.distanceRanges = [];
-            this.distanceRanges.push(geoGridData.reduce((min, p:FlatGeo) => roundTo(p['geo.distance'], 2) < min ? roundTo(p['geo.distance'], 2) : min, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0));
-            this.distanceRanges.push(geoGridData.reduce((max, p:FlatGeo) => roundTo(p['geo.distance'], 2) > max ? roundTo(p['geo.distance'], 2) : max, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0));
-            this.distanceRanges.push(this.distanceRanges[0]); // min
-            this.distanceRanges.push(this.distanceRanges[1]); // max
+            min = geoGridData.reduce((min, p:FlatGeo) => roundTo(p['geo.distance'], 2) < min ? roundTo(p['geo.distance'], 2) : min, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
+            max = geoGridData.reduce((max, p:FlatGeo) => roundTo(p['geo.distance'], 2) > max ? roundTo(p['geo.distance'], 2) : max, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
+            this.distanceRanges = [min, max, min, max];
 
-            this.cpmRanges = [];
-            this.cpmRanges.push(geoGridData.reduce((min, p:FlatGeo) => p['cpm'] < min ? p['cpm'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0));
-            this.cpmRanges.push(geoGridData.reduce((max, p:FlatGeo) => p['cpm'] > max ? p['cpm'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0));
-            this.cpmRanges.push(this.cpmRanges[0]); // min
-            this.cpmRanges.push(this.cpmRanges[1]); // max
+            min = geoGridData.reduce((min, p:FlatGeo) => p['cpm'] < min ? p['cpm'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
+            max = geoGridData.reduce((max, p:FlatGeo) => p['cpm'] > max ? p['cpm'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
+            this.cpmRanges = [min, max, min, max];
          }
       }
       catch(e)
@@ -749,6 +673,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // console.log("investmentRanges: ", this.investmentRanges);
       // console.log("_geoGrid", this._geoGrid);
       // console.log("geoGridData", geoGridData);
+      console.log("distanceRanges: ", this.distanceRanges);
 
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
@@ -1321,10 +1246,191 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.setGridTotals();
    }
 
+/* Unused, thinking about overwriting this behavior in the grid 
+   toggleRowsWithCheckbox(event: Event, check: boolean) {
+      if (this._geoGrid != null)
+      {
+         this._geoGrid._selection = this._geoGrid.filteredValue ? this._geoGrid.filteredValue.slice(): this._geoGrid.value.slice();
+         this._geoGrid.preventSelectionSetterPropagation = true;
+         this._geoGrid.updateSelectionKeys();
+      }
+   }*/
+
+   // toggleRowWithCheckbox from turbotable src (currently unused, experimental)
+   gridToggleRowWithCheckbox(event, rowData: any) {
+      console.log("gridToggleRowWithCheckbox - rowData: ", rowData);
+      this._geoGrid.selection = this._geoGrid.selection||[];
+      let selected = this._geoGrid.isSelected(rowData);
+      let dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
+      this._geoGrid.preventSelectionSetterPropagation = true;
+
+      if (selected) {
+          let selectionIndex = this._geoGrid.findIndexInSelection(rowData);
+          this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
+          this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+//        this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+          if (dataKeyValue) {
+              delete this._geoGrid.selectionKeys[dataKeyValue];
+          }
+      }
+      else {
+          this._geoGrid._selection = this._geoGrid.selection ? [...this._geoGrid.selection, rowData] : [rowData];
+          this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+//        this._geoGrid.onRowSelect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+          if (dataKeyValue) {
+              this._geoGrid.selectionKeys[dataKeyValue] = 1;
+          }
+      }
+      
+      this._geoGrid.tableService.onSelectionChange();
+   }   
+
+   // Currently Experimental (Enable debug button in template)
+   syncGridSelection() {
+      console.log("syncGridSelection - fired ");
+
+      let diffCount: number = 0;
+      let matchCount: number = 0;
+
+      // Initialize the selection array
+      this._geoGrid.selection = this._geoGrid.selection||[];
+
+      // Loop through the grid values, looking at isActive to determine if selected or not
+      this._geoGrid.value.forEach (geo => {
+
+         // Determine if the row provided is selected
+         let selected = this._geoGrid.isSelected(geo);
+
+         // If there is a difference between what the grid has selected and what the data indicates
+         if (selected != (geo.isActive === 1) ? true : false)
+         {
+            console.log("grid and data mismatch: grid: ", selected ? "selected" : "unselected", ", data: ", (geo.isActive === 1) ? "selected" : "unselected");
+            diffCount++;
+
+            // Get the dataKeyValue of the row provided
+            let dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(geo, this._geoGrid.dataKey)) : null;
+            this._geoGrid.preventSelectionSetterPropagation = true;
+
+            // If that row is selected, filter it out of selection
+            if (geo.isActive === 1) {
+               console.log("setting unselected row to selected");
+               let selectionIndex = this._geoGrid.findIndexInSelection(geo);
+               this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
+               this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+         //    this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+               if (dataKeyValue) {
+                  delete this._geoGrid.selectionKeys[dataKeyValue];
+               }
+            }
+            else
+            // The row was not selected, add it into selection
+            {
+               console.log("setting selected row to unselected");
+               this._geoGrid._selection = this._geoGrid.selection ? [...this._geoGrid.selection, geo] : [geo];
+               this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+         //    this._geoGrid.onRowSelect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+               if (dataKeyValue) {
+                  this._geoGrid.selectionKeys[dataKeyValue] = 1;
+               }
+            }
+
+         }
+         else
+            matchCount++;
+      });
+
+      // Tell the service that selection has changed
+//      if (diffCount > 0)
+         this._geoGrid.tableService.onSelectionChange();
+
+         console.log("slicing");
+         let newSelection = this._geoGrid.selection.map(x => Object.assign({}, x));
+         this._geoGrid._selection = newSelection;
+
+         this._geoGrid.value = this._geoGrid.value.map(x => Object.assign({}, x));
+// Works, but overkill         this.impGeofootprintGeoService.makeDirty();         
+      console.log("sync finished - matches: ", matchCount, ", differences: ", diffCount);
+   }   
+
+/* Just to document original process
+      // Initialize the selection array
+      this._geoGrid.selection = this._geoGrid.selection||[];
+
+      // Determine if the row provided is selected
+      let selected = this._geoGrid.isSelected(rowData);
+
+      // Get the dataKeyValue of the row provided
+      let dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
+      this._geoGrid.preventSelectionSetterPropagation = true;
+
+      // If that row is selected, filter it out of selection
+      if (selected) {
+         let selectionIndex = this._geoGrid.findIndexInSelection(rowData);
+         this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
+         this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+   //        this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+         if (dataKeyValue) {
+            delete this._geoGrid.selectionKeys[dataKeyValue];
+         }
+      }
+      else
+      // The row was not selected, add it into selection
+      {
+         this._geoGrid._selection = this._geoGrid.selection ? [...this._geoGrid.selection, rowData] : [rowData];
+         this._geoGrid.selectionChange.emit(this._geoGrid.selection);
+   //        this._geoGrid.onRowSelect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
+         if (dataKeyValue) {
+            this._geoGrid.selectionKeys[dataKeyValue] = 1;
+         }
+      }
+
+      // Tell the service that selection has changed
+      this._geoGrid.tableService.onSelectionChange();
+*/
+
+   // Experimental enable as replacement for p-tableHeaderCheckbox in template
+   onToggleFilteredGeocodes(checked: boolean) {
+         console.log("onToggleFilteredGeocodes - All Geos isActive set to: ", checked);
+         let toggleCount: number = 0;
+         //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
+         if (this._geoGrid != null)
+         {
+            if (this._geoGrid.filteredValue != null)
+            {
+               this._geoGrid.toggleRowsWithCheckbox(null, true);
+               this._geoGrid.filteredValue.forEach(geo => {
+                  toggleCount++;
+                  geo.isActive = (checked) ? 1 : 0
+                  this._geoGrid.toggleRowWithCheckbox(event, geo);
+               });
+               console.log("filtered set " + toggleCount + " geos");
+            }
+            else
+            {
+               // this._geoGrid.value.forEach(geo => geo.isActive = (checked) ? 1 : 0);
+               this._geoGrid.value.forEach(geo => {
+                  toggleCount++;
+                  geo.isActive = (checked) ? 1 : 0
+                  this._geoGrid.toggleRowWithCheckbox(event, geo);
+               });
+               console.log("all set " + toggleCount + " geos");
+            }
+         }
+         else
+            console.log("No geos to set");            
+   }
+
    onSelectAllGeocodes(event: any)
    {
       console.log("All Geos isActive set to: ", event.checked, ", event: ", event);
       //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
+      if (this._geoGrid != null)
+      {
+         if (this._geoGrid.filteredValue != null)
+            this._geoGrid.filteredValue.forEach(geo => geo.isActive = (event.checked) ? 1 : 0);
+         else
+            this._geoGrid.value.forEach(geo => geo.isActive = (event.checked) ? 1 : 0);
+      }
    }
 
    onDedupeToggle(event: any, geoGrid)
@@ -1480,5 +1586,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.impProjectService.postDelete(this.impProjectService.get()[0].projectId).subscribe(restResponse => {
          console.log ("testDeleteProject - response: ", restResponse);
       });
+   }
+
+   debugPrintGrid() {
+      console.log("Grid: ", this._geoGrid);
    }
 }

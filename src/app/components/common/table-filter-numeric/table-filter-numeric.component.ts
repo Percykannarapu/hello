@@ -75,8 +75,8 @@ export class TableFilterNumericComponent implements OnInit {
    constructor() { }
 
    ngOnInit() {
-      this.filterData.lowValue = this.minValue;
-      this.filterData.highValue = this.maxValue;
+      // this.filterData.lowValue = this.minValue;
+      // this.filterData.highValue = this.maxValue;
       if (this.fieldHeader == null)
          this.fieldHeader = this.fieldName;
    }
