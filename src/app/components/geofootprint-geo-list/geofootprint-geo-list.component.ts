@@ -205,7 +205,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
       //                               .pipe(debounceTime(2000),map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
 
-      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$)
+      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
                                     .pipe(map(([discovery, geos, attributes]) => this.createComposite(discovery, geos, attributes)));
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
