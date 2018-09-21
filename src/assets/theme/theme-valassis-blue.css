@@ -30789,6 +30789,31 @@ body .ui-terminal .ui-terminal-input {
    line-height: 1.25em;
 }
 
+.val-icon-button.ui-button {   
+   padding: 0.002em 0 0.002em 0;
+   height: 2em;
+   line-height: 1.25em; }
+
 .val-short-button .ui-button-text.ui-clickable {
    padding: 0;
    line-height: 1.25em; }
+
+.val-short-square-button.ui-button.ui-button-icon-only {
+   -moz-border-radius: 4%;
+   -webkit-border-radius: 4%;
+   border-radius: 4%;
+   width: 1em;
+   height: 1em;
+   padding: 0.7em;
+}   
+
+.val-tbody-nowrap .ui-table .ui-table-tbody > tr > td 
+{
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   padding: .025em .425em; }
+
+.val-tbody-wrap.ui-table > tr > td {
+   padding: .025em .425em; }
+   

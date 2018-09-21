@@ -1,8 +1,8 @@
 import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, map, debounceTime, withLatestFrom } from 'rxjs/operators';
+import { Observable, combineLatest, Subscription } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/primeng';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -18,7 +18,7 @@ import { EsriUtils } from '../../esri/core/esri-utils';
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
-import { AppDiscoveryService } from '../../services/app-discovery.service';
+//import { AppDiscoveryService } from '../../services/app-discovery.service';
 import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
@@ -30,12 +30,6 @@ import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums'
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { Table } from 'primeng/table';
 import { FilterData } from '../common/table-filter-numeric/table-filter-numeric.component';
-/*
-import { ImpProjectPrefService } from '../../val-modules/targeting/services/ImpProjectPref.service';
-import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintMaster } from '../../val-modules/targeting/models/ImpGeofootprintMaster';
-import { ImpGeofootprintTradeAreaService } from './../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintMasterService } from '../../val-modules/targeting/services/ImpGeofootprintMaster.service';*/
 
 export interface FlatGeo {
    fgId: number;
@@ -49,8 +43,6 @@ export interface ColMetric {
    max?: number;
    avg?: number;
 }
-
-// combineLatest(geos$, vars$).pipe(map(([geos, vars]) => createMyNewUIModel(geos, vars)))
 
 @Component({
   selector: 'val-geofootprint-geo-list',
@@ -150,19 +142,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public  variableColOrder:Map<string, number> = new Map<string, number>();
 
+   // Control table cell / header wrapping
+   private tableWrapOn: string = "val-table val-tbody-wrap";
+   private tableWrapOff: string = "val-table val-tbody-nowrap"
+   public  tableWrapStyle: string = this.tableWrapOff;
+   public  tableWrapIcon: string = "fa fa-minus";
+   public  tableHdrSlice: boolean = true;
+
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
    constructor(public  config: AppConfig,
                public  impProjectService: ImpProjectService,
-/*             public  impProjectPrefService: ImpProjectPrefService,
-               public  impGeofootprintMasterService: ImpGeofootprintMasterService,
-               public  impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,*/
                public  impGeofootprintGeoService: ImpGeofootprintGeoService,
                public  impGeofootprintLocationService: ImpGeofootprintLocationService,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
-//             private impDiscoveryService: AppDiscoveryService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
@@ -172,18 +167,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    ngOnInit()
    {
-      // Subscribe to the discovery data store
-//      this.discoverySubscription = this.impDiscoveryService.storeObservable.subscribe(storeData => this.onChangeDiscovery(storeData[0]));
-
       // Subscribe to the sites data store
       this.siteSubscription = this.impGeofootprintLocationService.storeObservable.subscribe(storeData => this.onChangeLocation(storeData));
-
-      // Subscribe to the geos data store
-      //this.geosSubscription = this.impGeofootprintGeoService.storeObservable.subscribe(storeData => this.onChangeGeos(storeData));
-
-      //this.attributeSubscription = this.impGeofootprintGeoAttribService.storeObservable.subscribe(storeData => this.onChangeGeoAttributes(storeData));
-
-      //this.varSubscription = this.impGeofootprintVarService.storeObservable.subscribe(storeData => this.onChangeGeoVars(storeData));
 
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
       this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable;
@@ -202,8 +187,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       });
 
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
-      // this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$, this.allVars$)
-      //                               .pipe(debounceTime(2000),map(([discovery, geos, vars, attributes]) => this.createComposite(discovery, geos, vars, attributes)));
 
       this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$)
                                     .pipe(map(([discovery, geos, attributes]) => this.createComposite(discovery, geos, attributes)));
@@ -217,12 +200,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                  this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length;
                                                  this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length;
                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
-      // this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
-      //                                         .pipe(map((AllGeos) => {
-      //                                            this.numGeosActive   = AllGeos.filter(flatGeo => flatGeo.geo.isActive === true  && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
-      //                                            this.numGeosInactive = AllGeos.filter(flatGeo => flatGeo.geo.isActive === false && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)).length;
-      //                                            return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
-//                                               return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true && (flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false)); }));
 
       // Column Picker Model
       for (const column of this.flatGeoGridColumns) {
@@ -289,8 +266,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    ngOnDestroy()
    {
-//      this.geosSubscription.unsubscribe();
-      //this.siteSubscription.unsubscribe();
    }
 
    // -----------------------------------------------------------
@@ -631,7 +606,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
             {
               //console.log("---------------------------------------------------------------------------------------");
-              const colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8) + 45);
+              const colWidth: number = Math.min(160, Math.max(80, (geovar.customVarExprDisplay.length * 8) + 45));
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
               //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
@@ -733,147 +708,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             return -1;
    }
 
-
-   // Add additional data to the geo array
-   /*
-   assignExtra()
-   {
-      console.log('assignExtra fired - Hawkman - ' + this.impGeofootprintGeos.length + ' geos');
-      console.log('  this.impGeofootprintGeoAttributes: ', this.impGeofootprintGeoAttributes);
-
-      this.flatGeoGridExtraColumns = [];
-      this.geoGridData = [];
-      this.impGeofootprintGeos.forEach(geo => {
-         let gridGeo: any = new Object();
-         gridGeo.geo = geo;
-
-         // Assign all variable properties to the geo
-         this.varPks.forEach(v => gridGeo[v] = null);
-
-         const attributes = this.impGeofootprintGeoAttributes.filter(attribute => (attribute.attributeCode === 'pob'
-                                                                               ||  attribute.attributeCode === 'owner_group_primary'
-                                                                               ||  attribute.attributeCode === 'cov_frequency'
-                                                                               ||  attribute.attributeCode === 'cov_desc'
-                                                                               ||  attribute.attributeCode === 'dma_name')
-                                                                               &&  attribute.impGeofootprintGeo.geocode === geo.geocode);
-
-         attributes.forEach(attribute => {
-            if (attribute.attributeCode === 'pob')
-               gridGeo['pob'] = (attribute.attributeValue === 'B') ? 'Y' : 'N';
-
-            if (attribute.attributeCode === 'owner_group_primary')
-               gridGeo['ownergroup'] = attribute.attributeValue;
-
-            if (attribute.attributeCode === 'cov_frequency')
-               gridGeo['coveragefrequency'] = attribute.attributeValue;
-
-            if (attribute.attributeCode === 'cov_desc')
-               gridGeo['coveragedescription'] = attribute.attributeValue;
-
-            if (attribute.attributeCode === 'dma_name')
-               gridGeo['dma'] = attribute.attributeValue;
-
-            // console.log("attribute: " + attribute.attributeCode + " = " + attribute.attributeValue + ", type: " + attribute.attributeType);
-//               {label: 'investment',           value: {field: 'investment',                                         header: 'Investment',           width: '5%', styleClass: 'val-text-right'}},
-         });
-
-//       if (!this.flatGeoGridExtraColumns.find(f => f.label === "Hawkman!!!"))
-//          this.flatGeoGridExtraColumns.push({label: 'Hawkman!!!', value: {field: 'Hawkman', header: 'Hawkman!', width: '120px', styleClass: ''}});
-
-         //   CPM
-         //   Investment  ($ 999.99)
-
-//         gridGeo['Hawkman'] = 42;
-
-         const geovars = this.impGeofootprintVars.filter(geovar => geovar.geocode === geo.geocode);
-         (geovars||[]).forEach(geovar => {
-
-            switch(geovar.fieldconte) {
-               case "COUNT":
-               case "MEDIAN":
-               case "INDEX":
-                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber); // .toFixed(14);
-                  break;
-
-               case "PERCENT":
-               case "RATIO":
-                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
-                  break;
-
-               default:
-               gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
-                  break;
-            };
-            // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar);
-            if (!this.flatGeoGridExtraColumns.find(f => f.label === geovar.varPk.toString()))
-            {
-               console.log("---------------------------------------------------------------------------------------");
-               let colWidth: number = Math.max(80, (geovar.customVarExprDisplay.length * 8));
-               let colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
-               console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
-               this.flatGeoGridExtraColumns.push({label: geovar.varPk.toString(), value: {field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth+'px', styleClass: colStyleClass}});
-               console.log("---------------------------------------------------------------------------------------");
-            }
-         });
-
-         this.geoGridData.push(gridGeo);
-      });
-
-      console.log('flatGeoGridExtraColumns: ', this.flatGeoGridExtraColumns);
-      console.log('this.geoGridData: ', this.geoGridData);
-   }
-*/
-
-   /**
-    * Returns a sub-set of the ImpGeofootprintGeos belonging to the
-    * provided parent location, via glId.
-    *
-    * @param location The parent location to filter on
-    */
-/*
-   filterGeosBySite(location: ImpGeofootprintLocation) : any[]
-   {
-     if (!this.geoGridCache.has(location)) {
-       const geos = this.impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation === location);
-       const geoSet = new Set(geos.map(g => g.geocode));
-       const attributes = this.impGeofootprintGeoAttributes.filter(attribute => attribute.attributeType === 'Geofootprint Variable' && geoSet.has(attribute.impGeofootprintGeo.geocode));
-       const vars = this.impGeofootprintVars.filter(gv => geoSet.has(gv.geocode));
-       const result = geos.map(geo => Object.assign({}, geo));
-       const attributeSet = new Set(this.geoGridAdditionalColumns);
-       result.forEach(geo => {
-         const currentAttrs = attributes.filter(att => att.impGeofootprintGeo.geocode === geo.geocode);
-         if (currentAttrs.length > 0) {
-           currentAttrs.forEach(att => {
-             geo[att.attributeCode] = att.attributeValue;
-             if (!attributeSet.has(att.attributeCode)) {
-               this.geoGridAdditionalColumns.push(att.attributeCode);
-               attributeSet.add(att.attributeCode);
-             }
-           });
-         }
-         const currentVars = vars.filter(v => v.geocode === geo.geocode);
-         if (currentVars.length > 0) {
-           currentVars.forEach(gv => {
-             geo[gv.customVarExprDisplay] = gv.isNumber ? gv.valueNumber : gv.valueString;
-             if (!attributeSet.has(gv.customVarExprDisplay)) {
-               this.geoGridAdditionalColumns.push(gv.customVarExprDisplay);
-               attributeSet.add(gv.customVarExprDisplay);
-             }
-           });
-         }
-       });
-       this.geoGridCache.set(location, result);
-     }
-     return this.geoGridCache.get(location);
-   }
-
-   compare(compareTo: ImpGeofootprintGeo) : boolean
-   {
-      console.log('comparing to: ', compareTo);
-      return true;
-   }*/
-
-
+   // -------------------------------------------------------------------------
+   // TEST JUNK - RELOCATE
+   // -------------------------------------------------------------------------
    testFind() {
       console.log('--------------------------------------------------');
       console.log('testFind');
@@ -1582,6 +1419,21 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          console.error("EXCEPTION: ", e);
          console.error("this._geoGrid", this._geoGrid);
          this.debugLogGridTotals();
+      }
+   }
+
+   public onToggleTableWrap() {
+      if (this.tableWrapStyle === this.tableWrapOn) 
+      {
+         this.tableWrapStyle = this.tableWrapOff
+         this.tableWrapIcon = "fa fa-minus";
+         this.tableHdrSlice = true;
+      }
+      else
+      {
+         this.tableWrapStyle = this.tableWrapOn;
+         this.tableWrapIcon = "fa fa-bars";
+         this.tableHdrSlice = false;
       }
    }
 

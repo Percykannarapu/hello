@@ -3,7 +3,7 @@
          <!-- dataKey="geo.ggId" -->
          <!-- [dataKey]="fgId" -->
       <p-table #geoGrid
-               class="val-table"
+               class="{{tableWrapStyle}}"
                [columns]="flatGeoGridColumns"
                [globalFilterFields]="flatGeoGridColumns"
                [value]="displayedImpGeofootprintGeos$ | async"
@@ -60,6 +60,7 @@
                   <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
                   <label style="padding: 0px 10px 0px 15px">Remove Dupes</label>
                   <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
+                  <button type="button" pButton icon="{{tableWrapIcon}}" class="val-short-square-button" (click)="onToggleTableWrap()"></button>
                </div>
             </div>
          </ng-template>
@@ -76,7 +77,8 @@
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                </th>
                <th *ngFor="let col of flatGeoGridExtraColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
-                  {{col.header}}
+                  <div *ngIf="tableHdrSlice === true">{{col.header | slice:0:20}}</div>
+                  <div *ngIf="tableHdrSlice === false">{{col.header}}</div>
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                </th>
             </tr>
