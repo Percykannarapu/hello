@@ -27,8 +27,8 @@ export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>
  * @returns {Map<K, (T | R)[]>}
  */
 export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T[]>;
-export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (T) => R) : Map<K, R[]>;
-export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (T) => R) : Map<K, (T | R)[]> {
+export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R[]>;
+export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, (T | R)[]> {
   const result = new Map<K, (T | R)[]>();
   if (items == null || items.length === 0) return result;
   const tx: ((T) => T | R) = valueSelector != null ? valueSelector : (i) => i;

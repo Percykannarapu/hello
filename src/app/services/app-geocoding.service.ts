@@ -16,7 +16,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-
 @Injectable()
 export class AppGeocodingService {
 
-  private duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, string[]>();
+  private duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, Set<string>>();
 
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
@@ -47,7 +47,9 @@ export class AppGeocodingService {
           this.messageService.showErrorNotification('Geocoding Error', 'Location State values longer than 2 characters are not supported');
         } else {
           result = data.parsedData.map(d => new ValGeocodingRequest(d));
-          this.duplicateKeyMap.get(siteType).push(...result.map(r => r.number));
+          result.map(r => r.number).forEach(n => {
+            this.duplicateKeyMap.get(siteType).add(n);
+          });
         }
       }
     }
@@ -99,7 +101,14 @@ export class AppGeocodingService {
   }
 
   public clearDuplicates(){
-    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Site, []);
-    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Competitor, []);
+    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Site, new Set<string>());
+    this.duplicateKeyMap.set(ImpClientLocationTypeCodes.Competitor, new Set<string>());
+  }
+
+  public removeFromDuplicateCheck(siteType: SuccessfulLocationTypeCodes, siteNumbers: string[]) : void {
+    if (siteNumbers == null || siteNumbers.length === 0 || !this.duplicateKeyMap.has(siteType)) return;
+    siteNumbers.forEach(sn => {
+      this.duplicateKeyMap.get(siteType).delete(sn);
+    });
   }
 }

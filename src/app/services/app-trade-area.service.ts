@@ -112,10 +112,10 @@ export class AppTradeAreaService {
     tradeAreas.forEach(ta => ta.impGeofootprintLocation = null);
     // delete from the data stores
     const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
-    this.appGeoService.deleteGeos(geosToRemove);
     const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
-    if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
     this.impTradeAreaService.remove(tradeAreas);
+    if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
+    this.appGeoService.deleteGeos(geosToRemove);
   }
 
   public insertTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {

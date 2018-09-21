@@ -41,7 +41,7 @@ export class FileService {
    * @param {string[]} existingUniqueValues - an array of existing unique values that will be used when processing the file.
    * @returns {ParseResponse<T>}
    */
-  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parser: Parser<T>, existingUniqueValues: string[] = []) : ParseResponse<T> {
+  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parser: Parser<T>, existingUniqueValues: Set<string> = new Set<string>()) : ParseResponse<T> {
     //set up parser defaults
     if (parser.columnDelimiter == null) parser.columnDelimiter = ',';
     if (parser.headerValidator == null) parser.headerValidator = () => true;
@@ -55,7 +55,6 @@ export class FileService {
       parsedData: [],
       duplicateKeys: []
     };
-    const uniqueSet = new Set<string>(existingUniqueValues);
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -67,14 +66,12 @@ export class FileService {
         const dataResult: T = {} as T;
         let emptyRowCheck = '';
         for (let j = 0; j < columns.length; ++j) {
-          const currentColumnValue = parseEngine[j].dataProcess(columns[j]);
+          const currentColumnValue = parseEngine[j].dataProcess(columns[j].trim());
           dataResult[parseEngine[j].outputFieldName] = currentColumnValue;
           emptyRowCheck += currentColumnValue.toString().trim();
           if (parseEngine[j].mustBeUnique === true) {
-            if (uniqueSet.has(currentColumnValue)) {
+            if (existingUniqueValues.has(currentColumnValue)) {
               result.duplicateKeys.push(currentColumnValue);
-            } else {
-              uniqueSet.add(currentColumnValue);
             }
           }
         }
@@ -94,6 +91,7 @@ export class FileService {
     } 
       return result;
   }
+
   private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {
     const delimiter = parser.columnDelimiter;
     const columnParsers = Array.from(parser.columnParsers);
@@ -111,6 +109,7 @@ export class FileService {
     for (let i = 0; i < headerColumns.length; ++i) {
       let matched = false;
       if (headerColumns[i].startsWith('"') && headerColumns[i].endsWith('"')) headerColumns[i] = headerColumns[i].substring(1, headerColumns[i].length - 1);
+      headerColumns[i] = headerColumns[i].trim();
       for (const columnParser of columnParsers) {
         if (!columnParser.found && FileService.matchHeader(headerColumns[i], columnParser)) {
           columnParser.found = true;

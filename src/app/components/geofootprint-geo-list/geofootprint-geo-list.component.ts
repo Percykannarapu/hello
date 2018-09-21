@@ -110,25 +110,25 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public rAlign = 'right';
 
    public flatGeoGridColumns: any[] =
-   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',               width: '7em',   matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '16em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',               width: '12em',  matchMode: 'contains', styleClass: ''},
+   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',               width: '5em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '8em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',               width: '8em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',              width: '14em',  matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',                 width: '9em',   matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',                width: '7em',   matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',                  width: '6.5em', matchMode: 'contains', styleClass: ''},
-    {field: 'home_geo',                                   header: 'Home Geo Ind',         width: '6em',   matchMode: 'contains', styleClass: ''},
-    {field: 'geo.distance',                               header: 'Distance',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',                width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',                  width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'home_geo',                                   header: 'Home Geo',             width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.distance',                               header: 'Dist',                 width: '4em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'geo.geocode',                                header: 'Geocode',              width: '9em',   matchMode: 'contains', styleClass: ''},
-    {field: 'city_name',                                  header: 'Geo City, State',      width: '15em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.hhc',                                    header: 'HHC',                  width: '6em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'city_name',                                  header: 'Geo City, State',      width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.hhc',                                    header: 'HHC',                  width: '5em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'cpm',                                        header: 'CPM',                  width: '5em',   matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'investment',                                 header: 'Investment',           width: '8em',   matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'ownergroup',                                 header: 'Owner Group',          width: '9em',   matchMode: 'contains', styleClass: ''},
-    {field: 'coveragedescription',                        header: 'Coverage Description', width: '13em',  matchMode: 'contains', styleClass: ''},
-    {field: 'pob',                                        header: 'POB',                  width: '4.5em', matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'dma',                                        header: 'DMA',                  width: '12em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '8em',   matchMode: 'contains', styleClass: ''},
+    {field: 'investment',                                 header: 'Inv',                  width: '6em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'ownergroup',                                 header: 'Owner Group',          width: '7em',   matchMode: 'contains', styleClass: ''},
+    {field: 'coveragedescription',                        header: 'Cov Desc',             width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'pob',                                        header: 'POB',                  width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'dma',                                        header: 'DMA',                  width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '6em',   matchMode: 'contains', styleClass: ''},
    ];
 
    public  flatGeoGridExtraColumns: any[];
@@ -188,7 +188,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
 
-      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$,this.allGeos$,this.allAttributes$)
+      this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
                                     .pipe(map(([discovery, geos, attributes]) => this.createComposite(discovery, geos, attributes)));
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
