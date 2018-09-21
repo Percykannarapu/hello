@@ -111,13 +111,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public flatGeoGridColumns: any[] =
    [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',               width: '5em',   matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '8em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '8em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',               width: '8em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',              width: '14em',  matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',                 width: '9em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locState',       header: 'State',                width: '4em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',                  width: '4em',   matchMode: 'contains', styleClass: ''},
-    {field: 'home_geo',                                   header: 'Home Geo',             width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'home_geo',                                   header: 'Home Geo',             width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
     {field: 'geo.distance',                               header: 'Dist',                 width: '4em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'geo.geocode',                                header: 'Geocode',              width: '9em',   matchMode: 'contains', styleClass: ''},
     {field: 'city_name',                                  header: 'Geo City, State',      width: '10em',  matchMode: 'contains', styleClass: ''},
@@ -128,7 +128,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'coveragedescription',                        header: 'Cov Desc',             width: '9em',   matchMode: 'contains', styleClass: ''},
     {field: 'pob',                                        header: 'POB',                  width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
     {field: 'dma',                                        header: 'DMA',                  width: '10em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '6em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
    ];
 
    public  flatGeoGridExtraColumns: any[];
