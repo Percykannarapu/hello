@@ -11,6 +11,7 @@ import {
   AccordionModule,
   AutoCompleteModule,
   ButtonModule,
+  CardModule,
   CheckboxModule,
   ConfirmDialogModule,
   ContextMenuModule,
@@ -205,7 +206,8 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
         TargetingModule,
         CommonModule,
         NgStringPipesModule,
-        EsriModule
+        EsriModule,
+        CardModule
     ],
     declarations: [
         AppComponent,

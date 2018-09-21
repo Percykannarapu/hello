@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
+import { Component, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest, BusinessSearchResponse } from '../../services/app-business-search.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -6,8 +6,6 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
-import { AppLocationService } from '../../services/app-location.service';
-import { filter } from 'rxjs/internal/operators/filter';
 
 interface SelectableSearchResult {
   data: BusinessSearchResponse;
@@ -19,19 +17,15 @@ interface SelectableSearchResult {
 @Component({
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
-  styleUrls: ['./business-search.component.css']
+  styleUrls: ['./business-search.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class BusinessSearchComponent implements OnInit {
 
   public searchResults: SelectableSearchResult[] = [];
-
-  @Input() disableShowBusiness;
-  @Output()
-
   public name: string;  // Used by parent as a header
   public color: any;
   items: any = [];
-  dropdownList: any[];
   selectedCategory: any;
   selector: any;
   model: any = {};
@@ -45,31 +39,12 @@ export class BusinessSearchComponent implements OnInit {
 
   constructor(private appService: AppBusinessSearchService, private messagingService: AppMessagingService,
               private locationService: ImpGeofootprintLocationService, private usageService: UsageService,
-              private appStateService: AppStateService, private appLocationService: AppLocationService) {
-    this.dropdownList = [
-      { label: 'Apparel & Accessory Stores', value: { name: 'Apparel & Accessory Stores', category: 56 } },
-      { label: 'Auto Services', value: { name: 'Auto Services', category: 75 } },
-      { label: 'Automotive Dealers & Service Stations', value: { name: 'Automotive Dealers & Service Stations', category: 55 } },
-      { label: 'Building Materials & Hardware', value: { name: 'Building Materials & Hardware', category: 52 } },
-      { label: 'Business Services', value: { name: 'Business Services', category: 73 } },
-      { label: 'Dentists & Doctors', value: { name: 'Dentists & Doctors', category: 80 } },
-      { label: 'Depository Institutions', value: { name: 'Depository Institutions', category: 60 } },
-      { label: 'Eating & Drinking Places', value: { name: 'Eating & Drinking Places', category: 58 } },
-      { label: 'Food Stores', value: { name: 'Food Stores', category: 54 } },
-      { label: 'General Merchandise Stores', value: { name: 'General Merchandise Stores', category: 53 } },
-      { label: 'Home Furniture & Furnishings Stores', value: { name: 'Home Furniture & Furnishings Stores', category: 57 } },
-      { label: 'Leisure Services', value: { name: 'Leisure Services', category: 79 } },
-      { label: 'Miscellaneous Retail', value: { name: 'Miscellaneous Retail', category: 59 } },
-      { label: 'Personal Services', value: { name: 'Personal Services', category: 72 } },
-      { label: 'Schools & Universities', value: { name: 'Schools & Universities', category: 82 } }
-    ];
-  }
+              private appStateService: AppStateService) {}
 
   ngOnInit() : void {
     this.name = 'Business Search';
     this.appService.getCategories().subscribe((data) => {
       this.filteredCategories = data;
-      this.selectedCategory = this.dropdownList;
       this.categoryChange();
     });
     this.appStateService.getClearUserInterfaceObs().subscribe( () => this.clearFields());
