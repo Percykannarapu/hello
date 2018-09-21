@@ -66,7 +66,7 @@ export class FileService {
         const dataResult: T = {} as T;
         let emptyRowCheck = '';
         for (let j = 0; j < columns.length; ++j) {
-          const currentColumnValue = parseEngine[j].dataProcess(columns[j]);
+          const currentColumnValue = parseEngine[j].dataProcess(columns[j].trim());
           dataResult[parseEngine[j].outputFieldName] = currentColumnValue;
           emptyRowCheck += currentColumnValue.toString().trim();
           if (parseEngine[j].mustBeUnique === true) {
@@ -91,6 +91,7 @@ export class FileService {
     } 
       return result;
   }
+
   private static generateEngine<T>(headerRow: string, parser: Parser<T>) : ParseRule[] {
     const delimiter = parser.columnDelimiter;
     const columnParsers = Array.from(parser.columnParsers);
@@ -108,6 +109,7 @@ export class FileService {
     for (let i = 0; i < headerColumns.length; ++i) {
       let matched = false;
       if (headerColumns[i].startsWith('"') && headerColumns[i].endsWith('"')) headerColumns[i] = headerColumns[i].substring(1, headerColumns[i].length - 1);
+      headerColumns[i] = headerColumns[i].trim();
       for (const columnParser of columnParsers) {
         if (!columnParser.found && FileService.matchHeader(headerColumns[i], columnParser)) {
           columnParser.found = true;
