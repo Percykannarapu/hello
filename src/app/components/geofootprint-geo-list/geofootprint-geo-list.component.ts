@@ -125,7 +125,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'cpm',                                        header: 'CPM',                  width: '5em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'investment',                                 header: 'Inv',                  width: '6em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'ownergroup',                                 header: 'Owner Group',          width: '7em',   matchMode: 'contains', styleClass: ''},
-    {field: 'coveragedescription',                        header: 'Cov Desc',             width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'coveragedescription',                        header: 'Cov Desc',             width: '12em',   matchMode: 'contains', styleClass: ''},
     {field: 'pob',                                        header: 'POB',                  width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
     {field: 'dma',                                        header: 'DMA',                  width: '10em',  matchMode: 'contains', styleClass: ''},
     {field: 'geo.isDeduped',                              header: 'In Deduped',           width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
