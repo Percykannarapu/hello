@@ -74,8 +74,8 @@ export class AppGeoService {
     geos.forEach(g => g.impGeofootprintTradeArea = null);
     // remove from data stores
     const attributes = simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs));
-    if (attributes.length > 0) this.impAttributeService.remove(attributes);
     this.impGeoService.remove(geos);
+    if (attributes.length > 0) this.impAttributeService.remove(attributes);
   }
 
   /**

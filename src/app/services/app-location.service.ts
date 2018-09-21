@@ -14,7 +14,7 @@ import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { AppStateService } from './app-state.service';
-import { mapBy, simpleFlatten } from '../val-modules/common/common.utils';
+import { groupByExtended, mapBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { AppTradeAreaService, DEFAULT_MERGE_TYPE } from './app-trade-area.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -23,7 +23,7 @@ import { AppLoggingService } from './app-logging.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { EsriGeoprocessorService } from '../esri/services/esri-geoprocessor.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
@@ -142,19 +142,18 @@ export class AppLocationService {
          // remove the sites from the hierarchy
          masters.forEach(m => m.impGeofootprintLocations = (m.impGeofootprintLocations || []).filter(l => !siteSet.has(l)));
          nonNullSites.forEach(l => l.impGeofootprintMaster = null);
-
-         // remove the trade areas from the data store
          const tradeAreas = simpleFlatten(nonNullSites.map(l => l.impGeofootprintTradeAreas || []));
-         if (tradeAreas.length > 0)
-            this.appTradeAreaService.deleteTradeAreas(tradeAreas);
-
-         // remove the location attributes from the data store
          const attributes = simpleFlatten(nonNullSites.map(l => l.impGeofootprintLocAttribs || []));
-         if (attributes.length > 0)
-            this.impLocAttributeService.remove(attributes);
 
-         // remove the locations from the data store - don't need to check for length, that was done above
+         // remove from the data stores in top-down order to avoid home geos and default trade areas from getting applied
          this.impLocationService.remove(nonNullSites);
+        if (attributes.length > 0) this.impLocAttributeService.remove(attributes);
+        this.appTradeAreaService.deleteTradeAreas(tradeAreas);
+        const convertSiteTypesToEnum = (loc) => ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode));
+        const locationGroups = groupByExtended(nonNullSites, convertSiteTypesToEnum, loc => loc.locationNumber);
+        Array.from(locationGroups.entries()).forEach(([siteType, siteNumbers]) => {
+          this.geocodingService.removeFromDuplicateCheck(siteType, siteNumbers);
+        });
       }
       catch (error)
       {

@@ -41,7 +41,7 @@ export class FileService {
    * @param {string[]} existingUniqueValues - an array of existing unique values that will be used when processing the file.
    * @returns {ParseResponse<T>}
    */
-  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parser: Parser<T>, existingUniqueValues: string[] = []) : ParseResponse<T> {
+  public static parseDelimitedData<T>(headerRow: string, dataRows: string[], parser: Parser<T>, existingUniqueValues: Set<string> = new Set<string>()) : ParseResponse<T> {
     //set up parser defaults
     if (parser.columnDelimiter == null) parser.columnDelimiter = ',';
     if (parser.headerValidator == null) parser.headerValidator = () => true;
@@ -55,7 +55,6 @@ export class FileService {
       parsedData: [],
       duplicateKeys: []
     };
-    const uniqueSet = new Set<string>(existingUniqueValues);
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -71,10 +70,8 @@ export class FileService {
           dataResult[parseEngine[j].outputFieldName] = currentColumnValue;
           emptyRowCheck += currentColumnValue.toString().trim();
           if (parseEngine[j].mustBeUnique === true) {
-            if (uniqueSet.has(currentColumnValue)) {
+            if (existingUniqueValues.has(currentColumnValue)) {
               result.duplicateKeys.push(currentColumnValue);
-            } else {
-              uniqueSet.add(currentColumnValue);
             }
           }
         }

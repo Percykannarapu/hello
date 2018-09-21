@@ -9,7 +9,7 @@ import { AllLayerIds } from '../app/esri/layer-configuration';
 
 export const environment = {
   production: false,
-  logLevel: LogLevels.INFO
+  logLevel: LogLevels.DEBUG
 };
 
 export class EnvironmentData {
