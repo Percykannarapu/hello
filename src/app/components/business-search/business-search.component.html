@@ -1,130 +1,99 @@
-<div class="ui-g ui-g-nopad">
-   <div class="ui-g-12 ui-g-nopad">
-      <p-scrollPanel [style]="{width: '100%', height: '100%'}">
-         <div class="business-search" style="width:800px;">
-            <div class="ui-g-7 card card-w-title">
-            <!--   <div class="ui-g-12 category-dd">
-                  <p-dropdown [options]="dropdownList" [(ngModel)]="selectedCategory" (onChange)="categoryChange()"
-                     placeholder="Select SIC Category (optional)" [autoWidth]="false"> 
-                  </p-dropdown>
-               </div> -->
-               <div class="ui-g-12">
-                  <span class="md-inputfield">
-                     <input #searchModel type="text" pInputText id="search"  [(ngModel)]="sicCodes" (ngModelChange)="filterCategory($event)" />
-                     <label for="search">Search SIC codes</label>
-                  </span>
-               </div>
-               <p-pickList [source]="sourceCategories" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
-                  targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'200px', 'width': '175px'}"
-                  [targetStyle]="{'height':'200px', 'width': '175px'}">
-                  <ng-template let-category pTemplate="item">
-                     <div class="ui-helper-clearfix">
-                        <!-- <div *ngFor = "let item of categoryList">
-                           {{item.name}}
-                        </div> -->
-                        <div style="font-size:12px;float:left">{{category.name}}</div>
-                     </div>
-                  </ng-template>
-               </p-pickList>
-               <form novalidate>
-                  <div class="ui-g-12">
-                     <span class="md-inputfield">
-                        <input id="businessName" type="text" pInputText name="businessName" [(ngModel)]="model.name" />
-                        <label for="businessName">Business Name</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-12">
-                     <span class="md-inputfield">
-                        <input id="city" type="text" pInputText name="city" [(ngModel)]="model.city" />
-                        <label for="city">City</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <span class="md-inputfield">
-                        <input id="state" type="text" pInputText name="state" [(ngModel)]="model.state" />
-                        <label for="state">State</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <span class="md-inputfield">
-                        <input id="zip" type="text" pInputText name="zip" [(ngModel)]="model.zip" />
-                        <label for="zip">ZIP</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <span class="md-inputfield">
-                        <input id="countyFips" type="text" pInputText name="countyName" [(ngModel)]="model.countyName" />
-                        <label for="countyFips">County FIPs</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <span class="md-inputfield">
-                        <input id="market" type="text" pInputText />
-                        <label for="market">Market Code</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <span class="md-inputfield">
-                        <input id="distance" type="text" pInputText name="radius" [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"/>
-                        <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
-                     </span>
-                  </div>
-                  <div class="ui-g-6">
-                     <button type="button" label="Search Businesses" icon="ui-icon-send" pButton (click)="onSearchBusiness()" [disabled]="disableShowBusiness"></button>
-                  </div>
-                  <div class="ui-g-12">
-                     <label style="font-size: 0.15em">Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
-                  </div>
-               </form>
-            </div>
-            <div class="ui-g-5 card card-w-title">
-               <div class="ui-g-12">
-                  <div class="card colorboxPicker colorboxPicker-green header">
-                     <span class="colorboxPicker-name">Businesses found</span></div>
-                  <div class="ui-g card colorbox colorbox-1">
-                     <div class="ui-g-4">
-                        <i class="material-icons">store</i>
-                     </div>
-                     <div class="ui-g-8">
-                        <span class="colorbox-name" style="margin:0px">Businesses found</span>
-                        <span style="font-size: 12px;color: #ffffff;">(Maximum 20,000)</span><br>
-                        <span class="colorbox-count">{{searchResults.length}}</span>
-                     </div>
-                  </div>
-               </div>
+<div class="ui-g business-search">
+  <div class="ui-g-12">
+    <p-card styleClass="ui-g-6 ui-g-nopad">
+      <div class="ui-g-12">
+        <span class="md-inputfield">
+           <input #searchModel type="text" pInputText id="search"  [(ngModel)]="sicCodes" (ngModelChange)="filterCategory($event)" />
+           <label for="search">Search SIC codes</label>
+        </span>
+      </div>
+      <p-pickList [source]="sourceCategories" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
+                  targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'200px'}"
+                  [targetStyle]="{'height':'200px'}" [responsive]="true">
+        <ng-template let-category pTemplate="item">
+          <div class="ui-helper-clearfix">
+            <div style="font-size:12px;float:left">{{category.name}}</div>
+          </div>
+        </ng-template>
+      </p-pickList>
+      <form class="ui-helper-clearfix" novalidate>
+        <div class="ui-g-12">
+          <span class="md-inputfield">
+            <input id="businessName" type="text" pInputText class="val-full-width" name="businessName" [(ngModel)]="model.name" />
+            <label for="businessName">Business Name</label>
+          </span>
+        </div>
+        <div class="ui-g-12">
+          <span class="md-inputfield">
+            <input id="city" type="text" pInputText class="val-full-width" name="city" [(ngModel)]="model.city" />
+            <label for="city">City</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="state" type="text" pInputText class="val-full-width" name="state" [(ngModel)]="model.state" />
+            <label for="state">State</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="zip" type="text" pInputText class="val-full-width" name="zip" [(ngModel)]="model.zip" />
+            <label for="zip">ZIP</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="countyFips" type="text" pInputText class="val-full-width" name="countyName" [(ngModel)]="model.countyName" />
+            <label for="countyFips">County FIPs</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="market" type="text" pInputText class="val-full-width" />
+            <label for="market">Market Code</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="distance" type="text" pInputText class="val-full-width" name="radius" [(ngModel)]="model.radius" required [ngClass]="{'has-error-border': !model.radius}"/>
+            <label for="distance" [ngClass]="{'has-error': !model.radius}">Miles From Site</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <button type="button" label="Search" icon="ui-icon-search" pButton class="val-full-width" (click)="onSearchBusiness()"></button>
+        </div>
+        <div class="ui-g-12">
+          <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
+        </div>
+      </form>
+    </p-card>
 
-               <div class="ui-g-12 businesses-found">
-                  <p-panel header="Businesses">
-                     <ul style="list-style: none;padding:0px">
-                        <li *ngIf="searchResults.length > 0">
-                           <div style="padding: 1px">
-                              <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All"></p-checkbox>
-                          <!--    <button type="button" style="float:right" label="Clear All" icon="ui-icon-send" pButton (click)="searchResults = [];"></button>-->
-                           </div>
-                        </li>
-                        <li *ngFor="let x of searchResults">
-                           <div style="padding: 1px;">
-                              <p-checkbox binary="true" label="{{x.friendlyName}}" [(ngModel)]="x.selected"></p-checkbox>
-                              <div style="margin-left: 24px">{{x.friendlyDescription}}</div>
-                           </div>
-                        </li>
-                     </ul>
-                  </p-panel>
-               </div>
-               <div class="ui-g-3">
-                  <label>Select as:</label>
-               </div>
-               <div class="ui-g-3">
-                  <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector"></p-radioButton>
-               </div>
-               <div class="ui-g-4">
-                  <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector"></p-radioButton>
-               </div>
-               <div class="ui-g-12">
-                  <button type="button" style="float:right" label="Add to Project" icon="ui-icon-send" pButton (click)="onAddToProject(selector)"></button>
-               </div>
-            </div>
-         </div>
-      </p-scrollPanel>
-   </div>
+    <p-card styleClass="ui-g-6 ui-g-nopad" subtitle="Search Results (maximum 20,000)">
+      <div class="ui-g-12 businesses-found">
+        <p-panel header="Businesses Found: {{searchResults.length}}">
+          <ul class="result-list">
+            <li *ngIf="searchResults.length > 0">
+              <div style="padding: 1px">
+                <p-checkbox binary="true" (onChange)="onSelectAll($event)" label="Select All"></p-checkbox>
+              </div>
+            </li>
+            <li *ngFor="let x of searchResults">
+              <div style="padding: 1px;">
+                <p-checkbox binary="true" label="{{x.friendlyName}}" [(ngModel)]="x.selected"></p-checkbox>
+                <div style="margin-left: 24px">{{x.friendlyDescription}}</div>
+              </div>
+            </li>
+          </ul>
+        </p-panel>
+      </div>
+      <div class="ui-g-12">
+          <label>Add to Project as:</label>&nbsp;&nbsp;&nbsp;
+          <p-radioButton name="add_to_group" value="Site" label="Sites" [(ngModel)]="selector"></p-radioButton>&nbsp;&nbsp;&nbsp;
+          <p-radioButton name="add_to_group" value="Competitor" label="Competitors" [(ngModel)]="selector"></p-radioButton>
+      </div>
+      <div class="ui-g-offset-6 ui-g-6">
+        <button type="button" label="Add" icon="ui-icon-send" pButton class="val-full-width" (click)="onAddToProject(selector)"></button>
+      </div>
+    </p-card>
+  </div>
 </div>

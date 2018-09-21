@@ -1,6 +1,36 @@
-.has-error-border{
+.business-search .businesses-found .ui-panel .ui-panel-content {
+  max-height: 350px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.business-search .businesses-found ul.result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.business-search .ui-picklist .ui-picklist-list {
+  white-space: nowrap;
+  line-height: 0.5em;
+}
+
+.business-search .ui-picklist li.ui-picklist-item {
+  padding: 0.4em 0.4em;
+}
+
+.business-search .ui-inputtext {
+  width: 50%;
+}
+
+.business-search .category-dd .ui-dropdown {
+  width: 50%;
+}
+
+.business-search .has-error-border {
     border-bottom: 1px solid red;
 }
-.has-error{
+
+.business-search .has-error {
     color:red;
 }

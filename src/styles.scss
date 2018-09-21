@@ -24,33 +24,6 @@
     background: #2F9688
 }
 
-.business-search{
-    .businesses-found{
-        .ui-panel .ui-panel-content{
-            max-height: 400px;
-            overflow-y: auto;
-            font-size: 12px;
-        }
-    }
-    .ui-picklist{
-        .ui-picklist-list{
-            white-space: nowrap;
-            line-height: 0.5em;
-        }
-        li.ui-picklist-item{
-            padding: 0.4em 0.4em;
-        }
-    }
-    .ui-inputtext{
-        width: 50%;
-    }
-    .category-dd{
-        .ui-dropdown{
-            width: 50%;
-        }
-    }
-}
-
 // .dashboard{
 //     .colorboxPicker-green{
 //         .ui-overlaypanel{
