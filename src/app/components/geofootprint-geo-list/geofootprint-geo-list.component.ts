@@ -1,25 +1,20 @@
-import { ImpGeofootprintTradeArea } from './../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Observable, combineLatest, Subscription } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/primeng';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppConfig } from '../../app.config';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { EsriUtils } from '../../esri/core/esri-utils';
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
-//import { AppDiscoveryService } from '../../services/app-discovery.service';
-import { MenuItem } from 'primeng/components/common/menuitem';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
@@ -51,28 +46,16 @@ export interface ColMetric {
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
-   @ViewChild('geoGrid') public _geoGrid: Table;  // To add customer filters to the grid
-   
-   private discoverySubscription: Subscription;
-   private siteSubscription: Subscription;
-   private geosSubscription: Subscription;
-   private attributeSubscription: Subscription;
-   private varSubscription: Subscription;
-   private gridSubscription: Subscription;
+   @ViewChild('geoGrid') public _geoGrid: Table;  // To add custom filters to the grid
 
+   // Data store observables
    private allGeos$: Observable<ImpGeofootprintGeo[]>;
    private allAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
    private allVars$: Observable<ImpGeofootprintVar[]>;
 
-   public  impGeofootprintLocations: ImpGeofootprintLocation[];
-   public  selectedImpGeofootprintLocations: ImpGeofootprintLocation[];
-
    public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
    public  displayedImpGeofootprintGeos$: Observable<FlatGeo[]>;
    public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>;
-
-   public  impGeofootprintGeoAttributes: ImpGeofootprintGeoAttrib[];
-   private impGeofootprintVars: ImpGeofootprintVar[];
 
    // Observables for unique values to filter on in the grid
    public  uniqueCity$: Observable<SelectItem[]>;
@@ -81,9 +64,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  uniqueOwnerGroup$: Observable<SelectItem[]>;
    public  uniqueCoverageDesc$: Observable<SelectItem[]>;
    public  uniqueDma$: Observable<SelectItem[]>;
-
-   public  numGeosActive: number = 0;
-   public  numGeosInactive: number = 0;
 
    // Header filter
    public  headerFilter: boolean = true;
@@ -97,18 +77,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // Filtered Totals
    public  gridTotals: Map<string, ColMetric> = new Map<string, ColMetric>();
 
-   public  selectedGeo: FlatGeo;
-   public  geoInfoMenuItems: MenuItem[];
-
-   public  dedupeGrid: boolean = false;
-
-   public myStyles = {
-      'background-color': 'lime',
-      'text-align': 'right'
-   };
-
-   public rAlign = 'right';
-
+   // Grid Column Variables
    public flatGeoGridColumns: any[] =
    [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',               width: '5em',   matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',                 width: '8em',   matchMode: 'contains', styleClass: ''},
@@ -134,12 +103,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  flatGeoGridExtraColumns: any[];
    public  selectedColumns: any[] = [];
    public  columnOptions: SelectItem[] = [];
-
-   public  selectAllGeos: boolean;
-
-   public  geoGridAdditionalColumns: string[] = [];
-   public  geoGridCache: Map<ImpGeofootprintLocation, any[]> = new Map();
-
    public  variableColOrder:Map<string, number> = new Map<string, number>();
 
    // Control table cell / header wrapping
@@ -148,6 +111,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  tableWrapStyle: string = this.tableWrapOff;
    public  tableWrapIcon: string = "fa fa-minus";
    public  tableHdrSlice: boolean = true;
+
+   // Miscellaneous variables
+   public  numGeosActive: number = 0;
+   public  numGeosInactive: number = 0;
+   public  dedupeGrid: boolean = false;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -167,27 +135,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    ngOnInit()
    {
-      // Subscribe to the sites data store
-      this.siteSubscription = this.impGeofootprintLocationService.storeObservable.subscribe(storeData => this.onChangeLocation(storeData));
-
+      // Subscribe to the data stores
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
       this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable;
       this.allVars$ = this.impGeofootprintVarService.storeObservable;
 
-      this.geosSubscription = this.allGeos$.subscribe(geos => {
-         this.onChangeGeos(geos);
-      });
-
-      this.attributeSubscription = this.allAttributes$.subscribe(attributes => {
-         this.onChangeGeoAttributes(attributes);
-      });
-
-      this.varSubscription = this.allVars$.subscribe(vars => {
-         this.onChangeGeoVars(vars);
-      });
-
       const nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
 
+      // createComposite subscriptions
       this.allImpGeofootprintGeos$ = combineLatest(nonNullProject$, this.allGeos$, this.allAttributes$, this.allVars$)
                                     .pipe(map(([discovery, geos, attributes]) => this.createComposite(discovery, geos, attributes)));
 
@@ -269,75 +224,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    // -----------------------------------------------------------
-   // SUBSCRIPTION CALLBACK METHODS
-   // -----------------------------------------------------------
-   /**
-    * Assigns the local cache of geos from the subscription and
-    * assigns the closest sites.
-    *
-    * @param impGeofootprintGeos The array of geos received from the observable
-    */
-   onChangeGeos(impGeofootprintGeos: ImpGeofootprintGeo[])
-   {
-//    console.log('onChangeGeos fired', impGeofootprintGeos);
-//      this.impGeofootprintGeos = Array.from(impGeofootprintGeos);
-//      this.selectedImpGeofootprintGeos = impGeofootprintGeos.filter(geo => geo.isActive);
-//      this.assignSite();
-
-      //console.log('onChangeGeos fired - #Geos: ', impGeofootprintGeos.length, ', Selected: ', this.selectedImpGeofootprintGeos.length);
-   //   this.assignExtra();
-   }
-
-   /**
-    * Assigns the local cache of locations from the subscription.
-    * Since a new site may have been added, assign the geos to the closest
-    * site again.
-    *
-    * @param impGeofootprintLocation The array of locations received from the observable
-    */
-   onChangeLocation(impGeofootprintLocation: ImpGeofootprintLocation[])
-   {
-//    console.log('----------------------------------------------------------------------------------------');
-//    console.log('onChangeLocation - Before: ', this.impGeofootprintLocations);
-      this.impGeofootprintLocations = Array.from(impGeofootprintLocation);
-      this.geoGridCache.clear();
-//    console.log('onChangeLocation - After:  ', this.impGeofootprintLocations);
-//    console.log('----------------------------------------------------------------------------------------');
-//      this.assignSite();
-   }
-
-   private onChangeGeoAttributes(geoAttributes: ImpGeofootprintGeoAttrib[]) : void
-   {
-    //console.log('----------------------------------------------------------------------------------------');
-    //console.log('onChangeGeoAttributes - Before: ', this.impGeofootprintGeoAttributes);
-      this.impGeofootprintGeoAttributes = Array.from(geoAttributes);
-      this.geoGridCache.clear();
-//      this.assignExtra();
-//    console.log('onChangeGeoAttributes - After:  ', this.impGeofootprintGeoAttributes);
-
-         // Debug log attributes
-         // this.impGeofootprintGeoAttributes.forEach(attribute => {
-         //    console.log("attribute: ", attribute);
-         // });
-
-    //console.log('----------------------------------------------------------------------------------------');
-   }
-
-   private onChangeGeoVars(geoVars: ImpGeofootprintVar[]) : void {
-      this.impGeofootprintVars = Array.from(geoVars);
-      this.geoGridCache.clear();
-
-      // Calculate distinct list of var pks
-      // this.impGeofootprintVars.forEach(geoVar => {
-      //    if (!this.varPks.find(v => v === geoVar.varPk))
-      //       this.varPks.push(geoVar.varPk);
-      // });
-
-//      if (geoVars.length > 0)
-//         this.assignExtra();
-   }
-
-   // -----------------------------------------------------------
    // COMPONENT METHODS
    // -----------------------------------------------------------
    public getGeoTooltip(flatGeo: FlatGeo): string
@@ -361,81 +247,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       return result;
    }
 
-   /**
-    * The geo passed in will be compared to the list of locations
-    * and the closest will be recorded on the geo as well as the distance.
-    */
-   // TODO: changed to selectedImpGeofootprintLocations - currently locations are not getting initially added to the selected list. (They should)
-   setClosestLocation(geo: ImpGeofootprintGeo, index: number)
-   {
-      if (this.impGeofootprintLocations == null)
-      {
-         console.log('setClosestLocation exiting; no sites', this.impGeofootprintLocations);
-         return;
-      }
-
-      if (geo == null)
-      {
-         console.log('setClosestLocation exiting; provided geo was null');
-         return;
-      }
-
-      // TODO: This really needs to be from selectedImpGeofootprintLocations
-      if (this.impGeofootprintLocations != null)
-      {
-         let closestSiteIdx: number = -1;
-         const closestCoord: number[] = [];
-         let closestDistance: number = 99999999;
-         let dist = closestDistance;
-
-         // Comparing each site to the geo parameter
-         for (let s = 0; s < this.impGeofootprintLocations.length; s++)
-         {
-            dist = EsriUtils.getDistance(geo.xcoord, geo.ycoord, this.impGeofootprintLocations[s].xcoord, this.impGeofootprintLocations[s].ycoord);
-
-            if (geo.geocode === '48168')
-               console.log('GEOCODE: ', geo.geocode, ' distance to site[' + s + '] = ', dist);
-
-            // If closer to this location, record the lat / lon
-            if (dist < closestDistance)
-            {
-               if (geo.geocode === '48168')
-                  console.log('GEOCODE: 48168 - setting new closest distance @ ', dist);
-               closestDistance = dist;
-               closestSiteIdx = s;
-//             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist + ' - NEW CLOSEST');
-            }
-//          else
-//             console.log('Compared ', geo.geocode, 'against sitesLayer.items[' + s + ']', this.impGeofootprintLocations[s], ', Distance: ' + dist);
-         }
-
-         geo.distance = closestDistance;
-         geo.impGeofootprintLocation =  this.impGeofootprintLocations[closestSiteIdx];
-      }
-   }
-
-   /**
-    * Each geo in the list is assigned the closest site returned by
-    * the method getClosestSite.
-    * This happens automatically in the onChangeGeos subscription callback method.
-    */
-   assignGeoSite(impGeofootprintGeos: ImpGeofootprintGeo[])
-   {
-      let idx: number = 0;
-      if (impGeofootprintGeos != null)
-      {
-         const unassignedGeos = impGeofootprintGeos.filter(geo => geo.impGeofootprintLocation == null);
-         if (unassignedGeos.length > 0)
-         {
-            console.log('assignSite fired - processing ' + unassignedGeos.length + ' geos');
-            for (const geo of unassignedGeos)
-               this.setClosestLocation(geo, idx++);
-         }
-         else
-            console.log('assignSite - no geos to process');
-      }
-   }
-
   private getProjectVarFieldName(pv: ImpProjectVar) : string {
     if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
       const sourceName = pv.source.split('_')[1];
@@ -457,6 +268,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     }
   }
 
+/**
+ *  Initializes the accumulators for the totals located at the bottom of the column
+ */  
    initializeGridTotals() {
       this.gridTotals.set('hhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('cpm',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
@@ -465,16 +279,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    debugLogGridTotals() {
-      console.log("total distance:   ", this.gridTotals.get('distance'));
-      console.log("total hhc:        ", this.gridTotals.get('hhc'));
-      console.log("total investment: ", this.gridTotals.get('investment'));
-      console.log("total cpm:        ", this.gridTotals.get('cpm'));
+      console.debug("total distance:   ", this.gridTotals.get('distance'));
+      console.debug("total hhc:        ", this.gridTotals.get('hhc'));
+      console.debug("total investment: ", this.gridTotals.get('investment'));
+      console.debug("total cpm:        ", this.gridTotals.get('cpm'));
    }
 
-// createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], vars: ImpGeofootprintVar[]) : FlatGeo[]
+   /**
+    * createComposite produces a list of FlatGeos.  These are a flattened view of the geographies,
+    * having pivoted up the variables and attributes to their respective geographies.
+    * 
+    * @param project The current projectd
+    * @param geos List of geos for the grid
+    * @param geoAttributes List of geo attributes to pivot up to the geos
+    */
    createComposite(project: ImpProject, geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[]) : FlatGeo[]
    {
-      //const UnselGeoCount: number = geos.filter(geo => geo.isActive === false).length;
       //console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', Unselected Geos', UnselGeoCount, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null, ', vars: ', (vars != null) ? vars.length : null);
       let min: number;
       let max: number;
@@ -600,19 +420,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   break;
               }
             }
-            // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
+            // console.debug("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
 
             // Create grid columns for the variables
             if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
             {
-              //console.log("---------------------------------------------------------------------------------------");
               const colWidth: number = Math.min(160, Math.max(80, (geovar.customVarExprDisplay.length * 8) + 45));
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
-              //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
+              //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? "numeric" : "text"
                                                 ,matchMode: 'contains', styleClass: colStyleClass});
-              //console.log("---------------------------------------------------------------------------------------");
             }
          });
 
@@ -648,11 +466,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       {
          console.error("Error setting range: ", e);
       }
-      // console.log("hhcRanges:        ", this.hhcRanges);
-      // console.log("investmentRanges: ", this.investmentRanges);
-      // console.log("_geoGrid", this._geoGrid);
-      // console.log("geoGridData", geoGridData);
-      console.log("distanceRanges: ", this.distanceRanges);
+      // console.debug("distanceRanges: ", this.distanceRanges);
 
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
@@ -708,311 +522,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             return -1;
    }
 
-   // -------------------------------------------------------------------------
-   // TEST JUNK - RELOCATE
-   // -------------------------------------------------------------------------
-   testFind() {
-      console.log('--------------------------------------------------');
-      console.log('testFind');
-      console.log('--------------------------------------------------');
-//      const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.impGeofootprintLocation.glId === 1)];
-//const foundGeos: ImpGeofootprintGeo[] =  [this.impGeofootprintGeoService.find(item => item.geocode === '48375C1')];
-      const storeGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.get();
-      console.log ('Working with geos: ', storeGeos);
-//      let  foundGeo = this.impGeofootprintGeoService.find(storeGeos[10]);
-//      console.log('foundGeo', foundGeo);
-
-      console.log('');
-      console.log('Looking for geo: 48080');
-      let searchGeo = new ImpGeofootprintGeo({geocode: '48080'});
-      let foundGeo = this.impGeofootprintGeoService.find(searchGeo);
-      console.log('foundGeo', foundGeo);
-
-      // console.log('');
-      // console.log('Looking for geos that belong to Grand Rapids');
-      // let searchGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo({isActive: 0; impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'BUDDY\'S PIZZA - GRAND RAPIDS'})});
-      // let foundGeo = this.impGeofootprintGeoService.find(searchGeo);
-      // console.log('foundGeo', foundGeo);
-
-      console.log('');
-      console.log('Looking for geos for location: BUDDY\'S PIZZA - GRAND RAPIDS');
-      searchGeo = new ImpGeofootprintGeo({impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'BUDDY\'S PIZZA - GRAND RAPIDS'})});
-      const foundGeos: ImpGeofootprintGeo[] = [this.impGeofootprintGeoService.find(searchGeo)];
-      console.log('foundGeos', foundGeos);
-
-      console.log('');
-      const site: ImpGeofootprintLocation = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation', null);
-      console.log ('site: ', site);
-
-      console.log('');
-      const siteName: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName', null);
-      console.log ('siteName: ', siteName);
-
-      console.log('');
-      console.log ('Test returning a default value when search is not found');
-      const testDefault: String = this.impGeofootprintGeoService.deepFind (searchGeo, 'impGeofootprintLocation.locationName.cocopuffs', 'A default Value');
-      console.log ('defaulted: ', testDefault);
-
-      console.log('');
-      console.log('Test getting a list of objects by a relationship property');
-      const getByGeos: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS');
-      console.log ('findBy: ', getByGeos);
-
-      console.log('');
-      console.log('Test getting a list of objects by a relationship property using a comparator');
-      //const getByGeosC: ImpGeofootprintGeo[] = this.impGeofootprintGeoService.getListBy ('impGeofootprintLocation.locationName', 'BUDDY\'S PIZZA - GRAND RAPIDS', this.compare);
-      console.log ('findBy: ', getByGeos);
-
-      let foundIdx = -1;
-      for (let i = 0; i < storeGeos.length; i++)
-      {
-         foundIdx = this.impGeofootprintGeoService.findIndex(storeGeos[i]);
-         console.log('found geo(' + i + ') at index', foundIdx);
-      }
-   }
-
-   testRank()
-   {
-      console.log('--------------------------------------------------');
-      console.log('testRank');
-      console.log('--------------------------------------------------');
-      this.impGeofootprintGeoService.assignGeocodeRank();
-   }
-
-   testRemove()
-   {
-      console.log('--------------------------------------------------');
-      console.log('testRemove - Database Removes');
-      console.log('--------------------------------------------------');
-      
-//      this.impProjectService.removeGeosFromHierarchy(this.impGeofootprintGeoService.get().filter(geo => [220258, 220264, 220265].includes(geo.ggId)));
-/*      
-      console.log('--# TEST FILTERBY')
-      let aLocation: ImpGeofootprintLocation = this.impGeofootprintLocationService.get().filter(location => location.glId = 17193)[0];
-      
-      console.log("A) TAs for glid: " + aLocation.glId, this.impGeofootprintTradeAreaService.filterByGlId(aLocation.glId, true));
-      console.log("B) TAs for projectid: " + aLocation.projectId, this.impGeofootprintTradeAreaService.filterByProjectId(aLocation.projectId, true));
-*/
-/*
-      console.log("--------------------------------------------");
-      console.log("Remove 3 geos");
-      console.log("--------------------------------------------");
-      // Stage Geos removal
-      let ggIds: number[] = [217729, 217730, 217731];
-
-      let geoRemoves: ImpGeofootprintGeo[] = [];
-      ggIds.forEach(ggId => {
-         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
-         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
-      });
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",geoRemoves.length,"Geos");
-
-      this.impGeofootprintGeoService.performDBRemoves(geoRemoves).subscribe(responseCode => {
-         console.log("geofootprint-geo-list received responseCode: ", responseCode);
-         console.log("If below are still here, we need to remove them from datastore");
-         let removesLeft: number = 0;
-         let inStore: number = 0;
-         this.impGeofootprintGeoService.dbRemoves.filter(geo => removesLeft += (ggIds.includes(geo.ggId)) ? 1:0);
-         this.impGeofootprintGeoService.get().filter    (geo => inStore     += (ggIds.includes(geo.ggId)) ? 1:0);
-         
-         console.log("geo db removes: ", removesLeft);
-         console.log("geo data store: ", inStore);
-         console.log("--------------------------------------------");
-      });
-*/
-/*
-      console.log("--------------------------------------------");
-      console.log("Remove 2 Trade Areas");
-      console.log("--------------------------------------------");
-      // Stage a trade area removal
-      let gtaIds: number[] = [37369, 37370];
-      let taRemoves: ImpGeofootprintTradeArea[] = [];
-      gtaIds.forEach(gtaId => {
-         this.impGeofootprintTradeAreaService.remove(this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
-         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => ta.gtaId === gtaId).forEach(ta => taRemoves.push(ta));
-      });
-
-      this.impGeofootprintTradeAreaService.performDBRemoves(taRemoves).subscribe(responseCode => {
-         console.log("geofootprint-geo-list received responseCode: ", responseCode);
-         console.log("If below are still here, we need to remove them from datastore");
-         let removesLeft: number = 0;
-         let inStore: number = 0;
-         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => removesLeft += (gtaIds.includes(ta.gtaId)) ? 1:0);
-         this.impGeofootprintTradeAreaService.get().filter    (ta => inStore     += (gtaIds.includes(ta.gtaId)) ? 1:0);
-         
-         console.log("geo db removes: ", removesLeft);
-         console.log("geo data store: ", inStore);
-         console.log("--------------------------------------------");
-      });
-*/
-/*
-      console.log("--------------------------------------------");
-      console.log("Remove 2 Locations");
-      console.log("--------------------------------------------");
-      // Stage locations removal
-      let glIds: number[] = [17194, 17196];
-      let locRemoves: ImpGeofootprintLocation[] = [];
-      glIds.forEach(glId => {
-         this.impGeofootprintLocationService.remove(this.impGeofootprintLocationService.get().filter(loc => loc.glId === glId));
-         this.impGeofootprintLocationService.dbRemoves.filter(loc => loc.glId === glId).forEach(loc => locRemoves.push(loc));
-      });
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",locRemoves.length,"locations");
-
-      this.impGeofootprintLocationService.performDBRemoves(locRemoves).subscribe(responseCode => {
-         console.log("responseCode: ", responseCode);
-         console.log("If below are still here, delete didn't work");
-
-         let locRemovesLeft: number = 0;
-         let locInStore:     number = 0;
-         let taRemovesLeft:  number = 0;
-         let taInStore:      number = 0;  
-         this.impGeofootprintLocationService.dbRemoves.filter (loc => locRemovesLeft += (glIds.includes(loc.glId)) ? 1:0);
-         this.impGeofootprintLocationService.get().filter     (loc => locInStore     += (glIds.includes(loc.glId)) ? 1:0);
-         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta  => taRemovesLeft  += (glIds.includes(ta.gtaId)) ? 1:0);
-         this.impGeofootprintTradeAreaService.get().filter    (ta  => taInStore      += (glIds.includes(ta.gtaId)) ? 1:0);
-
-         console.log("loc db removes: ", locRemovesLeft);
-         console.log("loc data store: ", locInStore);
-         console.log("ta  db removes: ", taRemovesLeft);
-         console.log("ta  data store: ", taInStore);
-      });
-*/
-/*
-      // Stage a master removal
-      let cgmId: number = 2859;
-      this.impGeofootprintMasterService.remove(this.impGeofootprintMasterService.get().filter(ma => ma.cgmId === cgmId));
-      let masterRemoves: ImpGeofootprintMaster[] = this.impGeofootprintMasterService.dbRemoves.filter(ma => ma.cgmId === cgmId)
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ", masterRemoves.length,"Geofootprint Master");
-
-      this.impGeofootprintMasterService.performDBRemoves(masterRemoves).subscribe(responseCode => {
-         console.log("responseCode: ", responseCode);
-         console.log("If below are still here, delete didn't work");
-         console.log("Master db removes: ", this.impGeofootprintMasterService.dbRemoves.filter(ma => ma.cgmId === cgmId));
-         console.log("Master data store: ", this.impGeofootprintMasterService.get().filter(ma => ma.cgmId === cgmId));
-         console.log("Loc    db removes: ", this.impGeofootprintLocationService.dbRemoves.filter(loc => loc.cgmId === cgmId));
-         console.log("Loc    data store: ", this.impGeofootprintLocationService.get().filter(loc => loc.cgmId === cgmId));         
-      });
-*/
-/*
-      // Stage a project removal
-      let projectId: number = 3033;
-      
-      this.impProjectService.remove(this.impProjectService.get().filter(project => project.projectId === projectId));
-      let projectRemoves: ImpProject[] = this.impProjectService.dbRemoves.filter(project => project.projectId === projectId)
-
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",projectRemoves.length,"Project");
-
-      this.impProjectService.performDBRemoves(projectRemoves).subscribe(responseCode => {
-         console.log("responseCode: ", responseCode);
-         console.log("If below are still here, delete didn't work");
-         console.log("Project db removes: ", this.impProjectService.dbRemoves.filter(project => project.projectId === projectId));
-         console.log("Project data store: ", this.impProjectService.get().filter(project => project.projectId === projectId));
-         console.log("Pref    db removes: ", this.impProjectPrefService.dbRemoves.filter(project => project.projectId === projectId));
-         console.log("Pref    data store: ", this.impProjectPrefService.get().filter(project => project.projectId === projectId));
-      });
-*/
-
-// AND NOW FOR THE WEIRD STUFF
-
-      // Test staging geo removes and calling performDBRemoves on project
-      // Stage Geos removal
-      let ggIds: number[] = [220264, 220265];
-
-      console.log("BEFORE project total removes: ", this.impProjectService.getTreeRemoveCount(this.impProjectService.get()));
-
-      let geoRemoves: ImpGeofootprintGeo[] = [];
-      ggIds.forEach(ggId => {
-         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
-         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
-      });
-     
-      console.log("AFTER project total removes: ", this.impProjectService.getTreeRemoveCount(this.impProjectService.get()));
-      
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",geoRemoves.length,"locations");
-
-      this.impProjectService.performDBRemoves([this.impProjectService.get()[0]]).subscribe(responseCode => {
-         console.log("geofootprint-geo-list received responseCode: ", responseCode);
-         console.log("If below are still here, we need to remove them from datastore");
-         let removesLeft: number = 0;
-         let inStore: number = 0;
-         this.impGeofootprintGeoService.dbRemoves.filter(geo => removesLeft += (ggIds.includes(geo.ggId)) ? 1:0);
-         this.impGeofootprintGeoService.get().filter    (geo => inStore     += (ggIds.includes(geo.ggId)) ? 1:0);
-         
-         console.log("geo db removes: ", removesLeft);
-         console.log("geo data store: ", inStore);
-         console.log("--------------------------------------------");
-      });
-
-/*
-      console.log('Remove geos, but not the TA & specifically remove some TAs');
-      console.log('----------------------------------------------------------');
-
-      // Stage some geos not in a TA that is being removed
-      let ggIds: number[] = [217774, 217775];
-      let geoRemoves: ImpGeofootprintGeo[] = [];
-      ggIds.forEach(ggId => {
-         this.impGeofootprintGeoService.remove(this.impGeofootprintGeoService.get().filter(geo => geo.ggId === ggId));
-         this.impGeofootprintGeoService.dbRemoves.filter(geo => geo.ggId === ggId).forEach(geo => geoRemoves.push(geo));
-      });
-
-      // Stage trade area removals
-      let gtaIds: number[] = [37375, 37376];
-      let taRemoves: ImpGeofootprintTradeArea[] = [];
-      gtaIds.forEach(gtaId => {
-         this.impGeofootprintTradeAreaService.remove(this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
-      });
-      // Pickup any trade areas that have deletes
-      taRemoves = this.impGeofootprintTradeAreaService.filterBy ((ta, b) => ta.gtaId === b, (ta) => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta), false, true, true);
-
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",taRemoves.length,"trade areas");
-      console.log("staged: ",geoRemoves.length,"geos");
-
-      this.impGeofootprintTradeAreaService.performDBRemoves(taRemoves).subscribe(responseCode => {
-         console.log("geofootprint-geo-list received responseCode: ", responseCode);
-         console.log("If below are still here, we need to remove them from datastore");
-         let removesLeft: number = 0;
-         let inStore: number = 0;
-         this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => removesLeft += (gtaIds.includes(ta.gtaId)) ? 1:0);
-         this.impGeofootprintTradeAreaService.get().filter    (ta => inStore     += (gtaIds.includes(ta.gtaId)) ? 1:0);
-         
-         console.log("ta db removes: ", removesLeft);
-         console.log("ta data store: ", inStore);
-//       console.log("ta db removes: ", this.impGeofootprintTradeAreaService.dbRemoves.filter(ta => ta.gtaId === gtaId));
-//       console.log("ta data store: ", this.impGeofootprintTradeAreaService.get().filter(ta => ta.gtaId === gtaId));
-         console.log("--------------------------------------------");
-      });
-*/
-/*
-      // Stage a project with children to remove (Nothing should happen)
-      let projectId: number = 3033;
-      let removes: ImpProject[] = this.impProjectService.get().filter(project => project.projectId === projectId)
-      console.log("Staging Done");
-      console.log("--------------------------------------------");
-      console.log("staged: ",removes.length,"Project");
-
-      this.impProjectService.performDBRemoves(removes).subscribe(responseCode => {
-         console.log("responseCode: ", responseCode);
-         console.log("If below are still here, delete didn't work");
-         console.log("Project db removes: ", this.impProjectService.dbRemoves.filter(project => project.projectId === projectId));
-         console.log("Project data store: ", this.impProjectService.get().filter(project => project.projectId === projectId));
-         console.log("Pref    db removes: ", this.impProjectPrefService.dbRemoves.filter(project => project.projectId === projectId));
-         console.log("Pref    data store: ", this.impProjectPrefService.get().filter(project => project.projectId === projectId));
-      });
-*/
-   }
-
    // -----------------------------------------------------------
    // UI CONTROL EVENTS
    // -----------------------------------------------------------
@@ -1052,13 +561,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          console.log('onClickDeleteGeo - Fired - Geocode: null');
    }
 
-   onRowClick(event: any)
-   {
-      console.log('Click');
-   }
-
    onSelectGeocode(event: any, isSelected: boolean)
-   {
+   {      
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
 
       const currentProject = this.appStateService.currentProject$.getValue();
@@ -1068,9 +572,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (geo.isActive != isSelected)
       {
          geo.isActive = isSelected;
-         //This change to updata Dtatstore to fire toggleGeoSelection DE1933
+         //This change to update Datastore to fire toggleGeoSelection DE1933
          this.impGeofootprintGeoService.update(null, null);
          this.impGeofootprintGeoService.makeDirty();
+         this.impGeofootprintGeoAttribService.makeDirty();
 
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
@@ -1289,63 +794,25 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    onFilter(event: any)
    {
-      // event.filters: Filters object having a field as the property key and an object with value, matchMode as the property value.
-      // event.filteredValue: Filtered data after running the filtering.   
-      // console.log("-".padEnd(80, "-"));
-      // console.log("onFilter");
-      // console.log("event: ", event);
-      // console.log("filtered: ", event.filteredValue);
       this.setGridTotals();
-/*
-      // Initialize totals
-      this.initializeGridTotals();
-
-      event.filteredValue.forEach(element => {
-         if (element.geo.isDeduped === 1 || this.dedupeGrid === false)
-         {
-            this.gridTotals.set('hhc', {tot: this.gridTotals.get('hhc').tot + element.geo.hhc
-                                       ,min: (element.geo.hhc < this.gridTotals.get('hhc').min) ? element.geo.hhc : this.gridTotals.get('hhc').min
-                                       ,max: (element.geo.hhc > this.gridTotals.get('hhc').max) ? element.geo.hhc : this.gridTotals.get('hhc').max
-                                       });
-            this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot + element.cpm
-                                       ,min: (element.cpm < this.gridTotals.get('cpm').min) ? element.cpm : this.gridTotals.get('cpm').min
-                                       ,max: (element.cpm > this.gridTotals.get('cpm').max) ? element.cpm : this.gridTotals.get('cpm').max
-                                       });
-            this.gridTotals.set('investment', {tot: this.gridTotals.get('investment').tot + element.investment
-                                              ,min: (element.investment < this.gridTotals.get('investment').min) ? element.investment : this.gridTotals.get('investment').min
-                                              ,max: (element.investment > this.gridTotals.get('investment').max) ? element.investment : this.gridTotals.get('investment').max
-                                              });
-            this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot + element.geo.distance
-                                            ,min: (element.geo.distance < this.gridTotals.get('distance').min) ? element.geo.distance : this.gridTotals.get('distance').min
-                                            ,max: (element.geo.distance > this.gridTotals.get('distance').max) ? element.geo.distance : this.gridTotals.get('distance').max
-                                            });
-         }
-      });
-
-      // Calculated grid totals
-      this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot
-                                 ,cnt: this.gridTotals.get('cpm').cnt
-                                 ,min: this.gridTotals.get('cpm').min
-                                 ,max: this.gridTotals.get('cpm').max
-                                 ,avg: this.gridTotals.get('cpm').tot / event.filteredValue.length});
-      this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot
-                                      ,cnt: this.gridTotals.get('distance').cnt
-                                      ,min: this.gridTotals.get('distance').min
-                                      ,max: this.gridTotals.get('distance').max
-                                      ,avg: this.gridTotals.get('distance').tot / event.filteredValue.length});
-
-      this.debugLogGridTotals();*/
-      //console.log("_geoGrid: ", this._geoGrid);
-      //console.log("-".padEnd(80, "-"));
    }
 
+   /**
+    * Utility method used by setGridTotals to reduce the complexity of it.
+    * @param totalStr The key of the map to update
+    * @param newValue The value to store in the map
+    */
    setGridTotal(totalStr: string, newValue: number) {
       this.gridTotals.set(totalStr, {tot: this.gridTotals.get(totalStr).tot + newValue
                                     ,min: (newValue < this.gridTotals.get(totalStr).min) ? newValue : this.gridTotals.get(totalStr).min
                                     ,max: (newValue > this.gridTotals.get(totalStr).max) ? newValue : this.gridTotals.get(totalStr).max
                                     });
    }
-   
+
+   /**
+    * Looks at the filtered and unfiltered arrays of the grid and computes totals for display at the 
+    * bottom of the column.
+    */
    setGridTotals() {
       if (this._geoGrid == null || this._geoGrid._value == null || this._geoGrid._value.length === 0)
          return;
@@ -1368,23 +835,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   this.setGridTotal('cpm',        element.cpm);
                   this.setGridTotal('investment', element.investment);
                   this.setGridTotal('distance',   element.geo.distance);
-   /*            
-               this.gridTotals.set('hhc', {tot: this.gridTotals.get('hhc').tot + element.geo.hhc
-                                          ,min: (element.geo.hhc < this.gridTotals.get('hhc').min) ? element.geo.hhc : this.gridTotals.get('hhc').min
-                                          ,max: (element.geo.hhc > this.gridTotals.get('hhc').max) ? element.geo.hhc : this.gridTotals.get('hhc').max
-                                          });
-               this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot + element.cpm
-                                          ,min: (element.cpm < this.gridTotals.get('cpm').min) ? element.cpm : this.gridTotals.get('cpm').min
-                                          ,max: (element.cpm > this.gridTotals.get('cpm').max) ? element.cpm : this.gridTotals.get('cpm').max
-                                          });
-               this.gridTotals.set('investment', {tot: this.gridTotals.get('investment').tot + element.investment
-                                                ,min: (element.investment < this.gridTotals.get('investment').min) ? element.investment : this.gridTotals.get('investment').min
-                                                ,max: (element.investment > this.gridTotals.get('investment').max) ? element.investment : this.gridTotals.get('investment').max
-                                                });
-               this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot + element.geo.distance
-                                             ,min: (element.geo.distance < this.gridTotals.get('distance').min) ? element.geo.distance : this.gridTotals.get('distance').min
-                                             ,max: (element.geo.distance > this.gridTotals.get('distance').max) ? element.geo.distance : this.gridTotals.get('distance').max
-                                             });*/
                }
             });
          }
@@ -1423,6 +873,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
    }
 
+   /**
+    * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
+    */
    public onToggleTableWrap() {
       if (this.tableWrapStyle === this.tableWrapOn) 
       {
@@ -1436,13 +889,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          this.tableWrapIcon = "fa fa-bars";
          this.tableHdrSlice = false;
       }
-   }
-
-   testDeleteProject()
-   {
-      this.impProjectService.postDelete(this.impProjectService.get()[0].projectId).subscribe(restResponse => {
-         console.log ("testDeleteProject - response: ", restResponse);
-      });
    }
 
    debugPrintGrid() {
