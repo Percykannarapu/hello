@@ -1069,8 +1069,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       {
          geo.isActive = isSelected;
          //This change to updata Dtatstore to fire toggleGeoSelection DE1933
-         this.impGeofootprintGeoService.update(null, null);
+         //this.impGeofootprintGeoService.update(null, null);
          this.impGeofootprintGeoService.makeDirty();
+         this.impGeofootprintGeoAttribService.makeDirty();
 
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
