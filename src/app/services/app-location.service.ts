@@ -173,8 +173,7 @@ export class AppLocationService {
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
     const currentMaster = this.appStateService.currentMaster$.getValue();
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    let hasProvidedSite = this.appStateService.hasSiteProvidedTradeAreas$.getValue();
-    let hasProvidedCompetitor = this.appStateService.hasCompetitorProvidedTradeAreas$.getValue();
+
     data.forEach(l => {
       const tradeAreas: any[] = [];
       l.impGeofootprintMaster = currentMaster;
