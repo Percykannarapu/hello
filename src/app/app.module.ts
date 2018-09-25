@@ -77,7 +77,6 @@ import { UserService } from './services/user.service';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
-import { BusinessSearchComponent } from './components/business-search/business-search.component';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
@@ -141,6 +140,7 @@ import { ToastModule } from 'primeng/toast';
 import { SampleComponent } from './poc/sample/sample.component';
 import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
+import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 
 @NgModule({
     imports: [

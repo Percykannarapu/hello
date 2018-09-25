@@ -34,16 +34,14 @@
     </val-failed-geocode-grid>
   </p-tabPanel>
   <p-tabPanel header="Business Search">
-    <val-business-search>Loading business search component...</val-business-search>
+    <val-business-search #businessSearch
+                         [allCategories]="searchCategories$ | async"
+                         [searchResults]="searchResults$ | async"
+                         [currentLocationCount]="totalCount$ | async"
+                         [resultLimit]="businessSearchLimit"
+                         (addResultsToProject)="onAddBusiness($event)"
+                         (searchForBusinesses)="onBusinessSearch($event)">
+      Loading business search component...
+    </val-business-search>
   </p-tabPanel>
 </p-tabView>
-<!--<p-accordion [lazy]="true">-->
-<!--<p-accordionTab header="Upload">-->
-
-<!--</p-accordionTab>-->
-<!--<p-accordionTab header="Manually Add">-->
-
-  <!--</p-accordionTab>-->
-  <!--<p-accordionTab header="Business Search">-->
-  <!--</p-accordionTab>-->
-  <!--</p-accordion>-->

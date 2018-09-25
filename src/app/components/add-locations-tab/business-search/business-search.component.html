@@ -1,0 +1,102 @@
+<div class="ui-g business-search">
+  <div class="ui-g-12">
+    <p-card styleClass="ui-g-6 ui-g-nopad">
+      <div class="ui-g-12">
+        <span class="md-inputfield">
+           <input type="text" pInputText id="search" (keyup)="sicSearchTerm$.next($event.target.value)" />
+           <label for="search">Search SIC codes</label>
+        </span>
+      </div>
+      <p-pickList [source]="sourceCategories$ | async" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
+                  targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'200px'}"
+                  [targetStyle]="{'height':'200px'}" [responsive]="true">
+        <ng-template let-category pTemplate="item">
+          <div class="ui-helper-clearfix">
+            <div style="font-size:12px;float:left">{{category.name}}</div>
+          </div>
+        </ng-template>
+      </p-pickList>
+      <form class="ui-helper-clearfix" novalidate [formGroup]="businessSearchForm" (submit)="onSearchForBusinesses()">
+        <div class="ui-g-12">
+          <span class="md-inputfield">
+            <input id="businessName" type="text" pInputText class="val-full-width" formControlName="businessName" />
+            <label for="businessName">Business Name</label>
+          </span>
+        </div>
+        <div class="ui-g-12">
+          <span class="md-inputfield">
+            <input id="businessCity" type="text" pInputText class="val-full-width" formControlName="businessCity" />
+            <label for="businessCity">City</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="businessState" type="text" pInputText class="val-full-width" formControlName="businessState" />
+            <label for="businessState">State</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="businessZip" type="text" pInputText class="val-full-width" formControlName="businessZip" />
+            <label for="businessZip">ZIP</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="countyFips" type="text" pInputText class="val-full-width" formControlName="countyFips" />
+            <label for="countyFips">County FIPs</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="marketCode" type="text" pInputText class="val-full-width" formControlName="marketCode" />
+            <label for="marketCode">Market Code</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <span class="md-inputfield">
+            <input id="distance" type="text" pInputText class="val-full-width" formControlName="distance" [ngClass]="{'has-error-border': hasErrors('distance')}"/>
+            <label for="distance" [ngClass]="{'has-error': hasErrors('distance')}">Miles From Site</label>
+          </span>
+        </div>
+        <div class="ui-g-6">
+          <button type="submit" label="Search" icon="ui-icon-search" pButton class="val-full-width"
+                  [disabled]="businessSearchForm.invalid || targetCategories.length === 0 || currentLocationCount === 0"></button>
+        </div>
+        <div class="ui-g-12">
+          <label>Use semicolons for multiple entries on ZIP, Counties and Market Codes.</label>
+        </div>
+      </form>
+    </p-card>
+
+    <p-card styleClass="ui-g-6 ui-g-nopad" subtitle="Search Results (maximum {{resultLimit | number:'1.0-0'}})">
+      <div class="ui-g-12 businesses-found">
+
+        <p-listbox [multiple]="true" [checkbox]="true" [filter]="true"
+                   [options]="searchResultList" [(ngModel)]="selectedSearchResults">
+          <p-header>
+            <div class="business-search-result-header">{{searchResultList.length}} Businesses found</div>
+          </p-header>
+          <ng-template let-result pTemplate="item">
+            <span class="business-search-result">
+              {{result.value.firm}} ({{result.value.dist_to_site | number:'1.0-2'}} miles)<br>
+              {{result.value.address}}, {{result.value.city}}, {{result.value.state}} {{result.value.zip}}
+            </span>
+          </ng-template>
+        </p-listbox>
+
+      </div>
+      <form novalidate [formGroup]="searchResultForm" (submit)="onAddResults()">
+        <div class="ui-g-12 ui-helper-clearfix">
+          <label>Add to Project as:</label>&nbsp;&nbsp;&nbsp;
+          <p-radioButton name="siteType" value="Site" label="Sites" [formControlName]="'siteType'"></p-radioButton>&nbsp;&nbsp;&nbsp;
+          <p-radioButton name="siteType" value="Competitor" label="Competitors" [formControlName]="'siteType'"></p-radioButton>
+        </div>
+        <div class="ui-g-offset-6 ui-g-6">
+          <button type="submit" label="Add" icon="ui-icon-send" pButton class="val-full-width"
+                  [disabled]="searchResultForm.invalid || selectedSearchResults.length === 0"></button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>
