@@ -221,7 +221,17 @@ export class AppLocationService {
               this.appTradeAreaService.insertTradeAreas(newTradeAreas);
           },
           reject: () => {
-            saveLocations();
+            data
+          .filter(loc => loc.locationName == null || loc.locationName.length === 0)
+          .forEach(loc => loc.locationName = loc.locationNumber);
+          data.forEach(loc => {
+            if (loc.radius1 != null) loc.radius1 = null ;
+            if (loc.radius2 != null) loc.radius2 = null ;
+            if (loc.radius3 != null) loc.radius3 = null;
+              });
+          currentMaster.impGeofootprintLocations.push(...data);
+          this.impLocationService.add(data);
+          this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
           }
         });
       }
