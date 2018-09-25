@@ -51,7 +51,6 @@ export class AppLocationService {
   public failureCount$: Observable<number>;
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
-  public applyTa: boolean;
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -184,20 +183,14 @@ export class AppLocationService {
       }
       if (l.radius1 != null && Number(l.radius1) !== 0) {
         const tradeArea1 = {radius: Number(l.radius1), selected: true };
-        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea1);
       }
       if (l.radius2 != null && Number(l.radius2) !== 0) {
         const tradeArea2 = {radius: Number(l.radius2), selected: true };
-        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea2);
       }
       if (l.radius3 != null && Number(l.radius3) !== 0) {
         const tradeArea3 = {radius: Number(l.radius3), selected: true };
-        hasProvidedSite = hasProvidedSite || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site;
-        hasProvidedCompetitor = hasProvidedCompetitor || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor;
         tradeAreas.push(tradeArea3);
       }
       newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l]));
@@ -226,12 +219,9 @@ export class AppLocationService {
           icon: 'ui-icon-project',
           accept: () => {
             saveLocations();
-            this.appStateService.setProvidedTradeAreas(hasProvidedSite, ImpClientLocationTypeCodes.Site);
-            this.appStateService.setProvidedTradeAreas(hasProvidedCompetitor, ImpClientLocationTypeCodes.Competitor);
-            this.appTradeAreaService.insertTradeAreas(newTradeAreas);
+              this.appTradeAreaService.insertTradeAreas(newTradeAreas);
           },
           reject: () => {
-            this.applyTa = false;
             saveLocations();
           }
         });

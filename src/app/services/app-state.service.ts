@@ -79,6 +79,7 @@ export class AppStateService {
     this.setupLocationObservables();
     this.setupGeocodeObservables();
     this.setupTradeAreaObservables();
+    this.setupProvidedTaObservables();
   }
 
   public loadProject(projectId: number) : Observable<ImpProject> {
@@ -206,6 +207,17 @@ export class AppStateService {
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
       map(tas => groupBy(tas, 'taNumber'))
     ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+  }
+
+  private setupProvidedTaObservables(): void {
+    this.activeClientLocations$.pipe(
+      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      filter(locs => locs.length > 0)
+    ).subscribe(() => this.hasSiteProvidedTradeAreas.next(true));
+    this.activeCompetitorLocations$.pipe(
+      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      filter(locs => locs.length > 0)
+    ).subscribe(() => this.hasCompetitorProvidedTradeAreas.next(true));
   }
 
   public getClearUserInterfaceObs() : Observable<boolean> {

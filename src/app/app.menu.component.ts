@@ -30,6 +30,8 @@ import { EsriLayerService } from './esri/services/esri-layer.service';
 import { AppLocationService } from './services/app-location.service';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { FileService } from './val-modules/common/services/file.service';
+import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
+import { ImpClientLocationTypeCodes } from './val-modules/targeting/targeting.enums';
 
 
 @Component({
@@ -51,15 +53,15 @@ export class AppMenuComponent implements OnInit {
 
 
     constructor(public app: AppComponent,
-        public impGeofootprintGeoService: ImpGeofootprintGeoService,
-        public impGeofootprintLocationService: ImpGeofootprintLocationService,
+        public  impGeofootprintGeoService: ImpGeofootprintGeoService,
+        public  impGeofootprintLocationService: ImpGeofootprintLocationService,
         private audienceService: TargetAudienceService,
-        public usageService: UsageService,
-        public impDiscoveryService: AppDiscoveryService,
-        public metricService: MetricService,
+        public  usageService: UsageService,
+        public  impDiscoveryService: AppDiscoveryService,
+        public  metricService: MetricService,
         private appStateService: AppStateService,
         private confirmationService: ConfirmationService,
-        public userService: UserService,
+        public  userService: UserService,
         private attributeService: ImpGeofootprintGeoAttribService,
         private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
         private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
@@ -67,12 +69,11 @@ export class AppMenuComponent implements OnInit {
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService,
         private appConfig: AppConfig,
-        private esriMapService: EsriMapService,
         private impGeofootprintVarService: ImpGeofootprintVarService,
         private impGeofootprintMasterService: ImpGeofootprintMasterService,
-        private layerService: EsriLayerService,
         private domainFactory: ImpDomainFactoryService,
-        private appLocationService: AppLocationService) { } 
+        private impProjectPrefService: ImpProjectPrefService
+        ) { } 
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -424,24 +425,22 @@ export class AppMenuComponent implements OnInit {
     public clearProject(){
         this.impGeofootprintMasterService.clearAll();
         this.impProjectService.clearAll();
-        this.appProjectService.clearAll();
-        this.appLocationService.deleteLocations(this.impGeofootprintLocationService.get());
+        this.impProjectPrefService.clearAll();
+
         this.impGeofootprintLocationService.clearAll();
-        this.appStateService.clearUserInterface.next(true);
+        this.impGeofootprintLocAttribService.clearAll();
+        this.impGeofootprintTradeAreaService.clearAll(); //this is not working
+        this.impGeofootprintVarService.clearAll();
+        this.impGeofootprintGeoService.clearAll();
+        this.attributeService.clearAll();
+
+        this.metricService.metrics.clear();
         this.messageService.clearNotifications();
-         this.impGeofootprintGeoService.clearAll();
-         this.attributeService.clearAll();
-         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
-         this.impGeofootprintLocationService.clearAll();
-         this.impGeofootprintVarService.clearAll();
-         this.impGeofootprintLocAttribService.clearAll();
+        this.appStateService.setProvidedTradeAreas(false, ImpClientLocationTypeCodes.Site);
+        this.appStateService.setProvidedTradeAreas(false, ImpClientLocationTypeCodes.Competitor);
+        this.appStateService.clearUserInterface.next(true);
+
          
-         this.appStateService.clearUserInterface.next(false);
-  
-         const newProject = this.domainFactory.createProject();
-         this.impProjectService.add([newProject]);
-  
-         this.metricService.metrics.clear();
          this.metricService.add('CAMPAIGN', 'Household Count', '0');
          this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
          this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
@@ -456,6 +455,8 @@ export class AppMenuComponent implements OnInit {
          this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
          this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
   
+         const newProject = this.domainFactory.createProject();
+         this.impProjectService.add([newProject]);
      }
 
     private saveProject(){
