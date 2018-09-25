@@ -5,7 +5,7 @@ import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
 import { EsriQueryService } from '../esri/services/esri-query.service';
-import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
+import { groupBy, simpleFlatten, groupByExtended, mapByExtended } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -21,6 +21,7 @@ import { AppMapService } from './app-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppStateService, Season } from './app-state.service';
 import { AppLoggingService } from './app-logging.service';
+import { filterArray } from '../val-modules/common/common.rxjs';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -100,29 +101,21 @@ export class AppGeoService {
    */
   private setupHomeGeoSelectionObservable() : void {
     // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
-    const locationsWithTradeAreas$ = combineLatest(this.locationService.storeObservable,
+    combineLatest(this.locationService.storeObservable,
+      this.impGeoService.storeObservable,
       this.appStateService.projectIsLoading$).pipe(
-        // halt the sequence if the project is still loading
-        filter(([locations, isLoading]) => !isLoading),
-        // keep only locations identified as sites
-        map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
-        // keep locations that have a home geocode identified
-        map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
-        // keep locations that have trade areas defined
-        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
-        // keep locations where finished radius count matches all radius count
-        map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)));
-
-    locationsWithTradeAreas$.pipe(
+      // halt the sequence if the project is still loading
+      filter(([locations, geos, isLoading]) => !isLoading),
+      // keep only locations identified as sites
+      map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
+      // keep locations that have a home geocode identified
+      map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
+      // keep locations that have trade areas defined
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
       // keep sites that do not already have their home geo selected
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length > 0)),
-      // halt the sequence if there are no locations remaining
-      filter(locations => locations.length > 0)
-    ).subscribe(() => this.impGeoService.makeDirty());
-
-    combineLatest(locationsWithTradeAreas$, this.impGeoService.storeObservable).pipe(
-      // keep sites that do not already have their home geo selected
-      map(([locations]) => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
+      // keep locations where finished radius count matches all radius count
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
       // halt the sequence if there are no locations remaining
       filter(locations => locations.length > 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
@@ -322,24 +315,26 @@ export class AppGeoService {
         if (homeGeoMap.has(centroid.attributes.geocode)) {
           const currentLocations = homeGeoMap.get(centroid.attributes.geocode);
           currentLocations.forEach(loc => {
-            const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
-            const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
-            if (homeGeoTA.length === 0) {
-              const newTA = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo);
-              homeGeoTA.push(newTA);
-              newTradeAreas.push(newTA);
+            if (loc.getImpGeofootprintGeos().filter(geo => geo.geocode === centroid.attributes.geocode).length === 0) {
+              const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
+              const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
+              if (homeGeoTA.length === 0) {
+                const newTA = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo);
+                homeGeoTA.push(newTA);
+                newTradeAreas.push(newTA);
+              }
+              const newGeo = new ImpGeofootprintGeo({
+                xcoord: centroid.attributes.longitude,
+                ycoord: centroid.attributes.latitude,
+                geocode: centroid.attributes.geocode,
+                distance: geocodeDistance,
+                impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
+                impGeofootprintTradeArea: homeGeoTA[0],
+                isActive: homeGeoTA[0].isActive
+              });
+              homeGeoTA[0].impGeofootprintGeos.push(newGeo);
+              homeGeosToAdd.push(newGeo);
             }
-            const newGeo = new ImpGeofootprintGeo({
-              xcoord: centroid.attributes.longitude,
-              ycoord: centroid.attributes.latitude,
-              geocode: centroid.attributes.geocode,
-              distance: geocodeDistance,
-              impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
-              impGeofootprintTradeArea: homeGeoTA[0],
-              isActive: homeGeoTA[0].isActive
-            });
-            homeGeoTA[0].impGeofootprintGeos.push(newGeo);
-            homeGeosToAdd.push(newGeo);
           });
         }
       });

@@ -230,7 +230,9 @@ export class AppTradeAreaService {
   }
   public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = this.createRadiusTradeAreasForLocations(tradeAreas, locations);
-    this.impTradeAreaService.add(newTradeAreas);
+    if (newTradeAreas.length > 0) {
+      this.impTradeAreaService.add(newTradeAreas);
+    }
   }
 
   private getAllTradeAreas(siteType: SuccessfulLocationTypeCodes) : ImpGeofootprintTradeArea[] {
