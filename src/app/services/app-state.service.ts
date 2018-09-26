@@ -212,12 +212,12 @@ export class AppStateService {
   private setupProvidedTaObservables(): void {
     this.activeClientLocations$.pipe(
       filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
-      filter(locs => locs.length > 0)
-    ).subscribe(() => this.hasSiteProvidedTradeAreas.next(true));
+      map(locs => locs.length > 0)
+    ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
     this.activeCompetitorLocations$.pipe(
       filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
-      filter(locs => locs.length > 0)
-    ).subscribe(() => this.hasCompetitorProvidedTradeAreas.next(true));
+      map(locs => locs.length > 0)
+    ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
   }
 
   public getClearUserInterfaceObs() : Observable<boolean> {

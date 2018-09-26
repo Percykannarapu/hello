@@ -51,6 +51,7 @@ export class AppLocationService {
   public failureCount$: Observable<number>;
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
+  public currentTradeAreas : ImpGeofootprintTradeArea[]; 
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -192,8 +193,10 @@ export class AppLocationService {
         const tradeArea3 = {radius: Number(l.radius3), selected: true };
         tradeAreas.push(tradeArea3);
       }
-      newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l]));
+      newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
+
+    this.currentTradeAreas = newTradeAreas;
 
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Site);
     this.appTradeAreaService.updateMergeType(DEFAULT_MERGE_TYPE, ImpClientLocationTypeCodes.Competitor);
@@ -201,40 +204,13 @@ export class AppLocationService {
       this.messageService.showErrorNotification('Location Upload Error', `Please select an Analysis Level prior to uploading locations with defined radii values.`);
       this.geocodingService.clearDuplicates();
     } else {
-      const saveLocations = () => {
         data
           .filter(loc => loc.locationName == null || loc.locationName.length === 0)
           .forEach(loc => loc.locationName = loc.locationNumber);
         currentMaster.impGeofootprintLocations.push(...data);
         this.impLocationService.add(data);
         this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
-      };
-      if (newTradeAreas.length === 0){
-        saveLocations();
-      } else {
-        this.confirmationService.confirm({
-          message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
-          header: 'Define Trade Areas',
-          icon: 'ui-icon-project',
-          accept: () => {
-            saveLocations();
-              this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-          },
-          reject: () => {
-            data
-          .filter(loc => loc.locationName == null || loc.locationName.length === 0)
-          .forEach(loc => loc.locationName = loc.locationNumber);
-          data.forEach(loc => {
-            if (loc.radius1 != null) loc.radius1 = null ;
-            if (loc.radius2 != null) loc.radius2 = null ;
-            if (loc.radius3 != null) loc.radius3 = null;
-              });
-          currentMaster.impGeofootprintLocations.push(...data);
-          this.impLocationService.add(data);
-          this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
-          }
-        });
-      }
+     
     }
   }
 
@@ -284,6 +260,30 @@ export class AppLocationService {
             this.messageService.showSuccessNotification('Home Geo', 'Home Geo calculation is complete.');
           }
           this.messageService.stopSpinnerDialog('HomeGeoCalcKey');
+          if (this.currentTradeAreas.length !== 0){
+      
+              this.confirmationService.confirm({
+                message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
+                header: 'Define Trade Areas',
+                icon: 'ui-icon-project',
+                accept: () => {
+                   this.currentTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+                    this.appTradeAreaService.insertTradeAreas(this.currentTradeAreas);
+                    this.currentTradeAreas = [];
+                },
+                reject: () => {
+                  const data = this.currentTradeAreas.map(ta => ta.impGeofootprintLocation);
+                data.forEach(loc => { 
+                  if (loc.radius1 != null) loc.radius1 = null ;
+                  if (loc.radius2 != null) loc.radius2 = null ;
+                  if (loc.radius3 != null) loc.radius3 = null;
+                    });
+                    this.impLocationService.makeDirty();
+                    this.currentTradeAreas = [];
+               
+                }
+              });
+            }
         }
       );
     }

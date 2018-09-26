@@ -215,13 +215,13 @@ export class AppTradeAreaService {
     this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
   }
 
-  public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintTradeArea[] {
+  public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     locations.forEach(location => {
       if (tradeAreas != null && tradeAreas.length > 0)
         for (let i = 0; i < tradeAreas.length; ++i) {
           if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
-            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius));
+            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius,attachToHierarchy));
           }
         }
     });  
