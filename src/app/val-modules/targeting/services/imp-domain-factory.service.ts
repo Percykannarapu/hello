@@ -80,7 +80,7 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0) : ImpGeofootprintTradeArea {
+  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHiearchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
     const taNumber = tradeAreaType === TradeAreaTypeCodes.Radius ? index + 1 : parent.impGeofootprintTradeAreas.length + this.config.maxRadiusTradeAreas + 1;
     const result = new ImpGeofootprintTradeArea({
@@ -91,19 +91,8 @@ export class ImpDomainFactoryService {
       impGeofootprintLocation: parent,
       isActive: parent.isActive ? isActive : parent.isActive
     });
-    parent.impGeofootprintTradeAreas.push(result);
+    if (attachToHiearchy) parent.impGeofootprintTradeAreas.push(result);
     return result;
-  }
-
-  createUploadedTradeArea(siteType: SuccessfulLocationTypeCodes, index: number, radius: number) : ImpGeofootprintTradeArea {
-    return new ImpGeofootprintTradeArea({
-      taNumber: index + 1,
-      taName: ImpDomainFactoryService.createTradeAreaName(siteType, TradeAreaTypeCodes.Radius, index),
-      taRadius: radius,
-      taType: TradeAreaTypeCodes.Radius.toUpperCase(),
-      impGeofootprintLocation: null,
-      isActive: true
-    });
   }
 
   createGeo(parent: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number, isActive: boolean = true) : ImpGeofootprintGeo {
