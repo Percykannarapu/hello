@@ -6,7 +6,7 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { TradeAreaTypeCodes } from '../targeting.enums';
+import { SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class ImpDomainFactoryService {
 
   constructor(private config: AppConfig) {}
 
-  private static createTradeAreaName(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
+  private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
     switch (tradeAreaType) {
       case TradeAreaTypeCodes.Audience:
       case TradeAreaTypeCodes.Custom:
@@ -23,9 +23,9 @@ export class ImpDomainFactoryService {
       case TradeAreaTypeCodes.Manual:
         return 'Manual Entry';
       case TradeAreaTypeCodes.HomeGeo:
-        return `${parent.clientLocationTypeCode} ${tradeAreaType}`;
+        return `${locationTypeCode} ${tradeAreaType}`;
       case TradeAreaTypeCodes.Radius:
-        return `${parent.clientLocationTypeCode} ${tradeAreaType} ${index + 1}`;
+        return `${locationTypeCode} ${tradeAreaType} ${index + 1}`;
     }
   }
 
@@ -85,7 +85,7 @@ export class ImpDomainFactoryService {
     const taNumber = tradeAreaType === TradeAreaTypeCodes.Radius ? index + 1 : parent.impGeofootprintTradeAreas.length + this.config.maxRadiusTradeAreas + 1;
     const result = new ImpGeofootprintTradeArea({
       taNumber: taNumber,
-      taName: ImpDomainFactoryService.createTradeAreaName(parent, tradeAreaType, index),
+      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impGeofootprintLocation: parent,
@@ -93,6 +93,17 @@ export class ImpDomainFactoryService {
     });
     parent.impGeofootprintTradeAreas.push(result);
     return result;
+  }
+
+  createUploadedTradeArea(siteType: SuccessfulLocationTypeCodes, index: number, radius: number) : ImpGeofootprintTradeArea {
+    return new ImpGeofootprintTradeArea({
+      taNumber: index + 1,
+      taName: ImpDomainFactoryService.createTradeAreaName(siteType, TradeAreaTypeCodes.Radius, index),
+      taRadius: radius,
+      taType: TradeAreaTypeCodes.Radius.toUpperCase(),
+      impGeofootprintLocation: null,
+      isActive: true
+    });
   }
 
   createGeo(parent: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number, isActive: boolean = true) : ImpGeofootprintGeo {
