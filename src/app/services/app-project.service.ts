@@ -28,7 +28,7 @@ import { ImpClientLocationType } from '../val-modules/client/models/ImpClientLoc
 import { Observable, EMPTY, BehaviorSubject } from 'rxjs';
 import { finalize, catchError, tap, concatMap } from 'rxjs/operators';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -46,6 +46,7 @@ export class AppProjectService extends DataStore<ImpProject>
                public impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
                public impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
+               public impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                public impGeofootprintVarService: ImpGeofootprintVarService,
                public userService: UserService,
                public appConfig: AppConfig,
@@ -65,6 +66,7 @@ export class AppProjectService extends DataStore<ImpProject>
 
    public clearProject(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
    {
+      this.impGeofootprintGeoAttribService.clearAll(notifySubscribers, inTransaction);
       this.impGeofootprintVarService.clearAll(notifySubscribers, inTransaction);
       this.impGeofootprintGeoService.clearAll(notifySubscribers, inTransaction);
       this.impGeofootprintTradeAreaService.clearAll(notifySubscribers, inTransaction);
@@ -481,7 +483,7 @@ export class AppProjectService extends DataStore<ImpProject>
 
          // TODO:
          // We now know that the typescript model needs to mirror the base model if we expect to use JSON.stringify (We definitely want to)
-         // need to alter the typescript models to emit booleans for the "is" variables
+         // need to alter the typescript models to emit booleans for the 'is' variables
          // The Java Base DAOs need to be altered.  The mapToEntity is not mapping the other foreign keys
          // from the parent.  ie. ImpGeofootprintGeos isn't getting cgmId, glId or projectId mapped.  Only its immediate parent, the gtaId is.
          // See:  https://stackoverflow.com/questions/23412408/how-do-i-get-hibernate-spring-jpa-to-auto-update-the-id-of-a-new-entity
@@ -660,12 +662,12 @@ export class AppProjectService extends DataStore<ImpProject>
    }
 
    public removeGeosFromHierarchy(impProject: ImpProject, removeGeos: ImpGeofootprintGeo[]) {
-      console.log("Before: ", impProject.toString());
+      console.log('Before: ', impProject.toString());
       impProject.impGeofootprintMasters.map(master => master.impGeofootprintLocations
                                                             .map(location => location.impGeofootprintTradeAreas
                                                             .map(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos
                                                                        .filter(geo => !removeGeos.includes(geo)))));
-      console.log("After: ", impProject.toString());
+      console.log('After: ', impProject.toString());
    }
 
    public pushStatusToHierarchy(impProject: ImpProject, status: DAOBaseStatus, clearId: boolean = false) {
@@ -707,7 +709,7 @@ export class AppProjectService extends DataStore<ImpProject>
                   locAttrib.cgmId = null;
                   locAttrib.projectId = null;
                }
-            })
+            });
             location.impGeofootprintTradeAreas.map(ta => {
                ta.baseStatus = status;
                if (clearId) {
@@ -734,7 +736,9 @@ export class AppProjectService extends DataStore<ImpProject>
                      geoVar.projectId = null;
                   }
                });
-            })})});
+            });
+         });
+      });
    }
 
 
