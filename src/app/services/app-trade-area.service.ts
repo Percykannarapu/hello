@@ -109,10 +109,14 @@ export class AppTradeAreaService {
     const tradeAreaSet = new Set<ImpGeofootprintTradeArea>(tradeAreas);
     // remove from the hierarchy
     locations.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
-    tradeAreas.forEach(ta => ta.impGeofootprintLocation = null);
     // delete from the data stores
     const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
     const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
+    tradeAreas.forEach(ta => {
+      ta.impGeofootprintLocation = null;
+      ta.impGeofootprintVars = [];
+    });
+    varsToRemove.forEach(v => v.impGeofootprintTradeArea = null);
     this.impTradeAreaService.remove(tradeAreas);
     if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
     this.appGeoService.deleteGeos(geosToRemove);
@@ -221,13 +225,14 @@ export class AppTradeAreaService {
       if (tradeAreas != null && tradeAreas.length > 0)
         for (let i = 0; i < tradeAreas.length; ++i) {
           if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
-            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius,attachToHierarchy));
+            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius, attachToHierarchy));
           }
         }
     });  
 
     return newTradeAreas;
   }
+
   public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = this.createRadiusTradeAreasForLocations(tradeAreas, locations);
     if (newTradeAreas.length > 0) {

@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
-import { map, tap, filter, startWith } from 'rxjs/operators';
+import { map, tap, filter, startWith, debounceTime } from 'rxjs/operators';
 import { UsageService } from './usage.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
@@ -60,10 +60,12 @@ export class TargetAudienceService implements OnDestroy {
     );
 
     this.newSelectedGeos$ = this.appStateService.uniqueSelectedGeocodes$.pipe(
+      debounceTime(500),
       map(geos => {
         const varGeos = new Set(this.varService.get().map(gv => gv.geocode));
         return geos.filter(g => !varGeos.has(g));
-      })
+      }),
+      filter(geos => geos.length > 0),
     );
 
     this.appStateService.projectIsLoading$.pipe(
