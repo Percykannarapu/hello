@@ -253,7 +253,7 @@ export class ValAudienceTradeareaService {
           }
           this.fetchData = false;
           const allLocations = this.stateService.currentMaster$.getValue().impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site');
-          const existingAudienceTAs = simpleFlatten(allLocations.map(l => l.impGeofootprintTradeAreas)).filter(ta => ta.taType === 'AUDIENCE');
+          const existingAudienceTAs = simpleFlatten(allLocations.map(l => l.impGeofootprintTradeAreas)).filter(ta => ta.taType === 'AUDIENCE' || ta.taType === 'HOMEGEO');
           if (existingAudienceTAs.length > 0) {
             this.appTradeAreaService.deleteTradeAreas(existingAudienceTAs);
           }
