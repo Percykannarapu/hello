@@ -412,7 +412,8 @@ export class AppGeoService {
 
   public filterGeosOnFlags(geos: ImpGeofootprintGeo[]) {
     this.filterGeosImpl(geos);
-    this.impGeoService.update(null, null);
+    this.impGeoService.makeDirty();
+    this.impAttributeService.makeDirty();
   }
 
   private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
