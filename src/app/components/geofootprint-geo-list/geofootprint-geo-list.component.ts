@@ -167,7 +167,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this._geoGrid.filterConstraints['distanceFilter'] = (value, filter): boolean => FilterData.numericFilter(value, filter, 2);
 
       // Whenever the project changes, update the grid export file name
-      this.impProjectService.storeObservable.subscribe(projects => this._geoGrid.exportFilename = "geo-grid-" + projects[0].projectId);
+      this.impProjectService.storeObservable.pipe(
+        filter(projects => projects != null && projects.length > 0 && projects[0] != null)
+      ).subscribe(projects => this._geoGrid.exportFilename = "geo-grid-" + projects[0].projectId);
 
       // ----------------------------------------------------------------------
       // Table filter observables
