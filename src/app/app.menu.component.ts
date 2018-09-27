@@ -400,21 +400,14 @@ export class AppMenuComponent implements OnInit {
                   this.impProjectService.saveProject().subscribe(impPro => {
                     const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                     this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
-                    this.clearProject();
-                    setTimeout(() => {
-                        this.clearProject();
-                    }, 1000);
-                }, err => {
+                  }, err => {
                     console.log('save error', err);
                     this.clearProject();
-                });
+                    }, () => this.clearProject());
                 },
                 reject: () => {
                   this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
                   this.clearProject();
-                  setTimeout(() => {
-                    this.clearProject();
-                  }, 1000);
                 }
             });
         }
@@ -429,7 +422,9 @@ export class AppMenuComponent implements OnInit {
 
         this.impGeofootprintLocationService.clearAll();
         this.impGeofootprintLocAttribService.clearAll();
+        
         this.impGeofootprintTradeAreaService.clearAll(); //this is not working
+
         this.impGeofootprintVarService.clearAll();
         this.impGeofootprintGeoService.clearAll();
         this.attributeService.clearAll();
@@ -454,7 +449,8 @@ export class AppMenuComponent implements OnInit {
          this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
          this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
          this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
-  
+
+ 
          const newProject = this.domainFactory.createProject();
          this.impProjectService.add([newProject]);
      }
