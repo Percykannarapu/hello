@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -26,6 +26,7 @@ export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCod
 export class AppTradeAreaService {
 
   private currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean }[]>();
+  private validAnalysisLevel$: Observable<string>;
 
   private mergeSpecs = new Map<(SuccessfulLocationTypeCodes), BehaviorSubject<TradeAreaMergeTypeCodes>>();
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
@@ -47,6 +48,7 @@ export class AppTradeAreaService {
     this.mergeSpecs.set(ImpClientLocationTypeCodes.Competitor, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
+    this.validAnalysisLevel$ = this.stateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable();
     this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable();
 
@@ -86,8 +88,22 @@ export class AppTradeAreaService {
     combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, ta, m));
     combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Competitor, ta, m));
 
+    this.setupAnalysisLevelGeoClearObservable();
+
     this.stateService.getClearUserInterfaceObs().subscribe(( ) => this.currentDefaults.clear());
 
+  }
+
+  private setupAnalysisLevelGeoClearObservable() {
+    // the core sequence only fires when analysis level changes
+    this.validAnalysisLevel$.pipe(
+      // need to enlist the latest geos and isLoading flag
+      withLatestFrom(this.impGeoService.storeObservable, this.stateService.projectIsLoading$),
+      // halt the sequence if the project is loading
+      filter(([analysisLevel, geos, isLoading]) => !isLoading),
+      // halt the sequence if there are no geos
+      filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
+    ).subscribe(() => this.clearAll());
   }
 
   private onLocationChange(locations: ImpGeofootprintLocation[]) {
@@ -211,6 +227,11 @@ export class AppTradeAreaService {
       });
       this.calculateStatsAndZoom(latitudes, longitudes);
     }
+  }
+
+  private clearAll() : void {
+    const allTradeAreas = this.impTradeAreaService.get();
+    this.deleteTradeAreas(allTradeAreas);
   }
 
   private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {

@@ -48,7 +48,6 @@ export class AppGeoService {
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
     this.setupGeoAttributeUpdateObservable();
-    this.setupAnalysisLevelGeoClearObservable();
     this.setupFilterGeosObservable();
     this.setupMapClickEventHandler();
   }
@@ -135,18 +134,6 @@ export class AppGeoService {
         filter(([geocodes, analysisLevel, isLoading]) => !isLoading))
       .subscribe(
         ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel));
-  }
-
-  private setupAnalysisLevelGeoClearObservable() {
-    // the core sequence only fires when analysis level changes
-    this.validAnalysisLevel$.pipe(
-      // need to enlist the latest geos and isLoading flag
-      withLatestFrom(this.impGeoService.storeObservable, this.appStateService.projectIsLoading$),
-      // halt the sequence if the project is loading
-      filter(([analysisLevel, geos, isLoading]) => !isLoading),
-      // halt the sequence if there are no geos
-      filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
-    ).subscribe(() => this.clearAllGeos(false, false, false, false));
   }
 
   private setupMapClickEventHandler() {
