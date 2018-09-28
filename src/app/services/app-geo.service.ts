@@ -345,7 +345,7 @@ export class AppGeoService {
     const includePob = !currentProject.isExcludePob;
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<number, ImpGeofootprintGeo[]> = groupByExtended(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only'))), attrib => Number(attrib.attributeValue), attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupByExtended(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), attrib => attrib.attributeValue, attrib => attrib.impGeofootprintGeo);
 
     if (includePob) {
       // If POB is turned on just care about the owner_group geos
@@ -374,7 +374,7 @@ export class AppGeoService {
         });
       }
     } else {
-      // If POB is turned of care about the owner_group geos and the pob geos
+      // If POB is turned off care about the owner_group geos and the pob geos
       if (ownerGroupGeosMap.has('VALASSIS')) {
         ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
           geo.isActive = includeValassis;
@@ -399,13 +399,19 @@ export class AppGeoService {
           } else geo['filterReasons'] = null;
         });
       }
-      if (pobGeosMap.has(1)) {
-        pobGeosMap.get(1).forEach(geo => {
+      if (pobGeosMap.has(1) || pobGeosMap.has('B')) {
+        
+        const centroidPobs = pobGeosMap.get(1) || [];
+        const topVarPobs = pobGeosMap.get('B') || [];
+        const allPobs = [...centroidPobs, ...topVarPobs];
+        
+        allPobs.forEach(geo => {
           geo.isActive = includePob;
           if (geo.isActive === false) {
             geo['filterReasons'] = 'Filtered because: POB';
           } else geo['filterReasons'] = null;
         });
+        
       }
     }
   }
@@ -414,6 +420,7 @@ export class AppGeoService {
     this.filterGeosImpl(geos);
     this.impGeoService.makeDirty();
     this.impAttributeService.makeDirty();
+
   }
 
   private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
