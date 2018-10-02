@@ -74,6 +74,7 @@ const stateCodeProcessor   = (data: string) => {
  wisconsin : 'WI',
  wyoming : 'WY'
 };
+  if (stateCodes[data.toLowerCase()] == null) throw new Error('Please check the spelling of the States in your upload file');
   return stateCodes[data.toLowerCase()];
 } ;
 
