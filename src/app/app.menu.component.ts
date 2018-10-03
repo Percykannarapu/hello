@@ -410,6 +410,7 @@ export class AppMenuComponent implements OnInit {
             () => {
               const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
               this.usageService.createCounterMetric(usageMetricName, null, newProjectId);
+              this.messageService.showSuccessNotification('Save Project', `Project ${newProjectId} was saved successfully`);
             }
           );
         }
