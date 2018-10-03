@@ -58,6 +58,8 @@ export class ImpProjectService extends DataStore<ImpProject>
          () => {
            loadCache.forEach(p => {
              p.convertToModel();
+             // as long as we're deleting everything prior to a save, everything has to be
+             // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
              p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
            });
            this.load(loadCache);

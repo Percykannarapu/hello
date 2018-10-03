@@ -370,18 +370,15 @@ export class AppMenuComponent implements OnInit {
                     const isValid = this.appProjectService.projectIsValid();
                     if (isValid) {
                       let newProjectId: number;
-                      this.messageService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
                       this.appProjectService.save(null, false).subscribe(
                         result => newProjectId = result,
                         err => {
                           console.error('There was an error saving the project', err);
                           this.messageService.showErrorNotification('Error Saving Project', 'There was an error saving the Project.');
-                          this.messageService.stopSpinnerDialog('SAVE_PROJECT');
                         },
                         () => {
                           const saveProjectMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
                           this.usageService.createCounterMetric(saveProjectMetric, null, newProjectId);
-                          this.messageService.stopSpinnerDialog('SAVE_PROJECT');
                           this.appStateService.clearUserInterface();
                           this.appProjectService.createNew();
                           this.usageService.createCounterMetric(createProjectMetric, null, null);
@@ -403,19 +400,16 @@ export class AppMenuComponent implements OnInit {
         const isValid = this.appProjectService.projectIsValid();
         if (isValid) {
           let newProjectId: number;
-          this.messageService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
           // save with no params = save current project, and reload after
           this.appProjectService.save().subscribe(
             result => newProjectId = result,
             err => {
               console.error('There was an error saving the project', err);
               this.messageService.showErrorNotification('Error Saving Project', 'There was an error saving the Project.');
-              this.messageService.stopSpinnerDialog('SAVE_PROJECT');
             },
             () => {
               const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
               this.usageService.createCounterMetric(usageMetricName, null, newProjectId);
-              this.messageService.stopSpinnerDialog('SAVE_PROJECT');
             }
           );
         }

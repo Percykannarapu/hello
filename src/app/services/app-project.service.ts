@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { TransactionManager } from '../val-modules/common/services/TransactionManager.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -32,12 +32,22 @@ export class AppProjectService {
     const inExistingTransaction: boolean = this.projectTransactionManager.inTransaction();
     if (!inExistingTransaction) this.projectTransactionManager.startTransaction();
     if (setLoadFlag) this.projectIsLoading.next(true);
-    return this.impProjectService.loadFromServer(id).pipe(
-      tap(null, null, () => {
-        if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();
-        if (setLoadFlag) this.projectIsLoading.next(false);
-      })
-    );
+    this.messagingService.startSpinnerDialog('LOAD_PROJECT', `Loading Project ${id}`);
+    return Observable.create(observer => {
+      this.impProjectService.loadFromServer(id).subscribe(
+        null,
+        err => {
+          this.messagingService.stopSpinnerDialog('LOAD_PROJECT');
+          observer.error(err);
+        },
+        () => {
+          this.messagingService.stopSpinnerDialog('LOAD_PROJECT');
+          if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();
+          if (setLoadFlag) this.projectIsLoading.next(false);
+          observer.next();
+          observer.complete();
+        });
+    });
   }
 
   save(project?: ImpProject, reloadAfter: boolean = true) : Observable<number> {
@@ -46,6 +56,7 @@ export class AppProjectService {
     this.projectTransactionManager.startTransaction();
     let newProjectId: number = null;
     if (reloadAfter) this.projectIsLoading.next(true);
+    this.messagingService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
     return Observable.create(observer => {
       this.cleanupProject(localProject);
       this.logger.info('Project being saved', JSON.stringify(localProject));
@@ -53,9 +64,11 @@ export class AppProjectService {
         response => newProjectId = response.payload,
         err => {
           this.projectTransactionManager.stopTransaction();
+          this.messagingService.stopSpinnerDialog('SAVE_PROJECT');
           observer.error(err);
         },
         () => {
+          this.messagingService.stopSpinnerDialog('SAVE_PROJECT');
           if (newProjectId != null && reloadAfter) {
             this.load(newProjectId, false).subscribe(
               null,

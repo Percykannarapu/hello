@@ -230,13 +230,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     private onLoadProject(event: { projectId: number }) : void {
       this.stateService.clearUserInterface();
-      this.messageService.startSpinnerDialog('LOAD_PROJECT', `Loading Project ${event.projectId}`);
       this.appProjectService.load(event.projectId).subscribe(
         null,
         err => {
           console.log('There was an error loading the project', err);
           this.messageService.showErrorNotification('Project Load', `There was an error loading Project ${event.projectId}`);
-          this.messageService.stopSpinnerDialog('LOAD_PROJECT');
         },
         () => {
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
@@ -247,7 +245,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           if (mappedAudience != null){
             this.targetAudienceService.applyAudienceSelection();
           }
-          this.messageService.stopSpinnerDialog('LOAD_PROJECT');
         });
       this.stateService.setLoadDialogVisibility(false);
       this.selectedListType = 'myProject';
