@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap, withLatestFrom, debounceTime } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
 import { EsriQueryService } from '../esri/services/esri-query.service';
-import { groupBy, simpleFlatten, groupByExtended, mapByExtended } from '../val-modules/common/common.utils';
+import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -21,7 +21,6 @@ import { AppMapService } from './app-map.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppStateService, Season } from './app-state.service';
 import { AppLoggingService } from './app-logging.service';
-import { filterArray } from '../val-modules/common/common.rxjs';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -87,9 +86,9 @@ export class AppGeoService {
    */
   private setupRadiusSelectionObservable() : void {
     // The root sequence is Radius only trade areas for Sites (not competitors)
-    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.projectIsLoading$).pipe(
+    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.applicationIsReady$).pipe(
       // halt the sequence if the project is still loading
-      filter(([tradeAreaMap, isLoading]) => !isLoading),
+      filter(([tradeAreaMap, isReady]) => isReady),
       // flatten the data to a 1-dimension array
       map(([tradeAreaMap]) => simpleFlatten(Array.from(tradeAreaMap.values()))),
       // keep all trade areas that have no geos and has not been marked complete
@@ -106,9 +105,9 @@ export class AppGeoService {
     // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
     combineLatest(this.locationService.storeObservable,
       this.impGeoService.storeObservable,
-      this.appStateService.projectIsLoading$).pipe(
+      this.appStateService.applicationIsReady$).pipe(
       // halt the sequence if the project is still loading
-      filter(([locations, geos, isLoading]) => !isLoading),
+      filter(([locations, geos, isReady]) => isReady),
       // keep only locations identified as sites
       map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
       // keep locations that have a home geocode identified
@@ -128,10 +127,10 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when any geocode is added to the data store
    */
   private setupGeoAttributeUpdateObservable() : void {
-    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, this.validAnalysisLevel$, this.appStateService.projectIsLoading$)
+    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
       .pipe(
         // halt the sequence if the project is loading
-        filter(([geocodes, analysisLevel, isLoading]) => !isLoading))
+        filter(([geocodes, analysisLevel, isReady]) => isReady))
       .subscribe(
         ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel));
   }
@@ -432,17 +431,12 @@ export class AppGeoService {
       if (attribute.geocode && geoMap.has(attribute.geocode)) {
         geoMap.get(attribute.geocode).forEach(geo => {
           geo.hhc = Number(isSummer ? attribute.hhld_s : attribute.hhld_w);
-          Object.entries(attribute).forEach(([k, v]) => {
-            const newAtt = new ImpGeofootprintGeoAttrib({
-              attributeCode: k,
-              attributeValue: v,
-              isActive: true,
-              impGeofootprintGeo: geo
-            });
-            if (geo.impGeofootprintGeoAttribs == null) geo.impGeofootprintGeoAttribs = [];
-            if (geo.impGeofootprintGeoAttribs.filter(a => a.attributeCode === k).length === 0) {
-              geo.impGeofootprintGeoAttribs.push(newAtt);
-              newAttributes.push(newAtt);
+          Object.entries(attribute).forEach(([k, v]: [string, any]) => {
+            try {
+              const newAttribute = this.domainFactory.createGeoAttribute(geo, k, v);
+              newAttributes.push(newAttribute);
+            } catch (err) {
+              console.error('Error creating geo attribute: ', { err, geo, attribute });
             }
           });
         });

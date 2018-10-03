@@ -10,14 +10,11 @@
  **/
 
 import { ImpProjectPref } from '../models/ImpProjectPref';
-import { AppConfig } from '../../../app.config';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { UserService } from '../../../services/user.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 
 const dataUrl = 'v1/imptargeting/base/impprojectpref/load';
@@ -25,16 +22,14 @@ const dataUrl = 'v1/imptargeting/base/impprojectpref/load';
 @Injectable()
 export class ImpProjectPrefService extends DataStore<ImpProjectPref>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               private restDataService: RestDataService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpProjectPref');
    }
 
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impProjectPrefs: ImpProjectPref[]): number {
+   public getTreeRemoveCount(impProjectPrefs: ImpProjectPref[]) : number {
       let count: number = 0;
       impProjectPrefs.forEach(impProjectPref => {
          count += this.dbRemoves.filter(remove => remove.projectPrefId === impProjectPref.projectPrefId).length;
@@ -48,7 +43,7 @@ export class ImpProjectPrefService extends DataStore<ImpProjectPref>
    }  
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpProjectPref[], filterOp: (impProject: ImpProjectPref) => boolean): ImpProjectPref[]
+   public prune(source: ImpProjectPref[], filterOp: (impProject: ImpProjectPref) => boolean) : ImpProjectPref[]
    {
       if (source == null || source.length === 0)
          return source;
@@ -70,26 +65,17 @@ export class ImpProjectPrefService extends DataStore<ImpProjectPref>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpProjectPref", "v1", removesPayload)
-                .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
-                     this.completeDBRemoves(removes);
-                     observer.next(postResultCode);
-                     observer.complete();
-                  });
+         return Observable.create(observer => {
+           this.postDBRemoves('Targeting', 'ImpProjectPref', 'v1', removesPayload)
+             .subscribe(postResultCode => {
+               console.log('post completed, calling completeDBRemoves');
+               this.completeDBRemoves(removes);
+               observer.next(postResultCode);
+               observer.complete();
+             });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

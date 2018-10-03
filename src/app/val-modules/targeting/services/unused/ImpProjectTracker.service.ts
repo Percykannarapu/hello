@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DataStore } from '../../common/services/datastore.service';
-import { RestDataService } from '../../common/services/restdata.service';
+import { DataStore } from '../../../common/services/datastore.service';
+import { RestDataService } from '../../../common/services/restdata.service';
 
 const projectTrakerUrl = 'v1/targeting/base/impimsprojectsview/search?q=impImsProjectsView';
 

@@ -124,7 +124,6 @@ import { AudienceTradeareaComponent } from './components/trade-area-tab/audience
 import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
-import { ImpProjectTrackerService } from './val-modules/targeting/services/ImpProjectTracker.service';
 import { ProjectComponent } from './components/project-dashboard/project.component';
 import { OnlineAudienceVlhComponent } from './components/target-audience/online-audience-vlh/online-audience-vlh.component';
 import { OnlineAudiencePixelComponent } from './components/target-audience/online-audience-pixel/online-audience-pixel.component';
@@ -268,8 +267,7 @@ import { BusinessSearchComponent } from './components/add-locations-tab/business
       CookieService,
       // from main application
       AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
-      AuthService, RadService, UsageService, UserService, ImpRadLookupService,
-      TargetAudienceService, ImpProjectTrackerService,
+      AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],

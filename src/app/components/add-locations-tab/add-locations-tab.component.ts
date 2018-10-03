@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { UsageService } from '../../services/usage.service';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
@@ -52,7 +52,7 @@ export class AddLocationsTabComponent implements OnInit {
     this.hasFailures$ = this.appLocationService.hasFailures$;
     this.totalCount$ = this.appLocationService.totalCount$;
     this.searchCategories$ = this.businessSearchService.getCategories();
-    this.appStateService.clearUserInterface.pipe(filter(clear => clear)).subscribe(() => {
+    this.appStateService.clearUI$.subscribe(() => {
       this.businessSearchComponent.clear();
     });
   }

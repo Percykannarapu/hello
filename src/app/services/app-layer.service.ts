@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { merge, Observable } from 'rxjs';
+import { combineLatest, merge, Observable } from 'rxjs';
 import { filter, finalize, tap } from 'rxjs/operators';
 import { LayerDefinition } from '../esri/layer-configuration';
 import { AppConfig } from '../app.config';
@@ -63,8 +63,8 @@ export class AppLayerService {
     //.pipe(filter(al => al != null && al.length > 0))
       .subscribe(al => this.setDefaultLayerVisibility(al));
 
-    this.appStateService.projectIsLoading$
-      .pipe(filter(isLoading => isLoading))
+    combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$)
+      .pipe(filter(([appIsReady, layersReady]) => !appIsReady && layersReady))
       .subscribe(() => this.clearClientLayers());
   }
 

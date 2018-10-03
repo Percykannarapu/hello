@@ -12,7 +12,7 @@ import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -80,14 +80,16 @@ export class TargetAudienceTdaService {
 
   private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private appStateService: AppStateService,
-              private projectVarService: ImpProjectVarService) {
-                this.appStateService.projectIsLoading$.subscribe(isLoading => {
-                  this.onLoadProject(isLoading);
-                });
-              }
+  constructor(private config: AppConfig,
+              private restService: RestDataService,
+              private usageService: UsageService,
+              private audienceService: TargetAudienceService,
+              private stateService: AppStateService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService) {
+    this.stateService.applicationIsReady$.subscribe(ready => {
+      this.onLoadProject(ready);
+    });
+  }
 
   private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
     const audience: AudienceDataDefinition = {
@@ -106,10 +108,10 @@ export class TargetAudienceTdaService {
     return audience;
   }
 
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
     try {
-      const project = this.appStateService.currentProject$.getValue();
+      const project = this.stateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
           const audience: AudienceDataDefinition = {
@@ -171,6 +173,8 @@ export class TargetAudienceTdaService {
       result.natlAvg = rawData.natlAvg;
       result.fieldconte = rawData.fieldconte;
     }
+    result.dirty = true;
+    result.baseStatus = DAOBaseStatus.INSERT;
     result.isCustom = false;
     for (const audience of this.audienceService.getAudiences()) {
       if (result.customVarExprDisplay === audience.audienceName && audience.audienceSourceName === 'TDA') {

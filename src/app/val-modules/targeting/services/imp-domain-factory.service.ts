@@ -6,14 +6,22 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
+import { TradeAreaTypeCodes } from '../targeting.enums';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
+import { UserService } from '../../../services/user.service';
+import { ImpProjectPref } from '../models/ImpProjectPref';
+import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { ImpProjectVar } from '../models/ImpProjectVar';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImpDomainFactoryService {
 
-  constructor(private config: AppConfig) {}
+  constructor(private config: AppConfig, private userService: UserService) {}
 
   private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
     switch (tradeAreaType) {
@@ -31,6 +39,12 @@ export class ImpDomainFactoryService {
 
   createProject() : ImpProject {
     const result = new ImpProject({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      createDate: new Date(Date.now()),
+      createUser: this.userService.getUser().userId,
+      modifyDate: new Date(Date.now()),
+      modifyUser: this.userService.getUser().userId,
       isActive: true,
       isIncludeAnne: true,
       isIncludeSolo: true,
@@ -50,63 +64,366 @@ export class ImpDomainFactoryService {
       isCircBudget: false,
       isDollarBudget: false,
       projectName: null,
-      projectId: null
+      projectId: null,
     });
     const master = new ImpGeofootprintMaster({
-      methSeason: null
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      createdDate: new Date(Date.now()),
+      methSeason: null,
+      status: 'SUCCESS',
+      summaryInd: 0,
+      isMarketBased: false,
+      isActive: true
     });
     master.impProject = result;
     result.impGeofootprintMasters.push(master);
     return result;
   }
 
-  createLocation(parent: ImpGeofootprintMaster, locationInfo: Partial<ImpGeofootprintLocation>) : ImpGeofootprintLocation {
-    if (parent == null) throw new Error('Location factory requires a valid ImpGeofootprintMaster instance');
-    const result = new ImpGeofootprintLocation(locationInfo);
-    result.impGeofootprintMaster = parent;
-    parent.impGeofootprintLocations.push(result);
-    return result;
+  createProjectVar(parent: ImpProject, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true, duplicatePksOverwrite: boolean = true) : ImpProjectVar {
+    if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
+    if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
+    const existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
+    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
+    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
+    const isCustom = audience.audienceSourceType === 'Custom';
+    if (existingVar == null) {
+      const projectVar = new ImpProjectVar();
+      projectVar.baseStatus = DAOBaseStatus.INSERT;
+      projectVar.dirty = true;
+      projectVar.varPk = varPk;
+      projectVar.isShadedOnMap = audience.showOnMap;
+      projectVar.isIncludedInGeoGrid = audience.showOnGrid;
+      projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+      projectVar.isNationalExtract = audience.exportNationally;
+      projectVar.indexBase = audience.selectedDataSet;
+      projectVar.fieldname = audience.audienceName;
+      projectVar.source = source;
+      projectVar.isCustom = isCustom;
+      projectVar.isString = false;
+      projectVar.isNumber = false;
+      projectVar.isUploaded = isCustom;
+      projectVar.isActive = true;
+      projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
+      projectVar.sortOrder = audience.audienceCounter;
+      projectVar.impProject = parent;
+      parent.impProjectVars.push(projectVar);
+      return projectVar;
+    } else {
+      existingVar.dirty = true;
+      existingVar.isShadedOnMap = audience.showOnMap;
+      existingVar.isIncludedInGeoGrid = audience.showOnGrid;
+      existingVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+      existingVar.isNationalExtract = audience.exportNationally;
+      existingVar.indexBase = audience.selectedDataSet;
+      existingVar.fieldname = audience.audienceName;
+      existingVar.source = source;
+      existingVar.isCustom = isCustom;
+      existingVar.isString = false;
+      existingVar.isNumber = false;
+      existingVar.isUploaded = isCustom;
+      existingVar.isActive = true;
+      existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
+      existingVar.sortOrder = audience.audienceCounter;
+      existingVar.impProject = parent;
+      if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
+      return existingVar;
+    }
   }
 
-  createLocationAttribute(parent: ImpGeofootprintLocation, code: string, value: string, isActive: boolean = true) : ImpGeofootprintLocAttrib {
-    if (parent == null) throw new Error('Location Attribute factory requires a valid ImpGeofootprintLocation instance');
-    const result = new ImpGeofootprintLocAttrib({
-      attributeCode: code,
-      attributeValue: value,
-      impGeofootprintLocation: parent,
-      isActive: isActive
+  createProjectPref(parent: ImpProject, code: string, type: string, value: string, isActive: boolean = true, duplicateCodesOverwrite: boolean = true) : ImpProjectPref {
+    if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
+    if (value == null) throw new Error('Project Preferences cannot have a null value');
+    const existingAttribute = parent.impProjectPrefs.find(la => la.attributeCode === code);
+    if (existingAttribute == null) {
+      const result = new ImpProjectPref({
+        dirty: true,
+        baseStatus: DAOBaseStatus.INSERT,
+        createDate: new Date(Date.now()),
+        createUser: this.userService.getUser().userId,
+        modifyDate: new Date(Date.now()),
+        modifyUser: this.userService.getUser().userId,
+        attributeCode: code,
+        attributeType: type,
+        attributeValue: value,
+        impProject: parent,
+        isActive: isActive
+      });
+      parent.impProjectPrefs.push(result);
+      return result;
+    } else {
+      if (duplicateCodesOverwrite) {
+        existingAttribute.dirty = true;
+        existingAttribute.attributeType = type;
+        existingAttribute.attributeValue = value;
+        existingAttribute.isActive = isActive;
+        existingAttribute.modifyDate = new Date(Date.now());
+        existingAttribute.modifyUser = this.userService.getUser().userId;
+        if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
+        return existingAttribute;
+      } else {
+        throw new Error('A duplicate Project Pref code addition was attempted');
+      }
+    }
+  }
+
+  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string) : ImpGeofootprintLocation {
+    if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
+    const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 
+      'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State', 
+      'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status', 'RADIUS1', 'RADIUS2', 'RADIUS3']);
+    const result = new ImpGeofootprintLocation({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      clientIdentifierId: 123, // Mandatory field, stubbing
+      clientLocationId: 123, // Mandatory field, stubbing
+      locationName: res.Name != null ? res.Name.trim() : '',
+      marketName: res.Market != null ? res.Market.trim() : '',
+      marketCode: res['Market Code'] != null ? res['Market Code'].trim() : '',
+      description: res['Description'] != null ? res['Description'].trim() : '',
+      groupName: res['Group'] != null ? res['Group'].trim() : '',
+      locAddress: res.Address,
+      locCity: res.City,
+      locState: res.State,
+      locZip: res.ZIP,
+      xcoord: Number(res.Longitude),
+      ycoord: Number(res.Latitude),
+      origAddress1: res['Original Address'] != null ? res['Original Address'].trim() : '' ,
+      origCity: res['Original City'] != null ? res['Original City'] : '',
+      origState: res['Original State'] != null ? res['Original State'].trim() : '',
+      origPostalCode: res['Original ZIP'] != null ? res['Original ZIP'].trim() : '' ,
+      recordStatusCode: res['Geocode Status'],
+      geocoderMatchCode: res['Match Code'],
+      geocoderLocationCode: res['Match Quality'],
+      clientIdentifierTypeCode: 'PROJECT_ID',
+      radius1: res['RADIUS1'],
+      radius2: res['RADIUS2'],
+      radius3: res['RADIUS3'],
+      isActive: true
     });
-    parent.impGeofootprintLocAttribs.push(result);
+    if (result.recordStatusCode === 'SUCCESS' || result.recordStatusCode === 'PROVIDED') {
+      result.clientLocationTypeCode = siteType;
+      result.xcoord = Number(res.Longitude);
+      result.ycoord = Number(res.Latitude);
+    } else {
+      result.clientLocationTypeCode = `Failed ${siteType}`;
+    }
+    if (analysisLevel != null) {
+      for (const key of Object.keys(res)) {
+        if (key.toLowerCase().startsWith('home')) {
+          switch (analysisLevel) {
+            case 'ZIP': {
+              if (key.toLowerCase().match('zip')) {
+                result.homeGeocode = res[key];
+              }
+              break;
+            }
+            case 'ATZ': {
+              if (key.toLowerCase().match('atz')) {
+                result.homeGeocode = res[key];
+              }
+              break;
+            }
+            case 'Digital ATZ': {
+              if (key.toLowerCase().match('digital') && key.toLowerCase().match('atz')) {
+                result.homeGeocode = res[key];
+              }
+              break;
+            }
+            case 'PCR': {
+              if (key.toLowerCase().match('carrier') && key.toLowerCase().match('route')) {
+                result.homeGeocode = res[key];
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (res.Number != null ) {
+      result.locationNumber = res.Number;
+    }
+    result.impProject = parent;
+    result.impGeofootprintMaster = parent.impGeofootprintMasters[0];
+    parent.impGeofootprintMasters[0].impGeofootprintLocations.push(result);
+    for (const [k, v] of Object.entries(res)) {
+      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k)) continue;
+      this.createLocationAttribute(result, k, v);
+    }
     return result;
   }
 
-  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHiearchy: boolean = true) : ImpGeofootprintTradeArea {
+  createLocationAttribute(parent: ImpGeofootprintLocation, code: string, value: string, isActive: boolean = true, duplicateCodesOverwrite: boolean = true) : ImpGeofootprintLocAttrib {
+    if (parent == null) throw new Error('Location Attribute factory requires a valid ImpGeofootprintLocation instance');
+    if (value == null) throw new Error('Location Attributes cannot have a null value');
+    const existingAttribute = parent.impGeofootprintLocAttribs.find(la => la.attributeCode === code);
+    if (existingAttribute == null) {
+      const result = new ImpGeofootprintLocAttrib({
+        dirty: true,
+        baseStatus: DAOBaseStatus.INSERT,
+        createDate: new Date(Date.now()),
+        createUser: this.userService.getUser().userId,
+        modifyDate: new Date(Date.now()),
+        modifyUser: this.userService.getUser().userId,
+        attributeCode: code,
+        attributeValue: value,
+        attributeType: 'PUMPKIN_SPICE_LATTE',
+        impGeofootprintLocation: parent,
+        isActive: isActive
+      });
+      parent.impGeofootprintLocAttribs.push(result);
+      return result;
+    } else {
+      if (duplicateCodesOverwrite) {
+        existingAttribute.dirty = true;
+        existingAttribute.attributeValue = value;
+        existingAttribute.isActive = isActive;
+        existingAttribute.modifyDate = new Date(Date.now());
+        existingAttribute.modifyUser = this.userService.getUser().userId;
+        if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
+        return existingAttribute;
+      } else {
+        throw new Error('A duplicate Location Attribute code addition was attempted');
+      }
+    }
+  }
+
+  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
+    const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
     const taNumber = tradeAreaType === TradeAreaTypeCodes.Radius ? index + 1 : parent.impGeofootprintTradeAreas.length + this.config.maxRadiusTradeAreas + 1;
     const result = new ImpGeofootprintTradeArea({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
       taNumber: taNumber,
       taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impGeofootprintLocation: parent,
-      isActive: parent.isActive ? isActive : parent.isActive
+      isActive: parent.isActive ? isActive : parent.isActive,
+      gtaId: null
     });
-    if (attachToHiearchy) parent.impGeofootprintTradeAreas.push(result);
+    if (existingTradeAreas.has(taNumber)) {
+      console.error('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
+      throw new Error('A duplicate trade area number addition was attempted');
+    }
+    if (attachToHierarchy) parent.impGeofootprintTradeAreas.push(result);
+    return result;
+  }
+
+  createGeoStringVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string, fullId: string, fieldDescription: string = '',
+                     fieldType: string = 'CHAR', fieldName: string = '', nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
+    if (parent == null) throw new Error('Geo Var factory requires a valid ImpGeofootprintTradeArea instance');
+    const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
+    const result = new ImpGeofootprintVar({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      geocode,
+      varPk,
+      customVarExprQuery: fullId,
+      isString: true,
+      isNumber: false,
+      isCustom: false,
+      valueString: value,
+      fieldconte: fieldType,
+      customVarExprDisplay: fieldDescription,
+      fieldname: fieldName,
+      natlAvg: nationalAvg,
+      isActive,
+      impGeofootprintTradeArea: parent,
+    });
+    if (existingVar != null) {
+      console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+      throw new Error('A duplicate GeoVar addition was attempted');
+    }
+    parent.impGeofootprintVars.push(result);
+    return result;
+  }
+
+  createGeoNumberVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: number, fullId: string, fieldType: string = 'INDEX',
+                     fieldDescription: string = '', fieldName: string = '', nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
+    if (parent == null) throw new Error('Geo Var factory requires a valid ImpGeofootprintTradeArea instance');
+    const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
+    const result = new ImpGeofootprintVar({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      geocode,
+      varPk,
+      customVarExprQuery: fullId,
+      isString: false,
+      isNumber: true,
+      isCustom: false,
+      valueNumber: value,
+      fieldconte: fieldType,
+      customVarExprDisplay: fieldDescription,
+      fieldname: fieldName,
+      natlAvg: nationalAvg,
+      isActive,
+      impGeofootprintTradeArea: parent,
+    });
+    if (existingVar != null) {
+      console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+      throw new Error('A duplicate GeoVar addition was attempted');
+    }
+    parent.impGeofootprintVars.push(result);
     return result;
   }
 
   createGeo(parent: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number, isActive: boolean = true) : ImpGeofootprintGeo {
     if (parent == null) throw new Error('Geo factory requires a valid ImpGeofootprintTradeArea instance');
+    const existingGeocodes = new Set(parent.impGeofootprintGeos.map(geo => geo.geocode));
     const result = new ImpGeofootprintGeo({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
       geocode: geocode,
       xcoord: x,
       ycoord: y,
       distance: distance,
       impGeofootprintLocation: parent.impGeofootprintLocation,
       impGeofootprintTradeArea: parent,
-      isActive: parent.isActive ? isActive : parent.isActive
+      isActive: parent.isActive ? isActive : parent.isActive,
+      ggId: null
     });
+    if (existingGeocodes.has(geocode)) {
+      console.error('A duplicate geocode addition was attempted: ', { newGeo: result });
+      throw new Error('A duplicate geocode addition was attempted');
+    }
     parent.impGeofootprintGeos.push(result);
     return result;
+  }
+
+  createGeoAttribute(parent: ImpGeofootprintGeo, code: string, value: string, isActive: boolean = true, duplicateCodesOverwrite: boolean = true) : ImpGeofootprintGeoAttrib {
+    if (parent == null) throw new Error('Geo Attribute factory requires a valid ImpGeofootprintGeo instance');
+    // if (value == null) throw new Error('Geo Attributes cannot have a null value');
+    const existingAttribute = parent.impGeofootprintGeoAttribs.find(la => la.attributeCode === code);
+    if (existingAttribute == null) {
+      const result = new ImpGeofootprintGeoAttrib({
+        dirty: true,
+        baseStatus: DAOBaseStatus.INSERT,
+        createDate: new Date(Date.now()),
+        createUser: this.userService.getUser().userId,
+        modifyDate: new Date(Date.now()),
+        modifyUser: this.userService.getUser().userId,
+        attributeCode: code,
+        attributeValue: value,
+        impGeofootprintGeo: parent,
+        isActive: isActive
+      });
+      parent.impGeofootprintGeoAttribs.push(result);
+      return result;
+    } else {
+      if (duplicateCodesOverwrite) {
+        existingAttribute.dirty = true;
+        existingAttribute.attributeValue = value;
+        existingAttribute.isActive = isActive;
+        existingAttribute.modifyDate = new Date(Date.now());
+        existingAttribute.modifyUser = this.userService.getUser().userId;
+        if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
+        return existingAttribute;
+      } else {
+        throw new Error('A duplicate Geo Attribute code addition was attempted');
+      }
+    }
   }
 }

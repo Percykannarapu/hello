@@ -11,8 +11,7 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -34,11 +33,10 @@ export class TargetAudienceCustomService {
 
   constructor(private messagingService: AppMessagingService, private usageService: UsageService,
               private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private varService: ImpGeofootprintVarService, private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private projectVarService: ImpProjectVarService) {
+              private varService: ImpGeofootprintVarService) {
                 
-                this.stateService.projectIsLoading$.subscribe(isLoading => {
-                  this.onLoadProject(isLoading);
+                this.stateService.applicationIsReady$.subscribe(isReady => {
+                  this.onLoadProject(isReady);
                 });
 
               }
@@ -60,8 +58,8 @@ export class TargetAudienceCustomService {
     return audience;
   }
 
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
     try {
       const project = this.stateService.currentProject$.getValue();
       // const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
@@ -140,6 +138,8 @@ export class TargetAudienceCustomService {
       result.fieldconte = 'INDEX';
       result.isNumber = true;
     }
+    result.dirty = true;
+    result.baseStatus = DAOBaseStatus.INSERT;
     result.isCustom = false;
     for (const audience of this.audienceService.getAudiences()) {
       if (fileName + column === audience.audienceSourceName + audience.audienceIdentifier) {

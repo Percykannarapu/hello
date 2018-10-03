@@ -14,7 +14,7 @@ import { simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -110,7 +110,7 @@ export class TargetAudienceOnlineService {
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
               private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService) {
+              private tradeAreaService: ImpGeofootprintTradeAreaService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
@@ -118,8 +118,8 @@ export class TargetAudienceOnlineService {
       [SourceTypes.Pixel, 'pixel']
     ]);
 
-    this.appStateService.projectIsLoading$.subscribe(isLoading => {
-      this.onLoadProject(isLoading);
+    this.appStateService.applicationIsReady$.subscribe(ready => {
+      this.onLoadProject(ready);
     });
   }
 
@@ -143,8 +143,8 @@ export class TargetAudienceOnlineService {
     return audience;
   }
 
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
     try {
       const project = this.appStateService.currentProject$.getValue();
       let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
@@ -240,6 +240,8 @@ export class TargetAudienceOnlineService {
         result.fieldconte = 'INDEX';
         result.isNumber = true;
       }
+      result.dirty = true;
+      result.baseStatus = DAOBaseStatus.INSERT;
     }
     return result;
   }

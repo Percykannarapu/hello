@@ -17,7 +17,7 @@ import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
 import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { distinctUntilArrayContentsChanged } from '../val-modules/common/common.rxjs';
+import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
@@ -52,23 +52,23 @@ export class AppTradeAreaService {
     this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable();
     this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable();
 
-    combineLatest(this.impLocationService.storeObservable, this.stateService.projectIsLoading$)
+    combineLatest(this.impLocationService.storeObservable, this.stateService.applicationIsReady$)
       .pipe(
-        filter(([locations, isLoading]) => !isLoading), // don't fire sub if project is loading
+        filter(([locations, isReady]) => isReady), // don't fire sub if project is loading
       )
       .subscribe(([locations]) => this.onLocationChange(locations));
 
     const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
       filter(tradeAreas => tradeAreas != null),
-      map((tradeAreas) => tradeAreas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
+      filterArray(ta => ta.taType.toUpperCase() === 'RADIUS')
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')),
-      distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')
+      // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
     const competitorTradeAreas$ = radiusTradeAreas$.pipe(
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')),
-      distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')
+      // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
 
     this.stateService.currentProject$.pipe(
@@ -90,17 +90,16 @@ export class AppTradeAreaService {
 
     this.setupAnalysisLevelGeoClearObservable();
 
-    this.stateService.getClearUserInterfaceObs().subscribe(( ) => this.currentDefaults.clear());
-
+    this.stateService.clearUI$.subscribe(() => this.currentDefaults.clear());
   }
 
   private setupAnalysisLevelGeoClearObservable() {
     // the core sequence only fires when analysis level changes
     this.validAnalysisLevel$.pipe(
       // need to enlist the latest geos and isLoading flag
-      withLatestFrom(this.impGeoService.storeObservable, this.stateService.projectIsLoading$),
+      withLatestFrom(this.impGeoService.storeObservable, this.stateService.applicationIsReady$),
       // halt the sequence if the project is loading
-      filter(([analysisLevel, geos, isLoading]) => !isLoading),
+      filter(([analysisLevel, geos, isReady]) => isReady),
       // halt the sequence if there are no geos
       filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
     ).subscribe(() => this.clearAll());

@@ -8,12 +8,9 @@
  **
  ** ImpGeofootprintLocAttrib.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { AppConfig } from '../../../app.config';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { UserService } from '../../../services/user.service';
 import { Injectable } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
@@ -24,16 +21,14 @@ const dataUrl = 'v1/targeting/base/impgeofootprintlocattrib/search?q=impGeofootp
 @Injectable()
 export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLocAttrib>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               private restDataService: RestDataService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintLocAttrib');
    }
 
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintLocAttribs: ImpGeofootprintLocAttrib[]): number {
+   public getTreeRemoveCount(impGeofootprintLocAttribs: ImpGeofootprintLocAttrib[]) : number {
       let count: number = 0;
       impGeofootprintLocAttribs.forEach(impGeofootprintLocAttrib => {
          count += this.dbRemoves.filter(remove => remove.locAttributeId === impGeofootprintLocAttrib.locAttributeId).length;
@@ -47,7 +42,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
    }  
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpGeofootprintLocAttrib[], filterOp: (impProject: ImpGeofootprintLocAttrib) => boolean): ImpGeofootprintLocAttrib[]
+   public prune(source: ImpGeofootprintLocAttrib[], filterOp: (impProject: ImpGeofootprintLocAttrib) => boolean) : ImpGeofootprintLocAttrib[]
    {
       if (source == null || source.length === 0)
          return source;
@@ -69,23 +64,21 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpGeofootprintLocAttrib", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpGeofootprintLocAttrib', 'v1', removesPayload)
                 .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
+                     console.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(removes);
                      observer.next(postResultCode);
                      observer.complete();
                   });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
    }
 
-   public sort (a: ImpGeofootprintLocAttrib, b: ImpGeofootprintLocAttrib): number
+   public sort (a: ImpGeofootprintLocAttrib, b: ImpGeofootprintLocAttrib) : number
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
@@ -110,7 +103,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
             return -1;
    }
 
-   public partition (p1: ImpGeofootprintLocAttrib, p2: ImpGeofootprintLocAttrib): boolean
+   public partition (p1: ImpGeofootprintLocAttrib, p2: ImpGeofootprintLocAttrib) : boolean
    {
       if (p1 == null || p2 == null)
       {
@@ -121,12 +114,5 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
       return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null)
              ? null : (p1.impGeofootprintLocation.locationNumber != p2.impGeofootprintLocation.locationNumber
                     || p1.attributeCode != p2.attributeCode);
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

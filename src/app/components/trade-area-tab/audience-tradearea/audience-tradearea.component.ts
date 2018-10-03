@@ -50,7 +50,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       this.updatedFormData.emit(f);
     });
 
-    this.stateService.getClearUserInterfaceObs().subscribe(() => {
+    this.stateService.clearUI$.subscribe(() => {
       this.clearFields();
     });
   }

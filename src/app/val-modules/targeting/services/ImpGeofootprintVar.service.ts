@@ -10,12 +10,9 @@
  **/
 
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { AppConfig } from '../../../app.config';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { UserService } from '../../../services/user.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
@@ -25,16 +22,14 @@ const dataUrl = 'v1/targeting/base/impgeofootprintvar/load';
 @Injectable()
 export class ImpGeofootprintVarService extends DataStore<ImpGeofootprintVar>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               private restDataService: RestDataService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintVar');
    }
 
-   // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintVars: ImpGeofootprintVar[]): number {
+  // Get a count of DB removes from children of these parents
+   public getTreeRemoveCount(impGeofootprintVars: ImpGeofootprintVar[]) : number {
       let count: number = 0;
       impGeofootprintVars.forEach(impGeofootprintVar => {
          count += this.dbRemoves.filter(remove => remove.gvId === impGeofootprintVar.gvId).length;
@@ -48,7 +43,7 @@ export class ImpGeofootprintVarService extends DataStore<ImpGeofootprintVar>
    }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpGeofootprintVar[], filterOp: (impProject: ImpGeofootprintVar) => boolean): ImpGeofootprintVar[]
+   public prune(source: ImpGeofootprintVar[], filterOp: (impProject: ImpGeofootprintVar) => boolean) : ImpGeofootprintVar[]
    {
       if (source == null || source.length === 0)
          return source;
@@ -70,26 +65,17 @@ export class ImpGeofootprintVarService extends DataStore<ImpGeofootprintVar>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpGeofootprintVar", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpGeofootprintVar', 'v1', removesPayload)
                .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
+                     console.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(removes);
                      observer.next(postResultCode);
                      observer.complete();
                   });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

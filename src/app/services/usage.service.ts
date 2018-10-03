@@ -8,12 +8,10 @@ import { UserService } from './user.service';
 import { DataStore } from '../val-modules/common/services/datastore.service';
 import { Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { map, mergeMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ImpMetricGauge } from '../val-modules/metrics/models/ImpMetricGauge';
-//import { HttpClient } from '@angular/common/http/src/client';
-import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { AppStateService } from './app-state.service';
 
 

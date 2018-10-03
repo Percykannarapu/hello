@@ -12,7 +12,7 @@ import { EsriMapService } from '../../../services/esri-map.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriMapComponent implements OnInit {
-  @Input() height: number = 400;
+  @Input() height: number;
   @Input() cursor: string;
 
   @Output() viewCreated = new EventEmitter<__esri.MapView>();
@@ -26,6 +26,7 @@ export class EsriMapComponent implements OnInit {
 
   public ngOnInit() {
     console.log('Initializing Esri Map Component');
+    this.height = 400;
     const newMapParams = Object.assign({}, this.config.esriAppSettings.defaultMapParams);
     newMapParams.basemap = EsriApi.BaseMap.fromId('streets');
     const map = new EsriApi.Map(newMapParams);
@@ -41,21 +42,5 @@ export class EsriMapComponent implements OnInit {
         .subscribe(result => this.viewChanged.emit(result.target));
       this.viewCreated.emit(this.mapService.mapView);
     });
-  }
-
-  private init() : void {
-    // this.esriMapService.onReady$.pipe(
-    //   filter(ready => ready),
-    //   take(1)
-    // ).subscribe(() => {
-    //   this.mapView = this.mapDispatch.getMapView();
-    //   this.appMapService.setupMap();
-    //   this.mapDispatch.onMapViewClick().subscribe(event => this.clickHandler(event));
-    //   this.mapDispatch.afterMapViewUpdate().subscribe(() => this.saveMapViewData(this.mapContainerEl));
-    //   this.setMapHeight();
-    //   this.setMapCenter();
-    //   this.setMapZoom();
-    //   this.setMapViewPoint();
-    // });
   }
 }

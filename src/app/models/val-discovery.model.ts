@@ -2,7 +2,6 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
-import { AppLoggingService } from '../services/app-logging.service';
 
 export class ValDiscoveryUIModel {
   projectId: number;

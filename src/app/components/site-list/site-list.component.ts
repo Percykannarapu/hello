@@ -217,7 +217,7 @@ export class SiteListComponent implements OnInit {
             target: this.selectedListType.toLowerCase() + '-list', action: 'delete' });
             this.siteListService.deleteLocations(allLocations);
             this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
-            this.appStateService.clearUserInterface.next(true);
+            this.appStateService.clearUserInterface();
             const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
             this.appStateService.setProvidedTradeAreas(false, siteCode );
          }

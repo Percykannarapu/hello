@@ -3,23 +3,18 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { Subject, BehaviorSubject, Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Subject, Observable } from 'rxjs';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppRendererService, OutlineSetup, SmartRendererSetup } from './app-renderer.service';
+import { AppRendererService } from './app-renderer.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { AppMapService, Coordinates } from './app-map.service';
-import { AppDiscoveryService } from './app-discovery.service';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AppConfig } from '../app.config';
 import { RestResponse } from '../models/RestResponse';
 import { TargetAudienceService } from './target-audience.service';
-import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
@@ -129,8 +124,8 @@ export class ValAudienceTradeareaService {
    * When a project is loaded we need to create an
    * AudienceTAConfig if we have the data available
    */
-  private onLoad(loading: boolean) {
-    if (loading) return;
+  private onLoad(ready: boolean) {
+    if (!ready) return;
     const project = this.stateService.currentProject$.getValue();
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue(),
@@ -218,7 +213,7 @@ export class ValAudienceTradeareaService {
    try {
      const validate: boolean | string[] = this.validateTradeArea();
      if (validate !== true) {
-       let growlMessage = [] ;
+       const growlMessage = [] ;
        for (const message of validate) {
         growlMessage.push(message);
        }
@@ -560,39 +555,6 @@ export class ValAudienceTradeareaService {
   }
 
   /**
-   * Create geoffotprint variables for the for the geos that are being selected
-   * @param pk The primary key of the new
-   * @param geocode The geocode of the new variable
-   * @param type The variable type, string or number
-   * @param fieldDisplay The display name of the new variable
-   * @param valueString If the type is a string, the string value
-   * @param valueNumber If the type is a number, the number value
-   * @param numberType If the number is a vlaue the number type, index or percent
-   */
-  private createGeoVar(pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
-    const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-    newVar.varPk = pk;
-    newVar.gvId = this.varService.getNextStoreId();
-    newVar.geocode = geocode;
-    newVar.isActive = true;
-    newVar.customVarExprDisplay = fieldDisplay;
-    if (type === 'string') {
-      newVar.valueString = valueString;
-      newVar.isString = true;
-      newVar.fieldconte = 'CHAR';
-    } else {
-      newVar.valueNumber = valueNumber;
-      newVar.isNumber = true;
-      if (numberType === 'index') {
-        newVar.fieldconte = 'INDEX';
-      } else {
-        newVar.fieldconte = 'PERCENT';
-      }
-    }
-    return newVar;
-  }
-
-  /**
    * Attach the mock variables to the 48152 location
    */
   private attachVariables() {
@@ -639,6 +601,6 @@ export class ValAudienceTradeareaService {
         // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
         this.fetchData = true;
       });
-      this.stateService.projectIsLoading$.subscribe(l => this.onLoad(l));
+      this.stateService.applicationIsReady$.subscribe(l => this.onLoad(l));
   }
 }

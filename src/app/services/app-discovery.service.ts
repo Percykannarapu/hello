@@ -1,4 +1,3 @@
-
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -12,7 +11,6 @@ import { filterByFields, mapBy } from '../val-modules/common/common.utils';
 import { mapArray } from '../val-modules/common/common.rxjs';
 import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
-import { RestResponse } from '../models/RestResponse';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {

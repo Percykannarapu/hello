@@ -29,7 +29,6 @@ export class ValMetricsService implements OnDestroy {
   private currentProject: ImpProject;
   private isWinter: boolean;
   private geoCpmMismatch: boolean;
-  private currentGeoAttributes: ImpGeofootprintGeoAttrib[] = [];
 
   public metrics$: Observable<MetricDefinition<any>[]>;
   public mismatch$: Observable<boolean>;
@@ -268,8 +267,8 @@ export class ValMetricsService implements OnDestroy {
     const attribute$ = this.attributeService.storeObservable.pipe(
       map(attributes => attributes.filter(a => a.isActive && a.impGeofootprintGeo.isActive))
     );
-    return combineLatest(attribute$, this.stateService.currentProject$, this.stateService.projectIsLoading$).pipe(
-      filter(([attributes, discovery, isLoading]) => !isLoading),
+    return combineLatest(attribute$, this.stateService.currentProject$, this.stateService.applicationIsReady$).pipe(
+      filter(([attributes, discovery, isReady]) => isReady),
       map(([attributes, discovery]) => this.updateDefinitions(attributes, discovery))
     );
   }
@@ -330,7 +329,6 @@ export class ValMetricsService implements OnDestroy {
           }, new Map<string, ImpGeofootprintGeoAttrib[]>())
           .forEach(uniqueAttributes => {
             values.push(definition.compositePreCalc(uniqueAttributes));
-            this.currentGeoAttributes = [...uniqueAttributes];
           });
       } else {
         attributesUniqueByGeo

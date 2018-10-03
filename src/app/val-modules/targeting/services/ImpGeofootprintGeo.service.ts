@@ -15,21 +15,14 @@ import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
 import { TradeAreaTypeCodes } from '../targeting.enums';
-import { ColumnDefinition } from './../../common/services/datastore.service';
-import { HttpClient } from '@angular/common/http';
-
-// Imports for exporting CSVs
-import { encode } from 'punycode';
+import { ColumnDefinition } from '../../common/services/datastore.service';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
-import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { AppMessagingService } from '../../../services/app-messaging.service';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
-import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectVar } from '../models/ImpProjectVar';
-import { ImpProjectVarService } from './ImpProjectVar.service';
-import { groupBy } from '../../common/common.utils';
+import { groupBy, simpleFlatten } from '../../common/common.utils';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -42,24 +35,28 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
-//   private impGeofootprintTradeAreas: ImpGeofootprintTradeArea[];
    private analysisLevelForExport: string;
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
    private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
    private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
 
-   constructor(private restDataService: RestDataService,
-               private projectTransactionManager: TransactionManager,
+   constructor(restDataService: RestDataService,
+               projectTransactionManager: TransactionManager,
                private messageService: AppMessagingService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
-               private impGeofootprintVarService: ImpGeofootprintVarService,
-               private impProjectVarService:ImpProjectVarService,
-               public http: HttpClient)
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
+   }
 
-//      impGeofootprintTradeAreaService.storeObservable.subscribe(tradeAreaData => this.onChangeTradeArea(tradeAreaData));
+   load(items: ImpGeofootprintGeo[]) : void {
+      // fix up fields that aren't part of convertToModel()
+      items.forEach(geo => {
+        geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
+      });
+      // load data stores
+      super.load(items);
+      this.impGeofootprintGeoAttribService.load(simpleFlatten(items.map(geo => geo.impGeofootprintGeoAttribs)));
    }
 
    // -----------------------------------------------------------
@@ -71,9 +68,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       {
          const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
 
-         return 'GeoFootPrint' + '_'+ ((impProjectId != null) ? impProjectId + '_' : '1')+'_'+ ((analysisLevel != null) ? analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
+         return 'GeoFootPrint' + '_' + ((impProjectId != null) ? impProjectId + '_' : '1') + '_' + ((analysisLevel != null) ? analysisLevel.toUpperCase() : '') + '_' + fmtDate + '.csv';
       }
-      catch(e)
+      catch (e)
       {
          return 'GeoFootPrint.csv';
       }
@@ -83,14 +80,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public setActive(setActiveData: ImpGeofootprintGeo | ImpGeofootprintGeo[] | ReadonlyArray<ImpGeofootprintGeo>, newIsActive: boolean)
    {
       if (Array.isArray(setActiveData))
-         for (let geo of setActiveData)
+         for (const geo of setActiveData)
             geo.isActive = newIsActive;
       else
          setActiveData.isActive = newIsActive;
    }
 
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintGeos: ImpGeofootprintGeo[]): number {
+   public getTreeRemoveCount(impGeofootprintGeos: ImpGeofootprintGeo[]) : number {
       let count: number = 0;
       impGeofootprintGeos.forEach(impGeofootprintGeo => {
          count += this.dbRemoves.filter(remove => remove.ggId === impGeofootprintGeo.ggId).length;
@@ -104,7 +101,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpGeofootprintGeo[], filterOp: (impProject: ImpGeofootprintGeo) => boolean): ImpGeofootprintGeo[]
+   public prune(source: ImpGeofootprintGeo[], filterOp: (impProject: ImpGeofootprintGeo) => boolean) : ImpGeofootprintGeo[]
    {
       if (source == null || source.length === 0)
          return source;
@@ -126,30 +123,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpGeofootprintGeo", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpGeofootprintGeo', 'v1', removesPayload)
                 .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
+                     console.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(removes);
                      observer.next(postResultCode);
                      observer.complete();
                   });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
    }
-
-   // -----------------------------------------------------------
-   // SUBSCRIPTION CALLBACK METHODS
-   // -----------------------------------------------------------
-   // public onChangeTradeArea(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
-   // {
-   //    this.impGeofootprintTradeAreas = impGeofootprintTradeAreas;
-   // }
-
 
    // -----------------------------------------------------------
    // EXPORT COLUMN HANDLER METHODS
@@ -163,70 +149,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       switch (analysisLevel)
       {
-         case 'ATZ':         varValue='VALATZ'; break;
-         case 'ZIP':         varValue='VALZI';  break;
-         case 'PCR':         varValue='VALCR';  break;
-         case 'DIGITAL ATZ': varValue='VALDIG'; break;
+         case 'ATZ':         varValue = 'VALATZ'; break;
+         case 'ZIP':         varValue = 'VALZI';  break;
+         case 'PCR':         varValue = 'VALCR';  break;
+         case 'DIGITAL ATZ': varValue = 'VALDIG'; break;
       }
       if (varValue == null)
          console.error ('Couldn\'t set varValue for analysisLevel: ' + analysisLevel);
 
       return varValue;
-   };
+   }
 
    public rank(arr, f) {
       return arr
       .map((x, i) => [x, i])
       .sort((a, b) => f(a[0], b[0]))
       .reduce((a, x, i, s) => (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]] : i + 1, a), []);
-   }
-
-   public XXXdenseRank(a, f, p) {
-      return a
-      .sort((a, b) => f(a, b))
-      .reduce((a, x, i, s, b = p) => {
-         // console.log('--[START]----------------------------------------------------');
-         // console.log('a', a);
-         // console.log('x', x);
-         // console.log('i', i);
-         // console.log('s', s);
-         // console.log('b', b);
-         // console.log('-----------');
-         // console.log('a', a.toString());
-         // if (i != 0)
-         // {
-         //    console.log ('s[i]   = ' + s[i].toString());
-         //    console.log ('s[i-1] = ' + s[i-1].toString());
-         // }
-
-         if (i == 0)
-         {
-            // a[i] = 0;
-            a[i] = s[i];
-            a[i].rank = 0;
-            //console.log('a initialized to 0');
-         }
-         else
-         {
-            if (b(s[i], s[i-1]))
-            {
-               //console.log('BREAK!');
-               a[i] = s[i];
-               a[i].rank = 0;
-            }
-            else
-            {
-               //console.log('NO BREAK! - i = ' + i + ' a.length: ' + a.length, 'a[i-1] = ' + a[i-1]);
-               //a[i] = a[i-1]+1;
-               a[i] = s[i];
-               a[i].rank = a[i-1].rank+1;
-               //a.rank = a[i-1]+1;
-            }
-         }
-         //console.log('==[STOP]=======================================================');
-         return a;
-      }
-      , []);
    }
 
    public defaultSort (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
@@ -287,8 +225,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (a.geocode === b.geocode)
       {
-      //    if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
-      //    {
        if (a.distance === b.distance)
             {
                if (a.hhc === b.hhc)
@@ -316,11 +252,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                else
                   return -1;
             }
-        /* } else
-            if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
-               return -1;
-            else
-               return 1;*/
          }
       else
          if (a.geocode > b.geocode)
@@ -329,114 +260,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             return -1;
    }
 
-   public partitionGeos (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo): boolean
+   public partitionGeos (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) : boolean
    {
-      // console.log ('IN PARTITION BY 2! - P1: ' + p1.impGeofootprintLocation.locationName + ', P2: ' + p2.impGeofootprintLocation.locationName);
-      // console.log('locationName 1: ' + ((p1 != null && p1.impGeofootprintLocation != null) ? p1.impGeofootprintLocation.locationName : null)
-      //         + ', locationName 2: ' + ((p2 != null && p2.impGeofootprintLocation != null) ? p2.impGeofootprintLocation.locationName : null)
-      //         + ' break?: ' + ((p1 == null || p1.impGeofootprintLocation == null ||
-      //                           p2 == null || p2.impGeofootprintLocation == null) ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName)));
       if (p1 == null || p2 == null)
       {
-//       console.log ('ImpGeofootprintGeo.service.partitionGeos - ', (p1 == null) ? 'p1 was null' : 'p2 was null');
          return false;
       }
 
       // Partition within Geocode
       return (p1 == null || p2 == null)
              ? null : (p1.geocode != p2.geocode);
-
-      // Partition within Site / Geocode
-      // return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null)
-      //        ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName
-      //               || p1.geocode != p2.geocode);
-   }
-
-   /*
-      callback
-         Function to execute on each element in the array, taking four arguments:
-         a  accumulator
-               The accumulator accumulates the callback's return values; it is the
-               accumulated value previously returned in the last invocation of the
-               callback, or initialValue, if supplied (see below).
-
-         x  currentValue
-               The current element being processed in the array.
-
-         i  currentIndex
-               The index of the current element being processed in the array. Starts at index 0, if an initialValue is provided, and at index 1 otherwise.
-
-         s  array
-               The array reduce() was called upon.
-   */
-   public denserankOld(arr, f, p) {
-      console.log('denserank.p = ', p);
-      return arr
-      .map((x, i) => [x, i])
-      .sort((a, b) => f(a[0], b[0]))
-//      .reduce((a, x, i, s) => (i > 0 && p(s[i - 1][0], x[0])) ? i+10000
-//                                                                : (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]]
-//                                                                                                               : i + 1, a), []);
-//      .reduce((a, x, i, s) => (i > 0 && p(s[i - 1][0], x[0])) ? a[s[i - 1][1]] : i + 1, a, []);
-
-// Need a new approach, below is just assigning 0-7 or 0-4 twice.
-
-      .reduce((a, x, i, s, b = p) => {
-         console.log('--[START]----------------------------------------------------');
-         console.log('a', a);
-         console.log('x', x);
-         console.log('i', i);
-         console.log('s', s);
-         console.log('b', b);
-         console.log('-----------');
-
-         console.log('a', a.toString());
-         if (i != 0)
-         {
-            console.log ('s[i]   = ' + s[i].toString());
-            console.log ('s[i-1] = ' + s[i-1].toString());
-         }
-
-      //   console.log('f(s[i - 1][0], x[0])', (i > 0) ? f(s[i - 1][0], x[0]) : null);
-         if (i == 0)
-         {
-            a[i] = 0;
-            console.log('a initialized to 0');
-         }
-         else
-         {
-//            if (b(s[i], s[i-1]))
-            if (b(s[i], s[i-1]))
-            {
-               console.log('BREAK!');
-               a[i] = 0;
-            }
-            else
-            {
-               console.log('NO BREAK!');
-               console.log('i = ' + i + ' a.length: ' + a.length);
-               console.log('a[i-1] = ' + a[i-1]);
-               a[i] = a[i-1]+1;
-            }
-         }
-         //    .reduce((a, x, i, s) => (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]] : i + 1, a), []);
-
-
-      //   if (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 )
-      //      a[s[i - 1][1]]
-      //   else
-      //      i + 1;
-         console.log('==[STOP]=======================================================');
-         return a;
-      }
-      , []);
-
-// .reduce((a, x, i, s, c) => (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0
-//                            ? a[s[i - 1][1]] : i + 1, a)
-//                            , []);
-
-//.reduce((a, x, i, s, c=0) => {(a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]] : i + 1, a), [];
-//         console.log('c: ' + c + ', i: ' + i); if (c >= 2) c = 0;});
    }
 
    public pl(msg) {
@@ -444,200 +277,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return msg;
    }
 
-   // a = the array
-   //
    public invokePartitionBy(arr, index)
    {
-      if (index >= arr.length-1)
+      if (index >= arr.length - 1)
          return false;
 
-      if (arr[index].impGeofootprintLocation != arr[index+1].impGeofootprintLocation)
-         return true;
-      else
-         return false;
-   }
-
-   public assignGeocodeRank()
-   {
-      const site1: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 1000, locationNumber: '10'});
-      const site2: ImpGeofootprintLocation = new ImpGeofootprintLocation({ glId: 2000, locationNumber: '20'});
-      const geoArray: Array<ImpGeofootprintGeo>  = [new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: site1, distance: 10, hhc: 1000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: site1, distance: 10, hhc: 2000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: site1, distance: 15, hhc: 200})
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: site1, distance: 5,  hhc: 3000})];
-
-      const geoArray2: Array<ImpGeofootprintGeo> = [new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: site1, distance: 10, hhc: 4})
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: site1, distance: 10, hhc: 3})
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: site1, distance: 10, hhc: 2})
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: site1, distance: 10, hhc: 1})];
-
-      const geoArray3: Array<ImpGeofootprintGeo> = [new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: site1, distance: 10, hhc: 1000})   // 3  3  3
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: site1, distance: 10, hhc: 2000})   // 2  1  2
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: site1, distance: 15, hhc: 200})    // 4  0  4
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: site1, distance: 5,  hhc: 3000})   // 1  2  1
-
-                                                   ,new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: site2, distance: 10, hhc: 1000})   // 3  7  7
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: site2, distance: 10, hhc: 2000})   // 2  5  6
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: site2, distance: 15, hhc: 200})    // 4  4  8
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: site2, distance: 5,  hhc: 3000})]; // 1  6  4
-
-      const geoArray4: Array<ImpGeofootprintGeo> = [new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site1'}), distance: 10, hhc: 1000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site1'}), distance: 10, hhc: 2000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site1'}), distance: 15, hhc: 200})
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site1'}), distance: 5,  hhc: 3000})
-
-                                                   ,new ImpGeofootprintGeo({geocode: '46038', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site2'}), distance: 10, hhc: 1000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46150', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site2'}), distance: 10, hhc: 2000})
-                                                   ,new ImpGeofootprintGeo({geocode: '46100', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site2'}), distance: 15, hhc: 200})
-                                                   ,new ImpGeofootprintGeo({geocode: '46099', impGeofootprintLocation: new ImpGeofootprintLocation({locationName: 'site2'}), distance: 5,  hhc: 3000})];
-/* Other tests
-      console.log('ranked list', this.rank([79, 5, 18, 5, 32, 1, 16, 1, 82, 13], (a, b) => b - a))
-
-      console.log('ranked geo list 1', this.rank(geoArray,  (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => a.distance < b.distance && a.hhc > b.hhc ));
-      console.log('ranked geo list 2', this.rank(geoArray2, (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => a.distance < b.distance && a.hhc > b.hhc ));
-*/
-/*
-      console.log('ranked geo list 3', this.rank(geoArray,  (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => {
-         if (a.distance < b.distance) return -1;
-         if (a.distance > b.distance) return 1;
-         if (a.hhc > b.hhc) return -1;
-         if (a.hhc < b.hhc) return  1;
-         return 0;
-      }));
-
-      // This is not working as intended.  Returns: 3, 2, 4, 1, 7, 6, 8, 4
-      //                               Needs to be: 3, 2, 4, 1, 3, 2, 4, 1
-      console.log('ranked geo list 4 - distance, hhc within site', this.rank(geoArray3,  (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => {
-         if (a.impGeofootprintLocation != b.impGeofootprintLocation) return 0;
-         if (a.distance < b.distance) return -1;
-         if (a.distance > b.distance) return 1;
-         if (a.hhc > b.hhc) return -1;
-         if (a.hhc < b.hhc) return  1;
-         return 0;
-      }));
-*/
-
-/* Put back when testing denserank
-      console.log('ranked geo list 5 - distance, hhc within site', this.denserank(geoArray3,  (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => {
-         if (a.impGeofootprintLocation != b.impGeofootprintLocation) return 0;
-         if (a.distance < b.distance) return -1;
-         if (a.distance > b.distance) return 1;
-         if (a.hhc > b.hhc) return -1;
-         if (a.hhc < b.hhc) return  1;
-         return 0;
-      },
-      (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) => {
-         //return false;
-         console.log ('IN PARTITION BY! - P1: ' + p1[0].impGeofootprintLocation.locationNumber + ', P2: ' + p2[0].impGeofootprintLocation.locationNumber);
-         // console.log('p1', p1);
-         // console.log('p1:  ' + p1.toString());
-         // console.log('geo: ' + p1[0].geocode);
-         // console.log('l1:  ' + p1[0].impGeofootprintLocation);
-         // console.log('N1:  ' + p1[0].impGeofootprintLocation.locationNumber);
-         // console.log('p2:  ',p2);
-         // console.log('p2:  ' + p2.toString());
-         console.log('locationNumber 1: ' + ((p1 != null && p1[0].impGeofootprintLocation != null) ? p1[0].impGeofootprintLocation.locationNumber : null)
-                 + ', locationNumber 2: ' + ((p2 != null && p2[0].impGeofootprintLocation != null) ? p2[0].impGeofootprintLocation.locationNumber : null)
-                 + ' break?: ' + ((p1 == null || p1[0].impGeofootprintLocation == null ||
-                                   p2 == null || p2[0].impGeofootprintLocation == null) ? null : (p1[0].impGeofootprintLocation.locationNumber != p2[0].impGeofootprintLocation.locationNumber)));
-         if (p1 == null || p2 == null)
-         {
-            console.log ((p1 == null) ? 'p1 was null' : 'p2 was null');
-            return false
-         }
-         return (p1 == null || p2 == null || p1[0].impGeofootprintLocation == null || p2[0].impGeofootprintLocation == null) ? null : p1[0].impGeofootprintLocation.locationNumber != p2[0].impGeofootprintLocation.locationNumber;
-      }));
-*/
-      // Just test sort
-      // return a["one"] - b["one"] || a["two"] - b["two"];
-
-//    less than zero,    -1 sort a before b
-//    greater than zero,  1 sort b before a
-//    equals zero,        0 leave a and b unchanged with respect to each other
-
-/* Works - Inline Method
-      console.log('ranked geo list 6 - just sort', this.denseRank(geoArray4,  (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) => {
-         if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
-         {
-            console.warn('sort criteria is null - a:', a, ', b: ', b)
-            return 0;
-         }
-
-         if (a.impGeofootprintLocation.locationName === b.impGeofootprintLocation.locationName)
-         {
-            if (a.distance === b.distance)
-            {
-               if (a.hhc === b.hhc)
-                  return 0;
-               else
-                  if (a.hhc > b.hhc)
-                     return -1;
-                  else
-                     return  1;
-            }
-            else
-            {
-               if (a.distance > b.distance)
-                  return 1;
-               else
-                  return -1;
-            }
-         }
-         else
-            if (a.impGeofootprintLocation.locationName >  b.impGeofootprintLocation.locationName)
-               return 1;
-            else
-               return -1;
-
-      }
-    ,(p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) => {
-         //return false;
-         console.log ('IN PARTITION BY 2! - P1: ' + p1.impGeofootprintLocation.locationName + ', P2: ' + p2.impGeofootprintLocation.locationName);
-         // console.log('p1', p1);
-         // console.log('p1:  ' + p1.toString());
-         // console.log('geo: ' + p1[0].geocode);
-         // console.log('l1:  ' + p1[0].impGeofootprintLocation);
-         // console.log('N1:  ' + p1[0].impGeofootprintLocation.locationNumber);
-         // console.log('p2:  ',p2);
-         // console.log('p2:  ' + p2.toString());
-         console.log('locationName 1: ' + ((p1 != null && p1.impGeofootprintLocation != null) ? p1.impGeofootprintLocation.locationName : null)
-                 + ', locationName 2: ' + ((p2 != null && p2.impGeofootprintLocation != null) ? p2.impGeofootprintLocation.locationName : null)
-                 + ' break?: ' + ((p1 == null || p1.impGeofootprintLocation == null ||
-                                   p2 == null || p2.impGeofootprintLocation == null) ? null : (p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName)));
-         if (p1 == null || p2 == null)
-         {
-            console.log ((p1 == null) ? 'p1 was null' : 'p2 was null');
-            return false
-         }
-         return (p1 == null || p2 == null || p1.impGeofootprintLocation == null || p2.impGeofootprintLocation == null) ? null : p1.impGeofootprintLocation.locationName != p2.impGeofootprintLocation.locationName;
-         })
-      );
-*/
-      console.log('ranked geo list 7 - denseRank', this.denseRank(geoArray4,  this.sortGeos, this.partitionGeos));
-
-/* ORIGINAL
-      ,(p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) => {
-         //return false;
-         console.log ('IN PARTITION BY 2! - P1: ' + p1[0].impGeofootprintLocation.locationName + ', P2: ' + p2[0].impGeofootprintLocation.locationName);
-         // console.log('p1', p1);
-         // console.log('p1:  ' + p1.toString());
-         // console.log('geo: ' + p1[0].geocode);
-         // console.log('l1:  ' + p1[0].impGeofootprintLocation);
-         // console.log('N1:  ' + p1[0].impGeofootprintLocation.locationNumber);
-         // console.log('p2:  ',p2);
-         // console.log('p2:  ' + p2.toString());
-         console.log('locationName 1: ' + ((p1 != null && p1[0].impGeofootprintLocation != null) ? p1[0].impGeofootprintLocation.locationName : null)
-                 + ', locationName 2: ' + ((p2 != null && p2[0].impGeofootprintLocation != null) ? p2[0].impGeofootprintLocation.locationName : null)
-                 + ' break?: ' + ((p1 == null || p1[0].impGeofootprintLocation == null ||
-                                   p2 == null || p2[0].impGeofootprintLocation == null) ? null : (p1[0].impGeofootprintLocation.locationName != p2[0].impGeofootprintLocation.locationName)));
-         if (p1 == null || p2 == null)
-         {
-            console.log ((p1 == null) ? 'p1 was null' : 'p2 was null');
-            return false
-         }
-         return (p1 == null || p2 == null || p1[0].impGeofootprintLocation == null || p2[0].impGeofootprintLocation == null) ? null : p1[0].impGeofootprintLocation.locationName != p2[0].impGeofootprintLocation.locationName;
-         })
-      );*/
+      return arr[index].impGeofootprintLocation != arr[index + 1].impGeofootprintLocation;
    }
 
    public calculateGeoRanks()
@@ -649,8 +294,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.denseRank(geos,  this.sortGeos, this.partitionGeos);
       console.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
 
-      for(let geo of geos) {
-         //if (this.config.debugMode) console.log('geocode: ', geo.geocode, ', rank: ', geo.rank, ', distance: ', geo.distance, ', hhc: ', geo.hhc);
+      for (const geo of geos) {
          if (geo.rank === 0)
             geo.isDeduped = 1;
          else
@@ -660,14 +304,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public sort(comparatorMethod)
    {
-     return this.get().sort((a, b) => comparatorMethod(a, b))
+     return this.get().sort((a, b) => comparatorMethod(a, b));
    }
 
    public exportVarStreetAddress(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
    {
-   // console.log('exportVar handler for #V-STREETADDRESS fired');
       let varValue: any;
-      let truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
+      const truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
       varValue = (geo != null && geo.impGeofootprintLocation != null)
                   ? '"' + geo.impGeofootprintLocation.locAddress + ', ' +
                           geo.impGeofootprintLocation.locCity    + ', ' +
@@ -675,26 +318,20 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                           truncZip + '"'
                   : null;
       return varValue;
-   };
+   }
 
    public exportVarTruncateZip(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
    {
-   // console.log('exportVar handler for #V-TRUNCATE_ZIP fired');
-      let varValue = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
-      return varValue;
-   };
+      return (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
+   }
 
    public exportVarIsHomeGeocode(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
    {
-   // console.log('exportVar handler for #V-IS_HOME_GEOCODE fired');
-      let varValue = (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
-   // console.log ('geo.geocode = ', geo.geocode, ', geo.impGeofootprintLocation.homeGeocode = ', (geo != null && geo.impGeofootprintLocation != null) ? geo.impGeofootprintLocation.homeGeocode : null);
-      return varValue;
-   };
+      return (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+   }
 
    public exportVarOwnerTradeArea(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
    {
-   // console.log('exportVar handler for #V-OWNER_TRADE_AREA fired');
       let varValue: any;
 
       if (geo != null && geo.impGeofootprintTradeArea != null)
@@ -716,28 +353,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
       else
          return null;
-/*
-      if (state.impGeofootprintTradeAreas == null)
-         varValue = null;
-      else
-      {
-         const radiuses : Array<number> = [(state.impGeofootprintTradeAreas.length >= 1) ? state.impGeofootprintTradeAreas[0].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 2) ? state.impGeofootprintTradeAreas[1].taRadius : 0
-                                          ,(state.impGeofootprintTradeAreas.length >= 3) ? state.impGeofootprintTradeAreas[2].taRadius : 0];
-         if (geo.distance < radiuses[0])
-            varValue = 'Trade Area 1';
-         else
-            if (geo.distance >= radiuses[0] &&
-               geo.distance <= radiuses[1])
-               varValue = 'Trade Area 2';
-            else
-               if (geo.distance > radiuses[1])
-                  varValue = 'Trade Area 3';
-               else
-                  varValue = 'Custom';
-      }*/
       return varValue;
-   };
+   }
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
       let result = '';
@@ -780,13 +397,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
-   // console.log('exportVar handler for #V-ATTRIBUTES fired');
       const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const usableVars = new Set(this.impProjectVarService.get()
+      const currentProject = allExportAttributes[0].impGeofootprintGeo.impGeofootprintLocation.impProject;
+      const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
                           .sort((a, b) => this.sortVars(a, b))
                           .map(pv => this.getProjectVarFieldName(pv)));
-      let usableGeoVars = this.impGeofootprintVarService.get().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
@@ -826,15 +443,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
 
-      this.varCache = groupBy(this.impGeofootprintVarService.get(), 'geocode');
-     
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
          this.messageService.showErrorNotification('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
          return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
       }
 
-      let exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
+      const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
       // TODO make this a part of the getExportFormat
       this.addAdditionalExportColumns(exportColumns, 17);
@@ -853,9 +468,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
    }
 
-   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO): ColumnDefinition<ImpGeofootprintGeo>[]
+   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO) : ColumnDefinition<ImpGeofootprintGeo>[]
    {
-      let result: string = '';
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = [];
 
       switch (exportFormat)
@@ -901,12 +515,5 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             break;
       }
       return exportColumns;
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

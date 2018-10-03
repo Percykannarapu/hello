@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import { Observable, Subject } from 'rxjs';    // See: https://github.com/ReactiveX/rxjs
 import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { AppStateService } from '../../../services/app-state.service';
 
 export enum MetricOperations {
    ADD,
@@ -18,9 +19,8 @@ export class MetricMessage
                public metrics?: Map<string, Map<string, string>>) { }
 }
 
-export class CounterMetrics{
-      constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
-      ){}
+export class CounterMetrics {
+      constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number){}
 }
 
 @Injectable()
@@ -31,9 +31,9 @@ export class MetricService
 
    private subject: Subject<MetricMessage> = new Subject<MetricMessage>();
 
-   constructor()
-   {
-      this.metrics = new Map<string, Map<string, string>> ();
+   constructor(private appStateService: AppStateService) {
+     this.metrics = new Map<string, Map<string, string>> ();
+     this.appStateService.clearUI$.subscribe(() => this.reset());
    }
 
    public getMetrics() {
@@ -178,5 +178,22 @@ export class MetricService
 
         return counterMetrics;
 
+   }
+
+   private reset() : void {
+     this.metrics.clear();
+     this.add('CAMPAIGN', 'Household Count', '0');
+     this.add('CAMPAIGN', 'IP Address Count', '0');
+     this.add('CAMPAIGN', 'Est. Total Investment', '0');
+     this.add('CAMPAIGN', 'Progress to Budget', '0');
+
+     this.add('AUDIENCE', 'Median Household Income', '0');
+     this.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
+     this.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+     this.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
+
+     this.add('PERFORMANCE', 'Predicted Response', '0');
+     this.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
+     this.add('PERFORMANCE', 'Cost per Response', '$0');
    }
 }

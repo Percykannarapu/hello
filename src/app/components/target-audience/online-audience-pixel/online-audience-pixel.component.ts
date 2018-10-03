@@ -3,9 +3,8 @@ import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } f
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TreeNode } from 'primeng/primeng';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { Subject } from 'rxjs/index';
+import { Subject } from 'rxjs';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../../services/usage.service';
 import { AppStateService } from '../../../services/app-state.service';
 
@@ -66,7 +65,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
+    this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
   }
 
   public selectVariable(event: TreeNode) : void {

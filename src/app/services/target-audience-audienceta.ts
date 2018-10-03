@@ -17,6 +17,7 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
 import { UsageService } from './usage.service';
+import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 interface AudienceTradeareaResponse {
     maxRadius: number;
@@ -63,7 +64,6 @@ export class TargetAudienceAudienceTA {
     private varPkCache: Map<string, number> = new Map<string, number>();
     private geoVarMap: Map<string, string> = new Map<string, string>();
     private geoVarFieldMap: Map<string, string> = new Map<string, string>();
-    private counter = 0;
 
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
         private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
@@ -80,19 +80,19 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
 
-        this.appStateService.projectIsLoading$.subscribe(loading => this.onLoadProject(loading));
+        this.appStateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
 
     }
 
-    private onLoadProject(loading: boolean) {
-        if (loading) return; // loading will be false when the load is actually done
+    private onLoadProject(ready: boolean) {
+        if (!ready) return; // loading will be false when the load is actually done
         try {
             const project = this.appStateService.currentProject$.getValue();
             let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
             projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
             if (projectVars.length > 0) {
                 for (const projectVar of projectVars) {
-                    const audience: AudienceDataDefinition = {
+                    const currentAudience: AudienceDataDefinition = {
                         audienceName: projectVar.fieldname,
                         audienceIdentifier: projectVar.varPk.toString(),
                         audienceSourceType: 'Online',
@@ -107,7 +107,7 @@ export class TargetAudienceAudienceTA {
                     };
                     this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
                     this.audienceService.addAudience(
-                        audience,
+                        currentAudience,
                         (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
                         null);
                 }
@@ -117,7 +117,7 @@ export class TargetAudienceAudienceTA {
         }
     }
 
-    private reloadAudienceTaConfig(): AudienceTradeAreaConfig {
+    private reloadAudienceTaConfig() : AudienceTradeAreaConfig {
         const audienceTALocations = new Array<AudienceTradeareaLocation>();
         for (const location of this.appStateService.currentProject$.getValue().getImpGeofootprintLocations()) {
             const audienceTALocation: AudienceTradeareaLocation = {
@@ -129,7 +129,7 @@ export class TargetAudienceAudienceTA {
             audienceTALocations.push(audienceTALocation);
         }
         const project = this.appStateService.currentProject$.getValue();
-        const audienceTAConfig: AudienceTradeAreaConfig = {
+        return {
             analysisLevel: this.appStateService.analysisLevel$.getValue(),
             digCategoryId: project.audTaVarPk,
             locations: audienceTALocations,
@@ -139,10 +139,9 @@ export class TargetAudienceAudienceTA {
             weight: project.audTaVarWeight,
             includeMustCover: null
         };
-        return audienceTAConfig;
     }
 
-    private reloadSecondaryId(projectVar: ImpProjectVar): string {
+    private reloadSecondaryId(projectVar: ImpProjectVar) : string {
         for (const key of Array.from(this.geoVarMap.keys())) {
             if (projectVar.fieldname.includes(key)) {
                 return key;
@@ -250,6 +249,8 @@ export class TargetAudienceAudienceTA {
         newVar.customVarExprDisplay = fieldDisplay;
         newVar.fieldname = audienceName;
         newVar.isCustom = false;
+        newVar.dirty = true;
+        newVar.baseStatus = DAOBaseStatus.INSERT;
         if (type === 'string') {
             newVar.valueString = valueString;
             newVar.isString = true;

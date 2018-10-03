@@ -10,10 +10,11 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import * as XLSX from 'xlsx';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService } from './app-state.service';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
+import { AppProjectService } from './app-project.service';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -49,11 +50,12 @@ export class TargetAudienceService implements OnDestroy {
 
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
-              private projectService: ImpProjectService,
+              private projectService: AppProjectService,
               private usageService: UsageService,
               private messagingService: AppMessagingService,
               private config: AppConfig,
-              private projectVarService: ImpProjectVarService) {
+              private projectVarService: ImpProjectVarService,
+              private domainFactory: ImpDomainFactoryService) {
     this.newVisibleGeos$ = this.appStateService.uniqueVisibleGeocodes$.pipe(
       tap(() => this.clearShadingData()),   // and clear the data cache
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
@@ -68,7 +70,7 @@ export class TargetAudienceService implements OnDestroy {
       filter(geos => geos.length > 0),
     );
 
-    this.appStateService.projectIsLoading$.pipe(
+    this.projectService.projectIsLoading$.pipe(
       filter(loading => loading),
     ).subscribe(() => {
       this.audienceMap.clear();
@@ -143,32 +145,8 @@ export class TargetAudienceService implements OnDestroy {
       }
     }
     const currentProject = this.appStateService.currentProject$.getValue();
-    const projectVar = new ImpProjectVar();
-    try {
-      const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
-      projectVar.pvId = id ? id : null;
-      projectVar.baseStatus = DAOBaseStatus.INSERT;
-      projectVar.varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
-      projectVar.isShadedOnMap = audience.showOnMap;
-      projectVar.isIncludedInGeoGrid = audience.showOnGrid;
-      projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
-      projectVar.isNationalExtract = audience.exportNationally;
-      projectVar.indexBase = audience.selectedDataSet;
-      projectVar.fieldname = audience.audienceName;
-      projectVar.source = source;
-      projectVar.isCustom = audience.audienceSourceType.match('Custom') ? true : false;
-      projectVar.isString = false;
-      projectVar.isNumber = false;
-      projectVar.isUploaded = audience.audienceSourceType.match('Custom') ? true : false;
-      projectVar.isActive = true;
-      projectVar.uploadFileName = audience.audienceSourceType.match('Custom') ? audience.audienceSourceName : '';
-      projectVar.sortOrder = audience.audienceCounter;
-      projectVar.impProject = currentProject;
-      currentProject.impProjectVars.push(projectVar);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    const varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
+    const projectVar = this.domainFactory.createProjectVar(currentProject, varPk, audience);
     return projectVar;
   }
 

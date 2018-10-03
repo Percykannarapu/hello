@@ -24,7 +24,7 @@ export class AppGeocodingService {
               private config: AppConfig,
               private appStateService: AppStateService) {
     this.clearDuplicates();
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearDuplicates());
+    this.appStateService.clearUI$.subscribe(() => this.clearDuplicates());
   }
 
   public createRequestsFromRaw(dataRows: string[], siteType: SuccessfulLocationTypeCodes, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {

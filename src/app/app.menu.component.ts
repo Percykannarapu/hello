@@ -2,7 +2,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MenuItem } from 'primeng/primeng';
 import { AppComponent } from './app.component';
-import { ImpGeofootprintMaster } from './val-modules/targeting/models/ImpGeofootprintMaster';
 import { ImpGeofootprintGeoService, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpMetricName } from './val-modules/metrics/models/ImpMetricName';
@@ -14,7 +13,6 @@ import { ConfirmationService } from 'primeng/components/common/confirmationservi
 import { Subject } from 'rxjs';
 import { AppStateService } from './services/app-state.service';
 import { withLatestFrom, map, tap } from 'rxjs/operators';
-import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { UserService } from './services/user.service';
 import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -23,15 +21,6 @@ import { AppMessagingService } from './services/app-messaging.service';
 import { AppProjectService } from './services/app-project.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { AppConfig } from './app.config';
-import { EsriMapService } from './esri/services/esri-map.service';
-import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
-import { EsriLayerService } from './esri/services/esri-layer.service';
-import { AppLocationService } from './services/app-location.service';
-import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
-import { FileService } from './val-modules/common/services/file.service';
-import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
-import { ImpClientLocationTypeCodes } from './val-modules/targeting/targeting.enums';
 
 
 @Component({
@@ -69,11 +58,7 @@ export class AppMenuComponent implements OnInit {
         private appProjectService: AppProjectService,
         private messageService: AppMessagingService,
         private appConfig: AppConfig,
-        private impGeofootprintVarService: ImpGeofootprintVarService,
-        private impGeofootprintMasterService: ImpGeofootprintMasterService,
-        private domainFactory: ImpDomainFactoryService,
-        private impProjectPrefService: ImpProjectPrefService
-        ) { } 
+        ) { }
 
     ngOnInit() {
         // sets up a subscription for the menu click event on the National Export.
@@ -369,107 +354,71 @@ export class AppMenuComponent implements OnInit {
     }
 
     public openExisting(){
-      this.appProjectService.ngDialog.next(true);
+      this.appStateService.setLoadDialogVisibility(true);
     }
 
     public createNewProject(){
-        let usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'new' });
-        if ( this.impGeofootprintLocationService.get().length > 0 || this.impGeofootprintGeoService.get().length > 0){
+        const newProjectMetric: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'new' });
+        const createProjectMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
+        if ( this.impGeofootprintLocationService.get().length > 0){
             this.confirmationService.confirm({
                 message: 'Would you like to save your work before proceeding?',
                 header: 'Save Work',
                 icon: 'ui-icon-project',
                 accept: () => {
-                    const impProjects: ImpProject[] = [];
-                    const impProject = this.appStateService.currentProject$.getValue();
-
-                    //~
-                    this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=Yes', null);
-                    usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'create' });
-                    this.usageService.createCounterMetric(usageMetricName, null, null);
-                    this.appStateService.projectId$.getValue();
-                    let errorString = '';
-                    if (impProject.projectName == null || impProject.projectName == '')
-                        errorString = 'imPower Project Name is required';
-                    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-                        errorString  = errorString + '\n Analysis Level is required';
-                    if (errorString !== ''){
-                        this.messageService.showErrorNotification('Error Saving Project', errorString);
-                        return;
+                    this.usageService.createCounterMetric(newProjectMetric, 'SaveExisting=Yes', null);
+                    const isValid = this.appProjectService.projectIsValid();
+                    if (isValid) {
+                      let newProjectId: number;
+                      this.messageService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
+                      this.appProjectService.save(null, false).subscribe(
+                        result => newProjectId = result,
+                        err => {
+                          console.error('There was an error saving the project', err);
+                          this.messageService.showErrorNotification('Error Saving Project', 'There was an error saving the Project.');
+                          this.messageService.stopSpinnerDialog('SAVE_PROJECT');
+                        },
+                        () => {
+                          const saveProjectMetric = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+                          this.usageService.createCounterMetric(saveProjectMetric, null, newProjectId);
+                          this.messageService.stopSpinnerDialog('SAVE_PROJECT');
+                          this.appStateService.clearUserInterface();
+                          this.appProjectService.createNew();
+                          this.usageService.createCounterMetric(createProjectMetric, null, null);
+                        }
+                      );
                     }
-                  this.impProjectService.saveProject().subscribe(impPro => {
-                    const usageMetricSave = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-                    this.usageService.createCounterMetric(usageMetricSave, null, impPro.projectId);
-                  }, err => {
-                    console.log('save error', err);
-                    this.clearProject();
-                    }, () => this.clearProject());
                 },
                 reject: () => {
-                  this.usageService.createCounterMetric(usageMetricName, 'SaveExisting=No', null);
-                  this.clearProject();
+                  this.usageService.createCounterMetric(newProjectMetric, 'SaveExisting=No', null);
+                  this.appStateService.clearUserInterface();
+                  this.appProjectService.createNew();
+                  this.usageService.createCounterMetric(createProjectMetric, null, null);
                 }
             });
         }
-
     }
 
-
-    public clearProject(){
-        this.impGeofootprintMasterService.clearAll();
-        this.impProjectService.clearAll();
-        this.impProjectPrefService.clearAll();
-
-        this.impGeofootprintLocationService.clearAll();
-        this.impGeofootprintLocAttribService.clearAll();
-        
-        this.impGeofootprintTradeAreaService.clearAll(); //this is not working
-
-        this.impGeofootprintVarService.clearAll();
-        this.impGeofootprintGeoService.clearAll();
-        this.attributeService.clearAll();
-
-        this.metricService.metrics.clear();
-        this.messageService.clearNotifications();
-        this.appStateService.setProvidedTradeAreas(false, ImpClientLocationTypeCodes.Site);
-        this.appStateService.setProvidedTradeAreas(false, ImpClientLocationTypeCodes.Competitor);
-        this.appStateService.clearUserInterface.next(true);
-
-         
-         this.metricService.add('CAMPAIGN', 'Household Count', '0');
-         this.metricService.add('CAMPAIGN', 'IP Address Count', '0');
-         this.metricService.add('CAMPAIGN', 'Est. Total Investment', '0');
-         this.metricService.add('CAMPAIGN', 'Progress to Budget', '0');
-  
-         this.metricService.add('AUDIENCE', 'Median Household Income', '0');
-         this.metricService.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
-         this.metricService.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
-         this.metricService.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
-  
-         this.metricService.add('PERFORMANCE', 'Predicted Response', '0');
-         this.metricService.add('PERFORMANCE', 'Predicted Topline Sales Generated', '$0');
-         this.metricService.add('PERFORMANCE', 'Cost per Response', '$0');
-
- 
-         const newProject = this.domainFactory.createProject();
-         this.impProjectService.add([newProject]);
-     }
-
     private saveProject(){
-        const impProject = this.appStateService.currentProject$.getValue();
-        let errorString = '';
-        if (impProject.projectName == null || impProject.projectName == '')
-            errorString = 'imPower Project Name is required';
-        if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-            errorString  = errorString + '\n Analysis Level is required';
-        if (errorString !== ''){
-            this.messageService.showErrorNotification('Error Saving Project', errorString);
-            return;
+        const isValid = this.appProjectService.projectIsValid();
+        if (isValid) {
+          let newProjectId: number;
+          this.messageService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
+          // save with no params = save current project, and reload after
+          this.appProjectService.save().subscribe(
+            result => newProjectId = result,
+            err => {
+              console.error('There was an error saving the project', err);
+              this.messageService.showErrorNotification('Error Saving Project', 'There was an error saving the Project.');
+              this.messageService.stopSpinnerDialog('SAVE_PROJECT');
+            },
+            () => {
+              const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
+              this.usageService.createCounterMetric(usageMetricName, null, newProjectId);
+              this.messageService.stopSpinnerDialog('SAVE_PROJECT');
+            }
+          );
         }
-        this.impProjectService.saveProject().subscribe(impPro => {
-            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-            this.usageService.createCounterMetric(usageMetricName, null, impPro.projectId);
-        });
     }
 }
 

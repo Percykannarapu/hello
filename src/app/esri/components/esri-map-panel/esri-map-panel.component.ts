@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EsriApi } from '../../core/esri-api.service';
 import { EsriSketchViewWrapper } from '../../core/esri-sketch-view-wrapper';
@@ -21,10 +21,17 @@ export class EsriMapPanelComponent implements OnInit {
   private currentMapView: __esri.MapView;
 
   currentMapState = new BehaviorSubject<MapStateTypeCodes>(MapStateTypeCodes.Popups);
+  height$ = new Subject<number>();
   cursor$: Observable<string>;
   MapStateTypeCodes = MapStateTypeCodes;
 
-  @Input() mapHeight: number;
+  @Input() set mapHeight(val: number) {
+    if (val > 100) {
+      this.height$.next(val);
+    } else {
+      this.height$.next(400);
+    }
+  }
 
   @Output() polySelected = new EventEmitter<__esri.Graphic[]>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();

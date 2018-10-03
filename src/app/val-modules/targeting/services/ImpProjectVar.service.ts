@@ -10,32 +10,19 @@
  **/
 
 import { ImpProjectVar } from '../models/ImpProjectVar';
-import { AppConfig } from '../../../app.config';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { UserService } from '../../../services/user.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
 
 const dataUrl = 'v1/imptargeting/base/impprojectvar/load';
 
 @Injectable()
 export class ImpProjectVarService extends DataStore<ImpProjectVar>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               private restDataService: RestDataService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpProjectVar');
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

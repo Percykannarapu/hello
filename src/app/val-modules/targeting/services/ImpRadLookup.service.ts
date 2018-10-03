@@ -1,7 +1,6 @@
 import { DataStore } from '../../common/services/datastore.service';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
@@ -9,14 +8,8 @@ const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
 @Injectable()
 export class ImpRadLookupService extends DataStore<ImpRadLookup>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, radDataUrl); }
+   constructor(restDataService: RestDataService) {super(restDataService, radDataUrl); }
 
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
-   }
 }
 
    // We want ng modules probably by domain, that contain
