@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, withLatestFrom, take } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -198,23 +198,28 @@ export class AppTradeAreaService {
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0) {
       // analysisLevel exists - zoom to Trade Area
       const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, false);
-      const geocodes = this.stateService.uniqueIdentifiedGeocodes$.getValue();
-      if (layerId == null || geocodes == null || geocodes.length === 0) return;
-      const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
-      query$.subscribe(
-        selections => {
-          selections.forEach(g => {
-            if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
-              latitudes.push(Number(g.attributes.latitude));
-            }
-            if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
-              longitudes.push(Number(g.attributes.longitude));
-            }
-          });
-        },
+      if(layerId == null) return;
+      this.stateService.uniqueIdentifiedGeocodes$.pipe(
+        filter(geos => geos != null && geos.length > 0),
+        take(1)
+      ).subscribe(geocodes => {
+        const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
+        query$.subscribe(
+          selections => {
+            selections.forEach(g => {
+              if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
+                latitudes.push(Number(g.attributes.latitude));
+              }
+              if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
+                longitudes.push(Number(g.attributes.longitude));
+              }
+            });
+          },
         err => { console.error('Error getting lats and longs from layer', err); },
         () => this.calculateStatsAndZoom(latitudes, longitudes)
       );
+      })
+      
     } else {
       // analysisLevel doesn't exist yet - zoom to site list
       const currentSiteCoords = this.impLocationService.get()

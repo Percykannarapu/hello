@@ -264,6 +264,7 @@ export class AppLocationService {
                 accept: () => {
                   this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
                   this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
+                  this.appTradeAreaService.zoomToTradeArea();
                   this.cachedTradeAreas = [];
                 },
                 reject: () => {
