@@ -54,8 +54,8 @@
               </div>
             </div>
           </p-header>
-          <p-column *ngFor="let projectColumn of selectedColumns" [sortable]="true" [editable]="false" [style]="{'width':'25px'}"
-                    [field]="projectColumn.field" [header]="projectColumn.header">
+          <p-column *ngFor="let projectColumn of selectedColumns" [sortable]="true" [editable]="false"
+                    [style]="{'width': projectColumn.size}" [field]="projectColumn.field" [header]="projectColumn.header">
           </p-column>
         </p-dataTable>
       </div>

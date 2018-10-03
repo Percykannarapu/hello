@@ -38,12 +38,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     public allColumns: any[] = [
         // { field: '',                     header: 'Select',                        size: '60px'},
-        { field: 'projectId',                    header: 'imPower ID',                    size: '1px'},
-        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '50px'},
-        { field: 'projectName',                  header: 'imPower Project Name',          size: '500px'},
-        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '30px'},
-        { field: 'modifyUserLoginname',          header: 'Username',                      size: '40px'},
-        { field: 'modifyDate',                   header: 'Last Modified Date',            size: '40px'}
+        { field: 'projectId',                    header: 'imPower ID',                    size: '10%'},
+        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '12%'},
+        { field: 'projectName',                  header: 'imPower Project Name',          size: '24%'},
+        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '24%'},
+        { field: 'modifyUserLoginname',          header: 'Username',                      size: '10%'},
+        { field: 'modifyDate',                   header: 'Last Modified Date',            size: '20%'}
       ];
     constructor(private restService: RestDataService,
                 private userService: UserService,
