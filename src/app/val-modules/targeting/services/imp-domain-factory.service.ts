@@ -300,6 +300,8 @@ export class ImpDomainFactoryService {
       taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
+      impProject: parent.impProject,
+      impGeofootprintMaster: parent.impGeofootprintMaster,
       impGeofootprintLocation: parent,
       isActive: parent.isActive ? isActive : parent.isActive,
       gtaId: null
@@ -380,6 +382,8 @@ export class ImpDomainFactoryService {
       xcoord: x,
       ycoord: y,
       distance: distance,
+      impProject: parent.impProject,
+      impGeofootprintMaster: parent.impGeofootprintMaster,
       impGeofootprintLocation: parent.impGeofootprintLocation,
       impGeofootprintTradeArea: parent,
       isActive: parent.isActive ? isActive : parent.isActive,

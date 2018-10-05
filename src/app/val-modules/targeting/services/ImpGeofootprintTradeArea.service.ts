@@ -37,6 +37,8 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
       // fixup fields that aren't part of convertToModel()
       items.forEach(ta => {
         ta['isComplete'] = true;
+        ta.impGeofootprintMaster = ta.impGeofootprintLocation.impGeofootprintMaster;
+        ta.impProject = ta.impGeofootprintMaster.impProject;
       });
       // load data stores
       super.load(items);
