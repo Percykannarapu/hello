@@ -53,6 +53,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // fix up fields that aren't part of convertToModel()
       items.forEach(geo => {
         geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
+        geo.impGeofootprintMaster = geo.impGeofootprintLocation.impGeofootprintMaster;
+        geo.impProject = geo.impGeofootprintMaster.impProject;
       });
       // load data stores
       super.load(items);
@@ -397,8 +399,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
-      const allExportAttributes = this.impGeofootprintGeoAttribService.get().filter(att => att.attributeType === 'Geofootprint Variable');
-      const currentProject = allExportAttributes[0].impGeofootprintGeo.impGeofootprintLocation.impProject;
+      const aGeo = this.get()[0];
+      if (aGeo == null) return;
+      const currentProject = aGeo.impProject;
       const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
                           .sort((a, b) => this.sortVars(a, b))
@@ -406,8 +409,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(allExportAttributes.map(att => att.attributeCode));
-      usableGeoVars.forEach(gv => columnSet.add(gv.customVarExprDisplay));
+      const columnSet = new Set(usableGeoVars.map(gv => gv.customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
