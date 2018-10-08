@@ -10,11 +10,10 @@ import { chunkArray } from '../app.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
-import { simpleFlatten } from '../val-modules/common/common.utils';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
+import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -108,9 +107,12 @@ export class TargetAudienceOnlineService {
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService) {
+  constructor(private config: AppConfig,
+              private restService: RestDataService,
+              private audienceService: TargetAudienceService,
+              private domainFactory: ImpDomainFactoryService,
+              private usageService: UsageService,
+              private appStateService: AppStateService) {
     this.fuseSourceMapping = new Map<SourceTypes, string>([
       [SourceTypes.Interest, 'interest'],
       [SourceTypes.InMarket, 'in_market'],
@@ -183,67 +185,40 @@ export class TargetAudienceOnlineService {
     }
   }
 
-  /**
-   * Build a cache of geos that can be used for quick
-   * lookup while building geofootprint vars
-   */
-  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
-    let count = 0;
-    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
-    for (const ta of this.tradeAreaService.get()) {
-      const geoMap = new Map<string, ImpGeofootprintGeo>();
-      for (const geo of ta.impGeofootprintGeos) {
-        geoMap.set(geo.geocode, geo);
-        geoCache.set(count, geoMap);
-      }
-      count++;
-    }
-    return geoCache;
-  }
-
-  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>, isForShading: boolean) : ImpGeofootprintVar {
-    const fullId = `Online/${source}/${response.digCategoryId}`;
+  private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
     const description = descriptionMap.get(response.digCategoryId);
-    const result = new ImpGeofootprintVar({
-      geocode: response.geocode,
-      varPk: Number(response.digCategoryId),
-      customVarExprQuery: fullId,
-      isString: false,
-      isNumber: false,
-      isActive: true,
-      isCustom: false
-    });
-    for (const audience of this.audienceService.getAudiences()) {
-      if (description.audienceSourceType === audience.audienceSourceType && description.audienceSourceName === audience.audienceSourceName && description.audienceName === audience.audienceName) {
-        result.varPosition = audience.audienceCounter;
+    if (description == null) throw new Error(`A Fuse category was not found for the category id ${response.digCategoryId}`);
+
+    const fullId = `Online/${source}/${response.digCategoryId}`;
+    const results: ImpGeofootprintVar[] = [];
+    const numberAttempt = Number(response[description.selectedDataSet]);
+    const fieldDescription: string = `${description.audienceName} (${source})`;
+    const matchingAudience = this.audienceService.getAudiences()
+                              .find(a => description.audienceSourceType === a.audienceSourceType && description.audienceSourceName === a.audienceSourceName && description.audienceName === a.audienceName);
+    const varPk = Number(response.digCategoryId);
+    let fieldType: FieldContentTypeCodes;
+    let fieldValue: string | number;
+    if (Number.isNaN(numberAttempt)) {
+      fieldValue = response[description.selectedDataSet];
+      fieldType = FieldContentTypeCodes.Char;
+    } else {
+      fieldValue = numberAttempt;
+      fieldType = FieldContentTypeCodes.Index;
+    }
+    if (isForShading) {
+      const currentResult = this.domainFactory.createGeoVar(null, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
+      if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+      results.push(currentResult);
+    } else {
+      if (geoCache.has(response.geocode)) {
+        geoCache.get(response.geocode).forEach(geo => {
+          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
+          if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          results.push(currentResult);
+        });
       }
     }
-    if (!isForShading) {
-      for (const ta of Array.from(geoCache.keys())) {
-        const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-        if (geoMap.has(response.geocode)) {
-          result.impGeofootprintTradeArea = geoMap.get(response.geocode).impGeofootprintTradeArea;
-          geoMap.get(response.geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
-        }
-      }
-    }
-    // this is the full category description object that comes from Fuse
-    if (description != null) {
-      result.customVarExprDisplay = `${description.audienceName} (${source})`;
-      if (Number.isNaN(Number(response[description.selectedDataSet]))) {
-        result.valueString = response[description.selectedDataSet];
-        result.fieldconte = 'CHAR';
-        result.isString = true;
-      } else {
-        result.valueNumber = Number(response[description.selectedDataSet]);
-        result.indexValue = result.valueNumber;
-        result.fieldconte = 'INDEX';
-        result.isNumber = true;
-      }
-      result.dirty = true;
-      result.baseStatus = DAOBaseStatus.INSERT;
-    }
-    return result;
+    return results;
   }
 
   public addAudience(audience: OnlineAudienceDescription, source: SourceTypes) {
@@ -307,9 +282,10 @@ export class TargetAudienceOnlineService {
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
-    const geoCache = this.buildGeoCache();
+    const currentProject = this.appStateService.currentProject$.getValue();
+    const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading)))
+      map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading))))
     );
   }
 
