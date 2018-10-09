@@ -74,7 +74,10 @@ export class TargetAudienceService implements OnDestroy {
       filter(loading => loading),
     ).subscribe(() => {
       this.audienceMap.clear();
-      this.audiences.next(Array.from(this.audienceMap.values()));
+      this.audienceSources.clear();
+      this.nationalSources.clear();
+      this.shadingData.next(new Map<string, ImpGeofootprintVar>());
+      this.audiences.next([]);
     });
   }
 

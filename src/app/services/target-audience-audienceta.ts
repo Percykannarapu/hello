@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, map, refCount, shareReplay } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
@@ -80,14 +80,14 @@ export class TargetAudienceAudienceTA {
         this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
         this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
 
-        this.appStateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
+        this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
 
     }
 
-    private onLoadProject(ready: boolean) {
-        if (!ready) return; // loading will be false when the load is actually done
+    private onLoadProject() {
         try {
             const project = this.appStateService.currentProject$.getValue();
+            console.log('Onload project fired', JSON.stringify(project));
             let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
             projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
             if (projectVars.length > 0) {
@@ -106,6 +106,7 @@ export class TargetAudienceAudienceTA {
                         audienceTAConfig: this.reloadAudienceTaConfig()
                     };
                     this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
+                    console.log('hydrating audiences', currentAudience);
                     this.audienceService.addAudience(
                         currentAudience,
                         (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
@@ -312,10 +313,10 @@ export class TargetAudienceAudienceTA {
         }
         const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
         const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
+        console.log('Preparing to send Audience TA payload to Fuse', payload);
         const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
         return dataObs.pipe(
             map(res => this.createGeofootprintVars(this.parseResponse(res)))
         );
-
     }
 }
