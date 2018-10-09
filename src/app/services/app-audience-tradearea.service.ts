@@ -98,7 +98,6 @@ export class ValAudienceTradeareaService {
   public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
     const project = this.stateService.currentProject$.getValue();
     this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
-    console.log('Audience TA config change called', config);
     project.audTaIndexBase = this.audienceTAConfig.scoreType;
     project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
     project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
@@ -126,6 +125,7 @@ export class ValAudienceTradeareaService {
       locations: null, // we don't populate this until we run the trade area
       audienceName: project.audTaVarSource
     };
+    if (audienceTAConfig.scoreType == null || audienceTAConfig.scoreType.length > 0) audienceTAConfig.scoreType = 'DMA';
     this.updateAudienceTAConfig(audienceTAConfig);
     this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
   }

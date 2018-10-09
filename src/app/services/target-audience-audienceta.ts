@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { filter, map, refCount, shareReplay } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
@@ -87,7 +87,6 @@ export class TargetAudienceAudienceTA {
     private onLoadProject() {
         try {
             const project = this.appStateService.currentProject$.getValue();
-            console.log('Onload project fired', JSON.stringify(project));
             let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
             projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
             if (projectVars.length > 0) {
@@ -106,7 +105,6 @@ export class TargetAudienceAudienceTA {
                         audienceTAConfig: this.reloadAudienceTaConfig()
                     };
                     this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
-                    console.log('hydrating audiences', currentAudience);
                     this.audienceService.addAudience(
                         currentAudience,
                         (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),

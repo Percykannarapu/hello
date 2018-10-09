@@ -43,7 +43,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       'maxRadius': [null, Validators.required],
       'audience': [null, Validators.required],
       'weight': [null, Validators.required],
-      'scoreType': ['DMA', Validators.required],
+      'scoreType': [null, Validators.required],
       'includeMustCover': [false]
     });
 
