@@ -2291,7 +2291,13 @@
     height: 1.0em;
     width: 1.0em;   
  }
- 
+
+ .val-table-hdr div.ui-chkbox-box.ui-widget.ui-corner-all.ui-chkbox-box {
+   border-color: #3a3a3a;
+   height: 1.25em;
+   width: 1.25em;   
+}
+
  .val-table .ui-table .ui-datatable-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box,
  .val-table .ui-datatable .ui-datatable-data tr.ui-state-highlight td.ui-selection-column .ui-chkbox-box {
     border-color: #3a3a3a;
