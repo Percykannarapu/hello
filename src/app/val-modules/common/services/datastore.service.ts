@@ -1,27 +1,21 @@
 import { TransactionManager } from './TransactionManager.service';
-import { DAOBaseStatus } from './../../api/models/BaseModel';
-import { RestDataService } from './../../common/services/restdata.service';
-import { BehaviorSubject, Observable, Subject, throwError, empty, EMPTY } from 'rxjs';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { RestDataService } from './restdata.service';
+import { BehaviorSubject, EMPTY, Observable, Subject, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-
-import { HttpHeaders } from '@angular/common/http';
-
-// Imports for exporting CSVs
-import { encode } from 'punycode';
-import * as $ from 'jquery';
 import { groupBy } from '../common.utils';
+import * as $ from 'jquery';
 
 // ---------------------------------------------
 // Callback method signatures
 // ---------------------------------------------
-type callbackType<T> = (dataArray: T[]) => boolean;      // Callback takes in an array of data and returns a boolean
-type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an instance of data and returns a boolean
-type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
-type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
+export type callbackType<T> = (dataArray: T[]) => boolean;      // Callback takes in an array of data and returns a boolean
+export type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an instance of data and returns a boolean
+export type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
+export type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
 
 type headerHandlerType<T> = (state: any) => any;         // Register export variable handlers
 type variableHandlerType<T> = (state: any, data: T, header: string|number) => any;         // Register export variable handlers
-//type variableHandlerType<T> = (data: T, externalData: Map<string, any>) => void;         // Register export variable handlers
 
 /**
  * Data store configuration, holds the oauth token for communicating with Fuse
@@ -57,25 +51,20 @@ export class DataStore<T>
    // Public access to the data store is through this observable
    public storeObservable: Observable<T[]> = this._storeSubject.asObservable();
 
-   get storeLength(): number {
+   get storeLength() : number {
       return (this._dataStore != null) ? this._dataStore.length : 0;
    }
 
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
-   constructor(public rest: RestDataService, public dataUrl: string, public transactionManager?: TransactionManager, public storeName: string='') {
-      if (storeName != '')
-         storeName += ' ';
+   protected constructor(protected rest: RestDataService, protected dataUrl: string, protected transactionManager?: TransactionManager, protected storeName: string = '') {
+      if (this.storeName != '')
+         this.storeName += ' ';
    }
 
    // ---------------------------------------------
    // Utility / Non-Essential Methods
    // ---------------------------------------------
-   public makeDirty()
-   {
-      this._storeSubject.next(this._dataStore);
-   }
-
    /**
     * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
     */
@@ -90,6 +79,20 @@ export class DataStore<T>
       return DataStore.dataStoreServiceConfiguration;
    }
 
+   public makeDirty()
+   {
+      this._storeSubject.next(this._dataStore);
+   }
+
+   /**
+    * method to load the data stores - should be overridden in each subclass so the entire hierarchy will flow downwards
+    */
+   load(items: T[]) : void {
+     this.clearAll(false);
+     this.clearAllDbRemoves();
+     this.add(items);
+   }
+
    /**
     * Log the store to the console.  Also an example of two ways to iterate through it
     * @param storeTitle Must provide a header since there is no way to differentiate dataStores
@@ -99,7 +102,7 @@ export class DataStore<T>
    {
       try
       {
-         console.log('--# ' + ((storeTitle)? storeTitle.toUpperCase() + ' ' : '')
+         console.log('--# ' + ((storeTitle) ? storeTitle.toUpperCase() + ' ' : '')
                             + ((this.storeName != null) ? this.storeName.toUpperCase() + ' ' : '')
                             + 'STORE CONTENTS #----------------');
 
@@ -128,13 +131,12 @@ export class DataStore<T>
    /**
     * Log the contents of dbRemoves to the console.
     * @param removesTitle Must provide a header since there is no way to differentiate dataStores
-    * @param useFirstMethod If false, it will show the row index next to the data
     */
    public debugLogDBRemoves(removesTitle: string)
    {
       try
       {
-         console.log('--# ' + ((removesTitle)? removesTitle.toUpperCase() + ' ' : '')
+         console.log('--# ' + ((removesTitle) ? removesTitle.toUpperCase() + ' ' : '')
                             + ((this.storeName != null) ? this.storeName.toUpperCase() + ' ' : '')
                             + 'DATABASE REMOVES #----------------');
 
@@ -163,42 +165,42 @@ export class DataStore<T>
     /**
      * Groups the data store data by the contents of a field identified by its name
      * @param {K} fieldName: The name of the field to extract grouping info from
-     * @returns {Map<keyof T, T[]>}
+     * @returns {Map<T[K], T[]>}
      */
     public groupBy<K extends keyof T>(fieldName: K) : Map<T[K], T[]>
     {
       return groupBy(this._dataStore, fieldName);
     }
 
-    public denseRank(a, f, p)
+    public denseRank(items, sortFn, partitionFn)
     {
-      return a.sort((a, b) => f(a, b))
-              .reduce((a, x, i, s, b = p) => {
-                 // If this is the first row processed, initialize rank to 0
-                 if (i == 0)
-                 {
-                    a[i] = s[i];
-                    a[i].rank = 0;
-                 }
-                 else
-                 {
-                    // If we have encountered a break in the sorted data, reset the rank
-                    if (b(s[i], s[i-1]))
-                    {
-                       a[i] = s[i];
-                       a[i].rank = 0;
-                    }
-                    // Otherwise increment the rank
-                    else
-                    {
-                       a[i] = s[i];
-                       a[i].rank = a[i-1].rank+1;
-                    }
-                 }
-                 return a;
-              }
-              // Indicate that we are returning an array
-              , []);
+      return items.sort((a, b) => sortFn(a, b))
+                  .reduce((a, x, i, s) => {
+                     // If this is the first row processed, initialize rank to 0
+                     if (i == 0)
+                     {
+                        a[i] = s[i];
+                        a[i].rank = 0;
+                     }
+                     else
+                     {
+                        // If we have encountered a break in the sorted data, reset the rank
+                        if (partitionFn(s[i], s[i - 1]))
+                        {
+                           a[i] = s[i];
+                           a[i].rank = 0;
+                        }
+                        // Otherwise increment the rank
+                        else
+                        {
+                           a[i] = s[i];
+                           a[i].rank = a[i - 1].rank + 1;
+                        }
+                     }
+                     return a;
+                  }
+                  // Indicate that we are returning an array
+                  , []);
    }
 
    // ---------------------------------------------
@@ -227,7 +229,7 @@ export class DataStore<T>
    public addDbRemove(removeData: T | T[] | ReadonlyArray<T>)
    {
       if (Array.isArray(removeData))
-         for (let removeElement of removeData)
+         for (const removeElement of removeData)
             this.setDbRemove(removeElement);
       else
          this.setDbRemove(removeData);
@@ -255,7 +257,6 @@ export class DataStore<T>
       {
          // Put the removals at the head of the datastore
          this._dataStore = this._dataStore.concat(this.dbRemoves);
-//       this._dataStore = this.dbRemoves.concat(this._dataStore);
 
          // Removals are now in the datastore, ready for persistence, clear the list
          this.clearAllDbRemoves();
@@ -269,16 +270,13 @@ export class DataStore<T>
       {
          // Put the removals at the head of the datastore
          this._dataStore = this._dataStore.concat(readyDBRemoves);
-//       this._dataStore = readyDBRemoves.concat(this._dataStore);
 
          // Removals are now in the datastore, ready for persistence, clear the list of readyDBRemoves
          this.clearDBRemoves(readyDBRemoves);
-         //this.dbRemoves = this.dbRemoves.filter(obj => !readyDBRemoves.includes(obj));
       }
    }
 
-   // treeRemoveCountOp: (T[]) => number
-   public filterBy (filterOp: (T, number) => boolean, treeRemoveCountOp: ([T]) => number, includeNormal: boolean = true, includeDBRemoves: Boolean = false, includeIfChildRemoves: boolean = false): T[]
+   public filterBy (filterOp: (T, number) => boolean, treeRemoveCountOp: ([T]) => number, includeNormal: boolean = true, includeDBRemoves: Boolean = false, includeIfChildRemoves: boolean = false) : T[]
    {
       let results: T[] = [];
       
@@ -294,14 +292,11 @@ export class DataStore<T>
          results = results.concat(this.get().concat(this.dbRemoves).filter(src => {
             if (treeRemoveCountOp != null && !results.includes(src))
             {
-               if (treeRemoveCountOp([src]) > 0) // && src['baseStatus'] === DAOBaseStatus.DELETE)
-                  return true;
-               else
-                  return false;
+               return treeRemoveCountOp([src]) > 0;
             }
             else
                return false;
-         })); // .filter(r => r['baseStatus'] === DAOBaseStatus.DELETE || r['baseStatus'] === DAOBaseStatus.UNCHANGED));
+         }));
       }
       return results;
    }
@@ -319,44 +314,44 @@ export class DataStore<T>
     */
    public readyDBRemovesBy (propertyStr, searchValue, comparator?: callbackElementType<T>)
    {
-      let toReady: T[] = this.getListBy(propertyStr, searchValue, comparator);
+      const toReady: T[] = this.getListBy(propertyStr, searchValue, comparator);
       this.readyDBRemoves(toReady);
    }
 
    public postDBRemoves(domain: string, model: string, apiVersion: string = 'v1', removes: T[]) : Observable<number>
    {
-      console.log(this.storeName + ".service.postDBRemoves - fired");
-      let postUrl: string = apiVersion.toLowerCase() + "/" + domain.toLowerCase() + "/base/" + model.toLowerCase() + "/saveList";
+      console.log(this.storeName + '.service.postDBRemoves - fired');
+      const postUrl: string = apiVersion.toLowerCase() + '/' + domain.toLowerCase() + '/base/' + model.toLowerCase() + '/saveList';
       
       let resultObs: Observable<number>;
       try
       {
          const numRemoves: number = (removes != null) ? removes.length : 0;
-         console.log("   ", numRemoves + " " + model + "s will be deleted");
+         console.log('   ', numRemoves + ' ' + model + 's will be deleted');
          
          if (numRemoves > 0)
          {
             const payload: string = JSON.stringify(removes);
       
-            console.log(this.storeName, "payload");
+            console.log(this.storeName, 'payload');
             console.log(payload);
-            console.log("Posting to: " + postUrl);
+            console.log('Posting to: ' + postUrl);
             // resultObs = EMPTY;  // For testing to just see the payload, uncomment this line and comment out the resultObs block
             resultObs = this.rest.post(postUrl, payload)
                                  .pipe(tap(restResponse => {
-                                       console.log (model + " dbRemove post result:", restResponse);
+                                       console.log (model + ' dbRemove post result:', restResponse);
                                        if (restResponse.returnCode === 200)
-                                          console.log("postDBRemoves - " + model + " - success response");
+                                          console.log('postDBRemoves - ' + model + ' - success response');
                                        else
-                                          console.log("postDBRemoves - " + model + " - failure response");
-                                       console.log("--------------------------------------------");
+                                          console.log('postDBRemoves - ' + model + ' - failure response');
+                                       console.log('--------------------------------------------');
                                        })
-                                       ,map(restResponse => restResponse.returnCode)
+                                       , map(restResponse => restResponse.returnCode)
                                       );
          }
          else
          {
-            console.log("No db removes to post");
+            console.log('No db removes to post');
             resultObs = EMPTY;
          }
      }
@@ -380,16 +375,12 @@ export class DataStore<T>
     */
    private fetch(postOperation?: callbackMutationType<T>, inTransaction: InTransaction = InTransaction.true)
    {
-//    console.log(this.storeName, 'DataStore.fetch fired for ' + this.dataUrl);
-//    console.trace('fetch trace');
-
       this.rest.get(this.dataUrl).subscribe(restResponse => {
-         // Log and test the response
-//       console.log(this.storeName, 'DataStore.fetch - REST returnCode: ' + restResponse.returnCode, restResponse);
-
          // Populate data store
          if (restResponse.payload && restResponse.payload.rows)
-            this._dataStore = restResponse.payload.rows;
+         {
+           this._dataStore = restResponse.payload.rows;
+         }
          else
          // A single object through a load
          {
@@ -401,13 +392,11 @@ export class DataStore<T>
          // Notify observers if not participating in the transaction or there is no transaction or TransactionManager
          if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
          {
-//          console.log(this.storeName, 'DataStore.fetched ' + this._dataStore.length + ' rows, notifying subscribers');
             this._storeSubject.next(this._dataStore);
             this.fetchSubject.next(this._dataStore);
          }
          else
          {
-//          console.log(this.storeName, 'DataStore.fetched ' + this._dataStore.length + ' rows, holding notification for transaction');
             this.transactionManager.push(this._storeSubject, this._dataStore);
             this.transactionManager.push(this.fetchSubject, this._dataStore);
          }
@@ -417,10 +406,10 @@ export class DataStore<T>
       },
       (error: any) => {
          console.error (this.storeName, 'DataStore.fetch - ERROR:', error);
-         // TODO: Should we re-raise or throw some other event?
-         //this.fetchSubject.error(error);
-         return throwError(error);
-      });
+         this.clearAll(true, inTransaction);
+         this.fetchSubject.error(error);
+      },
+        () => this.fetchSubject.complete());
    }
 
    // ---------------------------------------------
@@ -439,16 +428,12 @@ export class DataStore<T>
    public get(forceRefresh:  boolean, forceClear?: boolean,         inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>;
    public get(forceRefresh?: boolean, forceClear:  boolean = false, inTransaction?: InTransaction, preOperation?: callbackType<T>, postOperation?: callbackMutationType<T>) : T[] | Observable<T[]>
    {
-//    console.log(this.storeName, 'DataStore.get fired - this.dataUrl: ', this.dataUrl);
-
       if (preOperation)
          preOperation(this._dataStore);
 
       if (forceClear)
       {
          this.clearAll(false);
-         //this._dataStore.length = 0;
-         //this._dataStore = new Array<T>();
       }
 
       if (forceRefresh) // Temporarily out || this._dataStore.length === 0)
@@ -493,7 +478,6 @@ export class DataStore<T>
             // Add new element to the data store if there isn't a preOperation or it returns true
             if (!preOperation || (preOperation && preOperation(data)))
             {
-//             console.log(this.storeName, 'add - preOp returned true, pushing: ', data);
                localCache.push(data);
                numSuccesses++;
             }
@@ -501,7 +485,6 @@ export class DataStore<T>
             {
                // Indicate row wasn't added, but it's the applications job to maintain the list of failures
                success = false;
-//             console.log(this.storeName, 'add - preOp returned false, not adding: ', data);
             }
       }
       else
@@ -557,15 +540,11 @@ export class DataStore<T>
    {
       console.log (this.storeName, 'datastore.replace - fired');
       this.clearAll(false);
-//    console.log (this.storeName, 'datastore.replace - adding data - ', (dataArray != null) ? dataArray.length : 0, ' rows.');
       this.add(dataArray, preOperation, postOperation, inTransaction);
-//    console.log (this.storeName, 'dataStore now has ', (this._dataStore != null) ? this._dataStore.length : 0, ' rows');
    }
 
    public removeAt (index: number, inTransaction: InTransaction = InTransaction.true)
    {
-//    console.log(this.storeName, 'delete at index: ' + index);
-
       if (this._dataStore.length === 0 || index < 0 || index >= this._dataStore.length)
          return;
 
@@ -646,9 +625,7 @@ export class DataStore<T>
    public find(search: any) : T
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
-      const match = this._dataStore.find(item => keys.some(key => item[key] == search[key]));
-
-      return match;
+      return this._dataStore.find(item => keys.some(key => item[key] == search[key]));
    }
 
    private deepFindByArray (obj, propsArray, defaultValue)
@@ -718,9 +695,7 @@ export class DataStore<T>
    public findIndex(search: any)
    {
       const keys = Object.keys(search).filter(key => search[key] !== undefined);
-      const index = this._dataStore.findIndex(item => keys.some(key => item[key] === search[key]));
-
-      return index;
+      return this._dataStore.findIndex(item => keys.some(key => item[key] === search[key]));
    }
 
    public update (oldData: T, newData: T, inTransaction: InTransaction = InTransaction.true)
@@ -741,7 +716,6 @@ export class DataStore<T>
 
    public updateAt (newData: T, index: number = 0, inTransaction: InTransaction = InTransaction.true)
    {
-//    console.log (this.storeName, 'datastore updateAt - index: ' + index + ', data: ', newData);
       if (index == 0)
          this._dataStore = [newData,
                            ...this._dataStore.slice(index + 1)];
@@ -750,15 +724,15 @@ export class DataStore<T>
                            newData,
                            ...this._dataStore.slice(index + 1)];
 
-//    console.log(this.storeName, 'datastore alerting subscribers', ((this._storeSubject && this._storeSubject.observers) ? this._storeSubject.observers.length : 0));
       // Register data store change and notify observers
       if (inTransaction === InTransaction.false || this.transactionManager == null || this.transactionManager.notInTransaction())
       {
-         // console.log("datastore not in transaction, notifying observers");
          this._storeSubject.next(this._dataStore);
       }
       else
+      {
          this.transactionManager.push(this._storeSubject, this._dataStore);
+      }
    }
 
    /**
@@ -773,7 +747,6 @@ export class DataStore<T>
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
       this.currStoreId = 1;
-//    this.debugLogStore('Store after clearAll');
 
       // There are times where you want to clear as part of transaction and notify at the end
       if (notifySubscribers)
@@ -803,22 +776,20 @@ export class DataStore<T>
    // Would need to make it a member of the service.  Not sure how I feel about that.
    // Multiple exports at the same time could clobber both of them.
    // Add additional state that can be passed to them?  Is that even possible?
-   public prepareCSV(columns: ColumnDefinition<T>[], sourceData?:Array<T>) : string[]
+   public prepareCSV(columns: ColumnDefinition<T>[], sourceData?: Array<T>) : string[]
    {
       // Set the input Array
-      let csvSource: Array<T> = (sourceData == null) ? this._dataStore : sourceData;
+      const csvSource: Array<T> = (sourceData == null) ? this._dataStore : sourceData;
 
       console.log(this.storeName, 'datastore.service.prepareCSV fired - with ' + csvSource.length + ' rows of store data');
 
-//    if (this._dataStore == null || this._dataStore.length < 1) {
       if (csvSource == null || csvSource.length < 1) {
-         // TODO: HANDLE - this.messageService.add({ severity: 'error', summary: 'No geography found', detail: `Please define a trade area.` });
          throw new Error('prepareCSV - No data provided to export');
       }
 
       // Initialize Output Array
       const csvData: string[] = new Array<string>();
-      let row: string = '';
+      let row: string;
       let field: any;
 
       // Write Headers
@@ -848,7 +819,7 @@ export class DataStore<T>
          fieldsForRow = [];
 
          // Loop through each column determining its final value
-         for (let column of columns)
+         for (const column of columns)
          {
             if (typeof(column.row) === 'string' || typeof(column.row) === 'number' || column.row == null)
                field = column.row;
@@ -864,7 +835,6 @@ export class DataStore<T>
             // If we have a string, enclose it with double quotes if it isn't already
             if (field != null && typeof(field) === 'string')
                field = (field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"');
-         // console.log(this.storeName, 'column: ' + column.header + ' = ' + field + ' (' + typeof(column.row) + ')');
 
             // Add the final value in field to the row
             fieldsForRow.push(field);
@@ -890,14 +860,7 @@ export class DataStore<T>
       }
 
       // Encode the csvData into a gigantic string
-      let csvString: string = '';
-      csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
-  
-      // for (const row of csvData) {
-      //    let encodedRow = encode(row);
-      //    encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
-      //    csvString += encodedRow + '\n';
-      // }
+      const csvString: string = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
 
       const blob = new Blob(['\ufeff', csvString]);
       const url = URL.createObjectURL(blob);

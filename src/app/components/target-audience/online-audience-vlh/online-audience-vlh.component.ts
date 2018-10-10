@@ -1,11 +1,10 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
-import { Subject } from 'rxjs/index';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../../services/usage.service';
 import { AppStateService } from '../../../services/app-state.service';
 
@@ -49,7 +48,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
+    this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
   }
 
   ngAfterViewInit() : void {

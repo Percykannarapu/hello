@@ -8,35 +8,35 @@
  **
  ** ImpGeofootprintMaster.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { AppConfig } from '../../../app.config';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from './../../common/services/TransactionManager.service';
-import { InTransaction } from './../../common/services/datastore.service'
-import { UserService } from '../../../services/user.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
-import { ImpGeofootprintLocation } from './../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.service';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { simpleFlatten } from '../../common/common.utils';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintmaster/load';
 
 @Injectable()
 export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaster>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               public impGeofootprintLocationService: ImpGeofootprintLocationService,
-               private restDataService: RestDataService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService,
+               private impGeofootprintLocationService: ImpGeofootprintLocationService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintMaster');
    }
 
+    load(items: ImpGeofootprintMaster[]) : void {
+      super.load(items);
+      this.impGeofootprintLocationService.load(simpleFlatten(items.map(m => m.impGeofootprintLocations)));
+    }
+
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintMasters: ImpGeofootprintMaster[]): number {
+   public getTreeRemoveCount(impGeofootprintMasters: ImpGeofootprintMaster[]) : number {
       let count: number = 0;
       impGeofootprintMasters.forEach(impGeofootprintMaster => {
          count += this.dbRemoves.filter(remove => remove.cgmId === impGeofootprintMaster.cgmId).length;
@@ -55,17 +55,17 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
    }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpGeofootprintMaster[], filterOp: (impGeofootprintLocation: ImpGeofootprintMaster) => boolean): ImpGeofootprintMaster[]
+   public prune(source: ImpGeofootprintMaster[], filterOp: (impGeofootprintLocation: ImpGeofootprintMaster) => boolean) : ImpGeofootprintMaster[]
    {
       if (source == null || source.length === 0)
          return source;
 
-      let result: ImpGeofootprintMaster[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
+      const result: ImpGeofootprintMaster[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
       
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (master => {
          master.impGeofootprintLocations = this.impGeofootprintLocationService.prune(master.impGeofootprintLocations, loc => loc.cgmId === master.cgmId && (loc.baseStatus === DAOBaseStatus.UNCHANGED || loc.baseStatus === DAOBaseStatus.DELETE));
-      })
+      });
 
       return result;
    }
@@ -73,21 +73,19 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
    // Process all of the removes, ensuring that children of removes are also removed and optionally performing the post
    public performDBRemoves(removes: ImpGeofootprintMaster[], doPost: boolean = true, mustRemove: boolean = false) : Observable<number>
    {
-      let impGeofootprintMasterRemoves:   ImpGeofootprintMaster[] = [];
-      let impGeofootprintLocationRemoves: ImpGeofootprintLocation[] = [];
-
+      const impGeofootprintMasterRemoves:   ImpGeofootprintMaster[] = [];
       // Prepare database removes for all parents in removes
       removes.forEach(master => {
          // If a root level removal or if a direct parent was removed, flag this object for removal
          if (mustRemove)
             this.remove(master);
 
-         let hasRemoves: boolean = this.getTreeRemoveCount([master]) > 0;
+         const hasRemoves: boolean = this.getTreeRemoveCount([master]) > 0;
 
          if (hasRemoves)
          {
             // Determine if the parent is already in the remove list
-            let parentRemove: boolean = this.dbRemoves.includes(master);
+            const parentRemove: boolean = this.dbRemoves.includes(master);
 
             // Parent gets added to removes even if not being deleted to act as a container
             if (parentRemove)
@@ -101,7 +99,8 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
             else
             // Parent is not being removed, only children already marked for removal will be deleted
             {
-               this.impGeofootprintLocationService.performDBRemoves(this.impGeofootprintLocationService.filterBy (loc => loc.cgmId === master.cgmId && loc.baseStatus === DAOBaseStatus.DELETE, (master) => this.impGeofootprintLocationService.getTreeRemoveCount(master), false, true, true), false, false);
+               const childRemovals = this.impGeofootprintLocationService.filterBy (loc => loc.cgmId === master.cgmId && loc.baseStatus === DAOBaseStatus.DELETE, (master) => this.impGeofootprintLocationService.getTreeRemoveCount(master), false, true, true);
+               this.impGeofootprintLocationService.performDBRemoves(childRemovals, false, false);
             }
 /*
             // DEBUG: Get the list of children to remove.
@@ -118,26 +117,17 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpGeofootprintMaster", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpGeofootprintMaster', 'v1', removesPayload)
                 .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
+                     console.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(impGeofootprintMasterRemoves);
                      observer.next(postResultCode);
                      observer.complete();
                   });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
-   }
-      
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

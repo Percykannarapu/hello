@@ -45,7 +45,7 @@ export class ManualEntryComponent implements OnInit {
       { label: 'Tecumseh', icon: 'ui-icon-map', command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
       { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' }
     ];
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.manualEntryForm.reset());
+    this.appStateService.clearUI$.subscribe(() => this.manualEntryForm.reset());
   }
 
   hasErrors(controlKey: string) : boolean {

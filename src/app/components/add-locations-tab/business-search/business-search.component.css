@@ -1,0 +1,57 @@
+.business-search .businesses-found .ui-listbox {
+  width: 100%;
+}
+
+.business-search .businesses-found .ui-listbox .ui-listbox-header {
+  margin-bottom: 0;
+  padding: 0.125em 0.2em;
+}
+
+.business-search .businesses-found .ui-listbox .ui-listbox-list-wrapper {
+  max-height: 325px;
+  margin-top: 0.3em;
+}
+
+.business-search .businesses-found .ui-listbox li {
+  padding: 0.2em;
+}
+
+.business-search .businesses-found .ui-listbox li span.business-search-result {
+  padding-left: 0.5em;
+  display: inline-block;
+  font-size: 12px;
+}
+
+.business-search .businesses-found .ui-listbox .ui-listbox-filter-container {
+  padding-left: 1em;
+}
+
+.business-search .businesses-found .business-search-result-header {
+  padding-top: 0.3em;
+  text-align: center;
+}
+
+.business-search .ui-picklist .ui-picklist-list {
+  white-space: nowrap;
+  line-height: 0.5em;
+}
+
+.business-search .ui-picklist li.ui-picklist-item {
+  padding: 0.4em 0.4em;
+}
+
+.business-search .ui-inputtext {
+  width: 50%;
+}
+
+.business-search .category-dd .ui-dropdown {
+  width: 50%;
+}
+
+.business-search .has-error-border {
+    border-bottom: 1px solid red;
+}
+
+.business-search .has-error {
+    color:red;
+}

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { map } from 'rxjs/operators';
@@ -59,7 +59,7 @@ export interface BusinessSearchRequest {
   zip: string;
   countyName: string;
   eliminateBlankFirmNames: 'True';
-  siteLimit: '20000';
+  siteLimit: string;
   sites: { x: number, y: number, homeGeocode: string, locationName: string }[];
   sics: { sic: string }[];
 }

@@ -20,11 +20,69 @@ const radiusIsZero = (field: any) => {
   return field != null && field !== '' && Number(field) === 0;
 };
 
+const stateCodeProcessor   = (data: string) => {
+  if (data == null || data.length === 2) return data;
+  const stateCodes ={
+  arizona    	: 'AZ',
+  alabama    	: 'AL',
+  alaska     	: 'AK',
+  arkansas   	: 'AR',
+  california 	: 'CA',
+  colorado   	: 'CO',
+  connecticut	: 'CT',
+  delaware   	: 'DE',
+  florida    	: 'FL',
+  georgia    	: 'GA',
+  hawaii     	: 'HI',
+  idaho      	: 'ID',
+  illinois   	: 'IL',
+  indiana    	: 'IN',
+  iowa       	: 'IA',
+  kansas     	: 'KS',
+  kentucky   	: 'KY',
+  louisiana  	: 'LA',
+  maine      	: 'ME',
+  maryland   	: 'MD',
+  massachusetts : 'MA',
+  michigan    : 'MI',
+  minnesota   : 'MN',
+  mississippi : 'MS',
+  missouri    : 'MO',
+  montana     : 'MT',
+  nebraska    : 'NE',
+  nevada      : 'NV',
+ 'new hampshire' : 'NH',
+ 'new jersey'    : 'NJ',
+ 'new mexico' : 'NM',
+ 'new york'   : 'NY',
+ 'north carolina' : 'NC',
+ 'north dakota'   : 'ND',
+ ohio         :  'OH',
+ oklahoma    : 'OK',
+ oregon       : 'OR',
+ pennsylvania : 'PA',
+'rhode island'   : 'RI',
+'south carolina' : 'SC',
+'south dakota'   : 'SD',
+ tennessee   : 'TN',
+ texas       : 'TX',
+ utah        : 'UT',
+ vermont     : 'VT',
+ virginia    : 'VA',
+ washington  : 'WA',
+'west virginia' : 'WV',
+ wisconsin : 'WI',
+ wyoming : 'WY'
+};
+  if (stateCodes[data.toLowerCase()] == null) throw new Error('Please check the spelling of the States in your upload file');
+  return stateCodes[data.toLowerCase()];
+} ;
+
 export const siteListUpload: Parser<ValGeocodingRequest> = {
   columnParsers: [
     { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street' },
     { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' },
-    { headerIdentifier: ['state', 'st'], outputFieldName: 'state' },
+    { headerIdentifier: ['state', 'st'], outputFieldName: 'state',dataProcess: stateCodeProcessor },
     { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip' },
     { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor },
     { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor },

@@ -12,11 +12,12 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { groupBy } from '../val-modules/common/common.utils';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { EsriMapService } from '../esri/services/esri-map.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { AppLoggingService } from './app-logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppProjectService } from './app-project.service';
+import { AppMessagingService } from './app-messaging.service';
 
 export enum Season {
   Summer = 'summer',
@@ -34,9 +35,6 @@ export class AppStateService {
 
   private closeOverlayPanel = new Subject<string>();
   public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();
-
-  private projectIsLoading = new BehaviorSubject<boolean>(false);
-  public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
 
   public currentProject$: CachedObservable<ImpProject> = new BehaviorSubject<ImpProject>(null);
   public currentMaster$: CachedObservable<ImpGeofootprintMaster> = new BehaviorSubject<ImpGeofootprintMaster>(null);
@@ -58,7 +56,12 @@ export class AppStateService {
 
   public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
-  public clearUserInterface: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
+  private clearUI: Subject<void> = new Subject<void>();
+  public clearUI$: Observable<void> = this.clearUI.asObservable();
+
+  private showLoadDialog = new BehaviorSubject(false);
+  public showLoadDialog$ = this.showLoadDialog.asObservable();
 
   private hasSiteProvidedTradeAreas = new BehaviorSubject<boolean>(false);
   public hasSiteProvidedTradeAreas$: CachedObservable<boolean> = this.hasSiteProvidedTradeAreas;
@@ -66,26 +69,21 @@ export class AppStateService {
   private hasCompetitorProvidedTradeAreas = new BehaviorSubject<boolean>(false);
   public hasCompetitorProvidedTradeAreas$: CachedObservable<boolean> = this.hasCompetitorProvidedTradeAreas;
 
-  constructor(private projectService: ImpProjectService,
+  constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
               private geoService: ImpGeofootprintGeoService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
+              private appMessagingService: AppMessagingService,
               private logger: AppLoggingService) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
     this.setupLocationObservables();
     this.setupGeocodeObservables();
     this.setupTradeAreaObservables();
-  }
-
-  public loadProject(projectId: number) : Observable<ImpProject> {
-    this.projectIsLoading.next(true);
-    return this.projectService.loadProject(projectId, true).pipe(
-      tap(null, null, () => this.projectIsLoading.next(false))
-    );
+    this.setupProvidedTaObservables();
   }
 
   public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
@@ -107,6 +105,15 @@ export class AppStateService {
     this.closeOverlayPanel.next(except);
   }
 
+  public setLoadDialogVisibility(value: boolean) : void {
+    this.showLoadDialog.next(value);
+  }
+
+  public clearUserInterface() : void {
+    this.appMessagingService.clearNotifications();
+    this.clearUI.next();
+  }
+
   public setVisibleGeocodes(layerId: string, extent: __esri.Extent) : void {
     this.esriQueryService.queryPortalLayerView(layerId, false, extent).pipe(
       mapArray(g => g.attributes.geocode),
@@ -116,17 +123,14 @@ export class AppStateService {
 
   private setupApplicationReadyObservable() : void {
     this.applicationIsReady$ =
-      combineLatest(this.esriLayerService.layersReady$, this.projectIsLoading$).pipe(
-        tap(([layersReady, projectLoading]) => this.logger.debug('Application Is Ready constituents: ', { layersReady, projectLoading })),
-        map(([layersReady, projectLoading]) => layersReady && !projectLoading)
+      combineLatest(this.esriLayerService.layersReady$, this.projectService.projectIsLoading$).pipe(
+        map(([layersReady, projectLoading]) => layersReady && !projectLoading),
+        distinctUntilChanged()
       );
   }
 
   private setupProjectObservables() : void {
-    this.projectService.storeObservable.pipe(
-      filter(projects => projects != null && projects.length > 0 && projects[0] != null),
-      map(projects => projects[0]),
-    ).subscribe(this.currentProject$ as BehaviorSubject<ImpProject>);
+    this.projectService.currentProject$.subscribe(this.currentProject$ as BehaviorSubject<ImpProject>);
 
     this.currentProject$.pipe(
       filter(project => project != null && project.impGeofootprintMasters != null && project.impGeofootprintMasters.length > 0),
@@ -208,7 +212,14 @@ export class AppStateService {
     ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
   }
 
-  public getClearUserInterfaceObs() : Observable<boolean> {
-    return this.clearUserInterface.asObservable().pipe(filter(flag => flag));
+  private setupProvidedTaObservables() : void {
+    this.activeClientLocations$.pipe(
+      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      map(locs => locs.length > 0)
+    ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
+    this.activeCompetitorLocations$.pipe(
+      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      map(locs => locs.length > 0)
+    ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
   }
 }

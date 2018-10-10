@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { map, mergeAll, mergeMap, tap } from 'rxjs/operators';
-import { Observable, EMPTY, throwError, merge } from 'rxjs';
+import { EMPTY, merge, Observable, throwError } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -11,8 +11,9 @@ import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -80,14 +81,16 @@ export class TargetAudienceTdaService {
 
   private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private appStateService: AppStateService,
-              private projectVarService: ImpProjectVarService) {
-                this.appStateService.projectIsLoading$.subscribe(isLoading => {
-                  this.onLoadProject(isLoading);
-                });
-              }
+  constructor(private config: AppConfig,
+              private restService: RestDataService,
+              private usageService: UsageService,
+              private audienceService: TargetAudienceService,
+              private domainFactory: ImpDomainFactoryService,
+              private stateService: AppStateService) {
+    this.stateService.applicationIsReady$.subscribe(ready => {
+      this.onLoadProject(ready);
+    });
+  }
 
   private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
     const audience: AudienceDataDefinition = {
@@ -106,10 +109,10 @@ export class TargetAudienceTdaService {
     return audience;
   }
 
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
     try {
-      const project = this.appStateService.currentProject$.getValue();
+      const project = this.stateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
         for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
           const audience: AudienceDataDefinition = {
@@ -135,58 +138,43 @@ export class TargetAudienceTdaService {
     }
   }
 
-  /**
-   * Build a cache of geos that can be used for quick
-   * lookup while building geofootprint vars
-   */
-  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
-    let count = 0;
-    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
-    for (const ta of this.tradeAreaService.get()) {
-      const geoMap = new Map<string, ImpGeofootprintGeo>();
-      for (const geo of ta.impGeofootprintGeos) {
-        geoMap.set(geo.geocode, geo);
-        geoCache.set(count, geoMap);
-      }
-      count++;
-    }
-    return geoCache;
-  }
-
-  private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>, isForShading: boolean) : ImpGeofootprintVar {
+  private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
     const fullId = `Offline/TDA/${varPk}`;
-    const result = new ImpGeofootprintVar({ geocode, varPk, customVarExprQuery: fullId, isString: false, isNumber: false, isActive: true });
-    if (Number.isNaN(Number(value))) {
-      result.valueString = (value === 'null') ? ' ' : value;
-      result.fieldconte = 'INDEX';
-      result.isString = true;
-    } else {
-      result.valueNumber = Number(value);
-      result.fieldconte = 'INDEX';
-      result.isNumber = true;
-    }
+    const results: ImpGeofootprintVar[] = [];
+    const numberAttempt = Number(value);
+    let fieldType: FieldContentTypeCodes;
+    let fieldName: string;
+    let fieldDescription: string;
+    let natlAvg: string;
+    let fieldValue: string | number;
     if (rawData != null) {
-      result.customVarExprDisplay = rawData.fielddescr;
-      result.fieldname = rawData.fieldname;
-      result.natlAvg = rawData.natlAvg;
-      result.fieldconte = rawData.fieldconte;
+      fieldDescription = rawData.fielddescr;
+      fieldName = rawData.fieldname;
+      natlAvg = rawData.natlAvg;
+      fieldType = FieldContentTypeCodes.parse(rawData.fieldconte);
     }
-    result.isCustom = false;
-    for (const audience of this.audienceService.getAudiences()) {
-      if (result.customVarExprDisplay === audience.audienceName && audience.audienceSourceName === 'TDA') {
-        result.varPosition = audience.audienceCounter;
+    const matchingAudience = this.audienceService.getAudiences().find(a => a.audienceName === fieldDescription && a.audienceSourceName === 'TDA');
+    if (Number.isNaN(numberAttempt)) {
+      fieldValue = value;
+      if (fieldType == null) fieldType = FieldContentTypeCodes.Char;
+    } else {
+      fieldValue = numberAttempt;
+      if (fieldType == null) fieldType = FieldContentTypeCodes.Index;
+    }
+    if (isForShading) {
+      const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
+      if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+      results.push(currentResult);
+    } else {
+      if (geoCache.has(geocode)) {
+        geoCache.get(geocode).forEach(geo => {
+          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
+          if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          results.push(currentResult);
+        });
       }
     }
-    if (!isForShading) {
-      for (const ta of Array.from(geoCache.keys())) {
-        const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-        if (geoMap.has(geocode)) {
-          result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-          geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
-        }
-      }
-    }
-    return result;
+    return results;
   }
 
   public addAudience(audience: TdaAudienceDescription) {
@@ -251,9 +239,10 @@ export class TargetAudienceTdaService {
         );
       }
     }
-    const geoCache = this.buildGeoCache();
+    const currentProject = this.stateService.currentProject$.getValue();
+    const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
-      map(bulkData => bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading)))
+      map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading))))
     );
   }
 

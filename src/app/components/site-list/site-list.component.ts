@@ -1,6 +1,5 @@
-import { layerGeometryType } from '../../esri/services/esri-layer.service';
-import { ImpGeofootprintLocAttrib } from './../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { Component, OnInit } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -14,10 +13,9 @@ import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
-import { AppBusinessSearchService } from '../../services/app-business-search.service';
 import { AppStateService } from '../../services/app-state.service';
 import { resolveFieldData } from '../../val-modules/common/common.utils';
-import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
+import { distinctArray, mapArray, filterArray } from '../../val-modules/common/common.rxjs';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export class FlatSite {
@@ -77,7 +75,7 @@ export class SiteListComponent implements OnInit {
     {field: 'ycoord',               header: 'Latitude',          width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
     {field: 'xcoord',               header: 'Longitude',         width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
     {field: 'recordStatusCode',     header: 'Geocode Status',    width: '10em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
-    {field: 'homeGeocodeIssue',     header: 'Home Geocode Issue',width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'homeGeocodeIssue',     header: 'Home Geocode Issue', width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
     {field: 'Home ZIP',             header: 'Home ZIP',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
     {field: 'Home ATZ',             header: 'Home ATZ',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
     {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '11em',  styleClass: '',                filterMatchMode: 'contains'},
@@ -132,56 +130,56 @@ export class SiteListComponent implements OnInit {
 
       // Create an observable for unique cities (By hand method)
       this.uniqueCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                   ,map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
+                                                   , map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
                                                    .map(str => new Object({ label: str, value: str}) as SelectItem)));
 
       // Create an observable for unique states (By helper methods)
       this.uniqueState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                    ,mapArray(loc => loc.locState)
-                                                    ,distinctArray()
-                                                    ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                    , mapArray(loc => loc.locState)
+                                                    , distinctArray()
+                                                    , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market names
       this.uniqueMarket$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                     ,mapArray(loc => loc.marketName)
-                                                     ,distinctArray()
-                                                     ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                     , mapArray(loc => loc.marketName)
+                                                     , distinctArray()
+                                                     , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market codes
       this.uniqueMarketCode$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                         ,mapArray(loc => loc.marketCode)
-                                                         ,distinctArray()
-                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                         , mapArray(loc => loc.marketCode)
+                                                         , distinctArray()
+                                                         , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market codes
       this.uniqueRecStatuses$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                          ,mapArray(loc => loc.recordStatusCode)
-                                                          ,distinctArray()
-                                                          ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                          , mapArray(loc => loc.recordStatusCode)
+                                                          , distinctArray()
+                                                          , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique geocoder match codes
       this.uniqueMatchCodes$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                         ,mapArray(loc => loc.geocoderMatchCode)
-                                                         ,distinctArray()
-                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                         , mapArray(loc => loc.geocoderMatchCode)
+                                                         , distinctArray()
+                                                         , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique geocoder match qualities
       this.uniqueMatchQualities$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                         ,mapArray(loc => loc.geocoderLocationCode)
-                                                         ,distinctArray()
-                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                         , mapArray(loc => loc.geocoderLocationCode)
+                                                         , distinctArray()
+                                                         , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique original cities
       this.uniqueOrigCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                       ,mapArray(loc => loc.origCity)
-                                                       ,distinctArray()
-                                                       ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                       , mapArray(loc => loc.origCity)
+                                                       , distinctArray()
+                                                       , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique original states
       this.uniqueOrigState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                        ,mapArray(loc => loc.origState)
-                                                        ,distinctArray()
-                                                        ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                        , mapArray(loc => loc.origState)
+                                                        , distinctArray()
+                                                        , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       this.setCounts();
    }
@@ -219,7 +217,7 @@ export class SiteListComponent implements OnInit {
             target: this.selectedListType.toLowerCase() + '-list', action: 'delete' });
             this.siteListService.deleteLocations(allLocations);
             this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
-            this.appStateService.clearUserInterface.next(true);
+            this.appStateService.clearUserInterface();
             const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
             this.appStateService.setProvidedTradeAreas(false, siteCode );
          }
@@ -232,9 +230,9 @@ export class SiteListComponent implements OnInit {
    }
 
    public setLocationHierarchyActiveFlag(location: FlatSite, isActive: boolean) {
-      console.log("setLocationHierarchyActiveFlag - location:", location, ", isActive: ", isActive);
+      console.log('setLocationHierarchyActiveFlag - location:', location, ', isActive: ', isActive);
       if (location == null) {
-         console.log("setLocationHierarchyActive flag called with null location");
+         console.log('setLocationHierarchyActive flag called with null location');
          return;
       }
 
@@ -258,7 +256,7 @@ export class SiteListComponent implements OnInit {
       this.activeSiteCount$ = this.currentActiveSites$.pipe(map(s => s.length));
    }
 
-   public resolveFieldData(data: any, field: any): any
+   public resolveFieldData(data: any, field: any) : any
    {
       return resolveFieldData(data, field);
    }
@@ -274,16 +272,16 @@ export class SiteListComponent implements OnInit {
 
       let fgId = 0;
       const siteGridData: FlatSite[] = [];
-      let attributeCols: any[] = [];
+      const attributeCols: any[] = [];
 
       locs.forEach(loc => {
-         let gridSite: FlatSite = new FlatSite();
+         const gridSite: FlatSite = new FlatSite();
          gridSite.fgId = fgId++;
          gridSite.loc = loc;
 
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatSiteGridColumns.forEach(col => {
-           gridSite[col.field] = resolveFieldData(loc, col.field) || "";
+           gridSite[col.field] = resolveFieldData(loc, col.field) || '';
          });
          
          //console.log("createComposite - adding loc: " + loc.locationName);
@@ -291,7 +289,7 @@ export class SiteListComponent implements OnInit {
          // console.log("createComposite attribute:", attribute);
             gridSite[attribute.attributeCode] = attribute.attributeValue;
 
-            let column={'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
+            const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
 
             // If the column isn't already in the list, add it
             if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
@@ -330,19 +328,19 @@ export class SiteListComponent implements OnInit {
    // Disabling dismissable events until we can get access to change detection in sub panels
    onSetDismissable(dismissable: boolean)
    {
-      console.log("onSetDismissable: ", dismissable);
+      console.log('onSetDismissable: ', dismissable);
       // this.setContainerDismissable.emit(dismissable);
    }
 
    onFilterShow()
    {
-      console.log("onFilterShow - fired");
+      console.log('onFilterShow - fired');
       // this.onSetDismissable(false);
    }
 
    onFilterHide()
    {
-      console.log("onFilterHide - fired");
+      console.log('onFilterHide - fired');
       // this.onSetDismissable(true);
    }
 }

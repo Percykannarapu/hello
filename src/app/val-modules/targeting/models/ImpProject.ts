@@ -195,10 +195,6 @@ export class ImpProject extends BaseModel
 
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
-
-      // Prevent load from firing off the creation of trade areas (May not be necessary with setTreeProperty)
-      let tas: ReadonlyArray<ImpGeofootprintTradeArea> = this.getImpGeofootprintTradeAreas();
-      tas.forEach(ta => ta['isComplete'] = true);
    }
 
    /**

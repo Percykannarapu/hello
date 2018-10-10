@@ -6,7 +6,7 @@ import { AppRendererService, SmartMappingTheme } from '../../../services/app-ren
 import { UsageService } from '../../../services/usage.service';
 import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { map, take, tap, filter, skip } from 'rxjs/operators';
+import { map, take, filter, skip } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
@@ -52,14 +52,13 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(res => this.hasAudiences = res, null, () => {
       if (sub) sub.unsubscribe();
     });
-    this.appStateService.projectIsLoading$.pipe(
-      filter(loading => !loading),
-      skip(1)
-    ).subscribe(loading => {
+    this.appStateService.applicationIsReady$.pipe(
+      filter(ready => ready)
+    ).subscribe(() => {
       this.onLoadProject();
     });
 
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearSelectedFields());
+    this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
   }
 
   private onLoadProject() {

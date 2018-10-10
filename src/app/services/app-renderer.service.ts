@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { EsriApi } from '../esri/core/esri-api.service';
-import { AppGeoService } from './app-geo.service';
-import { Subscription, Observable, Subject } from 'rxjs';
+import { Subscription, Observable, BehaviorSubject } from 'rxjs';
 import { calculateStatistics, Statistics } from '../app.utils';
 import { TargetAudienceService } from './target-audience.service';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { AppStateService } from './app-state.service';
 
 export enum SmartMappingTheme {
@@ -206,7 +204,8 @@ export class AppRendererService {
     let dataTitle = '';
     if (this.currentData.size > 0) {
       const exemplar = Array.from(this.currentData.values())[0];
-      dataTitle = this.dataService.getAudiences(exemplar.customVarExprQuery)[0].audienceName;
+      const exemplarAudience = this.dataService.getAudiences(exemplar.customVarExprQuery)[0];
+      dataTitle = exemplarAudience != null ? exemplarAudience.audienceName : '';
     }
     const newRenderer = new EsriApi.UniqueValueRenderer({
       defaultSymbol: newDefaultSymbol,

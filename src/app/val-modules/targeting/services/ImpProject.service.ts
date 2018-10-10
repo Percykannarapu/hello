@@ -8,7 +8,6 @@
  **
  ** ImpGeofootprintMaster.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { AppProjectService } from '../../../services/app-project.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { AppConfig } from '../../../app.config';
 import { ImpProject } from '../models/ImpProject';
@@ -16,15 +15,13 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { UserService } from '../../../services/user.service';
-import { Observable, EMPTY, Subject } from 'rxjs';
+import { Observable, EMPTY } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { ImpProjectPref } from '../models/ImpProjectPref';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
-import { ImpGeofootprintMaster } from './../models/ImpGeofootprintMaster';
-import { simpleFlatten, completeFlatten } from '../../common/common.utils';
-import { ImpGeofootprintGeo } from './../models/ImpGeofootprintGeo';
+import { simpleFlatten } from '../../common/common.utils';
+import { ImpProjectVarService } from './ImpProjectVar.service';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -32,113 +29,49 @@ const dataUrl = restUrl + 'load';
 @Injectable()
 export class ImpProjectService extends DataStore<ImpProject>
 {
-   constructor(public appConfig: AppConfig,
-               public userService: UserService,
-               public transactionManager: TransactionManager,
-               public impProjectPrefService: ImpProjectPrefService,
-               public impGeofootprintMasterService: ImpGeofootprintMasterService,
-               private restDataService: RestDataService,
-               private appProjectService: AppProjectService)
+   constructor(transactionManager: TransactionManager,
+               restDataService: RestDataService,
+               private appConfig: AppConfig,
+               private userService: UserService,
+               private impProjectPrefService: ImpProjectPrefService,
+               private impProjectVarService: ImpProjectVarService,
+               private impGeofootprintMasterService: ImpGeofootprintMasterService)
    {
       super(restDataService, dataUrl, transactionManager, 'ImpProject');
    }
 
-   loadProject(projectId: number, clearStore: boolean = false) : Observable<ImpProject>
-   {
-      return this.appProjectService.loadProject(projectId, clearStore).pipe(
-        map(projects => {
-          console.log('ImpProject.service.loadProject - load from AppProjectService finished');
-          this.replace(projects);
-          this.appProjectService.populateDataStores(projects[0]);
-          return projects[0];
-        }),
-        tap(project => console.log("loadProject complete") /*this.replace([project])*/)
-      );
+   load(items: ImpProject[]) : void {
+     // load the data stores
+     super.load(items);
+     this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
+     this.impProjectVarService.load(simpleFlatten(items.map(p => p.impProjectVars)));
+     this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
    }
 
-  /* saveProject()
-   {
-      console.log('ImpProject.service.saveProject fired');
-      this.appProjectService.debugLogStoreCounts();
-      this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
-         if (savedProject != null)
-         {
-            console.log('AFTER SAVE');
-            this.appProjectService.debugLogStoreCounts();
-
-            // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
-            //       This is not ideal code, the app-project.service should be doing it.
-            this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {
-               console.log("Reloaded projectId: ", (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
-            });
+   loadFromServer(id: number) : Observable<void> {
+     if (id == null) return EMPTY;
+     return Observable.create(observer => {
+       const loadCache: ImpProject[] = [];
+       this.rest.get(`${dataUrl}/${id}`).subscribe(
+         response => loadCache.push(new ImpProject(response.payload)),
+         err => observer.error(err),
+         () => {
+           loadCache.forEach(p => {
+             p.convertToModel();
+             // as long as we're deleting everything prior to a save, everything has to be
+             // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
+             p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
+           });
+           this.load(loadCache);
+           observer.next();
+           observer.complete();
          }
-         else
-            console.log('project did not save');
-      });
-   }*/
-
-   saveProject() : Observable<ImpProject>
-   {
-      const  observer = new Subject<ImpProject>();
-      console.log('ImpProject.service.saveProject fired');
-      this.appProjectService.debugLogStoreCounts();
-
-      this.appProjectService.transactionManager.startTransaction();
-//      this.performDBRemoves(this.get()).subscribe(responseCode => {
-//         console.log("performDBRemoves response code: " + responseCode);
-
-         // this.performDBRemoves(this.get()).subscribe(
-         //    responseCode => {
-         //       console.log("performDBRemoves response code: " + responseCode);
-         // },
-/*         this.postDelete(this.get()[0].projectId).subscribe(restResponse => {
-            console.log ("testDeleteProject - response: ", restResponse);
-            this.appProjectService.pushStatusToHierarchy(this.get()[0], DAOBaseStatus.INSERT, true);
-         },
-         err => console.error('error during performDBRemoves', err),
-         () => {*/
-            console.log("After postDelete, calling saveProject");
-            this.appProjectService.saveProject(this.get()[0]).subscribe(savedProject => {
-               if (savedProject != null)
-               {
-                  console.log('AFTER SAVE');
-                  this.appProjectService.debugLogStoreCounts();
-
-                  // TODO: Need to check app-project.service, reloadProject. Does the concatMap turn it into a hot observable?
-                  //       This is not ideal code, the app-project.service should be doing it.
-                  this.loadProject(savedProject[0].projectId, true).subscribe(saved_project => {  
-                     console.log('Reloaded projectId: ', (savedProject != null && savedProject.length > 0) ? savedProject[0].projectId : null);
-                     observer.next(saved_project);
-                     observer.complete();
-                  });
-               }
-               else {
-                  console.log('project did not save');
-                  observer.error('Project did not save');
-               }          
-            });
-         //});
-
-      return observer.asObservable();
-   }
-
-   saveProjectObs() : Observable<ImpProject[]> {
-      const saveObservable = new Observable<ImpProject[]>((observer) =>
-      {
-         this.saveProject();
-// TODO: Fix this to get projectId in the metric         observer.next([this.get()]);
-         observer.complete();
-      });
-      return saveObservable;
-   }
-
-   public removeGeosFromHierarchy(removeGeos: ImpGeofootprintGeo[]) {
-      console.log("Removing geos from the hierarchy", removeGeos);
-      this.appProjectService.removeGeosFromHierarchy(this.get()[0], removeGeos);
+       );
+     });
    }
 
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impProjects: ImpProject[]): number {
+   public getTreeRemoveCount(impProjects: ImpProject[]) : number {
       let count: number = 0;
       impProjects.forEach(impProject => {
          count += this.dbRemoves.filter(remove => remove.projectId === impProject.projectId).length;
@@ -158,31 +91,20 @@ export class ImpProjectService extends DataStore<ImpProject>
       });
 
       this.clearDBRemoves(completes);
-
-      // Delete geos from the hierarchy
-      completes.forEach(complete => {
-         const geosToRemove: ImpGeofootprintGeo[] = completeFlatten(complete
-            .impGeofootprintMasters
-            .map(master   => master.impGeofootprintLocations
-            .map(location => location.impGeofootprintTradeAreas
-            .map(ta       => ta.impGeofootprintGeos = ta.impGeofootprintGeos
-            .filter(geo   => geo.baseStatus === DAOBaseStatus.DELETE)))));      
-         this.removeGeosFromHierarchy(geosToRemove);   
-      });
    }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpProject[], filterOp: (impProject: ImpProject) => boolean): ImpProject[]
+   public prune(source: ImpProject[], filterOp: (impProject: ImpProject) => boolean) : ImpProject[]
    {
       if (source == null || source.length === 0)
          return source;
 
-      let result: ImpProject[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
+      const result: ImpProject[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
 
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (project => {
          project.impGeofootprintMasters = this.impGeofootprintMasterService.prune(project.impGeofootprintMasters, master => master.projectId === project.projectId && (master.baseStatus === DAOBaseStatus.UNCHANGED || master.baseStatus === DAOBaseStatus.DELETE));
-      })
+      });
 
       return result;
    }
@@ -191,8 +113,6 @@ export class ImpProjectService extends DataStore<ImpProject>
    public performDBRemoves(removes: ImpProject[], doPost: boolean = true, mustRemove: boolean = false) : Observable<number>
    {
       let impProjectRemoves:      ImpProject[] = [];
-      let impProjectPrefsRemoves: ImpProjectPref[] = [];
-      let impMasterRemoves:       ImpGeofootprintMaster[] = [];
 
       // Prepare database removes for all children
       removes.forEach(project => {
@@ -201,7 +121,7 @@ export class ImpProjectService extends DataStore<ImpProject>
             this.remove(project);
 
          // Determine if the parent is already in the remove list
-         let parentRemove: boolean = this.dbRemoves.includes(project);
+         const parentRemove: boolean = this.dbRemoves.includes(project);
 
          // Parent gets added to removes even if not being deleted to act as a container
          if (parentRemove)
@@ -221,17 +141,7 @@ export class ImpProjectService extends DataStore<ImpProject>
             this.impProjectPrefService.performDBRemoves       (this.impProjectPrefService.filterBy       (pref => pref.projectId === project.projectId, (pref) => this.impProjectPrefService.getTreeRemoveCount(pref),      false, true, true), false, false);
             this.impGeofootprintMasterService.performDBRemoves(this.impGeofootprintMasterService.filterBy(ma   => ma.projectId   === project.projectId, (ma)   => this.impGeofootprintMasterService.getTreeRemoveCount(ma), false, true, true), false, false);
          }
-
-/*
-         // DEBUG: Get the list of children to remove.
-         impProjectPrefsRemoves = this.impProjectPrefService.dbRemoves.filter(pref => pref.projectId === project.projectId);
-         impMasterRemoves       = this.impGeofootprintMasterService.dbRemoves.filter(ma => ma.projectId === project.projectId);
-         console.log("impProject             removes: ", impProjectRemoves);
-         console.log("impProjectPrefsRemoves removes: ", impProjectPrefsRemoves);
-         console.log("impMasterRemoves       removes: ", impMasterRemoves);*/
       });
-
-      // const geosToRemovex = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
 
       if (doPost)
       {
@@ -241,24 +151,16 @@ export class ImpProjectService extends DataStore<ImpProject>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpProject", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpProject', 'v1', removesPayload)
                .subscribe(postResultCode => {
-                  console.log("post completed, calling completeDBRemoves");
+                  console.log('post completed, calling completeDBRemoves');
                   this.completeDBRemoves(impProjectRemoves);
                   observer.next(postResultCode);
                }
-               ,err => observer.error(err)
-               ,()  => observer.complete()); 
-/*                .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
-                     this.completeDBRemoves(impProjectRemoves);
-                     observer.next(postResultCode);
-                     observer.complete();
-                  });*/
+               , err => observer.error(err)
+               , ()  => observer.complete()); 
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
@@ -266,25 +168,25 @@ export class ImpProjectService extends DataStore<ImpProject>
 
    public postDelete(projectId: number, apiVersion: string = 'v1') : Observable<number>
    {
-      console.log(this.storeName + ".service.postDelete - fired");
+      console.log(this.storeName + '.service.postDelete - fired');
 
       if (projectId == null || projectId === 0) {
-         console.log("Cannot delete an invalid project_id: ", projectId);
+         console.log('Cannot delete an invalid project_id: ', projectId);
          return EMPTY;
       }
 
-      let postUrl: string = apiVersion.toLowerCase() + "/targeting/base/impproject/delete/";
+      const postUrl: string = apiVersion.toLowerCase() + '/targeting/base/impproject/delete/';
 
       let resultObs: Observable<number>;
       try
       {
-         console.log("Deleting projectId: ", projectId, " url: " + postUrl);
+         console.log('Deleting projectId: ', projectId, ' url: ' + postUrl);
 
          resultObs = this.rest.delete(postUrl, projectId)
                               .pipe(tap(restResponse => {
-                                       console.log (projectId + " delete response:", restResponse, " (", ((restResponse.returnCode === 200) ? "success" : "failure") ,")");
+                                       console.log (projectId + ' delete response:', restResponse, ' (', ((restResponse.returnCode === 200) ? 'success' : 'failure') , ')');
                                     })
-                                    ,map(restResponse => restResponse.returnCode)
+                                    , map(restResponse => restResponse.returnCode)
                                     );
      }
      catch (error)

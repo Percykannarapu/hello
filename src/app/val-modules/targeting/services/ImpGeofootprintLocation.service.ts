@@ -1,4 +1,3 @@
-import { ImpGeofootprintLocAttrib } from './../models/ImpGeofootprintLocAttrib';
 /** A TARGETING domain data service representing the table: IMPOWER.IMP_GEOFOOTPRINT_LOCATIONS
  **
  ** This class contains code operates against data in its data store.
@@ -15,17 +14,12 @@ import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
-import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { RestDataService } from './../../common/services/restdata.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
-import { AppConfig } from '../../../app.config';
-import { HttpHeaders } from '@angular/common/http';
-import { encode } from 'punycode';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
-
-
+import { simpleFlatten } from '../../common/common.utils';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -39,23 +33,26 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION {
 @Injectable()
 export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLocation>
 {
-   private impProject: ImpProject;
-   private currentTA:  number;      // Remove when TAs are children of Locations
-   private currentTD:  number;      // Remove when TAs are children of Locations
-   private tradeAreas: ImpGeofootprintTradeArea[];
-
    public  removes: ImpGeofootprintLocation[];
-   public environmentName = this.appConfig.environmentName;
 
-   constructor(private restDataService: RestDataService,
+   constructor(restDataService: RestDataService,
+               projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
-               private projectTransactionManager: TransactionManager,
-               private messageService: AppMessagingService,
-               private appConfig: AppConfig)
+               private messageService: AppMessagingService)
     {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocation');
-      impGeofootprintTradeAreaService.storeObservable.subscribe(impGeofootprintTradeAreas => this.onChangeTradeAreas(impGeofootprintTradeAreas));
+    }
+
+    load(items: ImpGeofootprintLocation[]) : void {
+      // fixup fields that aren't part of convertToModel()
+      items.forEach(loc => {
+        loc.impProject = loc.impGeofootprintMaster.impProject;
+      });
+      // load data stores
+      super.load(items);
+      this.impGeoFootprintLocAttribService.load(simpleFlatten(items.map(l => l.impGeofootprintLocAttribs)));
+      this.impGeofootprintTradeAreaService.load(simpleFlatten(items.map(l => l.impGeofootprintTradeAreas)));
     }
 
    // -----------------------------------------------------------
@@ -63,7 +60,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // -----------------------------------------------------------
 
    // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintLocations: ImpGeofootprintLocation[]): number {
+   public getTreeRemoveCount(impGeofootprintLocations: ImpGeofootprintLocation[]) : number {
       let count: number = 0;
       impGeofootprintLocations.forEach(impGeofootprintLocation => {
          count += this.dbRemoves.filter(remove => remove.glId === impGeofootprintLocation.glId).length;
@@ -85,18 +82,18 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
-   public prune(source: ImpGeofootprintLocation[], filterOp: (impGeofootprintLocation: ImpGeofootprintLocation) => boolean): ImpGeofootprintLocation[]
+   public prune(source: ImpGeofootprintLocation[], filterOp: (impGeofootprintLocation: ImpGeofootprintLocation) => boolean) : ImpGeofootprintLocation[]
    {
       if (source == null || source.length === 0)
          return source;
 
-      let result: ImpGeofootprintLocation[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
+      const result: ImpGeofootprintLocation[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
 
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (loc => {
          loc.impGeofootprintLocAttribs = this.impGeoFootprintLocAttribService.prune(loc.impGeofootprintLocAttribs, locAttr => locAttr.glId === loc.glId && (locAttr.baseStatus === DAOBaseStatus.UNCHANGED || locAttr.baseStatus === DAOBaseStatus.DELETE));
          loc.impGeofootprintTradeAreas = this.impGeofootprintTradeAreaService.prune(loc.impGeofootprintTradeAreas, ta => ta.glId === loc.glId && (ta.baseStatus === DAOBaseStatus.UNCHANGED || ta.baseStatus === DAOBaseStatus.DELETE));
-      })
+      });
 
       return result;
    }
@@ -104,9 +101,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    // Process all of the removes, ensuring that children of removes are also removed and optionally performing the post
    public performDBRemoves(removes: ImpGeofootprintLocation[], doPost: boolean = true, mustRemove: boolean = false) : Observable<number>
    {
-      let impGeofootprintLocationRemoves:  ImpGeofootprintLocation[]  = [];
-      let impGeofootprintLocAttribRemoves: ImpGeofootprintLocAttrib[] = [];
-      let impGeofootprintTradeAreaRemoves: ImpGeofootprintTradeArea[] = [];
+      const impGeofootprintLocationRemoves:  ImpGeofootprintLocation[]  = [];
 
       // Prepare database removes for all parents in removes
       removes.forEach(loc => {
@@ -114,12 +109,12 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          if (mustRemove)
             this.remove(loc);
 
-         let hasRemoves: boolean = this.getTreeRemoveCount([loc]) > 0;
+         const hasRemoves: boolean = this.getTreeRemoveCount([loc]) > 0;
 
          if (hasRemoves)
          {
             // Determine if the parent is already in the remove list
-            let parentRemove: boolean = this.dbRemoves.includes(loc);
+            const parentRemove: boolean = this.dbRemoves.includes(loc);
 
             // Parent gets added to removes even if not being deleted to act as a container
             if (parentRemove)
@@ -137,13 +132,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                this.impGeoFootprintLocAttribService.performDBRemoves(this.impGeoFootprintLocAttribService.filterBy (attrib => attrib.glId === loc.glId  && attrib.baseStatus === DAOBaseStatus.DELETE, (attrib) => this.impGeoFootprintLocAttribService.getTreeRemoveCount(attrib), false, true, true), false, false);
                this.impGeofootprintTradeAreaService.performDBRemoves(this.impGeofootprintTradeAreaService.filterBy (ta => ta.glId === loc.glId          && ta.baseStatus     === DAOBaseStatus.DELETE, (ta)     => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta),     false, true, true), false, false);
             }
-/*
-            // DEBUG: Get the list of children to remove.
-            impGeofootprintLocAttribRemoves = this.impGeoFootprintLocAttribService.dbRemoves.filter(geo  => geo.glId  === loc.glId);
-            impGeofootprintTradeAreaRemoves = this.impGeofootprintTradeAreaService.dbRemoves.filter(gvar => gvar.glId === loc.glId);
-            console.log("impGeofootprintLocation  removes: ", impGeofootprintLocationRemoves);
-            console.log("impGeofootprintLocAttrib removes: ", impGeofootprintLocAttribRemoves);
-            console.log("impGeofootprintTradeArea removes: ", impGeofootprintTradeAreaRemoves);*/
          }
       });
 
@@ -155,17 +143,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         let performDBRemoves$ = Observable.create(observer => {
-            this.postDBRemoves("Targeting", "ImpGeofootprintLocation", "v1", removesPayload)
+         return Observable.create(observer => {
+            this.postDBRemoves('Targeting', 'ImpGeofootprintLocation', 'v1', removesPayload)
                 .subscribe(postResultCode => {
-                     console.log("post completed, calling completeDBRemoves");
+                     console.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(impGeofootprintLocationRemoves);
                      observer.next(postResultCode);
                      observer.complete();
                   });
          });
-
-         return performDBRemoves$;
       }
       else
          return EMPTY;
@@ -173,7 +159,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
 
    public hasMandatory(impGeofootprintLocation: ImpGeofootprintLocation)
    {
-      let hasMandatoryCols = [true, ''];
+      const hasMandatoryCols = [true, ''];
 
       if (impGeofootprintLocation == null)
          return [false, 'All columns missing'];
@@ -206,7 +192,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    {
       try
       {
-         let fmtDate: string = new Date().toISOString().replace(/\D/g,'').slice(0, 13)
+         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
          return siteType + '_' + ((impProjectId != null) ? impProjectId + '_' : '1') + '_' +  fmtDate + '.csv';
       }
       catch (e)
@@ -215,7 +201,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       }
    }
 
-   public getNextLocationNumber(): number
+   public getNextLocationNumber() : number
    {
       return this.getNextStoreId();
    }
@@ -261,12 +247,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       // No matches, return input geocode untouched
       return geocode;
    }
-   public onChangeTradeAreas(impGeofootprintTradeAreas: ImpGeofootprintTradeArea[])
-   {
-      console.log('onChangeTradeAreas - fired');
-      this.tradeAreas = impGeofootprintTradeAreas;
-   }
-
 
    // -----------------------------------------------------------
    // EXPORT COLUMN HANDLER METHODS
@@ -300,7 +280,6 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      this.impProject = project;
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
      
       if (filter == null) {
@@ -310,7 +289,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
         if (locations.length > 0) {
           const locationSet = new Set(locations);
           const allAttributes = this.impGeoFootprintLocAttribService.get().filter(attribute => locationSet.has(attribute.impGeofootprintLocation));
-          if (isDigital === false){
+          if (isDigital === false) {
             const attributeCodeBlackList = new Set(exportColumns.map(c => c.header));
             const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
             attributeCodes.forEach(code => {
@@ -320,26 +299,18 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             });
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
-           
             const csvData = this.prepareCSV(exportColumns, locations);
             this.downloadExport(filename, csvData);
-            let csvString: string = '';
-           // filename = filename.substring(0, 8);
             const serviceUrl = `v1/targeting/base/vlh?fileName=${filename}`;
-            
-            csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
-            // for (const row of csvData) {
-            //   // console.log()
-            //   let encodedRow = '';
-            //   encodedRow = encodedRow.endsWith(',-') ? encodedRow.substring(0, encodedRow.length - 2) : encodedRow;
-            //   csvString += encodedRow + '\n';
-            // }
-           this.restDataService.postCSV(serviceUrl, csvString).subscribe(res => {
+            const csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
+            this.rest.postCSV(serviceUrl, csvString).subscribe(res => {
               console.log('Response from vlh', res);
               if (res.returnCode === 200) {
-                    this.messageService.showSuccessNotification('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + this.impProject.clientIdentifierName.trim());
-              } else this.messageService.showErrorNotification('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + this.impProject.clientIdentifierName.trim());
-              });
+                this.messageService.showSuccessNotification('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + project.clientIdentifierName.trim());
+              } else {
+                this.messageService.showErrorNotification('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + project.clientIdentifierName.trim());
+              }
+            });
           }
         } else {
           // DE1742: display an error message if attempting to export an empty data store
@@ -370,15 +341,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'X',                  row: (state, data) => data.xcoord});
             exportColumns.push({ header: 'Y',                  row: (state, data) => data.ycoord});
             exportColumns.push({ header: 'ICON',               row: (state, data) => null});
-            exportColumns.push({ header: 'RADIUS1',            row: (state, data) => this.exportTradeArea(data, 0) });
-            exportColumns.push({ header: 'RADIUS2',            row: (state, data) => this.exportTradeArea(data, 1) });
-            exportColumns.push({ header: 'RADIUS3',            row: (state, data) => this.exportTradeArea(data, 2) });
+            exportColumns.push({ header: 'RADIUS1',            row: (state, data) => state.exportTradeArea(data, 0) });
+            exportColumns.push({ header: 'RADIUS2',            row: (state, data) => state.exportTradeArea(data, 1) });
+            exportColumns.push({ header: 'RADIUS3',            row: (state, data) => state.exportTradeArea(data, 2) });
             exportColumns.push({ header: 'TRAVELTIME1',        row: (state, data) => 0});
             exportColumns.push({ header: 'TRAVELTIME2',        row: (state, data) => 0});
             exportColumns.push({ header: 'TRAVELTIME3',        row: (state, data) => 0});
-            exportColumns.push({ header: 'TRADE_DESC1',        row: (state, data) => this.exportTradeAreaDesc(data, 0) });
-            exportColumns.push({ header: 'TRADE_DESC2',        row: (state, data) => this.exportTradeAreaDesc(data, 1) });
-            exportColumns.push({ header: 'TRADE_DESC3',        row: (state, data) => this.exportTradeAreaDesc(data, 2) });
+            exportColumns.push({ header: 'TRADE_DESC1',        row: (state, data) => state.exportTradeAreaDesc(data, 0) });
+            exportColumns.push({ header: 'TRADE_DESC2',        row: (state, data) => state.exportTradeAreaDesc(data, 1) });
+            exportColumns.push({ header: 'TRADE_DESC3',        row: (state, data) => state.exportTradeAreaDesc(data, 2) });
             exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
             exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
@@ -425,7 +396,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'GROUP',              row: (state, data) => data.groupName});
            exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
            exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-           exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => this.impProject.clientIdentifierName && this.impProject.projectId != null ? this.impProject.clientIdentifierName.trim() + '' + '~' + this.impProject.projectId : ''});
+           exportColumns.push({ header: 'DESCRIPTION',        row: (state, data) => data.impProject.clientIdentifierName && data.impProject.projectId != null ? data.impProject.clientIdentifierName.trim() + '' + '~' + data.impProject.projectId : ''});
            exportColumns.push({ header: 'STREET',             row: (state, data) => data.locAddress});
            exportColumns.push({ header: 'CITY',               row: (state, data) => data.locCity});
            exportColumns.push({ header: 'STATE',              row: (state, data) => data.locState});
@@ -452,12 +423,5 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             break;
       }
       return exportColumns;
-   }
-
-   private handleError(error: Response)
-   {
-      const errorMsg = `Status code: ${error.status} on url ${error.url}`;
-      console.error(errorMsg);
-      return Observable.throw(errorMsg);
    }
 }

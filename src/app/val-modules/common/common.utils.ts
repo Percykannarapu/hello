@@ -13,9 +13,9 @@ declare global {
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<T[K], (T | R)[]>}
  */
-export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T[]>;
-export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector: (T) => R) : Map<T[K], R[]>;
-export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector?: (T) => R) : Map<T[K], (T | R)[]> {
+export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K) : Map<T[K], T[]>;
+export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector: (T) => R) : Map<T[K], R[]>;
+export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector?: (T) => R) : Map<T[K], (T | R)[]> {
   return groupByExtended(items, (i) => i[fieldName], valueSelector);
 }
 
@@ -26,13 +26,13 @@ export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<K, (T | R)[]>}
  */
-export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T[]>;
-export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R[]>;
-export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, (T | R)[]> {
+export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K) : Map<K, T[]>;
+export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R[]>;
+export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, (T | R)[]> {
   const result = new Map<K, (T | R)[]>();
   if (items == null || items.length === 0) return result;
   const tx: ((T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
-  items.forEach(i => {
+  for (const i of items) {
     const currentKey = keySelector(i);
     const currentValue = tx(i);
     if (result.has(currentKey)) {
@@ -40,7 +40,7 @@ export function groupByExtended<T, K, R>(items: T[], keySelector: (item: T) => K
     } else {
       result.set(currentKey, [currentValue]);
     }
-  });
+  }
   return result;
 }
 
@@ -120,18 +120,18 @@ export function filterByFields<T, K extends keyof T>(searchTerm: string, fieldsT
   };
 }
 
-export function resolveFieldData(data: any, field: any): any {
-   if(data && field) {
+export function resolveFieldData(data: any, field: Function | string) : any {
+   if (data && field) {
        if (isFunction(field)) {
            return field(data);
        }
-       else if(field.indexOf('.') == -1) {
+       else if (field.indexOf('.') == -1) {
            return data[field];
        }
        else {
-           let fields: string[] = field.split('.');
+           const fields: string[] = field.split('.');
            let value = data;
-           for(let i = 0, len = fields.length; i < len; ++i) {
+           for (let i = 0, len = fields.length; i < len; ++i) {
                if (value == null) {
                    return null;
                }
@@ -145,9 +145,11 @@ export function resolveFieldData(data: any, field: any): any {
    }
 }
 
-export function isFunction (obj: any) { !!(obj && obj.constructor && obj.call && obj.apply); }
+export function isFunction (obj: any) : obj is Function {
+  return (obj && obj.constructor && obj.call && obj.apply);
+}
 
-export function roundTo(value: number, precision: number): number {
-   let pow: number = Math.pow(10, precision);
+export function roundTo(value: number, precision: number) : number {
+   const pow: number = Math.pow(10, precision);
    return parseFloat(String(Math.round((value * pow)) / pow));
 }

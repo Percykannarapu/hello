@@ -24,7 +24,7 @@ export class AppGeocodingService {
               private config: AppConfig,
               private appStateService: AppStateService) {
     this.clearDuplicates();
-    this.appStateService.getClearUserInterfaceObs().subscribe(() => this.clearDuplicates());
+    this.appStateService.clearUI$.subscribe(() => this.clearDuplicates());
   }
 
   public createRequestsFromRaw(dataRows: string[], siteType: SuccessfulLocationTypeCodes, parser: Parser<ValGeocodingRequest>) : ValGeocodingRequest[] {
@@ -43,9 +43,11 @@ export class AppGeocodingService {
           const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
           const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
           this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
-        } else if (data.parsedData.map(d => d.state).filter(s => s != null && s.length > 2).length > 0) {
-          this.messageService.showErrorNotification('Geocoding Error', 'Location State values longer than 2 characters are not supported');
-        } else {
+        } 
+      //  else if (data.parsedData.map(d => d.state).filter(s => s != null && s.length > 2).length > 0) {
+      //    this.messageService.showErrorNotification('Geocoding Error', 'Location State values longer than 2 characters are not supported');
+      //  } 
+        else {
           result = data.parsedData.map(d => new ValGeocodingRequest(d));
           result.map(r => r.number).forEach(n => {
             this.duplicateKeyMap.get(siteType).add(n);

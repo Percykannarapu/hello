@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { AppMessagingService } from './services/app-messaging.service';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
-import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
+import { AppProjectService } from './services/app-project.service';
 
 enum MenuOrientation {
     STATIC,
@@ -68,7 +68,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     currentProject$: Observable<ImpProject>;
 
-    constructor(private projectService: ImpProjectService,
+    constructor(private projectService: AppProjectService,
                 private config: AppConfig,
                 private messaging: AppMessagingService,
                 private domainFactory: ImpDomainFactoryService,
@@ -77,8 +77,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
-        const startProject = this.domainFactory.createProject();
-        this.projectService.add([startProject]);
+        this.projectService.createNew();
         this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;
         this.currentSpinnerState$ = this.messaging.spinnerState$;
         this.currentProject$ = this.stateService.currentProject$;
