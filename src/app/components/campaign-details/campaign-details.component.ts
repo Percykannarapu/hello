@@ -11,6 +11,9 @@ import { AppStateService } from '../../services/app-state.service';
 import { filter, map, tap } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
+import { filterArray } from '../../val-modules/common/common.rxjs';
+import { AudienceTradeareaComponent } from '../trade-area-tab/audience-tradearea/audience-tradearea.component';
 
 @Component({
   selector: 'val-campaign-details',
@@ -22,6 +25,7 @@ export class CampaignDetailsComponent implements OnInit {
   currentDiscoveryData$: Observable<ValDiscoveryUIModel>;
   currentRadSuggestions$: Observable<RadLookupUIModel[]>;
   currentProjectTrackerSuggestions$: Observable<ProjectTrackerUIModel[]>;
+  onlineAudienceExists$: Observable<boolean>;
 
   private previousForm: ValDiscoveryUIModel = null;
   private usageTargetMap: { [key: string] : string };
@@ -31,7 +35,8 @@ export class CampaignDetailsComponent implements OnInit {
               private userService: UserService,
               private impProjectService: ImpProjectService,
               private logger: AppLoggingService,
-              private usageService: UsageService) { }
+              private usageService: UsageService,
+              private targetAudienceService:TargetAudienceService ) { }
 
   ngOnInit() {
     this.currentDiscoveryData$ =
@@ -44,6 +49,11 @@ export class CampaignDetailsComponent implements OnInit {
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
     this.currentProjectTrackerSuggestions$ = this.appDiscoveryService.trackerSearchSuggestions$;
 
+    this.onlineAudienceExists$ = this.targetAudienceService.audiences$.pipe(
+      filterArray(audience => audience.audienceSourceType === 'Online'),
+      map(audiences => audiences.length > 0 )
+    );
+    
     // this maps the form control names to the equivalent usage metric name
     // if there is no entry here, then it will not get logged on change
     this.usageTargetMap = {
