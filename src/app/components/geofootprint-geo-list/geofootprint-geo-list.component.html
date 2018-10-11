@@ -103,11 +103,17 @@
                   <div *ngSwitchCase="'geo.hhc'">
                      <val-table-filter-numeric fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')" [(minValue)]="hhcRanges[0]" [(maxValue)]="hhcRanges[1]"></val-table-filter-numeric>
                   </div>
+                  <div *ngSwitchCase="'allocHhc'">
+                     <val-table-filter-numeric fieldName="Allocated HHC" (filterApplied)="geoGrid.filter($event, 'allocHhc', 'numericFilter')" [(minValue)]="allocHhcRanges[0]" [(maxValue)]="allocHhcRanges[1]"></val-table-filter-numeric>
+                  </div>
                   <div *ngSwitchCase="'cpm'">
                      <val-table-filter-numeric fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')" [(minValue)]="cpmRanges[0]" [(maxValue)]="cpmRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'investment'">
                      <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                  </div>
+                  <div *ngSwitchCase="'allocInvestment'">
+                     <val-table-filter-numeric fieldName="Allocated Investment" (filterApplied)="geoGrid.filter($event, 'allocInvestment', 'numericFilter')" [(minValue)]="allocInvestmentRanges[0]" [(maxValue)]="allocInvestmentRanges[1]"></val-table-filter-numeric>
                   </div>
 
                   <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
@@ -156,11 +162,13 @@
                   </div>
 
                   <!-- Format various columns -->
-                  <div *ngSwitchCase="'geo.isDeduped'"> {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
-                  <div *ngSwitchCase="'geo.distance'">  {{flatGeo[col.field] | number:'1.2-2'}} </div>
-                  <div *ngSwitchCase="'geo.hhc'">       {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
-                  <div *ngSwitchCase="'cpm'">           {{flatGeo['cpm'] | currency}} </div>
-                  <div *ngSwitchCase="'investment'">    {{flatGeo['investment'] | currency}} </div>
+                  <div *ngSwitchCase="'geo.isDeduped'">  {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'geo.distance'">   {{flatGeo[col.field] | number:'1.2-2'}} </div>
+                  <div *ngSwitchCase="'geo.hhc'">        {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'allocHhc'">       {{flatGeo['allocHhc'] | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'cpm'">            {{flatGeo['cpm'] | currency}} </div>
+                  <div *ngSwitchCase="'investment'">     {{flatGeo['investment'] | currency}} </div>
+                  <div *ngSwitchCase="'allocInvestment'">{{flatGeo['allocInvestment'] | currency}} </div>
 
                   <!-- Display all other columns -->
                   <div *ngSwitchDefault>
@@ -197,6 +205,14 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
                      {{gridTotals.get('hhc').tot | number:'1.0-0'}}
                   </div>
+                  <div *ngSwitchCase="'allocHhc'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocHhc').tot | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocHhc').avg | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('allocHhc').min | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocHhc').max | number:'1.0-0'}}</td></tr></table>">
+                     {{gridTotals.get('allocHhc').tot | number:'1.0-0'}}
+                  </div>
                   <div *ngSwitchCase="'cpm'" [escape]="false"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
@@ -213,6 +229,15 @@
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('investment').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
                      {{gridTotals.get('investment').tot | currency}}
+                  </div>
+                  <div *ngSwitchCase="'allocInvestment'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocInvestment').tot | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocInvestment').avg | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('allocInvestment').cnt | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('allocInvestment').min | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocInvestment').max | currency}}</td></tr></table>">
+                     {{gridTotals.get('allocInvestment').tot | currency}}
                   </div>
                </td>
                <td *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.field" [class]="col.styleClass">

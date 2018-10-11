@@ -135,7 +135,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Filter Ranges
    public  hhcRanges: number[] = [null, null];
+   public  allocHhcRanges: number[] = [null, null];
    public  investmentRanges: number[] = [null, null];
+   public  allocInvestmentRanges: number[] = [null, null];
    public  distanceRanges: number[] = [null, null];
    public  cpmRanges: number[] = [null, null];
 
@@ -156,8 +158,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
     {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
     {field: 'geo.hhc',                                    header: 'HHC',             width: '5em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'cpm',                                        header: 'CPM',             width: '5em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'investment',                                 header: 'Inv',             width: '6em',  matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'cpm',                                        header: 'CPM',             width: '5.5em',matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'investment',                                 header: 'Inv',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocInvestment',                            header: 'Inv Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'ownergroup',                                 header: 'Owner Group',     width: '7em',  matchMode: 'contains', styleClass: ''},
     {field: 'coveragedescription',                        header: 'Cov Desc',        width: '12em', matchMode: 'contains', styleClass: ''},
     {field: 'pob',                                        header: 'POB',             width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
@@ -349,17 +353,21 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     *  Initializes the accumulators for the totals located at the bottom of the column
     */  
    initializeGridTotals() {
-      this.gridTotals.set('hhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
-      this.gridTotals.set('cpm',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
-      this.gridTotals.set('investment', {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
-      this.gridTotals.set('distance',   {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('hhc',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('allocHhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('cpm',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('investment',      {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('allocInvestment', {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
+      this.gridTotals.set('distance',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
    }
 
    debugLogGridTotals() {
-      console.debug("total distance:   ", this.gridTotals.get('distance'));
-      console.debug("total hhc:        ", this.gridTotals.get('hhc'));
-      console.debug("total investment: ", this.gridTotals.get('investment'));
-      console.debug("total cpm:        ", this.gridTotals.get('cpm'));
+      console.debug("total distance:             ", this.gridTotals.get('distance'));
+      console.debug("total hhc:                  ", this.gridTotals.get('hhc'));
+      console.debug("total allocated hhc:        ", this.gridTotals.get('allocHhc'));
+      console.debug("total investment:           ", this.gridTotals.get('investment'));
+      console.debug("total allocated investment: ", this.gridTotals.get('allocInvestment'));
+      console.debug("total cpm:                  ", this.gridTotals.get('cpm'));
    }
 
    /**
@@ -417,6 +425,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo.geo = geo;         
          gridGeo.fgId = fgId++;
 
+         gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
+
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatGeoGridColumns.forEach(col => {
             gridGeo[col.field] = resolveFieldData(gridGeo, col.field) || "";
@@ -458,6 +468,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                            break;
                      }
                   gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
+                  gridGeo['allocInvestment'] = (gridGeo.geo.isDeduped === 1) ? ((gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0) : null;                  
                }
 
                if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
@@ -502,7 +513,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             // Create grid columns for the variables
             if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
             {
-              const colWidth: number = Math.min(160, Math.max(80, (geovar.customVarExprDisplay.length * 8) + 45));
+              const colWidth: number = Math.min(200, Math.max(60, (geovar.customVarExprDisplay.length * 6) + 24));
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
@@ -526,9 +537,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             max = geoGridData.reduce((max, p:FlatGeo) => p['geo.hhc'] > max ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
             this.hhcRanges = [min, max, min, max];
 
+            min = geoGridData.reduce((min, p:FlatGeo) => p['allocHhc'] < min ? (p['allocHhc'] != "" ? p['allocHhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
+            max = geoGridData.reduce((max, p:FlatGeo) => p['allocHhc'] > max ? (p['allocHhc'] != "" ? p['allocHhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
+            this.allocHhcRanges = [min, max, min, max];
+
             min = geoGridData.reduce((min, p:FlatGeo) => p['investment'] < min ? p['investment'] : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
             max = geoGridData.reduce((max, p:FlatGeo) => p['investment'] > max ? p['investment'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
             this.investmentRanges = [min, max, min, max];
+
+            max = geoGridData.reduce((max, p:FlatGeo) => p['allocInvestment'] > max ? p['allocInvestment'] : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['allocInvestment'] : 0);
+            min = geoGridData.reduce((min, p:FlatGeo) => p['allocInvestment'] < min && p['allocInvestment'] != null ? p['allocInvestment'] : min, max);
+            this.allocInvestmentRanges = [min, max, min, max];
 
             min = geoGridData.reduce((min, p:FlatGeo) => roundTo(p['geo.distance'], 2) < min ? roundTo(p['geo.distance'], 2) : min, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
             max = geoGridData.reduce((max, p:FlatGeo) => roundTo(p['geo.distance'], 2) > max ? roundTo(p['geo.distance'], 2) : max, (geoGridData != null && geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
@@ -843,17 +862,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       try
       {
-         if (this._geoGrid.filteredValue != null)
+         if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
          {
             numRows = this._geoGrid.filteredValue.length;
 
             this._geoGrid.filteredValue.forEach(element => {
-               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
+//               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
+               if (element.geo.isActive)
                {
                   this.setGridTotal('hhc',        element.geo.hhc);
                   this.setGridTotal('cpm',        element.cpm);
                   this.setGridTotal('investment', element.investment);
                   this.setGridTotal('distance',   element.geo.distance);
+                  // Accumulate allocated counts
+                  if (element.geo.isDeduped === 1) {
+                     this.setGridTotal('allocHhc',        element.geo.hhc);
+                     this.setGridTotal('allocInvestment', element.investment);
+                  }
                }
             });
          }
@@ -868,6 +893,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   this.setGridTotal('cpm',        element.cpm);
                   this.setGridTotal('investment', element.investment);
                   this.setGridTotal('distance',   element.geo.distance);
+                  // Accumulate allocated counts
+                  if (element.geo.isDeduped === 1) {
+                     this.setGridTotal('allocHhc',        element.geo.hhc);
+                     this.setGridTotal('allocInvestment', element.investment);
+                  }
                }
             });
          }

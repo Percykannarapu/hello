@@ -165,6 +165,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
          // Set the final map as a whole
          this.variableColOrder = newVariableColOrder;
+         console.log("newVariableColOrder = ", newVariableColOrder);
       }
    }
 
@@ -190,6 +191,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                this.variableColOrder.set(audience.audienceName, audience.audienceCounter);
             }
          }
+         console.log("variableColOrder = ", this.variableColOrder);
       }
    }
 
