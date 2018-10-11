@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, ViewChild, EventEmitter, Output } from '@angular/core';
 import { roundTo } from '../../../val-modules/common/common.utils';
+import { OverlayPanel } from 'primeng/primeng';
 
 export interface RangeOperator {
    name: string;
@@ -157,4 +158,9 @@ export class TableFilterNumericComponent implements OnInit {
       // Emit the changed filter event
       this.filterApplied.emit(this.filterData);
    }
+
+  onClick(filterOP: OverlayPanel, event: any, filterTarget: any) : void {
+     event.stopPropagation();
+     filterOP.show(event, filterTarget);
+  }
 }

@@ -27,6 +27,6 @@
 </p-overlayPanel>
 
 <div class="val-table">      
-   <button type="text" pButton label="{{rangeLbl}}" pTooltip="{{rangeStr}}" (click)="filterOP.show($event, filterTarget)" class="val-short-button" style="height: 1.1em; line-height: 1.1em; padding: 0px 5px 0px 5px;"></button>
+   <button type="text" pButton label="{{rangeLbl}}" pTooltip="{{rangeStr}}" (click)="onClick(filterOP, $event, filterTarget)" class="val-short-button" style="height: 1.1em; line-height: 1.1em; padding: 0px 5px 0px 5px;"></button>
    <div #filterTarget></div>
 </div>
