@@ -401,6 +401,10 @@ export class AppProjectService extends DataStore<ImpProject>
                            delete tradeArea['impGeofootprintLocation'];
                            delete tradeArea['impGeofootprintMaster'];
                            delete tradeArea['impProject'];
+
+                           //DE2032, we do not want to persist the geofootprint vars
+                           delete tradeArea['impGeofootprintVars'];
+
                            tradeArea.dirty = true;
 
                            // Remove stubbed gtaIds
@@ -435,7 +439,8 @@ export class AppProjectService extends DataStore<ImpProject>
                            // tradeArea.impGeofootprintVars = impGeofootprintVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null
                            //                                                                   && geoVar.impGeofootprintTradeArea == tradeArea);
 
-                           tradeArea.impGeofootprintVars.forEach(geoVar =>
+                           
+                           /*tradeArea.impGeofootprintVars.forEach(geoVar =>
                            {
                               delete geoVar['impGeofootprintLocation'];
                               delete geoVar['impGeofootprintMaster'];
@@ -450,7 +455,8 @@ export class AppProjectService extends DataStore<ImpProject>
 
                               geoVar.baseStatus = (geoVar.gvId == null) ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE;
                               geoVar.isActive   = true;
-                           });
+                           });*/
+
                         });
                      }
                      else
