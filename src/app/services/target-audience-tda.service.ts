@@ -110,7 +110,7 @@ export class TargetAudienceTdaService {
   }
 
   private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+    if (!loading) return; // loading will be false when the load is actually done
     try {
       const project = this.stateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
