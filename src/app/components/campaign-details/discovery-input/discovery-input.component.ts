@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
-import { debounceTime, filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
@@ -24,13 +24,18 @@ export class DiscoveryInputComponent implements OnInit {
   }
   @Input() radSuggestions: RadLookupUIModel[];
   @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
+  @Input('onlineAudienceExists') set onlineAudienceExists(val: boolean) {
+    this.setPCROptionState(val);
+    this.showAnalysisLevelError = val;
+  };
 
   @Output() formChanged = new EventEmitter<ValDiscoveryUIModel>();
   @Output() radSearchRequest = new EventEmitter<string>();
   @Output() trackerSearchRequest = new EventEmitter<string>();
 
   discoveryForm: FormGroup;
-  allAnalysisLevels: SelectItem[];
+  allAnalysisLevels: SelectItem[] = [];
+  showAnalysisLevelError: boolean = false;
   allSeasons: SelectItem[];
   cpmTypes = ProjectCpmTypeCodes;
 
@@ -57,7 +62,7 @@ export class DiscoveryInputComponent implements OnInit {
       selectedProjectTracker: null,
       selectedRadLookup: null,
       selectedSeason: null,
-      selectedAnalysisUIOption: [null, Validators.required],
+      selectedAnalysisLevel: [null, Validators.required],
       includePob: true,
       includeValassis: true,
       includeAnne: true,
@@ -69,8 +74,9 @@ export class DiscoveryInputComponent implements OnInit {
       cpmValassis: { value: null, disabled: true },
       cpmAnne: { value: null, disabled: true },
       cpmSolo: { value: null, disabled: true }
+      
     });
-
+  
     this.discoveryForm.valueChanges.pipe(
       debounceTime(500),
       filter(() => this.discoveryForm.dirty),
@@ -78,7 +84,15 @@ export class DiscoveryInputComponent implements OnInit {
     ).subscribe(uiModel => this.onFormChanged(uiModel));
   }
 
-  private setControlStates(currentForm: ValDiscoveryUIModel) : void {
+  setPCROptionState(value: boolean) : void {
+    const pcrOption = this.allAnalysisLevels.find(l => l.value === 'PCR');
+    if (pcrOption != null) {
+     pcrOption.disabled = value;
+    }
+    this.allAnalysisLevels = [ ...this.allAnalysisLevels ];
+  }
+
+   private setControlStates(currentForm: ValDiscoveryUIModel) : void {
     switch (currentForm.cpmType) {
       case ProjectCpmTypeCodes.Blended:
         this.discoveryForm.controls['cpmValassis'].disable();
@@ -112,23 +126,14 @@ export class DiscoveryInputComponent implements OnInit {
         currentData.cpmBlended = null;
         break;
     }
-    currentData.selectedAnalysisLevel = this.getAnalysisLevelFromDropDown();
     this.formChanged.emit(currentData);
   }
 
   private setAnalysisLevelDropDown(analysisLevel: string) : void {
     if (analysisLevel == null || analysisLevel.trim().length === 0) {
-      this.discoveryForm.controls['selectedAnalysisUIOption'].reset();
+      this.discoveryForm.controls['selectedAnalysisLevel'].reset();
     } else {
-      const analysisOption = this.allAnalysisLevels.find(l => l.value === analysisLevel);
-      this.discoveryForm.controls['selectedAnalysisUIOption'].setValue(analysisOption);
+      this.discoveryForm.controls['selectedAnalysisLevel'].setValue(analysisLevel);
     }
   }
-
-  private getAnalysisLevelFromDropDown() : string {
-    const currentAnalysisSelection = this.discoveryForm.controls['selectedAnalysisUIOption'].value;
-    return currentAnalysisSelection == null ? null : currentAnalysisSelection.value;
-  }
-  
 }
-
