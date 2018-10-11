@@ -65,3 +65,21 @@ export namespace ProjectCpmTypeCodes {
     return ProjectCpmTypeCodes[code];
   }
 }
+
+export enum FieldContentTypeCodes {
+  Char = 'CHAR',
+  Count = 'COUNT',
+  Dist = 'DIST',
+  Distance = 'DISTANCE',
+  Index = 'INDEX',
+  Median = 'MEDIAN',
+  Percent = 'PERCENT',
+  Ratio = 'RATIO'
+}
+
+export namespace FieldContentTypeCodes {
+  export function parse(code: string) : FieldContentTypeCodes {
+    if (code == null) return null;
+    return FieldContentTypeCodes[code.trim().toUpperCase()];
+  }
+}

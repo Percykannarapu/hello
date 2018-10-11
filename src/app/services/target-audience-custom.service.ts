@@ -11,8 +11,9 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { groupBy } from '../val-modules/common/common.utils';
+import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -29,19 +30,18 @@ interface CustomAudienceData {
   providedIn: 'root'
 })
 export class TargetAudienceCustomService {
-  private dataCache: Map<string, Map<string, ImpGeofootprintVar>> = new Map<string, Map<string, ImpGeofootprintVar>>();
+  private dataCache: { [key: string] : CustomAudienceData };
+  private currentFileName: string;
   private varPkCache: Map<string, number> = new Map<string, number>();
 
-  constructor(private messagingService: AppMessagingService, private usageService: UsageService,
-              private audienceService: TargetAudienceService, private stateService: AppStateService,
-              private varService: ImpGeofootprintVarService, private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private projectVarService: ImpProjectVarService) {
-                
-                this.stateService.projectIsLoading$.subscribe(isLoading => {
-                  this.onLoadProject(isLoading);
-                });
-
-              }
+  constructor(private messagingService: AppMessagingService,
+              private usageService: UsageService,
+              private audienceService: TargetAudienceService,
+              private stateService: AppStateService,
+              private domainFactory: ImpDomainFactoryService,
+              private varService: ImpGeofootprintVarService) {
+    this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
+  }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
     const audience: AudienceDataDefinition = {
@@ -60,64 +60,47 @@ export class TargetAudienceCustomService {
     return audience;
   }
 
-  private onLoadProject(loading: boolean) {
-    if (loading) return; // loading will be false when the load is actually done
+  private onLoadProject() {
     try {
       const project = this.stateService.currentProject$.getValue();
-      // const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
-      // const geocodes: string[] = project.getImpGeofootprintGeos().map(geo => geo.geocode);
-      // const columnNames: Set<string> = new Set<string>();
-      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom').length > 0) {
-        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom')) {
-          const audience: AudienceDataDefinition = {
-            audienceName: projectVar.fieldname,
-            audienceIdentifier: projectVar.fieldname,
-            audienceSourceType: 'Custom',
-            audienceSourceName: projectVar.source.replace(/^Custom_/, ''),
-            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: false,
-            exportNationally: false,
-            allowNationalExport: false,
-            audienceCounter: projectVar.sortOrder
-          };
-          this.varPkCache.set(audience.audienceName, this.varService.getNextStoreId());
-          if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
-          // columnNames.add(audience.audienceName);
-          const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
-          const geoMap = new Map<string, ImpGeofootprintVar>();
-          for (const geoVar of relatedGeoVars) {
-            geoMap.set(geoVar.geocode, geoVar);
+      if (project == null) return;
+      const customProjectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom');
+      this.dataCache = {};
+      for (const projectVar of customProjectVars) {
+        const audience: AudienceDataDefinition = {
+          audienceName: projectVar.fieldname,
+          audienceIdentifier: projectVar.fieldname,
+          audienceSourceType: 'Custom',
+          audienceSourceName: projectVar.source.replace(/^Custom_/, ''),
+          exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+          showOnGrid: projectVar.isIncludedInGeoGrid,
+          showOnMap: false,
+          exportNationally: false,
+          allowNationalExport: false,
+          audienceCounter: projectVar.sortOrder
+        };
+        this.currentFileName = audience.audienceSourceName;
+        this.varPkCache.set(audience.audienceName, this.varService.getNextStoreId());
+        if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
+        const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
+        for (const geoVar of relatedGeoVars) {
+          if (!this.dataCache.hasOwnProperty(geoVar.geocode)) {
+            this.dataCache[geoVar.geocode] = { geocode: geoVar.geocode };
           }
-          this.dataCache.set(audience.audienceName, geoMap);
-          this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+          if (geoVar.isString) {
+            this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueString;
+          } else {
+            this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueNumber.toLocaleString();
+          }
         }
+        this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
       }
     } catch (error) {
       console.error(error);
     }
   }
 
-  /**
-   * Build a cache of geos that can be used for quick
-   * lookup while building geofootprint vars
-   */
-  private buildGeoCache() : Map<number, Map<string, ImpGeofootprintGeo>> {
-    let count = 0;
-    const geoCache = new Map<number, Map<string, ImpGeofootprintGeo>>();
-    const project = this.stateService.currentProject$.getValue();
-    for (const ta of project.getImpGeofootprintTradeAreas()) {
-      const geoMap = new Map<string, ImpGeofootprintGeo>();
-      for (const geo of ta.impGeofootprintGeos) {
-        geoMap.set(geo.geocode, geo);
-        geoCache.set(count, geoMap);
-      }
-      count++;
-    }
-    return geoCache;
-  }
-
-  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<number, Map<string, ImpGeofootprintGeo>>) : ImpGeofootprintVar {
+  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
     const fullId = `Custom/${fileName}/${column}`;
     let newVarPk = null;
     if (this.varPkCache.has(column)) {
@@ -130,31 +113,29 @@ export class TargetAudienceCustomService {
         }
       }
     }
-    const result = new ImpGeofootprintVar({ geocode, varPk: newVarPk, customVarExprQuery: fullId, customVarExprDisplay: column, isCustom: true, isString: false, isNumber: false, isActive: true });
-    if (Number.isNaN(Number(value))) {
-      result.valueString = (value === 'null') ? ' ' : value;
-      result.fieldconte = 'CHAR';
-      result.isString = true;
+    const results: ImpGeofootprintVar[] = [];
+    const numberAttempt = Number(value);
+    const fieldDescription: string = `${column}`;
+    const matchingAudience = this.audienceService.getAudiences()
+      .find(a => a.audienceSourceName === column && a.audienceSourceType === 'Custom');
+    let fieldType: FieldContentTypeCodes;
+    let fieldValue: string | number;
+    if (Number.isNaN(numberAttempt)) {
+      fieldValue = value;
+      fieldType = FieldContentTypeCodes.Char;
     } else {
-      result.valueNumber = Number(value);
-      result.fieldconte = 'INDEX';
-      result.isNumber = true;
+      fieldValue = numberAttempt;
+      fieldType = FieldContentTypeCodes.Index;
     }
-    result.isCustom = false;
-    for (const audience of this.audienceService.getAudiences()) {
-      if (fileName + column === audience.audienceSourceName + audience.audienceIdentifier) {
-        result.varPosition = audience.audienceCounter;
-      }
-    }
-    for (const ta of Array.from(geoCache.keys())) {
-      const geoMap: Map<string, ImpGeofootprintGeo> = geoCache.get(ta);
-      if (geoMap.has(geocode)) {
-        result.impGeofootprintTradeArea = geoMap.get(geocode).impGeofootprintTradeArea;
-        geoMap.get(geocode).impGeofootprintTradeArea.impGeofootprintVars.push(result);
-      }
+    if (geoCache.has(geocode)) {
+      geoCache.get(geocode).forEach(geo => {
+        const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
+        if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+        results.push(currentResult);
+      });
     }
     this.varPkCache.set(column, newVarPk);
-    return result;
+    return results;
   }
 
   public parseFileData(dataBuffer: string, fileName: string) {
@@ -175,19 +156,17 @@ export class TargetAudienceCustomService {
         if (uniqueGeos.size !== data.parsedData.length) {
           this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
         } else {
+          this.currentFileName = fileName;
+          this.dataCache = {};
+          data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
           const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
-          const geoCache = this.buildGeoCache();
           for (const column of columnNames) {
             const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
             this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
-            const columnData = data.parsedData.map(d => this.createGeofootprintVar(d.geocode, column, d[column], fileName, geoCache));
-            const geoDataMap = new Map<string, ImpGeofootprintVar>(columnData.map<[string, ImpGeofootprintVar]>(c => [c.geocode, c]));
-            this.dataCache.set(column, geoDataMap);
             const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
             this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
           }
-          console.log(this.dataCache);
           this.messagingService.showSuccessNotification('Audience Upload Success', 'Upload Complete');
         }
       }
@@ -196,37 +175,29 @@ export class TargetAudienceCustomService {
     }
   }
 
-  private handleError(message: string) : void {
-    this.messagingService.showErrorNotification('Audience Upload Error', message);
+  private buildGeoCache() : Map<string, ImpGeofootprintGeo[]> {
+    const currentProject = this.stateService.currentProject$.getValue();
+    return groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
   }
 
-  private clearVarsFromHierarchy() {
-    const project = this.stateService.currentProject$.getValue();
-    for (const location of project.impGeofootprintMasters[0].impGeofootprintLocations) {
-      for (const ta of location.impGeofootprintTradeAreas) {
-        ta.impGeofootprintVars = [];
-      }
-    }
+  private handleError(message: string) : void {
+    this.messagingService.showErrorNotification('Audience Upload Error', message);
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const geoSet = new Set(geocodes);
-    const geoCache: Map<number, Map<string, ImpGeofootprintGeo>> = this.buildGeoCache();
+    const geoCache = this.buildGeoCache();
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
-    this.clearVarsFromHierarchy();
-    for (const column of identifiers) {
-      if (this.dataCache.has(column)) {
-        const geoVars = [];
-        this.dataCache.get(column).forEach((v, k) => {
-          if (geoSet.has(k)) geoVars.push(v);
-          const geoVarValue = v.valueNumber != null ? v.valueNumber : v.valueString;
-          this.createGeofootprintVar(v.geocode, v.customVarExprDisplay, geoVarValue.toString(), v.customVarExprQuery.split('/')[1], geoCache);
+    geoSet.forEach(geo => {
+      if (this.dataCache.hasOwnProperty(geo)) {
+        identifiers.forEach(column => {
+          const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache);
+          observables.push(of(newVars));
         });
-        observables.push(of(geoVars));
       }
-    }
+    });
     return merge(...observables, 4).pipe(
       filter(vars => vars.length > 0)
     );

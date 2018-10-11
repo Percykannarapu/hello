@@ -6,7 +6,19 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
+import { UserService } from '../../../services/user.service';
+import { ImpProjectPref } from '../models/ImpProjectPref';
+import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { ImpProjectVar } from '../models/ImpProjectVar';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
+
+function isNumber(value: any) : value is number {
+  return value != null && value != '' && !Number.isNaN(Number(value));
+}
 
 @Injectable({
   providedIn: 'root'
@@ -80,8 +92,9 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHiearchy: boolean = true) : ImpGeofootprintTradeArea {
+  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
+    const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
     const taNumber = tradeAreaType === TradeAreaTypeCodes.Radius ? index + 1 : parent.impGeofootprintTradeAreas.length + this.config.maxRadiusTradeAreas + 1;
     const result = new ImpGeofootprintTradeArea({
       taNumber: taNumber,
@@ -89,9 +102,52 @@ export class ImpDomainFactoryService {
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impGeofootprintLocation: parent,
-      isActive: parent.isActive ? isActive : parent.isActive
+      isActive: parent.isActive ? isActive : parent.isActive,
+      gtaId: null
     });
-    if (attachToHiearchy) parent.impGeofootprintTradeAreas.push(result);
+    if (existingTradeAreas.has(taNumber)) {
+      console.error('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
+      throw new Error('A duplicate trade area number addition was attempted');
+    }
+    if (attachToHierarchy) parent.impGeofootprintTradeAreas.push(result);
+    return result;
+  }
+
+  createGeoVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string | number, fullId: string,
+               fieldDescription: string = '', fieldType?: FieldContentTypeCodes, fieldName: string = '',
+               nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
+
+    const result = new ImpGeofootprintVar({
+      dirty: true,
+      baseStatus: DAOBaseStatus.INSERT,
+      geocode,
+      varPk,
+      customVarExprQuery: fullId,
+      isNumber: false,
+      isString: false,
+      isCustom: false,
+      fieldconte: fieldType,
+      customVarExprDisplay: fieldDescription,
+      fieldname: fieldName,
+      natlAvg: nationalAvg,
+      isActive
+    });
+    if (isNumber(value)) {
+      result.isNumber = true;
+      result.valueNumber = value;
+    } else {
+      result.isString = true;
+      result.valueString = value;
+    }
+    if (parent != null) {
+      const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
+      if (existingVar != null) {
+        console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+        throw new Error('A duplicate GeoVar addition was attempted');
+      }
+      result.impGeofootprintTradeArea = parent;
+      parent.impGeofootprintVars.push(result);
+    }
     return result;
   }
 
