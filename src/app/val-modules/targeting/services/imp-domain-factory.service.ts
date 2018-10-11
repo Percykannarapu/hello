@@ -115,7 +115,7 @@ export class ImpDomainFactoryService {
 
   createGeoVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string | number, fullId: string,
                fieldDescription: string = '', fieldType?: FieldContentTypeCodes, fieldName: string = '',
-               nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
+               nationalAvg: string = '', isActive: boolean = true, overwriteDuplicates: boolean = true) : ImpGeofootprintVar {
 
     const result = new ImpGeofootprintVar({
       dirty: true,
@@ -141,12 +141,29 @@ export class ImpDomainFactoryService {
     }
     if (parent != null) {
       const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
-      if (existingVar != null) {
-        console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
-        throw new Error('A duplicate GeoVar addition was attempted');
+      if (existingVar == null) {
+        result.impGeofootprintTradeArea = parent;
+        parent.impGeofootprintVars.push(result);
+      } else {
+        if (overwriteDuplicates) {
+          existingVar.dirty = true;
+          existingVar.baseStatus = DAOBaseStatus.UPDATE;
+          existingVar.customVarExprQuery = result.customVarExprQuery;
+          existingVar.isNumber = result.isNumber;
+          existingVar.valueNumber = result.valueNumber;
+          existingVar.isString = result.isString;
+          existingVar.valueString = result.valueString;
+          existingVar.customVarExprDisplay = result.customVarExprDisplay;
+          existingVar.fieldconte = result.fieldconte;
+          existingVar.fieldname = result.fieldname;
+          existingVar.natlAvg = result.natlAvg;
+          existingVar.isActive = result.isActive;
+          return existingVar;
+        } else {
+          console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+          throw new Error('A duplicate GeoVar addition was attempted');
+        }
       }
-      result.impGeofootprintTradeArea = parent;
-      parent.impGeofootprintVars.push(result);
     }
     return result;
   }
