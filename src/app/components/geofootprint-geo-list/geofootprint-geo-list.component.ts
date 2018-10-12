@@ -1,7 +1,8 @@
+import { FlatGeo } from './../geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
-import { map, tap, refCount, publishReplay } from 'rxjs/operators';
+import { Observable, combineLatest, BehaviorSubject, from, timer } from 'rxjs';
+import { map, tap, refCount, publishReplay, timeInterval } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
@@ -122,6 +123,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private _varColOrder: Map<string, number>;
 // private varColOrder$: Observable<Map<string, number>>;
 
+   // Grid Observables for totals
+   private gridValuesBS$ = new BehaviorSubject<any[]>([]);
+   private gridFilterBS$ = new BehaviorSubject<any[]>([]);
+
+   public  gridValues$: Observable<any[]>;
+   public  gridFilter$: Observable<any[]>;
+   
    // Observables for unique values to filter on in the grid
    public  uniqueCity$: Observable<SelectItem[]>;
    public  uniqueState$: Observable<SelectItem[]>;
@@ -222,7 +230,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
       this.allImpGeofootprintGeos$ = combineLatest(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
-                                    .pipe(map(([discovery, projectVars, geos, attributes, vars]) => this.createComposite(discovery, projectVars, geos, attributes, vars))
+                                    .pipe(tap(x => this.setGridTotals())
+                                         ,map(([discovery, projectVars, geos, attributes, vars]) => this.createComposite(discovery, projectVars, geos, attributes, vars))
                                           // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
                                           // Allows the first subscriber to run pipe and all other subscribers get the result of that
                                          ,publishReplay(1)
@@ -242,7 +251,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                                   ,numGeos:         (AllGeos != null) ? AllGeos.length : 0
                                                                   ,numGeosActive:   (AllGeos != null) ? AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length : 0
                                                                   ,numGeosInactive: (AllGeos != null) ? AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length : 0
-                                                                  };
+                                                                 };
                                                  return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
 
       // Column Picker Model
@@ -255,6 +264,22 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this._geoGrid.filterConstraints['numericFilter']  = (value, filter): boolean => FilterData.numericFilter(value, filter);
       this._geoGrid.filterConstraints['distanceFilter'] = (value, filter): boolean => FilterData.numericFilter(value, filter, 2);
 
+      //this._geoGrid._value
+//      this.gridValuesBS$ = 
+//      this.gridValues$ = from(this._geoGrid._value);
+      this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
+      
+      this.gridValues$.subscribe(data => {
+         console.log("gridValues$ Observable fired");
+         this.setGridTotals();
+      });
+
+      const subscribe = this.gridValues$.subscribe(val => {
+         console.log("subscribe fired - ", val);
+      });
+//      this.gridFilter$ =
+
+      
       // ----------------------------------------------------------------------
       // Table filter observables
       // ----------------------------------------------------------------------
@@ -380,8 +405,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], geoVars: ImpGeofootprintVar[]) : FlatGeo[]
    {
-      console.log('createComposite: geos: ', (geos != null) ? geos.length : null, ', attributes: ', (geoAttributes != null) ? geoAttributes.length : null); // , ', vars: ', (vars != null) ? vars.length : null);
-   
+      console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null, ', geos: ', (geos != null) ? geos.length : null, ', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
+                 ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
       if (geos == null || geos.length === 0)
          return [];
 
@@ -568,7 +593,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.sortFlatGeoGridExtraColumns();
 
       // Update geo grid total columns
-      this.setGridTotals();
+      this.setGridTotals(geoGridData);
 
       //console.log("createComposite - returning geoGridData: ", geoGridData);
       return geoGridData;
@@ -840,79 +865,88 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * @param totalStr The key of the map to update
     * @param newValue The value to store in the map
     */
-   setGridTotal(totalStr: string, newValue: number) {
+   private setGridTotal(totalStr: string, newValue: number) {
       this.gridTotals.set(totalStr, {tot: this.gridTotals.get(totalStr).tot + newValue
                                     ,min: (newValue < this.gridTotals.get(totalStr).min) ? newValue : this.gridTotals.get(totalStr).min
                                     ,max: (newValue > this.gridTotals.get(totalStr).max) ? newValue : this.gridTotals.get(totalStr).max
                                     });
    }
 
+   private setGridTotalSet (hhc: number, cpm: number, investment: number, distance: number, isDeduped: number) {
+      this.setGridTotal('hhc',        hhc);
+      this.setGridTotal('cpm',        cpm);
+      this.setGridTotal('investment', investment);
+      this.setGridTotal('distance',   distance);
+      // Accumulate allocated counts
+      if (isDeduped === 1) {
+         this.setGridTotal('allocHhc',        hhc);
+         this.setGridTotal('allocInvestment', investment);
+      }
+   }
+
    /**
     * Looks at the filtered and unfiltered arrays of the grid and computes totals for display at the 
     * bottom of the column.
     */
-   setGridTotals() {
+   setGridTotals(flatGeos?: FlatGeo[]) {
       if (this._geoGrid == null || this._geoGrid._value == null || this._geoGrid._value.length === 0)
          return;
 
+      console.log("setGridTotals - Fired");
       // Initialize totals
       this.initializeGridTotals();
 
       let numRows: number = 0;
-
       try
       {
-         if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
+         if (flatGeos != null && flatGeos.length > 0)
          {
-            numRows = this._geoGrid.filteredValue.length;
+            console.log("setGridTotals - using flatGeos");
+            numRows = flatGeos.length;
 
-            this._geoGrid.filteredValue.forEach(element => {
-//               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
-               if (element.geo.isActive)
-               {
-                  this.setGridTotal('hhc',        element.geo.hhc);
-                  this.setGridTotal('cpm',        element.cpm);
-                  this.setGridTotal('investment', element.investment);
-                  this.setGridTotal('distance',   element.geo.distance);
-                  // Accumulate allocated counts
-                  if (element.geo.isDeduped === 1) {
-                     this.setGridTotal('allocHhc',        element.geo.hhc);
-                     this.setGridTotal('allocInvestment', element.investment);
-                  }
-               }
-            });
+            flatGeos.forEach(element => {
+               if (element.geo.isActive) 
+                  this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
          }
          else
          {
-            numRows = this._geoGrid._value.length;
+            if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
+            {
+               console.log("setGridTotals - using filtered list");
+               numRows = this._geoGrid.filteredValue.length;
 
-            this._geoGrid._value.forEach(element => {
-               if ((element.geo.isDeduped === 1 || this.dedupeGrid === false) && element.geo.isActive)
-               {
-                  this.setGridTotal('hhc',        element.geo.hhc);
-                  this.setGridTotal('cpm',        element.cpm);
-                  this.setGridTotal('investment', element.investment);
-                  this.setGridTotal('distance',   element.geo.distance);
-                  // Accumulate allocated counts
-                  if (element.geo.isDeduped === 1) {
-                     this.setGridTotal('allocHhc',        element.geo.hhc);
-                     this.setGridTotal('allocInvestment', element.investment);
-                  }
-               }
-            });
+               this._geoGrid.filteredValue.forEach(element => {
+                  if (element.geo.isActive)
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+            }
+            else
+            {
+               console.log("setGridTotals - using normal list");
+               numRows = this._geoGrid._value.length;
+
+               this._geoGrid._value.forEach(element => {
+                  if (element.geo.isActive)
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+            }
          }
-
          // Calculated grid totals
-         this.gridTotals.set('cpm', {tot: this.gridTotals.get('cpm').tot
-                                    ,cnt: this.gridTotals.get('cpm').cnt
-                                    ,min: this.gridTotals.get('cpm').min
-                                    ,max: this.gridTotals.get('cpm').max
+         this.gridTotals.set('hhc', {...this.gridTotals.get('hhc')
+                                    ,avg: this.gridTotals.get('hhc').tot / numRows});
+
+         this.gridTotals.set('allocHhc', {...this.gridTotals.get('allocHhc')
+                                         ,avg: this.gridTotals.get('allocHhc').tot / numRows});
+
+         this.gridTotals.set('investment', {...this.gridTotals.get('investment')
+                                           ,avg: this.gridTotals.get('investment').tot / numRows});
+
+         this.gridTotals.set('allocInvestment', {...this.gridTotals.get('allocInvestment')
+                                                ,avg: this.gridTotals.get('allocInvestment').tot / numRows});
+
+         this.gridTotals.set('cpm', {...this.gridTotals.get('cpm')
                                     ,avg: this.gridTotals.get('cpm').tot / numRows});
-         this.gridTotals.set('distance', {tot: this.gridTotals.get('distance').tot
-                                       ,cnt: this.gridTotals.get('distance').cnt
-                                       ,min: this.gridTotals.get('distance').min
-                                       ,max: this.gridTotals.get('distance').max
-                                       ,avg: this.gridTotals.get('distance').tot / numRows});
+
+         this.gridTotals.set('distance', {...this.gridTotals.get('distance')
+                                         ,avg: this.gridTotals.get('distance').tot / numRows});
       }
       catch(e) 
       {

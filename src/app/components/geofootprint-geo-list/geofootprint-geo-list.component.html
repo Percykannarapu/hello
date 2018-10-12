@@ -216,7 +216,6 @@
                   <div *ngSwitchCase="'cpm'" [escape]="false"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
-                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('cpm').cnt | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('cpm').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('cpm').max | currency}}</td></tr></table>">
                      {{gridTotals.get('cpm').avg | currency}}
@@ -225,7 +224,6 @@
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('investment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('investment').avg | currency}}</td></tr>
-                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('investment').cnt | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('investment').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
                      {{gridTotals.get('investment').tot | currency}}
@@ -234,7 +232,6 @@
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocInvestment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocInvestment').avg | currency}}</td></tr>
-                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('allocInvestment').cnt | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('allocInvestment').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocInvestment').max | currency}}</td></tr></table>">
                      {{gridTotals.get('allocInvestment').tot | currency}}
