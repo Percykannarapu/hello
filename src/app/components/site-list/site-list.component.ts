@@ -89,7 +89,7 @@ export class SiteListComponent implements OnInit {
     {field: 'origState',            header: 'Original State',    width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
     {field: 'origPostalCode',       header: 'Original ZIP',      width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
    ];
-
+   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
    public selectedColumns: any[] = [];
 
    constructor(private siteListService: AppLocationService,
@@ -220,6 +220,8 @@ export class SiteListComponent implements OnInit {
             this.appStateService.clearUserInterface();
             const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
             this.appStateService.setProvidedTradeAreas(false, siteCode );
+            this.selectedColumns.splice(this.flatSiteGridColumnsLength, this.selectedColumns.length);
+            console.log(this.selectedColumns);
          }
       });
    }
