@@ -2,6 +2,7 @@
   <p-tabPanel header="Discovery">
     <val-discovery-input [storeData]="currentDiscoveryData$ | async"
                          [projectTrackerSuggestions]="currentProjectTrackerSuggestions$ | async"
+                         [onlineAudienceExists]="onlineAudienceExists$ | async"
                          [radSuggestions]="currentRadSuggestions$ | async"
                          (formChanged)="onDiscoveryFormChanged($event)"
                          (radSearchRequest)="onRadSearch($event)"

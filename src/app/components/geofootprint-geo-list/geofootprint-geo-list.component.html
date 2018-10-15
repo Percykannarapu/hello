@@ -15,8 +15,8 @@
                [responsive]="true"
                [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
                (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
-               (onRowSelect)="onSelectGeocode($event, true)"
-               (onRowUnselect)="onSelectGeocode($event, false)"
+               (onRowSelect)="onClickSelectGeocode($event, true)"
+               (onRowUnselect)="onClickSelectGeocode($event, false)"
                (onFilter)="onFilter($event)">
                <!-- [headerCheckboxToggleAllPages]="true" -->
 
@@ -39,26 +39,27 @@
                   <label style="padding: 0px 10px 0px 25px">Export</label>
                   <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="All"      class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
                   <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Filtered" class="val-icon-button" (click)="geoGrid.exportCSV()"></button>
-                  <!-- <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print" class="val-icon-button" (click)="debugPrintGrid()"></button>
+             <!-- <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print" class="val-icon-button" (click)="debugPrintGrid()"></button>
                   <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Toggle"  class="val-icon-button" (click)="gridToggleRowWithCheckbox($event, _geoGrid.value[0])"></button>
-                  <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Sync"  class="val-icon-button" (click)="syncGridSelection()"></button> -->
+                  <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Sync"  class="val-icon-button" (click)="syncGridSelection()"></button>
+                  <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print Inputs"  class="val-icon-button" (click)="debugPrintInputs()"></button> -->
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;"
-                         pTooltip="Selected Geos:   {{numGeosActive}}
-                                   Unselected Geos: {{numGeosInactive}}">
-                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{geoGrid.totalRecords}} / {{impGeofootprintGeoService.length()}} (Filtered)
+                         pTooltip="Selected Geos:   {{gridStats.numGeosActive}}
+                                   Unselected Geos: {{gridStats.numGeosInactive}}">
+                     Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}} - ({{geoGrid.totalRecords}} Filtered)
                   </label>
                   <label *ngIf="geoGrid.filteredValue == null" style="padding: 0; text-align: center;"
-                         pTooltip="Selected Geos:   {{numGeosActive}}
-                                   Unselected Geos: {{numGeosInactive}}">
-                     Locations: {{impGeofootprintLocationService.length()}}, Geos: {{impGeofootprintGeoService.length()}}
+                         pTooltip="Selected Geos:   {{gridStats.numGeosActive}}
+                                   Unselected Geos: {{gridStats.numGeosInactive}}">
+                     Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}}
                   </label>
                </div>
                <div class="ui-g-4 ui-toolbar-group-right val-flush-to-edges" style="display: flex; justify-content: flex-end; padding: 5px 0px 0px 0px;">
                   <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
                   <label style="padding: 0px 10px 0px 15px">Remove Dupes</label>
-                  <p-inputSwitch (onChange)="onDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
+                  <p-inputSwitch (onChange)="onClickDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                   &nbsp;&nbsp;
                   <button type="button" pButton icon="{{tableWrapIcon}}" pTooltip="Toggle to Word Wrap" class="val-short-square-button" (click)="onToggleTableWrap()"></button>               </div>
             </div>
@@ -68,8 +69,8 @@
          <!-- <p-button icon="pi pi-check" class="val-short-button" (onClick)="onToggleFilteredGeocodes(false)"></p-button> -->
          <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
             <tr>
-               <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
-               <!-- <th style="width: 30px"><p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="onToggleFilteredGeocodes(headerFilter)" [ngStyle]="{'width':'30px'}"></p-checkbox></th> -->
+               <!-- <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th> -->
+               <th style="width: 30px"><p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="applyHeaderFilter()" [ngStyle]="{'width':'114px'}" class="val-table-hdr"></p-checkbox></th>
                <th style="width: 30px"></th>
                <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
                   {{col.header}}
@@ -102,11 +103,17 @@
                   <div *ngSwitchCase="'geo.hhc'">
                      <val-table-filter-numeric fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')" [(minValue)]="hhcRanges[0]" [(maxValue)]="hhcRanges[1]"></val-table-filter-numeric>
                   </div>
+                  <div *ngSwitchCase="'allocHhc'">
+                     <val-table-filter-numeric fieldName="Allocated HHC" (filterApplied)="geoGrid.filter($event, 'allocHhc', 'numericFilter')" [(minValue)]="allocHhcRanges[0]" [(maxValue)]="allocHhcRanges[1]"></val-table-filter-numeric>
+                  </div>
                   <div *ngSwitchCase="'cpm'">
                      <val-table-filter-numeric fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')" [(minValue)]="cpmRanges[0]" [(maxValue)]="cpmRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'investment'">
                      <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                  </div>
+                  <div *ngSwitchCase="'allocInvestment'">
+                     <val-table-filter-numeric fieldName="Allocated Investment" (filterApplied)="geoGrid.filter($event, 'allocInvestment', 'numericFilter')" [(minValue)]="allocInvestmentRanges[0]" [(maxValue)]="allocInvestmentRanges[1]"></val-table-filter-numeric>
                   </div>
 
                   <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
@@ -155,11 +162,13 @@
                   </div>
 
                   <!-- Format various columns -->
-                  <div *ngSwitchCase="'geo.isDeduped'"> {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
-                  <div *ngSwitchCase="'geo.distance'">  {{flatGeo[col.field] | number:'1.2-2'}} </div>
-                  <div *ngSwitchCase="'geo.hhc'">       {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
-                  <div *ngSwitchCase="'cpm'">           {{flatGeo['cpm'] | currency}} </div>
-                  <div *ngSwitchCase="'investment'">    {{flatGeo['investment'] | currency}} </div>
+                  <div *ngSwitchCase="'geo.isDeduped'">  {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'geo.distance'">   {{flatGeo[col.field] | number:'1.2-2'}} </div>
+                  <div *ngSwitchCase="'geo.hhc'">        {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'allocHhc'">       {{flatGeo['allocHhc'] | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase="'cpm'">            {{flatGeo['cpm'] | currency}} </div>
+                  <div *ngSwitchCase="'investment'">     {{flatGeo['investment'] | currency}} </div>
+                  <div *ngSwitchCase="'allocInvestment'">{{flatGeo['allocInvestment'] | currency}} </div>
 
                   <!-- Display all other columns -->
                   <div *ngSwitchDefault>
@@ -196,10 +205,17 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
                      {{gridTotals.get('hhc').tot | number:'1.0-0'}}
                   </div>
+                  <div *ngSwitchCase="'allocHhc'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocHhc').tot | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocHhc').avg | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('allocHhc').min | number:'1.0-0'}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocHhc').max | number:'1.0-0'}}</td></tr></table>">
+                     {{gridTotals.get('allocHhc').tot | number:'1.0-0'}}
+                  </div>
                   <div *ngSwitchCase="'cpm'" [escape]="false"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
-                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('cpm').cnt | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('cpm').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('cpm').max | currency}}</td></tr></table>">
                      {{gridTotals.get('cpm').avg | currency}}
@@ -208,10 +224,17 @@
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('investment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('investment').avg | currency}}</td></tr>
-                                  <tr><td style='text-align:right;'>Count:</td><td>{{gridTotals.get('investment').cnt | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('investment').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
                      {{gridTotals.get('investment').tot | currency}}
+                  </div>
+                  <div *ngSwitchCase="'allocInvestment'" [escape]="false"
+                        pTooltip="<table>
+                                  <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocInvestment').tot | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocInvestment').avg | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('allocInvestment').min | currency}}</td></tr>
+                                  <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocInvestment').max | currency}}</td></tr></table>">
+                     {{gridTotals.get('allocInvestment').tot | currency}}
                   </div>
                </td>
                <td *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.field" [class]="col.styleClass">

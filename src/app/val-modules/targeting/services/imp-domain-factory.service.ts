@@ -6,7 +6,7 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
-import { TradeAreaTypeCodes } from '../targeting.enums';
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
@@ -15,6 +15,10 @@ import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+
+function isNumber(value: any) : value is number {
+  return value != null && value != '' && !Number.isNaN(Number(value));
+}
 
 @Injectable({
   providedIn: 'root'
@@ -314,61 +318,58 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createGeoStringVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string, fullId: string, fieldDescription: string = '',
-                     fieldType: string = 'CHAR', fieldName: string = '', nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
-    if (parent == null) throw new Error('Geo Var factory requires a valid ImpGeofootprintTradeArea instance');
-    const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
-    const result = new ImpGeofootprintVar({
-      dirty: true,
-      baseStatus: DAOBaseStatus.INSERT,
-      geocode,
-      varPk,
-      customVarExprQuery: fullId,
-      isString: true,
-      isNumber: false,
-      isCustom: false,
-      valueString: value,
-      fieldconte: fieldType,
-      customVarExprDisplay: fieldDescription,
-      fieldname: fieldName,
-      natlAvg: nationalAvg,
-      isActive,
-      impGeofootprintTradeArea: parent,
-    });
-    if (existingVar != null) {
-      console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
-      throw new Error('A duplicate GeoVar addition was attempted');
-    }
-    parent.impGeofootprintVars.push(result);
-    return result;
-  }
+  createGeoVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string | number, fullId: string,
+               fieldDescription: string = '', fieldType?: FieldContentTypeCodes, fieldName: string = '',
+               nationalAvg: string = '', isActive: boolean = true, overwriteDuplicates: boolean = true) : ImpGeofootprintVar {
 
-  createGeoNumberVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: number, fullId: string, fieldType: string = 'INDEX',
-                     fieldDescription: string = '', fieldName: string = '', nationalAvg: string = '', isActive: boolean = true) : ImpGeofootprintVar {
-    if (parent == null) throw new Error('Geo Var factory requires a valid ImpGeofootprintTradeArea instance');
-    const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
     const result = new ImpGeofootprintVar({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       geocode,
       varPk,
       customVarExprQuery: fullId,
+      isNumber: false,
       isString: false,
-      isNumber: true,
       isCustom: false,
-      valueNumber: value,
       fieldconte: fieldType,
       customVarExprDisplay: fieldDescription,
       fieldname: fieldName,
       natlAvg: nationalAvg,
-      isActive,
-      impGeofootprintTradeArea: parent,
+      isActive
     });
-    if (existingVar != null) {
-      console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
-      throw new Error('A duplicate GeoVar addition was attempted');
+    if (isNumber(value)) {
+      result.isNumber = true;
+      result.valueNumber = value;
+    } else {
+      result.isString = true;
+      result.valueString = value;
     }
-    parent.impGeofootprintVars.push(result);
+    if (parent != null) {
+      const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
+      if (existingVar == null) {
+        result.impGeofootprintTradeArea = parent;
+        parent.impGeofootprintVars.push(result);
+      } else {
+        if (overwriteDuplicates) {
+          existingVar.dirty = true;
+          existingVar.baseStatus = DAOBaseStatus.UPDATE;
+          existingVar.customVarExprQuery = result.customVarExprQuery;
+          existingVar.isNumber = result.isNumber;
+          existingVar.valueNumber = result.valueNumber;
+          existingVar.isString = result.isString;
+          existingVar.valueString = result.valueString;
+          existingVar.customVarExprDisplay = result.customVarExprDisplay;
+          existingVar.fieldconte = result.fieldconte;
+          existingVar.fieldname = result.fieldname;
+          existingVar.natlAvg = result.natlAvg;
+          existingVar.isActive = result.isActive;
+          return existingVar;
+        } else {
+          console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+          throw new Error('A duplicate GeoVar addition was attempted');
+        }
+      }
+    }
     return result;
   }
 

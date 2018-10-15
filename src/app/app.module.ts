@@ -77,6 +77,7 @@ import { UserService } from './services/user.service';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
+import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { AppBusinessSearchService } from './services/app-business-search.service';
@@ -220,6 +221,7 @@ import { BusinessSearchComponent } from './components/add-locations-tab/business
         PocComponent,
         PocMapComponent,
         GeofootprintGeoListComponent,
+        GeofootprintGeoPanelComponent,
         MessageComponent,
         BusinessSearchComponent,
         ColorBoxComponent,

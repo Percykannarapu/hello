@@ -74,7 +74,10 @@ export class TargetAudienceService implements OnDestroy {
       filter(loading => loading),
     ).subscribe(() => {
       this.audienceMap.clear();
-      this.audiences.next(Array.from(this.audienceMap.values()));
+      this.audienceSources.clear();
+      this.nationalSources.clear();
+      this.shadingData.next(new Map<string, ImpGeofootprintVar>());
+      this.audiences.next([]);
     });
   }
 
@@ -281,13 +284,13 @@ export class TargetAudienceService implements OnDestroy {
     return this.audiences.getValue();
   }
 
-  private clearVarsFromHierarchy() {
+  private clearVars() {
     const project = this.appStateService.currentProject$.getValue();
-    for (const location of project.impGeofootprintMasters[0].impGeofootprintLocations) {
-      for (const ta of location.impGeofootprintTradeAreas) {
-        ta.impGeofootprintVars = [];
-      }
+    const tas = project.getImpGeofootprintTradeAreas();
+    for (const ta of tas) {
+      ta.impGeofootprintVars = [];
     }
+    this.varService.clearAll();
   }
 
   public applyAudienceSelection() : void {
@@ -296,8 +299,7 @@ export class TargetAudienceService implements OnDestroy {
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
     this.unsubEverything();
     this.clearShadingData();
-    this.varService.clearAll(selectedAudiences.length === 0);
-    this.clearVarsFromHierarchy();
+    this.clearVars();
     if (shadingAudience.length > 1) {
       this.messagingService.showErrorNotification('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
     } else if (shadingAudience.length === 1) {

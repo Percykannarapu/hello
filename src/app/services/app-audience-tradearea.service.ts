@@ -22,6 +22,7 @@ import { AppMessagingService } from './app-messaging.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { filter } from 'rxjs/operators';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -96,27 +97,14 @@ export class ValAudienceTradeareaService {
    */
   public updateAudienceTAConfig(config: AudienceTradeAreaConfig) {
     const project = this.stateService.currentProject$.getValue();
-    let dirty: boolean = false;
-    if (this.audienceTAConfig == null) 
-      
-    if (this.audienceTAConfig.analysisLevel !== config.analysisLevel) dirty = true;
-    if (this.audienceTAConfig.digCategoryId !== config.digCategoryId) dirty = true;
-    if (this.audienceTAConfig.includeMustCover !== config.includeMustCover) dirty = true;
-    if (this.audienceTAConfig.maxRadius !== config.maxRadius) dirty = true;
-    if (this.audienceTAConfig.minRadius !== config.minRadius) dirty = true;
-    if (this.audienceTAConfig.scoreType !== config.scoreType) dirty = true;
-    if (this.audienceTAConfig.weight !== config.weight) dirty = true;
-    if (this.audienceTAConfig.audienceName !== config.audienceName) dirty = true;
-    if (dirty) {
-      this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
-      project.audTaIndexBase = this.audienceTAConfig.scoreType;
-      project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
-      project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
-      project.audTaMinRadiu = this.audienceTAConfig.minRadius;
-      project.audTaVarPk = this.audienceTAConfig.digCategoryId;
-      project.audTaVarWeight = this.audienceTAConfig.weight;
-      project.audTaVarSource = this.audienceTAConfig.audienceName;
-    }
+    this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
+    project.audTaIndexBase = this.audienceTAConfig.scoreType;
+    project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
+    project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
+    project.audTaMinRadiu = this.audienceTAConfig.minRadius;
+    project.audTaVarPk = this.audienceTAConfig.digCategoryId;
+    project.audTaVarWeight = this.audienceTAConfig.weight;
+    project.audTaVarSource = this.audienceTAConfig.audienceName;
     this.audienceTAConfig$.next(this.audienceTAConfig);
   }
 
@@ -124,13 +112,12 @@ export class ValAudienceTradeareaService {
    * When a project is loaded we need to create an
    * AudienceTAConfig if we have the data available
    */
-  private onLoad(ready: boolean) {
-    if (!ready) return;
+  private onLoad() {
     const project = this.stateService.currentProject$.getValue();
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue(),
       digCategoryId: project.audTaVarPk,
-      includeMustCover: project.audTaIsMustCover === 1 ? true : false,
+      includeMustCover: project.audTaIsMustCover === 1,
       maxRadius: project.audTaMaxRadiu,
       minRadius: project.audTaMinRadiu,
       scoreType: project.audTaIndexBase,
@@ -138,6 +125,7 @@ export class ValAudienceTradeareaService {
       locations: null, // we don't populate this until we run the trade area
       audienceName: project.audTaVarSource
     };
+    if (audienceTAConfig.scoreType == null || audienceTAConfig.scoreType.length > 0) audienceTAConfig.scoreType = 'DMA';
     this.updateAudienceTAConfig(audienceTAConfig);
     this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
   }
@@ -594,7 +582,7 @@ export class ValAudienceTradeareaService {
         locations: null,
         maxRadius: null,
         minRadius: null,
-        scoreType: null,
+        scoreType: 'DMA',
         weight: null
       };
       this.initializeSortMap();
@@ -602,6 +590,6 @@ export class ValAudienceTradeareaService {
         // if location data changes, we will need to Fetch data from fuse the next time we create trade areas
         this.fetchData = true;
       });
-      this.stateService.applicationIsReady$.subscribe(l => this.onLoad(l));
+      this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoad());
   }
 }

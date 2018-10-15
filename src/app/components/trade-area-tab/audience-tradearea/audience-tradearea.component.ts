@@ -3,7 +3,7 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '
 import { SelectItem } from 'primeng/primeng';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../../models/audience-data.model';
 import { Observable } from 'rxjs';
-import { map, distinctUntilChanged, filter } from 'rxjs/operators';
+import { map, distinctUntilChanged, filter, skipWhile } from 'rxjs/operators';
 import { AppStateService } from '../../../services/app-state.service';
 import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../../services/usage.service';
@@ -21,6 +21,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
   private selectedVars: AudienceDataDefinition[] = []; //the variables that have been selected and come from the TargetAudienceService
   private audienceSourceMap: Map<string, string> = new Map<string, string>();
+  private isLoadingData: boolean = false;
 
   @Input() currentAudienceTAConfig: AudienceTradeAreaConfig;
   @Input() currentAudiences: AudienceDataDefinition[];
@@ -42,11 +43,13 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       'maxRadius': [null, Validators.required],
       'audience': [null, Validators.required],
       'weight': [null, Validators.required],
-      'scoreType': ['DMA', Validators.required],
+      'scoreType': [null, Validators.required],
       'includeMustCover': [false]
     });
 
-    this.configForm.valueChanges.pipe(distinctUntilChanged()).subscribe(f => {
+    this.configForm.valueChanges.pipe(
+      filter(() => this.configForm.valid && !this.isLoadingData),
+      distinctUntilChanged()).subscribe(f => {
       this.updatedFormData.emit(f);
     });
 
@@ -56,12 +59,14 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    this.isLoadingData = true;
     if (changes.currentAudienceTAConfig != null) {
       this.onConfigChange(changes.currentAudienceTAConfig.currentValue);
     }
     if (changes.currentAudiences != null) {
       this.updateVars(changes.currentAudiences.currentValue);
     }
+    this.isLoadingData = false;
   }
 
   private onConfigChange(config: AudienceTradeAreaConfig) {

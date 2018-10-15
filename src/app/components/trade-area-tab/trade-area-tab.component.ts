@@ -152,6 +152,7 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   onUpdatedAudienceTAData(form: any) {
+    console.log('Trade Area parent component fired', form);
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
       digCategoryId: this.getVarId(form.audience),
