@@ -181,7 +181,7 @@ export class ImpDomainFactoryService {
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       clientIdentifierId: 123, // Mandatory field, stubbing
-      clientLocationId: 123, // Mandatory field, stubbing
+      //clientLocationId: 123, // Mandatory field, stubbing
       locationName: res.Name != null ? res.Name.trim() : '',
       marketName: res.Market != null ? res.Market.trim() : '',
       marketCode: res['Market Code'] != null ? res['Market Code'].trim() : '',
