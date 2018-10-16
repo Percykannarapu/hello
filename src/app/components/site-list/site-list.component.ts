@@ -220,8 +220,9 @@ export class SiteListComponent implements OnInit {
             this.appStateService.clearUserInterface();
             const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.selectedListType));
             this.appStateService.setProvidedTradeAreas(false, siteCode );
-            this.selectedColumns.splice(this.flatSiteGridColumnsLength, this.selectedColumns.length);
-            }
+            this.flatSiteGridColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
+            this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength)); 
+          }
       });
    }
 
