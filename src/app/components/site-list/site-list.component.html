@@ -10,7 +10,7 @@
       <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
    </div>
 
-   <div #gridRoot class="ui-g-12">
+   <div #gridRoot id= "locGrid" class="ui-g-12">
       <p-table #locGrid
                class="val-table"
                [columns]="flatSiteGridColumns"
