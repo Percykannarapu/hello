@@ -381,6 +381,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     *  Initializes the accumulators for the totals located at the bottom of the column
     */  
    initializeGridTotals() {
+      console.log("initializeGridTotals - fired");
+      this.gridTotals = new Map<string, ColMetric>();
       this.gridTotals.set('hhc',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('allocHhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('cpm',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
@@ -410,8 +412,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null, ', geos: ', (geos != null) ? geos.length : null, ', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
                  ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
-      if (geos == null || geos.length === 0)
+      if (geos == null || geos.length === 0) {
+         this.initializeGridTotals();
          return [];
+      }
 
       let min: number;
       let max: number;
@@ -908,7 +912,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       console.log("setGridTotals - Fired");
       // Initialize totals
       this.initializeGridTotals();
-
+   
       let numRows: number = 0;
       try
       {
@@ -934,7 +938,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             }
             else
             {
-               console.log("setGridTotals - using normal list");
+               console.log("setGridTotals - using normal list - numRows: ", this._geoGrid._value.length);
                numRows = this._geoGrid._value.length;
 
                this._geoGrid._value.forEach(element => {
