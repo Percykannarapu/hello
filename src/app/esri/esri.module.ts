@@ -7,37 +7,39 @@ import { EsriGeographyPopupComponent } from './components/esri-geography-popup/e
 import { EsriApi } from './core/esri-api.service';
 import { EsriToolbarComponent } from './components/esri-map-panel/esri-toolbar/esri-toolbar.component';
 import { EsriMapPanelComponent } from './components/esri-map-panel/esri-map-panel.component';
+import { select, Store, StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { filter, take } from 'rxjs/operators';
+import { allEffects, esriReducers, selectors } from './state';
+import { AppState } from './state/esri.selectors';
 
-const apiLoader = (api: EsriApi, identity: EsriIdentityService) => {
-  return () => {
-    return new Promise((resolve, reject) => {
-      api.initialize().then(() => {
-        identity.authenticate();
-        resolve();
-      }).catch(e => reject(e));
-    });
-  };
+const apiLoader = (store: Store<AppState>) => {
+  return () => store.pipe(select(selectors.getEsriFeatureReady), filter(ready => ready), take(1)).toPromise();
 };
+
+const PUBLIC_COMPONENTS = [
+  EsriMapPanelComponent,
+  EsriGeographyPopupComponent
+];
 
 @NgModule({
   imports: [
     CommonModule,
     TreeTableModule,
-    ToolbarModule
+    ToolbarModule,
+    StoreModule.forFeature('esri', esriReducers),
+    EffectsModule.forFeature(allEffects)
   ],
   declarations: [
-    EsriGeographyPopupComponent,
     EsriToolbarComponent,
     EsriMapComponent,
-    EsriMapPanelComponent
+    ...PUBLIC_COMPONENTS
   ],
-  exports: [
-    EsriMapPanelComponent,
-    EsriGeographyPopupComponent
-  ],
+  exports: PUBLIC_COMPONENTS,
   providers: [
-    EsriApi, EsriIdentityService,
-    { provide: APP_INITIALIZER, useFactory: apiLoader, multi: true, deps: [EsriApi, EsriIdentityService] }
+    EsriApi,
+    EsriIdentityService,
+    { provide: APP_INITIALIZER, useFactory: apiLoader, multi: true, deps: [Store] }
   ],
   entryComponents: [EsriGeographyPopupComponent]
 })

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { MapStateTypeCodes } from '../../../core/esri.enums';
+import { SelectedButtonTypeCodes } from '../../../core/esri.enums';
 
 @Component({
   selector: 'val-esri-toolbar',
@@ -8,13 +8,12 @@ import { MapStateTypeCodes } from '../../../core/esri.enums';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriToolbarComponent {
-  @Input() currentMapState: MapStateTypeCodes;
+  @Input() currentMapState: SelectedButtonTypeCodes;
 
-  states = MapStateTypeCodes;
+  states = SelectedButtonTypeCodes;
 
   @Output() popupButtonClicked = new EventEmitter();
   @Output() singleSelectClicked = new EventEmitter();
   @Output() multiSelectClicked = new EventEmitter();
   @Output() measureToolClicked = new EventEmitter();
-  @Output() clearGraphicsClicked = new EventEmitter();
 }

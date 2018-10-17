@@ -6,7 +6,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule, HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
-import { AppState } from './app.state';
 import {
   AccordionModule,
   AutoCompleteModule,
@@ -141,9 +140,11 @@ import { SampleComponent } from './poc/sample/sample.component';
 import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
+import { StateModule } from './state/state.module';
 
 @NgModule({
     imports: [
+        StateModule.forRoot(),
         BrowserModule,
         FormsModule,
         ReactiveFormsModule,
@@ -206,8 +207,8 @@ import { BusinessSearchComponent } from './components/add-locations-tab/business
         TargetingModule,
         CommonModule,
         NgStringPipesModule,
-        EsriModule,
-        CardModule
+        CardModule,
+        EsriModule
     ],
     declarations: [
         AppComponent,
@@ -268,7 +269,7 @@ import { BusinessSearchComponent } from './components/add-locations-tab/business
       // from ngx-cookie-service
       CookieService,
       // from main application
-      AppBusinessSearchService, AppConfig, AppState, AppProjectService, AppMessagingService, AppRendererService,
+      AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
       AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
       AppMapService, ValMetricsService, ValAudienceTradeareaService
