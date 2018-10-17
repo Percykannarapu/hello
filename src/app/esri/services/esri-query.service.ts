@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
 import { Observable, merge, EMPTY } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
-import { expand, map, retryWhen, scan } from 'rxjs/operators';
+import { expand, map } from 'rxjs/operators';
 import * as utils from '../../app.utils';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
@@ -91,72 +91,44 @@ export class EsriQueryService {
   }
 
   public executeObjectIdQuery(layerId: string, query: __esri.Query) : Observable<number[]> {
-    return Observable.create(observer => {
+    return Observable.create(async observer => {
       try {
+        await this.mapService.mapView.when();
         const layer = this.layerService.getPortalLayerById(layerId);
-        layer.queryObjectIds(query).then(
-          ids => {
-            observer.next(ids);
-            observer.complete();
-          },
-          err => observer.error(err)
-        );
-      } catch (ex) {
-        observer.error(ex);
+        await layer.when();
+        const objectIds = await layer.queryObjectIds(query);
+        observer.next(objectIds);
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
       }
     });
   }
 
-  private queryWithRetry(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {
-    return Observable.create(observer => {
+  private executeFeatureQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
+    return Observable.create(async observer => {
       try {
-        this.mapService.mapView.when(() => {
-          const layer = this.layerService.getPortalLayerById(layerId);
-          layer.when(() => {
-            layer.queryFeatures(query).then(
-              featureSet => {
-                observer.next(featureSet);
-                observer.complete();
-              },
-              errReason => observer.error(errReason));
-          }, err => {
-            observer.error(err);
-          });
-        }, err => {
-          observer.error(err);
-        });
-      } catch (ex) {
-        observer.error(ex);
+        await this.mapService.mapView.when();
+        const layer = this.layerService.getPortalLayerById(layerId);
+        await layer.when();
+        const featureSet = await layer.queryFeatures(query);
+        observer.next(featureSet);
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
       }
-    }).pipe(
-      map((featureSet: __esri.FeatureSet) => ({
-        result: featureSet,
-        next: EsriQueryService.getNextQuery(featureSet, query)
-      })),
-      retryWhen(errors => {
-        return errors.pipe(
-          scan<any, number>((errorCount, err) => {
-            if (err && err.message && err.message.toLowerCase().includes('timeout') && errorCount < 5) {
-              console.warn(`Retrying due to timeout. Attempt ${errorCount + 1}.`, err);
-              return errorCount + 1;
-            } else {
-              throw err;
-            }
-          }, 0)
-        );
-      })
+    });
+  }
+
+  private queryWithNext(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {
+    return this.executeFeatureQuery(layerId, query).pipe(
+      map(result => ({ result, next: EsriQueryService.getNextQuery(result, query) }))
     );
   }
 
   private paginateEsriQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    return this.queryWithRetry(layerId, query).pipe(
-      expand(({result, next}) => {
-        if (next) {
-          return this.queryWithRetry(layerId, next);
-        } else {
-          return EMPTY;
-        }
-      }),
+    return this.queryWithNext(layerId, query).pipe(
+      expand(({result, next}) => next ? this.queryWithNext(layerId, next) : EMPTY),
       map(({ result }) => result)
     );
   }

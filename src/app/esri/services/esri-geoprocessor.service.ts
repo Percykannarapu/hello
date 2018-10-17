@@ -11,21 +11,15 @@ export class EsriGeoprocessorService {
 
   public processJob<T>(serviceUrl: string, servicePayload: any) : Observable<{ value: T }> {
     const processor = new EsriApi.Geoprocessor({ url: serviceUrl });
-    return Observable.create(observer => {
-      processor.submitJob(servicePayload).then(
-        jobResult => {
-          processor.getResultData(jobResult.jobId, 'out_features').then(
-            result => {
-              observer.next(result);
-              observer.complete();
-            },
-            err => {
-              observer.error(err);
-            });
-          },
-        err => {
-          observer.error(err);
-        });
+    return Observable.create(async observer => {
+      try {
+        const jobResult = await processor.submitJob(servicePayload);
+        const dataResult = await processor.getResultData(jobResult.jobId, 'out_features');
+        observer.next(dataResult);
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
     });
   }
 }

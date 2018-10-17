@@ -36,6 +36,10 @@ export class EsriUtils {
     return this.layerIsFeature(l) && l.portalItem != null;
   }
 
+  public static layerViewIsFeature(l: __esri.LayerView) : l is __esri.FeatureLayerView {
+    return this.layerIsFeature(l.layer);
+  }
+
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
     return g != null && g.type === 'point';
   }
