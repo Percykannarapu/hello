@@ -45,6 +45,19 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
 }
 
 /**
+ * Converts Map<string | number, T> into an entity in the form of { [key: string | number] : T }
+ */
+export function mapToEntity<T>(sourceMap: Map<string, T>) : { [key: string] : T };
+export function mapToEntity<T>(sourceMap: Map<number, T>) : { [key: number] : T };
+export function mapToEntity<T>(sourceMap: Map<string | number, T>) : { [key: string] : T } | { [key: number] : T } {
+  const result = {};
+  sourceMap.forEach((value, key) => {
+    result[key] = value;
+  });
+  return result;
+}
+
+/**
  * Maps an array by the contents of a field identified by its name
  * Note this method assumes that there will only be one instance for each key value
  * @param {T[]} items: The array to group

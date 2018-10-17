@@ -79,7 +79,9 @@ export class AppMapService implements OnDestroy {
     if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
   }
 
-  public setupMap(homeView: __esri.Viewpoint) : void {
+  public setupMap() : void {
+
+    const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
     this.appLayerService.initializeLayers().subscribe (
       null,
@@ -119,6 +121,10 @@ export class AppMapService implements OnDestroy {
     });
   }
 
+  public setViewpoint(view: __esri.Viewpoint) : void {
+    this.mapService.mapView.viewpoint = view;
+  }
+
   public selectSingleGeocode(geocode: string, geometry?: { x: number, y: number }) {
     if (geometry == null) {
       const eventData: GeoClickEvent[] = [];
@@ -148,6 +154,7 @@ export class AppMapService implements OnDestroy {
   public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
     const events: GeoClickEvent[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
+    if (layerId == null || layerId.length === 0) return;
     const layer = this.layerService.getPortalLayerById(layerId);
     graphicsList.forEach(graphic => {
       if (graphic.layer === layer) {

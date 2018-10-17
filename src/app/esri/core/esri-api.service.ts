@@ -7,6 +7,7 @@ import { EsriLoaderConfig, EsriLoaderToken } from '../configuration';
 export class EsriApi {
   private static names: string[] = [
     'esri/config',
+    'esri/identity/IdentityManager',
     'esri/Map',
     'esri/Basemap',
     'esri/views/MapView',
@@ -40,6 +41,7 @@ export class EsriApi {
 ];
 
   public static config: __esri.config;
+  public static IdentityManager: __esri.IdentityManager;
   public static Map: __esri.MapConstructor;
   public static BaseMap: __esri.BasemapConstructor;
   public static MapView: __esri.MapViewConstructor;
@@ -98,6 +100,7 @@ export class EsriApi {
     // modules array index must line up with names array index
     [
       EsriApi.config,
+      EsriApi.IdentityManager,
       EsriApi.Map,
       EsriApi.BaseMap,
       EsriApi.MapView,
