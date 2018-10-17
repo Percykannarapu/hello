@@ -254,8 +254,8 @@ export class ValAudienceTradeareaService {
             this.failedLocations = [];
           }
           this.appTradeAreaService.insertTradeAreas(newTradeAreas);
-          this.appTradeAreaService.zoomToTradeArea();
           this.geoService.add(this.geoCache);
+          this.appTradeAreaService.zoomToTradeArea();
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
           this.geoCache = new Array<ImpGeofootprintGeo>();
