@@ -98,13 +98,13 @@ export class TableFilterNumericComponent implements OnInit {
       this.filterData.maxValue = this.maxValue;
 
       // Enforce range boundaries
-      if (this.filterData.lowValue == null || this.filterData.lowValue < this.filterData.minValue)
+      if (this.filterData.lowValue < this.filterData.minValue)
          this.filterData.lowValue = this.filterData.minValue;
       else
          if (this.filterData.lowValue > this.filterData.maxValue)
             this.filterData.lowValue = this.filterData.maxValue;
       
-      if (this.filterData.highValue == null || this.filterData.highValue > this.filterData.maxValue)
+      if (this.filterData.highValue == null)
          this.filterData.highValue = this.filterData.maxValue;
       else
          if (this.filterData.highValue < this.filterData.minValue)
