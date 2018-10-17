@@ -66,7 +66,7 @@ export class TableFilterNumericComponent implements OnInit {
 
    public  rangeStr: string = "All";
    public  rangeLbl: string = "All";
-   public  rangeOperators: RangeOperator[] = [{name: 'Between', code: 'between'}, {name: '>=', code: '>='}, {name: '<=', code: '<='}, {name: '>', code: '>'}, {name: '<', code: '<'}];
+   public  rangeOperators: RangeOperator[] = [{name: '>=', code: '>='}, {name: '<=', code: '<='}, {name: '>', code: '>'}, {name: '<', code: '<'}, {name: 'Between', code: 'between'}];
    public  filterData: FilterData = { rangeOperator: this.rangeOperators[0], lowValue: this.minValue, highValue: this.maxValue, minValue: this.minValue, maxValue: this.maxValue };
 
    // -------------------------------------------------------------------------
