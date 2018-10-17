@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked } from './esri.map.actions';
-import { catchError, filter, map, mergeMap, switchMap, withLatestFrom } from 'rxjs/operators';
+import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility } from './esri.map.actions';
+import { catchError, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriMapService } from '../../services/esri-map.service';
 import { of } from 'rxjs';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
@@ -28,6 +28,12 @@ export class EsriMapEffects {
     filter(([action, state]) => state === SelectedButtonTypeCodes.SelectSinglePoly),
     mergeMap(([action]) => this.mapInteractionService.processClick(action.payload.event)),
     map(features => new FeaturesSelected({ features }))
+  );
+
+  @Effect({ dispatch: false })
+  handlePopupVisibilityChange$ = this.actions$.pipe(
+    ofType<SetPopupVisibility>(EsriMapActionTypes.SetPopupVisibility),
+    tap(action => this.layerService.setAllPopupStates(action.payload.isVisible))
   );
 
   constructor(private actions$: Actions,

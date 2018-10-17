@@ -8,6 +8,7 @@ export enum EsriMapActionTypes {
   InitializeMapFailure = '[Esri Map] Initialize Failure',
   SetMapHeight = '[Esri Map] Set Height',
   SetMapViewPoint = '[Esri Map] Set Viewpoint',
+  SetPopupVisibility = '[Esri Map] Set Popup Visibility',
   MapClicked = '[Esri Map] Click Event',
   FeaturesSelected = '[Esri Map] Features Selected',
 }
@@ -36,6 +37,11 @@ export class SetMapViewpoint implements Action {
   constructor(public payload: { newViewpoint: __esri.Viewpoint }){}
 }
 
+export class SetPopupVisibility implements Action {
+  readonly type = EsriMapActionTypes.SetPopupVisibility;
+  constructor(public payload: { isVisible: boolean }){}
+}
+
 export class MapClicked implements Action {
   readonly type = EsriMapActionTypes.MapClicked;
   constructor(public payload: { event: __esri.MapViewImmediateClickEvent }){}
@@ -52,6 +58,7 @@ export type EsriMapActions =
   | InitializeMapFailure
   | SetMapHeight
   | SetMapViewpoint
+  | SetPopupVisibility
   | MapClicked
   | FeaturesSelected
   | EsriMapToolbarButtonActions

@@ -55,6 +55,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
       return { ...state, containerHeight: action.payload.newMapHeight };
     case EsriMapActionTypes.SetMapViewPoint:
       return { ...state, mapViewpoint: action.payload.newViewpoint };
+    case EsriMapActionTypes.SetPopupVisibility:
+      return { ...state, popupsVisible: action.payload.isVisible };
 
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:

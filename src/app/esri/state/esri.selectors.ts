@@ -26,4 +26,3 @@ export const getEsriMapHeight = createSelector(getEsriMapState, state => state.c
 export const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sketchView);
 export const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
 export const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
-

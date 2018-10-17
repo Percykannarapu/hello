@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { concatMap, map, mergeMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
-import { concat, MonoTypeOperatorFunction, Observable, of } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
@@ -9,7 +9,7 @@ import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelect
 import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { Action, select, Store } from '@ngrx/store';
 import { AppState, getEsriSketchViewModel } from '../esri.selectors';
-import { FeaturesSelected } from './esri.map.actions';
+import { FeaturesSelected, SetPopupVisibility } from './esri.map.actions';
 
 const allButtonTypes = [
   EsriMapToolbarButtonActionTypes.PopupButtonSelected,
@@ -25,16 +25,14 @@ export class EsriMapButtonEffects {
   handlePopupButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected),
     this.resetSketchViewGraphics(),
-    tap(() => this.layerService.setAllPopupStates(true)),
-    map(() => new ClearSketchView())
+    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })])
   );
 
   @Effect()
   handleSelectSinglePolyButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectSinglePolySelected),
     this.resetSketchViewGraphics(),
-    tap(() => this.layerService.setAllPopupStates(false)),
-    map(() => new ClearSketchView())
+    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })])
   );
 
   // the takeUntil bits are there if the user picks a different button after starting the sketch view
@@ -42,8 +40,8 @@ export class EsriMapButtonEffects {
   @Effect({ dispatch: false })
   handleMeasureDistanceButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.MeasureDistanceSelected),
+    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
-    tap(() => this.layerService.setAllPopupStates(false)),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Polyline).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     tap(geometry => this.mapInteractionService.measurePolyLine(geometry))
@@ -52,12 +50,12 @@ export class EsriMapButtonEffects {
   @Effect()
   handleSelectMultiPolyButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectMultiPolySelected),
+    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
-    tap(() => this.layerService.setAllPopupStates(false)),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
-    concatMap(features => concat(of(new FeaturesSelected({ features })), of(new SelectMultiPolySelected())))
+    concatMap(features => [new FeaturesSelected({ features }), new SelectMultiPolySelected()])
   );
 
   constructor(private actions$: Actions,
