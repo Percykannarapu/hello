@@ -117,5 +117,14 @@ export class AppProjectService {
   private cleanupProject(localProject: ImpProject) {
     // not saving project prefs right now
     localProject.impProjectPrefs = [];
+    // filter out empty location attributes
+    localProject.getImpGeofootprintLocations().forEach(loc => {
+      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue != '');
+    });
+    // remove geovars
+    localProject.getImpGeofootprintTradeAreas().forEach(ta => {
+      ta.impGeofootprintVars = [];
+    });
   }
+
 }
