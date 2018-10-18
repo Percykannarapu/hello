@@ -165,7 +165,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'geo.distance',                               header: 'Dist',            width: '4em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
     {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.hhc',                                    header: 'HHC',             width: '5em',  matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'cpm',                                        header: 'CPM',             width: '5.5em',matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'investment',                                 header: 'Inv',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
