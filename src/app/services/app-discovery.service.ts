@@ -191,11 +191,11 @@ export class AppDiscoveryService {
     const counterMetrics = [];
     let usageMetricName = null;
 
-    if (impProject.radProduct != null || impProject.radProduct != '') {
+    if (impProject.radProduct != null || impProject.radProduct !== '') {
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'product', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, impProject.radProduct, null));
     }
-    if (impProject.industryCategoryCode != null || impProject.industryCategoryCode != '') {
+    if (impProject.industryCategoryCode != null || impProject.industryCategoryCode !== '') {
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'category', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, impProject.industryCategoryCode, null));
     }

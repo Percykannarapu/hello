@@ -103,9 +103,9 @@ export class AppProjectService {
   projectIsValid() : boolean {
     const impProject = this.impProjectService.get()[0];
     let errorString = '';
-    if (impProject.projectName == null || impProject.projectName == '')
+    if (impProject.projectName == null || impProject.projectName === '')
       errorString = 'imPower Project Name is required';
-    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
+    if (impProject.methAnalysis == null || impProject.methAnalysis === '')
       errorString  = errorString + '\n Analysis Level is required';
     if (errorString !== ''){
       this.messagingService.showErrorNotification('Error Saving Project', errorString);
@@ -119,7 +119,7 @@ export class AppProjectService {
     localProject.impProjectPrefs = [];
     // filter out empty location attributes
     localProject.getImpGeofootprintLocations().forEach(loc => {
-      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue != '');
+      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
     });
     // remove geovars
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {

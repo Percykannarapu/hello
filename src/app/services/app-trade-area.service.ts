@@ -198,7 +198,7 @@ export class AppTradeAreaService {
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0) {
       // analysisLevel exists - zoom to Trade Area
       const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, false);
-      if(layerId == null) return;
+      if (layerId == null) return;
       this.stateService.uniqueIdentifiedGeocodes$.pipe(
         filter(geos => geos != null && geos.length > 0),
         take(1)
@@ -215,11 +215,10 @@ export class AppTradeAreaService {
               }
             });
           },
-        err => { console.error('Error getting lats and longs from layer', err); },
-        () => this.calculateStatsAndZoom(latitudes, longitudes)
-      );
-      })
-      
+          err => { console.error('Error getting lats and longs from layer', err); },
+          () => this.calculateStatsAndZoom(latitudes, longitudes)
+        );
+      });
     } else {
       // analysisLevel doesn't exist yet - zoom to site list
       const currentSiteCoords = this.impLocationService.get()

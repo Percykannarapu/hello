@@ -388,9 +388,7 @@ export class TargetAudienceService implements OnDestroy {
         if (taAudiences.length > 0) {
           const doneAudienceTAs: Set<string> = new Set<string>();
           for (const taAudience of taAudiences) {
-            if (doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
-              continue;
-            } else {
+            if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
               observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
               doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
             }

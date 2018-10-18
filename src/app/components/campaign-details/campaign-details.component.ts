@@ -13,7 +13,6 @@ import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { filterArray } from '../../val-modules/common/common.rxjs';
-import { AudienceTradeareaComponent } from '../trade-area-tab/audience-tradearea/audience-tradearea.component';
 
 @Component({
   selector: 'val-campaign-details',
@@ -36,7 +35,7 @@ export class CampaignDetailsComponent implements OnInit {
               private impProjectService: ImpProjectService,
               private logger: AppLoggingService,
               private usageService: UsageService,
-              private targetAudienceService:TargetAudienceService ) { }
+              private targetAudienceService: TargetAudienceService ) { }
 
   ngOnInit() {
     this.currentDiscoveryData$ =
@@ -205,7 +204,7 @@ export class CampaignDetailsComponent implements OnInit {
          this.usageService.createCounterMetric(usageMetricName, metricsText, null);
          this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
        }
-       else if (currentForm.cpmValassis != null &&  previousCpmValue != null && currentForm.cpmValassis != previousCpmValue){
+       else if (currentForm.cpmValassis != null &&  previousCpmValue != null && currentForm.cpmValassis !== previousCpmValue){
         const newText = `New=${currentForm.cpmValassis}`;
         const changeText = `${newText}~Old=${previousCpmValue}`;
         const metricsText = previousCpmValue == null ? newText : changeText;
@@ -225,7 +224,7 @@ export class CampaignDetailsComponent implements OnInit {
          this.usageService.createCounterMetric(usageMetricName, metricsText, null);
          this.previousForm = new ValDiscoveryUIModel({ ...currentForm });
       }
-      else if (currentForm.cpmBlended != null && previousForm != null && currentForm.cpmBlended != previousForm.cpmBlended){
+      else if (currentForm.cpmBlended != null && previousForm != null && currentForm.cpmBlended !== previousForm.cpmBlended){
         const newText = `New=${currentForm.cpmBlended}`;
          const changeText = `${newText}~Old=${previousCpmBlendedValue}`;
          const metricsText = previousCpmBlendedValue == null ? newText : changeText;

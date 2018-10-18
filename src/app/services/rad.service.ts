@@ -122,9 +122,9 @@ export class RadService {
           let cpr = 0;
          const campaignMap =  this.metricService.metrics.get('CAMPAIGN');
          const totalInvestment = Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''));
-         if (!Number.isNaN(totalInvestment) && totalInvestment != 0 && this.predictedResp != 0){
+         if (!Number.isNaN(totalInvestment) && totalInvestment !== 0 && this.predictedResp !== 0){
             console.log('total investment:::', totalInvestment);
-            if (this.predictedResp != 0 && totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
+            if (this.predictedResp !== 0 && totalInvestment !== 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
                // cpr = this.predictedResp / totalInvestment;
                cpr =  totalInvestment / this.predictedResp;
             }

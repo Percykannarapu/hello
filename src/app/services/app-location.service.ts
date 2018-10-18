@@ -75,7 +75,7 @@ export class AppLocationService {
     );
     const locationsNeedingHomeGeos$ = allLocations$.pipe(
       filterArray(loc => loc['homeGeoFound'] == null),
-      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0),
+      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
       filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
     );
     this.totalCount$ = allLocations$.pipe(
@@ -327,7 +327,7 @@ export class AppLocationService {
     this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
     const homeKey = getHomeGeoKey(currentAnalysisLevel);
     locations.forEach(loc => {
-      if (loc.ycoord != null && loc.xcoord != null && loc.ycoord != 0 && loc.xcoord != 0 &&
+      if (loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0 &&
         !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))) {
         loc['homeGeoFound'] = false;
       } else {
