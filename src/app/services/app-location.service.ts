@@ -287,18 +287,37 @@ export class AppLocationService {
   private processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
+    let homeGeocodeIssue = 'N';
+
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
       Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
-        if (newHomeGeoToAnalysisLevelMap[key] != null && currentAttributes[key] != null) {
+        if (newHomeGeoToAnalysisLevelMap[key] != null) {
           // the service might return multiple values for a home geo (in case of overlapping geos)
           // as csv. For now, we're only taking the first result.
           const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
-          const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-          impAttributesToAdd.push(newAttribute);
+          // validate homegeo rules
+          if (currentAttributes[key] === null)
+              homeGeocodeIssue = 'Y';
+          if (loc.origPostalCode != null && loc.origPostalCode != '' && !loc.locZip.includes(loc.origPostalCode) 
+                            && !firstHomeGeoValue.includes(loc.origPostalCode)) {
+              homeGeocodeIssue = 'Y';   
+          }
+          if (newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5){
+              homeGeocodeIssue = 'Y';   
+          }
+          if (currentAttributes[key] != null)   {
+            const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+            impAttributesToAdd.push(newAttribute);
+          } 
         }
       });
+     const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'homeGeocodeIssue', homeGeocodeIssue);
+     impAttributesToAdd.push(newAttribute1);
     });
+    if (homeGeocodeIssue === 'Y'){
+      this.messageService.showWarningNotification('Home Geocode Warning', 'Issues found while calculating Home Geocodes, please check the Locations Grid.');
+    }
     this.impLocAttributeService.add(impAttributesToAdd);
   }
 
