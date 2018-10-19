@@ -297,7 +297,7 @@ export class AppLocationService {
           // as csv. For now, we're only taking the first result.
           const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
           // validate homegeo rules
-          if (currentAttributes[key] === null)
+          if (currentAttributes[key] == null || loc.clientLocationTypeCode === 'Failed Site')
               homeGeocodeIssue = 'Y';
           if (loc.origPostalCode != null && loc.origPostalCode != '' && !loc.locZip.includes(loc.origPostalCode) 
                             && !firstHomeGeoValue.includes(loc.origPostalCode)) {
@@ -306,6 +306,7 @@ export class AppLocationService {
           if (newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5){
               homeGeocodeIssue = 'Y';   
           }
+          
           if (currentAttributes[key] != null)   {
             const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
             impAttributesToAdd.push(newAttribute);
