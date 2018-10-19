@@ -9,6 +9,7 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
+import { mapBy } from '../val-modules/common/common.utils';
 
 const convertToNodeVariable = (variable: ImpGeofootprintVar) : NodeVariable => {
   const fieldType = (variable.fieldconte || '').toUpperCase();
@@ -77,6 +78,7 @@ export class AppComponentGeneratorService {
     this.audienceSub = this.impGeofootprintVarService.storeObservable.pipe(
       filter(() => this.cachedGeoPopup != null),
       filterArray(v => v.geocode === geocode),
+      map(allVars => Array.from(mapBy(allVars, 'varPk').values())),
       mapArray(v => convertToNodeVariable(v))
     ).subscribe(nodeData => this.cachedGeoPopup.instance.geoVars = nodeData);
     this.cachedGeoPopup.instance.geocode = geocode;
