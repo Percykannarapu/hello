@@ -15,12 +15,17 @@
       <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-4">
          <input type="number" pInputText [(ngModel)]="filterData.highValue" style="width:100%;" (input)="onChange('highValue', $event)"/>
       </div>
-      <div class="ui-g-12 tf-button-background">
-         <div>
+      <div class="ui-g-12 tf-button-background" style="text-align: left; margin: auto;">
+         <div *ngIf="filterData.rangeOperator.code==='between'">
             <label class="tf-label">Clear:</label>
             <button pButton type="button" label="All" (click)="clearFilter('all')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear filters and return all rows" ></button>
             <button pButton type="button" label="Min" (click)="clearFilter('min')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear minimum filter"></button>
             <button pButton type="button" label="Max" (click)="clearFilter('max')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear maximum filter"></button>
+         </div>
+         <div *ngIf="filterData.rangeOperator.code!=='between'">
+            <label class="tf-label">Clear:</label>
+            <button pButton type="button" label="All" (click)="clearFilter('all')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear filters and return all rows" ></button>
+            <button pButton type="button" label="Value" (click)="clearFilter('min')" class="ui-button-raised ui-button-rounded val-short-button" styleClass="ui-button-warn" style="width: 25%; height: 1.6em; padding: .25em; margin-left: 5px;" pTooltip="Clear filter value"></button>
          </div>
       </div>   
    </div>      

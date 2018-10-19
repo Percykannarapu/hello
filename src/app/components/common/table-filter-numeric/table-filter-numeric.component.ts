@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { roundTo } from '../../../val-modules/common/common.utils';
 import { OverlayPanel } from 'primeng/primeng';
 
@@ -72,12 +72,9 @@ export class TableFilterNumericComponent implements OnInit {
    // -------------------------------------------------------------------------
    // Lifecycle Methods
    // -------------------------------------------------------------------------
-
    constructor() { }
 
    ngOnInit() {
-      // this.filterData.lowValue = this.minValue;
-      // this.filterData.highValue = this.maxValue;
       if (this.fieldHeader == null)
          this.fieldHeader = this.fieldName;
    }
@@ -88,7 +85,32 @@ export class TableFilterNumericComponent implements OnInit {
    private updateAndValidate() {
       // Default low/high if null
       if (this.filterData.lowValue == null)
-         this.filterData.lowValue = this.minValue;
+         switch (this.filterData.rangeOperator.code) {
+            case "between":
+               this.filterData.lowValue = this.minValue;
+               break;
+
+            case ">=":
+               this.filterData.lowValue = this.minValue;
+               break;
+
+            case "<=":
+               this.filterData.lowValue = this.maxValue;
+               break;
+
+            case ">":
+               this.filterData.lowValue = this.minValue-1;
+               break;
+
+            case "<":
+               this.filterData.lowValue = this.maxValue+1;
+               break;
+
+            // Unknown operator
+            default:
+               this.filterData.lowValue = this.minValue;
+               break;
+         }
       
       if (this.filterData.highValue == null)
          this.filterData.highValue = this.maxValue;
@@ -98,7 +120,7 @@ export class TableFilterNumericComponent implements OnInit {
       this.filterData.maxValue = this.maxValue;
 
       // Enforce range boundaries
-      if (this.filterData.lowValue < this.filterData.minValue)
+/*    if (this.filterData.lowValue < this.filterData.minValue)
          this.filterData.lowValue = this.filterData.minValue;
       else
          if (this.filterData.lowValue > this.filterData.maxValue)
@@ -108,23 +130,50 @@ export class TableFilterNumericComponent implements OnInit {
          this.filterData.highValue = this.filterData.maxValue;
       else
          if (this.filterData.highValue < this.filterData.minValue)
-            this.filterData.highValue = this.filterData.minValue;
+            this.filterData.highValue = this.filterData.minValue;*/
 
       //console.debug("onChange - filterData: rangeOperator: ", this.filterData.rangeOperator.code, ", lowValue: ", this.filterData.lowValue, ", highValue: ", this.filterData.highValue, ", minValue: ", this.filterData.minValue, ", maxValue: ", this.filterData.maxValue);
       this.setFilterStr();
    }
 
    private setFilterStr() {
-      // All rangeStrs are set the same except for between
-      if (this.filterData.rangeOperator.code === "between")
-      {
-         if (this.filterData.lowValue === this.filterData.minValue && this.filterData.highValue === this.filterData.maxValue)
-            this.rangeStr = "All";
-         else
-            this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue + " and " + this.filterData.highValue;
+      // Start with default for all operators (Except between)
+      this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue;
+      console.log("rangeStr: " + this.rangeStr + ", filterData: ", this.filterData);
+
+      switch (this.filterData.rangeOperator.code) {
+         case "between":
+            if (this.filterData.lowValue === this.filterData.minValue && this.filterData.highValue === this.filterData.maxValue)
+               this.rangeStr = "All";
+            else
+               this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue + " and " + this.filterData.highValue;
+            break;
+
+         case ">=":
+            if (this.filterData.lowValue <= this.filterData.minValue || this.filterData.lowValue == null)
+               this.rangeStr = "All";
+            break;
+
+         case "<=":
+            if (this.filterData.lowValue >= this.filterData.maxValue || this.filterData.lowValue == null)
+               this.rangeStr = "All";
+            break;
+
+         case ">":
+            if (this.filterData.lowValue < this.filterData.minValue || this.filterData.lowValue == null)
+               this.rangeStr = "All";
+            break;
+
+         case "<":
+            if (this.filterData.lowValue > this.filterData.maxValue || this.filterData.lowValue == null)
+               this.rangeStr = "All";
+            break;
+
+         // Unknown operator
+         default:
+            this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue;
+            break;
       }
-      else
-         this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue;
 
       this.rangeLbl = (this.rangeStr === "All") ? "All" : this.filterData.rangeOperator.name;
    }
@@ -135,10 +184,10 @@ export class TableFilterNumericComponent implements OnInit {
          this.filterData.rangeOperator = this.rangeOperators[0];
 
       if (filterName === "" || filterName === "all" || filterName === "min")
-         this.filterData.lowValue = this.filterData.minValue;
+         this.filterData.lowValue = null;
 
       if (filterName === "" || filterName === "all" || filterName === "max")
-         this.filterData.highValue = this.filterData.maxValue;
+         this.filterData.highValue = null;
 
       // Update everything
       this.onChange('rangeOperator', null);

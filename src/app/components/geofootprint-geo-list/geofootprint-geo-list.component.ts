@@ -919,31 +919,34 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          if (flatGeos != null && flatGeos.length > 0)
          {
             console.log("setGridTotals - using flatGeos");
-            numRows = flatGeos.length;
 
             flatGeos.forEach(element => {
-               if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1)))
-                  this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+               if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                  this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                  numRows++;
+               }});
          }
          else
          {
             if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
             {
                console.log("setGridTotals - using filtered list");
-               numRows = this._geoGrid.filteredValue.length;
 
                this._geoGrid.filteredValue.forEach(element => {
-                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1)))
-                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                     numRows++;
+                  }});
             }
             else
             {
                console.log("setGridTotals - using normal list - numRows: ", this._geoGrid._value.length);
-               numRows = this._geoGrid._value.length;
 
                this._geoGrid._value.forEach(element => {
-                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1)))
-                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                     numRows++;
+                  }});
             }
          }
          // Calculated grid totals

@@ -4,7 +4,7 @@
   </div>
   <div class="ui-g-12">
     <i class="fa fa-search"></i>
-    <input pInputText id="search" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
+    <input pInputText id="pixelSearch" name="pixelSearch" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
   </div>
   <div class="ui-g-12 val-wide-tree">
     <p-tree [loading]="loading" selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw"
