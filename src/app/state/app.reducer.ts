@@ -10,10 +10,12 @@ export const appReducer: ActionReducerMap<AppState> = {
 export function logger(reducer: ActionReducer<AppState>) : ActionReducer<AppState> {
   return function(state: AppState, action: Action) : AppState {
     console.groupCollapsed(action.type);
-    console.log('state', state);
-    console.log('action', action);
+    const nextState = reducer(state, action);
+    console.log('%c prev state', 'color: #9E9E9E', state);
+    console.log('%c action', 'color: #03A9F4', action);
+    console.log('%c next state', 'color: #4CAF50', nextState);
     console.groupEnd();
-    return reducer(state, action);
+    return nextState;
   };
 }
 
