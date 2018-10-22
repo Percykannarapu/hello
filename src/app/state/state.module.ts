@@ -8,6 +8,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { appMetaReducers, appReducer } from './app.reducer';
 import { CustomSerializer } from './shared/utils';
+import { MessagingEffects } from './messaging/messaging.effects';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { CustomSerializer } from './shared/utils';
     // NOTE: StoreModule.forRoot() must be in the imports array BEFORE any other ngrx imports
     StoreModule.forRoot(appReducer, { metaReducers: appMetaReducers }),
     EffectsModule.forRoot([
-      AppEffects
+      AppEffects,
+      MessagingEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({
