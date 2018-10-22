@@ -5,14 +5,12 @@ export interface EsriAuthState {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
   tokenResponse: TokenResponse;
-  errorResponse: any;
 }
 
 const initialState: EsriAuthState = {
   isAuthenticated: false,
   isAuthenticating: false,
-  tokenResponse: null,
-  errorResponse: null
+  tokenResponse: null
 };
 
 export function authReducer(state = initialState, action: fromActions.EsriAuthActions) : EsriAuthState {
@@ -24,16 +22,14 @@ export function authReducer(state = initialState, action: fromActions.EsriAuthAc
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
-        tokenResponse: null,
-        errorResponse: action.payload.errorResponse
+        tokenResponse: null
       };
     case fromActions.EsriAuthActionTypes.AuthenticateSuccess:
       return {
         ...state,
         isAuthenticating: false,
         isAuthenticated: true,
-        tokenResponse: action.payload.tokenResponse,
-        errorResponse: null
+        tokenResponse: action.payload.tokenResponse
       };
     default:
       return state;
