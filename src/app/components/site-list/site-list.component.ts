@@ -75,7 +75,7 @@ export class SiteListComponent implements OnInit {
     {field: 'ycoord',               header: 'Latitude',          width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
     {field: 'xcoord',               header: 'Longitude',         width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
     {field: 'recordStatusCode',     header: 'Geocode Status',    width: '10em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
-    {field: 'Home Geocode Issue',     header: 'Home Geocode Issue', width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home Geocode Issue',   header: 'Home Geocode Issue', width: '5em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
     {field: 'Home ZIP',             header: 'Home ZIP',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
     {field: 'Home ATZ',             header: 'Home ATZ',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
     {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '11em',  styleClass: '',                filterMatchMode: 'contains'},
