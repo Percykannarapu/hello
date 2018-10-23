@@ -68,6 +68,8 @@
                   <input *ngSwitchCase="'locationName'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                   <input *ngSwitchCase="'locAddress'"        pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                   <input *ngSwitchCase="'locZip'"            pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'totalHHC'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                  <input *ngSwitchCase="'totalAllocatedHHC'" pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                   <input *ngSwitchCase="'description'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                   <input *ngSwitchCase="'groupName'"         pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
                   <input *ngSwitchCase="'radius1'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
@@ -132,8 +134,16 @@
                   <button type="button" pButton (click)="onRowDelete(flatLoc.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
                </td>
 
-               <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass">
-                  {{flatLoc[col.field]}}
+               <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
+                 
+                  <!-- Format various columns -->
+                  <div *ngSwitchCase = "'totalHHC'">                {{flatLoc['totalHHC'] | number:'1.0-0'}} </div>
+                  <div *ngSwitchCase = "'totalAllocatedHHC'">       {{flatLoc['totalAllocatedHHC'] | number:'1.0-0'}} </div>
+
+                  <!-- Display all other columns -->
+                  <div *ngSwitchDefault>
+                    {{flatLoc[col.field]}}
+                 </div>
                </td>
             </tr>
          </ng-template>
