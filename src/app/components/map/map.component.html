@@ -1,6 +1,7 @@
 <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
   <div id="outerMapDiv" class="val-flush-to-edges">
     <val-esri-map-panel [mapHeight]="mapHeight$ | async"
+                        [baseMap]="'streets'"
                         (viewChanged)="onViewExtentChanged($event)">
       <additional-toolbar-buttons>
         &nbsp;&nbsp;&nbsp;&nbsp;
