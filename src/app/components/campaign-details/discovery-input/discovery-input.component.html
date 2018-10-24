@@ -1,161 +1,161 @@
 <div class="form-group" style="padding: 0.75em 0.75em 0em 0.75em; background: #C1D3D1;">
-   <form novalidate  [formGroup]="discoveryForm">   
-      <div class="ui-g card">
-         <div class="ui-g-4">
-         <span class="md-inputfield">
-            <input id="projectId" type="text" pInputText class="val-full-width" formControlName="projectId">
-            <label for="projectId">imPower ID</label>
-         </span>
-         </div>
-         <div class="ui-g-8"></div>
-   
-         <div class="ui-g-10">
-         <span class="md-inputfield">
-            <input id="projectName" type="text" formControlName="projectName" pInputText class="val-full-width">
-            <label for="projectName">imPower Project Name (required)</label>
-         </span>
-         </div>
-   
-         <div class="ui-g-10">
-         <span class="md-inputfield">
-            <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
-                           [minLength]="3" [dropdown]="false" [forceSelection] = "true" formControlName="selectedProjectTracker" field="display"
-                           [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
-               <!--<ng-template let-trackerItem pTemplate="item">-->
-               <!--{{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})-->
-               <!--</ng-template>-->
-            </p-autoComplete>
-            <label for="projectTrackerLookup">Search for Project Tracker ID</label>
-         </span>
-         </div>
-         <!-- <div class="ui-g-2">
-         <button pButton type="button" (click)="refreshTrackerData.emit()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
-         </div> -->
-   
-         <div class="ui-g-4" id= "analysisLevel">
-         <p-dropdown [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel"
-                     placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
-         </div>
-         <div class="ui-g-8">&nbsp;
-            <div class="ui-g-10" *ngIf="showAnalysisLevelError">
-                <div class="ui-g-14 analysisLevelError"> 
-                PCR is not available when online variables exist on the project
+    <form novalidate  [formGroup]="discoveryForm">   
+       <div class="ui-g card">
+          <div class="ui-g-4">
+          <span class="md-inputfield">
+             <input id="projectId" type="text" pInputText class="val-full-width" formControlName="projectId">
+             <label for="projectId">imPower ID</label>
+          </span>
+          </div>
+          <div class="ui-g-8"></div>
+    
+          <div class="ui-g-10">
+          <span class="md-inputfield">
+             <input id="projectName" type="text" formControlName="projectName" pInputText class="val-full-width">
+             <label for="projectName">imPower Project Name (required)</label>
+          </span>
+          </div>
+    
+          <div class="ui-g-10">
+          <span class="md-inputfield">
+             <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
+                            [minLength]="3" [dropdown]="false" [forceSelection] = "true" formControlName="selectedProjectTracker" field="display"
+                            [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
+                <!--<ng-template let-trackerItem pTemplate="item">-->
+                <!--{{trackerItem.projectId}}&nbsp;&nbsp;{{trackerItem.projectName}}&nbsp;({{trackerItem.targetor ? trackerItem.targetor : 'Unassigned'}})-->
+                <!--</ng-template>-->
+             </p-autoComplete>
+             <label for="projectTrackerLookup">Search for Project Tracker ID</label>
+          </span>
+          </div>
+          <!-- <div class="ui-g-2">
+          <button pButton type="button" (click)="refreshTrackerData.emit()" icon= "ui-icon-refresh" style="height:28px; width: 25px; text-align: center;"></button>
+          </div> -->
+    
+          <div class="ui-g-4" id= "analysisLevel">
+          <p-dropdown [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel"
+                      placeholder="&nbsp;Select an Analysis Level" styleClass="val-full-width"></p-dropdown>
+          </div>
+          <div class="ui-g-8">&nbsp;
+             <div class="ui-g-10" *ngIf="showAnalysisLevelError">
+                 <div class="ui-g-14 analysisLevelError"> 
+                 PCR is not available when online variables exist on the project
+                 </div>
+               </div>
+          </div>
+       </div>
+    
+       <div class="ui-g card">
+          <div class="ui-g-10">
+          <span class="md-inputfield">
+             <p-autoComplete id="radLookup" styleClass="val-full-width" inputStyleClass="val-full-width"
+                            [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup" field="display"
+                            [suggestions]="radSuggestions" (completeMethod)="radSearchRequest.emit($event.query)">
+                <!--<ng-template let-radItem pTemplate="item">-->
+                <!--{{radItem.category}}&nbsp;-&nbsp;{{radItem.product}}-->
+                <!--</ng-template>-->
+             </p-autoComplete>
+             <label for="radLookup">Performance Prediction Category-Product</label>
+          </span>
+          </div>
+       </div>
+    
+       <div class="ui-g" style="line-height: 0.05em;">
+          <div class="card ui-g-6">
+          <div class="ui-g-12">
+             <label>Counts</label>
+          </div>
+          <div class="ui-g-9 ui-g-offset-3">
+             <div style="display: block; margin: auto">
+                <p-selectButton id="seasonsSelect" [options]="allSeasons" formControlName="selectedSeason"></p-selectButton>
+             </div>
+          </div>
+          <div class="ui-g-12" style="padding-top: 2em">
+             <label>Apply Geography Filters</label>
+          </div>
+          <div class="ui-g-11 ui-g-offset-1">
+             <div class="ui-g-12">
+                <p-inputSwitch formControlName="includePob"></p-inputSwitch>
+                <a class="val-spacer-left-half"></a>
+                <label>Include POBs?</label>
+             </div>
+    
+             <div class="ui-g-12">
+                <p-inputSwitch formControlName="includeValassis"></p-inputSwitch>
+                <a class="val-spacer-left-half"></a>
+                <label>Include Valassis geographies?</label>
+             </div>
+    
+             <div class="ui-g-12">
+                <p-inputSwitch formControlName="includeAnne"></p-inputSwitch>
+                <a class="val-spacer-left-half"></a>
+                <label>Include ANNE geographies?</label>
+             </div>
+    
+             <div class="ui-g-12">
+                <p-inputSwitch formControlName="includeSolo"></p-inputSwitch>
+                <a class="val-spacer-left-half"></a>
+                <label>Include Solo geographies?</label>
+             </div>
+          </div>
+          </div>
+    
+          <div class="card ui-g-6">
+          <div class="ui-g-12">
+             <label>Budget</label>
+          </div>
+          <div class="ui-g-11 ui-g-offset-1">
+             <div class="ui-g-12 val-grid-no-pad-left">
+                <span class="ui-float-label">
+                <input id="dollarBudget" type="text" formControlName="dollarBudget" pInputText>
+                <label for="dollarBudget">Dollar Budget</label>
+                </span>
+             </div>
+             <div class="ui-g-12 val-grid-no-pad-left">
+                <span class="ui-float-label">
+                <input id="circBudget" type="text" formControlName="circulationBudget" pInputText>
+                <label for="circBudget">Circ Budget</label>
+                </span>
+             </div>
+          </div>
+          <div class="ui-g-12">
+             <label>Select CPM Type</label>
+          </div>
+          <div class="ui-g-11 ui-g-offset-1">
+             <div class="ui-g-12 val-grid-no-pad-left">
+                <p-radioButton name="cpmType" [value]="cpmTypes.Blended" label="Blended" formControlName="cpmType"></p-radioButton>
+             </div>
+             <div class="ui-g-11 ui-g-offset-1">
+                <span class="ui-float-label">
+                   <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
+                   <label for="cpm">CPM</label>
+                </span>
+             </div>
+             <div class="ui-g-12 val-grid-no-pad-left">
+                <p-radioButton name="cpmType" [value]="cpmTypes.OwnerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
+             </div>
+             <div class="ui-g-12 ui-g-offset-1 val-grid-no-pad">
+                <div class="ui-g-12">
+                <span class="ui-float-label">
+                   <input id="includeValassisCPM" type="text" formControlName="cpmValassis" pInputText>
+                   <label for="includeValassisCPM">Valassis CPM</label>
+                </span>
                 </div>
-              </div>
-         </div>
-      </div>
-   
-      <div class="ui-g card">
-         <div class="ui-g-10">
-         <span class="md-inputfield">
-            <p-autoComplete id="radLookup" styleClass="val-full-width" inputStyleClass="val-full-width"
-                           [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup" field="display"
-                           [suggestions]="radSuggestions" (completeMethod)="radSearchRequest.emit($event.query)">
-               <!--<ng-template let-radItem pTemplate="item">-->
-               <!--{{radItem.category}}&nbsp;-&nbsp;{{radItem.product}}-->
-               <!--</ng-template>-->
-            </p-autoComplete>
-            <label for="radLookup">Performance Prediction Category-Product</label>
-         </span>
-         </div>
-      </div>
-   
-      <div class="ui-g" style="line-height: 0.05em;">
-         <div class="card ui-g-6">
-         <div class="ui-g-12">
-            <label>Counts</label>
-         </div>
-         <div class="ui-g-9 ui-g-offset-3">
-            <div style="display: block; margin: auto">
-               <p-selectButton id="seasonsSelect" [options]="allSeasons" formControlName="selectedSeason"></p-selectButton>
-            </div>
-         </div>
-         <div class="ui-g-12" style="padding-top: 2em">
-            <label>Apply Geography Filters</label>
-         </div>
-         <div class="ui-g-11 ui-g-offset-1">
-            <div class="ui-g-12">
-               <p-inputSwitch formControlName="includePob"></p-inputSwitch>
-               <a class="val-spacer-left-half"></a>
-               <label>Include POBs?</label>
-            </div>
-   
-            <div class="ui-g-12">
-               <p-inputSwitch formControlName="includeValassis"></p-inputSwitch>
-               <a class="val-spacer-left-half"></a>
-               <label>Include Valassis geographies?</label>
-            </div>
-   
-            <div class="ui-g-12">
-               <p-inputSwitch formControlName="includeAnne"></p-inputSwitch>
-               <a class="val-spacer-left-half"></a>
-               <label>Include ANNE geographies?</label>
-            </div>
-   
-            <div class="ui-g-12">
-               <p-inputSwitch formControlName="includeSolo"></p-inputSwitch>
-               <a class="val-spacer-left-half"></a>
-               <label>Include Solo geographies?</label>
-            </div>
-         </div>
-         </div>
-   
-         <div class="card ui-g-6">
-         <div class="ui-g-12">
-            <label>Budget</label>
-         </div>
-         <div class="ui-g-11 ui-g-offset-1">
-            <div class="ui-g-12 val-grid-no-pad-left">
-               <span class="ui-float-label">
-               <input id="dollarBudget" type="text" formControlName="dollarBudget" pInputText>
-               <label for="dollarBudget">Dollar Budget</label>
-               </span>
-            </div>
-            <div class="ui-g-12 val-grid-no-pad-left">
-               <span class="ui-float-label">
-               <input id="circBudget" type="text" formControlName="circulationBudget" pInputText>
-               <label for="circBudget">Circ Budget</label>
-               </span>
-            </div>
-         </div>
-         <div class="ui-g-12">
-            <label>Select CPM Type</label>
-         </div>
-         <div class="ui-g-11 ui-g-offset-1">
-            <div class="ui-g-12 val-grid-no-pad-left">
-               <p-radioButton name="cpmType" [value]="cpmTypes.Blended" label="Blended" formControlName="cpmType"></p-radioButton>
-            </div>
-            <div class="ui-g-11 ui-g-offset-1">
-               <span class="ui-float-label">
-                  <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
-                  <label for="cpm">CPM</label>
-               </span>
-            </div>
-            <div class="ui-g-12 val-grid-no-pad-left">
-               <p-radioButton name="cpmType" [value]="cpmTypes.OwnerGroup" label="Defined By Owner Group" formControlName="cpmType"></p-radioButton>
-            </div>
-            <div class="ui-g-12 ui-g-offset-1 val-grid-no-pad">
-               <div class="ui-g-12">
-               <span class="ui-float-label">
-                  <input id="includeValassisCPM" type="text" formControlName="cpmValassis" pInputText>
-                  <label for="includeValassisCPM">Valassis CPM</label>
-               </span>
-               </div>
-               <div class="ui-g-12">
-               <span class="ui-float-label">
-                  <input id="includeAnneCPM" type="text" formControlName="cpmAnne" pInputText>
-                  <label for="includeAnneCPM">ANNE CPM</label>
-               </span>
-               </div>
-               <div class="ui-g-12">
-               <span class="ui-float-label">
-                  <input id="includeSoloCPM" type="text" formControlName="cpmSolo" pInputText>
-                  <label for="includeSoloCPM">Solo CPM</label>
-               </span>
-               </div>
-            </div>
-         </div>
-         </div>
-      </div>
-   </form>
-</div>
+                <div class="ui-g-12">
+                <span class="ui-float-label">
+                   <input id="includeAnneCPM" type="text" formControlName="cpmAnne" pInputText>
+                   <label for="includeAnneCPM">ANNE CPM</label>
+                </span>
+                </div>
+                <div class="ui-g-12">
+                <span class="ui-float-label">
+                   <input id="includeSoloCPM" type="text" formControlName="cpmSolo" pInputText>
+                   <label for="includeSoloCPM">Solo CPM</label>
+                </span>
+                </div>
+             </div>
+          </div>
+          </div>
+       </div>
+    </form>
+ </div>
