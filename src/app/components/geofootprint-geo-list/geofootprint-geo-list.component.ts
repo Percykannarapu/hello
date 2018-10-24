@@ -165,7 +165,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'geo.distance',                               header: 'Dist',            width: '4em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
     {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.hhc',                                    header: 'HHC',             width: '5em',  matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'cpm',                                        header: 'CPM',             width: '5.5em',matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'investment',                                 header: 'Inv',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
@@ -197,11 +197,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       numLocsActive: 0,
       numGeos: 0,
       numGeosActive: 0,
-      numGeosInactive: 0,
+      numGeosInactive: 0
    }
 
+   // Duplicate Geos filter variables
    public  dedupeGrid: boolean = false;
-
+   public  dupeCount: number = 0;
+   public  dupeMsg: string;
+   
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -252,7 +255,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                                   ,numGeosActive:   (AllGeos != null) ? AllGeos.filter(flatGeo => flatGeo.geo.isActive === true).length : 0
                                                                   ,numGeosInactive: (AllGeos != null) ? AllGeos.filter(flatGeo => flatGeo.geo.isActive === false).length : 0
                                                                  };
-                                                 return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
+                                                return AllGeos.filter(flatGeo => flatGeo.geo.isActive === true); }));
 
       // Column Picker Model
       for (const column of this.flatGeoGridColumns) {
@@ -378,6 +381,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     *  Initializes the accumulators for the totals located at the bottom of the column
     */  
    initializeGridTotals() {
+      console.log("initializeGridTotals - fired");
+      this.gridTotals = new Map<string, ColMetric>();
       this.gridTotals.set('hhc',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('allocHhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('cpm',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
@@ -407,8 +412,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null, ', geos: ', (geos != null) ? geos.length : null, ', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
                  ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
-      if (geos == null || geos.length === 0)
+      if (geos == null || geos.length === 0) {
+         this.initializeGridTotals();
          return [];
+      }
 
       let min: number;
       let max: number;
@@ -441,8 +448,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Create a cache of geo variables, grouped by geocode
       const varCache = groupBy(usableGeoVars, 'geocode');
 
-      // Initialize grid totals
+      // Initialize grid totals & numDupes
       this.initializeGridTotals();
+      this.dupeCount = 0;
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes
       geos.forEach(geo => {
@@ -451,6 +459,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo.fgId = fgId++;
 
          gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
+
+         // Count dupes for display
+         this.dupeCount += (gridGeo.geo.isDeduped === 1) ? 0 : 1;
 
          // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
          this.flatGeoGridColumns.forEach(col => {
@@ -508,6 +519,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
            });
          }
 
+         // Update current number of dupes when dedupe filter is on
+         this.dupeMsg = (this.dedupeGrid) ? "Filtered Dupe Geos" : "Total Dupe Geos";
+
          let currentVars = varCache.get(geo.geocode) || [];
          currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
             .forEach(geovar => {
@@ -532,7 +546,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
                   break;
               }
+              //console.table(geovar);
             }
+            // console.table(currentVars, ["geocode", "varPk", "fieldname", "fieldconte"]);
             // console.debug("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
 
             // Create grid columns for the variables
@@ -596,6 +612,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.setGridTotals(geoGridData);
 
       //console.log("createComposite - returning geoGridData: ", geoGridData);
+      //console.table(geoGridData);
       return geoGridData;
    }
 
@@ -895,38 +912,41 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       console.log("setGridTotals - Fired");
       // Initialize totals
       this.initializeGridTotals();
-
+   
       let numRows: number = 0;
       try
       {
          if (flatGeos != null && flatGeos.length > 0)
          {
             console.log("setGridTotals - using flatGeos");
-            numRows = flatGeos.length;
 
             flatGeos.forEach(element => {
-               if (element.geo.isActive) 
-                  this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+               if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                  this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                  numRows++;
+               }});
          }
          else
          {
             if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
             {
                console.log("setGridTotals - using filtered list");
-               numRows = this._geoGrid.filteredValue.length;
 
                this._geoGrid.filteredValue.forEach(element => {
-                  if (element.geo.isActive)
-                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                     numRows++;
+                  }});
             }
             else
             {
-               console.log("setGridTotals - using normal list");
-               numRows = this._geoGrid._value.length;
+               console.log("setGridTotals - using normal list - numRows: ", this._geoGrid._value.length);
 
                this._geoGrid._value.forEach(element => {
-                  if (element.geo.isActive)
-                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped)});
+                  if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                     this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
+                     numRows++;
+                  }});
             }
          }
          // Calculated grid totals

@@ -12,13 +12,24 @@ export enum EsriGraphicTypeCodes {
   Circle = 'circle'
 }
 
-export enum MapStateTypeCodes {
-  SelectPoly = 0,
-  DrawPoint = 1,
-  DrawLine = 2,
-  DrawPoly = 3,
+export enum SelectedButtonTypeCodes {
+  ShowPopups = 0,
+  SelectSinglePoly = 1,
+  MeasureDistance = 2,
+  SelectMultiplePolys = 3,
   RemoveGraphics = 4,
-  Popups = 5,
-  Labels = 6,
-  MeasureLine = 7
+  DrawPoint = 5,
+  DrawLine = 6,
+  Labels = 7,
 }
+
+export const buttonToCursorMap = {
+  [SelectedButtonTypeCodes.SelectSinglePoly] : 'copy',
+  [SelectedButtonTypeCodes.DrawPoint] : 'cell',
+  [SelectedButtonTypeCodes.DrawLine] : 'crosshair',
+  [SelectedButtonTypeCodes.SelectMultiplePolys] : 'crosshair',
+  [SelectedButtonTypeCodes.RemoveGraphics] : 'default',
+  [SelectedButtonTypeCodes.ShowPopups] : 'default',
+  [SelectedButtonTypeCodes.Labels] : 'default',
+  [SelectedButtonTypeCodes.MeasureDistance] : 'crosshair',
+};

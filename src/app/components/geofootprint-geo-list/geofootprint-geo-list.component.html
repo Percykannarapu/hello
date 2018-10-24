@@ -1,5 +1,5 @@
 <div class="ui-g ui-g-nopad">
-   <div class="ui-g-12">
+   <div id="geoGrid" class="ui-g-12">
          <!-- dataKey="geo.ggId" -->
          <!-- [dataKey]="fgId" -->
       <p-table #geoGrid
@@ -10,8 +10,8 @@
                [selection]="selectedImpGeofootprintGeos$ | async"
                [resizableColumns]="true" columnResizeMode="expand"
                [reorderableColumns]="true"
-               sortMode="multiple"
                scrollable="true" scrollWidth="100%"
+               [sortOrder]="-1"
                [responsive]="true"
                [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
                (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
@@ -46,13 +46,17 @@
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
                   <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;"
-                         pTooltip="Selected Geos:   {{gridStats.numGeosActive}}
-                                   Unselected Geos: {{gridStats.numGeosInactive}}">
+                         pTooltip="<table>
+                                   <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
+                                   <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats.numGeosInactive}}</td></tr>
+                                   <tr><td style='text-align:right;'>{{dupeMsg}}:</td><td>{{dupeCount}}</td></tr></table>">
                      Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}} - ({{geoGrid.totalRecords}} Filtered)
                   </label>
-                  <label *ngIf="geoGrid.filteredValue == null" style="padding: 0; text-align: center;"
-                         pTooltip="Selected Geos:   {{gridStats.numGeosActive}}
-                                   Unselected Geos: {{gridStats.numGeosInactive}}">
+                  <label *ngIf="geoGrid.filteredValue == null" style="padding: 0; text-align: center;" [escape]="false"
+                         pTooltip="<table>
+                                   <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
+                                   <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats.numGeosInactive}}</td></tr>
+                                   <tr><td style='text-align:right;'>{{dupeMsg}}:</td><td>{{dupeCount}}</td></tr></table>">
                      Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}}
                   </label>
                </div>

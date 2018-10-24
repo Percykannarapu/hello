@@ -9,6 +9,10 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { UsageService } from '../../services/usage.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { EsriApi } from '../../esri/core/esri-api.service';
+import { select, Store } from '@ngrx/store';
+import { selectors } from '../../esri/state';
+import { filter, take } from 'rxjs/operators';
+import { AppState } from '../../state/app.interfaces';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -28,16 +32,21 @@ export class MapComponent implements OnInit {
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
               private usageService: UsageService,
+              private store$: Store<AppState>,
               private config: AppConfig) {}
 
   ngOnInit() {
     console.log('Initializing Application Map Component');
     this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
-  }
-
-  setupApplication(mapView: __esri.MapView) : void {
-    this.appMapService.setupMap(mapView.viewpoint);
-    this.setupMapFromStorage(mapView);
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => this.setupApplication());
+    this.store$.pipe(
+      select(selectors.getEsriFeaturesSelected),
+      filter(features => features != null && features.length > 0)
+    ).subscribe(features => this.onPolysSelected(features));
   }
 
   onClearSelections() : void {
@@ -64,10 +73,6 @@ export class MapComponent implements OnInit {
     this.usageService.createCounterMetric(usageMetricName, null, null);
   }
 
-  onPolysSelected(polys: __esri.Graphic[]) : void {
-    this.appMapService.selectMultipleGeocode(polys);
-  }
-
   onViewExtentChanged(view: __esri.MapView) : void {
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
     if (analysisLevel != null) {
@@ -77,19 +82,28 @@ export class MapComponent implements OnInit {
     this.saveMapViewData(view);
   }
 
+  private setupApplication() : void {
+    this.appMapService.setupMap();
+    this.setupMapFromStorage();
+  }
+
+  private onPolysSelected(polys: __esri.Graphic[]) : void {
+    this.appMapService.selectMultipleGeocode(polys);
+  }
+
   private saveMapViewData(mapView: __esri.MapView) {
     const mapHeight = mapView.container.clientHeight > 50 ? mapView.container.clientHeight : 400;
     localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(mapView.viewpoint.toJSON()));
-    localStorage.setItem(HEIGHT_KEY, JSON.stringify(mapHeight));
+    localStorage.setItem(HEIGHT_KEY, JSON.stringify(mapHeight + 10));
   }
 
-  setupMapFromStorage(view: __esri.MapView) : void {
+  private setupMapFromStorage() : void {
     const vpString = localStorage.getItem(VIEWPOINT_KEY);
     const heightString = localStorage.getItem(HEIGHT_KEY);
     const heightNum = Number(heightString);
     if (vpString) {
       const vp = JSON.parse(vpString);
-      view.viewpoint = EsriApi.Viewpoint.fromJSON(vp);
+      this.appMapService.setViewpoint(EsriApi.Viewpoint.fromJSON(vp));
     }
     if (Number.isNaN(heightNum) || heightNum < 50) {
       this.mapHeight$.next(400);

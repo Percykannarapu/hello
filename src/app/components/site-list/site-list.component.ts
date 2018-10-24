@@ -34,6 +34,7 @@ export class FlatSite {
 })
 export class SiteListComponent implements OnInit {
 
+<<<<<<< HEAD
   public selectedListType: 'Site' | 'Competitor';
   public currentAllSites$: Observable<ImpGeofootprintLocation[]>;
   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
@@ -124,6 +125,86 @@ export class SiteListComponent implements OnInit {
           const geoData = this.geoService.get();
           this.fnCalcHHC(geoData);
         }, 0);
+=======
+   public selectedListType: 'Site' | 'Competitor';
+   public currentAllSites$: Observable<ImpGeofootprintLocation[]>;
+   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
+   public allSiteCount$: Observable<number>;
+   public activeSiteCount$: Observable<number>;
+
+   public currentAllAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
+   public currentActiveAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
+
+   // Observables for flattened rows of locations and attributes
+   public flatAllSites$: Observable<FlatSite[]>;
+   public flatActiveSites$: Observable<FlatSite[]>;
+
+//   public flatAllAttribSites$: Observable<FlatSite[]>;
+
+   // Observables for unique values to filter on in the grid
+   public uniqueCity$: Observable<SelectItem[]>;
+   public uniqueState$: Observable<SelectItem[]>;
+   public uniqueMarket$: Observable<SelectItem[]>;
+   public uniqueMarketCode$: Observable<SelectItem[]>;
+   public uniqueRecStatuses$: Observable<SelectItem[]>;
+   public uniqueMatchCodes$: Observable<SelectItem[]>;
+   public uniqueMatchQualities$: Observable<SelectItem[]>;
+   public uniqueOrigCity$: Observable<SelectItem[]>;
+   public uniqueOrigState$: Observable<SelectItem[]>;
+
+   public columnOptions: SelectItem[] = [];
+
+   public flatSiteGridColumns: any[] =
+   [{field: 'locationNumber',       header: 'Number',            width: '7em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locationName',         header: 'Name',              width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locAddress',           header: 'Address',           width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locCity',              header: 'City',              width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'locState',             header: 'State',             width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'locZip',               header: 'ZIP',               width: '7em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'marketName',           header: 'Market',            width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'marketCode',           header: 'Market Code',       width: '9em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'description',          header: 'Description',       width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'groupName',            header: 'Group',             width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'radius1',              header: 'Radius 1',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'radius2',              header: 'Radius 2',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'radius3',              header: 'Radius 3',          width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'ycoord',               header: 'Latitude',          width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'xcoord',               header: 'Longitude',         width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains'},
+    {field: 'recordStatusCode',     header: 'Geocode Status',    width: '10em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'Home Geocode Issue',   header: 'Home Geocode Issue', width: '5em',  styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'Home ZIP',             header: 'Home ZIP',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home ATZ',             header: 'Home ATZ',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',  width: '11em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home PCR',             header: 'Home PCR',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home DMA',             header: 'Home DMA',          width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'Home County',          header: 'Home County',       width: '11em',   styleClass: '',               filterMatchMode: 'contains'},
+    {field: 'geocoderMatchCode',    header: 'Match Code',        width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'geocoderLocationCode', header: 'Location Code',     width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'origAddress1',         header: 'Original Address',  width: '20em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'origCity',             header: 'Original City',     width: '10em',  styleClass: '',                filterMatchMode: 'contains'},
+    {field: 'origState',            header: 'Original State',    width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+    {field: 'origPostalCode',       header: 'Original ZIP',      width: '8em',   styleClass: '',                filterMatchMode: 'contains'},
+   ];
+   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
+   public selectedColumns: any[] = [];
+
+   constructor(private siteListService: AppLocationService,
+               private locationService: ImpGeofootprintLocationService,
+               private attributeService: ImpGeofootprintLocAttribService,
+               private confirmationService: ConfirmationService,
+               private tradeAreaService: ImpGeofootprintTradeAreaService,
+               private geoService: ImpGeofootprintGeoService,
+               private geoAttributeService: ImpGeofootprintGeoAttribService,
+               private appStateService: AppStateService,
+               private esriMapService: EsriMapService,
+               private usageService: UsageService) { }
+
+   ngOnInit() {
+      this.onListTypeChange('Site');
+      for (const column of this.flatSiteGridColumns) {
+         this.columnOptions.push({ label: column.header, value: column });
+         this.selectedColumns.push(column);
+>>>>>>> 5c1ce312c8fdc67e5f73aa17ebb08d9c2d5bff04
       }
     });
   }

@@ -9,7 +9,6 @@ import {
 } from './esri/configuration';
 import { LoggingConfiguration, LogLevels } from './val-modules/common/services/logging.service';
 import { AllLayers } from './esri/layer-configuration';
-import { EsriApi } from './esri/core/esri-api.service';
 
 @Injectable()
 export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, LoggingConfiguration {

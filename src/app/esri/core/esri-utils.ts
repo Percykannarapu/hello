@@ -1,6 +1,12 @@
 import { Observable } from 'rxjs';
 import { EsriApi } from './esri-api.service';
 
+export interface TokenResponse {
+  token: string;
+  expires: number;
+  ssl: boolean;
+}
+
 export interface WatchResult<T, K extends keyof T> {
   newValue: T[K];
   oldValue: T[K];
@@ -32,6 +38,10 @@ export class EsriUtils {
 
   public static geometryIsPoint(g: __esri.Geometry) : g is __esri.Point {
     return g != null && g.type === 'point';
+  }
+
+  public static geometryIsPolyline(g: __esri.Geometry) : g is __esri.Polyline {
+    return g != null && g.type === 'polyline';
   }
 
   public static geometryIsPolygon(g: __esri.Geometry) : g is __esri.Polygon {
@@ -145,5 +155,14 @@ export class EsriUtils {
         if (handle) handle.remove();
       };
     });
+  }
+
+  //NOTE: DO NOT add a reference to the Q library for this IPromise interface, it will interfere with Esri's IPromise interface definition
+  public static esriPromiseToEs6<T>(esriPromise: IPromise<T>) : Promise<T> {
+    return new Promise<T>((resolve, reject) => esriPromise.then(resolve, reject));
+  }
+
+  public static esriCallbackToEs6<T>(esriPromiseReturner: (callback?: Function, errback?: Function) => IPromise<any>) : Promise<T> {
+    return new Promise<T>((resolve, reject) => esriPromiseReturner(resolve, reject));
   }
 }
