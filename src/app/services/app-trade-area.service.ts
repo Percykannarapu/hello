@@ -58,6 +58,11 @@ export class AppTradeAreaService {
       )
       .subscribe(([locations]) => this.onLocationChange(locations));
 
+    this.impTradeAreaService.storeObservable.pipe(
+        map((tradeAreas) => tradeAreas.filter(ta => ta.taType === 'AUDIENCE'))
+      ).subscribe(tradeAreas => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, tradeAreas, null, TradeAreaTypeCodes.Audience))
+        
+
     const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
       filter(tradeAreas => tradeAreas != null),
       filterArray(ta => ta.taType.toUpperCase() === 'RADIUS')
@@ -274,7 +279,7 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  private drawTradeAreas(siteType: SuccessfulLocationTypeCodes, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
+  private drawTradeAreas(siteType: SuccessfulLocationTypeCodes, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes, taType?: TradeAreaTypeCodes) : void {
     this.logger.info('Drawing Trade Areas for', siteType);
     this.logger.debug('Draw Trade Area parameters', { siteType, tradeAreas, mergeType });
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
@@ -288,7 +293,10 @@ export class AppTradeAreaService {
       const maxRadius = Math.max(...radii);
       drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
     }
-    this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType);
+    if (taType === TradeAreaTypeCodes.Audience) {
+      drawnTradeAreas.push(...currentTradeAreas);
+    }
+    this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType, taType);  
     // reset the defaults that get applied to new locations
     if ((this.currentDefaults.get(siteType) == null || this.currentDefaults.get(siteType).length === 0) && radii.length > 0) {
       const uniqueValues = new Set(radii);
