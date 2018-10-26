@@ -142,7 +142,8 @@ export class ValAudienceTradeareaService {
         LOCATIONNAME: location.locationNumber,
         XCOORD: location.xcoord,
         YCOORD: location.ycoord,
-        HOMEGEOCODE: location.homeGeocode != null ?  location.homeGeocode : location.locZip
+        HOMEGEOCODE: this.stateService.analysisLevel$.getValue() === 'ZIP' 
+                     && location.homeGeocode == null ?  location.locZip : location.homeGeocode
       };
       this.audienceTAConfig.locations.push(taLocation);
     }
