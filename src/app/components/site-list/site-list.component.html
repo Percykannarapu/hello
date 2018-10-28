@@ -1,204 +1,214 @@
 <div class="ui-g ui-g-nopad">
-   <div class="ui-g-6">
-      <label>Manage for:</label>
-      <a class="val-spacer-left"></a>
-      <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-      <a class="val-spacer-left"></a>
-      <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-   </div>
-   <div class="ui-g-6 ui-g-nopad">
-      <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
-   </div>
+  <div class="ui-g-6">
+     <label>Manage for:</label>
+     <a class="val-spacer-left"></a>
+     <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+     <a class="val-spacer-left"></a>
+     <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+  </div>
+  <div class="ui-g-6 ui-g-nopad">
+     <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
+  </div>
 
-   <div #gridRoot id= "locGrid" class="ui-g-12">
-      <p-table #locGrid
-               class="val-table"
-               [columns]="flatSiteGridColumns"
-               [globalFilters]="flatSiteGridColumns"
-               [value]="flatAllSites$ | async"
-               [selection]="flatActiveSites$ | async"
-               [resizableColumns]="true" columnResizeMode="expand"
-               [reorderableColumns]="true"
-               sortMode="multiple"
-               scrollable="true" scrollWidth="100%"
-               [paginator]="true" [rows]="10"
-               (onRowUnselect)="onRowSelect($event, false)"
-               (onRowSelect)="onRowSelect($event, true)">
+  <div #gridRoot id= "locGrid" class="ui-g-12">
+     <p-table #locGrid
+              class="val-table"
+              [columns]="flatSiteGridColumns"
+              [globalFilters]="flatSiteGridColumns"
+              [value]="flatAllSites$ | async"
+              [selection]="flatActiveSites$ | async"
+              [resizableColumns]="true" columnResizeMode="expand"
+              [reorderableColumns]="true"
+              sortMode="multiple"
+              scrollable="true" scrollWidth="100%"
+              [paginator]="true" [rows]="10"
+              (onRowUnselect)="onRowSelect($event, false)"
+              (onRowSelect)="onRowSelect($event, true)">
 
-         <ng-template pTemplate="colgroup" let-columns>
-            <colgroup>
-               <col style="width: 30px">
-               <col style="width: 4em">
-               <col style="width: 4em">
-               <col *ngFor="let col of selectedColumns" [style.width]="col.width">
-            </colgroup>
-         </ng-template>
+        <ng-template pTemplate="colgroup" let-columns>
+           <colgroup>
+              <col style="width: 30px">
+              <col style="width: 4em">
+              <col style="width: 4em">
+              <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+           </colgroup>
+        </ng-template>
 
-         <ng-template pTemplate="caption">
-            <div class="ui-g no_vertical_space">
-               <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: left">
-                  <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
-                  <input type="text" pInputText size="30" placeholder="Filter Locations" (input)="locGrid.filterGlobal($event.target.value, 'contains')" style="width:auto; color: white">
-               </div>
-               <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: center;">
-                  <label style="padding: 0" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
-               </div>
-               <div class="ui-g=4 no_vertical_space val-text-right" style="float:right; margin: auto; vertical-align: top; text-align: right; color: white;">
-                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
-               </div>
-            </div>
-         </ng-template>
+        <ng-template pTemplate="caption">
+           <div class="ui-g no_vertical_space">
+              <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: left">
+                 <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+                 <input type="text" pInputText size="30" placeholder="Filter Locations" (input)="locGrid.filterGlobal($event.target.value, 'contains')" style="width:auto; color: white">
+              </div>
+              <div class="ui-g-4 no_vertical_space" style="vertical-align: top; text-align: center;">
+                 <label style="padding: 0" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
+              </div>
+              <div class="ui-g=4 no_vertical_space val-text-right" style="float:right; margin: auto; vertical-align: top; text-align: right; color: white;">
+                 <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+              </div>
+           </div>
+        </ng-template>
 
-         <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
-            <tr>
-               <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
-               <th style="width: 4em">Zoom</th>
-               <th style="width: 4em">Delete</th>
-               <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
-                  {{col.header}}
-                  <p-sortIcon [field]="col.field"></p-sortIcon>
-               </th>
-            </tr>
-            <tr style="background: #b3d4ed">
-               <th style="width: 30px; background: #b3d4ed"></th>
-               <th style="width:  4em; background: #b3d4ed"></th>
-               <th style="width:  4em; background: #b3d4ed"></th>
-               <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
-                  <input *ngSwitchCase="'locationNumber'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'locationName'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'locAddress'"        pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'locZip'"            pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'description'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'groupName'"         pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'radius1'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'radius2'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'radius3'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'homeGeocodeIssue'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'Home ZIP'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'Home ATZ'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'Home Digital ATZ'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'Home PCR'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'origAddress1'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
-                  <input *ngSwitchCase="'origPostalCode'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+        <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
+           <tr>
+              <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th style="width: 4em">Zoom</th>
+              <th style="width: 4em">Delete</th>
+              <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
+                 {{col.header}}
+                 <p-sortIcon [field]="col.field"></p-sortIcon>
+              </th>
+           </tr>
+           <tr style="background: #b3d4ed">
+              <th style="width: 30px; background: #b3d4ed"></th>
+              <th style="width:  4em; background: #b3d4ed"></th>
+              <th style="width:  4em; background: #b3d4ed"></th>
+              <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
+                 <input *ngSwitchCase="'locationNumber'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'locationName'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'locAddress'"        pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'locZip'"            pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'totalHHC'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'totalAllocatedHHC'" pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'description'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'groupName'"         pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'radius1'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'radius2'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'radius3'"           pInputText type="number" (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'Home Geocode Issue'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'Home ZIP'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'Home ATZ'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'Home Digital ATZ'"  pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'Home PCR'"          pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'origAddress1'"      pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
+                 <input *ngSwitchCase="'origPostalCode'"    pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)">
 
-                  <p-multiSelect *ngSwitchCase="'locState'"             appendTo="body" [options]="uniqueState$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'locCity'"              appendTo="body" [options]="uniqueCity$ | async"           defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'marketName'"           appendTo="body" [options]="uniqueMarket$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'marketCode'"           appendTo="body" [options]="uniqueMarketCode$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'recordStatusCode'"     appendTo="body" [options]="uniqueRecStatuses$ | async"    defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>  <!-- (onChange)="onSetDismissable(false);"  (onBlur)="onFilterBlur();" (onPanelShow)="onFilterShow();" (onPanelHide)="onFilterHide();" -->
-                  <p-multiSelect *ngSwitchCase="'geocoderMatchCode'"    appendTo="body" [options]="uniqueMatchCodes$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'geocoderLocationCode'" appendTo="body" [options]="uniqueMatchQualities$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueOrigState$ | async"      defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-             <!-- <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC"    defaultLabel="All Matches"  [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'equals');"></p-dropdown> -->
+                 <p-multiSelect *ngSwitchCase="'locState'"             appendTo="body" [options]="uniqueState$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'locCity'"              appendTo="body" [options]="uniqueCity$ | async"           defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'marketName'"           appendTo="body" [options]="uniqueMarket$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'marketCode'"           appendTo="body" [options]="uniqueMarketCode$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'recordStatusCode'"     appendTo="body" [options]="uniqueRecStatuses$ | async"    defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>  <!-- (onChange)="onSetDismissable(false);"  (onBlur)="onFilterBlur();" (onPanelShow)="onFilterShow();" (onPanelHide)="onFilterHide();" -->
+                 <p-multiSelect *ngSwitchCase="'geocoderMatchCode'"    appendTo="body" [options]="uniqueMatchCodes$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'geocoderLocationCode'" appendTo="body" [options]="uniqueMatchQualities$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueOrigState$ | async"      defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                 <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+            <!-- <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC"    defaultLabel="All Matches"  [style]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'equals');"></p-dropdown> -->
 
-                  <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, 'contains')">
-               </th>
-            </tr>            
-         </ng-template>
+                 <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, 'contains')">
+              </th>
+           </tr>            
+        </ng-template>
 
-         <!-- <p-multiSelect *ngSwitchCase="'recordStatusCode'"  appendTo="body" [options]="recStatuses" defaultLabel="All Statuses" (onChange)="locGrid.filter($event.value, col.field, 'in')"></p-multiSelect>
-         <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC" defaultLabel="All Matches" [style]="{'width':'100%', 'overflow': 'visible' }" (onChange)="locGrid.filter($event.value, col.field, 'equals')"></p-dropdown> -->
+        <!-- <p-multiSelect *ngSwitchCase="'recordStatusCode'"  appendTo="body" [options]="recStatuses" defaultLabel="All Statuses" (onChange)="locGrid.filter($event.value, col.field, 'in')"></p-multiSelect>
+        <p-dropdown    *ngSwitchCase="'geocoderMatchCode'" appendTo="body" [options]="uniqueMC" defaultLabel="All Matches" [style]="{'width':'100%', 'overflow': 'visible' }" (onChange)="locGrid.filter($event.value, col.field, 'equals')"></p-dropdown> -->
 
-                  <!-- <div *ngSwitchCase="'year'">
-                      Value < {{yearFilter}}
-                      <i class="fa fa-close" (click)="yearFilter=null;dt.filter(null, col.value.field, col.filterMatchMode)" style="cursor:pointer" *ngIf="yearFilter"></i>
-                      <p-slider [style]="{'width':'100%','margin-top':'8px'}" [(ngModel)]="yearFilter" [min]="1970" [max]="2010" (onChange)="onYearChange($event, dt)"></p-slider>
-                  </div>
-                  <p-dropdown *ngSwitchCase="'brand'" [options]="brands" [style]="{'width':'100%'}" (onChange)="dt.filter($event.value, col.value.field, 'equals')"></p-dropdown> -->
+                 <!-- <div *ngSwitchCase="'year'">
+                     Value < {{yearFilter}}
+                     <i class="fa fa-close" (click)="yearFilter=null;dt.filter(null, col.value.field, col.filterMatchMode)" style="cursor:pointer" *ngIf="yearFilter"></i>
+                     <p-slider [style]="{'width':'100%','margin-top':'8px'}" [(ngModel)]="yearFilter" [min]="1970" [max]="2010" (onChange)="onYearChange($event, dt)"></p-slider>
+                 </div>
+                 <p-dropdown *ngSwitchCase="'brand'" [options]="brands" [style]="{'width':'100%'}" (onChange)="dt.filter($event.value, col.value.field, 'equals')"></p-dropdown> -->
 
 
-         <!-- <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
-         <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
-           <ng-template let-h="rowData" pTemplate="body">
-             <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-           </ng-template>
-         </p-column>
-         <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
-           <ng-template let-site="rowData" pTemplate="body">
-             <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
-           </ng-template>
-         </p-column>    -->
+        <!-- <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+        <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
+          <ng-template let-h="rowData" pTemplate="body">
+            <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+          </ng-template>
+        </p-column>
+        <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
+          <ng-template let-site="rowData" pTemplate="body">
+            <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
+          </ng-template>
+        </p-column>    -->
 
-         <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
-            <tr [pSelectableRow]="flatLoc">
-               <td>
-                  <p-tableCheckbox [value]="flatLoc" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
-               </td>
-               <td [ngStyle]="{'width':'5em'}">
-                  <button (click)="onRowZoom(flatLoc.loc)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-               </td>
-               <td [ngStyle]="{'width':'4em'}">
-                  <button type="button" pButton (click)="onRowDelete(flatLoc.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
-               </td>
+        <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
+           <tr [pSelectableRow]="flatLoc">
+              <td>
+                 <p-tableCheckbox [value]="flatLoc" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
+              </td>
+              <td [ngStyle]="{'width':'5em'}">
+                 <button (click)="onRowZoom(flatLoc.loc)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+              </td>
+              <td [ngStyle]="{'width':'4em'}">
+                 <button type="button" pButton (click)="onRowDelete(flatLoc.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
+              </td>
 
-               <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass">
-                  {{flatLoc[col.field]}}
-               </td>
-            </tr>
-         </ng-template>
+              <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
+                
+                 <!-- Format various columns -->
+                 <div *ngSwitchCase = "'totalHHC'">                {{flatLoc['totalHHC'] | number:'1.0-0'}} </div>
+                 <div *ngSwitchCase = "'totalAllocatedHHC'">       {{flatLoc['totalAllocatedHHC'] | number:'1.0-0'}} </div>
+
+                 <!-- Display all other columns -->
+                 <div *ngSwitchDefault>
+                   {{flatLoc[col.field]}}
+                </div>
+              </td>
+           </tr>
+        </ng-template>
 
 <!--  <p-header>
-        <div class="ui-g" style="flex-wrap: nowrap !important;">
-          <div class="ui-g-12 ui-g-nopad">
-            <div class="ui-g-1" style="min-width:25px; width:25px">
-              <i class="fa fa-search"></i>
-            </div>
-            <div class="ui-g-2">
-            <span class="md-inputfield">
-              <input #filter id="filter" type="text" pInputText size="50" style="color: white;">
-              <label for="filter" style="color: white;">Filter Locations</label>
-            </span>
-            </div>
-            <div class="ui-g-7">
-              <label style="text-align: center;" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
-            </div>
-            <div class="ui-g-2" style="float:right; color: white;">
-              <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
-            </div>
-          </div>
-        </div>
-      </p-header>
+       <div class="ui-g" style="flex-wrap: nowrap !important;">
+         <div class="ui-g-12 ui-g-nopad">
+           <div class="ui-g-1" style="min-width:25px; width:25px">
+             <i class="fa fa-search"></i>
+           </div>
+           <div class="ui-g-2">
+           <span class="md-inputfield">
+             <input #filter id="filter" type="text" pInputText size="50" style="color: white;">
+             <label for="filter" style="color: white;">Filter Locations</label>
+           </span>
+           </div>
+           <div class="ui-g-7">
+             <label style="text-align: center;" pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
+           </div>
+           <div class="ui-g-2" style="float:right; color: white;">
+             <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+           </div>
+         </div>
+       </div>
+     </p-header>
 
-      <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'25px'}" [resizable]="false"></p-column>
-      <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
-      <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
-        <ng-template let-h="rowData" pTemplate="body">
-          <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-        </ng-template>
-      </p-column>
-      <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
-        <ng-template let-site="rowData" pTemplate="body">
-          <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
-        </ng-template>
-      </p-column>
-      <p-column *ngFor="let locationColumn of selectedColumns"
-                [field]="locationColumn.field"
-                [header]="locationColumn.header"
-                [style]="{'width': locationColumn.size}">
-      </p-column>
+     <p-column [expander]="true" styleClass="col-icon" [style]="{'width':'25px'}" [resizable]="false"></p-column>
+     <p-column selectionMode="multiple" [style]="{'width':'30px'}" [resizable]="false"></p-column>
+     <p-column header="Zoom To" [style]="{'width':'64px'}" [resizable]="false">
+       <ng-template let-h="rowData" pTemplate="body">
+         <button (click)="onRowZoom(h)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+       </ng-template>
+     </p-column>
+     <p-column header="Delete" [style]="{'width':'47px'}" [resizable]="false">
+       <ng-template let-site="rowData" pTemplate="body">
+         <button type="button" pButton (click)="onRowDelete(site)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
+       </ng-template>
+     </p-column>
+     <p-column *ngFor="let locationColumn of selectedColumns"
+               [field]="locationColumn.field"
+               [header]="locationColumn.header"
+               [style]="{'width': locationColumn.size}">
+     </p-column>
 
-      <ng-template let-site pTemplate="rowexpansion">
-        <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
-          <div class="ui-grid-row">
-            <p-dataTable [value]="getRowAttributes(site)" dataKey="locAttributeId"
-                         [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
-                         [paginator]="true" [rows]="25" >
-              <p-column *ngFor="let field of attributeColumns" [field]="field" [header]="field">
-              </p-column>
-            </p-dataTable>
-          </div>
-        </div>
-      </ng-template> -->
+     <ng-template let-site pTemplate="rowexpansion">
+       <div class="ui-grid ui-grid-responsive ui-fluid" style="font-size:14px;padding: 0 0 0 20px">
+         <div class="ui-grid-row">
+           <p-dataTable [value]="getRowAttributes(site)" dataKey="locAttributeId"
+                        [resizableColumns]="true" columnResizeMode="expand" [responsive]="true"
+                        [paginator]="true" [rows]="25" >
+             <p-column *ngFor="let field of attributeColumns" [field]="field" [header]="field">
+             </p-column>
+           </p-dataTable>
+         </div>
+       </div>
+     </ng-template> -->
 
-      <ng-template pTemplate="emptymessage" let-columns>
-         <tr>
-            <td [attr.colspan]="columns.length">
-               No locations added.  Use the "Add Locations" tab above.
-            </td>
-         </tr>
-      </ng-template>
-    </p-table>
-  </div>
+     <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+           <td [attr.colspan]="columns.length">
+              No locations added.  Use the "Add Locations" tab above.
+           </td>
+        </tr>
+     </ng-template>
+   </p-table>
+ </div>
 
 </div>

@@ -1,14 +1,14 @@
 <div class="ui-g">
-   <div class="ui-g-12">
-      <i class="fa fa-search"></i>
-      <input pInputText id="vlhSearch" name="vlhSearch" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
-   </div>
-  <div class="ui-g-12 val-wide-tree">
-    <p-tree [loading]="loading" [value]="currentNodes"
-            selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw"
-            [selection]="currentSelectedNodes"
-            (onNodeSelect)="selectVariable($event.node)"
-            (onNodeUnselect)="removeVariable($event.node)">
-    </p-tree>
+  <div class="ui-g-12">
+     <i class="fa fa-search"></i>
+     <input pInputText id="vlhSearch" name="vlhSearch" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" style="width: 90%; padding-bottom: 3px">
   </div>
+ <div class="ui-g-12 val-wide-tree">
+   <p-tree [loading]="loading" [value]="currentNodes"
+           selectionMode="checkbox" loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw"
+           [selection]="currentSelectedNodes"
+           (onNodeSelect)="selectVariable($event.node)"
+           (onNodeUnselect)="removeVariable($event.node)">
+   </p-tree>
+ </div>
 </div>

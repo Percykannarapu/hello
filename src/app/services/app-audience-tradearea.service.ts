@@ -142,7 +142,8 @@ export class ValAudienceTradeareaService {
         LOCATIONNAME: location.locationNumber,
         XCOORD: location.xcoord,
         YCOORD: location.ycoord,
-        HOMEGEOCODE: location.homeGeocode
+        HOMEGEOCODE: this.stateService.analysisLevel$.getValue() === 'ZIP' 
+                     && location.homeGeocode == null ?  location.locZip : location.homeGeocode
       };
       this.audienceTAConfig.locations.push(taLocation);
     }
@@ -446,7 +447,7 @@ export class ValAudienceTradeareaService {
    * @param location The location associated with the trade are
    */
   private drawRadiusRings(minRadius: number, maxRadius: number) {
-    if (minRadius == null || maxRadius == null) return;
+    /*if (minRadius == null || maxRadius == null) return;
     const ringMap: Map<Coordinates, number[]> = new Map<Coordinates, number[]>();
     for (const location of this.locationService.get().filter(l => l.clientLocationTypeCode === 'Site')) {
       const coordinates: Coordinates = { xcoord: location.xcoord, ycoord: location.ycoord };
@@ -455,7 +456,7 @@ export class ValAudienceTradeareaService {
       radii.push(maxRadius);
       ringMap.set(coordinates, radii);
     }
-    this.mapService.drawRadiusBuffers(ringMap, true, 'Site');
+    this.mapService.drawRadiusBuffers(ringMap, true, 'Site');*/
   }
 
   /**

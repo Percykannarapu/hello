@@ -10,7 +10,7 @@ import { groupBy } from '../val-modules/common/common.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
@@ -99,14 +99,25 @@ export class AppLayerService {
     }
   }
 
-  public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : void {
+  public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes, taType?: TradeAreaTypeCodes) : void {
     const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
     tradeAreas.sort((a, b) => a.taName.localeCompare(b.taName));
-    const pointMap: Map<string, {p: __esri.Point, r: number}[]> = groupBy(tradeAreas, 'taName', ta => {
-      const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-      const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
-      return { p: point, r: ta.taRadius };
-    });
+    let pointMap: Map<string, {p: __esri.Point, r: number}[]> = new Map<string, {p: __esri.Point, r: number}[]>();
+    if (taType === TradeAreaTypeCodes.Audience) {
+      for (const ta of tradeAreas) {
+        const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
+        const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
+        const minRadius = this.appStateService.currentProject$.getValue().audTaMinRadiu;
+        const maxRadius = this.appStateService.currentProject$.getValue().audTaMaxRadiu;
+        pointMap.set(ta.taName, [{p: point, r: minRadius}, {p: point, r: maxRadius}]);
+      }
+    } else {
+      pointMap = groupBy(tradeAreas, 'taName', ta => {
+        const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
+        const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
+        return { p: point, r: ta.taRadius };
+      });
+    }
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriApi.Color(colorVal);
     const transparent = new EsriApi.Color([0, 0, 0, 0]);
@@ -119,26 +130,48 @@ export class AppLayerService {
         width: 2
       }
     });
-    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Radius'));
+    let layersToRemove: string[] = [];
+    if (taType === TradeAreaTypeCodes.Audience) {
+      layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Audience'));
+    } else {
+      layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Radius'));
+    }
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
     let layerId = 0;
     pointMap.forEach((pointData, name) => {
       const points = pointData.map(pd => pd.p);
       const radii = pointData.map(pd => pd.r);
-      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
-        const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-        const graphics = geometry.map(g => {
-          return new EsriApi.Graphic({
-            geometry: g,
-            symbol: symbol,
-            attributes: { parentId: (++layerId).toString() }
+      if (taType === TradeAreaTypeCodes.Audience) {
+          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', false).then(geoBuffer => {
+            const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
+            const graphics = geometry.map(g => {
+              return new EsriApi.Graphic({
+                geometry: g,
+                symbol: symbol,
+                attributes: { parentId: (++layerId).toString() }
+              });
+            });
+            const groupName = `${siteType}s`;
+            const layerName = `${siteType} - ${name}`;
+            this.layerService.removeLayer(layerName);
+            this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+            });
+        } else {
+          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
+            const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
+            const graphics = geometry.map(g => {
+              return new EsriApi.Graphic({
+                geometry: g,
+                symbol: symbol,
+                attributes: { parentId: (++layerId).toString() }
+              });
+            });
+            const groupName = `${siteType}s`;
+            const layerName = `${siteType} - ${name}`;
+            this.layerService.removeLayer(layerName);
+            this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
           });
-        });
-        const groupName = `${siteType}s`;
-        const layerName = `${siteType} - ${name}`;
-        this.layerService.removeLayer(layerName);
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-      });
+        }  
     });
   }
 
