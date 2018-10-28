@@ -109,7 +109,11 @@ export class AppLayerService {
         const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
         const minRadius = this.appStateService.currentProject$.getValue().audTaMinRadiu;
         const maxRadius = this.appStateService.currentProject$.getValue().audTaMaxRadiu;
-        pointMap.set(ta.taName, [{p: point, r: minRadius}, {p: point, r: maxRadius}]);
+        if (pointMap.has(ta.taName)) {
+          pointMap.get(ta.taName).push(...[{p: point, r: minRadius}, {p: point, r: maxRadius}])
+        } else {
+          pointMap.set(ta.taName, [{p: point, r: minRadius}, {p: point, r: maxRadius}]);
+        }
       }
     } else {
       pointMap = groupBy(tradeAreas, 'taName', ta => {
