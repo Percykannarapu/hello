@@ -27,9 +27,10 @@ export class ImpDomainFactoryService {
 
   constructor(private config: AppConfig, private userService: UserService) {}
 
-  private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
+  private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number, parent?: ImpGeofootprintLocation) : string {
     switch (tradeAreaType) {
       case TradeAreaTypeCodes.Audience:
+        return `${parent.locationName} - Audience TA`
       case TradeAreaTypeCodes.Custom:
         return tradeAreaType;
       case TradeAreaTypeCodes.Manual:
@@ -301,7 +302,7 @@ export class ImpDomainFactoryService {
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       taNumber: taNumber,
-      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
+      taName: tradeAreaType === TradeAreaTypeCodes.Audience ? ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index, parent) : ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impProject: parent.impProject,
