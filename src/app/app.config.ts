@@ -132,7 +132,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name', 'investment'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }
@@ -157,7 +157,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name', 'investment'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }
@@ -182,7 +182,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name', 'investment'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         }
       }
@@ -207,7 +207,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name', 'investment'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }
