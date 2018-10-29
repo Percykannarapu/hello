@@ -55,6 +55,10 @@ export class DataStore<T>
       return (this._dataStore != null) ? this._dataStore.length : 0;
    }
 
+   getStoreData() : Observable<any> {
+      return this.storeObservable;
+    }
+
    public currStoreId: number = 1;  // An id that will increment as you getNextStoreId. Unique within the store
 
    protected constructor(protected rest: RestDataService, protected dataUrl: string, protected transactionManager?: TransactionManager, protected storeName: string = '') {

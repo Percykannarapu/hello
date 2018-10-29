@@ -477,10 +477,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                              ||  attribute.attributeCode === 'cov_desc'
                                              ||  attribute.attributeCode === 'dma_name'
                                              ||  attribute.attributeCode === 'city_name') {
-                                                if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
-                                                   attributeMap[attribute.impGeofootprintGeo.geocode] = [];
-                                                attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
-                                                }
+                                                if (attribute.impGeofootprintGeo && attribute.impGeofootprintGeo.geocode) {
+                                                      if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
+                                                      attributeMap[attribute.impGeofootprintGeo.geocode] = [];
+                                                      attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
+                                                      }
+                                                }                         
                                              });
 
       // Get all project variables that are flagged as isIncludedInGeoGrid

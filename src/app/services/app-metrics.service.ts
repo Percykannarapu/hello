@@ -341,7 +341,7 @@ export class ValMetricsService implements OnDestroy {
     return Array.from(this.metricDefinitions);
   }
 
-  private getCpmForGeo(ownerGroupPrimary: string, coverageFrequency: string) : number {
+  public getCpmForGeo(ownerGroupPrimary: string, coverageFrequency: string) : number {
     if (isNumber(this.currentProject.estimatedBlendedCpm)) {
       return this.currentProject.estimatedBlendedCpm;
     } else {
