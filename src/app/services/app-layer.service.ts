@@ -109,10 +109,12 @@ export class AppLayerService {
         const point = new EsriApi.Point({ spatialReference: { wkid: this.appConfig.esriAppSettings.defaultSpatialRef }, x, y });
         const minRadius = this.appStateService.currentProject$.getValue().audTaMinRadiu;
         const maxRadius = this.appStateService.currentProject$.getValue().audTaMaxRadiu;
-        if (pointMap.has(ta.taName)) {
-          pointMap.get(ta.taName).push(...[{p: point, r: minRadius}, {p: point, r: maxRadius}])
+        if (pointMap.has(`${ta.taName} - Min Radius`) && pointMap.has(`${ta.taName} - Max Radius`)) {
+          pointMap.get(`${ta.taName} - Min Radius`).push(...[{p: point, r: minRadius}]);
+          pointMap.get(`${ta.taName} - Max Radius`).push(...[{p: point, r: maxRadius}]);
         } else {
-          pointMap.set(ta.taName, [{p: point, r: minRadius}, {p: point, r: maxRadius}]);
+          pointMap.set(`${ta.taName} - Min Radius`, [{p: point, r: minRadius}]);
+          pointMap.set(`${ta.taName} - Max Radius`, [{p: point, r: maxRadius}]);
         }
       }
     } else {
@@ -146,7 +148,7 @@ export class AppLayerService {
       const points = pointData.map(pd => pd.p);
       const radii = pointData.map(pd => pd.r);
       if (taType === TradeAreaTypeCodes.Audience) {
-          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', false).then(geoBuffer => {
+          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', true).then(geoBuffer => {
             const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
             const graphics = geometry.map(g => {
               return new EsriApi.Graphic({

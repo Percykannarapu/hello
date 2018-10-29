@@ -54,6 +54,17 @@ export class AppGeocodingService {
           });
         }
       }
+      const siteNumbers = [];
+      data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
+     /*dupSiteNumbers.every((ele, i, array) => {return (array.lastIndexOf(ele) !== i); });
+     const dupSiteNumbers =  siteNumbers.filter((val, index, self) => {
+        return (self.indexOf(val) !== index);
+      });*/
+
+      if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0 ){
+          this.messageService.showErrorNotification('Geocoding Error', 'Duplicate Site Numbers exist in your upload file.');
+          result = [];
+      }
     }
      
     } catch (e) {
