@@ -16,7 +16,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-
 @Injectable()
 export class AppGeocodingService {
 
-  private duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, Set<string>>();
+  public duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, Set<string>>();
 
   constructor(private messageService: AppMessagingService,
               private restService: RestDataService,
@@ -39,7 +39,7 @@ export class AppGeocodingService {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.messageService.showErrorNotification('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
       } else {
-        if (data.duplicateKeys.length > 0) {
+        if (data.duplicateKeys.length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor) {
           const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
           const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
           this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
@@ -60,8 +60,7 @@ export class AppGeocodingService {
      const dupSiteNumbers =  siteNumbers.filter((val, index, self) => {
         return (self.indexOf(val) !== index);
       });*/
-
-      if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0 ){
+      if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0  && siteType !== ImpClientLocationTypeCodes.Competitor){
           this.messageService.showErrorNotification('Geocoding Error', 'Duplicate Site Numbers exist in your upload file.');
           result = [];
       }
