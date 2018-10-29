@@ -1,6 +1,6 @@
 import { FlatGeo } from './../geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { distinctArray, mapArray, filterArray } from './../../val-modules/common/common.rxjs';
-import { Component, OnDestroy, OnInit, ViewChild, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject, from, timer } from 'rxjs';
 import { map, tap, refCount, publishReplay, timeInterval } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -12,8 +12,9 @@ import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar'
 import { groupBy, resolveFieldData, roundTo } from '../../val-modules/common/common.utils';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { Table } from 'primeng/table';
-import { FilterData } from '../common/table-filter-numeric/table-filter-numeric.component';
+import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { MultiSelect } from 'primeng/primeng';
 
 export interface FlatGeo {
    fgId: number;
@@ -97,6 +98,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // Get the grid as a view child to attach custom filters
    @ViewChild('geoGrid') public _geoGrid: Table;
 
+   // Get grid filter components to clear them
+   @ViewChildren('filterMs') msFilters:QueryList<MultiSelect>;
+   @ViewChildren('filterNm') nmFilters:QueryList<TableFilterNumericComponent>;
+
    // Input Behavior subjects
    private projectBS$        = new BehaviorSubject<ImpProject>(null);
    private allProjectVarsBS$ = new BehaviorSubject<ImpProjectVar[]>([]);
@@ -140,6 +145,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Header filter
    public  headerFilter: boolean = true;
+   public  defaultLabel: string = "All";
 
    // Filter Ranges
    public  hhcRanges: number[] = [null, null];
@@ -198,7 +204,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       numGeos: 0,
       numGeosActive: 0,
       numGeosInactive: 0
-   }
+   };
+   private lastProjectId: number;
 
    // Duplicate Geos filter variables
    public  dedupeGrid: boolean = false;
@@ -224,7 +231,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       //this.varColOrder$.subscribe(colOrder => {/*this.variableColOrder = colOrder; */console.log("OBSERVABLE FIRED: varColOrder$ - colOrder:", colOrder); console.log("variableColOrder: ", this.variableColOrder);})
 
       // Whenever the project changes, update the grid export file name
-      this.project$.subscribe(project => this._geoGrid.exportFilename = "geo-grid" + ((project != null && project.projectId != null) ? "-" + project.projectId.toString() : "") + "-export");
+      this.project$.subscribe(project => {
+         this._geoGrid.exportFilename = "geo-grid" + ((project != null && project.projectId != null) ? "-" + project.projectId.toString() : "") + "-export";
+
+         // In the event of a project load, clear the grid filters
+         if (this.lastProjectId !== project.projectId) {
+            this.lastProjectId = project.projectId;
+            this.onClickResetFilters();
+         }
+      });
 
       // createComposite subscriptions
       this.allLocations$.subscribe(locs => this.gridStats = {...this.gridStats, numLocsActive: (locs != null) ? locs.filter(loc => loc.isActive).length : 0});
@@ -233,7 +248,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
       this.allImpGeofootprintGeos$ = combineLatest(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
-                                    .pipe(tap(x => this.setGridTotals())
+                                    .pipe(tap(x => this.setGridTotals())                                          
                                          ,map(([discovery, projectVars, geos, attributes, vars]) => this.createComposite(discovery, projectVars, geos, attributes, vars))
                                           // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
                                           // Allows the first subscriber to run pipe and all other subscribers get the result of that
@@ -244,8 +259,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                                   .pipe(map((AllGeos) => {
-                                                     //console.log("OBSERVABLE FIRED: displayedImpGeofootprintGeos$");
-                                                     return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); }));
+                                                        //console.log("OBSERVABLE FIRED: displayedImpGeofootprintGeos$");
+                                                        return AllGeos.filter(flatGeo => flatGeo.geo.isDeduped === 1 || this.dedupeGrid === false); })
+                                                       ,tap(ActualGeos => {if (ActualGeos.length === 0) this.initializeState();}));
    
       this.selectedImpGeofootprintGeos$ = this.displayedImpGeofootprintGeos$
                                               .pipe(map((AllGeos) => {
@@ -325,6 +341,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                                 ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       this.initializeGridTotals();
+      this.initializeState();
    }
 
    ngOnDestroy()
@@ -375,6 +392,34 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       } else {
          return gv.customVarExprDisplay;
       }
+   }
+
+   /**
+    * Initializes various state variables
+    */
+   initializeState() {
+      console.log("geoGrid - initializeState - fired");
+      this.gridStats = {
+         numLocsActive: 0,
+         numGeos: 0,
+         numGeosActive: 0,
+         numGeosInactive: 0
+      }
+   
+      this.dedupeGrid = false;
+      this.dupeCount = 0;
+      this.dupeMsg = "";
+
+      this.hhcRanges = [null, null];
+      this.allocHhcRanges = [null, null];
+      this.investmentRanges = [null, null];
+      this.allocInvestmentRanges = [null, null];
+      this.distanceRanges = [null, null];
+      this.cpmRanges = [null, null];
+
+      console.log(this._geoGrid);
+      this._geoGrid.reset();
+      this._varColOrder = {...this._varColOrder};
    }
 
    /**
@@ -618,7 +663,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public sortFlatGeoGridExtraColumns() {
       // Add the sort order to the object
-      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0);
+      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.size > 0 && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0);
 
       // Sort the array of columns
       this.flatGeoGridExtraColumns.sort((a, b) => this.sortVarColumns(a, b)); 
@@ -875,6 +920,29 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       this.syncHeaderFilter();
       this.setGridTotals();
+   }
+
+   /**
+    * Clears out the filters from the grid and reset the filter components
+    */
+   onClickResetFilters()
+   {
+      // Clear the multi select filters
+      if (this.msFilters)
+         this.msFilters.forEach(ms => {
+            ms.value = null;
+            ms.valuesAsString = this.defaultLabel;
+         });
+
+      // Clear the custom numeric filters
+      if (this.nmFilters)
+         this.nmFilters.forEach(nm => {
+            nm.clearFilter('');
+         });
+
+      // Reset the grid and grid filters
+      this._geoGrid.reset();
+      this.onFilter(null);
    }
 
    /**

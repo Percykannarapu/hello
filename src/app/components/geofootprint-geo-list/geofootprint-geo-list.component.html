@@ -65,7 +65,8 @@
                   <label style="padding: 0px 10px 0px 15px">Remove Dupes</label>
                   <p-inputSwitch (onChange)="onClickDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
                   &nbsp;&nbsp;
-                  <button type="button" pButton icon="{{tableWrapIcon}}" pTooltip="Toggle to Word Wrap" class="val-short-square-button" (click)="onToggleTableWrap()"></button>               </div>
+                  <button type="button" pButton icon="{{tableWrapIcon}}" pTooltip="Toggle to Word Wrap" class="val-short-square-button" (click)="onToggleTableWrap()"></button>
+               </div>
             </div>
          </ng-template>
 
@@ -87,45 +88,45 @@
                </th>
             </tr>
             <tr style="background: #b3d4ed">
-               <th style="width: 30px; background: #b3d4ed"></th>
+               <th style="width: 30px; background: #b3d4ed"><button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="background-color: #2e5473; color: #b3d4ed" (click)="onClickResetFilters()"></button></th>
                <th style="width: 30px; background: #b3d4ed"></th>
 
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
-                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationName'"   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locAddress'"     pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locZip'"         pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'home_geo'"                                   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.geocode'"                                pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'city_name'"                                  pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'pob'"                                        pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
-                  <input *ngSwitchCase="'geo.isDeduped'"                              pInputText type="number" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)">
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locationName'"   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locAddress'"     pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'geo.impGeofootprintLocation.locZip'"         pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'home_geo'"                                   pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'geo.geocode'"                                pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'city_name'"                                  pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'pob'"                                        pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
+                  <input *ngSwitchCase="'geo.isDeduped'"                              pInputText type="number" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
 
                   <div *ngSwitchCase="'geo.distance'">
-                     <val-table-filter-numeric fieldHeader="Distance" fieldName="geo.distance" (filterApplied)="geoGrid.filter($event, 'geo.distance', 'distanceFilter')" [(minValue)]="distanceRanges[0]" [(maxValue)]="distanceRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldHeader="Distance" fieldName="geo.distance" (filterApplied)="geoGrid.filter($event, 'geo.distance', 'distanceFilter')" [(minValue)]="distanceRanges[0]" [(maxValue)]="distanceRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'geo.hhc'">
-                     <val-table-filter-numeric fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')" [(minValue)]="hhcRanges[0]" [(maxValue)]="hhcRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')" [(minValue)]="hhcRanges[0]" [(maxValue)]="hhcRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'allocHhc'">
-                     <val-table-filter-numeric fieldName="Allocated HHC" (filterApplied)="geoGrid.filter($event, 'allocHhc', 'numericFilter')" [(minValue)]="allocHhcRanges[0]" [(maxValue)]="allocHhcRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="Allocated HHC" (filterApplied)="geoGrid.filter($event, 'allocHhc', 'numericFilter')" [(minValue)]="allocHhcRanges[0]" [(maxValue)]="allocHhcRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'cpm'">
-                     <val-table-filter-numeric fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')" [(minValue)]="cpmRanges[0]" [(maxValue)]="cpmRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')" [(minValue)]="cpmRanges[0]" [(maxValue)]="cpmRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'investment'">
-                     <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'allocInvestment'">
-                     <val-table-filter-numeric fieldName="Allocated Investment" (filterApplied)="geoGrid.filter($event, 'allocInvestment', 'numericFilter')" [(minValue)]="allocInvestmentRanges[0]" [(maxValue)]="allocInvestmentRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="Allocated Investment" (filterApplied)="geoGrid.filter($event, 'allocInvestment', 'numericFilter')" [(minValue)]="allocInvestmentRanges[0]" [(maxValue)]="allocInvestmentRanges[1]"></val-table-filter-numeric>
                   </div>
 
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.locState'"   appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'ownergroup'"                             appendTo="body" [options]="uniqueOwnerGroup$ | async"   defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'coveragedescription'"                    appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  <p-multiSelect *ngSwitchCase="'dma'"                                    appendTo="body" [options]="uniqueDma$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.locCity'"    appendTo="body" [options]="uniqueCity$ | async"         [(defaultLabel)]="defaultLabel" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.locState'"   appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'ownergroup'"                             appendTo="body" [options]="uniqueOwnerGroup$ | async"   defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'coveragedescription'"                    appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+                  <p-multiSelect #filterMs *ngSwitchCase="'dma'"                                    appendTo="body" [options]="uniqueDma$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
 
                   <input *ngSwitchCase="'Delete'"  pInputText type="text">
 
