@@ -10,8 +10,7 @@
                [resizableColumns]="true" columnResizeMode="expand"
                [reorderableColumns]="true"
                scrollable="true" scrollWidth="100%"
-               [sortOrder]="-1"
-               sortMode="multiple"
+               sortMode="multiple" [multiSortMeta]="multiSortMeta"
                [responsive]="true"
                [paginator]="true" [rows]="25" [rowsPerPageOptions]="[5,25,50,100,200,500,1000]"
                (onHeaderCheckboxToggle)="onSelectAllGeocodes($event)"
@@ -87,7 +86,7 @@
                </th>
             </tr>
             <tr style="background: #b3d4ed">
-               <th style="width: 30px; background: #b3d4ed"><button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="background-color: #2e5473; color: #b3d4ed" (click)="onClickResetFilters()"></button></th>
+               <th style="width: 30px; background: #b3d4ed"><button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="background-color: #2e5473; color: #edb3ce" (click)="onClickResetFilters()"></button></th>
                <th style="width: 30px; background: #b3d4ed"></th>
 
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">

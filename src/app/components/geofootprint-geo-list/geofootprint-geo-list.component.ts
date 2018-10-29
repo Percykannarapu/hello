@@ -14,7 +14,7 @@ import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums'
 import { Table } from 'primeng/table';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { MultiSelect } from 'primeng/primeng';
+import { MultiSelect, SortMeta } from 'primeng/primeng';
 
 export interface FlatGeo {
    fgId: number;
@@ -206,6 +206,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       numGeosInactive: 0
    };
    private lastProjectId: number;
+   public  multiSortMeta: Array<SortMeta>;
 
    // Duplicate Geos filter variables
    public  dedupeGrid: boolean = false;
@@ -420,6 +421,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       console.log(this._geoGrid);
       this._geoGrid.reset();
       this._varColOrder = {...this._varColOrder};
+
+      // Initialize the default sort order
+      this.multiSortMeta = [];
+      this.multiSortMeta.push({field: 'geo.impGeofootprintLocation.locationNumber', order: 1});
+      this.multiSortMeta.push({field: 'geo.distance', order: 1});
    }
 
    /**
