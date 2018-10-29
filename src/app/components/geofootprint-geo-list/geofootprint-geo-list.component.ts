@@ -658,7 +658,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Update geo grid total columns
       this.setGridTotals(geoGridData);
 
-      //console.log("createComposite - returning geoGridData: ", geoGridData);
       //console.table(geoGridData);
       return geoGridData;
    }
