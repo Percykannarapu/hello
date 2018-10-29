@@ -91,7 +91,11 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
     this.audienceSources.set(sourceId, sourceRefresh);
-    this.audienceMap.set(audienceId, audience);
+    if (audience.audienceSourceName === 'Audience-TA') {
+      this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
+    } else {
+      this.audienceMap.set(audienceId, audience);
+    }    
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
     const projectVar = this.createProjectVar(audience, id);
     // protect against adding dupes to the data store
