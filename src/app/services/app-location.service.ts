@@ -304,7 +304,8 @@ export class AppLocationService {
                     warningNotificationFlag = 'Y';
           }
 
-          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5) || (currentAttributes[key] == null || loc.clientLocationTypeCode === 'Failed Site')){
+          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5) || (currentAttributes[key] == null 
+              || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
               homeGeocodeIssue = 'Y'; 
               warningNotificationFlag = 'Y';  
           }
