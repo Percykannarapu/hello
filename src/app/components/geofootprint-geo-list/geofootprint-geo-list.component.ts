@@ -249,7 +249,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
       this.allImpGeofootprintGeos$ = combineLatest(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
-                                    .pipe(tap(x => this.setGridTotals())                                          
+                                    .pipe(tap(x => this.setGridTotals())
+                                         ,tap(x => this.syncHeaderFilter())
                                          ,map(([discovery, projectVars, geos, attributes, vars]) => this.createComposite(discovery, projectVars, geos, attributes, vars))
                                           // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
                                           // Allows the first subscriber to run pipe and all other subscribers get the result of that
@@ -698,6 +699,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             return -1;
    }
 
+   /**
+    * Ensures that the header checkbox is in sync with the actual state of the geos.isActive flag.
+    * If one geo is inactive, then the header checkbox is unselected.  If all geos are selected, its checked.
+    */
    public syncHeaderFilter() {
       if (this._geoGrid.filteredValue != null)
          this.headerFilter = !this._geoGrid.filteredValue.some(flatGeo => flatGeo.geo.isActive === false);
@@ -729,7 +734,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    onClickSelectGeocode(event: any, isSelected: boolean)
-   {      
+   {
       const geo: ImpGeofootprintGeo = (event.data.geo as ImpGeofootprintGeo);
 
       if (geo != null)
@@ -910,19 +915,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             console.log("No geos to set");            
    }
 
-   onSelectAllGeocodes(event: any)
-   {
-      console.log("All Geos isActive set to: ", event.checked, ", event: ", event);
-      //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
-      if (this._geoGrid != null)
-      {
-         if (this._geoGrid.filteredValue != null)
-            this._geoGrid.filteredValue.forEach(geo => geo.isActive = (event.checked) ? 1 : 0);
-         else
-            this._geoGrid.value.forEach(geo => geo.isActive = (event.checked) ? 1 : 0);
-      }
-   }
-
    onClickDedupeToggle(event: any, geoGrid)
    {
       this.onDedupeToggle.emit(event);
@@ -990,6 +982,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          return;
 
       console.log("setGridTotals - Fired");
+
       // Initialize totals
       this.initializeGridTotals();
    

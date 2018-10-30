@@ -261,10 +261,9 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    }
 
    public onSetAllGeos(event: any) {
-      console.log("-".padEnd(80, "-"));
-      console.log("onSetAllGeos - event: ", event);
-      console.log("-".padEnd(80, "-"));
-
+      // console.log("-".padEnd(80, "-"));
+      // console.log("onSetAllGeos - event: ", event);
+      // console.log("-".padEnd(80, "-"));
       if (event != null)
       {
          let eventGeos: ImpGeofootprintGeo[] = event.geos;
@@ -274,9 +273,9 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    }
 
    public onSetFilteredGeos(event: any) {
-      console.log("-".padEnd(80, "-"));
-      console.log("onSetFilteredGeos - event: ", event);
-      console.log("-".padEnd(80, "-"));      
+      // console.log("-".padEnd(80, "-"));
+      // console.log("onSetFilteredGeos - event: ", event);
+      // console.log("-".padEnd(80, "-"));      
       if (event != null)
       {
          let eventGeos: ImpGeofootprintGeo[] = event.geos;
