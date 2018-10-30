@@ -125,7 +125,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>;
 
    // Variable column order observable
-   private _varColOrder: Map<string, number>;
+   private _varColOrder: Map<string, number> = new Map();
 // private varColOrder$: Observable<Map<string, number>>;
 
    // Grid Observables for totals
@@ -670,7 +670,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    public sortFlatGeoGridExtraColumns() {
       // Add the sort order to the object
-      this.flatGeoGridExtraColumns.forEach(col => col['sortOrder'] = (this.variableColOrder != null && this.variableColOrder.size > 0 && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0);
+      this.flatGeoGridExtraColumns.forEach(col => {
+         col['sortOrder'] = (this.variableColOrder != null 
+                          && this.variableColOrder instanceof Map
+                          && this.variableColOrder.hasOwnProperty('size')
+                          && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0;
+      });
 
       // Sort the array of columns
       this.flatGeoGridExtraColumns.sort((a, b) => this.sortVarColumns(a, b)); 
