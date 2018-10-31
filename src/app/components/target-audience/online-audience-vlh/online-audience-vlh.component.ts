@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { Subject, combineLatest } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, filter, flatMap } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
@@ -49,6 +49,28 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     ).subscribe(term => this.filterNodes(term));
 
     this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
+    
+    this.parentAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH'))
+    ).subscribe(audiences => this.selectNodes(audiences, true));
+
+    /*combineLatest(this.parentAudienceService.audiences$, this.appStateService.applicationIsReady$).pipe(
+      map(([audiences, ready]) => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH')),
+      distinctUntilChanged()
+    ).subscribe(([audiences, ready]) => this.selectNodes(audiences, ready));*/
+  }
+
+  selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
+    if (!ready || audiences == null || audiences.length === 0) return;
+    for (const audience of audiences) {
+      const node = this.allNodes.filter(n => n.label === audience.audienceName);
+      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length > 0) {
+        continue; //the current selected list already has the node we are trying to push in
+      } else {
+        this.currentSelectedNodes.push(node[0]);
+      }
+    }
+    this.cd.markForCheck();
   }
 
   ngAfterViewInit() : void {

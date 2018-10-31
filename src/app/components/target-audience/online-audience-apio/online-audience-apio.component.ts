@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
@@ -78,6 +78,44 @@ export class OnlineAudienceApioComponent implements OnInit {
     };
   }
 
+  selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
+    if (!ready || audiences == null || audiences.length === 0) return;
+    for (const audience of audiences) {
+      const node = this.filterSingleNode(this.allNodes, audience.audienceName);
+      if (node == null) {
+        console.warn('Unable to check audience after loading', audience);
+        return;
+      }
+      if (this.currentSelectedNodes.length === 0) {
+        this.currentSelectedNodes.push(node);
+      } else if (this.currentSelectedNodes.filter(n => n.label === node.label).length > 0) {
+        continue; //the current selected list already has the node we are trying to push in
+      } else {
+        this.currentSelectedNodes.push(node);
+      }
+    }
+    this.cd.markForCheck();
+  }
+
+  private filterSingleNode(nodes: ApioTreeNode[], term: string) : ApioTreeNode {
+    let foundNode: ApioTreeNode = null;
+    for (const node of nodes) {
+      if (!node.leaf) {
+        const n = this.filterSingleNode(node.originalChildren, term);
+        if (n != null) {
+          foundNode = n;
+          break;
+        }
+      } else {
+        if (term === node.label) {
+          foundNode = node;
+          break;
+        }
+      }
+    }
+    return foundNode;
+  }
+
   ngOnInit() {
     this.audienceService.getAudienceDescriptions([SourceTypes.InMarket, SourceTypes.Interest]).subscribe(
       folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
@@ -95,6 +133,11 @@ export class OnlineAudienceApioComponent implements OnInit {
     );
     combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
     this.stateSetvice.clearUI$.subscribe(() => this.clearSelections());
+
+    this.parentAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === SourceTypes.Interest || a.audienceSourceName === SourceTypes.InMarket)))
+    ).subscribe(audiences => this.selectNodes(audiences, true));
+
   }
 
   public selectVariable(event: ApioTreeNode) : void {
