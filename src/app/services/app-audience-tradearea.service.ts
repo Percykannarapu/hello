@@ -164,7 +164,7 @@ export class ValAudienceTradeareaService {
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
-    if (isNaN(this.audienceTAConfig.maxRadius) || isNaN(this.audienceTAConfig.minRadius)) {
+    if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
     }
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
@@ -207,7 +207,9 @@ export class ValAudienceTradeareaService {
         growlMessage.push(message);
        }
  //      console.log('growlMessage::::', growlMessage);
-       this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[0]);
+       for (let i = 0; i < growlMessage.length; i++) {
+         this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[i]);
+       }
        this.messagingService.stopSpinnerDialog('AUDIENCETA');
        return Observable.create(o => o.next(false));
      }
