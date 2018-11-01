@@ -12,11 +12,26 @@ pipeline{
     }
     stage ('build') {
       steps{
-        sh '$(npm bin)/ng build -c=dev-server --build-optimizer'
         sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+            node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server
            '''
       }
     }
+    stage('Deliver for development') {
+            when {
+                branch 'dev'
+            }
+            steps {
+                echo 'deploy dev'
+            }
+        }
+        stage('Deploy for production') {
+            when {
+                branch 'master'
+            }
+            steps {
+              echo 'deploy productoin'
+            }
+        }
   }
 }
