@@ -10,10 +10,6 @@ pipeline{
         '''
       }
     }
-    stage ('test'){
-      steps{
-        echo ('test')
-    }
     stage ('code quality'){
       steps{
         sh '$(npm bin)/ng lint'
