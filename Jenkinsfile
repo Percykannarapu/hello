@@ -12,14 +12,9 @@ pipeline{
     }
     stage ('build') {
       steps{
-        sh '$(npm bin)/ng build --prod --build-optimizer'
-
+        sh '$(npm bin)/ng build -c=dev-server --build-optimizer'
         sh '''
-            #node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
-            #node --max-old-space-size=8192  ./node_modules/.bin/ng build --no-progress --env=dev
             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
-            #ssh root@vallomjbs002vm rm -rf /var/www/impower/*
-            #scp -r dist/* root@vallomjbs002vm:/var/www/impower
            '''
       }
     }
