@@ -108,7 +108,6 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
-  private audDescription: Map<string, AudienceDataDefinition>;
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -286,12 +285,10 @@ export class TargetAudienceOnlineService {
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
-    this.audDescription = descriptionMap;
     const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes);
     const currentProject = this.appStateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
-      filter(data => data != null),
       map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading))))
     );
   }
@@ -331,26 +328,11 @@ export class TargetAudienceOnlineService {
         digCategoryIds: numericIds
       };
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
-        observables.push(
+	    	observables.push(
           this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
-            map(response => {
-              let responseArray: OnlineBulkDataResponse[] = [];
-              responseArray = response.payload.rows;
-                const audData = new Set(responseArray.map(val => val.digCategoryId));
-                const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
-                if (missingCategoryIds.size > 0) {
-                  this.logger.info('Category Ids missing data::', missingCategoryIds);
-                  const audience = [];
-                  missingCategoryIds.forEach(id => {
-                    audience.push(this.audDescription.get(id.toString()).audienceName);
-                  });
-                  this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'));
-                }
-                this.logger.info('Online Audience Response:::', responseArray);
-                return responseArray;
-            })
-          ));
-
+            map(response => response.payload.rows as OnlineBulkDataResponse[])
+          )
+        );
       }
     }
     return observables;

@@ -238,27 +238,14 @@ export class TargetAudienceTdaService {
       if (inputData.geocodes.length > 0 && inputData.variablePks.length > 0) {
         observables.push(
           this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData).pipe(
-            map(response => {
-              let responseArray: TdaBulkDataResponse[] = [];
-              responseArray = response.payload;
-              const audData = new Set(responseArray.map(val => val.variablePk));
-              const missingCategoryIds = new Set(responseArray.filter(id => id.score === "undefined"));
-                const audience = [];
-                missingCategoryIds.forEach(id => {
-                  audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
-                });
-                this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected offline audiences: \n' +  audience.join(' , \n'));
-                this.logger.info('Offline Audience Response:::', responseArray);
-            return responseArray;
-            })
-          )
+            map(response => response.payload as TdaBulkDataResponse[]))
+      
         );
       }
     }
     const currentProject = this.stateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
-      filter(data => data != null),
       map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading))))
     );
   }
