@@ -10,11 +10,6 @@ pipeline{
         '''
       }
     }
-    stage ('code quality'){
-      steps{
-        sh '$(npm bin)/ng lint'
-      }
-    }
     stage ('build') {
       steps{
         sh '$(npm bin)/ng build --prod --build-optimizer'
