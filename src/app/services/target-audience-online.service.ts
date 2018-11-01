@@ -344,7 +344,7 @@ export class TargetAudienceOnlineService {
                   missingCategoryIds.forEach(id => {
                     audience.push(this.audDescription.get(id.toString()).audienceName);
                   });
-                  this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following online selected audiences: ' + audience.join(' , \n'));
+                  this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'));
                 }
                 this.logger.info('Online Audience Response:::', responseArray);
                 return responseArray;

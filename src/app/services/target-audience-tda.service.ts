@@ -247,7 +247,7 @@ export class TargetAudienceTdaService {
                 missingCategoryIds.forEach(id => {
                   audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
                 });
-                this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following offline selected audiences: \n' +  audience.join(' , \n'));
+                this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected offline audiences: \n' +  audience.join(' , \n'));
                 this.logger.info('Offline Audience Response:::', responseArray);
             return responseArray;
             })
