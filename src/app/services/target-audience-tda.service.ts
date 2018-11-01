@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { map, mergeAll, mergeMap, tap } from 'rxjs/operators';
+import { map, mergeAll, mergeMap, tap, filter } from 'rxjs/operators';
 import { EMPTY, merge, Observable, throwError } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
@@ -14,6 +14,8 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppMessagingService } from './app-messaging.service';
+import { AppLoggingService } from './app-logging.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -86,7 +88,9 @@ export class TargetAudienceTdaService {
               private usageService: UsageService,
               private audienceService: TargetAudienceService,
               private domainFactory: ImpDomainFactoryService,
-              private stateService: AppStateService) {
+              private stateService: AppStateService,
+              private messageService: AppMessagingService,
+              private logger: AppLoggingService) {
     this.stateService.applicationIsReady$.subscribe(ready => {
       this.onLoadProject(ready);
     });
@@ -234,7 +238,19 @@ export class TargetAudienceTdaService {
       if (inputData.geocodes.length > 0 && inputData.variablePks.length > 0) {
         observables.push(
           this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData).pipe(
-            map(response => response.payload as TdaBulkDataResponse[])
+            map(response => {
+              let responseArray: TdaBulkDataResponse[] = [];
+              responseArray = response.payload;
+              const audData = new Set(responseArray.map(val => val.variablePk));
+              const missingCategoryIds = new Set(responseArray.filter(id => id.score === "undefined"));
+                const audience = [];
+                missingCategoryIds.forEach(id => {
+                  audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
+                });
+                this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following offline selected audiences: \n' +  audience.join(' , \n'));
+                this.logger.info('Offline Audience Response:::', responseArray);
+            return responseArray;
+            })
           )
         );
       }
@@ -242,6 +258,7 @@ export class TargetAudienceTdaService {
     const currentProject = this.stateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
+      filter(data => data != null),
       map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading))))
     );
   }
