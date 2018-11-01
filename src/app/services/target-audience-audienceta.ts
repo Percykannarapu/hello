@@ -309,6 +309,12 @@ export class TargetAudienceAudienceTA {
         if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
             payload.analysisLevel = 'dtz';
         }
+
+        //DE2057: If the digCategoryId is null get it from the project
+        if (payload.digCategoryId == null) {
+            payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
+        }
+
         const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
         const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
         console.log('Preparing to send Audience TA payload to Fuse', payload);
