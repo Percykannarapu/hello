@@ -233,6 +233,7 @@ export class ValAudienceTradeareaService {
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', this.audienceTAConfig);
             this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
+            this.messagingService.stopSpinnerDialog('AUDIENCETA');
             this.audienceTaSubject.next(true);
             return;
           }
