@@ -42,7 +42,7 @@
                   <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print Inputs"  class="val-icon-button" (click)="debugPrintInputs()"></button> -->
                </div>
                <div class="ui-g-4" style="padding: 5px 0px 0px 0px;">
-                  <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;"
+                  <label *ngIf="geoGrid.filteredValue != null" style="padding: 0; text-align: center;" [escape]="false"
                          pTooltip="<table>
                                    <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
                                    <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats.numGeosInactive}}</td></tr>
