@@ -93,6 +93,8 @@ export class AddLocationsTabComponent implements OnInit {
     }
     else{
       this.processSiteRequests(siteOrSites,  siteType);
+      if (siteType !== ImpClientLocationTypeCodes.Competitor)
+            this.geocoderService.duplicateKeyMap.get(siteType).add(siteOrSites.number);
     }
 
   }
