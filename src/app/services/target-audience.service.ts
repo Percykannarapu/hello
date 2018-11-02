@@ -162,10 +162,10 @@ export class TargetAudienceService implements OnDestroy {
     newProjectVar.baseStatus = DAOBaseStatus.UPDATE;
     for (const projectVar of this.projectVarService.get()) {
       if (this.matchProjectVar(projectVar, audience)) {
-        if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
+        //if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
         this.projectVarService.update(projectVar, newProjectVar);
       }
-    }
+    }    
     if (audience.showOnMap) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
@@ -190,6 +190,8 @@ export class TargetAudienceService implements OnDestroy {
     const sourceType = projectVar.source.split('_')[0];
     const sourceName = projectVar.source.split('_')[1];
     const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
+    // console.log("### matchProjectVar - pv sourceType: ", sourceType, ", sourceName: ", sourceName, ", id: ", id);
+    // console.log("### matchProjectVar - au sourceType: ", audience.audienceSourceType, ", sourceName: ", audience.audienceSourceName, ", id: ", audience.audienceIdentifier);
     if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
       return true;
     }

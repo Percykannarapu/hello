@@ -157,7 +157,7 @@ export class TargetAudienceAudienceTA {
         }
         const audience: AudienceDataDefinition = {
             audienceName: `${audienceName} ${name}`,
-            audienceIdentifier: `${digId}-${name}`,
+            audienceIdentifier: this.projectVarService.getNextStoreId().toString(), // `${digId}-${name}`,
             audienceSourceType: 'Online',
             audienceSourceName: 'Audience-TA',
             exportInGeoFootprint: true,
