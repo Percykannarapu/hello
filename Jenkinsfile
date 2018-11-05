@@ -26,8 +26,8 @@ pipeline{
            '''
       }
     }
-    stage('Deploy to testing') {
-            when {branch 'dev'}
+    stage('Deploy to development') {
+        when {branch 'dev'}
             steps {
                 echo 'deploy dev'
                 sh '''
@@ -44,5 +44,6 @@ pipeline{
               echo 'deploy production placeholder.....'
             }
         }
+    }
   }
 }
