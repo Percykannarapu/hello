@@ -41,10 +41,5 @@ pipeline{
             }
         }
     }
-    stage('Deploy to production') {
-        when {branch 'master'}
-            steps {
-              echo 'deploy production placeholder.....'
-            }
-        }
-    }
+  }
+}
