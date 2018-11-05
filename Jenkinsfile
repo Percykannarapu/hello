@@ -17,20 +17,23 @@ pipeline{
            '''
       }
     }
-    stage('Deliver for development') {
-            when {
-                branch 'dev'
-            }
+    stage('Deploy to testing') {
+            when {branch 'dev'}
             steps {
                 echo 'deploy dev'
+                sh '''
+                    ssh root@vallomjbs002vm rm -rf /var/www/impower/*
+                   '''
+                sh '''
+                    scp -r dist/* root@vallomjbs002vm:/var/www/impower
+                   '''
             }
         }
-        stage('Deploy for production') {
-            when {
-                branch 'master'
-            }
+        when {}
+        stage('Deploy to production') {
+            when {branch 'master'}
             steps {
-              echo 'deploy productoin'
+              echo 'deploy production placeholder.....'
             }
         }
   }
