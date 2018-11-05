@@ -29,7 +29,6 @@ pipeline{
                    '''
             }
         }
-        when {}
         stage('Deploy to production') {
             when {branch 'master'}
             steps {
