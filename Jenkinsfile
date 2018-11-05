@@ -10,21 +10,23 @@ pipeline{
         '''
       }
     }
-    stage ('build') {
+    stage ('build development') {
       when {branch 'dev'}
-      steps{
-        echo 'build for development'
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server
-           '''
-      }
+          steps{
+            echo 'build for development'
+            sh '''
+                node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server
+               '''
+          }
+    }
+    stage ('build production') {
       when {branch 'master'}
-      steps {
-        echo 'build for production'
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
-           '''
-      }
+          steps {
+            echo 'build for production'
+            sh '''
+                node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
+               '''
+          }
     }
     stage('Deploy to development') {
         when {branch 'dev'}
@@ -38,8 +40,9 @@ pipeline{
                    '''
             }
         }
-        stage('Deploy to production') {
-            when {branch 'master'}
+    }
+    stage('Deploy to production') {
+        when {branch 'master'}
             steps {
               echo 'deploy production placeholder.....'
             }
