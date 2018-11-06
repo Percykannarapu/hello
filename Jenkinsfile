@@ -3,12 +3,12 @@ pipeline {
   stages {
     stage('install modules') {
       steps {
+        echo 'install all the stuff'
         sh '''
             if [ ! -d "node_modules" ]; then
               npm install
             fi
         '''
-        echo 'install all the stuff'
       }
     }
     stage('build development') {
