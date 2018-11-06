@@ -12,9 +12,7 @@ pipeline {
       }
     }
     stage('build development') {
-      when {
-        branch 'dev'
-      }
+      when { branch 'dev' }
       steps {
         echo 'build for development'
         sh '''
@@ -35,9 +33,7 @@ pipeline {
       }
     }
     stage('build production') {
-      when {
-        branch 'master'
-      }
+      when { branch 'master' }
       steps {
         echo 'build for production'
         sh '''
@@ -46,16 +42,19 @@ pipeline {
       }
     }
     stage('Run Tests') {
-      when {
-        branch 'dev'
-      }
+      when {branch 'dev'}
       steps {
         echo 'run unit tests'
+        /*
+        sh '''
+            node --max-old-space-size=8192  ./node_modules/.bin/ng test
+            '''
         echo 'run end to end tests'
         sh '''
             node --max-old-space-size=8192  ./node_modules/.bin/ng serve
             node --max-old-space-size=8192  ./node_modules/.bin/ng e2e
             '''
+         */
       }
     }
     stage('Deploy to QA') {
@@ -65,12 +64,25 @@ pipeline {
       }
       steps {
         echo 'copy files to the first web server'
+        /*
+        sh '''
+            ssh web-deployer@valwgpweb004vm rm -rf /var/www/impower/*
+           '''
+        sh '''
+            scp -r dist/* web-deployer@valwgpweb004vm:/var/www/impower
+           '''
+        echo 'copy files to the second web server'
+        sh '''
+            ssh web-deployer@valwgpweb005vm rm -rf /var/www/impower/*
+          '''
+        sh '''
+            scp -r dist/* web-deployer@valwgpweb005vm:/var/www/impower
+           '''
+          */
       }
     }
     stage('Deploy to development') {
-      when {
-        branch 'dev'
-      }
+      when { branch 'dev' }
       steps {
         echo 'deploy dev'
         sh '''
@@ -83,3 +95,4 @@ pipeline {
     }
   }
 }
+
