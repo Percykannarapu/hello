@@ -22,7 +22,7 @@ pipeline {
     stage('build for QA') {
       when {
         branch 'qa'
-        environment name: 'DEPLOY_TO', value: 'QA'
+        changelog 'DEPLOY_TO: QA'
       }
       steps {
         echo 'build for QA'
@@ -40,13 +40,28 @@ pipeline {
                '''
       }
     }
-    stage ('Deploy to QA') {
+    stage('Run Tests') {
+      when {branch 'dev'}
+      steps {
+        echo 'run unit tests'
+        sh '''
+            node --max-old-space-size=8192  ./node_modules/.bin/ng test
+            '''
+        echo 'run end to end tests'
+        sh '''
+            node --max-old-space-size=8192  ./node_modules/.bin/ng serve
+            node --max-old-space-size=8192  ./node_modules/.bin/ng e2e
+            '''
+      }
+    }
+    stage('Deploy to QA') {
       when {
         branch 'qa'
-        environment name:  'DEPLOY_TO', value:  'QA'
+        changelog 'DEPLOY_TO: QA'
       }
       steps {
         echo 'copy files to the first web server'
+        /*
         sh '''
             ssh web-deployer@valwgpweb004vm rm -rf /var/www/impower/*
            '''
@@ -60,6 +75,7 @@ pipeline {
         sh '''
             scp -r dist/* web-deployer@valwgpweb005vm:/var/www/impower
            '''
+          */
       }
     }
     stage('Deploy to development') {
