@@ -44,9 +44,9 @@ pipeline {
       when {branch 'dev'}
       steps {
         echo 'run unit tests'
-        sh '''
+        /* sh '''
             node --max-old-space-size=8192  ./node_modules/.bin/ng test
-            '''
+            ''' */
         echo 'run end to end tests'
         sh '''
             node --max-old-space-size=8192  ./node_modules/.bin/ng serve
