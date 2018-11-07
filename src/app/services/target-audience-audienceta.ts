@@ -157,7 +157,7 @@ export class TargetAudienceAudienceTA {
         }
         const audience: AudienceDataDefinition = {
             audienceName: `${audienceName} ${name}`,
-            audienceIdentifier: `${digId}-${name}`,
+            audienceIdentifier: this.projectVarService.getNextStoreId().toString(), // `${digId}-${name}`,
             audienceSourceType: 'Online',
             audienceSourceName: 'Audience-TA',
             exportInGeoFootprint: true,
@@ -266,7 +266,7 @@ export class TargetAudienceAudienceTA {
             }
         }
         for (const audience of this.audienceService.getAudiences()) {
-            if (newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+            if (newVar.fieldname != null && newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
                 newVar.varPosition = audience.audienceCounter;
             }
         }
@@ -309,6 +309,12 @@ export class TargetAudienceAudienceTA {
         if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
             payload.analysisLevel = 'dtz';
         }
+
+        //DE2057: If the digCategoryId is null get it from the project
+        if (payload.digCategoryId == null) {
+            payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
+        }
+
         const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
         const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
         console.log('Preparing to send Audience TA payload to Fuse', payload);

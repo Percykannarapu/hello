@@ -29,6 +29,9 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
   public esriConfig: EsriConfigOptions = {
     url: 'https://js.arcgis.com/4.8/',
     portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
+    request: {
+      timeout: 120000
+    },
     dojoConfig: {
       has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
@@ -41,7 +44,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
 
   public esriAppSettings: EsriAppSettings = {
     defaultSpatialRef: 4326,
-    maxPointsPerBufferQuery: 25,
+    maxPointsPerBufferQuery: 250,
     maxPointsPerAttributeQuery: 50,
     maxPointsPerServiceQuery: 1500,
     defaultMapParams: {
@@ -132,7 +135,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }
@@ -157,7 +160,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }
@@ -182,7 +185,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         }
       }
@@ -207,7 +210,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
-          rootFields: ['dma_name', 'county_name'],
+          rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
       }

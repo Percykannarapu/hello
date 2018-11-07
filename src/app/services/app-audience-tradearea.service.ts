@@ -142,8 +142,8 @@ export class ValAudienceTradeareaService {
         LOCATIONNAME: location.locationNumber,
         XCOORD: location.xcoord,
         YCOORD: location.ycoord,
-        HOMEGEOCODE: this.stateService.analysisLevel$.getValue() === 'ZIP' 
-                     && location.homeGeocode == null ?  location.locZip : location.homeGeocode
+        HOMEGEOCODE: location.homeGeocode == null ?  location.locZip.includes('-') ? location.locZip.substring(0, 5) : location.locZip : location.homeGeocode
+        //HOMEGEOCODE:  location.homeGeocode == null ?  location.locZip.substring(0, 5) : location.homeGeocode
       };
       this.audienceTAConfig.locations.push(taLocation);
     }
@@ -164,7 +164,7 @@ export class ValAudienceTradeareaService {
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
-    if (isNaN(this.audienceTAConfig.maxRadius) || isNaN(this.audienceTAConfig.minRadius)) {
+    if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
     }
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
@@ -207,7 +207,9 @@ export class ValAudienceTradeareaService {
         growlMessage.push(message);
        }
  //      console.log('growlMessage::::', growlMessage);
-       this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[0]);
+       for (let i = 0; i < growlMessage.length; i++) {
+         this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[i]);
+       }
        this.messagingService.stopSpinnerDialog('AUDIENCETA');
        return Observable.create(o => o.next(false));
      }
@@ -232,6 +234,7 @@ export class ValAudienceTradeareaService {
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', this.audienceTAConfig);
             this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
+            this.messagingService.stopSpinnerDialog('AUDIENCETA');
             this.audienceTaSubject.next(true);
             return;
           }

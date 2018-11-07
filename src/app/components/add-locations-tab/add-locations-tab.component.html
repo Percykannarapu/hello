@@ -19,10 +19,10 @@
   <p-tabPanel header="Manually Add">
     <val-site-type-selector label="Add as:">
       <site-content>
-        <val-manual-entry [showLoadButtons]="!isProd" (submitSite)="processSiteRequests($event, siteTypes.Site)"></val-manual-entry>
+        <val-manual-entry [showLoadButtons]="!isProd" (submitSite)="manuallyGeocode($event, siteTypes.Site)"></val-manual-entry>
       </site-content>
       <competitor-content>
-        <val-manual-entry [showLoadButtons]="!isProd" (submitSite)="processSiteRequests($event, siteTypes.Competitor)"></val-manual-entry>
+        <val-manual-entry [showLoadButtons]="!isProd" (submitSite)="manuallyGeocode($event, siteTypes.Competitor)"></val-manual-entry>
       </competitor-content>
     </val-site-type-selector>
     <val-failed-geocode-grid *ngIf="hasFailures$ | async"

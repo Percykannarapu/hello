@@ -47,11 +47,15 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       'includeMustCover': [false]
     });
 
-    this.configForm.valueChanges.pipe(
-      filter(() => this.configForm.valid && !this.isLoadingData),
-      distinctUntilChanged()).subscribe(f => {
+    this.configForm.valueChanges.subscribe(f => {
       this.updatedFormData.emit(f);
     });
+
+    // this.configForm.valueChanges.pipe(
+    //   filter(() => this.configForm.valid && !this.isLoadingData),
+    //   distinctUntilChanged()).subscribe(f => {
+    //   this.updatedFormData.emit(f);
+    // });
 
     this.stateService.clearUI$.subscribe(() => {
       this.clearFields();
@@ -78,7 +82,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       weight: config.weight,
       scoreType: config.scoreType,
       includeMustCover: config.includeMustCover
-    });
+    }, {emitEvent: false});
   }
 
   private updateVars(targetingVars: AudienceDataDefinition[]) {

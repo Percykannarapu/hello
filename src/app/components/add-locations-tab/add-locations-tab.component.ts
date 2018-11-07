@@ -84,6 +84,21 @@ export class AddLocationsTabComponent implements OnInit {
     this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
+  manuallyGeocode(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
+    //validate Manually added geocodes
+    const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
+    if (locations.filter(loc => loc.locationNumber === siteOrSites.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
+      this.messageService.showErrorNotification('Geocoding Error', 'Site Number already exist on the project.');
+      this.geocoderService.duplicateKeyMap.get(siteType).add(siteOrSites.number);
+    }
+    else{
+      this.processSiteRequests(siteOrSites,  siteType);
+      if (siteType !== ImpClientLocationTypeCodes.Competitor)
+            this.geocoderService.duplicateKeyMap.get(siteType).add(siteOrSites.number);
+    }
+
+  }
+
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];

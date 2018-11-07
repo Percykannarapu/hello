@@ -217,7 +217,9 @@ export class AppLocationService {
 
   private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
     let objId = 0;
-    const jobData = locations.map(loc => {
+    const sortedLocations = [...locations];
+    sortedLocations.sort((a, b) => a.locZip.localeCompare(b.locZip));
+    const jobData = sortedLocations.map(loc => {
       const coordinates = toUniversalCoordinates(loc);
       return new EsriApi.Graphic({
         geometry: new EsriApi.Point(coordinates),
@@ -304,7 +306,8 @@ export class AppLocationService {
                     warningNotificationFlag = 'Y';
           }
 
-          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5) || (currentAttributes[key] == null || loc.clientLocationTypeCode === 'Failed Site')){
+          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5) || (currentAttributes[key] == null 
+              || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
               homeGeocodeIssue = 'Y'; 
               warningNotificationFlag = 'Y';  
           }

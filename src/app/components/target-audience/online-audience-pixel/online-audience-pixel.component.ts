@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { TreeNode } from 'primeng/primeng';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { Subject } from 'rxjs';
@@ -35,6 +35,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
+
   }
 
   private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode {
@@ -48,6 +49,19 @@ export class OnlineAudiencePixelComponent implements OnInit {
       selectable: selectable,
       leaf: true,
     };
+  }
+
+  selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
+    if (!ready || audiences == null || audiences.length === 0) return;
+    for (const audience of audiences) {
+      const node = this.allNodes.filter(n => n.label === audience.audienceName);
+      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length > 0) {
+        continue; //the current selected list already has the node we are trying to push in
+      } else {
+        this.currentSelectedNodes.push(node[0]);
+      }
+    }
+    this.cd.markForCheck();
   }
 
   ngOnInit() {
@@ -66,6 +80,10 @@ export class OnlineAudiencePixelComponent implements OnInit {
     ).subscribe(term => this.filterNodes(term));
 
     this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
+
+    this.parentAudienceService.audiences$.pipe(
+      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === SourceTypes.Pixel))
+    ).subscribe(audiences => this.selectNodes(audiences, true));
   }
 
   public selectVariable(event: TreeNode) : void {
