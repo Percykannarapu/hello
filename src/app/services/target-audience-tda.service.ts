@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { map, mergeAll, mergeMap, tap, filter } from 'rxjs/operators';
+import { map, mergeAll, mergeMap, tap, filter, catchError } from 'rxjs/operators';
 import { EMPTY, merge, Observable, throwError } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
@@ -241,7 +241,7 @@ export class TargetAudienceTdaService {
           this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData).pipe(
             map(response => {
               return this.validateFuseResponse(response);
-            })
+            }), catchError( err => throwError('No Data was returned for the selected audiences'))
           ));
         }
     }
@@ -258,12 +258,14 @@ export class TargetAudienceTdaService {
     responseArray = response.payload;
     const missingCategoryIds = new Set(responseArray.filter(id => id.score === "undefined"));
     const audience = [];
-    missingCategoryIds.forEach(id => {
+    if(missingCategoryIds.size > 0){
+      missingCategoryIds.forEach(id => {
       if (this.rawAudienceData.has(id.variablePk)) {
         audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
       }
     });
     this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'));
+    }
     this.logger.info('Offline Audience Response:::', responseArray);
     return responseArray;
   }

@@ -4,7 +4,7 @@ import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
-import { map, shareReplay, filter } from 'rxjs/operators';
+import { map, shareReplay, filter, catchError } from 'rxjs/operators';
 import { EMPTY, merge, forkJoin, throwError } from 'rxjs';
 import { Observable } from 'rxjs/Rx';
 import { chunkArray } from '../app.utils';
@@ -338,8 +338,8 @@ export class TargetAudienceOnlineService {
             this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
             map(response => {
               return this.validateFuseResponse(inputData, response);
-            }))
-          );
+            }), catchError( err => throwError('No Data was returned for the selected audiences'))
+          ));
         }
     }
     return observables;
