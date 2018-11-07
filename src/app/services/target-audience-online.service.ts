@@ -354,7 +354,7 @@ export class TargetAudienceOnlineService {
       this.logger.info('Category Ids missing data::', missingCategoryIds);
       const audience = [];
       missingCategoryIds.forEach(id => {
-        audience.push(this.audDescription[id]);
+        audience.push(this.audDescription[id.toString()]);
       });
     this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'));
     }
