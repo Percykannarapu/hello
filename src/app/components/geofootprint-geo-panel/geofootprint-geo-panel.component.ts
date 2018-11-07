@@ -53,7 +53,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public  uniqueDma$: Observable<SelectItem[]>;
 
    // Target Audience Variable Column Order
-   public  variableColOrder:Map<string, number> = new Map<string, number>();
+   public  variableColOrder: Map<string, number> = new Map<string, number>();
 
    // Miscellaneous variables
    public  numGeosActive: number = 0;
@@ -236,7 +236,10 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
       if (geo.isActive != isSelected)
       {
-         geo.isActive = isSelected;
+         //geo.isActive = isSelected;
+        //US7845: changes to filter checking/unchecking geos that cover multiple stores 
+         const filteredtGeos = currentProject.getImpGeofootprintGeos().filter(dupGeo => geo.geocode === dupGeo.geocode);
+         filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
 
          //This change to update Datastore to fire toggleGeoSelection DE1933
          this.impGeofootprintGeoService.makeDirty();
