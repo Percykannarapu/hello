@@ -137,6 +137,7 @@ export class EsriApi {
     EsriApi.widgets.loadModules(modules);
 
     EsriApi.config.portalUrl = this.config.esriConfig.portalUrl;
+    EsriApi.config.request.timeout = this.config.esriConfig.request.timeout;
   }
 
   public loadModules(modules: string[]) : Promise<any[]> {
