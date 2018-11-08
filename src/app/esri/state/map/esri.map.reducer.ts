@@ -43,6 +43,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
       return { ...state, selectedButton: SelectedButtonTypeCodes.ShowPopups };
     case EsriMapToolbarButtonActionTypes.SelectMultiPolySelected:
       return { ...state, selectedButton: SelectedButtonTypeCodes.SelectMultiplePolys };
+    case EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected:
+      return { ...state, selectedButton: SelectedButtonTypeCodes.UnselectMultiplePolys };
     case EsriMapToolbarButtonActionTypes.SelectSinglePolySelected:
       return { ...state, selectedButton: SelectedButtonTypeCodes.SelectSinglePoly };
     case EsriMapToolbarButtonActionTypes.StartSketchView:

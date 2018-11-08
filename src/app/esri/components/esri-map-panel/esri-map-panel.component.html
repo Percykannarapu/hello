@@ -1,6 +1,7 @@
 <val-esri-toolbar [currentMapState]="currentMapState$ | async"
                   (singleSelectClicked)="selectButton(SelectedButtonTypeCodes.SelectSinglePoly)"
                   (multiSelectClicked)="selectButton(SelectedButtonTypeCodes.SelectMultiplePolys)"
+                  (multiUnselectClicked)="selectButton(SelectedButtonTypeCodes.UnselectMultiplePolys)"
                   (measureToolClicked)="selectButton(SelectedButtonTypeCodes.MeasureDistance)"
                   (popupButtonClicked)="selectButton(SelectedButtonTypeCodes.ShowPopups)">
   <ng-content select="additional-toolbar-buttons" ngProjectAs="additional-toolbar-buttons"></ng-content>

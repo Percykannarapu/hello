@@ -59,12 +59,16 @@ export class AppGeoService {
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
     const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
-    if (allSelectedGeos.has(geocode)) {
+    if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton != 3) {
       this.deselectGeosByGeocode(geocode);
     } else if (allIdentifiedGeos.has(geocode)) {
-      this.reactivateGeosByGeocode(geocode);
+      if (this.appMapService.selectedButton != 8){
+        this.reactivateGeosByGeocode(geocode);
+      }
     } else {
-      this.addGeoToManualTradeArea(geocode, geometry);
+      if (this.appMapService.selectedButton != 8) {
+        this.addGeoToManualTradeArea(geocode, geometry);
+      }
     }
   }
 

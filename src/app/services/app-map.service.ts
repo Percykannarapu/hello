@@ -43,7 +43,7 @@ export class AppMapService implements OnDestroy {
   private rendererRetries: number = 0;
 
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
-
+  public selectedButton: number;
   constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
@@ -151,7 +151,7 @@ export class AppMapService implements OnDestroy {
     }
   }
 
-  public selectMultipleGeocode(graphicsList: __esri.Graphic[]) {
+  public selectMultipleGeocode(graphicsList: __esri.Graphic[], button) {
     const events: GeoClickEvent[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
     if (layerId == null || layerId.length === 0) return;
@@ -162,10 +162,11 @@ export class AppMapService implements OnDestroy {
         const latitude = graphic.attributes.latitude;
         const longitude = graphic.attributes.longitude;
         const point: __esri.Point = new EsriApi.Point({latitude: latitude, longitude: longitude});
-        this.collectSelectionUsage(graphic, 'multiSelectTool');
+        this.collectSelectionUsage(graphic, 'multiSelectTool', button);
         events.push({ geocode, geometry: point });
       }
     });
+    this.selectedButton = button;
     this.geoSelected.next(events);
   }
 
@@ -236,7 +237,7 @@ export class AppMapService implements OnDestroy {
    * @param graphic The feature the user manually selected on the map
    * @param selectionType The UI mechanism used to select the feature
    */
-  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
+  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string, button) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
@@ -252,21 +253,25 @@ export class AppMapService implements OnDestroy {
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
       const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~ui=${selectionType}`;
-      if (this.currentGeocodes.has(geocode)) {
+      if (this.currentGeocodes.has(geocode) && button != 3) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
       } else {
-        this.currentGeocodes.add(geocode);
-        this.usageService.createCounterMetric(geoselected, metricText, null);
+        if (button != 8) {
+          this.currentGeocodes.add(geocode);
+          this.usageService.createCounterMetric(geoselected, metricText, null);
+        }
       }
     } else {
       const metricText = `${geocode}~${hhc}~${0}~${0}~ui=${selectionType}`;
-      if (this.currentGeocodes.has(geocode)) {
+      if (this.currentGeocodes.has(geocode)  && button != 3) {
         this.currentGeocodes.delete(geocode);
         this.usageService.createCounterMetric(geoDeselected, metricText, null);
       } else {
-        this.currentGeocodes.add(geocode);
-        this.usageService.createCounterMetric(geoselected, metricText, null);
+        if (button != 8) {
+          this.currentGeocodes.add(geocode);
+          this.usageService.createCounterMetric(geoselected, metricText, null);
+        }
       }
     }
   }
@@ -344,7 +349,7 @@ export class AppMapService implements OnDestroy {
       y: Number(selectedFeature.attributes.latitude)
     };
     this.selectSingleGeocode(geocode, geometry);
-    this.collectSelectionUsage(selectedFeature, 'popupAction');
+    this.collectSelectionUsage(selectedFeature, 'popupAction', '');
   }
 
   private measureThis() {
