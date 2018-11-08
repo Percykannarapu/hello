@@ -239,8 +239,16 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       {
          //geo.isActive = isSelected;
         //US7845: changes to filter checking/unchecking geos that cover multiple stores 
+        //console.log('test data:::::100', geo);
          const filteredtGeos = currentProject.getImpGeofootprintGeos().filter(dupGeo => geo.geocode === dupGeo.geocode);
-         if (filteredtGeos.length > 0 && geo.isActive){
+         const isHomegeocode = filteredtGeos.filter(homeGeo => homeGeo.geocode === homeGeo.impGeofootprintLocation.homeGeocode);
+         if (isHomegeocode.length == 0 && geo.isActive){
+            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            this.impGeofootprintGeoService.makeDirty();
+            this.impGeofootprintGeoAttribService.makeDirty();
+         }
+         
+         if (filteredtGeos.length > 0 && isHomegeocode.length > 0 && geo.isActive){
              this.confirmationService.confirm({
               message: 'You are about to unselect a Home Geo for at least one of the sites.  Ok to continue?',
               header: ': Unselecting a Home Geo',
@@ -251,10 +259,10 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                  this.impGeofootprintGeoAttribService.makeDirty();
               },
               reject: () => {
-                geo.isActive = isSelected;
-                 //This change to update Datastore to fire toggleGeoSelection DE1933
-                  this.impGeofootprintGeoService.makeDirty();
-                  this.impGeofootprintGeoAttribService.makeDirty();  
+                     geo.isActive = true;
+                //  //This change to update Datastore to fire toggleGeoSelection DE1933
+                     this.impGeofootprintGeoService.makeDirty();
+                     this.impGeofootprintGeoAttribService.makeDirty();  
               }
              });
          }else {
