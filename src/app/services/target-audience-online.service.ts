@@ -337,7 +337,7 @@ export class TargetAudienceOnlineService {
         observables.push(
             this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
             map(response => {
-              return this.validateFuseResponse(inputData, response);
+              return this.validateFuseResponse(response);
             }), catchError( err => throwError('No Data was returned for the selected audiences'))
           ));
         }
@@ -345,18 +345,16 @@ export class TargetAudienceOnlineService {
     return observables;
   }
 
-  private validateFuseResponse(inputData: any, response: RestResponse) {
+  private validateFuseResponse(response: RestResponse) {
     let responseArray: OnlineBulkDataResponse[] = [];
     responseArray = response.payload.rows;
-    const audData = new Set(responseArray.map(val => val.digCategoryId));
-    const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
-    if (missingCategoryIds.size > 0) {
-      this.logger.info('Category Ids missing data::', missingCategoryIds);
-      const audience = [];
-      missingCategoryIds.forEach(id => {
-        audience.push(this.audDescription[id.toString()]);
+    const audienceWithNoScores = new Set(responseArray.filter(aud => aud.dmaScore === "null" || aud.nationalScore === "null").map(id => id.digCategoryId));
+    if(audienceWithNoScores.size > 0){  
+      const categoryName = [];
+      audienceWithNoScores.forEach(id => {
+        categoryName.push(this.audDescription[id.toString()]);
       });
-    this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'));
+    this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + categoryName.join(' , \n'));
     }
     this.logger.info('Online Audience Response:::', responseArray);
     return responseArray;
