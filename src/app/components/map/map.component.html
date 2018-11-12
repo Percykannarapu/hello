@@ -2,8 +2,8 @@
     <div id="outerMapDiv" class="val-flush-to-edges">
       <val-esri-map-panel [mapHeight]="mapHeight$ | async"
                           [baseMap]="'streets'"
-                        (viewChanged)="onViewExtentChanged($event)">
-      <additional-toolbar-buttons>
+                        (viewChanged)="onViewExtentChanged($event)"
+      (selectedButton)="fnSelectedButton($event)"><additional-toolbar-buttons>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>
         <button  label="Revert"     pButton (click)="onRevert()"   title="Revert to Trade Area" ></button>

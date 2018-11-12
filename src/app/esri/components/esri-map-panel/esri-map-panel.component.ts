@@ -9,7 +9,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState, getEsriMapButtonState, getEsriMapHeight } from '../../state/esri.selectors';
 import { SetMapHeight } from '../../state';
 import { MapClicked, SetMapViewpoint } from '../../state/map/esri.map.actions';
-import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected } from '../../state/map/esri.map-button.actions';
+import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, UnselectMultiPolySelected, SelectSinglePolySelected } from '../../state/map/esri.map-button.actions';
 
 @Component({
   selector: 'val-esri-map-panel',
@@ -29,6 +29,7 @@ export class EsriMapPanelComponent {
   @Input() baseMap: string;
 
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
+  @Output() selectedButton = new EventEmitter();
 
   constructor(private mapService: EsriMapService,
               private layerService: EsriLayerService,
@@ -58,8 +59,12 @@ export class EsriMapPanelComponent {
       case SelectedButtonTypeCodes.SelectMultiplePolys:
         this.store.dispatch(new SelectMultiPolySelected());
         break;
+      case SelectedButtonTypeCodes.UnselectMultiplePolys:
+        this.store.dispatch(new UnselectMultiPolySelected());
+        break;
       default:
         throw new Error('Unknown Button type selected');
     }
+    this.selectedButton.emit(newButton);
   }
 }

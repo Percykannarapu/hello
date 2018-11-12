@@ -4,6 +4,7 @@ export enum EsriMapToolbarButtonActionTypes {
   PopupButtonSelected = '[Esri Map Toolbar] Popup Button Selected',
   SelectSinglePolySelected = '[Esri Map Toolbar] Select Single Geo Selected',
   SelectMultiPolySelected = '[Esri Map Toolbar] Select Multiple Geos Selected',
+  UnselectMultiPolySelected = '[Esri Map Toolbar] Unselect Multiple Geos Selected',
   StartSketchView = '[Esri Map Toolbar] Start SketchView',
   ClearSketchView = '[Esri Map Toolbar] Clear SketchView',
   MeasureDistanceSelected = '[Esri Map Toolbar] Measure Distance Selected',
@@ -19,6 +20,10 @@ export class SelectSinglePolySelected implements Action {
 
 export class SelectMultiPolySelected implements Action {
   readonly type = EsriMapToolbarButtonActionTypes.SelectMultiPolySelected;
+}
+
+export class UnselectMultiPolySelected implements Action {
+  readonly type = EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected;
 }
 
 export class StartSketchView implements Action {
@@ -37,6 +42,7 @@ export class MeasureDistanceSelected implements Action {
 export type EsriMapToolbarButtonActions = PopupButtonSelected |
   SelectSinglePolySelected |
   SelectMultiPolySelected |
+  UnselectMultiPolySelected |
   StartSketchView |
   ClearSketchView |
   MeasureDistanceSelected;

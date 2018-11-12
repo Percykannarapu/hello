@@ -20,6 +20,7 @@ import { ConfirmationService } from 'primeng/primeng';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { log } from 'util';
+import { reject } from 'q';
 
 export interface FlatGeo {
    fgId: number;
@@ -238,12 +239,35 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       {
          //geo.isActive = isSelected;
         //US7845: changes to filter checking/unchecking geos that cover multiple stores 
+        //console.log('test data:::::100', geo);
          const filteredtGeos = currentProject.getImpGeofootprintGeos().filter(dupGeo => geo.geocode === dupGeo.geocode);
-         filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-
-         //This change to update Datastore to fire toggleGeoSelection DE1933
-         this.impGeofootprintGeoService.makeDirty();
-         this.impGeofootprintGeoAttribService.makeDirty();
+         const isHomegeocode = filteredtGeos.filter(homeGeo => homeGeo.geocode === homeGeo.impGeofootprintLocation.homeGeocode);
+         if (isHomegeocode.length == 0 && geo.isActive){
+            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            this.impGeofootprintGeoService.makeDirty();
+            this.impGeofootprintGeoAttribService.makeDirty();
+         }
+         
+         if (filteredtGeos.length > 0 && isHomegeocode.length > 0 && geo.isActive){
+             this.confirmationService.confirm({
+              message: 'You are about to unselect a Home Geo for at least one of the sites.  Ok to continue?',
+              header: ': Unselecting a Home Geo',
+              accept: () => {
+                filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+                 //This change to update Datastore to fire toggleGeoSelection DE1933
+                 this.impGeofootprintGeoService.makeDirty();
+                 this.impGeofootprintGeoAttribService.makeDirty();
+              },
+              reject: () => {
+                     geo.isActive = true;
+                //  //This change to update Datastore to fire toggleGeoSelection DE1933
+                     this.impGeofootprintGeoService.makeDirty();
+                     this.impGeofootprintGeoAttribService.makeDirty();  
+              }
+             });
+         }else {
+          geo.isActive = isSelected;
+         }
 
          let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;

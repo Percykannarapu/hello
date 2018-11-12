@@ -579,8 +579,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          let currentVars = varCache.get(geo.geocode) || [];
          currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
             .forEach(geovar => {
-            if (geovar.isString)
-               gridGeo[geovar.varPk.toString()] = geovar.valueString;            
+            if (geovar.isString)                  
+                  gridGeo[geovar.varPk.toString()] = geovar.valueString != "null" ? geovar.valueString : '';            
             else
             {
               // Format them
