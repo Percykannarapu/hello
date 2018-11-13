@@ -29,6 +29,9 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
   public esriConfig: EsriConfigOptions = {
     url: 'https://js.arcgis.com/4.8/',
     portalUrl:  `${EnvironmentData.esri.portalUrl}arcgis/`,
+    request: {
+      timeout: 120000
+    },
     dojoConfig: {
       has: {
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
@@ -41,7 +44,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
 
   public esriAppSettings: EsriAppSettings = {
     defaultSpatialRef: 4326,
-    maxPointsPerBufferQuery: 25,
+    maxPointsPerBufferQuery: 250,
     maxPointsPerAttributeQuery: 50,
     maxPointsPerServiceQuery: 1500,
     defaultMapParams: {

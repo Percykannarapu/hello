@@ -1,7 +1,8 @@
 <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
     <div id="outerMapDiv" class="val-flush-to-edges">
       <val-esri-map-panel [mapHeight]="mapHeight$ | async"
-                          (viewChanged)="onViewExtentChanged($event)">
+                          (viewChanged)="onViewExtentChanged($event)"
+                          (selectedButton)="fnSelectedButton($event)">
         <additional-toolbar-buttons>
           &nbsp;&nbsp;&nbsp;&nbsp;
           <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>

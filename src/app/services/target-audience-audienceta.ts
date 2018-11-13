@@ -266,7 +266,7 @@ export class TargetAudienceAudienceTA {
             }
         }
         for (const audience of this.audienceService.getAudiences()) {
-            if (newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+            if (newVar.fieldname != null && newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
                 newVar.varPosition = audience.audienceCounter;
             }
         }

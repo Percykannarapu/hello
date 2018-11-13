@@ -217,7 +217,9 @@ export class AppLocationService {
 
   private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
     let objId = 0;
-    const jobData = locations.map(loc => {
+    const sortedLocations = [...locations];
+    sortedLocations.sort((a, b) => a.locZip.localeCompare(b.locZip));
+    const jobData = sortedLocations.map(loc => {
       const coordinates = toUniversalCoordinates(loc);
       return new EsriApi.Graphic({
         geometry: new EsriApi.Point(coordinates),

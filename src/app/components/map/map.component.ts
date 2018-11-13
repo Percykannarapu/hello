@@ -25,7 +25,7 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
-
+  selectedPanelButton: any;
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,
@@ -47,6 +47,10 @@ export class MapComponent implements OnInit {
       select(selectors.getEsriFeaturesSelected),
       filter(features => features != null && features.length > 0)
     ).subscribe(features => this.onPolysSelected(features));
+  }
+
+  fnSelectedButton(button) {
+    this.selectedPanelButton = button;
   }
 
   onClearSelections() : void {
@@ -88,7 +92,7 @@ export class MapComponent implements OnInit {
   }
 
   private onPolysSelected(polys: __esri.Graphic[]) : void {
-    this.appMapService.selectMultipleGeocode(polys);
+    this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
   }
 
   private saveMapViewData(mapView: __esri.MapView) {

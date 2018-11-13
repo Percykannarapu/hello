@@ -5,7 +5,7 @@ import { MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
-import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected } from './esri.map-button.actions';
+import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected, UnselectMultiPolySelected } from './esri.map-button.actions';
 import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { Action, select, Store } from '@ngrx/store';
 import { AppState, getEsriSketchViewModel } from '../esri.selectors';
@@ -15,6 +15,7 @@ const allButtonTypes = [
   EsriMapToolbarButtonActionTypes.PopupButtonSelected,
   EsriMapToolbarButtonActionTypes.SelectSinglePolySelected,
   EsriMapToolbarButtonActionTypes.SelectMultiPolySelected,
+  EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected,
   EsriMapToolbarButtonActionTypes.MeasureDistanceSelected,
 ];
 
@@ -58,6 +59,17 @@ export class EsriMapButtonEffects {
     concatMap(features => [new FeaturesSelected({ features }), new SelectMultiPolySelected()])
   );
 
+  @Effect()
+  handleUnselectMultiPolyButton$ = this.actions$.pipe(
+    ofType(EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected),
+    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
+    this.resetSketchViewGraphics(),
+    mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
+                          takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
+    mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
+    concatMap(features => [new FeaturesSelected({ features }), new UnselectMultiPolySelected()])
+  ); 
+  
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
               private mapService: EsriMapService,

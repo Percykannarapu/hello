@@ -15,5 +15,6 @@ export class EsriToolbarComponent {
   @Output() popupButtonClicked = new EventEmitter();
   @Output() singleSelectClicked = new EventEmitter();
   @Output() multiSelectClicked = new EventEmitter();
+  @Output() multiUnselectClicked = new EventEmitter();
   @Output() measureToolClicked = new EventEmitter();
 }

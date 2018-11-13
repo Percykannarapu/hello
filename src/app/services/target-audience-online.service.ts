@@ -4,8 +4,9 @@ import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
-import { map, shareReplay, filter } from 'rxjs/operators';
-import { EMPTY, merge, Observable, forkJoin, throwError } from 'rxjs';
+import { map, shareReplay, filter, catchError } from 'rxjs/operators';
+import { EMPTY, merge, forkJoin, throwError } from 'rxjs';
+import { Observable } from 'rxjs/Rx';
 import { chunkArray } from '../app.utils';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from './usage.service';
@@ -16,6 +17,7 @@ import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums'
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
+import { RestResponse } from '../models/RestResponse';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -108,6 +110,7 @@ export class TargetAudienceOnlineService {
   private fuseSourceMapping: Map<SourceTypes, string>;
   private audienceSourceMap = new Map<SourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
+  private audDescription = {};
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -285,10 +288,12 @@ export class TargetAudienceOnlineService {
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
+    descriptionMap.forEach(id => this.audDescription[id.audienceIdentifier] = id.audienceName)
     const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes);
     const currentProject = this.appStateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
+      filter(data => data != null),
       map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading))))
     );
   }
@@ -328,14 +333,33 @@ export class TargetAudienceOnlineService {
         digCategoryIds: numericIds
       };
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
-	    	observables.push(
-          this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
-            map(response => response.payload.rows as OnlineBulkDataResponse[])
-          )
-        );
-      }
+        
+        observables.push(
+            this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
+            map(response => {
+              return this.validateFuseResponse(inputData, response);
+            }), catchError( err => throwError('No Data was returned for the selected audiences'))
+          ));
+        }
     }
     return observables;
+  }
+
+  private validateFuseResponse(inputData: any, response: RestResponse) {
+    let responseArray: OnlineBulkDataResponse[] = [];
+    responseArray = response.payload.rows;
+    const audData = new Set(responseArray.map(val => val.digCategoryId));
+    const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
+    if (missingCategoryIds.size > 0) {
+      this.logger.info('Category Ids missing data::', missingCategoryIds);
+      const audience = [];
+      missingCategoryIds.forEach(id => {
+        audience.push(this.audDescription[id.toString()]);
+      });
+    this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'));
+    }
+    this.logger.info('Online Audience Response:::', responseArray);
+    return responseArray;
   }
 
   private usageMetricCheckUncheckApio(checkType: string, audience: OnlineAudienceDescription, source: SourceTypes) {
