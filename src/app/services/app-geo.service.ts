@@ -142,9 +142,10 @@ export class AppGeoService {
     combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
       .pipe(
         // halt the sequence if the project is loading
-        filter(([geocodes, analysisLevel, isReady]) => isReady))
-      .subscribe(
-        ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel));
+        filter(([geocodes, analysisLevel, isReady]) => isReady),
+      ).subscribe(
+        ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel)
+      );
   }
 
   private setupMapClickEventHandler() {

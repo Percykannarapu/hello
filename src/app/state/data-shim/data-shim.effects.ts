@@ -8,7 +8,7 @@ import {
   ProjectLoad,
   ProjectLoadFailure,
   ProjectLoadSuccess,
-  ProjectSave, ProjectSaveAndLoad,
+  ProjectSaveAndLoad,
   ProjectSaveFailure,
   ProjectSaveSuccess
 } from './data-shim.actions';
@@ -30,28 +30,38 @@ import { AppTradeAreaService } from '../../services/app-trade-area.service';
 export class DataShimEffects {
 
   @Effect()
-  projectSaveAndLoad$ = this.actions$.pipe(
-    ofType<ProjectSaveAndLoad>(DataShimActionTypes.ProjectSaveAndLoad),
+  projectSaveAndCreateNew$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectSaveAndNew),
     filter(() => this.appProjectService.projectIsValid()),
-    mergeMap(action => this.appProjectService.save().pipe(
-                              tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId }))),
-                              map(() => action))),
-    map(action => new ProjectLoad({ projectId: action.payload.idToLoad, isReload: false })),
+    mergeMap(() => this.appProjectService.save()),
+    mergeMap(projectId => [
+      new ProjectSaveSuccess({ projectId, isSilent: false }),
+      new CreateNewProject()
+    ]),
     catchError(err => of(new ProjectSaveFailure({ err }))),
   );
 
   @Effect()
-  projectSave$ = this.actions$.pipe(
-    ofType<ProjectSave>(DataShimActionTypes.ProjectSave),
+  projectSaveAndLoad$ = this.actions$.pipe(
+    ofType<ProjectSaveAndLoad>(DataShimActionTypes.ProjectSaveAndLoad),
     filter(() => this.appProjectService.projectIsValid()),
     mergeMap(action => this.appProjectService.save().pipe(map(id => [action, id]))),
-    map(([action, projectId]: [ProjectSave, number]) => {
-      if (action.payload.reloadAfter) {
-        return new ProjectLoad({ projectId, isReload: true });
-      } else {
-        return new ProjectSaveSuccess({ projectId });
-      }
-    }),
+    mergeMap(([action, projectId]: [ProjectSaveAndLoad, number]) => [
+      new ProjectSaveSuccess({ projectId, isSilent: false }),
+      new ProjectLoad({ projectId: action.payload.idToLoad, isSilent: false })
+    ]),
+    catchError(err => of(new ProjectSaveFailure({ err }))),
+  );
+
+  @Effect()
+  projectSaveAndReload$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectSaveAndReload),
+    filter(() => this.appProjectService.projectIsValid()),
+    mergeMap(() => this.appProjectService.save()),
+    mergeMap(projectId => [
+      new ProjectSaveSuccess({ projectId, isSilent: false }),
+      new ProjectLoad({ projectId, isSilent: true })
+    ]),
     catchError(err => of(new ProjectSaveFailure({ err })))
   );
 
@@ -60,22 +70,17 @@ export class DataShimEffects {
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     tap(() => this.audienceService.clearAll()),
     mergeMap(action => this.appProjectService.load(action.payload.projectId).pipe(map(id => [action, id]))),
-    // these are temporary until we get more stuff under ngrx
-    tap(() => this.audienceService.applyAudienceSelection()),
-    tap(() => this.appStateService.clearUserInterface()),
-    tap(() => this.appTradeAreaService.zoomToTradeArea()),
-    map(([action, projectId]: [ProjectLoad, number]) =>
-      action.payload.isReload ? new ProjectSaveSuccess({projectId}) : new ProjectLoadSuccess({ projectId })),
+    map(([action, projectId]: [ProjectLoad, number]) => new ProjectLoadSuccess({ projectId, isSilent: action.payload.isSilent })),
     catchError(err => of(new ProjectLoadFailure({ err })))
   );
 
-  @Effect()
-  projectSaveAndCreateNew$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSaveAndNew),
-    filter(() => this.appProjectService.projectIsValid()),
-    mergeMap(() => this.appProjectService.save().pipe(tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId }))))),
-    map(() => new CreateNewProject()),
-    catchError(err => of(new ProjectSaveFailure({ err }))),
+  @Effect({ dispatch: false })
+  projectLoadSuccess$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectLoadSuccess),
+    // these are temporary until we get more stuff under ngrx
+    tap(() => this.audienceService.applyAudienceSelection()),
+    tap(() => this.appStateService.clearUserInterface()),
+    tap(() => this.appTradeAreaService.zoomToTradeArea())
   );
 
   @Effect()

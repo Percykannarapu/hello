@@ -6,30 +6,38 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotifi
 
 @Injectable({ providedIn: 'root' })
 export class DataShimNotificationEffects {
-  private readonly key = 'DataShimBusy';
+  private readonly saveKey = 'DataShimBusy';
+  private readonly loadKey = 'DataShimBusy';
 
   @Effect()
   saveBusy$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSave, DataShimActionTypes.ProjectSaveAndLoad, DataShimActionTypes.ProjectSaveAndNew),
-    map(() => new StartBusyIndicator({ key: this.key, message: 'Saving Project' }))
+    ofType(DataShimActionTypes.ProjectSaveAndReload, DataShimActionTypes.ProjectSaveAndLoad, DataShimActionTypes.ProjectSaveAndNew),
+    map(() => new StartBusyIndicator({ key: this.saveKey, message: 'Saving Project' }))
+  );
+
+  @Effect()
+  stopSaveBusy$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectSaveSuccess, DataShimActionTypes.ProjectSaveFailure),
+    map(() => new StopBusyIndicator({ key: this.saveKey }))
   );
 
   @Effect()
   loadBusy$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    filter(action => !action.payload.isReload),
-    map(action => new StartBusyIndicator({ key: this.key, message: `Loading Project ${action.payload.projectId}` }))
+    filter(action => !action.payload.isSilent),
+    map(action => new StartBusyIndicator({ key: this.loadKey, message: `Loading Project ${action.payload.projectId}` }))
   );
 
   @Effect()
-  stopBusy$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSaveSuccess, DataShimActionTypes.ProjectSaveFailure, DataShimActionTypes.ProjectLoadSuccess, DataShimActionTypes.ProjectLoadFailure),
-    map(() => new StopBusyIndicator({ key: this.key }))
+  stopLoadBusy$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectLoadSuccess, DataShimActionTypes.ProjectLoadFailure),
+    map(() => new StopBusyIndicator({ key: this.loadKey }))
   );
 
   @Effect()
   projectSaveSuccess$ = this.actions$.pipe(
     ofType<ProjectSaveSuccess>(DataShimActionTypes.ProjectSaveSuccess),
+    filter(action => !action.payload.isSilent),
     map(action => new SuccessNotification({ message: `Project ${action.payload.projectId} was saved successfully`, notificationTitle: 'Save Project'}))
   );
 
@@ -42,6 +50,7 @@ export class DataShimNotificationEffects {
   @Effect()
   projectLoadSuccess$ = this.actions$.pipe(
     ofType<ProjectLoadSuccess>(DataShimActionTypes.ProjectLoadSuccess),
+    filter(action => !action.payload.isSilent),
     map(action => new SuccessNotification({ message: `Project ${action.payload.projectId} loaded`, notificationTitle: 'Load Project'}))
   );
 

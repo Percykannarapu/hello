@@ -15,7 +15,7 @@ export class MenuEffects {
   @Effect()
   saveAndReload$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndReloadProject),
-    map(() => new fromDataShims.ProjectSave({ reloadAfter: true }))
+    map(() => new fromDataShims.ProjectSaveAndReload())
   );
 
   @Effect()

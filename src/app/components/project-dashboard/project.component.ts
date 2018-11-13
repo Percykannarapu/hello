@@ -240,13 +240,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
                      new CloseExistingProjectDialog()]
           },
           reject: {
-            result: [new ProjectLoad({ projectId: event.projectId, isReload: false }),
+            result: [new ProjectLoad({ projectId: event.projectId, isSilent: false }),
                      new CloseExistingProjectDialog()]
           }
         };
         this.store$.dispatch(new ShowConfirmation(payload));
       } else {
-        this.store$.dispatch(new ProjectLoad({ projectId: event.projectId, isReload: false }));
+        this.store$.dispatch(new ProjectLoad({ projectId: event.projectId, isSilent: false }));
         this.store$.dispatch(new CloseExistingProjectDialog());
       }
     }

@@ -1,10 +1,8 @@
 import { Action } from '@ngrx/store';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { Data } from '@angular/router';
 
 export enum DataShimActionTypes {
-  ProjectSave = '[Application Data Shim] Save Project',
   ProjectSaveSuccess = '[Application Data Shim] Project Saved Successfully',
   ProjectSaveFailure = '[Application Data Shim] Project Save Failed',
 
@@ -17,20 +15,29 @@ export enum DataShimActionTypes {
 
   ProjectSaveAndNew = '[Application Data Shim] Project Save and New',
   ProjectSaveAndLoad = '[Application Data Shim] Project Save and Load',
+  ProjectSaveAndReload = '[Application Data Shim] Project Save and Reload',
 
   ExportGeofootprint = '[Application Data Shim] Export Geofootprint',
   ExportLocations = '[Application Data Shim] Export Locations',
   ExportApioNationalData = '[Application Data Shim] Export National Online Data'
 }
 
-export class ProjectSave implements Action {
-    readonly type = DataShimActionTypes.ProjectSave;
-    constructor(public payload: { reloadAfter: boolean }) {}
+export class ProjectSaveAndNew implements Action {
+  readonly type = DataShimActionTypes.ProjectSaveAndNew;
+}
+
+export class ProjectSaveAndLoad implements Action {
+  readonly type = DataShimActionTypes.ProjectSaveAndLoad;
+  constructor(public payload: { idToLoad: number }) {}
+}
+
+export class ProjectSaveAndReload implements Action {
+  readonly type = DataShimActionTypes.ProjectSaveAndReload;
 }
 
 export class ProjectSaveSuccess implements Action {
     readonly type = DataShimActionTypes.ProjectSaveSuccess;
-    constructor(public payload: { projectId: number }) {}
+    constructor(public payload: { projectId: number, isSilent: boolean }) {}
 }
 
 export class ProjectSaveFailure implements Action {
@@ -40,12 +47,12 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
     readonly type = DataShimActionTypes.ProjectLoad;
-    constructor(public payload: { projectId: number, isReload: boolean }) {}
+    constructor(public payload: { projectId: number, isSilent: boolean }) {}
 }
 
 export class ProjectLoadSuccess implements Action {
     readonly type = DataShimActionTypes.ProjectLoadSuccess;
-    constructor(public payload: { projectId: number }) {}
+    constructor(public payload: { projectId: number, isSilent: boolean }) {}
 }
 
 export class ProjectLoadFailure implements Action {
@@ -59,15 +66,6 @@ export class CreateNewProject implements Action {
 
 export class CreateNewProjectComplete implements Action {
   readonly type = DataShimActionTypes.ProjectCreateNewComplete;
-}
-
-export class ProjectSaveAndNew implements Action {
-  readonly type = DataShimActionTypes.ProjectSaveAndNew;
-}
-
-export class ProjectSaveAndLoad implements Action {
-  readonly type = DataShimActionTypes.ProjectSaveAndLoad;
-  constructor(public payload: { idToLoad: number }) {}
 }
 
 // note: passing currentProject like this is an anti-pattern for ngrx, but we're doing it as a transitional stop-gap until it's in the Store
@@ -89,7 +87,9 @@ export class ExportApioNationalData implements Action {
 }
 
 export type DataShimActions =
-  ProjectSave |
+  ProjectSaveAndNew |
+  ProjectSaveAndLoad |
+  ProjectSaveAndReload |
   ProjectSaveSuccess |
   ProjectSaveFailure |
   ProjectLoad |
@@ -97,8 +97,6 @@ export type DataShimActions =
   ProjectLoadFailure |
   CreateNewProject |
   CreateNewProjectComplete |
-  ProjectSaveAndNew |
-  ProjectSaveAndLoad |
   ExportGeofootprint |
   ExportLocations |
   ExportApioNationalData;
