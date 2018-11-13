@@ -16,10 +16,10 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
   switch (action.type) {
     case DataShimActionTypes.ProjectSaveAndLoad:
     case DataShimActionTypes.ProjectSaveAndNew:
-    case DataShimActionTypes.ProjectSave:
+    case DataShimActionTypes.ProjectSaveAndReload:
       return {
         ...state,
-        projectIsSaving: true
+        projectIsSaving: true,
       };
     case DataShimActionTypes.ProjectSaveFailure:
       return {
@@ -29,7 +29,7 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
     case DataShimActionTypes.ProjectSaveSuccess:
       return {
         ...state,
-        projectIsSaving: false
+        projectIsSaving: false,
       };
     case DataShimActionTypes.ProjectCreateNew:
     case DataShimActionTypes.ProjectLoad:
