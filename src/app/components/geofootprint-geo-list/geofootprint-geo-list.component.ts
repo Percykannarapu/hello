@@ -610,9 +610,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             {
               const colWidth: number = Math.min(200, Math.max(60, (geovar.customVarExprDisplay.length * 6) + 24));
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
+
+              // Let the fieldConte decide what the match operator will be on the numeric filter
+              let matchOper: string;
+              switch (geovar.fieldconte) {
+               case 'PERCENT':
+                  matchOper = ">=";
+                  break;
+            
+               default:
+                  matchOper = "between";
+                  break;
+              }
+
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? "numeric" : "text"
+                                                ,matchOper: matchOper
                                                 ,matchMode: 'contains', styleClass: colStyleClass});
             }
          });

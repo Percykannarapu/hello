@@ -130,9 +130,9 @@
                   <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
                </th>
                <th *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.matchType" style="background: #b3d4ed; overflow: visible;">
-                  <!-- <div *ngSwitchCase="'numeric'">
-                     <val-table-filter-numeric fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
-                  </div> -->
+                  <div *ngSwitchCase="'numeric'">
+                     <val-table-filter-numeric #filterNm fieldName="{{col.header}}"       (filterApplied)="geoGrid.filter($event, col.field,      'numericFilter')" operatorType="{{col.matchOper}}" [(minValue)]="investmentRanges[0]"      [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                  </div>
                   <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
                </th>
             </tr>            
