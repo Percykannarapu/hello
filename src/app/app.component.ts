@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck, ChangeDetectionStrategy } from '@angular/core';
 import { AppStateService } from './services/app-state.service';
 import { AppConfig } from './app.config';
 import { Observable } from 'rxjs';
@@ -19,7 +19,8 @@ declare var jQuery: any;
 @Component({
     selector: 'val-app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    styleUrls: ['./app.component.css'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 

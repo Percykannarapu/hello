@@ -141,6 +141,7 @@ import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { StateModule } from './state/state.module';
+import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 
 @NgModule({
     imports: [
@@ -249,7 +250,8 @@ import { StateModule } from './state/state.module';
         CampaignDetailsComponent,
         MapComponent,
         SampleComponent,
-        TableFilterNumericComponent
+        TableFilterNumericComponent,
+        SiteListContainerComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
