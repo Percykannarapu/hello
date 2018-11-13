@@ -4,17 +4,19 @@ import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { map } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { UsageService } from '../../services/usage.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { siteListUpload } from './upload.rules';
-import { AppMessagingService } from '../../services/app-messaging.service';
 import { environment } from '../../../environments/environment';
 import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest, BusinessSearchResponse } from '../../services/app-business-search.service';
 import { BusinessSearchComponent, SearchEventData } from './business-search/business-search.component';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppStateService } from '../../services/app-state.service';
+import { AppState } from '../../state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -23,6 +25,8 @@ import { AppStateService } from '../../services/app-state.service';
 export class AddLocationsTabComponent implements OnInit {
 
   @ViewChild('businessSearch') businessSearchComponent: BusinessSearchComponent;
+  @ViewChild('manualSiteEntry') manualSiteEntry: ManualEntryComponent;
+  @ViewChild('manualCompetitorEntry') manualCompetitorEntry: ManualEntryComponent;
 
   isProd: boolean = environment.production;
   businessSearchLimit: number = 20000;
@@ -42,8 +46,7 @@ export class AddLocationsTabComponent implements OnInit {
               private geocoderService: AppGeocodingService,
               private businessSearchService: AppBusinessSearchService,
               private appStateService: AppStateService,
-              private usageService: UsageService,
-              private messageService: AppMessagingService) {}
+              private store$: Store<AppState>) {}
 
   ngOnInit() {
     this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
@@ -54,6 +57,8 @@ export class AddLocationsTabComponent implements OnInit {
     this.searchCategories$ = this.businessSearchService.getCategories();
     this.appStateService.clearUI$.subscribe(() => {
       this.businessSearchComponent.clear();
+      this.manualSiteEntry.clear();
+      this.manualCompetitorEntry.clear();
     });
   }
 
@@ -69,9 +74,8 @@ export class AddLocationsTabComponent implements OnInit {
   accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
     this.appLocationService.notifySiteChanges();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'failure', action: 'accept' });
     const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
   }
 
   resubmit(site: ImpGeofootprintLocation) {
@@ -79,31 +83,31 @@ export class AddLocationsTabComponent implements OnInit {
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
     this.processSiteRequests(new ValGeocodingRequest(site, true), newSiteType);
     this.appLocationService.deleteLocations([site]);
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'failure', action: 'resubmit' });
     const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
   }
 
-  manuallyGeocode(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
+  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
     //validate Manually added geocodes
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
-    if (locations.filter(loc => loc.locationNumber === siteOrSites.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
-      this.messageService.showErrorNotification('Geocoding Error', 'Site Number already exist on the project.');
-      this.geocoderService.duplicateKeyMap.get(siteType).add(siteOrSites.number);
-    }
-    else{
-      this.processSiteRequests(siteOrSites,  siteType);
+    if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
+      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
+    } else {
+      const mktValue = site.Market != null ? `~Market=${site.Market}` : '';
+      const metricsText = `Number=${site.number}~Name=${site.name}~Street=${site.street}~City=${site.city}~State=${site.state}~ZIP=${site.zip}${mktValue}`;
+      this.store$.dispatch(new CreateLocationUsageMetric('single-site', 'add', metricsText));
+      this.processSiteRequests(site,  siteType);
       if (siteType !== ImpClientLocationTypeCodes.Competitor)
-            this.geocoderService.duplicateKeyMap.get(siteType).add(siteOrSites.number);
+            this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
-
   }
 
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const pluralize = sites.length > 1 ? 's' : '';
-    this.messageService.startSpinnerDialog(this.spinnerKey, `Geocoding ${sites.length} ${siteType}${pluralize}`);
+    this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     const locationCache: ImpGeofootprintLocation[] = [];
     this.appLocationService.geocode(sites, siteType).subscribe(
       locations => locationCache.push(...locations),
@@ -112,7 +116,7 @@ export class AddLocationsTabComponent implements OnInit {
         const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
         this.appLocationService.persistLocationsAndAttributes(locationCache);
         if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
-        this.messageService.stopSpinnerDialog(this.spinnerKey);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       }
     );
   }
@@ -134,9 +138,8 @@ export class AddLocationsTabComponent implements OnInit {
         'Market Code': business.pricing_market_name
       }));
     });
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'import' });
     const metricName = 'Import as ' + event.siteType;
-    this.usageService.createCounterMetric(usageMetricName, metricName, geoRequests.length);
+    this.store$.dispatch(new CreateLocationUsageMetric('business-search', 'import', metricName, geoRequests.length));
     this.processSiteRequests(geoRequests, siteTypeCode);
   }
 
@@ -162,21 +165,20 @@ export class AddLocationsTabComponent implements OnInit {
       measures.push(`City=${searchPayload.city}`);
     }
     const metricText = measures.join('~');
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'business-search', action: 'search' });
-    this.messageService.startSpinnerDialog(this.spinnerKey, 'Searching...');
+    this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: 'Searching...' }));
     this.businessSearchService.getBusinesses(searchPayload).subscribe(
       results => {
-          this.usageService.createCounterMetric(usageMetricName, metricText, results.length);
+          this.store$.dispatch(new CreateLocationUsageMetric('business-search', 'search', metricText, results.length));
           this.searchResults$.next(results);
         },
-      err => this.handleError('Business Search', 'There was an error retreiving Business Search results', err),
-      () => this.messageService.stopSpinnerDialog(this.spinnerKey)
+      err => this.handleError('Business Search', 'There was an error retrieving Business Search results', err),
+      () => this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }))
       );
   }
 
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
-    this.messageService.stopSpinnerDialog(this.spinnerKey);
-    this.messageService.showErrorNotification(errorHeader, errorMessage);
+    this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
     console.error(errorMessage, errorObject);
   }
 }

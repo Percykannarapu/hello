@@ -3,16 +3,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
 import { AppStateService } from '../../services/app-state.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { AppGeoService } from '../../services/app-geo.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { UsageService } from '../../services/usage.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { EsriApi } from '../../esri/core/esri-api.service';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '../../esri/state';
 import { filter, take } from 'rxjs/operators';
 import { AppState } from '../../state/app.interfaces';
+import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -31,7 +30,6 @@ export class MapComponent implements OnInit {
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
-              private usageService: UsageService,
               private store$: Store<AppState>,
               private config: AppConfig) {}
 
@@ -58,8 +56,7 @@ export class MapComponent implements OnInit {
     this.appGeoService.clearAllGeos(true, true, true, true);
     this.impGeoService.get().forEach(geo => geo.isActive = false);
     this.impGeoService.makeDirty();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'clear-all' });
-    this.usageService.createCounterMetric(usageMetricName, null, null);
+    this.store$.dispatch(new CreateProjectUsageMetric('project', 'clear-all'));
   }
 
   onRevert() : void {
@@ -67,14 +64,12 @@ export class MapComponent implements OnInit {
     this.appGeoService.clearAllGeos(true, true, true, true);
     this.impGeoService.get().forEach(geo => geo.isActive = true);
     this.impGeoService.makeDirty();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'revert' });
-    this.usageService.createCounterMetric(usageMetricName, null, null);
+    this.store$.dispatch(new CreateProjectUsageMetric('project', 'revert'));
   }
 
   onZoom() : void {
     this.appTradeAreaService.zoomToTradeArea();
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'trade-area', action: 'zoom' });
-    this.usageService.createCounterMetric(usageMetricName, null, null);
+    this.store$.dispatch(new CreateMapUsageMetric('trade-area', 'zoom'));
   }
 
   onViewExtentChanged(view: __esri.MapView) : void {

@@ -1,5 +1,5 @@
 <p-dialog [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true"
-          [contentStyle]="{'max-height':'400px'}" (onHide)="onDialogHide()" width="1000">
+          [contentStyle]="{'max-height':'400px'}" width="1000">
     <p-header>
       Load Project
     </p-header>
@@ -68,11 +68,4 @@
             </div>
         </div>
     </p-footer>
-    <p-dialog  [(visible)]="customDialogDisplay" header="Save Work">
-        <span>Would you like to save your work before proceeding?</span>
-        <p-footer>
-            <button type="button" pButton icon="pi pi-check" (click)="accept()" label="Yes"></button>
-            <button type="button" pButton icon="pi pi-times" (click)="reject()" label="No" ></button>
-        </p-footer>
-    </p-dialog>
 </p-dialog>

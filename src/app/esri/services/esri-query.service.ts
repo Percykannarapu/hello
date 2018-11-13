@@ -2,11 +2,12 @@ import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
 import { Observable, merge, EMPTY } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
-import { expand, map } from 'rxjs/operators';
+import { expand, map, retryWhen, scan } from 'rxjs/operators';
 import * as utils from '../../app.utils';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriAppSettings, EsriAppSettingsConfig, EsriAppSettingsToken } from '../configuration';
+import { retryOnTimeout } from '../../val-modules/common/common.rxjs';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;
 type compositeData = string[] | number[] | __esri.PointProperties[];
@@ -70,15 +71,18 @@ export class EsriQueryService {
     return result;
   }
 
-  private static getNextQuery(featureSet: __esri.FeatureSet, query: __esri.Query) : __esri.Query {
+  private static getNextQuery(featureSet: __esri.FeatureSet, query: __esri.Query) : { result: __esri.FeatureSet, next: __esri.Query } {
+    const result = {
+      result: featureSet,
+      next: null
+    };
     if (featureSet.exceededTransferLimit) {
-      const result = EsriUtils.clone(query);
-      result.num = featureSet.features.length;
-      result.start = (query.start || 0) + featureSet.features.length;
-      return result;
-    } else {
-      return null;
+      const nextQuery = EsriUtils.clone(query);
+      nextQuery.num = featureSet.features.length;
+      nextQuery.start = (query.start || 0) + featureSet.features.length;
+      result.next = nextQuery;
     }
+    return result;
   }
 
   private static transformFeatureSet<T>(featureSet: __esri.FeatureSet, transform: txCallback<T>) : T[] {
@@ -120,15 +124,13 @@ export class EsriQueryService {
     });
   }
 
-  private queryWithNext(layerId: string, query: __esri.Query) : Observable<{ result: __esri.FeatureSet, next: __esri.Query }> {
-    return this.executeFeatureQuery(layerId, query).pipe(
-      map(result => ({ result, next: EsriQueryService.getNextQuery(result, query) }))
-    );
-  }
-
   private paginateEsriQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    return this.queryWithNext(layerId, query).pipe(
-      expand(({result, next}) => next ? this.queryWithNext(layerId, next) : EMPTY),
+    const recursiveQuery$ = (id: string, q: __esri.Query) =>
+      this.executeFeatureQuery(id, q).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
+
+    return recursiveQuery$(layerId, query).pipe(
+      retryOnTimeout(5),
+      expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
       map(({ result }) => result)
     );
   }

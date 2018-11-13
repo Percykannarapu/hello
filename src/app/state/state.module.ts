@@ -8,7 +8,11 @@ import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { appMetaReducers, appReducer } from './app.reducer';
 import { CustomSerializer } from './shared/utils';
-import { MessagingEffects } from './messaging/messaging.effects';
+import { UsageEffects } from './usage/usage.effects';
+import { MenuEffects } from './menu/menu.effects';
+import { DataShimEffects } from './data-shim/data-shim.effects';
+import { DataShimNotificationEffects } from './data-shim/data-shim-notification.effects';
+import { DataShimUsageEffects } from './data-shim/data-shim-usage.effects';
 
 @NgModule({
   imports: [
@@ -17,7 +21,11 @@ import { MessagingEffects } from './messaging/messaging.effects';
     StoreModule.forRoot(appReducer, { metaReducers: appMetaReducers }),
     EffectsModule.forRoot([
       AppEffects,
-      MessagingEffects
+      UsageEffects,
+      MenuEffects,
+      DataShimEffects,
+      DataShimNotificationEffects,
+      DataShimUsageEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({

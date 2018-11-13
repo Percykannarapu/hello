@@ -1,10 +1,10 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppMessagingService } from '../../../services/app-messaging.service';
 import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
 import { TargetAudienceCustomService } from '../../../services/target-audience-custom.service';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { TargetAudienceService } from '../../../services/target-audience.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../state/app.interfaces';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../../messaging';
 
 @Component({
   selector: 'val-custom-audience',
@@ -15,21 +15,15 @@ export class CustomAudienceComponent {
 
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
 
-  constructor(private messagingService: AppMessagingService,
-              private audienceService: TargetAudienceCustomService,
-              private parentAudienceService: TargetAudienceService) {
-    this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
-   }
-
-   private syncCheckData(result: AudienceDataDefinition[]){
-  //  this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier != result[0].audienceIdentifier);
-  }
+  constructor(private audienceService: TargetAudienceCustomService,
+              private store$: Store<AppState>) { }
 
   public uploadFile(event: any) : void {
     const reader = new FileReader();
     const name: string = event.files[0].name ? event.files[0].name.toLowerCase() : null;
+    const key = this.spinnerId;
     if (name != null) {
-      this.messagingService.startSpinnerDialog(this.spinnerId, 'Loading Audience Data');
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Audience Data'}));
       if (name.includes('.xlsx') || name.includes('.xls')) {
         reader.readAsBinaryString(event.files[0]);
         reader.onload = () => {
@@ -40,9 +34,9 @@ export class CustomAudienceComponent {
             const csvData  = xlsx.utils.sheet_to_csv(ws);
             this.audienceService.parseFileData(csvData, name);
           } catch (e) {
-            this.messagingService.showErrorNotification('Audience Upload Error', e);
+            this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
           } finally {
-            this.messagingService.stopSpinnerDialog(this.spinnerId);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         };
       } else {
@@ -51,9 +45,9 @@ export class CustomAudienceComponent {
           try {
             this.audienceService.parseFileData(reader.result, name);
           } catch (e) {
-            this.messagingService.showErrorNotification('Audience Upload Error', e);
+            this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
           } finally {
-            this.messagingService.stopSpinnerDialog(this.spinnerId);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         };
       }

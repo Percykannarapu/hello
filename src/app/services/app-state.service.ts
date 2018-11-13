@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { EsriQueryService } from '../esri/services/esri-query.service';
 import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -14,10 +14,12 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { groupBy } from '../val-modules/common/common.utils';
 import { EsriMapService } from '../esri/services/esri-map.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
-import { AppLoggingService } from './app-logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectService } from './app-project.service';
-import { AppMessagingService } from './app-messaging.service';
+import { select, Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ClearAllNotifications } from '../messaging';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 
 export enum Season {
   Summer = 'summer',
@@ -60,9 +62,6 @@ export class AppStateService {
   private clearUI: Subject<void> = new Subject<void>();
   public clearUI$: Observable<void> = this.clearUI.asObservable();
 
-  private showLoadDialog = new BehaviorSubject(false);
-  public showLoadDialog$ = this.showLoadDialog.asObservable();
-
   private hasSiteProvidedTradeAreas = new BehaviorSubject<boolean>(false);
   public hasSiteProvidedTradeAreas$: CachedObservable<boolean> = this.hasSiteProvidedTradeAreas;
 
@@ -76,8 +75,7 @@ export class AppStateService {
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
-              private appMessagingService: AppMessagingService,
-              private logger: AppLoggingService) {
+              private store$: Store<AppState>) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
     this.setupLocationObservables();
@@ -105,12 +103,8 @@ export class AppStateService {
     this.closeOverlayPanel.next(except);
   }
 
-  public setLoadDialogVisibility(value: boolean) : void {
-    this.showLoadDialog.next(value);
-  }
-
   public clearUserInterface() : void {
-    this.appMessagingService.clearNotifications();
+    this.store$.dispatch(new ClearAllNotifications());
     this.clearUI.next();
   }
 
@@ -122,9 +116,10 @@ export class AppStateService {
   }
 
   private setupApplicationReadyObservable() : void {
+    const projectReady$ = this.store$.pipe(select(projectIsReady));
     this.applicationIsReady$ =
-      combineLatest(this.esriLayerService.layersReady$, this.projectService.projectIsLoading$).pipe(
-        map(([layersReady, projectLoading]) => layersReady && !projectLoading),
+      combineLatest(this.esriLayerService.layersReady$, projectReady$).pipe(
+        map(([layersReady, projectReady]) => layersReady && projectReady),
         distinctUntilChanged()
       );
   }

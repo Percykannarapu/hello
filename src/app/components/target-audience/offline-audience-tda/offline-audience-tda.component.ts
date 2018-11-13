@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { AppStateService } from '../../../services/app-state.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../state/app.interfaces';
+import { ErrorNotification } from '../../../messaging';
 
 @Component({
   selector: 'val-offline-audience-tda',
@@ -23,9 +25,9 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   constructor(private audienceService: TargetAudienceTdaService,
               private parentAudienceService: TargetAudienceService,
-              private messagingService: AppMessagingService,
-              private cd: ChangeDetectorRef, 
-              private stateService: AppStateService) {
+              private cd: ChangeDetectorRef,
+              private stateService: AppStateService,
+              private store$: Store<AppState>) {
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
@@ -51,9 +53,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   public ngOnInit() : void {
+    const message = 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.';
     this.audienceService.getAudienceDescriptions().subscribe(
       folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
-      err => this.messagingService.showErrorNotification('TDA connection error', 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.'),
+      () => this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error' })),
       () => {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);
@@ -98,7 +101,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
-    this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier != result[0].audienceIdentifier);
+    this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier !== result[0].audienceIdentifier);
     this.cd.markForCheck();
   }
 

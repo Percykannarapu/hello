@@ -1,30 +1,32 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { LoggingService, LogLevels } from '../val-modules/common/services/logging.service';
-import { AppMessagingService } from './app-messaging.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification, InfoNotification, WarningNotification } from '../messaging';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppLoggingService extends LoggingService {
 
-  constructor(private messagingService: AppMessagingService, cfg: AppConfig) {
+  constructor(cfg: AppConfig, private store$: Store<AppState>) {
     super(cfg);
   }
 
-  private logWithNotification(level: LogLevels, title: string, message: string) : void {
+  private logWithNotification(level: LogLevels, notificationTitle: string, message: string) : void {
     if (level >= this.cfg.logLevel) {
       switch (level) {
         case LogLevels.DEBUG:
         case LogLevels.INFO:
-          this.messagingService.showInfoNotification(title, message);
+          this.store$.dispatch(new InfoNotification({ notificationTitle, message}));
           break;
         case LogLevels.WARN:
-          this.messagingService.showWarningNotification(title, message);
+          this.store$.dispatch(new WarningNotification({ notificationTitle, message}));
           break;
         case LogLevels.ERROR:
         case LogLevels.FATAL:
-          this.messagingService.showErrorNotification(title, message);
+          this.store$.dispatch(new ErrorNotification({ notificationTitle, message}));
           break;
       }
     }

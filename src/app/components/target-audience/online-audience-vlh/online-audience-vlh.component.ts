@@ -1,11 +1,10 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
-import { Subject, combineLatest } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, filter, flatMap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { UsageService } from '../../../services/usage.service';
 import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
@@ -26,7 +25,8 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
 
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
-              private cd: ChangeDetectorRef, private usageService: UsageService, private appStateService: AppStateService) {
+              private cd: ChangeDetectorRef,
+              private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -64,9 +64,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     if (!ready || audiences == null || audiences.length === 0) return;
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);
-      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length > 0) {
-        continue; //the current selected list already has the node we are trying to push in
-      } else {
+      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
         this.currentSelectedNodes.push(node[0]);
       }
     }
@@ -118,7 +116,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
-    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId !== result[0].audienceIdentifier);
     this.cd.markForCheck();
   }
 

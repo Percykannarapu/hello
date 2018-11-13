@@ -17,10 +17,9 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ConfirmationService } from 'primeng/primeng';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
-import { log } from 'util';
-import { reject } from 'q';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 export interface FlatGeo {
    fgId: number;
@@ -73,7 +72,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                private targetAudienceService: TargetAudienceService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
-               private usageService: UsageService
+               private store$: Store<AppState>
                ) { }
                               
    ngOnInit() {
@@ -232,8 +231,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       let isSelected: boolean = event.isSelected;
 
       const currentProject = this.appStateService.currentProject$.getValue();
-      const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-      const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
 
       if (geo.isActive != isSelected)
       {
@@ -269,15 +266,14 @@ export class GeofootprintGeoPanelComponent implements OnInit {
           geo.isActive = isSelected;
          }
 
-         let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
-         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
+         const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
          if (geo.isActive){
-             this.usageService.createCounterMetric(geoselected, metricText, null);
+             this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
          }
          else{
-           this.usageService.createCounterMetric(geoDeselected, metricText, null);
+           this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
          }
       }
    }

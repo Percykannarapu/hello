@@ -7,16 +7,17 @@ import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from './usage.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
 import { RestResponse } from '../models/RestResponse';
+import { AppState } from '../state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { WarningNotification } from '../messaging';
+import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -86,11 +87,10 @@ export class TargetAudienceTdaService {
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
-    private usageService: UsageService,
     private audienceService: TargetAudienceService,
     private domainFactory: ImpDomainFactoryService,
     private stateService: AppStateService,
-    private messageService: AppMessagingService,
+    private store$: Store<AppState>,
     private logger: AppLoggingService) {
     this.stateService.applicationIsReady$.subscribe(ready => {
       this.onLoadProject(ready);
@@ -239,11 +239,11 @@ export class TargetAudienceTdaService {
       if (inputData.geocodes.length > 0 && inputData.variablePks.length > 0) {
         observables.push(
           this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData).pipe(
-            map(response => {
-              return this.validateFuseResponse(response);
-            }), catchError( err => throwError('No Data was returned for the selected audiences'))
-          ));
-        }
+            map(response => this.validateFuseResponse(response)),
+            catchError( () => throwError('No Data was returned for the selected audiences'))
+          )
+        );
+      }
     }
     const currentProject = this.stateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
@@ -254,17 +254,16 @@ export class TargetAudienceTdaService {
   }
 
   private validateFuseResponse(response: RestResponse) {
-    let responseArray: TdaBulkDataResponse[] = [];
-    responseArray = response.payload;
-    const missingCategoryIds = new Set(responseArray.filter(id => id.score === "undefined"));
+    const responseArray: TdaBulkDataResponse[] = response.payload;
+    const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
     const audience = [];
-    if(missingCategoryIds.size > 0){
+    if (missingCategoryIds.size > 0) {
       missingCategoryIds.forEach(id => {
-      if (this.rawAudienceData.has(id.variablePk)) {
-        audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
-      }
-    });
-    this.messageService.showWarningNotification('Selected Audience Warning', 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'));
+        if (this.rawAudienceData.has(id.variablePk)) {
+          audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
+        }
+      });
+      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
     }
     this.logger.info('Offline Audience Response:::', responseArray);
     return responseArray;
@@ -272,8 +271,7 @@ export class TargetAudienceTdaService {
 
   private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'offline', action: checkType });
     const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + currentAnalysisLevel;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    this.store$.dispatch(new CreateAudienceUsageMetric('offline', checkType, metricText));
   }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { chunkArray, toUniversalCoordinates } from '../app.utils';
+import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
 import { EsriQueryService } from '../esri/services/esri-query.service';
 import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
@@ -18,9 +18,12 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
-import { AppMessagingService } from './app-messaging.service';
 import { AppStateService, Season } from './app-state.service';
 import { AppLoggingService } from './app-logging.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
+import { LocationQuadTree } from '../models/location-quad-tree';
 
 const layerAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -37,17 +40,17 @@ export class AppGeoService {
   private validAnalysisLevel$: Observable<string>;
 
   constructor(private appStateService: AppStateService,
-    private messagingService: AppMessagingService,
-    private appMapService: AppMapService,
-    private locationService: ImpGeofootprintLocationService,
-    private tradeAreaService: ImpGeofootprintTradeAreaService,
-    private varService: ImpGeofootprintVarService,
-    private impGeoService: ImpGeofootprintGeoService,
-    private impAttributeService: ImpGeofootprintGeoAttribService,
-    private queryService: EsriQueryService,
-    private config: AppConfig,
-    private domainFactory: ImpDomainFactoryService,
-    private logger: AppLoggingService) {
+              private appMapService: AppMapService,
+              private locationService: ImpGeofootprintLocationService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private varService: ImpGeofootprintVarService,
+              private impGeoService: ImpGeofootprintGeoService,
+              private impAttributeService: ImpGeofootprintGeoAttribService,
+              private queryService: EsriQueryService,
+              private config: AppConfig,
+              private domainFactory: ImpDomainFactoryService,
+              private store$: Store<AppState>,
+              private logger: AppLoggingService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
@@ -163,7 +166,7 @@ export class AppGeoService {
       },
       err => {
         console.error(err);
-        this.messagingService.showErrorNotification('Error', 'There was an error during geo selection');
+        this.store$.dispatch(new ErrorNotification({ message: 'There was an error during geo selection' }));
       },
       () => {
         if (sub) sub.unsubscribe();
@@ -171,26 +174,23 @@ export class AppGeoService {
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    const result: ImpGeofootprintLocation[][] = [];
-    const statePartition = groupBy(locations, 'locState');
-    statePartition.forEach(stateLocations => {
-      stateLocations.sort((a, b) => a.locZip.localeCompare(b.locZip));
-      result.push(...chunkArray(stateLocations, this.config.esriAppSettings.maxPointsPerBufferQuery));
-    });
-    return result;
+    const quadTree = new LocationQuadTree(locations);
+    const result = quadTree.partition(this.config.esriAppSettings.maxPointsPerBufferQuery, 500);
+    this.logger.debug('QuadTree partitions', quadTree);
+    return result.filter(chunk => chunk && chunk.length > 0);
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const attributesToRetrieve = ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude', 'geometry_type'];
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     this.logger.debug('Select and Persist Radius Geos', tradeAreas);
-    const spinnerKey = 'selectAndPersistRadiusGeos';
+    const key = 'selectAndPersistRadiusGeos';
     const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
     const locationChunks = this.partitionLocations(allLocations);
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
-    this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
     this.logger.debug('Total number of location slices to process', locationChunks.length);
     for (const currentChunk of locationChunks) {
       const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
@@ -205,14 +205,14 @@ export class AppGeoService {
         currentMap => currentMap.forEach((v, k) => locationDistanceMap.set(k, v)),
         err => {
           console.error(err);
-          this.messagingService.stopSpinnerDialog(spinnerKey);
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         },
         () => {
           const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
           this.filterGeosImpl(geosToPersist);
           this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);
-          this.messagingService.stopSpinnerDialog(spinnerKey);
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
   }
 
@@ -220,16 +220,15 @@ export class AppGeoService {
     console.log('Firing home geo selection', locations.map(loc => loc.impGeofootprintTradeAreas.map(ta => JSON.stringify(ta))));
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const allSelectedData: __esri.Graphic[] = [];
-    const spinnerKey = 'selectAndPersistHomeGeos';
+    const key = 'selectAndPersistHomeGeos';
     const allHomeGeos = locations.map(loc => loc.homeGeocode);
-
-    this.messagingService.startSpinnerDialog(spinnerKey, 'Calculating Trade Areas...');
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
     this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'is_pob_only', 'latitude', 'longitude'])
       .subscribe(
         selections => allSelectedData.push(...selections),
         err => {
           console.error(err);
-          this.messagingService.stopSpinnerDialog(spinnerKey);
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         },
         () => {
           const geosToPersist: ImpGeofootprintGeo[] = [];
@@ -238,7 +237,7 @@ export class AppGeoService {
             geosToPersist.push(...homeGeocodes);
           }
           this.impGeoService.add(geosToPersist);
-          this.messagingService.stopSpinnerDialog(spinnerKey);
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
   }
 

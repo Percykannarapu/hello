@@ -10,12 +10,12 @@ import { AppLoggingService } from './app-logging.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppRendererService, CustomRendererSetup, SmartRendererSetup } from './app-renderer.service';
 import { EsriUtils } from '../esri/core/esri-utils';
-import { UsageService } from './usage.service';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService, Season } from './app-state.service';
 import { debounceTime, filter } from 'rxjs/operators';
-import { AppMessagingService } from './app-messaging.service';
 import { AppLayerService } from './app-layer.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 
 export interface Coordinates {
   xcoord: number;
@@ -47,15 +47,14 @@ export class AppMapService implements OnDestroy {
   constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
-              private messagingService: AppMessagingService,
               private componentGenerator: AppComponentGeneratorService,
               private queryService: EsriQueryService,
               private layerService: EsriLayerService,
               private mapService: EsriMapService,
               private metricsService: ValMetricsService,
-              private usageService: UsageService,
               private logger: AppLoggingService,
-              private config: AppConfig) {
+              private config: AppConfig,
+              private store$: Store<AppState>) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
     const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
@@ -162,7 +161,11 @@ export class AppMapService implements OnDestroy {
         const latitude = graphic.attributes.latitude;
         const longitude = graphic.attributes.longitude;
         const point: __esri.Point = new EsriApi.Point({latitude: latitude, longitude: longitude});
-        this.collectSelectionUsage(graphic, 'multiSelectTool', button);
+        if (button === 8) {
+          this.collectSelectionUsage(graphic, 'multiUnSelectTool');
+        } else {
+          this.collectSelectionUsage(graphic, 'multiSelectTool');
+        }
         events.push({ geocode, geometry: point });
       }
     });
@@ -171,73 +174,11 @@ export class AppMapService implements OnDestroy {
   }
 
   /**
-   * @deprecated
-   * @param {Map<Coordinates, number[]>} locationBuffers
-   * @param {boolean} mergeBuffers
-   * @param {string} locationType
-   */
-  public drawRadiusBuffers(locationBuffers: Map<Coordinates, number[]>, mergeBuffers: boolean, locationType: string) : void {
-    const locationKeys = Array.from(locationBuffers.keys());
-    console.log('drawing buffers', locationBuffers);
-    const radiusSet = Array.from(new Set([].concat(...Array.from(locationBuffers.values())))); // this gets a unique list of radii
-    const pointMap: Map<number, __esri.Point[]> = new Map<number, __esri.Point[]>();
-    for (const location of locationKeys) {
-      for (const radius of radiusSet) {
-        const currentLocationBuffers = new Set(locationBuffers.get(location));
-        if (currentLocationBuffers.has(radius)) {
-          const p = new EsriApi.Point({
-            spatialReference: { wkid: this.config.esriAppSettings.defaultSpatialRef },
-            x: location.xcoord,
-            y: location.ycoord
-          });
-          if (pointMap.has(radius)) {
-            pointMap.get(radius).push(p);
-          } else {
-            pointMap.set(radius, [p]);
-          }
-        }
-      }
-    }
-    const colorVal = (locationType === 'Site') ? [0, 0, 255] : [255, 0, 0];
-    const color = new EsriApi.Color(colorVal);
-    const transparent = new EsriApi.Color([0, 0, 0, 0]);
-    const symbol = new EsriApi.SimpleFillSymbol({
-      style: 'solid',
-      color: transparent,
-      outline: {
-        style: 'solid',
-        color: color,
-        width: 2
-      }
-    });
-    const layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(locationType) && name.endsWith('Trade Area'));
-    layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
-    let layerId = 0;
-    pointMap.forEach((points, radius) => {
-      const radii = Array(points.length).fill(radius);
-      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
-        const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-        const graphics = geometry.map(g => {
-          return new EsriApi.Graphic({
-            geometry: g,
-            symbol: symbol,
-            attributes: { parentId: (++layerId).toString() }
-          });
-        });
-        const groupName = `${locationType}s`;
-        const layerName = `${locationType} - ${radius} Mile Trade Area`;
-        this.layerService.removeLayer(layerName);
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-      });
-    });
-  }
-
-  /**
    * This method will create usage metrics each time a user selects/deselects geos manually on the map
    * @param graphic The feature the user manually selected on the map
    * @param selectionType The UI mechanism used to select the feature
    */
-  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string, button) {
+  private collectSelectionUsage(graphic: __esri.Graphic, selectionType: string) {
     const currentProject = this.appStateService.currentProject$.getValue();
     let hhc: number;
     const geocode = graphic.attributes.geocode;
@@ -246,32 +187,22 @@ export class AppMapService implements OnDestroy {
     } else {
       hhc = Number(graphic.attributes.hhld_s);
     }
-    //this.currentGeocodeList.push(geocode);
-
-    const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-    const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
+    let metricText: string;
     if (currentProject.estimatedBlendedCpm != null) {
       const amount: number = hhc * currentProject.estimatedBlendedCpm / 1000;
-      const metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~ui=${selectionType}`;
-      if (this.currentGeocodes.has(geocode) && button != 3) {
+      metricText = `${geocode}~${hhc}~${currentProject.estimatedBlendedCpm}~${amount.toString()}~ui=${selectionType}`;
+    } else {
+      metricText = `${geocode}~${hhc}~${0}~${0}~ui=${selectionType}`;
+    }
+    if (this.currentGeocodes.has(geocode)) {
+      if (selectionType === 'multiUnSelectTool' || selectionType === 'popupAction') {
         this.currentGeocodes.delete(geocode);
-        this.usageService.createCounterMetric(geoDeselected, metricText, null);
-      } else {
-        if (button != 8) {
-          this.currentGeocodes.add(geocode);
-          this.usageService.createCounterMetric(geoselected, metricText, null);
-        }
+        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
       }
     } else {
-      const metricText = `${geocode}~${hhc}~${0}~${0}~ui=${selectionType}`;
-      if (this.currentGeocodes.has(geocode)  && button != 3) {
-        this.currentGeocodes.delete(geocode);
-        this.usageService.createCounterMetric(geoDeselected, metricText, null);
-      } else {
-        if (button != 8) {
-          this.currentGeocodes.add(geocode);
-          this.usageService.createCounterMetric(geoselected, metricText, null);
-        }
+      if (selectionType === 'multiSelectTool' || selectionType === 'popupAction') {
+        this.currentGeocodes.add(geocode);
+        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
       }
     }
   }
@@ -349,7 +280,7 @@ export class AppMapService implements OnDestroy {
       y: Number(selectedFeature.attributes.latitude)
     };
     this.selectSingleGeocode(geocode, geometry);
-    this.collectSelectionUsage(selectedFeature, 'popupAction', '');
+    this.collectSelectionUsage(selectedFeature, 'popupAction');
   }
 
   private measureThis() {

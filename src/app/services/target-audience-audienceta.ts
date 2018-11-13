@@ -16,7 +16,6 @@ import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProje
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { UsageService } from './usage.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 
 interface AudienceTradeareaResponse {
@@ -66,7 +65,7 @@ export class TargetAudienceAudienceTA {
     private geoVarFieldMap: Map<string, string> = new Map<string, string>();
 
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-        private usageService: UsageService, private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
+        private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
         private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient) {
         this.geoVarMap.set('Index Value', 'number');
         this.geoVarMap.set('Combined Index', 'number');

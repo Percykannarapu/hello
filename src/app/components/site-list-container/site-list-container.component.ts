@@ -1,6 +1,5 @@
-import { ImpGeofootprintGeoAttrib } from './../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
-import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-
+import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
@@ -12,11 +11,12 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { AppState } from '../../state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 @Component({
   selector: 'val-site-list-container',
@@ -43,8 +43,7 @@ export class SiteListContainerComponent implements OnInit {
       private geoAttributeService: ImpGeofootprintGeoAttribService,
       private appStateService: AppStateService,
       private esriMapService: EsriMapService,
-      private usageService: UsageService,
-      private cd: ChangeDetectorRef) {}
+      private store$: Store<AppState>) {}
 
    ngOnInit() {
       // Subscribe to the data stores
@@ -82,9 +81,8 @@ export class SiteListContainerComponent implements OnInit {
       // console.debug("event:", event);
       // console.debug("-".padEnd(80, "-"));
       this.siteListService.deleteLocations(event.locations);
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-                                                target: 'single-' + event.selectedListType.toLowerCase(), action: 'delete' });
-      this.usageService.createCounterMetric(usageMetricName, event.metricText, null);
+      const target = 'single-' + event.selectedListType.toLowerCase();
+      this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', event.metricText));
    }
 
    public onDeleteAllLocations(selectedListType: string) {
@@ -92,10 +90,9 @@ export class SiteListContainerComponent implements OnInit {
       // console.debug("SITE LIST CONTAINER - onDeleteAllLocations fired - selectedListType: ", selectedListType);
       // console.debug("-".padEnd(80, "-"));
       const allLocations = this.impGeofootprintLocationService.get().filter(a => a.clientLocationTypeCode === selectedListType || a.clientLocationTypeCode === `Failed ${selectedListType}`);
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-      target: selectedListType.toLowerCase() + '-list', action: 'delete' });
       this.siteListService.deleteLocations(allLocations);
-      this.usageService.createCounterMetric(usageMetricName, null, allLocations.length);
+      const target = selectedListType.toLowerCase() + '-list';
+      this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', null, allLocations.length));
       this.appStateService.clearUserInterface();
       const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(selectedListType));
       this.appStateService.setProvidedTradeAreas(false, siteCode );

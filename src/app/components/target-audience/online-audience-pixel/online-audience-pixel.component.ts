@@ -5,7 +5,6 @@ import { TreeNode } from 'primeng/primeng';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { Subject } from 'rxjs';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { UsageService } from '../../../services/usage.service';
 import { AppStateService } from '../../../services/app-state.service';
 
 const UnSelectableLimit = 1000;
@@ -30,7 +29,6 @@ export class OnlineAudiencePixelComponent implements OnInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
-              private usageService: UsageService,
               private appStateService: AppStateService) {
     this.currentSelectedNodes = this.allNodes;
 
@@ -55,9 +53,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     if (!ready || audiences == null || audiences.length === 0) return;
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);
-      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length > 0) {
-        continue; //the current selected list already has the node we are trying to push in
-      } else {
+      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
         this.currentSelectedNodes.push(node[0]);
       }
     }
@@ -91,7 +87,6 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.audienceService.addAudience(event.data, SourceTypes.Pixel);
     // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
     // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
-    // this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public removeVariable(event: TreeNode) : void {
@@ -100,7 +95,6 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.audienceService.removeAudience(event.data, SourceTypes.Pixel);
     // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
     // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
-    // this.usageService.createCounterMetric(usageMetricName, metricText, null);
   }
 
   public formatCount(number: string) {
@@ -117,7 +111,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
-    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId != result[0].audienceIdentifier);
+    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId !== result[0].audienceIdentifier);
     this.cd.markForCheck();
   }
 

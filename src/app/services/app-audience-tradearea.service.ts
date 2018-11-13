@@ -18,11 +18,13 @@ import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
-import { AppMessagingService } from './app-messaging.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { simpleFlatten } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { filter } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '../messaging';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -196,8 +198,8 @@ export class ValAudienceTradeareaService {
    * @param scoreType The score type, DMA or National
    */
   public createAudienceTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
-
-     this.messagingService.startSpinnerDialog('AUDIENCETA', 'Creating Audience Trade Area');
+     const key = 'AUDIENCETA';
+     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Audience Trade Area'}));
 
    try {
      const validate: boolean | string[] = this.validateTradeArea();
@@ -208,9 +210,9 @@ export class ValAudienceTradeareaService {
        }
  //      console.log('growlMessage::::', growlMessage);
        for (let i = 0; i < growlMessage.length; i++) {
-         this.messagingService.showErrorNotification('Audience Trade Area Error', growlMessage[i]);
+         this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
        }
-       this.messagingService.stopSpinnerDialog('AUDIENCETA');
+       this.store$.dispatch(new StopBusyIndicator({ key }));
        return Observable.create(o => o.next(false));
      }
    } catch (error) {
@@ -233,8 +235,8 @@ export class ValAudienceTradeareaService {
           this.parseResponse(response);
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', this.audienceTAConfig);
-            this.messagingService.showWarningNotification('Audience Trade Area Warning', 'No data was found for your input parameters');
-            this.messagingService.stopSpinnerDialog('AUDIENCETA');
+            this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
+            this.store$.dispatch(new StopBusyIndicator({ key }));
             this.audienceTaSubject.next(true);
             return;
           }
@@ -254,7 +256,7 @@ export class ValAudienceTradeareaService {
             for (const failedLoc of this.failedLocations) {
               warningMessage += failedLoc.locationName + '\n';
             }
-            this.messagingService.showWarningNotification('Audience Trade Area Warning', warningMessage);
+            this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: warningMessage }));
             this.failedLocations = [];
           }
           this.appTradeAreaService.insertTradeAreas(newTradeAreas);
@@ -264,18 +266,18 @@ export class ValAudienceTradeareaService {
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
-          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         } catch (error) {
           console.error(error);
           this.audienceTaSubject.next(false);
-          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         }
       },
         err => {
           console.error(err);
           this.audienceTaSubject.next(false);
           this.fetchData = true;
-          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
     } else {
       this.rerunTradearea(audienceTAConfig).subscribe(res => {
@@ -283,14 +285,14 @@ export class ValAudienceTradeareaService {
           this.audienceTaSubject.next(true);
         } else {
           this.audienceTaSubject.next(false);
-          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         }
       },
         err => {
           console.error(err);
           this.audienceTaSubject.next(false);
           this.fetchData = true;
-          this.messagingService.stopSpinnerDialog('AUDIENCETA');
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
     }
     return this.audienceTaSubject.asObservable();
@@ -558,27 +560,21 @@ export class ValAudienceTradeareaService {
 
   /**
    * The Constructor will build out mock data until there is a REST service available that can deliver this data back to the application
-   * @param varService
-   * @param locationService
-   * @param tradeareaService
-   * @param geoService
-   * @param rendererService
-   * @param geoAttribService
    */
   constructor(private varService: ImpGeofootprintVarService,
-    private stateService: AppStateService,
-    private appTradeAreaService: AppTradeAreaService,
-    private locationService: ImpGeofootprintLocationService,
-    private geoService: ImpGeofootprintGeoService,
-    private rendererService: AppRendererService,
-    private geoAttribService: ImpGeofootprintGeoAttribService,
-    private mapService: AppMapService,
-    private httpClient: HttpClient,
-    private appConfig: AppConfig,
-    private targetAudienceService: TargetAudienceService,
-    private targetAudienceTAService: TargetAudienceAudienceTA,
-    private messagingService: AppMessagingService,
-    private domainFactory: ImpDomainFactoryService) {
+              private stateService: AppStateService,
+              private appTradeAreaService: AppTradeAreaService,
+              private locationService: ImpGeofootprintLocationService,
+              private geoService: ImpGeofootprintGeoService,
+              private rendererService: AppRendererService,
+              private geoAttribService: ImpGeofootprintGeoAttribService,
+              private mapService: AppMapService,
+              private httpClient: HttpClient,
+              private appConfig: AppConfig,
+              private targetAudienceService: TargetAudienceService,
+              private targetAudienceTAService: TargetAudienceAudienceTA,
+              private domainFactory: ImpDomainFactoryService,
+              private store$: Store<AppState>) {
       this.audienceTAConfig = {
         analysisLevel: null,
         digCategoryId: null,

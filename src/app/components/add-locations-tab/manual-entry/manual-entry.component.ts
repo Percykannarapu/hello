@@ -1,16 +1,14 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { MenuItem } from 'primeng/primeng';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import * as Presets from './manual-entry-presets';
-import { AppStateService } from '../../../services/app-state.service';
-import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../../services/usage.service';
 
 @Component({
   selector: 'val-manual-entry',
   templateUrl: './manual-entry.component.html',
-  styleUrls: ['./manual-entry.component.css']
+  styleUrls: ['./manual-entry.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManualEntryComponent implements OnInit {
 
@@ -23,9 +21,7 @@ export class ManualEntryComponent implements OnInit {
   get latitude() { return this.manualEntryForm.get('latitude'); }
   get longitude() { return this.manualEntryForm.get('longitude'); }
 
-  constructor(private fb: FormBuilder,
-              private appStateService: AppStateService,
-              private usageService: UsageService) {}
+  constructor(private fb: FormBuilder) {}
 
   ngOnInit() {
     this.manualEntryForm = this.fb.group({
@@ -45,7 +41,10 @@ export class ManualEntryComponent implements OnInit {
       { label: 'Tecumseh', icon: 'ui-icon-map', command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
       { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' }
     ];
-    this.appStateService.clearUI$.subscribe(() => this.manualEntryForm.reset());
+  }
+
+  clear() : void {
+    this.manualEntryForm.reset();
   }
 
   hasErrors(controlKey: string) : boolean {
@@ -55,11 +54,6 @@ export class ManualEntryComponent implements OnInit {
 
   onSubmit(formData: any) {
     this.submitSite.emit(new ValGeocodingRequest(formData));
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-site', action: 'add' });
-    const mktValue = formData.Market != null ? `~Market=${formData.Market}` : null;
-    let metricsText = `Number=${formData.number}~Name=${formData.name}~Street=${formData.street}~City=${formData.city}~State=${formData.state}~ZIP=${formData.zip}`;
-    metricsText = mktValue != null ? metricsText + mktValue : metricsText;
-    this.usageService.createCounterMetric(usageMetricName, metricsText, null);
   }
 
   loadVPW() {

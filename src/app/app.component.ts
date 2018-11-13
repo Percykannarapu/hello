@@ -2,10 +2,12 @@ import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoC
 import { AppStateService } from './services/app-state.service';
 import { AppConfig } from './app.config';
 import { Observable } from 'rxjs';
-import { AppMessagingService } from './services/app-messaging.service';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
-import { AppProjectService } from './services/app-project.service';
+import { AppState } from './state/app.interfaces';
+import { select, Store } from '@ngrx/store';
+import { selectors } from './messaging';
+import { CreateNewProject } from './state/data-shim/data-shim.actions';
 
 enum MenuOrientation {
     STATIC,
@@ -69,18 +71,15 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     currentProject$: Observable<ImpProject>;
 
-    constructor(private projectService: AppProjectService,
-                private config: AppConfig,
-                private messaging: AppMessagingService,
+    constructor(private config: AppConfig,
                 private domainFactory: ImpDomainFactoryService,
-                private stateService: AppStateService) { }
-
+                private stateService: AppStateService,
+                private store$: Store<AppState>) { }
 
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
-        this.projectService.createNew();
-        this.currentSpinnerMessage$ = this.messaging.spinnerMessage$;
-        this.currentSpinnerState$ = this.messaging.spinnerState$;
+        this.currentSpinnerMessage$ = this.store$.pipe(select(selectors.busyIndicatorMessage));
+        this.currentSpinnerState$ = this.store$.pipe(select(selectors.showBusyIndicator));
         this.currentProject$ = this.stateService.currentProject$;
     }
 

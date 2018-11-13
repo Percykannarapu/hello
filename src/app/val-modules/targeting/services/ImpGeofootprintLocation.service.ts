@@ -10,7 +10,6 @@
  **/
 import { Injectable } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
-import { AppMessagingService } from '../../../services/app-messaging.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
@@ -20,6 +19,9 @@ import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.serv
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { simpleFlatten } from '../../common/common.utils';
+import { Action, Store } from '@ngrx/store';
+import { AppState } from '../../../state/app.interfaces';
+import { ErrorNotification, SuccessNotification } from '../../../messaging';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -39,7 +41,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
-               private messageService: AppMessagingService)
+               private store$: Store<AppState>)
     {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocation');
     }
@@ -305,20 +307,26 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             const csvString = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
             this.rest.postCSV(serviceUrl, csvString).subscribe(res => {
               console.log('Response from vlh', res);
+              const notificationTitle = 'Send Custom Sites';
+              let notification: Action;
               if (res.returnCode === 200) {
-                this.messageService.showSuccessNotification('Send Custom Sites', 'Sent ' + locations.length + ' sites to Valassis Digital successfully for ' + project.clientIdentifierName.trim());
+                notification = new SuccessNotification({ notificationTitle, message: `Sent ${locations.length} sites to Valassis Digital successfully for ${project.clientIdentifierName.trim()}`});
               } else {
-                this.messageService.showErrorNotification('Send Custom Sites', 'Error sending ' + locations.length + ' sites to Valassis Digital for ' + project.clientIdentifierName.trim());
+                notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} sites to Valassis Digital for ${project.clientIdentifierName.trim()}`});
               }
+              this.store$.dispatch(notification);
             });
           }
         } else {
           // DE1742: display an error message if attempting to export an empty data store
+          const notificationTitle = 'Error Exporting Locations';
+          let message: string;
           if (exportType && exportType.toLocaleUpperCase() === 'SITES') {
-            this.messageService.showErrorNotification('Error exporting sites list', 'You must first add site locations');
+            message = 'You must first add site locations';
           } else if (exportType && exportType.toLocaleUpperCase() === 'COMPETITORS' ) {
-            this.messageService.showErrorNotification('Error exporting competitors list', 'You must first add competitor locations');
+            message = 'You must first add competitor locations';
           }
+          this.store$.dispatch(new ErrorNotification({ message, notificationTitle }));
         }
       }
    }

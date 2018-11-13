@@ -283,6 +283,7 @@ export class AppTradeAreaService {
     this.logger.debug('Draw Trade Area parameters', { siteType, tradeAreas, mergeType });
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
+    if (currentTradeAreas.length === 0) return;
     const radii = currentTradeAreas.map(ta => ta.taRadius);
     if (mergeType !== TradeAreaMergeTypeCodes.MergeAll) {
       // all circles will be drawn

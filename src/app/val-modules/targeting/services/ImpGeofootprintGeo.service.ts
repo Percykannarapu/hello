@@ -17,12 +17,14 @@ import { Observable, EMPTY } from 'rxjs';
 import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ColumnDefinition } from '../../common/services/datastore.service';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
-import { AppMessagingService } from '../../../services/app-messaging.service';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { groupBy, simpleFlatten } from '../../common/common.utils';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../state/app.interfaces';
+import { ErrorNotification } from '../../../messaging';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -43,8 +45,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
-               private messageService: AppMessagingService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService)
+               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
+               private store$: Store<AppState>)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
    }
@@ -447,7 +449,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
-         this.messageService.showErrorNotification('Error exporting geofootprint', 'You must add sites and select geographies prior to exporting the geofootprint');
+         this.store$.dispatch(new ErrorNotification({ message: 'You must add sites and select geographies prior to exporting the geofootprint', notificationTitle: 'Error Exporting Geofootprint' }));
          return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
       }
 

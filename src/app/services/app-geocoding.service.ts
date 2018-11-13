@@ -4,25 +4,25 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { map, tap } from 'rxjs/operators';
-import { AppMessagingService } from './app-messaging.service';
 import { chunkArray } from '../app.utils';
 import { AppConfig } from '../app.config';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from './usage.service';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { AppStateService } from './app-state.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { ErrorNotification, SuccessNotification } from '../messaging';
 
 @Injectable()
 export class AppGeocodingService {
 
   public duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, Set<string>>();
 
-  constructor(private messageService: AppMessagingService,
-              private restService: RestDataService,
-              private usageService: UsageService,
+  constructor(private restService: RestDataService,
               private config: AppConfig,
-              private appStateService: AppStateService) {
+              private appStateService: AppStateService,
+              private store$: Store<AppState>) {
     this.clearDuplicates();
     this.appStateService.clearUI$.subscribe(() => this.clearDuplicates());
   }
@@ -32,42 +32,34 @@ export class AppGeocodingService {
     let result = [];
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
-     if (data == null ){
-      this.messageService.showErrorNotification('Site List Upload Error', `Please define radii values >0 and <= 50 for all ${siteType}s.`);
-     } else {
-      if (data.failedRows.length > 0) {
-        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-        this.messageService.showErrorNotification('Geocoding Error', `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`);
+      if (data == null ) {
+        this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Site List Upload Error' }));
       } else {
-        const siteNumbers = [];
-        data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
-        if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0  && siteType !== ImpClientLocationTypeCodes.Competitor){
-            this.messageService.showErrorNotification('Geocoding Error', 'Duplicate Site Numbers exist in your upload file.');
-            //this.duplicateKeyMap.get(siteType).clear();
+        if (data.failedRows.length > 0) {
+          console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`, notificationTitle: 'Geocoding Error' }));
+        } else {
+          const siteNumbers = [];
+          data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
+          if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0  && siteType !== ImpClientLocationTypeCodes.Competitor){
+            this.store$.dispatch(new ErrorNotification({ message: 'Duplicate Site Numbers exist in your upload file.', notificationTitle: 'Geocoding Error' }));
             result = [];
             return result;
-        }
-        if (data.duplicateKeys.length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor) {
-          const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
-          const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
-          this.messageService.showErrorNotification('Geocoding Error', `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`);
-        } else {
-          result = data.parsedData.map(d => new ValGeocodingRequest(d));
-          result.map(r => r.number).forEach(n => {
-            this.duplicateKeyMap.get(siteType).add(n);
-          });
+          }
+          if (data.duplicateKeys.length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor) {
+            const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
+            const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
+            this.store$.dispatch(new ErrorNotification({ message: `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`, notificationTitle: 'Geocoding Error' }));
+          } else {
+            result = data.parsedData.map(d => new ValGeocodingRequest(d));
+            result.map(r => r.number).forEach(n => {
+              this.duplicateKeyMap.get(siteType).add(n);
+            });
+          }
         }
       }
-     
-     /*dupSiteNumbers.every((ele, i, array) => {return (array.lastIndexOf(ele) !== i); });
-     const dupSiteNumbers =  siteNumbers.filter((val, index, self) => {
-        return (self.indexOf(val) !== index);
-      });*/
-      
-    }
-     
     } catch (e) {
-      this.messageService.showErrorNotification('Geocoding Error', `${e}`);
+      this.store$.dispatch(new ErrorNotification({ message: `${e}`, notificationTitle: 'Geocoding Error' }));
     }
     return result;
   }
@@ -99,14 +91,13 @@ export class AppGeocodingService {
           const goodCount = successCount + providedCount;
           const failCount = allLocations.length - goodCount;
           if (allLocations.length > 1) {
-            const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: `${siteType.toLowerCase()}-data-file`, action: 'upload' });
             const metricText = `success=${goodCount}~error=${failCount}`;
-            this.usageService.createCounterMetric(usageMetricName, metricText, allLocations.length);
+            this.store$.dispatch(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-data-file`, 'upload', metricText, allLocations.length));
           }
           if (failCount > 0) {
-            this.messageService.showErrorNotification('Error', 'Geocoding Error');
+            this.store$.dispatch(new ErrorNotification({ message: 'Geocoding Error' }));
           } else if (successCount > 0) {
-            this.messageService.showSuccessNotification('Success', 'Geocoding Success');
+            this.store$.dispatch(new SuccessNotification({ message: 'Geocoding Success' }));
           }
         }),
     );

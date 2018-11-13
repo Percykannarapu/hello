@@ -1,29 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
 
 @Component({
   selector: 'val-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
 
   private spinnerKey = 'LoginComponentKey';
   private spinnerMessage = 'Authenticating';
 
   constructor(private router: Router,
               private authService: AuthService,
-              private messageService: AppMessagingService,
+              private store$: Store<AppState>,
               private userService: UserService) { }
-
-  ngOnInit() {
-  }
 
   /**
    * Handle the user authentication request, this is done by invoking the auth service
@@ -31,25 +30,19 @@ export class LoginComponent implements OnInit {
    */
   public onSubmit(loginForm: NgForm) {
     if (loginForm.value.username === '' || loginForm.value.password === '') {
-      this.messageService.showErrorNotification('Login Error', 'You must enter both a username and password');
+      this.store$.dispatch(new ErrorNotification({ message: 'You must enter both a username and password', notificationTitle: 'Login Error' }));
       return;
     }
-    this.messageService.startSpinnerDialog(this.spinnerKey, this.spinnerMessage);
+    this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: this.spinnerMessage }));
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
-//        this.displayLoginSpinner = false;
-//        this.createUser(loginForm.value.username);
-//        this.bootstrapDataStore();
-//        this.router.navigate(['/']);
           this.bootstrapDataStore();
           this.fetchUserInfo(loginForm.value.username);
-      }
-      else {
-        this.messageService.stopSpinnerDialog(this.spinnerKey);
-        this.messageService.showErrorNotification('Login Error', 'Please check your username and password and try again');
+      } else {
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        this.store$.dispatch(new ErrorNotification({ message: 'Please check your username and password and try again', notificationTitle: 'Login Error' }));
       }
     });
-
   }
 
   /**
@@ -60,15 +53,16 @@ export class LoginComponent implements OnInit {
     this.userService.fetchUserRecord(username).subscribe(user => {
       if (user != null) {
         this.createUser(username, user);
-        this.messageService.stopSpinnerDialog(this.spinnerKey);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
         this.router.navigate(['/']);
       } else {
-        this.messageService.showErrorNotification('Login Error', 'Unable to look up user info');
-        this.messageService.stopSpinnerDialog(this.spinnerKey);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        this.store$.dispatch(new ErrorNotification({ message: 'Unable to look up user info', notificationTitle: 'Login Error' }));
       }
     }, err => {
-      this.messageService.showErrorNotification('Login Error', 'Unable to look up user info');
-      this.messageService.stopSpinnerDialog(this.spinnerKey);
+      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+      this.store$.dispatch(new ErrorNotification({ message: 'Unable to look up user info', notificationTitle: 'Login Error' }));
+      console.error('Unable to look up user info', err);
     });
   }
 
