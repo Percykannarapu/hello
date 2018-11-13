@@ -104,8 +104,8 @@ export class CampaignDetailsComponent implements OnInit {
     // retrieve the list of field names from the form data
     const formFieldNames = Object.keys(currentForm);
     formFieldNames.forEach(fieldName => {
-      const previousValue = previousForm[fieldName];
-      const currentValue = currentForm[fieldName];
+      const previousValue = previousForm != null ? previousForm[fieldName] : null;
+      const currentValue = currentForm != null ? currentForm[fieldName] : null;
       const usageTarget = this.usageTargetMap[fieldName];
       // only log values that are tracked and have changed
       if (usageTarget != null && previousValue !== currentValue) {
