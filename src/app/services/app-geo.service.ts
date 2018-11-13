@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
@@ -118,6 +118,7 @@ export class AppGeoService {
     combineLatest(this.locationService.storeObservable,
       this.impGeoService.storeObservable,
       this.appStateService.applicationIsReady$).pipe(
+        tap(state => console.log('What in tarnation?!', state)),
       // halt the sequence if the project is still loading
       filter(([locations, geos, isReady]) => isReady),
       // keep only locations identified as sites
@@ -210,8 +211,8 @@ export class AppGeoService {
         () => {
           const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
           this.filterGeosImpl(geosToPersist);
-          this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);
+          this.impGeoService.add(geosToPersist);
           this.store$.dispatch(new StopBusyIndicator({ key }));
         });
   }
