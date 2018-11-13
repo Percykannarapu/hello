@@ -118,7 +118,6 @@ export class AppGeoService {
     combineLatest(this.locationService.storeObservable,
       this.impGeoService.storeObservable,
       this.appStateService.applicationIsReady$).pipe(
-        tap(state => console.log('What in tarnation?!', state)),
       // halt the sequence if the project is still loading
       filter(([locations, geos, isReady]) => isReady),
       // keep only locations identified as sites
