@@ -49,6 +49,7 @@ export class RadService {
    * Filter the RAD data based on the data available in the ImpDiscoveryService
    */
   private filterRad(currentProject: ImpProject) {
+    if (currentProject == null) return;
     const currentCategoryName = this.discoveryService.radCategoryNameByCode.get(currentProject.industryCategoryCode);
     //filter down the RAD data based on the current product and category
     if (this.radData != null && currentCategoryName != null) {
