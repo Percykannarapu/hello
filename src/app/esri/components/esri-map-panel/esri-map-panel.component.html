@@ -9,6 +9,7 @@
 </val-esri-toolbar>
 <val-esri-map [cursor]="cursor$ | async"
               [height]="height$ | async"
+              [baseMap]="baseMap"
               (mapClicked)="onMapClick($event)"
               (viewChanged)="onViewChanged($event)">
 </val-esri-map>

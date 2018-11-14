@@ -1,14 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Subject, Observable } from 'rxjs';
 import { filter, map, take, tap, distinctUntilChanged } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppLocationService } from '../../services/app-location.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { UsageService } from '../../services/usage.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area/distance-trade-area-ui.model';
@@ -16,6 +12,10 @@ import { AudienceTradeAreaConfig, AudienceDataDefinition } from '../../models/au
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { ErrorNotification, StopBusyIndicator } from '../../messaging';
+import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -57,14 +57,13 @@ export class TradeAreaTabComponent implements OnInit {
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
 
   constructor(private stateService: AppStateService,
-               private messagingService: AppMessagingService,
                private tradeAreaService: AppTradeAreaService,
-               private usageService: UsageService,
                private appLocationService: AppLocationService,
                private config: AppConfig,
                private audienceTradeareaService: ValAudienceTradeareaService,
                private targetAudienceService: TargetAudienceService,
-               private locationService: ImpGeofootprintLocationService) { }
+               private locationService: ImpGeofootprintLocationService,
+              private store$: Store<AppState>) { }
 
   ngOnInit() {
     // keep track of locations - need this for validation upon submit of radius trade areas
@@ -111,15 +110,17 @@ export class TradeAreaTabComponent implements OnInit {
     if (JSON.stringify(newModel.tradeAreas) === JSON.stringify(cachedValue)) return;
 
     let isValid = true;
+    let notification: ErrorNotification = null;
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     if (!this.siteCounts.has(siteType) || this.siteCounts.get(siteType) < 1) {
-      this.messagingService.showErrorNotification('Trade Area Error', `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s`);
+      notification = new ErrorNotification({ notificationTitle: 'Trade Area Error', message: `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s` });
       isValid = false;
     }
     if (isValid && (currentAnalysisLevel == null || currentAnalysisLevel === '') && siteType === ImpClientLocationTypeCodes.Site) {
-      this.messagingService.showErrorNotification('Trade Area Error', `You must select an Analysis Level before applying a trade area to Sites`);
+      notification = new ErrorNotification({ notificationTitle: 'Trade Area Error', message: `You must select an Analysis Level before applying a trade area to Sites` });
       isValid = false;
     }
+    if (notification) this.store$.dispatch(notification);
     const newRadii = newModel.tradeAreas.map(ta => ta.radius);
     const prevRadii = cachedValue.map(ta => ta.radius);
     if (JSON.stringify(newRadii) === JSON.stringify(prevRadii)) {
@@ -129,9 +130,8 @@ export class TradeAreaTabComponent implements OnInit {
     }
     if (isValid) {
       // save usage metrics
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'radius', action: 'applied' });
       const metricText = newModel.tradeAreas.filter(ta => ta.radius != null).reduce((p, c, i) => `${p}TA${i + 1} ${c.radius} Miles ~`, '');
-      this.usageService.createCounterMetric(usageMetricName, metricText, null);
+      this.store$.dispatch(new CreateTradeAreaUsageMetric('radius', 'applied', metricText));
 
       // Apply the new trade areas
       const transformedAreas = newModel.tradeAreas.map(ta => ({ radius: numberOrNull(ta.radius), selected: ta.isShowing }));
@@ -180,13 +180,12 @@ export class TradeAreaTabComponent implements OnInit {
 
   onRunAudienceTA(run: boolean) {
     if (!run) return;
-    const errorTitle: string = 'Audience Trade Area Error';
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
-    .subscribe(result => {},
+    .subscribe(null,
     error => {
       console.error('Error while creating audience tradearea', error);
-      this.messagingService.showErrorNotification(errorTitle, 'Error while creating Audience Trade Area');
-      this.messagingService.stopSpinnerDialog('AUDIENCETA');
+      this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
+      this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
     });
   }
 }

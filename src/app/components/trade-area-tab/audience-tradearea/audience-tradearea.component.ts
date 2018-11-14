@@ -1,12 +1,11 @@
 import { Component, OnInit, SimpleChanges, OnChanges, Input, Output, EventEmitter } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../../models/audience-data.model';
-import { Observable } from 'rxjs';
-import { map, distinctUntilChanged, filter, skipWhile } from 'rxjs/operators';
 import { AppStateService } from '../../../services/app-state.service';
-import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../../services/usage.service';
+import { AppState } from '../../../state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { CreateTradeAreaUsageMetric } from '../../../state/usage/targeting-usage.actions';
 
 
 @Component({
@@ -30,7 +29,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   @Output() runAudienceTA: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private stateService: AppStateService,
-    private usageService: UsageService,
+    private store$: Store<AppState>,
     private fb: FormBuilder) { }
 
   ngOnInit() {
@@ -131,7 +130,6 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
   public onClickApply() {
     this.runAudienceTA.emit(true);
-    const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'audience', action: 'applied' });
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
                         ~siteCount=${this.currentLocationsCount}
                         ~minRadius=${this.currentAudienceTAConfig.minRadius}
@@ -142,7 +140,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
                         ~weight=${this.currentAudienceTAConfig.weight}
                         ~scoreType=${this.currentAudienceTAConfig.scoreType}
                         ~includeAllInMustCover=${this.currentAudienceTAConfig.includeMustCover ? 1 : 0}`;
-    this.usageService.createCounterMetric(usageMetricName, metricText, null);
+    this.store$.dispatch(new CreateTradeAreaUsageMetric('audience', 'applied', metricText));
   }
 
   public clearFields(){

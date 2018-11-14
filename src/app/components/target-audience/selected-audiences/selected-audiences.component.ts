@@ -3,15 +3,15 @@ import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { SelectItem } from 'primeng/primeng';
 import { AppRendererService, SmartMappingTheme } from '../../../services/app-renderer.service';
-import { UsageService } from '../../../services/usage.service';
-import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { map, take, filter, skip } from 'rxjs/operators';
+import { map, take, filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { MetricService } from '../../../val-modules/common/services/metric.service';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { AppMessagingService } from '../../../services/app-messaging.service';
-import { AppDiscoveryService } from '../../../services/app-discovery.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../state/app.interfaces';
+import { WarningNotification } from '../../../messaging';
+import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
+import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -26,10 +26,10 @@ export class SelectedAudiencesComponent implements OnInit {
   allThemes: SelectItem[] = [];
   currentTheme: string;
 
-  constructor(private varService: TargetAudienceService, private usageService: UsageService,
-    private appStateService: AppStateService, private metricService: MetricService,
-    private appMessagingService: AppMessagingService,
-    private confirmationService: ConfirmationService, private impDiscoveryService: AppDiscoveryService) {
+  constructor(private varService: TargetAudienceService,
+              private appStateService: AppStateService,
+              private confirmationService: ConfirmationService,
+              private store$: Store<AppState>) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = SmartMappingTheme;
     const keys = Object.keys(allThemes);
@@ -78,28 +78,18 @@ export class SelectedAudiencesComponent implements OnInit {
     if (mappedAudience != null) {
       const analysisLevel = this.appStateService.analysisLevel$.getValue();
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'thematic-shading', action: 'activated' });
       let metricText = null;
-      if (mappedAudience.audienceSourceType === 'Custom'){
+      if (mappedAudience.audienceSourceType === 'Custom') {
         metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
-      }
-      else{
+      } else {
          metricText = variableId + '~' + mappedAudience.audienceName.replace('~', ':') + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
          metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
-          
       }
-
-      this.usageService.createCounterMetric(usageMetricName, metricText, null);
-
-      const counterMetricsDiscover = this.impDiscoveryService.discoveryUsageMetricsCreate('map-thematic-shading-activated');
-      const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate('map-thematic-shading-activated');
-      this.usageService.creategaugeMetrics(counterMetricsDiscover);
-      this.usageService.creategaugeMetrics(counterMetricsColorBox);
-      this.usageService.createCounterMetrics(counterMetricsDiscover);
-      this.usageService.createCounterMetrics(counterMetricsColorBox);
+      this.store$.dispatch(new CreateMapUsageMetric('thematic-shading', 'activated', metricText));
+      this.store$.dispatch(new CreateGaugeMetric({ gaugeAction: 'map-thematic-shading-activated'}));
     }
     if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
-      this.appMessagingService.showWarningNotification('Apply Selected Audience', 'You must select an Analysis Level in order to apply the selected audience variable(s)');
+      this.store$.dispatch(new WarningNotification({ message: 'You must select an Analysis Level in order to apply the selected audience variable(s)', notificationTitle: 'Apply Selected Audience' }));
       return;
     }
     this.varService.applyAudienceSelection();
@@ -120,7 +110,7 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
   }
     
-  onShowGridSelected(audience: AudienceDataDefinition): void{
+  onShowGridSelected(audience: AudienceDataDefinition) : void{
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
       map(a => a.filter(a2 => a2 === audience)),
@@ -128,7 +118,7 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);
    }
   
-  onExportInGeoFootprintSelected(audience:AudienceDataDefinition) :void {
+  onExportInGeoFootprintSelected(audience: AudienceDataDefinition) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
       map(a => a.filter(a2 => a2 === audience)),
@@ -157,25 +147,22 @@ export class SelectedAudiencesComponent implements OnInit {
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-      const metricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'audience', action: 'delete' });
       let metricText = null;
-      if (audience.audienceSourceType === 'Online')
+      switch (audience.audienceSourceType) {
+        case 'Custom':
+          metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+          break;
+        case 'Offline':
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}` ;
+          break;
+        case 'Online':
           metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
-      
-      if (audience.audienceSourceType === 'Offline')
-          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}` ;    
-      
-      if (audience.audienceSourceType === 'Custom')
-          metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;        
-
-     // console.log('test metricText::::', metricText);     
-
-      this.usageService.createCounterMetric(metricName, metricText, null);
-
+          break;
+      }
+      this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
       this.varService.applyAudienceSelection();
     },
-    reject: () => {
-    }
+    reject: () => {}
    });
 
 

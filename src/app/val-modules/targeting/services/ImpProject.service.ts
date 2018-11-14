@@ -48,7 +48,7 @@ export class ImpProjectService extends DataStore<ImpProject>
      this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
    }
 
-   loadFromServer(id: number) : Observable<void> {
+   loadFromServer(id: number) : Observable<number> {
      if (id == null) return EMPTY;
      return Observable.create(observer => {
        const loadCache: ImpProject[] = [];
@@ -63,7 +63,7 @@ export class ImpProjectService extends DataStore<ImpProject>
              p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
            });
            this.load(loadCache);
-           observer.next();
+           observer.next(id);
            observer.complete();
          }
        );

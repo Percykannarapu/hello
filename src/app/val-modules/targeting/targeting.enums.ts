@@ -80,6 +80,9 @@ export enum FieldContentTypeCodes {
 export namespace FieldContentTypeCodes {
   export function parse(code: string) : FieldContentTypeCodes {
     if (code == null) return null;
-    return FieldContentTypeCodes[code.trim().toUpperCase()];
+    for (const key of Object.keys(FieldContentTypeCodes)) {
+      if (code.toUpperCase() === FieldContentTypeCodes[key].toUpperCase()) return FieldContentTypeCodes[key];
+    }
+    throw new Error('Invalid Field Content Type Code');
   }
 }

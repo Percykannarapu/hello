@@ -16,7 +16,7 @@ export class EsriMapEffects {
   @Effect()
   InitializeMap$ = this.actions$.pipe(
     ofType<InitializeMap>(EsriMapActionTypes.InitializeMap),
-    switchMap(action => this.mapService.initializeMap(action.payload.domContainer)),
+    switchMap(action => this.mapService.initializeMap(action.payload.domContainer, action.payload.baseMap)),
     map(() => new InitializeMapSuccess()),
     catchError(err => of(new InitializeMapFailure({ errorResponse: err })))
   );

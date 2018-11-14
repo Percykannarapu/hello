@@ -14,13 +14,14 @@ import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/Imp
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
 import { filter, map, take } from 'rxjs/operators';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 import { Observable } from 'rxjs';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 interface TradeAreaDefinition {
   store: string;
@@ -59,8 +60,8 @@ export class UploadTradeAreasComponent {
     private impGeofootprintLocationService: ImpGeofootprintLocationService,
     private impGeoService: ImpGeofootprintGeoService,
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-    private usageService: UsageService,
-    private domainFactory: ImpDomainFactoryService) {
+    private domainFactory: ImpDomainFactoryService,
+    private store$: Store<AppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
   }
 
@@ -143,7 +144,6 @@ export class UploadTradeAreasComponent {
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'custom-data-file', action: 'upload' });
     const allLocations: ImpGeofootprintLocation[] = this.impGeofootprintLocationService.get();
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
@@ -159,7 +159,8 @@ export class UploadTradeAreasComponent {
         this.uploadFailures = [...this.uploadFailures, taDef];
       }
     });
-    this.usageService.createCounterMetric(usageMetricName, `success~=${matchedTradeAreas.size}~error=${this.uploadFailures.length}`, data.length - 1);
+    const metricText = `success~=${matchedTradeAreas.size}~error=${this.uploadFailures.length}`;
+    this.store$.dispatch(new CreateTradeAreaUsageMetric('custom-data-file', 'upload', metricText, data.length - 1));
 
     const outfields = ['geocode', 'latitude', 'longitude'];
     const queryResult = new Map<string, {latitude: number, longitude: number}>();

@@ -13,9 +13,9 @@ export class EsriMapService {
   constructor(private domainService: EsriDomainFactoryService,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettingsConfig) {}
 
-  initializeMap(container: ElementRef) : Observable<any> {
+  initializeMap(container: ElementRef, baseMapId: string) : Observable<any> {
     const newMapParams = Object.assign({}, this.config.esriAppSettings.defaultMapParams);
-    newMapParams.basemap = EsriApi.BaseMap.fromId('streets');
+    newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
     const map = new EsriApi.Map(newMapParams);
     const newMapViewProps = Object.assign({}, this.config.esriAppSettings.defaultViewParams);
     newMapViewProps.container = container.nativeElement;

@@ -499,7 +499,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Get only geo variables that are flagged as usable
       const usableGeoVars = geoVars.filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
 
-      // Create a cache of geo variables, grouped by geocode
+      const varsInData = new Set(usableGeoVars.map(gv => this.getGeoVarFieldName(gv)));
+      // Get the missing geoVars with no scores
+      const missingVars = projectVars.filter(pv => pv.isIncludedInGeoGrid && !varsInData.has(this.getProjectVarFieldName(pv)));
+      console.log('Vars with no data:::', missingVars);
+      
+       // Create a cache of geo variables, grouped by geocode
       const varCache = groupBy(usableGeoVars, 'geocode');
 
       // Initialize grid totals & numDupes
@@ -579,8 +584,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          let currentVars = varCache.get(geo.geocode) || [];
          currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
             .forEach(geovar => {
-            if (geovar.isString)
-               gridGeo[geovar.varPk.toString()] = geovar.valueString;            
+            if (geovar.isString)                  
+                  gridGeo[geovar.varPk.toString()] = geovar.valueString != "null" ? geovar.valueString : '';            
             else
             {
               // Format them
@@ -610,9 +615,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             {
               const colWidth: number = Math.min(200, Math.max(60, (geovar.customVarExprDisplay.length * 6) + 24));
               const colStyleClass: string = (geovar.isNumber) ? 'val-text-right' : '';
+
+              // Let the fieldConte decide what the match operator will be on the numeric filter
+              let matchOper: string;
+              switch (geovar.fieldconte) {
+               case 'PERCENT':
+                  matchOper = ">=";
+                  break;
+            
+               default:
+                  matchOper = "between";
+                  break;
+              }
+
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? "numeric" : "text"
+                                                ,matchOper: matchOper
                                                 ,matchMode: 'contains', styleClass: colStyleClass});
             }
          });
@@ -622,7 +641,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          geoGridData.push(gridGeo);
       });
-
+      if(missingVars.length > 0 ){
+         missingVars.forEach(v =>             
+            this.flatGeoGridExtraColumns.push({field: v.varPk.toString(), header: this.getProjectVarFieldName(v), matchMode: 'contains', sortOrder: v.sortOrder, styleClass: 'val-text-right', width: '100px'})
+         )}
       // Set Ranges
       try
       {

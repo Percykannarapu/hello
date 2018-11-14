@@ -26,6 +26,7 @@ export class EsriMapPanelComponent {
   @Input() set mapHeight(val: number) {
     this.store.dispatch(new SetMapHeight({ newMapHeight: val }));
   }
+  @Input() baseMap: string;
 
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
   @Output() selectedButton = new EventEmitter();

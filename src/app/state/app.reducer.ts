@@ -2,18 +2,24 @@ import { routerReducer } from '@ngrx/router-store';
 import { Action, ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
 import { environment } from '../../environments/environment';
 import { AppState } from './app.interfaces';
+import { dataShimReducer } from './data-shim/data-shim.reducer';
+import { menuReducer } from './menu/menu.reducer';
 
 export const appReducer: ActionReducerMap<AppState> = {
-  router: routerReducer
+  router: routerReducer,
+  dataShim: dataShimReducer,
+  menu: menuReducer
 };
 
 export function logger(reducer: ActionReducer<AppState>) : ActionReducer<AppState> {
   return function(state: AppState, action: Action) : AppState {
     console.groupCollapsed(action.type);
-    console.log('state', state);
-    console.log('action', action);
+    const nextState = reducer(state, action);
+    console.log('%c prev state', 'color: #9E9E9E', state);
+    console.log('%c action', 'color: #03A9F4', action);
+    console.log('%c next state', 'color: #4CAF50', nextState);
     console.groupEnd();
-    return reducer(state, action);
+    return nextState;
   };
 }
 

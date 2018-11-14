@@ -6,9 +6,10 @@ import { Observable, Subject } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
 import { UserService } from './user.service';
-import { UsageService } from './usage.service';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { DataStoreServiceConfiguration, DataStore } from '../val-modules/common/services/datastore.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { CreateApplicationUsageMetric } from '../state/usage/targeting-usage.actions';
 
 interface RegistrationResponse {
   clientId: string;
@@ -64,7 +65,7 @@ export class AuthService implements CanActivate {
     private config: AppConfig,
     private cookieService: CookieService,
     private userService: UserService,
-    private usageService: UsageService) {
+    private store$: Store<AppState>) {
       this.clientId = this.config.clientId;
       this.clientSecret = this.config.clientSecret;
      }
@@ -105,8 +106,7 @@ export class AuthService implements CanActivate {
       return;
     }
     const user: User = this.userService.getUser();
-    const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'application', target: 'entry', action: 'login' });
-    this.usageService.createCounterMetric(usageMetricName, user.username + '~' + user.userId, null);
+    this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', user.username + '~' + user.userId));
   }
 
   /**

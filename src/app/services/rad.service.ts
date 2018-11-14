@@ -49,6 +49,7 @@ export class RadService {
    * Filter the RAD data based on the data available in the ImpDiscoveryService
    */
   private filterRad(currentProject: ImpProject) {
+    if (currentProject == null) return;
     const currentCategoryName = this.discoveryService.radCategoryNameByCode.get(currentProject.industryCategoryCode);
     //filter down the RAD data based on the current product and category
     if (this.radData != null && currentCategoryName != null) {
@@ -122,9 +123,9 @@ export class RadService {
           let cpr = 0;
          const campaignMap =  this.metricService.metrics.get('CAMPAIGN');
          const totalInvestment = Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''));
-         if (!Number.isNaN(totalInvestment) && totalInvestment != 0 && this.predictedResp != 0){
+         if (!Number.isNaN(totalInvestment) && totalInvestment !== 0 && this.predictedResp !== 0){
             console.log('total investment:::', totalInvestment);
-            if (this.predictedResp != 0 && totalInvestment != 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
+            if (this.predictedResp !== 0 && totalInvestment !== 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
                // cpr = this.predictedResp / totalInvestment;
                cpr =  totalInvestment / this.predictedResp;
             }

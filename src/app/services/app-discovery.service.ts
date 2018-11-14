@@ -9,8 +9,10 @@ import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLoo
 import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { filterByFields, mapBy } from '../val-modules/common/common.utils';
 import { mapArray } from '../val-modules/common/common.rxjs';
-import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification } from '../messaging';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -59,8 +61,8 @@ export class AppDiscoveryService {
   constructor(private restDataService: RestDataService,
                private appStateService: AppStateService,
                private impRadService: ImpRadLookupService,
-               private appMessagingService: AppMessagingService,
-               private logger: AppLoggingService) {
+               private logger: AppLoggingService,
+              private store$: Store<AppState>) {
     this.radCategoryCodes = [
       { name: 'N/A',                            code: 'NA'},
       { name: 'Auto Service/Parts',             code: 'AS03'},
@@ -191,11 +193,11 @@ export class AppDiscoveryService {
     const counterMetrics = [];
     let usageMetricName = null;
 
-    if (impProject.radProduct != null || impProject.radProduct != '') {
+    if (impProject.radProduct != null || impProject.radProduct !== '') {
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'product', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, impProject.radProduct, null));
     }
-    if (impProject.industryCategoryCode != null || impProject.industryCategoryCode != '') {
+    if (impProject.industryCategoryCode != null || impProject.industryCategoryCode !== '') {
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'category', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, impProject.industryCategoryCode, null));
     }
@@ -257,16 +259,15 @@ export class AppDiscoveryService {
   }
 
   public updateTrackerSuggestions(searchTerm: string) {
-      this.getProjectTrackerData(searchTerm).subscribe(items => {
-          if (items.length === 0) {
-             this.appMessagingService.showErrorNotification('Error:', 'No Project Tracker ID Found.', true); 
-          } else {  
+    this.getProjectTrackerData(searchTerm).subscribe(items => {
+        if (items.length === 0) {
+          this.store$.dispatch(new ErrorNotification({ message: 'No Project Tracker ID Found'}));
+        } else {
           const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
           this.currentTrackerSuggestions.next(foundItems);
         }
-      }, 
-      err => this.logger.error('There was an error retrieving the Project Tracker Data', err), 
-      () => {}
+      },
+      err => this.logger.error('There was an error retrieving the Project Tracker Data', err)
     );
   }
 

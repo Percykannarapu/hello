@@ -1,117 +1,61 @@
 import { Injectable } from '@angular/core';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { TransactionManager } from '../val-modules/common/services/TransactionManager.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { AppMessagingService } from './app-messaging.service';
 import { AppLoggingService } from './app-logging.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
 
 @Injectable()
 export class AppProjectService {
 
-  private projectIsLoading = new BehaviorSubject<boolean>(false);
-  public projectIsLoading$: Observable<boolean> = this.projectIsLoading.asObservable();
   public currentProject$: Observable<ImpProject>;
 
   constructor(private impProjectService: ImpProjectService,
-              private messagingService: AppMessagingService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
-              private projectTransactionManager: TransactionManager,
-              private restService: RestDataService) {
+              private restService: RestDataService,
+              private store$: Store<AppState>) {
     this.currentProject$ = this.impProjectService.storeObservable.pipe(
       filter(projects => projects != null && projects.length > 0 && projects[0] != null),
       map(projects => projects[0]),
     );
   }
 
-  load(id: number, setLoadFlag: boolean = true) : Observable<void> {
-    const inExistingTransaction: boolean = this.projectTransactionManager.inTransaction();
-    if (!inExistingTransaction) this.projectTransactionManager.startTransaction();
-    if (setLoadFlag) this.projectIsLoading.next(true);
-    this.messagingService.startSpinnerDialog('LOAD_PROJECT', `Loading Project ${id}`);
-    return Observable.create(observer => {
-      this.impProjectService.loadFromServer(id).subscribe(
-        null,
-        err => {
-          this.messagingService.stopSpinnerDialog('LOAD_PROJECT');
-          observer.error(err);
-        },
-        () => {
-          this.messagingService.stopSpinnerDialog('LOAD_PROJECT');
-          if (!inExistingTransaction) this.projectTransactionManager.stopTransaction();
-          if (setLoadFlag) this.projectIsLoading.next(false);
-          observer.next();
-          observer.complete();
-        });
-    });
+  load(id: number) : Observable<number> {
+    return this.impProjectService.loadFromServer(id);
   }
 
-  save(project?: ImpProject, reloadAfter: boolean = true) : Observable<number> {
+  save(project?: ImpProject) : Observable<number> {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
-    this.projectTransactionManager.startTransaction();
-    let newProjectId: number = null;
-    if (reloadAfter) this.projectIsLoading.next(true);
-    this.messagingService.startSpinnerDialog('SAVE_PROJECT', 'Saving Project');
-    return Observable.create(observer => {
-      this.cleanupProject(localProject);
-      this.logger.info('Project being saved', JSON.stringify(localProject));
-      this.restService.post(saveUrl, localProject).subscribe(
-        response => newProjectId = response.payload,
-        err => {
-          this.projectTransactionManager.stopTransaction();
-          this.messagingService.stopSpinnerDialog('SAVE_PROJECT');
-          observer.error(err);
-        },
-        () => {
-          this.messagingService.stopSpinnerDialog('SAVE_PROJECT');
-          if (newProjectId != null && reloadAfter) {
-            this.load(newProjectId, false).subscribe(
-              null,
-              err => {
-                this.projectTransactionManager.stopTransaction();
-                observer.error(err);
-              },
-              () => {
-                this.projectIsLoading.next(false);
-                this.projectTransactionManager.stopTransaction();
-                observer.next(newProjectId);
-                observer.complete();
-              }
-            );
-          } else {
-            // no reload - just complete the transaction
-            this.projectTransactionManager.stopTransaction();
-            observer.next(newProjectId);
-            observer.complete();
-          }
-        });
-    });
+    const errors = this.validateProject(localProject);
+    if (errors.length > 0) {
+      const message = errors.join('\n');
+      return throwError(message);
+    }
+    this.cleanupProject(localProject);
+    this.logger.info('Project being saved', JSON.stringify(localProject));
+    return this.restService.post(saveUrl, localProject).pipe(
+      map(response => response.payload)
+    );
   }
 
   createNew() : void {
-    this.projectIsLoading.next(true);
     const newProject = this.domainFactory.createProject();
     this.impProjectService.load([newProject]);
-    this.projectIsLoading.next(false);
   }
 
-  projectIsValid() : boolean {
-    const impProject = this.impProjectService.get()[0];
-    let errorString = '';
-    if (impProject.projectName == null || impProject.projectName == '')
-      errorString = 'imPower Project Name is required';
-    if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-      errorString  = errorString + '\n Analysis Level is required';
-    if (errorString !== ''){
-      this.messagingService.showErrorNotification('Error Saving Project', errorString);
-      return false;
-    }
-    return true;
+  private validateProject(impProject: ImpProject) : string[] {
+    const errors: string[] = [];
+    if (impProject.projectName == null || impProject.projectName === '')
+      errors.push('imPower Project Name is required');
+    if (impProject.methAnalysis == null || impProject.methAnalysis === '')
+      errors.push('Analysis Level is required');
+    return errors;
   }
 
   private cleanupProject(localProject: ImpProject) {
@@ -119,7 +63,7 @@ export class AppProjectService {
     localProject.impProjectPrefs = [];
     // filter out empty location attributes
     localProject.getImpGeofootprintLocations().forEach(loc => {
-      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue != '');
+      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
     });
     // remove geovars
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {

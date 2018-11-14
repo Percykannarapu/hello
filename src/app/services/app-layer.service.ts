@@ -7,14 +7,15 @@ import { toUniversalCoordinates } from '../app.utils';
 import { EsriApi } from '../esri/core/esri-api.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
-import { UsageService } from './usage.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 
 const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
 
@@ -52,10 +53,10 @@ export class AppLayerService {
   constructor(private layerService: EsriLayerService,
                private moduleService: EsriApi,
                private appStateService: AppStateService,
-               private usageService: UsageService,
                private generator: AppComponentGeneratorService,
                private logger: AppLoggingService,
-               private appConfig: AppConfig) {
+               private appConfig: AppConfig,
+              private store$: Store<AppState>) {
     this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
     this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
@@ -302,13 +303,8 @@ export class AppLayerService {
    * @param layer The layer to collect usage metrics on
    */
   private collectLayerUsage(layer: __esri.Layer) {
-    const layerActivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'activated' });
-    const layerDeactivated: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'map', target: 'layer-visibility', action: 'deactivated' });
-    if (layer.visible) {
-      this.usageService.createCounterMetric(layerActivated, layer.title, null);
-    } else {
-      this.usageService.createCounterMetric(layerDeactivated, layer.title, null);
-    }
+    const actionName = layer.visible ? 'activated' : 'deactivated';
+    this.store$.dispatch(new CreateMapUsageMetric('layer-visibility', actionName, layer.title));
   }
 
   /**

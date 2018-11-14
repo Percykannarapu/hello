@@ -9,6 +9,9 @@ import { ColorBoxComponent } from '../color-box/color-box.component';
 import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
 import { RadService } from '../../services/rad.service';
 import { UserService } from '../../services/user.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -55,9 +58,11 @@ export class DashboardComponent implements OnInit {
                 private radService: RadService,
                 private userService: UserService,
                 private impLocationService: ImpGeofootprintLocationService,
-                private impGeoService: ImpGeofootprintGeoService) { }
+                private impGeoService: ImpGeofootprintGeoService,
+                private store$: Store<AppState>) { }
 
     ngOnInit() {
+        this.store$.dispatch(new CreateNewProject());
 
         // Load models
         this.metricMapGreen = new Map([

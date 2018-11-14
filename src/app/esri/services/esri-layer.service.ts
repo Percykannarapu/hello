@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriMapService } from './esri-map.service';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { EsriUtils } from '../core/esri-utils';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';

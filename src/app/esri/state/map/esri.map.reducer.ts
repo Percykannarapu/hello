@@ -62,7 +62,7 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
 
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:
-      return { ...state, selectedFeatures: [ ...action.payload.features] };
+      return { ...state, selectedFeatures: [ ...action.payload.features ] };
     default:
       return state;
   }

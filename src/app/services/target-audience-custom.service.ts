@@ -1,8 +1,5 @@
 import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { AppMessagingService } from './app-messaging.service';
-import { UsageService } from './usage.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { EMPTY, merge, Observable, of } from 'rxjs';
 import { TargetAudienceService } from './target-audience.service';
@@ -14,6 +11,10 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { groupBy } from '../val-modules/common/common.utils';
 import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification, SuccessNotification } from '../messaging';
+import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -34,12 +35,11 @@ export class TargetAudienceCustomService {
   private currentFileName: string;
   private varPkCache: Map<string, number> = new Map<string, number>();
 
-  constructor(private messagingService: AppMessagingService,
-              private usageService: UsageService,
-              private audienceService: TargetAudienceService,
+  constructor(private audienceService: TargetAudienceService,
               private stateService: AppStateService,
               private domainFactory: ImpDomainFactoryService,
-              private varService: ImpGeofootprintVarService) {
+              private varService: ImpGeofootprintVarService,
+              private store$: Store<AppState>) {
     this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
@@ -107,8 +107,8 @@ export class TargetAudienceCustomService {
       newVarPk = this.varPkCache.get(column);
     } else {
       newVarPk = this.varService.getNextStoreId();
-      if (newVarPk <= Array.from(this.varPkCache.keys()).length) {
-        for (const i of Array.from(this.varPkCache)) {
+      if (newVarPk <= this.varPkCache.size) {
+        while (newVarPk < this.varPkCache.size) {
           newVarPk = this.varService.getNextStoreId();
         }
       }
@@ -160,14 +160,13 @@ export class TargetAudienceCustomService {
           this.dataCache = {};
           data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
-          const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'custom', action: 'upload' });
           for (const column of columnNames) {
             const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
             this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
             const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
-            this.usageService.createCounterMetric(usageMetricName, metricText, successCount);
+            this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
           }
-          this.messagingService.showSuccessNotification('Audience Upload Success', 'Upload Complete');
+          this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Custom Audience Upload'}));
         }
       }
     } catch (e) {
@@ -181,7 +180,7 @@ export class TargetAudienceCustomService {
   }
 
   private handleError(message: string) : void {
-    this.messagingService.showErrorNotification('Audience Upload Error', message);
+    this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {

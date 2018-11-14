@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/primeng';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { UserService } from '../../services/user.service';
-import { AppProjectService } from '../../services/app-project.service';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppLocationService } from '../../services/app-location.service';
@@ -10,10 +9,14 @@ import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { Observable, forkJoin } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
+import { select, Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { ShowConfirmation } from '../../messaging';
+import { openExistingDialogFlag } from '../../state/menu/menu.reducer';
+import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ConfirmationPayload } from '../../messaging/state/confirmation/confirmation.actions';
+import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
 
 @Component({
     selector: 'val-project',
@@ -22,13 +25,22 @@ import { TargetAudienceService } from '../../services/target-audience.service';
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
 
-    public showDialog: boolean;
+    private _showDialog: boolean = false;
+
+    // This is a workaround for a PrimeNg bug where dialogs aren't firing onHide() properly
+    public get showDialog() : boolean { return this._showDialog; }
+    public set showDialog(newValue: boolean) {
+      if (newValue !== this._showDialog && newValue === false) {
+        this.onDialogHide();
+      }
+      this._showDialog = newValue;
+    }
     public timeLines;
     public selectedTimeLine = 'sixMonths';
     public todayDate = new Date();
-    public customDialogDisplay: boolean;
+    // public customDialogDisplay: boolean;
     public selectedRow;
-    public loadEvent: any;
+    // public loadEvent: any;
     public allProjectsData: any;
     public myProjectsData: any;
     public selectedListType: 'myProject' | 'allProjects';
@@ -47,14 +59,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       ];
     constructor(private restService: RestDataService,
                 private userService: UserService,
-                public  appProjectService: AppProjectService,
                 private impGeofootprintLocationService: ImpGeofootprintLocationService,
                 private appLocationService: AppLocationService,
                 private appTradeAreaService: AppTradeAreaService,
                 private stateService: AppStateService,
-                private usageService: UsageService,
-                private messageService: AppMessagingService,
-                private targetAudienceService: TargetAudienceService){
+                private targetAudienceService: TargetAudienceService,
+                private store$: Store<AppState>){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -70,7 +80,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     ngOnInit() {
       this.selectedListType = 'myProject';
-      this.stateService.showLoadDialog$.subscribe(show => this.showDialog = show);
+      this.store$.pipe(select(openExistingDialogFlag)).subscribe(flag => this._showDialog = flag);
       for (const column of this.allColumns) {
         this.columnOptions.push({ label: column.header, value: column });
         this.selectedColumns.push(column);
@@ -203,7 +213,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.currentProjectData = this.allProjectsData;
           this.searchFilterMetric();
         }
-
       });    
     }
 
@@ -214,41 +223,28 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       return year + '-' + month + '-' + day;
     }
 
-    public dbClick(event: { originalEvent: MouseEvent, data: { projectId: number }}){
+    public dbClick(event: { originalEvent: MouseEvent, data: { projectId: number }}) {
        this.loadProject(event.data);
     }
 
     public loadProject(event: { projectId: number }){
       const locData = this.impGeofootprintLocationService.get();
       if (locData.length > 0) {
-        this.customDialogDisplay = true;
-        this.loadEvent = event;
-      } else {
-        this.onLoadProject(event);
-      }
-    }
-
-    private onLoadProject(event: { projectId: number }) : void {
-      this.stateService.clearUserInterface();
-      this.appProjectService.load(event.projectId).subscribe(
-        null,
-        err => {
-          console.log('There was an error loading the project', err);
-          this.messageService.showErrorNotification('Project Load', `There was an error loading Project ${event.projectId}`);
-        },
-        () => {
-          const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'load' });
-          this.usageService.createCounterMetric(usageMetricName, null, null);
-          this.appTradeAreaService.zoomToTradeArea();
-          const audiences = this.targetAudienceService.getAudiences();
-          const mappedAudience = audiences.find(a => a.showOnMap === true);
-          if (mappedAudience != null){
-            this.targetAudienceService.applyAudienceSelection();
+        const payload: ConfirmationPayload = {
+          title: 'Save Work',
+          message: 'Would you like to save your work before proceeding?',
+          canBeClosed: true,
+          accept: {
+            result: new SaveThenLoadProject({ projectToLoad: event.projectId })
+          },
+          reject: {
+            result: new DiscardThenLoadProject({ projectToLoad: event.projectId })
           }
-        });
-      this.stateService.setLoadDialogVisibility(false);
-      this.selectedListType = 'myProject';
-      this.customDialogDisplay = false;
+        };
+        this.store$.dispatch(new ShowConfirmation(payload));
+      } else {
+        this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: event.projectId }));
+      }
     }
 
     public onSearch(event, count){
@@ -259,42 +255,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     }
 
     private searchFilterMetric(){
-      const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
       const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
-      this.usageService.createCounterMetric(usageMetricName, metricText, (this.currentProjectData != null) ? this.currentProjectData.length : 0);
-    }
-
-    public accept(){
-      const impProject = this.stateService.currentProject$.getValue();
-      let errorString = null;
-      if (impProject.projectName == null || impProject.projectName == '')
-        errorString = 'imPower Project Name is required';
-      if (impProject.methAnalysis == null || impProject.methAnalysis == '')
-        errorString  = errorString + '\n Analysis Level is required';
-      if (errorString != null) {
-        this.messageService.showErrorNotification('Error Saving Project', errorString);
-        return;
-      }
-      let newProjectId: number;
-      this.appProjectService.save(impProject, false).subscribe(
-        result => newProjectId = result,
-        err => {
-          console.error('There was an error saving the project', err);
-          this.messageService.showErrorNotification('Project Save', 'There was an error saving the project');
-        },
-        () => {
-          const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'save' });
-          this.usageService.createCounterMetric(usageMetricName, null, newProjectId);
-          this.messageService.showSuccessNotification('Save Project', `Project ${newProjectId} was saved successfully`);
-          this.onLoadProject(this.loadEvent);
-        });
-    }
-
-    public reject() {
-      this.onLoadProject(this.loadEvent);
+      const searchResultLength = this.currentProjectData != null ? this.currentProjectData.length : 0;
+      this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, searchResultLength));
     }
 
     onDialogHide() : void {
-      this.stateService.setLoadDialogVisibility(false);
+      this.store$.dispatch(new CloseExistingProjectDialog());
     }
   }

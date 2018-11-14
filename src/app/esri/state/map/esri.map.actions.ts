@@ -15,7 +15,7 @@ export enum EsriMapActionTypes {
 
 export class InitializeMap implements Action {
   readonly type = EsriMapActionTypes.InitializeMap;
-  constructor(public payload: { domContainer: ElementRef }){}
+  constructor(public payload: { domContainer: ElementRef, baseMap: string }){}
 }
 
 export class InitializeMapSuccess implements Action {

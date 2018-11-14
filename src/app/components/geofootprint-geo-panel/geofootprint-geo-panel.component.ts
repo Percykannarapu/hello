@@ -17,10 +17,9 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ConfirmationService } from 'primeng/primeng';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
-import { log } from 'util';
-import { reject } from 'q';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 export interface FlatGeo {
    fgId: number;
@@ -73,7 +72,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                private targetAudienceService: TargetAudienceService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
-               private usageService: UsageService
+               private store$: Store<AppState>
                ) { }
                               
    ngOnInit() {
@@ -232,15 +231,21 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       let isSelected: boolean = event.isSelected;
 
       const currentProject = this.appStateService.currentProject$.getValue();
-      const geoDeselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'deselected' });
-      const geoselected: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'tradearea', target: 'geography', action: 'selected' });
 
       if (geo.isActive != isSelected)
       {
          //geo.isActive = isSelected;
         //US7845: changes to filter checking/unchecking geos that cover multiple stores 
+        //console.log('test data:::::100', geo);
          const filteredtGeos = currentProject.getImpGeofootprintGeos().filter(dupGeo => geo.geocode === dupGeo.geocode);
-         if (filteredtGeos.length > 0 && geo.isActive){
+         const isHomegeocode = filteredtGeos.filter(homeGeo => homeGeo.geocode === homeGeo.impGeofootprintLocation.homeGeocode);
+         if (isHomegeocode.length == 0 && geo.isActive){
+            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            this.impGeofootprintGeoService.makeDirty();
+            this.impGeofootprintGeoAttribService.makeDirty();
+         }
+         
+         if (filteredtGeos.length > 0 && isHomegeocode.length > 0 && geo.isActive){
              this.confirmationService.confirm({
               message: 'You are about to unselect a Home Geo for at least one of the sites.  Ok to continue?',
               header: ': Unselecting a Home Geo',
@@ -251,25 +256,24 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                  this.impGeofootprintGeoAttribService.makeDirty();
               },
               reject: () => {
-                geo.isActive = isSelected;
-                 //This change to update Datastore to fire toggleGeoSelection DE1933
-                  this.impGeofootprintGeoService.makeDirty();
-                  this.impGeofootprintGeoAttribService.makeDirty();  
+                     geo.isActive = true;
+                //  //This change to update Datastore to fire toggleGeoSelection DE1933
+                     this.impGeofootprintGeoService.makeDirty();
+                     this.impGeofootprintGeoAttribService.makeDirty();  
               }
              });
          }else {
           geo.isActive = isSelected;
          }
 
-         let metricText = null;
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
-         metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
+         const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
          if (geo.isActive){
-             this.usageService.createCounterMetric(geoselected, metricText, null);
+             this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
          }
          else{
-           this.usageService.createCounterMetric(geoDeselected, metricText, null);
+           this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
          }
       }
    }

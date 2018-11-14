@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
@@ -27,7 +27,7 @@ export class DiscoveryInputComponent implements OnInit {
   @Input('onlineAudienceExists') set onlineAudienceExists(val: boolean) {
     this.setPCROptionState(val);
     this.showAnalysisLevelError = val;
-  };
+  }
 
   @Output() formChanged = new EventEmitter<ValDiscoveryUIModel>();
   @Output() radSearchRequest = new EventEmitter<string>();

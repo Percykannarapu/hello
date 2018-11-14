@@ -1,0 +1,15 @@
+<val-site-list
+   [impGeofootprintLocations]="allLocations$ | async"
+   [impGeofootprintLocAttribs]="allAttributes$ | async"
+   [allClientLocations]="siteListService.allClientLocations$ | async"
+   [activeClientLocations]="siteListService.activeClientLocations$ | async"
+   [allCompetitorLocations]="siteListService.allCompetitorLocations$ | async"
+   [activeCompetitorLocations]="siteListService.activeCompetitorLocations$ | async"
+   [impGeofootprintGeos]="allGeos$ | async"
+   [impGeofootprintGeoAttribs]="allGeoAttributes$ | async"
+   (onDeleteLocations)="onDeleteLocations($event)"
+   (onDeleteAllLocations)="onDeleteAllLocations($event)"
+   (onMakeDirty)="onMakeDirty()"
+   (onZoomToLocation)="onZoomToLocation($event)"
+>   
+</val-site-list>

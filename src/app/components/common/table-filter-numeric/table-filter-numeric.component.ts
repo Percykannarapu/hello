@@ -62,6 +62,7 @@ export class TableFilterNumericComponent implements OnInit {
    @Input()  fieldName: string;
    @Input()  minValue: number;
    @Input()  maxValue: number;
+   @Input()  operatorType: string;
    @Output() filterApplied = new EventEmitter<FilterData>();
 
    public  rangeStr: string = "All";
@@ -77,6 +78,13 @@ export class TableFilterNumericComponent implements OnInit {
    ngOnInit() {
       if (this.fieldHeader == null)
          this.fieldHeader = this.fieldName;
+
+      if (this.operatorType != null) {
+         let newRangeOperator = this.rangeOperators.find(operator => operator.code === this.operatorType);
+
+         if (newRangeOperator != null)
+            this.filterData = { ...this.filterData, rangeOperator: newRangeOperator };
+      }
    }
 
    // -------------------------------------------------------------------------

@@ -16,6 +16,7 @@ import { InitializeMap } from '../../../state/map/esri.map.actions';
 export class EsriMapComponent implements OnInit {
   @Input() height: number;
   @Input() cursor: string;
+  @Input() baseMap: string;
 
   @Output() mapClicked = new EventEmitter<__esri.MapViewImmediateClickEvent>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
@@ -27,7 +28,7 @@ export class EsriMapComponent implements OnInit {
               @Inject(EsriAppSettingsToken) private config: EsriAppSettingsConfig) { }
 
   public ngOnInit() {
-    this.store.dispatch(new InitializeMap({ domContainer: this.mapViewEl }));
+    this.store.dispatch(new InitializeMap({ domContainer: this.mapViewEl, baseMap: this.baseMap }));
     this.store.pipe(
       select(getMapReady),
       filter(ready => ready),

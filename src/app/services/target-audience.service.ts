@@ -1,20 +1,20 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
 import { map, tap, filter, startWith, debounceTime } from 'rxjs/operators';
-import { UsageService } from './usage.service';
-import { AppMessagingService } from './app-messaging.service';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import * as XLSX from 'xlsx';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { AppStateService } from './app-state.service';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
-import { AppProjectService } from './app-project.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '../state/app.interfaces';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
+import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -25,7 +25,7 @@ export type nationalSource = (analysisLevel: string, identifier: string) => Obse
 export class TargetAudienceService implements OnDestroy {
 
   // This field is being used to maintain the sort order for the audiences grid
-  // As each new audience is created it will get assinged the current value
+  // As each new audience is created it will get assigned the current value
   // of this number and increment it, then when we save this value will be
   // saved in the database and when we load we will know what order to populate the grid in
   public static audienceCounter: number = 0;
@@ -50,12 +50,10 @@ export class TargetAudienceService implements OnDestroy {
 
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
-              private projectService: AppProjectService,
-              private usageService: UsageService,
-              private messagingService: AppMessagingService,
               private config: AppConfig,
               private projectVarService: ImpProjectVarService,
-              private domainFactory: ImpDomainFactoryService) {
+              private domainFactory: ImpDomainFactoryService,
+              private store$: Store<AppState>) {
     this.newVisibleGeos$ = this.appStateService.uniqueVisibleGeocodes$.pipe(
       tap(() => this.clearShadingData()),   // and clear the data cache
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
@@ -69,22 +67,20 @@ export class TargetAudienceService implements OnDestroy {
       }),
       filter(geos => geos.length > 0),
     );
-
-    this.projectService.projectIsLoading$.pipe(
-      filter(loading => loading),
-    ).subscribe(() => {
-      this.audienceMap.clear();
-      this.audienceSources.clear();
-      this.nationalSources.clear();
-      this.shadingData.next(new Map<string, ImpGeofootprintVar>());
-      this.audiences.next([]);
-    });
   }
 
   private createKey = (...values: string[]) => values.join('/');
 
   public ngOnDestroy() : void {
     this.unsubEverything();
+  }
+
+  public clearAll() : void {
+    this.audienceMap.clear();
+    this.audienceSources.clear();
+    this.nationalSources.clear();
+    this.shadingData.next(new Map<string, ImpGeofootprintVar>());
+    this.audiences.next([]);
   }
 
   public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, id?: number) : void {
@@ -236,22 +232,19 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public exportNationalExtract(analysisLevel: string, projectId: number) : void {
-    const spinnerId = 'NATIONAL_EXTRACT';
+    const key = 'NATIONAL_EXTRACT';
     const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
     if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
-      this.messagingService.startSpinnerDialog(spinnerId, 'Downloading National Data');
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
       this.getNationalData(audiences[0], analysisLevel).subscribe(
         data => convertedData.push(...data),
         err => {
           console.error('There was an error processing the National Extract', err);
-          this.messagingService.stopSpinnerDialog(spinnerId);
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         },
         () => {
           try {
-            const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'export' });
-            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
-            this.usageService.createCounterMetric(usageMetricName, metricText, convertedData.length);
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
             const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace(/\//g, '_');
             const workbook = XLSX.utils.book_new();
@@ -259,18 +252,21 @@ export class TargetAudienceService implements OnDestroy {
             const sheetName = audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
+            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
+            this.store$.dispatch(new CreateAudienceUsageMetric('online', 'export', metricText, convertedData.length));
           } finally {
-            this.messagingService.stopSpinnerDialog(spinnerId);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         }
       );
     } else {
+      const notificationTitle = 'National Extract Export';
       if (audiences.length === 0) {
-        this.messagingService.showErrorNotification('National Extract Export', 'A variable must be selected for a national extract before exporting.');
+        this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'A variable must be selected for a national extract before exporting.' }));
       } else if (analysisLevel == null || analysisLevel.length === 0) {
-        this.messagingService.showErrorNotification('National Extract Export', 'An Analysis Level must be selected for a national extract before exporting.');
+        this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'An Analysis Level must be selected for a national extract before exporting.' }));
       } else {
-        this.messagingService.showErrorNotification('National Extract Export', 'The project must be saved before exporting a national extract.');
+        this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'The project must be saved before exporting a national extract.' }));
       }
     }
   }
@@ -307,7 +303,7 @@ export class TargetAudienceService implements OnDestroy {
     this.clearShadingData();
     this.clearVars();
     if (shadingAudience.length > 1) {
-      this.messagingService.showErrorNotification('Selected Audience Error', 'Only 1 Audience can be selected to shade the map by.');
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
     } else if (shadingAudience.length === 1) {
       // pre-load the mapping data
       // combineLatest(this.appStateService.analysisLevel$, this.currentVisibleGeos$).subscribe(
@@ -347,7 +343,8 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
-    this.messagingService.startSpinnerDialog('SHADING_DATA', 'Retrieving shading data');
+    const key = 'SHADING_DATA';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
     console.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
@@ -363,7 +360,7 @@ export class TargetAudienceService implements OnDestroy {
           err => console.error('There was an error retrieving audience data for map shading', err),
           () => {
             this.shadingData.next(currentShadingData);
-            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+            this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         );
       } else {
@@ -372,7 +369,7 @@ export class TargetAudienceService implements OnDestroy {
           err => console.error('There was an error retrieving audience data for map shading', err),
           () => {
             this.shadingData.next(currentShadingData);
-            this.messagingService.stopSpinnerDialog('SHADING_DATA');
+            this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         );
       }
@@ -380,7 +377,8 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private persistGeoVarData(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {
-    this.messagingService.startSpinnerDialog(this.spinnerKey, 'Retrieving audience data');
+    const key = this.spinnerKey;
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
     const sources = new Set(selectedAudiences.map(a => this.createKey(a.audienceSourceType, a.audienceSourceName)));
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
     sources.forEach(s => {
@@ -394,9 +392,7 @@ export class TargetAudienceService implements OnDestroy {
         if (taAudiences.length > 0) {
           const doneAudienceTAs: Set<string> = new Set<string>();
           for (const taAudience of taAudiences) {
-            if (doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
-              continue;
-            } else {
+            if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
               observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
               doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
             }
@@ -411,13 +407,13 @@ export class TargetAudienceService implements OnDestroy {
       vars => accumulator.push(...vars),
       err => {
         console.error('There was an error retrieving audience data', err);
-        this.messagingService.showErrorNotification('Audience Error', 'There was an error retrieving audience data');
-        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Error', message: 'There was an error retrieving audience data' }));
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       },
       () => {
         console.log('persist complete', accumulator);
         this.varService.add(accumulator);
-        this.messagingService.stopSpinnerDialog(this.spinnerKey);
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       }
     );
   }

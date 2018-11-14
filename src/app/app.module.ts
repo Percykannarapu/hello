@@ -141,6 +141,11 @@ import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { StateModule } from './state/state.module';
+import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
+import { MessagingModule } from './messaging/messaging.module';
+import { NotificationProviderToken } from './messaging';
+import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
+import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 
 @NgModule({
     imports: [
@@ -208,7 +213,8 @@ import { StateModule } from './state/state.module';
         CommonModule,
         NgStringPipesModule,
         CardModule,
-        EsriModule
+        EsriModule,
+        MessagingModule
     ],
     declarations: [
         AppComponent,
@@ -249,12 +255,15 @@ import { StateModule } from './state/state.module';
         CampaignDetailsComponent,
         MapComponent,
         SampleComponent,
-        TableFilterNumericComponent
+        TableFilterNumericComponent,
+        SiteListContainerComponent,
+        ConfirmationContainerComponent,
+        ConfirmationDialogComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
       {provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true},
-      // from esri-modules
+      // for esri module
       {provide: EsriLoaderToken, useClass: AppConfig},
       {provide: EsriAuthenticationToken, useClass: AppConfig},
       {provide: EsriAppSettingsToken, useClass: AppConfig},
@@ -272,7 +281,9 @@ import { StateModule } from './state/state.module';
       AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
       AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
-      AppMapService, ValMetricsService, ValAudienceTradeareaService
+      AppMapService, ValMetricsService, ValAudienceTradeareaService,
+      // for messaging module
+      { provide: NotificationProviderToken, useClass: AppMessagingService }
     ],
     bootstrap: [AppComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
