@@ -3,6 +3,7 @@ import { EsriAuthState } from './auth/esri.auth.reducer';
 import { EsriApiState } from './api/esri.api.reducer';
 import { EsriMapState } from './map/esri.map.reducer';
 import * as fromRoot from '../../state/app.interfaces';
+import { EsriRendererState } from './map/esri.renderer.reducer';
 
 export interface AppState extends fromRoot.AppState {
   esri: EsriState;
@@ -12,12 +13,15 @@ export interface EsriState {
   api: EsriApiState;
   auth: EsriAuthState;
   map: EsriMapState;
+  renderer: EsriRendererState;
 }
 
 export const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
 export const getEsriApiState = createSelector(getEsriState, state => state.api);
 export const getEsriAuthState = createSelector(getEsriState, state => state.auth);
-export const getEsriMapState = createSelector(getEsriState, state => state.map);
+export const getEsriMapState = createSelector(getEsriState, state => state != null ? state.map : null);
+export const getEsriRendererState = createSelector(getEsriState, state => state != null ? state.renderer : null);
+export const getEsriViewpointState = createSelector(getEsriState, state => state.map.mapViewpoint);
 
 export const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (api, auth) => api.isLoaded && auth.isAuthenticated);
 

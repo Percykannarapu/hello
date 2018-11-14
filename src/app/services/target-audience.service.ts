@@ -336,10 +336,10 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public clearShadingData() : void {
-    console.log('clearing shading data cache');
+    /*console.log('clearing shading data cache');
     const current = this.shadingData.getValue();
     current.clear();
-    this.shadingData.next(current);
+    this.shadingData.next(current);*/
   }
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {

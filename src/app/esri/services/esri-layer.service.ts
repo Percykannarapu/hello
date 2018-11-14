@@ -243,6 +243,28 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
+      if (!layer.title.toLowerCase().includes('centroid')) {
+        this.addLabels(<__esri.FeatureLayer> layer);
+      }
     }
+  }
+
+  private addLabels(featureLayer: __esri.FeatureLayer) {
+    const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
+      labelPlacement: 'above-center',
+      labelExpressionInfo: {
+        expression: '$feature.geocode'
+      }
+    });
+    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+    const font = new EsriApi.Font({ family: 'sans-serif', size: 16, weight: 'normal' });
+    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
+    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.haloSize = 2;
+    textSymbol.font = font;
+    labelConfig.symbol = textSymbol;
+    labelConfig.labelExpressionInfo = { expression: '$feature.geocode' };
+    featureLayer.labelingInfo = [labelConfig];
   }
 }

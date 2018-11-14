@@ -7,6 +7,7 @@ import { AppGeoService } from '../../services/app-geo.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { EsriApi } from '../../esri/core/esri-api.service';
+import { AppRendererService } from '../../services/app-renderer.service';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '../../esri/state';
 import { filter, take } from 'rxjs/operators';
@@ -30,6 +31,7 @@ export class MapComponent implements OnInit {
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
+              private rendererService: AppRendererService,
               private store$: Store<AppState>,
               private config: AppConfig) {}
 

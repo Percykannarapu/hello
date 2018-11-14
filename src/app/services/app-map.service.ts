@@ -59,14 +59,14 @@ export class AppMapService implements OnDestroy {
 
     const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
-      filter(() => !this.useWebGLHighlighting)
+      //filter(() => !this.useWebGLHighlighting)
     ).subscribe(
       ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
     );
     combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
       filter(() => this.useWebGLHighlighting)
     ).subscribe(
-      ([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
+      //([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
     );
     this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
       if (this.layerSelectionRefresh) this.layerSelectionRefresh();
