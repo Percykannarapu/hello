@@ -153,7 +153,7 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   }
 
-  public selectVariable(event: ApioTreeNode, source: SourceTypes) : void {
+  public selectVariable(event: ApioTreeNode, source) : void {
     if (source == 'Interest') {
       this.currentSelectedNodesInterest.push(event);
     } else if (source == 'In-Market') {
