@@ -12,6 +12,7 @@ export interface EsriMapState {
   popupsVisible: boolean;
   sketchView: __esri.SketchViewModel;
   selectedFeatures: __esri.Graphic[];
+  analysisLevel: string;
 }
 
 const initialState: EsriMapState = {
@@ -23,7 +24,8 @@ const initialState: EsriMapState = {
   mapViewpoint: null,
   popupsVisible: true,
   sketchView: null,
-  selectedFeatures: []
+  selectedFeatures: [],
+  analysisLevel: null
 };
 
 export function mapReducer(state = initialState, action: EsriMapActions) : EsriMapState {
@@ -62,7 +64,9 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
 
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:
-      return { ...state, selectedFeatures: [ ...action.payload.features ] };
+      return { ...state, selectedFeatures: [ ...action.payload.features] };
+    case EsriMapActionTypes.SetAnalysisLevel:
+      return {...state, analysisLevel: action.payload.analysisLevel};
     default:
       return state;
   }

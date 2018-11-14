@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { EsriQueryService } from '../esri/services/esri-query.service';
 import { distinctArray, filterArray, mapArray } from '../val-modules/common/common.rxjs';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -16,9 +16,12 @@ import { EsriMapService } from '../esri/services/esri-map.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectService } from './app-project.service';
+import { AppMessagingService } from './app-messaging.service';
+import { SetAnalysisLevel } from '../esri/state/map/esri.map.actions';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { AppLoggingService } from './app-logging.service';
 
 export enum Season {
   Summer = 'summer',
@@ -74,6 +77,8 @@ export class AppStateService {
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
+              private appMessagingService: AppMessagingService,
+              private logger: AppLoggingService,
               private store$: Store<AppState>) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
@@ -110,7 +115,7 @@ export class AppStateService {
   public setVisibleGeocodes(layerId: string, extent: __esri.Extent) : void {
     this.esriQueryService.queryPortalLayerView(layerId, false, extent).pipe(
       mapArray(g => g.attributes.geocode),
-      distinctArray()
+      distinctUntilChanged()
     ).subscribe(geos => this.uniqueVisibleGeocodes.next(geos));
   }
 
@@ -134,6 +139,7 @@ export class AppStateService {
       filter(project => project != null),
       map(project => project.methAnalysis),
       distinctUntilChanged(),
+      tap(analysisLevel => this.store$.dispatch(new SetAnalysisLevel({analysisLevel: analysisLevel})))
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
 
     // Setup trade area merge type subscriptions
