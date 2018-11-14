@@ -21,13 +21,15 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   static sources: Set<string> = new Set<string>();
 
-  private selectedNodeMap: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
+  private selectedNodeMapInterest: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
+  private selectedNodeMapInMarket: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
   private allNodes: ApioTreeNode[] = [];
 
   @Input() useNarrowLayout: boolean;
 
   public currentNodes: ApioTreeNode[] = [];
-  public currentSelectedNodes: ApioTreeNode[];
+  public currentSelectedNodesInterest: ApioTreeNode[];
+  public currentSelectedNodesInMarket: ApioTreeNode[];
 
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
@@ -41,9 +43,10 @@ export class OnlineAudienceApioComponent implements OnInit {
     private parentAudienceService: TargetAudienceService, 
     private cd: ChangeDetectorRef,
     private stateSetvice: AppStateService) {
-    this.selectedNodeMap.set(SourceTypes.InMarket, []);
-    this.selectedNodeMap.set(SourceTypes.Interest, []);
-    this.currentSelectedNodes = this.selectedNodeMap.get(this.selectedSource);
+    this.selectedNodeMapInMarket.set(SourceTypes.InMarket, []);
+    this.selectedNodeMapInterest.set(SourceTypes.Interest, []);
+    this.currentSelectedNodesInterest = this.selectedNodeMapInterest.get(this.selectedSource);
+    this.currentSelectedNodesInMarket = this.selectedNodeMapInMarket.get(SourceTypes.InMarket);
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
@@ -86,12 +89,22 @@ export class OnlineAudienceApioComponent implements OnInit {
         console.warn('Unable to check audience after loading', audience);
         return;
       }
-      if (this.currentSelectedNodes.length === 0) {
-        this.currentSelectedNodes.push(node);
-      } else if (this.currentSelectedNodes.filter(n => n.label === node.label).length > 0) {
-        continue; //the current selected list already has the node we are trying to push in
-      } else {
-        this.currentSelectedNodes.push(node);
+      if (audience.audienceSourceName == 'Interest') {
+        if (this.currentSelectedNodesInterest.length === 0) {
+          this.currentSelectedNodesInterest.push(node);
+        } else if (this.currentSelectedNodesInterest.filter(n => n.label === node.label).length > 0) {
+          continue; //the current selected list already has the node we are trying to push in
+        } else {
+          this.currentSelectedNodesInterest.push(node);
+        }
+      } else if (audience.audienceSourceName == 'In-Market') {
+        if (this.currentSelectedNodesInMarket.length === 0) {
+          this.currentSelectedNodesInMarket.push(node);
+        } else if (this.currentSelectedNodesInMarket.filter(n => n.label === node.label).length > 0) {
+          continue; //the current selected list already has the node we are trying to push in
+        } else {
+          this.currentSelectedNodesInMarket.push(node);
+        }
       }
     }
     this.cd.markForCheck();
@@ -140,19 +153,27 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   }
 
-  public selectVariable(event: ApioTreeNode) : void {
-    this.currentSelectedNodes.push(event);
+  public selectVariable(event: ApioTreeNode, source: SourceTypes) : void {
+    if (source == 'Interest') {
+      this.currentSelectedNodesInterest.push(event);
+    } else if (source == 'In-Market') {
+      this.currentSelectedNodesInMarket.push(event);
+    }
     this.audienceService.addAudience(event.data, this.selectedSource);
   }
 
   public removeVariable(event: ApioTreeNode) : void {
-    const indexToRemove = this.currentSelectedNodes.indexOf(event);
-    this.currentSelectedNodes.splice(indexToRemove, 1);
+    if (this.selectedSource == 'Interest') {
+      const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
+      this.currentSelectedNodesInterest.splice(indexToRemove, 1);
+    } else if (this.selectedSource == 'In-Market') {
+      const indexToRemove = this.currentSelectedNodesInMarket.indexOf(event);
+      this.currentSelectedNodesInMarket.splice(indexToRemove, 1);
+    }
     this.audienceService.removeAudience(event.data, this.selectedSource);
   }
 
   public onSourceChanged(source: SourceTypes) {
-    this.currentSelectedNodes = this.selectedNodeMap.get(source);
     this.cd.markForCheck();
   }
 
@@ -191,13 +212,19 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]) {
-    const indexToRemove = this.currentSelectedNodes.findIndex(node => node.data.digCategoryId != result[0].audienceIdentifier);
-    this.currentSelectedNodes.splice(indexToRemove, 1);
-    this.cd.markForCheck();
+    if (result && result.length && (result[0].audienceSourceName == 'In-Market' || result[0].audienceSourceName == 'Interest')) {
+      if (result[0].audienceSourceName == 'In-Market') {
+        this.currentSelectedNodesInMarket = this.currentSelectedNodesInMarket.filter(node => node.data.digLookup.get('in_market') != result[0].audienceIdentifier);
+      } else if (result[0].audienceSourceName == 'Interest') {
+        this.currentSelectedNodesInterest = this.currentSelectedNodesInterest.filter(node => node.data.digLookup.get('interest') != result[0].audienceIdentifier);  
+      }
+      this.cd.markForCheck();
+    }
   }
 
   private clearSelections(){
-    this.currentSelectedNodes = [];
+    this.currentSelectedNodesInterest = [];
+    this.currentSelectedNodesInMarket = [];
     this.cd.markForCheck();
   }
 }

@@ -16,11 +16,18 @@
       <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
     </span>
   </div>
-  <div class="ui-g-12 val-wide-tree">
+  <div class="ui-g-12 val-wide-tree" [hidden]="selectedSource == 'In-Market'" >
     <p-tree loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
           [loading]="loading" [value]="currentNodes"
-          [selection]="currentSelectedNodes"
-          (onNodeSelect)="selectVariable($event.node)"
+          [selection]="currentSelectedNodesInterest"
+          (onNodeSelect)="selectVariable($event.node, 'Interest')"
+          (onNodeUnselect)="removeVariable($event.node)"></p-tree>
+  </div>
+  <div class="ui-g-12 val-wide-tree"   [hidden]="selectedSource == 'Interest'">
+    <p-tree loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
+          [loading]="loading" [value]="currentNodes"
+          [selection]="currentSelectedNodesInMarket"
+          (onNodeSelect)="selectVariable($event.node, 'In-Market')"
           (onNodeUnselect)="removeVariable($event.node)"></p-tree>
   </div>
 </div>
