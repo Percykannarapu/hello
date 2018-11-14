@@ -20,11 +20,15 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
       return {
         ...state,
         projectIsSaving: true,
+        projectIsLoading: true,
+        projectIsLoaded: false
       };
     case DataShimActionTypes.ProjectSaveFailure:
       return {
         ...state,
         projectIsSaving: false,
+        projectIsLoading: false,
+        projectIsLoaded: true
       };
     case DataShimActionTypes.ProjectSaveSuccess:
       return {

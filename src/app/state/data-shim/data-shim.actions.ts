@@ -19,7 +19,7 @@ export enum DataShimActionTypes {
 
   ExportGeofootprint = '[Application Data Shim] Export Geofootprint',
   ExportLocations = '[Application Data Shim] Export Locations',
-  ExportApioNationalData = '[Application Data Shim] Export National Online Data'
+  ExportApioNationalData = '[Application Data Shim] Export National Online Data',
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -36,32 +36,32 @@ export class ProjectSaveAndReload implements Action {
 }
 
 export class ProjectSaveSuccess implements Action {
-    readonly type = DataShimActionTypes.ProjectSaveSuccess;
-    constructor(public payload: { projectId: number, isSilent: boolean }) {}
+  readonly type = DataShimActionTypes.ProjectSaveSuccess;
+  constructor(public payload: { projectId: number, isSilent: boolean }) {}
 }
 
 export class ProjectSaveFailure implements Action {
-    readonly type = DataShimActionTypes.ProjectSaveFailure;
-    constructor(public payload: { err: any }) {}
+  readonly type = DataShimActionTypes.ProjectSaveFailure;
+  constructor(public payload: { err: any }) {}
 }
 
 export class ProjectLoad implements Action {
-    readonly type = DataShimActionTypes.ProjectLoad;
-    constructor(public payload: { projectId: number }) {}
+  readonly type = DataShimActionTypes.ProjectLoad;
+  constructor(public payload: { projectId: number }) {}
 }
 
 export class ProjectLoadSuccess implements Action {
-    readonly type = DataShimActionTypes.ProjectLoadSuccess;
-    constructor(public payload: { projectId: number, isSilent: boolean }) {}
+  readonly type = DataShimActionTypes.ProjectLoadSuccess;
+  constructor(public payload: { projectId: number, isSilent: boolean }) {}
 }
 
 export class ProjectLoadFailure implements Action {
-    readonly type = DataShimActionTypes.ProjectLoadFailure;
-    constructor(public payload: { err: any }) {}
+  readonly type = DataShimActionTypes.ProjectLoadFailure;
+  constructor(public payload: { err: any }) {}
 }
 
 export class CreateNewProject implements Action {
-    readonly type = DataShimActionTypes.ProjectCreateNew;
+  readonly type = DataShimActionTypes.ProjectCreateNew;
 }
 
 export class CreateNewProjectComplete implements Action {

@@ -18,7 +18,6 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-
 import { AppProjectService } from './app-project.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
-import { ClearAllNotifications } from '../messaging';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 
 export enum Season {
@@ -104,7 +103,7 @@ export class AppStateService {
   }
 
   public clearUserInterface() : void {
-    this.store$.dispatch(new ClearAllNotifications());
+    // this.store$.dispatch(new ClearAllNotifications());
     this.clearUI.next();
   }
 

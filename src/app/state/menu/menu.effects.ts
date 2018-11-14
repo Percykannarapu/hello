@@ -6,6 +6,7 @@ import * as fromDataShims from '../data-shim/data-shim.actions';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
+import { ClearAllNotifications } from '../../messaging';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +16,17 @@ export class MenuEffects {
   @Effect()
   saveAndReload$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndReloadProject),
-    map(() => new fromDataShims.ProjectSaveAndReload())
+    mergeMap(() => [
+      new ClearAllNotifications(),
+      new fromDataShims.ProjectSaveAndReload()
+    ])
   );
 
   @Effect()
   saveAndCreateNew$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndCreateNew),
     concatMap(() => [
+      new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=Yes'),
       new fromDataShims.ProjectSaveAndNew(),
     ])
@@ -31,6 +36,7 @@ export class MenuEffects {
   discardAndCreateNew$ = this.actions$.pipe(
     ofType(MenuActionTypes.DiscardAndCreateNew),
     concatMap(() => [
+      new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=No'),
       new fromDataShims.CreateNewProject(),
     ])
@@ -40,6 +46,7 @@ export class MenuEffects {
   saveThenLoad$ = this.actions$.pipe(
     ofType<SaveThenLoadProject>(MenuActionTypes.SaveThenLoadProject),
     mergeMap(action => [
+      new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndLoad({ idToLoad: action.payload.projectToLoad }),
       new CloseExistingProjectDialog()
     ])
@@ -49,6 +56,7 @@ export class MenuEffects {
   discardThenLoad$ = this.actions$.pipe(
     ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
     mergeMap(action => [
+      new ClearAllNotifications(),
       new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog()
     ])

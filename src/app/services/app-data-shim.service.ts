@@ -27,9 +27,9 @@ export class AppDataShimService {
 
   load(id: number) : Observable<number> {
     this.targetAudienceService.clearAll();
+    this.appStateService.clearUserInterface();
     return this.appProjectService.load(id).pipe(
       tap(() => {
-        this.appStateService.clearUserInterface();
         this.targetAudienceService.applyAudienceSelection();
         this.appTradeAreaService.zoomToTradeArea();
       })
@@ -38,7 +38,7 @@ export class AppDataShimService {
 
   createNew() : void {
     this.targetAudienceService.clearAll();
-    this.appProjectService.createNew();
     this.appStateService.clearUserInterface();
+    this.appProjectService.createNew();
   }
 }

@@ -1,38 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { DataShimActionTypes, ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
+import { DataShimActionTypes, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
 import { filter, map } from 'rxjs/operators';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '../../messaging';
+import { ErrorNotification, SuccessNotification } from '../../messaging';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimNotificationEffects {
-  private readonly saveKey = 'DataShimBusy';
-  private readonly loadKey = 'DataShimBusy';
-
-  @Effect()
-  saveBusy$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSaveAndReload, DataShimActionTypes.ProjectSaveAndLoad, DataShimActionTypes.ProjectSaveAndNew),
-    map(() => new StartBusyIndicator({ key: this.saveKey, message: 'Saving Project' }))
-  );
-
-  @Effect()
-  stopSaveBusy$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSaveSuccess, DataShimActionTypes.ProjectSaveFailure),
-    map(() => new StopBusyIndicator({ key: this.saveKey }))
-  );
-
-  @Effect()
-  loadBusy$ = this.actions$.pipe(
-    ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    filter(action => !action.payload.isSilent),
-    map(action => new StartBusyIndicator({ key: this.loadKey, message: `Loading Project ${action.payload.projectId}` }))
-  );
-
-  @Effect()
-  stopLoadBusy$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectLoadSuccess, DataShimActionTypes.ProjectLoadFailure),
-    map(() => new StopBusyIndicator({ key: this.loadKey }))
-  );
 
   @Effect()
   projectSaveSuccess$ = this.actions$.pipe(
