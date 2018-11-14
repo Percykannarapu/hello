@@ -16,8 +16,7 @@ import { ShowConfirmation } from '../../messaging';
 import { openExistingDialogFlag } from '../../state/menu/menu.reducer';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ConfirmationPayload } from '../../messaging/state/confirmation/confirmation.actions';
-import { CloseExistingProjectDialog } from '../../state/menu/menu.actions';
-import { ProjectLoad, ProjectSaveAndLoad } from '../../state/data-shim/data-shim.actions';
+import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
 
 @Component({
     selector: 'val-project',
@@ -236,18 +235,15 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           message: 'Would you like to save your work before proceeding?',
           canBeClosed: true,
           accept: {
-            result: [new ProjectSaveAndLoad({ idToLoad: event.projectId }),
-                     new CloseExistingProjectDialog()]
+            result: new SaveThenLoadProject({ projectToLoad: event.projectId })
           },
           reject: {
-            result: [new ProjectLoad({ projectId: event.projectId, isSilent: false }),
-                     new CloseExistingProjectDialog()]
+            result: new DiscardThenLoadProject({ projectToLoad: event.projectId })
           }
         };
         this.store$.dispatch(new ShowConfirmation(payload));
       } else {
-        this.store$.dispatch(new ProjectLoad({ projectId: event.projectId, isSilent: false }));
-        this.store$.dispatch(new CloseExistingProjectDialog());
+        this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: event.projectId }));
       }
     }
 

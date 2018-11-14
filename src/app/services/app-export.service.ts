@@ -10,6 +10,11 @@ import { CreateUsageMetric } from '../state/usage/usage.actions';
 import { TargetAudienceService } from './target-audience.service';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 
+/**
+ * This service is a temporary shim to aggregate the operations needed for exporting data
+ * until the data is held natively in NgRx and can be removed after that
+ */
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +26,7 @@ export class AppExportService {
               private config: AppConfig) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : CreateUsageMetric {
+    this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
     const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
     const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
     this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
@@ -37,6 +43,7 @@ export class AppExportService {
   }
 
   exportValassisDigital(currentProject: ImpProject) : CreateUsageMetric {
+    this.validateProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
     const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
     const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
     const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
@@ -53,5 +60,12 @@ export class AppExportService {
     const pluralType = `${siteType}s`;
     this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, false, storeFilter, pluralType.toUpperCase());
     return this.impGeofootprintLocationService.get().filter(storeFilter).length;
+  }
+
+  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
+    const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
+    if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
+      throw message;
+    }
   }
 }

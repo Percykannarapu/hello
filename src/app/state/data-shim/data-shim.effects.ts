@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import {
-  CreateNewProject,
   CreateNewProjectComplete,
   DataShimActionTypes, ExportApioNationalData,
   ExportGeofootprint, ExportLocations,
@@ -13,18 +12,18 @@ import {
   ProjectSaveSuccess
 } from './data-shim.actions';
 import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
-import { AppProjectService } from '../../services/app-project.service';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '../app.interfaces';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ErrorNotification } from '../../messaging';
 import { AppExportService } from '../../services/app-export.service';
 import { toPayload } from '../../val-modules/common/common.rxjs';
 import { CreateGaugeMetric } from '../usage/usage.actions';
-import { TargetAudienceService } from '../../services/target-audience.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { AppDataShimService } from '../../services/app-data-shim.service';
+
+function isFailureAction(item: any) : item is ProjectLoadFailure | ProjectSaveFailure {
+  return item.hasOwnProperty('type') && (item['type'] === DataShimActionTypes.ProjectSaveFailure || item['type'] === DataShimActionTypes.ProjectLoadFailure);
+}
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -32,63 +31,57 @@ export class DataShimEffects {
   @Effect()
   projectSaveAndCreateNew$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectSaveAndNew),
-    filter(() => this.appProjectService.projectIsValid()),
-    mergeMap(() => this.appProjectService.save()),
-    mergeMap(projectId => [
-      new ProjectSaveSuccess({ projectId, isSilent: false }),
-      new CreateNewProject()
-    ]),
-    catchError(err => of(new ProjectSaveFailure({ err }))),
+    mergeMap(() => this.appDataShimService.save().pipe(
+      tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId, isSilent: false }))),
+      catchError(err => throwError(new ProjectSaveFailure({ err })))
+    )),
+    tap(() => this.appDataShimService.createNew()),
+    map(() => new CreateNewProjectComplete()),
+    catchError(err => of(isFailureAction(err) ? err : new ProjectSaveFailure({ err })))
   );
 
   @Effect()
   projectSaveAndLoad$ = this.actions$.pipe(
     ofType<ProjectSaveAndLoad>(DataShimActionTypes.ProjectSaveAndLoad),
-    filter(() => this.appProjectService.projectIsValid()),
-    mergeMap(action => this.appProjectService.save().pipe(map(id => [action, id]))),
-    mergeMap(([action, projectId]: [ProjectSaveAndLoad, number]) => [
-      new ProjectSaveSuccess({ projectId, isSilent: false }),
-      new ProjectLoad({ projectId: action.payload.idToLoad, isSilent: false })
-    ]),
-    catchError(err => of(new ProjectSaveFailure({ err }))),
+    mergeMap(action => this.appDataShimService.save().pipe(
+      tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId, isSilent: false }))),
+      catchError(err => throwError(new ProjectSaveFailure({ err }))),
+      map(() => action)
+    )),
+    mergeMap(action => this.appDataShimService.load(action.payload.idToLoad).pipe(
+      tap(projectId => this.store$.dispatch(new ProjectLoadSuccess({ projectId, isSilent: false }))),
+      catchError(err => throwError(new ProjectLoadFailure({ err })))
+    )),
+    catchError(err => of(isFailureAction(err) ? err : new ProjectSaveFailure({ err })))
   );
 
   @Effect()
   projectSaveAndReload$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectSaveAndReload),
-    filter(() => this.appProjectService.projectIsValid()),
-    mergeMap(() => this.appProjectService.save()),
-    mergeMap(projectId => [
-      new ProjectSaveSuccess({ projectId, isSilent: false }),
-      new ProjectLoad({ projectId, isSilent: true })
-    ]),
-    catchError(err => of(new ProjectSaveFailure({ err })))
+    mergeMap(() => this.appDataShimService.save().pipe(
+      tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId, isSilent: true }))),
+      catchError(err => throwError(new ProjectSaveFailure({ err })))
+    )),
+    mergeMap(id => this.appDataShimService.load(id).pipe(
+      tap(projectId => this.store$.dispatch(new ProjectLoadSuccess({ projectId, isSilent: true }))),
+      catchError(err => throwError(new ProjectLoadFailure({ err })))
+    )),
+    map(projectId => new ProjectSaveSuccess({ projectId, isSilent: false })),
+    catchError(err => of(isFailureAction(err) ? err : new ProjectSaveFailure({ err })))
   );
 
   @Effect()
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    tap(() => this.audienceService.clearAll()),
-    mergeMap(action => this.appProjectService.load(action.payload.projectId).pipe(map(id => [action, id]))),
-    map(([action, projectId]: [ProjectLoad, number]) => new ProjectLoadSuccess({ projectId, isSilent: action.payload.isSilent })),
+    mergeMap(action => this.appDataShimService.load(action.payload.projectId)),
+    map(projectId => new ProjectLoadSuccess({ projectId, isSilent: false })),
     catchError(err => of(new ProjectLoadFailure({ err })))
-  );
-
-  @Effect({ dispatch: false })
-  projectLoadSuccess$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectLoadSuccess),
-    // these are temporary until we get more stuff under ngrx
-    tap(() => this.audienceService.applyAudienceSelection()),
-    tap(() => this.appStateService.clearUserInterface()),
-    tap(() => this.appTradeAreaService.zoomToTradeArea())
   );
 
   @Effect()
   createNewProject$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectCreateNew),
-    tap(() => this.audienceService.clearAll()),
-    tap(() => this.appProjectService.createNew()),
-    tap(() => this.appStateService.clearUserInterface()),
+    tap(() => this.appDataShimService.createNew()),
     map(() => new CreateNewProjectComplete())
   );
 
@@ -96,7 +89,6 @@ export class DataShimEffects {
   exportGeofootprint$ = this.actions$.pipe(
     ofType<ExportGeofootprint>(DataShimActionTypes.ExportGeofootprint),
     toPayload(),
-    filter(p => this.validateProjectForExport(p.currentProject, 'exporting a Geofootprint')),
     map(p => this.appExportService.exportGeofootprint(p.selectedOnly, p.currentProject)),
     mergeMap(metric => [
       metric,
@@ -110,7 +102,6 @@ export class DataShimEffects {
     ofType<ExportLocations>(DataShimActionTypes.ExportLocations),
     toPayload(),
     filter(p => p.isDigitalExport),
-    filter(p => this.validateProjectForExport(p.currentProject, 'sending the custom site list to Valassis Digital')),
     map(p => this.appExportService.exportValassisDigital(p.currentProject)),
     catchError(err => of(new ErrorNotification({ message: 'There was an error exporting to Valassis Digital', additionalErrorInfo: err }))),
   );
@@ -132,18 +123,6 @@ export class DataShimEffects {
 
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
-              private appExportService: AppExportService,
-              private appProjectService: AppProjectService,
-              private appStateService: AppStateService,
-              private appTradeAreaService: AppTradeAreaService,
-              private audienceService: TargetAudienceService) {}
-
-  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : boolean {
-    const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
-    if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
-      this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Export Error' }));
-      return false;
-    }
-    return true;
-  }
+              private appDataShimService: AppDataShimService,
+              private appExportService: AppExportService) {}
 }

@@ -47,7 +47,7 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
     readonly type = DataShimActionTypes.ProjectLoad;
-    constructor(public payload: { projectId: number, isSilent: boolean }) {}
+    constructor(public payload: { projectId: number }) {}
 }
 
 export class ProjectLoadSuccess implements Action {

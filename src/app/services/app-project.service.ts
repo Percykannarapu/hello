@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -8,7 +8,6 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
-import { ErrorNotification } from '../messaging';
 
 @Injectable()
 export class AppProjectService {
@@ -33,6 +32,11 @@ export class AppProjectService {
   save(project?: ImpProject) : Observable<number> {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
+    const errors = this.validateProject(localProject);
+    if (errors.length > 0) {
+      const message = errors.join('\n');
+      return throwError(message);
+    }
     this.cleanupProject(localProject);
     this.logger.info('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(
@@ -45,19 +49,13 @@ export class AppProjectService {
     this.impProjectService.load([newProject]);
   }
 
-  projectIsValid() : boolean {
-    const impProject = this.impProjectService.get()[0];
+  private validateProject(impProject: ImpProject) : string[] {
     const errors: string[] = [];
     if (impProject.projectName == null || impProject.projectName === '')
       errors.push('imPower Project Name is required');
     if (impProject.methAnalysis == null || impProject.methAnalysis === '')
       errors.push('Analysis Level is required');
-    if (errors.length > 0) {
-      const message = errors.join('\n');
-      this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Error Saving Project' }));
-      return false;
-    }
-    return true;
+    return errors;
   }
 
   private cleanupProject(localProject: ImpProject) {

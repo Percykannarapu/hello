@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { ExportGeofootprint, ExportLocations, MenuActionTypes } from './menu.actions';
-import { concatMap, map, withLatestFrom } from 'rxjs/operators';
+import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject } from './menu.actions';
+import { concatMap, map, mergeMap, withLatestFrom } from 'rxjs/operators';
 import * as fromDataShims from '../data-shim/data-shim.actions';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -33,6 +33,24 @@ export class MenuEffects {
     concatMap(() => [
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=No'),
       new fromDataShims.CreateNewProject(),
+    ])
+  );
+
+  @Effect()
+  saveThenLoad$ = this.actions$.pipe(
+    ofType<SaveThenLoadProject>(MenuActionTypes.SaveThenLoadProject),
+    mergeMap(action => [
+      new fromDataShims.ProjectSaveAndLoad({ idToLoad: action.payload.projectToLoad }),
+      new CloseExistingProjectDialog()
+    ])
+  );
+
+  @Effect()
+  discardThenLoad$ = this.actions$.pipe(
+    ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
+    mergeMap(action => [
+      new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
+      new CloseExistingProjectDialog()
     ])
   );
 

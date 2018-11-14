@@ -8,6 +8,8 @@ export enum MenuActionTypes {
 
   OpenExistingProjectDialog = '[Application Menu] Open Existing Project Dialog',
   CloseExistingProjectDialog = '[Application Menu] Close Existing Project Dialog',
+  SaveThenLoadProject = '[Application Menu] Save Then Load Project',
+  DiscardThenLoadProject = '[Application Menu] Discard Then Load Project',
 
   ExportGeofootprint = '[Application Menu] Export Geofootprint',
   ExportLocations = '[Application Menu] Export Locations',
@@ -35,6 +37,16 @@ export class CloseExistingProjectDialog implements Action {
   readonly type = MenuActionTypes.CloseExistingProjectDialog;
 }
 
+export class SaveThenLoadProject implements Action {
+  readonly type = MenuActionTypes.SaveThenLoadProject;
+  constructor(public payload: { projectToLoad: number }) {}
+}
+
+export class DiscardThenLoadProject implements Action {
+  readonly type = MenuActionTypes.DiscardThenLoadProject;
+  constructor(public payload: { projectToLoad: number }) {}
+}
+
 export class ExportGeofootprint implements Action {
   readonly type = MenuActionTypes.ExportGeofootprint;
   constructor(public payload: { selectedOnly: boolean }) {}
@@ -59,6 +71,8 @@ export type MenuActions =
   DiscardAndCreateNew |
   OpenExistingProjectDialog |
   CloseExistingProjectDialog |
+  SaveThenLoadProject |
+  DiscardThenLoadProject |
   ExportGeofootprint |
   ExportLocations |
   ExportApioNationalData |
