@@ -144,7 +144,6 @@ export class EsriRendererService {
     } else {
       result.push(...tacticianDarkPalette.map(rgba => new EsriApi.Color(rgba)));
     }
-    console.log('Colors', result);
     return result;
   }
 
