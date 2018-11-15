@@ -317,6 +317,9 @@ export class EsriRendererService {
   }
 
   private createMultiVariateRenderer(defaultSymbol: __esri.SimpleFillSymbol, setup: SmartRendererSetup | CustomRendererSetup, arcade?: string) : __esri.UniqueValueRenderer {
+    if (!arcade && this.currentNumericData.size > 0) {
+      arcade = this.generateArcade(this.currentNumericData);
+    } 
     const baseRenderer = this.createBaseRenderer(defaultSymbol, setup.outline);
     const themeColors = EsriRendererService.getThemeColors(setup);
     const colorVariable: Partial<__esri.ColorVisualVariable> = {
