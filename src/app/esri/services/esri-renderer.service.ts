@@ -230,7 +230,6 @@ export class EsriRendererService {
 
   private addFeatureNumericData(data: Map<string, number>) {
     const arcade = this.generateArcade(this.currentNumericData);
-    console.log('Arcade: ', arcade);
     const layerView = this.getLayerView();
     let defaultSymbol: __esri.SimpleFillSymbol = new EsriApi.SimpleFillSymbol();
     if (EsriUtils.rendererIsSimple(layerView.layer.renderer) && EsriUtils.symbolIsSimpleFill(layerView.layer.renderer.symbol)) {
