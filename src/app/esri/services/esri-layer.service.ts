@@ -251,7 +251,7 @@ export class EsriLayerService {
 
   private addLabels(featureLayer: __esri.FeatureLayer) {
     const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
-      labelPlacement: 'above-center',
+      labelPlacement: 'always-horizontal',
       labelExpressionInfo: {
         expression: '$feature.geocode'
       }
