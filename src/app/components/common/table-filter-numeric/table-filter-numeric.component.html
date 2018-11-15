@@ -9,7 +9,7 @@
            <div class="ui-g-4">
               <input type="number" pInputText [(ngModel)]="filterData.lowValue" style="width:100%;" (input)="onChange('lowValue', $event)"/>
            </div>
-           <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-1" style="text-align: center; margin: auto;">
+           <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-1" style="text-align: center; margin: auto; padding-bottom: 5px;">
               and
            </div>
            <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-4">

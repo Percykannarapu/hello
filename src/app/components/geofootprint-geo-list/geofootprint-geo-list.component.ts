@@ -143,6 +143,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  uniqueCoverageDesc$: Observable<SelectItem[]>;
    public  uniqueDma$: Observable<SelectItem[]>;
 
+   // Track unique values for text variables for filtering
+   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
+
    // Header filter
    public  headerFilter: boolean = true;
    public  defaultLabel: string = "All";
@@ -456,7 +459,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * createComposite produces a list of FlatGeos.  These are a flattened view of the geographies,
     * having pivoted up the variables and attributes to their respective geographies.
     * 
-    * @param project The current projectd
+    * @param project The current project
     * @param geos List of geos for the grid
     * @param geoAttributes List of geo attributes to pivot up to the geos
     */
@@ -484,12 +487,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                              ||  attribute.attributeCode === 'cov_desc'
                                              ||  attribute.attributeCode === 'dma_name'
                                              ||  attribute.attributeCode === 'city_name') {
-                                                if (attribute.impGeofootprintGeo && attribute.impGeofootprintGeo.geocode) {
+                                                   if (attribute.impGeofootprintGeo && attribute.impGeofootprintGeo.geocode) {
                                                       if (attributeMap[attribute.impGeofootprintGeo.geocode] == null)
-                                                      attributeMap[attribute.impGeofootprintGeo.geocode] = [];
+                                                         attributeMap[attribute.impGeofootprintGeo.geocode] = [];
                                                       attributeMap[attribute.impGeofootprintGeo.geocode].push(attribute);
-                                                      }
-                                                }                         
+                                                   }
+                                                }
                                              });
 
       // Get all project variables that are flagged as isIncludedInGeoGrid
@@ -500,12 +503,24 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const usableGeoVars = geoVars.filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
 
       const varsInData = new Set(usableGeoVars.map(gv => this.getGeoVarFieldName(gv)));
+
       // Get the missing geoVars with no scores
       const missingVars = projectVars.filter(pv => pv.isIncludedInGeoGrid && !varsInData.has(this.getProjectVarFieldName(pv)));
-      console.log('Vars with no data:::', missingVars);
+//    console.log('Vars with no data:::', missingVars);
       
        // Create a cache of geo variables, grouped by geocode
       const varCache = groupBy(usableGeoVars, 'geocode');
+
+      // Populate the unique values for text variables, keyed by variable pk
+      this.uniqueTextVals = new Map<string, SelectItem[]>();
+      const distinctVarPks: number[] = Array.from(new Set(usableGeoVars.filter(gv => gv.fieldconte === 'CHAR').map(v => v.varPk)));
+      distinctVarPks.forEach(varPk => {
+         // Reduce the geo vars to just the unique values
+         let uniqueVals = Array.from(new Set(usableGeoVars.filter(geoVar => geoVar.varPk === varPk).map(geoVar => (geoVar.valueString != null) ? geoVar.valueString : geoVar.valueNumber))).sort();
+
+         // Store the unique values in a map keyed by the variable pk
+         this.uniqueTextVals.set(varPk.toString(), uniqueVals.map(varVal => ({ label: varVal, value: varVal} as SelectItem)));
+      });
 
       // Initialize grid totals & numDupes
       this.initializeGridTotals();
@@ -588,24 +603,28 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   gridGeo[geovar.varPk.toString()] = geovar.valueString != "null" ? geovar.valueString : '';            
             else
             {
-              // Format them
-              switch (geovar.fieldconte) {
-                case 'COUNT':
-                case 'MEDIAN':
-                case 'INDEX':
-                  gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber);
-                  break;
+               // Format them
+               switch (geovar.fieldconte) {
+                  case 'COUNT':
+                  case 'MEDIAN':
+                  case 'INDEX':
+                     gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber);
+                     break;
 
-                case 'PERCENT':
-                case 'RATIO':
-                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
-                  break;
+                  case 'PERCENT':
+                  case 'RATIO':
+                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(2);
+                     break;
 
-                default:
-                  gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
-                  break;
-              }
-              //console.table(geovar);
+                  case 'CHAR':
+                     gridGeo[geovar.varPk.toString()] = (geovar.valueString != null) ? geovar.valueString : geovar.valueNumber;
+                     break;
+
+                  default:
+                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber.toFixed(14);
+                     break;
+               }
+               //console.table(geovar);
             }
             // console.table(currentVars, ["geocode", "varPk", "fieldname", "fieldconte"]);
             // console.debug("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
@@ -619,10 +638,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
               // Let the fieldConte decide what the match operator will be on the numeric filter
               let matchOper: string;
               switch (geovar.fieldconte) {
-               case 'PERCENT':
-                  matchOper = ">=";
-                  break;
-            
+               // SAMPLE: This is setup this way to show we can have different filters, per fieldconte value
+               // case 'PERCENT':
+               //    matchOper = ">=";
+               //    break;            
                default:
                   matchOper = "between";
                   break;

@@ -186,9 +186,9 @@ export class TableFilterNumericComponent implements OnInit {
       this.rangeLbl = (this.rangeStr === "All") ? "All" : this.filterData.rangeOperator.name;
    }
 
-   public clearFilter(filterName: string = "") {
+   public clearFilter(filterName: string = "", resetOperator: boolean = false) {
       // Clear out either an individual filter or all of them
-      if (filterName === "" || filterName === "all" || filterName === "rangeOperator")
+      if ((filterName === "" || filterName === "all" || filterName === "rangeOperator" ) && resetOperator === true)
          this.filterData.rangeOperator = this.rangeOperators[0];
 
       if (filterName === "" || filterName === "all" || filterName === "min")
