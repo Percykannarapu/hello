@@ -116,7 +116,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){
-    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.categoryId !== result[0].audienceIdentifier);
+    this.currentSelectedNodes = this.currentSelectedNodes.filter(node => node.data.digLookup.get('vlh') != result[0].audienceIdentifier);
     this.cd.markForCheck();
   }
 

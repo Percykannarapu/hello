@@ -20,69 +20,72 @@ const radiusIsZero = (field: any) => {
   return field != null && field !== '' && Number(field) === 0;
 };
 
-const stateCodeProcessor   = (data: string) => {
-  if (data == null || data.length === 2) return data;
-  const stateCodes ={
-  arizona    	: 'AZ',
-  alabama    	: 'AL',
-  alaska     	: 'AK',
-  arkansas   	: 'AR',
-  california 	: 'CA',
-  colorado   	: 'CO',
-  connecticut	: 'CT',
-  delaware   	: 'DE',
-  florida    	: 'FL',
-  georgia    	: 'GA',
-  hawaii     	: 'HI',
-  idaho      	: 'ID',
-  illinois   	: 'IL',
-  indiana    	: 'IN',
-  iowa       	: 'IA',
-  kansas     	: 'KS',
-  kentucky   	: 'KY',
-  louisiana  	: 'LA',
-  maine      	: 'ME',
-  maryland   	: 'MD',
-  massachusetts : 'MA',
-  michigan    : 'MI',
-  minnesota   : 'MN',
-  mississippi : 'MS',
-  missouri    : 'MO',
-  montana     : 'MT',
-  nebraska    : 'NE',
-  nevada      : 'NV',
- 'new hampshire' : 'NH',
- 'new jersey'    : 'NJ',
- 'new mexico' : 'NM',
- 'new york'   : 'NY',
- 'north carolina' : 'NC',
- 'north dakota'   : 'ND',
- ohio         :  'OH',
- oklahoma    : 'OK',
- oregon       : 'OR',
- pennsylvania : 'PA',
-'rhode island'   : 'RI',
-'south carolina' : 'SC',
-'south dakota'   : 'SD',
- tennessee   : 'TN',
- texas       : 'TX',
- utah        : 'UT',
- vermont     : 'VT',
- virginia    : 'VA',
- washington  : 'WA',
-'west virginia' : 'WV',
- wisconsin : 'WI',
- wyoming : 'WY'
-};
-  if (stateCodes[data.toLowerCase()] == null) throw new Error('Please check the spelling of the States in your upload file');
-  return stateCodes[data.toLowerCase()];
+const stateCodeProcessor = (data: string) => {
+  if (data == null) return data;
+  const trimmedData = data.trim();
+  if (trimmedData.length === 0 || trimmedData.length === 2) return trimmedData;
+  const localData = trimmedData.toLowerCase();
+  const stateCodes = {
+    arizona    	: 'AZ',
+    alabama    	: 'AL',
+    alaska     	: 'AK',
+    arkansas   	: 'AR',
+    california 	: 'CA',
+    colorado   	: 'CO',
+    connecticut	: 'CT',
+    delaware   	: 'DE',
+    florida    	: 'FL',
+    georgia    	: 'GA',
+    hawaii     	: 'HI',
+    idaho      	: 'ID',
+    illinois   	: 'IL',
+    indiana    	: 'IN',
+    iowa       	: 'IA',
+    kansas     	: 'KS',
+    kentucky   	: 'KY',
+    louisiana  	: 'LA',
+    maine      	: 'ME',
+    maryland   	: 'MD',
+    massachusetts : 'MA',
+    michigan    : 'MI',
+    minnesota   : 'MN',
+    mississippi : 'MS',
+    missouri    : 'MO',
+    montana     : 'MT',
+    nebraska    : 'NE',
+    nevada      : 'NV',
+    'new hampshire' : 'NH',
+    'new jersey'    : 'NJ',
+    'new mexico' : 'NM',
+    'new york'   : 'NY',
+    'north carolina' : 'NC',
+    'north dakota'   : 'ND',
+    ohio         :  'OH',
+    oklahoma    : 'OK',
+    oregon       : 'OR',
+    pennsylvania : 'PA',
+    'rhode island'   : 'RI',
+    'south carolina' : 'SC',
+    'south dakota'   : 'SD',
+    tennessee   : 'TN',
+    texas       : 'TX',
+    utah        : 'UT',
+    vermont     : 'VT',
+    virginia    : 'VA',
+    washington  : 'WA',
+    'west virginia' : 'WV',
+    wisconsin : 'WI',
+    wyoming : 'WY'
+  };
+  if (stateCodes[localData] == null) throw new Error('Please check the spelling of the States in your upload file');
+  return stateCodes[localData];
 } ;
 
 export const siteListUpload: Parser<ValGeocodingRequest> = {
   columnParsers: [
     { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street' },
     { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' },
-    { headerIdentifier: ['state', 'st'], outputFieldName: 'state',dataProcess: stateCodeProcessor },
+    { headerIdentifier: ['state', 'st'], outputFieldName: 'state', dataProcess: stateCodeProcessor },
     { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip' },
     { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor },
     { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor },
@@ -109,7 +112,7 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     return true;
   },
 
-   fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
+  fileValidator: (allData: ValGeocodingRequest[]) : boolean => {
     let hasBlank1: boolean = false;
     let hasBlank2: boolean = false;
     let hasBlank3: boolean = false;
@@ -117,10 +120,9 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     let numValues2: number = 0;
     let numValues3: number = 0;
     let result: boolean = true;
-    const errorMessage: string = 'Failed';
 
     try {
-      allData.forEach(geo => {
+      for (const geo of allData) {
         hasBlank1 = radiusIsBlank(geo['RADIUS1']) || hasBlank1;
         hasBlank2 = radiusIsBlank(geo['RADIUS2']) || hasBlank2;
         hasBlank3 = radiusIsBlank(geo['RADIUS3']) || hasBlank3;
@@ -129,27 +131,22 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
         if (radiusIsValid(geo['RADIUS3'])) numValues3++;
         if (radiusIsZero(geo['RADIUS1']) || radiusIsZero(geo['RADIUS2']) || radiusIsZero(geo['RADIUS3'])) {
           result = false;
-          throw new Error(errorMessage);
+          break;
         }
-      });
+      }
       if ((hasBlank1 && numValues1 > 0) || (hasBlank2 && numValues2 > 0) || (hasBlank3 && numValues3 > 0)) {
         result = false;
-        throw new Error(errorMessage);
       }
       if ((!hasBlank1 && numValues1 === 0) || (!hasBlank2 && numValues2 === 0) || (!hasBlank3 && numValues3 === 0)) {
         result = false;
-        throw new Error(errorMessage);
       }
       if ((numValues1 > 0 && numValues1 !== allData.length) || (numValues2 > 0 && numValues2 !== allData.length) || (numValues3 > 0 && numValues3 !== allData.length)) {
         result = false;
-        throw new Error(errorMessage);
       }
+      if (result === false) console.error('Upload failed because there was a Blank or ZERO Radius');
     } catch (e) {
-      if ((<Error>e).message === errorMessage) {
-        console.error('Upload failed because there was a Blank or ZERO Radius');
-      } else {
-        console.error('Defined radii cannot be greater than 50 miles.');
-      }
+      console.error('Defined radii cannot be greater than 50 miles.');
+      result = false;
     }
     return result;
   }

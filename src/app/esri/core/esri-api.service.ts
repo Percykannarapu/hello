@@ -37,7 +37,11 @@ export class EsriApi {
     'esri/tasks/support/Query',
     'esri/geometry/Extent',
     'esri/tasks/Geoprocessor',
-    'esri/tasks/support/FeatureSet'
+    'esri/tasks/support/FeatureSet',
+    'esri/layers/support/Field',
+    'esri/layers/support/LabelClass',
+    'esri/symbols/TextSymbol',
+    'esri/symbols/Font'
 ];
 
   public static config: __esri.config;
@@ -72,6 +76,10 @@ export class EsriApi {
   public static Extent: __esri.ExtentConstructor;
   public static Geoprocessor: __esri.GeoprocessorConstructor;
   public static FeatureSet: __esri.FeatureSetConstructor;
+  public static Field: __esri.FieldConstructor;
+  public static LabelClass: __esri.LabelClassConstructor;
+  public static TextSymbol: __esri.TextSymbolConstructor;
+  public static Font: __esri.FontConstructor;
 
   public static widgets: EsriWidgets;
 
@@ -130,7 +138,11 @@ export class EsriApi {
       EsriApi.Query,
       EsriApi.Extent,
       EsriApi.Geoprocessor,
-      EsriApi.FeatureSet
+      EsriApi.FeatureSet,
+      EsriApi.Field,
+      EsriApi.LabelClass,
+      EsriApi.TextSymbol,
+      EsriApi.Font
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

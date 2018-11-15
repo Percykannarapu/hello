@@ -3,21 +3,25 @@ pipeline {
   stages {
     stage('install modules') {
       steps {
-        echo 'install all the stuff'
-        sh '''
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+          echo 'install all the stuff'
+          sh '''
             if [ ! -d "node_modules" ]; then
               npm install
             fi
-        '''
+            '''
+        }
       }
     }
     stage('build development') {
       when { branch 'dev' }
       steps {
-        echo 'build for development'
-        sh '''
-                node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server
-               '''
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+          echo 'build for development'
+          sh '''
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+             '''
+        }
       }
     }
     stage('build for QA') {
@@ -26,19 +30,23 @@ pipeline {
         changelog 'DEPLOY_TO: QA'
       }
       steps {
-        echo 'build for QA'
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=qa --progress=false
-           '''
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+          echo 'build for QA'
+          sh '''
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=qa --progress=false
+            '''
+        }
       }
     }
     stage('build production') {
       when { branch 'master' }
       steps {
-        echo 'build for production'
-        sh '''
-                node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
-               '''
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+          echo 'build for production'
+          sh '''
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
+             '''
+        }
       }
     }
     stage('Run Tests') {

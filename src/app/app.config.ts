@@ -37,16 +37,16 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
         // https://blogs.esri.com/esri/arcgis/2017/12/14/making-better-promises/
         // 'esri-promise-compatibility': 1,
         // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-        // 'esri-featurelayer-webgl': 1
+        'esri-featurelayer-webgl': 1
       }
     }
   };
 
   public esriAppSettings: EsriAppSettings = {
     defaultSpatialRef: 4326,
-    maxPointsPerBufferQuery: 100,
+    maxPointsPerBufferQuery: 250,
     maxPointsPerAttributeQuery: 50,
-    maxPointsPerServiceQuery: 1000,
+    maxPointsPerServiceQuery: 1500,
     defaultMapParams: {
       layers: []
     },
@@ -54,9 +54,9 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
       center: { longitude: -98.5795, latitude: 39.8282 },
       zoom: 4,
       highlightOptions : {
-        color: [0, 255, 0],
-        fillOpacity: 0.65,
-        haloOpacity: 0
+        color: [0, 255, 255, 1],
+        fillOpacity: 0,
+        haloOpacity: 1
       },
       spatialReference: {
         wkid: 102100
@@ -231,7 +231,6 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
   };
 
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
-     console.log('app.config.getLayerIdForAnalysisLevel - analysisLevel: ', analysisLevel);
     switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
         return boundary ? this.layers.zip.boundaries.id : this.layers.zip.centroids.id;
