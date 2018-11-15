@@ -29,7 +29,7 @@
 
         <ng-template pTemplate="colgroup" let-columns>
            <colgroup>
-              <col style="width: 30px">
+              <!-- <col style="width: 30px"> -->
               <col style="width: 4em">
               <col style="width: 4em">
               <col *ngFor="let col of selectedColumns" [style.width]="col.width">
@@ -53,7 +53,7 @@
 
         <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
            <tr>
-              <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <!-- <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th> -->
               <th style="width: 4em">Zoom</th>
               <th style="width: 4em">Delete</th>
               <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
@@ -125,9 +125,9 @@
 
         <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
            <tr [pSelectableRow]="flatLoc">
-              <td>
+              <!-- <td>
                  <p-tableCheckbox [value]="flatLoc" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
-              </td>
+              </td> -->
               <td [ngStyle]="{'width':'5em'}">
                  <button (click)="onRowZoom(flatLoc.loc)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </td>
