@@ -219,11 +219,10 @@ export class AppLocationService {
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    // const quadTree = new LocationQuadTree(locations);
-    // const result = quadTree.partition(this.config.esriAppSettings.maxPointsPerServiceQuery);
-    // this.logger.debug('QuadTree partitions', quadTree);
-    // return result.filter(chunk => chunk && chunk.length > 0);
-    return [locations];
+    const quadTree = new LocationQuadTree(locations);
+    const result = quadTree.partition(this.config.esriAppSettings.maxPointsPerServiceQuery);
+    this.logger.debug('QuadTree partitions', quadTree);
+    return result.filter(chunk => chunk && chunk.length > 0);
   }
 
   private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
@@ -310,13 +309,13 @@ export class AppLocationService {
           const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
           // validate homegeo rules
 
-          if ((newHomeGeoToAnalysisLevelMap[key] != 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] != 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode != '' 
+          if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
                && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
                     homeGeocodeIssue = 'Y';   
                     warningNotificationFlag = 'Y';
           }
 
-          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length == 5) || (currentAttributes[key] == null 
+          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
               || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
               homeGeocodeIssue = 'Y'; 
               warningNotificationFlag = 'Y';  

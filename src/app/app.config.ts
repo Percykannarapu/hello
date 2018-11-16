@@ -46,7 +46,7 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
     defaultSpatialRef: 4326,
     maxPointsPerBufferQuery: 250,
     maxPointsPerAttributeQuery: 50,
-    maxPointsPerServiceQuery: 1500,
+    maxPointsPerServiceQuery: 5000,
     defaultMapParams: {
       layers: []
     },
