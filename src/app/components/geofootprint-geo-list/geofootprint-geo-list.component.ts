@@ -660,10 +660,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          geoGridData.push(gridGeo);
       });
-      if(missingVars.length > 0 ){
-         missingVars.forEach(v =>             
+
+      // Code changes to display variables with no data in Grid
+      /* if(missingVars.length > 0 ){
+         missingVars.forEach(v =>   
             this.flatGeoGridExtraColumns.push({field: v.varPk.toString(), header: this.getProjectVarFieldName(v), matchMode: 'contains', sortOrder: v.sortOrder, styleClass: 'val-text-right', width: '100px'})
          )}
+       */
       // Set Ranges
       try
       {
