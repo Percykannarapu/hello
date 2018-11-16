@@ -26,6 +26,7 @@ export class FlatSite {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListComponent implements OnInit {
+    first: number = 0;
    @Input('impGeofootprintLocations')
    set locations(val: ImpGeofootprintLocation[]) {
       this.allLocationsBS$.next(val);
@@ -258,6 +259,11 @@ export class SiteListComponent implements OnInit {
 */
   
    public onListTypeChange(data: 'Site' | 'Competitor') {
+      this.first = null;
+      setTimeout(() => {
+          this.first = 0;
+      }, 0);
+      
       this.selectedListType = data;
 
       // Choose to set current observables to sites or competitors

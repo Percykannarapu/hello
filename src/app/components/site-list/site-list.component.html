@@ -23,6 +23,7 @@
               sortMode="multiple"
               [responsive]="true"
               [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50,100,200,500,1000]"
+              [first]="first"
               (onRowUnselect)="onRowSelect($event, false)"
               (onRowSelect)="onRowSelect($event, true)"
               (onFilter)="onFilter($event)">
