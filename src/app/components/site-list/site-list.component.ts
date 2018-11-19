@@ -476,7 +476,7 @@ export class SiteListComponent implements OnInit {
       if (geos != null) {
 //         console.log("SITE-LIST - createComposite - processing geos: ", geos.length);
          geos.forEach(geo => {
-            if (geo.impGeofootprintLocation.isActive) {
+            if (geo.isActive && geo.hhc >= 0) {
 // TODO: At least for audience trade areas, the hhc is being counted BEFORE the isActive flag is set to 0, perhaps change that code to mutate the geos
 //               let hhc = hhcMap.get(geo.impGeofootprintLocation.locationNumber);
 //               hhc = ((hhc != null && hhc != NaN) ? hhc : 0) + geo.hhc;
