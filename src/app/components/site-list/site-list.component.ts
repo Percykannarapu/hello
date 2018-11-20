@@ -529,7 +529,20 @@ export class SiteListComponent implements OnInit {
 //       gridSite['totalAllocatedHHC'] = null;
          gridSite['totalHHC'] = hhcMap.get(gridSite.loc.locationNumber);
          gridSite['totalAllocatedHHC'] = allocHhcMap.get(gridSite.loc.locationNumber);
-
+         // Populate Radius fields in Manage Locations Grid
+          if (loc.impGeofootprintTradeAreas.length != 0) {
+              for (let i = 0; i < loc.impGeofootprintTradeAreas.length; i++) {
+                if (loc.impGeofootprintTradeAreas[i].taNumber == 1) {
+                  gridSite['radius1'] = loc.impGeofootprintTradeAreas[i].taRadius;
+                }
+                if (loc.impGeofootprintTradeAreas[i].taNumber == 2) {
+                  gridSite['radius2'] = loc.impGeofootprintTradeAreas[i].taRadius;
+                }
+                if (loc.impGeofootprintTradeAreas[i].taNumber == 3) {
+                  gridSite['radius3'] = loc.impGeofootprintTradeAreas[i].taRadius;
+                }
+              }
+          }  
          //console.log("gridSite: ", gridSite);
          siteGridData.push(gridSite);
       });
