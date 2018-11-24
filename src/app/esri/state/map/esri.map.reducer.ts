@@ -2,6 +2,11 @@ import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriMapActions, EsriMapActionTypes } from './esri.map.actions';
 import { EsriMapToolbarButtonActionTypes } from './esri.map-button.actions';
 
+export interface EsriLabelConfiguration {
+  font: string;
+  size: number;
+  enabled: boolean;
+}
 export interface EsriMapState {
   mapIsInitializing: boolean;
   mapIsReady: boolean;
@@ -13,6 +18,7 @@ export interface EsriMapState {
   sketchView: __esri.SketchViewModel;
   selectedFeatures: __esri.Graphic[];
   analysisLevel: string;
+  labelConfiguration: EsriLabelConfiguration;
 }
 
 const initialState: EsriMapState = {
@@ -25,7 +31,8 @@ const initialState: EsriMapState = {
   popupsVisible: true,
   sketchView: null,
   selectedFeatures: [],
-  analysisLevel: null
+  analysisLevel: null,
+  labelConfiguration: null
 };
 
 export function mapReducer(state = initialState, action: EsriMapActions) : EsriMapState {
@@ -61,6 +68,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
       return { ...state, mapViewpoint: action.payload.newViewpoint };
     case EsriMapActionTypes.SetPopupVisibility:
       return { ...state, popupsVisible: action.payload.isVisible };
+    case EsriMapActionTypes.SetLabelConfiguration:
+      return { ...state, labelConfiguration: action.payload.labelConfiguration };
 
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:

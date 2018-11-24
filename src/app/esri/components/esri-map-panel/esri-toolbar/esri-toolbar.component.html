@@ -7,6 +7,7 @@
       <button (click)="multiUnselectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.UnselectMultiplePolys }" title="Remove Multiple Geos" class="action-button fa fa-minus-square-o"></button> 
       <button (click)="measureToolClicked.emit()" [ngClass]="{ 'active': currentMapState === states.MeasureDistance }" title="Measure Line" class="action-button esri-icon-share"></button>
       <ng-content select="additional-toolbar-buttons"></ng-content>
+      <ng-content select="val-esri-label-config"></ng-content>
     </div>
     <ng-content select="additional-toolbar-group"></ng-content>
   </div>

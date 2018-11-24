@@ -8,7 +8,7 @@ import { AppStateService } from './app-state.service';
 import { EsriRendererService } from '../esri/services/esri-renderer.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
-import { AddNumericShadingData, AddTextShadingData, AddSelectedGeos, HighlightSelectedGeos } from '../esri/state/map/esri.renderer.actions';
+import { AddNumericShadingData, AddTextShadingData, AddSelectedGeos, HighlightSelectedGeos, AddStatistics } from '../esri/state/map/esri.renderer.actions';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -68,18 +68,11 @@ export class AppRendererService {
       withLatestFrom(this.appStateService.applicationIsReady$.pipe(filter(ready => ready === true)))
     )
     .subscribe(([geos, ready]) => {
-      this.esriRenderer.updateSelectedGeos(geos);
       this.store$.dispatch(new AddSelectedGeos(geos));
       this.store$.dispatch(new HighlightSelectedGeos(true));
       this.currentSelectedGeos.clear();
-      geos.forEach(geo => this.currentSelectedGeos.add(geo));
     });
 
-    this.esriRenderer.rendererDataReady$.subscribe(n => this.rendererDataReady.next(n));
-
-    this.rendererDataReady$ = this.rendererDataReady.pipe(
-      distinctUntilChanged()
-    );
 
     this.dataSubscription = this.dataService.shadingData$.pipe(
       map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
@@ -94,7 +87,6 @@ export class AppRendererService {
         for (const data of newData) {
           textShadingData.push({ geocode: data.geocode, data: data.data.valueString });
         }
-        this.esriRenderer.addTextShadingData(textShadingData);
       } else {
         for (const data of newData) {
           numericShadingData.push({ geocode: data.geocode, data: data.data.valueNumber });
@@ -102,36 +94,13 @@ export class AppRendererService {
       }
     });
     if (numericShadingData.length > 0) {
-      this.esriRenderer.addNumericShadingData(numericShadingData);
-      const action = new AddNumericShadingData(numericShadingData); 
+      const statistics = calculateStatistics(newData.map(d => d.data.valueNumber)); 
+      this.store$.dispatch(new AddStatistics(statistics));
+      this.store$.dispatch(new AddNumericShadingData(numericShadingData));
+    } else if (textShadingData.length > 0) {
+      const action = new AddTextShadingData(textShadingData);
       this.store$.dispatch(action);
     }
-    if (newData != null && newData.length > 0 && newData[0].data.isNumber === true) {
-      this.esriRenderer.setStatistics(calculateStatistics(newData.map(d => d.data.valueNumber)));
-    } else {
-      this.esriRenderer.setStatistics(null);
-    }
-    if (this.esriRenderer.getNumericShadingData().size === 0 && this.esriRenderer.getTextShadingData().size === 0) {
-      return;
-    }
-    if (this.esriRenderer.getNumericShadingData().size > 0) {
-      this.rendererDataReady.next(this.esriRenderer.getNumericShadingData().size);
-    } else {
-      this.rendererDataReady.next(this.esriRenderer.getTextShadingData().size);
-    }
-  }
-
-  public createUnifiedRenderer(defaultSymbol: __esri.SimpleFillSymbol, setup: SmartRendererSetup | CustomRendererSetup) : __esri.Renderer {
-    const renderer: __esri.UniqueValueRenderer = <__esri.UniqueValueRenderer> this.esriRenderer.createUnifiedRenderer(defaultSymbol, setup);
-    /*let dataTitle = '';
-    if (this.currentSelectedGeos.size > 0) {
-      const exemplar = Array.from(this.currentData.values())[0];
-      const exemplarAudience = this.dataService.getAudiences(exemplar.customVarExprQuery)[0];
-      dataTitle = exemplarAudience != null ? exemplarAudience.audienceName : '';
-    }
-    renderer.legendOptions.title = dataTitle;*/
-    renderer.legendOptions.title = 'test title';
-    return renderer;
   }
 
 }

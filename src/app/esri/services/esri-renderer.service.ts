@@ -5,10 +5,13 @@ import { AppConfig } from '../../app.config';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriQueryService } from './esri-query.service';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, withLatestFrom, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, withLatestFrom, tap, share } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { Store, select } from '@ngrx/store';
-import { AppState, getEsriRendererState, getEsriMapState } from '../state/esri.selectors';
+import { AppState, getEsriState, getEsriMapState, getEsriRendererNumericData, getEsriRendererTextData, getEsriViewpointState, getEsriRendererSelectedGeocodes } from '../state/esri.selectors';
+import { EsriMapState } from '../state/map/esri.map.reducer';
+import { EsriHighlightHandler, EsriHighlightRemover, NumericShadingData, TextShadingData, Statistics } from '../state/map/esri.renderer.reducer';
+import { AddHighlightHandlers, ClearHighlightHandlers } from '../state/map/esri.renderer.actions';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -44,14 +47,6 @@ const tacticianDarkPalette = [
   [241, 159, 39, 0.65],
   [218, 49, 69, 0.65]
 ];
-export interface Statistics {
-  mean: number;
-  sum: number;
-  min: number;
-  max: number;
-  variance: number;
-  stdDeviation: number;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -59,42 +54,50 @@ export interface Statistics {
 export class EsriRendererService {
 
   public static currentDefaultTheme: SmartMappingTheme = SmartMappingTheme.HighToLow;
-  private rendererDataReady: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-  public rendererDataReady$: Observable<number>;
-  private currentSelectedGeos: Set<string> = new Set<string>();
-  private highlightHandlers: Array<{ remove: () => void }> = [];
-  private currentStatistics: Statistics;
-  private currentNumericData: Map<string, number> = new Map<string, number>();
-  private currentTextData: Map<string, string> = new Map<string, string>();
-  private numericData$ = new Subject<Map<string, number>>();
-  private textData$ = new Subject<Map<string, string>>();
-  private fieldsAdded: Set<string> = new Set<string>();
-  private layerUpdating$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private watchSetup = false;
+  
+  private simpleSymbol: any = null;
+  private simpleRenderer: any = null;
   
   constructor(private mapService: EsriMapService, 
               private layerService: EsriLayerService,
               private appConfig: AppConfig,
               private queryService: EsriQueryService,
               private store$: Store<AppState>) {
-    this.numericData$.subscribe(data => {
-      this.addFeatureNumericData(data);
-    });
 
-    this.textData$.subscribe(data => {
-      this.addFeatureTextData(data);
-    });
+    const sharedStore$ = this.store$.pipe(share());
 
-    this.rendererDataReady$ = this.rendererDataReady.pipe(
-      distinctUntilChanged()
-    );
+    //pipe for highlighting based on selected geocodes
+    sharedStore$.pipe(
+      select(getEsriRendererSelectedGeocodes),
+      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      filter(([selectedGeos, esriState]) => selectedGeos != null && esriState != null),
+      filter(([selectedGeos, esriState]) => esriState.renderer.highlightSelectedGeos === true),
+    ).subscribe(([selectedGeos, esriState]) => this.highlightGeos(esriState.map.analysisLevel, selectedGeos, esriState.renderer.highlightHandlers, true));
 
-    this.store$.pipe(
-      select(getEsriRendererState),
+    //pipe for highlighting based on viewpoint changes
+    sharedStore$.pipe(
+      select(getEsriViewpointState),
+      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      filter(([viewpointState, esriState]) => viewpointState != null && esriState != null),
+    ).subscribe(([viewpointState, esriState]) => this.highlightGeos(esriState.map.analysisLevel, esriState.renderer.selectedGeocodes, esriState.renderer.highlightHandlers));
+
+    //pipe for shading the map with numeric data
+    sharedStore$.pipe(
+      select(getEsriRendererNumericData),
+      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      filter(([numericData, esriState]) => numericData != null && esriState != null),
+      filter(([numericData, esriState]) => numericData.length > 0),
+      distinctUntilChanged(),
+    ).subscribe(([numericData, esriState]) => this.createMultiVariateRenderer(numericData, esriState.map, esriState.renderer.statistics));
+
+    //pipe for shading the map with text data
+    sharedStore$.pipe(
+      select(getEsriRendererTextData),
       withLatestFrom(this.store$.pipe(select(getEsriMapState))),
-      filter(([rendererState, mapState]) => rendererState != null && mapState != null),
-      filter(([rendererState, mapState]) => rendererState.highlightSelectedGeos === true),
-    ).subscribe(([rendererState, mapState]) => this.highlightGeos(mapState.analysisLevel, rendererState.selectedGeocodes));
+      filter(([textData, mapState]) => textData != null && mapState != null),
+      filter(([textData, mapState]) => textData.length > 0),
+      distinctUntilChanged(),
+    ).subscribe(([textData, mapState]) => this.createClassBreaksRenderer(textData, mapState));
 
   }
 
@@ -155,114 +158,35 @@ export class EsriRendererService {
     return r != null && r.hasOwnProperty('smartTheme');
   }
 
-  /**
-   * Update the list of selected geos for highlighting purposes
-   * @param geocodes the list of selected geos
-   */
-  public updateSelectedGeos(geocodes: string[]) {
-    for (const geocode of geocodes) {
-      this.currentSelectedGeos.add(geocode);
+  private isNumericShadingData(data: Array<NumericShadingData> | Array<TextShadingData>) : data is Array<NumericShadingData> {
+    for (const datum of data) {
+      if (datum.data == null) {
+        continue;
+      }
+      const result = Number.isNaN(Number(data[0].data));
+      return result;
     }
+    return false;
   }
 
-  /**
-   * Clear the currently selected geos
-   */
-  public clearSelectedGeos() {
-    this.currentSelectedGeos.clear();
-  }
-
-  public setStatistics(statistics: Statistics) {
-    this.currentStatistics = statistics;
-  }
-
-  public addNumericShadingData(newData: { geocode: string, data: number }[]) {
-    if (!this.watchSetup) {
-      this.addFields(this.getLayerView().layer);
-      EsriUtils.setupWatch(this.mapService.mapView, 'updating').pipe(
-        filter(r => r.newValue === false && r.oldValue === true)
-      ).subscribe( r => this.addFeatureNumericData(this.currentNumericData));
-      this.watchSetup = true;
-    }
-    for (const data of newData) {
-      this.currentNumericData.set(data.geocode, data.data);
-    }
-    //this.numericData$.next(this.currentNumericData);
-
-  }
-
-  public addTextShadingData(newData: { geocode: string, data: string }[]) {
-    for (const data of newData) {
-      this.currentTextData.set(data.geocode, data.data);
-    }
-    //this.textData$.next(this.currentTextData);
-  }
-
-  public clearNumericShadingData() {
-    //this.currentNumericData.clear();
-  }
-
-  public clearTextShadingData() {
-    //this.currentTextData.clear();
-  }
-
-  public getNumericShadingData() : Map<string, number> {
-    return this.currentNumericData;
-  }
-
-  public getTextShadingData() : Map<string, string> {
-    return this.currentTextData;
-  }
-
-  private generateArcade(data: Map<string, number>) : string {
+  private generateArcade(data: Array<NumericShadingData> | Array<TextShadingData>) : string {
       let newPairs: string = '';
-      for (const key of Array.from(data.keys())) {
+      const numericData = this.isNumericShadingData(data);
+      for (const datum of data) {
         try {
-          newPairs += `\"${key}\":${data.get(key)}\,`;
+          if (numericData) {
+            newPairs += `\"${datum.geocode}\":${datum.data}\,`;
+          } else {
+            newPairs += `\"${datum.geocode}\":\"${datum.data}\"\,`;
+          }
+          
         } catch (error) {
           console.error('Failed to add key');
         }
       }
       newPairs = newPairs.substring(0, newPairs.length - 1);
-      return `var data = {${newPairs}}; return data[$feature.geocode];`;
-  }
-
-  private addFeatureNumericData(data: Map<string, number>) {
-    const arcade = this.generateArcade(this.currentNumericData);
-    const layerView = this.getLayerView();
-    let defaultSymbol: __esri.SimpleFillSymbol = new EsriApi.SimpleFillSymbol();
-    if (EsriUtils.rendererIsSimple(layerView.layer.renderer) && EsriUtils.symbolIsSimpleFill(layerView.layer.renderer.symbol)) {
-      defaultSymbol = layerView.layer.renderer.symbol;
-    }
-    let setup: CustomRendererSetup | SmartRendererSetup;
-    setup = {
-      rampLabel: '',
-      outline: {
-        defaultWidth: defaultSymbol.outline.width,
-        selectedWidth: 4,
-        selectedColor: [86, 231, 247, 1.0]
-      },
-      smartTheme: {
-        baseMap: this.mapService.mapView.map.basemap,
-        theme: null
-      }
-    };
-    layerView.layer.renderer = this.createMultiVariateRenderer(defaultSymbol, setup, arcade);
-  }
-
-  private addFeatureTextData(data: Map<string, string>) {
-    const layerView = this.getLayerView();
-    if (layerView != null) {
-      this.queryService.queryLayerView([layerView.layer], this.mapService.mapView.extent, false)
-        .subscribe(graphics => {
-          for (const graphic of graphics) {
-            if (data.has(graphic.getAttribute('geocode'))) {
-              graphic.setAttribute('textShadingData', data.get(graphic.getAttribute('geocode')));
-            }
-          }
-          this.rendererDataReady.next(this.currentTextData.size);
-        });
-    }
+      const arcade = `var data = {${newPairs}}; return data[$feature.geocode];`;
+      return arcade;
   }
 
   private getLayerView(analysisLevel: string = 'zip') : __esri.FeatureLayerView {
@@ -298,61 +222,82 @@ export class EsriRendererService {
     return newRenderer;
   }
 
-  private createClassBreaksRenderer(defaultSymbol: __esri.SimpleFillSymbol, dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRenderer {
-    const baseRenderer = this.createBaseRenderer(defaultSymbol, setup.outline, '(No Data)', dataValues.length > 0);
+  //private createClassBreaksRenderer(defaultSymbol: __esri.SimpleFillSymbol, dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRenderer {
+  private createClassBreaksRenderer(data: Array<TextShadingData>, mapState: EsriMapState) {  
+    const arcade = this.generateArcade(data);
+    const setup = this.createRendererSetup(mapState);
+    const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline, '(No Data)', data.length > 0);
     // Unshifting so I can keep the data values at the top, and the (no data) values at the bottom
-    baseRenderer.uniqueValueInfos.unshift(...this.generateClassBreaks(dataValues, setup));
+    const dataValues: Set<string> = new Set<string>();
+    for (const datum of data) {
+      dataValues.add(datum.data);
+    }
+    baseRenderer.valueExpression = arcade;
+    baseRenderer.uniqueValueInfos.unshift(...this.generateClassBreaks(Array.from(dataValues), setup.rendererSetup));
     // have to clone because the previous op works directly on the UVI array, and doesn't go through .addUniqueValue()
-    return baseRenderer.clone();
-  }
-
-  public createUnifiedRenderer(defaultSymbol: __esri.SimpleFillSymbol, setup: SmartRendererSetup | CustomRendererSetup) : __esri.Renderer {
-    // for now, if data type === number, we do multivariate, if text, we do class breaks
-    if (this.currentStatistics != null) {
-      return this.createMultiVariateRenderer(defaultSymbol, setup);
+    const lv = this.getLayerView(mapState.analysisLevel);
+    if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
+      lv.layer.renderer = baseRenderer.clone();
     } else {
-      const dataValues = new Set(Array.from(this.currentTextData.values()));
-      return this.createClassBreaksRenderer(defaultSymbol, Array.from(dataValues), setup);
+      lv.layer.renderer = this.simpleRenderer.clone();
+      setTimeout(() => this.createClassBreaksRenderer(data, mapState), 0);
     }
   }
 
-  private createMultiVariateRenderer(defaultSymbol: __esri.SimpleFillSymbol, setup: SmartRendererSetup | CustomRendererSetup, arcade?: string) : __esri.UniqueValueRenderer {
-    if (!arcade && this.currentNumericData.size > 0) {
-      arcade = this.generateArcade(this.currentNumericData);
-    } 
-    const baseRenderer = this.createBaseRenderer(defaultSymbol, setup.outline);
-    const themeColors = EsriRendererService.getThemeColors(setup);
+  private createMultiVariateRenderer(data: Array<NumericShadingData>, mapState: EsriMapState, statistics: Statistics) {
+    const arcade = this.generateArcade(data);
+    const setup = this.createRendererSetup(mapState);
+    const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
+    const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup);
     const colorVariable: Partial<__esri.ColorVisualVariable> = {
       type: 'color',
-      
-      /**
-       * Don't seem to be able to use this anymore with WebGL
-       */
-      /*field: (feature: __esri.Graphic) => {
-        if (this.currentNumericData.has(feature.attributes.geocode))
-          return this.currentNumericData.get(feature.attributes.geocode);
-        return undefined;
-      },*/
-      //field: 'cl2prw',
-      
-      
-      //valueExpression: '$feature.numericShadingData',
-      //valueExpression: 'var data = {\"field\": 130}; return data.field',
       valueExpression: arcade,
-      //field: 'numericShadingData',
-      stops: this.generateContinuousStops(themeColors),
-      legendOptions: { showLegend: true, title: setup.rampLabel}
+      stops: this.generateContinuousStops(themeColors, statistics),
+      legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
     };
     baseRenderer.visualVariables = [colorVariable];
-    return baseRenderer;
+    const lv = this.getLayerView(mapState.analysisLevel);
+    if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
+      lv.layer.renderer = baseRenderer.clone();
+    } else {
+      lv.layer.renderer = this.simpleRenderer.clone();
+      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics), 0);
+    }
   }
 
-  private generateContinuousStops(themeStops: __esri.Color[]) : __esri.ColorVisualVariableStops[] {
+  private createRendererSetup(mapState: EsriMapState) : { rendererSetup: SmartRendererSetup | CustomRendererSetup, symbol: __esri.SimpleFillSymbol} {
+    let setup: CustomRendererSetup | SmartRendererSetup;
+    const currentRenderer: __esri.Renderer = this.getLayerView(mapState.analysisLevel).layer.renderer;
+    let symbol: __esri.SimpleFillSymbol = new EsriApi.SimpleFillSymbol();
+    if (EsriUtils.rendererIsSimple(currentRenderer) && EsriUtils.symbolIsSimpleFill(currentRenderer.symbol)) {
+      symbol = currentRenderer.symbol;
+      this.simpleSymbol = symbol;
+      this.simpleRenderer = this.getLayerView(mapState.analysisLevel).layer.renderer;
+    } else {
+      symbol = this.simpleSymbol;
+    }
+    setup = {
+      rampLabel: '',
+      outline: {
+        //defaultWidth: symbol.outline.width,
+        defaultWidth: 2,
+        selectedWidth: 4,
+        selectedColor: [86, 231, 247, 1.0]
+      },
+      smartTheme: {
+        baseMap: this.mapService.mapView.map.basemap,
+        theme: null
+      }
+    };
+    return {rendererSetup: setup, symbol: symbol};
+  }
+
+  private generateContinuousStops(themeStops: __esri.Color[], statistics: Statistics) : __esri.ColorVisualVariableStops[] {
     const result: __esri.ColorVisualVariableStops[] = [];
     if (themeStops.length < 2) throw new Error('Themes must contain a minimum of 2 stops');
     const round = (n: number) => Math.round(n * 100) / 100;
-    const mean = this.currentStatistics.mean;
-    const std = this.currentStatistics.stdDeviation;
+    const mean = statistics.mean;
+    const std = statistics.stdDeviation;
     const themeCount = themeStops.length;
     const stepSize = 2 / (themeCount - 1);
     const multipliers: number[] = new Array<number>(themeStops.length);
@@ -395,66 +340,40 @@ export class EsriRendererService {
     return result;
   }
 
-  private addFields(layer: __esri.FeatureLayer) {
-    const numericField: __esri.Field =  new EsriApi.Field({
-      name: 'numericShadingData',
-      alias: 'numericShadingData',
-      type: 'double'
-    });
-    const textField: __esri.Field = new EsriApi.Field({
-      name: 'textShadingData',
-      alias: 'textShadingData',
-      type: 'string'
-    });
-    layer.fields.unshift(numericField);
-    layer.fields.unshift(textField);
-  }
-
   /**
    * Determine if the features in the current map view are selected
    */
-  public highlightGeos(analysisLevel: string, geos: string[]) {
+  public highlightGeos(analysisLevel: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
     if (!analysisLevel) return;
-    for (const handler of this.highlightHandlers) {
-      handler.remove();
-    }
     const currentSelectedGeos: Set<string> = new Set(geos);
-    const layerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
-    const layer = this.layerService.getPortalLayerById(layerId);
-    if (!this.fieldsAdded.has(layer.title)) {
-      this.addFields(layer);
-      this.fieldsAdded.add(layer.title);
-    }
-    let layerView: __esri.FeatureLayerView = null;
-    const layerViews = this.mapService.mapView.allLayerViews;
-    layerViews.forEach(lv => {
-      if (layer.id === lv.layer.id) {
-        layerView = <__esri.FeatureLayerView>lv;
+    if (remove) {
+      for (const handler of highlightHandlers) {
+        if (!currentSelectedGeos.has(handler.geocode)) {
+          handler.remover.remove();
+        }
       }
-    });
+    }
+    const layerView = this.getLayerView(analysisLevel);
     if (layerView != null) {
-      const selectedFeatures: Array<number> = [];
+      const selectedFeatures: Array<{geocode: string, objectid: number}> = [];
       this.queryService.queryLayerView([layerView.layer], this.mapService.mapView.extent, false).subscribe(results => {
         for (const feature of results) {
           if (feature.getAttribute('geocode') != null && currentSelectedGeos.has(feature.getAttribute('geocode'))) {
-            feature.setAttribute('selected', 'Selected');
             feature.setAttribute('objectID', feature.getAttribute('objectid'));
-            feature.setAttribute('OBJECTID', feature.getAttribute('objectid'));
-            feature.symbol = null;
-            selectedFeatures.push(Number(feature.getAttribute('objectID')));
-          } else {
-            feature.setAttribute('selected', 'Unselected');
-          }
-          if (this.currentNumericData.has(feature.getAttribute('geocode'))) {
-            feature.setAttribute('numericShadingData', this.currentNumericData.get(feature.getAttribute('geocode')));
-          }
-          if (this.currentTextData.has(feature.getAttribute('geocode'))) {
-            feature.setAttribute('textShadingData', this.currentTextData.get(feature.getAttribute('geocode')));
+            selectedFeatures.push({geocode: feature.getAttribute('geocode'), objectid: Number(feature.getAttribute('objectID'))});
           }
         }
         if (selectedFeatures.length > 0) {
-          const obj = layerView.highlight(selectedFeatures);
-          this.highlightHandlers.push(obj);
+          const handlers: Array<EsriHighlightHandler> =  new Array<EsriHighlightHandler>();
+          for (const feature of selectedFeatures) {
+            const highlightRemover: EsriHighlightRemover = <EsriHighlightRemover> layerView.highlight(feature.objectid);
+            const highlightHandler: EsriHighlightHandler = { geocode: feature.geocode, remover: highlightRemover };
+            handlers.push(highlightHandler);
+          }
+          this.store$.dispatch(new ClearHighlightHandlers);
+          this.store$.dispatch(new AddHighlightHandlers(handlers));
+        } else {
+          this.store$.dispatch(new ClearHighlightHandlers);
         }
       });
     }

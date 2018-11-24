@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { EsriHighlightHandler, NumericShadingData, TextShadingData, Statistics } from './esri.renderer.reducer';
 
 export enum EsriRendererActionTypes {
   AddNumericShadingData = '[Esri Renderer] Add Numeric Shading Data',
@@ -7,17 +8,20 @@ export enum EsriRendererActionTypes {
   ClearNumericShadingData = '[Esri Renderer] Clear Numeric Shading Data',
   ClearTextShadingData = '[Esri Renderer] Clear Text Shading Data',
   ClearSelectedGeos = '[Esri Renderer] Clear Selected Geos',
-  HighlightSelectedGeos = '[Esri Renderer] Highlight Selected Geos'
+  HighlightSelectedGeos = '[Esri Renderer] Highlight Selected Geos',
+  AddHighlightHandlers = '[Esri Renderer] Add Highlight Handlers',
+  ClearHighlightHandlers = '[Esri Renderer] Clear Highlight Handlers',
+  AddStatistics = '[Esri Renderer] Add statistics'
 }
 
 export class AddNumericShadingData implements Action {
   readonly type = EsriRendererActionTypes.AddNumericShadingData;
-  constructor(public payload: Array<{ geocode: string, data: number }>) { }
+  constructor(public payload: Array<NumericShadingData>) { }
 }
 
 export class AddTextShadingData implements Action {
   readonly type = EsriRendererActionTypes.AddTextShadingData;
-  constructor(public payload: Array<{ geocode: string, data: string }>) { }
+  constructor(public payload: Array<TextShadingData>) { }
 }
 
 export class AddSelectedGeos implements Action {
@@ -42,6 +46,20 @@ export class HighlightSelectedGeos implements Action {
   constructor(public payload: boolean) { }
 }
 
+export class AddHighlightHandlers implements Action {
+  readonly type = EsriRendererActionTypes.AddHighlightHandlers;
+  constructor(public payload: Array<EsriHighlightHandler>) { }
+}
+
+export class ClearHighlightHandlers implements Action {
+  readonly type = EsriRendererActionTypes.ClearHighlightHandlers;
+}
+
+export class AddStatistics implements Action {
+  readonly type = EsriRendererActionTypes.AddStatistics;
+  constructor(public payload: Statistics) { }
+}
+
 export type EsriRendererActions =
   AddNumericShadingData
   | AddTextShadingData
@@ -50,4 +68,7 @@ export type EsriRendererActions =
   | ClearTextShadingData
   | ClearSelectedGeos
   | HighlightSelectedGeos
+  | AddHighlightHandlers
+  | ClearHighlightHandlers
+  | AddStatistics
   ;

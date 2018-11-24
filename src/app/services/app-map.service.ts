@@ -57,17 +57,6 @@ export class AppMapService implements OnDestroy {
               private store$: Store<AppState>) {
     this.useWebGLHighlighting = this.config.webGLIsAvailable();
 
-    const cleanAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-    combineLatest(cleanAnalysisLevel$, this.rendererService.rendererDataReady$).pipe(
-      //filter(() => !this.useWebGLHighlighting)
-    ).subscribe(
-      ([analysisLevel, dataLength]) => this.setupRenderer(dataLength, analysisLevel)
-    );
-    combineLatest(cleanAnalysisLevel$, this.appStateService.uniqueSelectedGeocodes$).pipe(
-      filter(() => this.useWebGLHighlighting)
-    ).subscribe(
-      //([analysisLevel, selectedGeocodes]) => this.setHighlight(selectedGeocodes, analysisLevel)
-    );
     this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
       if (this.layerSelectionRefresh) this.layerSelectionRefresh();
     });
@@ -205,71 +194,6 @@ export class AppMapService implements OnDestroy {
         this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
       }
     }
-  }
-
-  private setupRenderer(dataLength: number, currentAnalysisLevel: string) : void {
-    console.log('setting renderer');
-    const portalId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-    const layer = this.layerService.getPortalLayerById(portalId);
-    if ((!layer || !layer.renderer) && this.rendererRetries < 19) {
-      this.rendererRetries++;
-      setTimeout((() => this.setupRenderer(dataLength, currentAnalysisLevel)), 1000);
-      return;
-    }
-    this.rendererRetries = 0;
-    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol)) {
-      this.defaultSymbol = layer.renderer.symbol;
-    }
-    let setup: CustomRendererSetup | SmartRendererSetup;
-    console.log('data length', dataLength);
-    if (dataLength === 0) {
-      setup = {
-        rampLabel: '',
-        outline: {
-          defaultWidth: this.defaultSymbol.outline.width,
-          selectedWidth: this.defaultSymbol.outline.width,
-          selectedColor: this.defaultSymbol.outline.color
-        }
-      };
-    } else {
-      setup = {
-        rampLabel: '',
-        outline: {
-          defaultWidth: this.defaultSymbol.outline.width,
-          selectedWidth: 4,
-          selectedColor: [86, 231, 247, 1.0]
-        },
-        smartTheme: {
-          baseMap: this.mapService.mapView.map.basemap,
-          theme: null
-        }
-      };
-    }
-    layer.renderer = this.rendererService.createUnifiedRenderer(this.defaultSymbol.clone(), setup);
-    if (dataLength === 0) {
-      this.layerSelectionRefresh = () => {
-        layer.renderer = EsriUtils.clone(layer.renderer);
-      };
-    } else {
-      this.layerSelectionRefresh = null;
-    }
-  }
-
-  private setHighlight(geocodes: string[], currentAnalysisLevel: string) {
-    const boundaryLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-    const layer = this.layerService.getPortalLayerById(boundaryLayerId);
-    const query = new EsriApi.Query({
-      where: `geocode in ('${geocodes.join(`','`)}')`
-    });
-    const sub = this.queryService.executeObjectIdQuery(boundaryLayerId, query).subscribe(ids => {
-      console.log('Object Ids query returned', ids);
-      this.mapService.mapView.whenLayerView(layer).then((lv: __esri.FeatureLayerView) => {
-        console.log('Highlighting');
-        if (this.highlightHandler != null) this.highlightHandler.remove();
-        this.highlightHandler = lv.highlight(ids);
-        if (sub) sub.unsubscribe();
-      });
-    });
   }
 
   private selectThis() {

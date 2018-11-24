@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import { ElementRef } from '@angular/core';
 import { EsriMapToolbarButtonActions } from './esri.map-button.actions';
+import { EsriLabelConfiguration } from './esri.map.reducer';
 
 export enum EsriMapActionTypes {
   InitializeMap = '[Esri Map] Initialize',
@@ -11,7 +12,8 @@ export enum EsriMapActionTypes {
   SetPopupVisibility = '[Esri Map] Set Popup Visibility',
   MapClicked = '[Esri Map] Click Event',
   FeaturesSelected = '[Esri Map] Features Selected',
-  SetAnalysisLevel = '[Esri Map] Set Analysis Level'
+  SetAnalysisLevel = '[Esri Map] Set Analysis Level',
+  SetLabelConfiguration = '[Esri Map] Set Label Configuration'
 }
 
 export class InitializeMap implements Action {
@@ -58,6 +60,11 @@ export class FeaturesSelected implements Action {
   constructor(public payload: { features: __esri.Graphic[] }){}
 }
 
+export class SetLabelConfiguration implements Action {
+  readonly type = EsriMapActionTypes.SetLabelConfiguration;
+  constructor(public payload: { labelConfiguration: EsriLabelConfiguration }){}
+}
+
 export type EsriMapActions =
   InitializeMap
   | InitializeMapSuccess
@@ -69,4 +76,5 @@ export type EsriMapActions =
   | FeaturesSelected
   | EsriMapToolbarButtonActions
   | SetAnalysisLevel
+  | SetLabelConfiguration
   ;

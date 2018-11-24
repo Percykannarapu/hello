@@ -41,7 +41,8 @@ export class EsriApi {
     'esri/layers/support/Field',
     'esri/layers/support/LabelClass',
     'esri/symbols/TextSymbol',
-    'esri/symbols/Font'
+    'esri/symbols/Font',
+    'esri/symbols/SimpleLineSymbol'
 ];
 
   public static config: __esri.config;
@@ -80,6 +81,7 @@ export class EsriApi {
   public static LabelClass: __esri.LabelClassConstructor;
   public static TextSymbol: __esri.TextSymbolConstructor;
   public static Font: __esri.FontConstructor;
+  public static SimpleLineSymbol: __esri.SimpleLineSymbolConstructor;
 
   public static widgets: EsriWidgets;
 
@@ -142,7 +144,8 @@ export class EsriApi {
       EsriApi.Field,
       EsriApi.LabelClass,
       EsriApi.TextSymbol,
-      EsriApi.Font
+      EsriApi.Font,
+      EsriApi.SimpleLineSymbol
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

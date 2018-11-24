@@ -5,6 +5,8 @@
                   (measureToolClicked)="selectButton(SelectedButtonTypeCodes.MeasureDistance)"
                   (popupButtonClicked)="selectButton(SelectedButtonTypeCodes.ShowPopups)">
   <ng-content select="additional-toolbar-buttons" ngProjectAs="additional-toolbar-buttons"></ng-content>
+  &nbsp;&nbsp;
+  <val-esri-label-config></val-esri-label-config>
   <ng-content select="additional-toolbar-group" ngProjectAs="additional-toolbar-group"></ng-content>
 </val-esri-toolbar>
 <val-esri-map [cursor]="cursor$ | async"
