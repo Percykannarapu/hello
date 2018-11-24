@@ -4,8 +4,8 @@ import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { EsriUtils } from '../core/esri-utils';
 import { Store, select } from '@ngrx/store';
-import { AppState, getEsriMapState, getEsriLabelConfiguration } from '../state/esri.selectors';
-import { filter, withLatestFrom } from 'rxjs/operators';
+import { AppState, getEsriMapState, getEsriLabelConfiguration, getEsriAnalysisLevel } from '../state/esri.selectors';
+import { filter, withLatestFrom, share } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
@@ -31,11 +31,21 @@ export class EsriLayerService {
               private store$: Store<AppState>,
               private appConfig: AppConfig) {
 
-    this.store$.pipe(
+    const sharedStore$ = this.store$.pipe(share());
+
+    // Pipe to update labels based on label config changes from the dropdown above the map
+    sharedStore$.pipe(
       select(getEsriLabelConfiguration),
       withLatestFrom(this.store$.pipe(select(getEsriMapState))),
-      filter(([labelConfig, mapState]) => labelConfig != null && mapState != null ),
-    ).subscribe(([labelConfig, mapState]) => this.addLabels(mapState.analysisLevel, labelConfig.font, labelConfig.size, labelConfig.enabled))
+      filter(([labelConfig, mapState]) => labelConfig != null && mapState != null && mapState.analysisLevel != null),
+    ).subscribe(([labelConfig, mapState]) => this.addLabels(mapState.analysisLevel, labelConfig.font, labelConfig.size, labelConfig.enabled));
+
+    // Pipe to update labels based on analysis level changes
+    sharedStore$.pipe(
+      select(getEsriAnalysisLevel),
+      withLatestFrom(sharedStore$.pipe(select(getEsriLabelConfiguration))),
+      filter(([analysisLevel, labelConfig]) => labelConfig != null && analysisLevel != null),
+    ).subscribe(([analysisLevel, labelConfig]) => this.addLabels(analysisLevel, labelConfig.font, labelConfig.size, labelConfig.enabled));
 
   }
 
