@@ -119,7 +119,6 @@ export class EsriLayerService {
   }
 
   private onLayerGroupVisible(layerGroup: __esri.GroupLayer) {
-    console.log('AARON: GROUP LAYER VISIBILITY STATUS CHANGED');
     const layers = layerGroup.layers.toArray();
     for (const layer of layers) {
       if (layer.title.toLocaleLowerCase().includes('centroid')) {
