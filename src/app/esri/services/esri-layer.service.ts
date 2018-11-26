@@ -7,6 +7,7 @@ import { Store, select } from '@ngrx/store';
 import { AppState, getEsriMapState, getEsriLabelConfiguration, getEsriAnalysisLevel } from '../state/esri.selectors';
 import { filter, withLatestFrom, share } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
+import { SetAnalysisLevel } from '../state/map/esri.map.actions';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -114,6 +115,23 @@ export class EsriLayerService {
     });
     this.mapService.mapView.map.layers.unshift(group);
     this.portalGroupRefs.set(groupName, group);
+    EsriUtils.setupWatch(group, 'visible').pipe(filter(result => result.newValue === true)).subscribe(result => this.onLayerGroupVisible(result.target));
+  }
+
+  private onLayerGroupVisible(layerGroup: __esri.GroupLayer) {
+    console.log('AARON: GROUP LAYER VISIBILITY STATUS CHANGED');
+    const layers = layerGroup.layers.toArray();
+    for (const layer of layers) {
+      if (layer.title.toLocaleLowerCase().includes('centroid')) {
+        continue;
+      } else {
+        const featureLayer: __esri.FeatureLayer = <__esri.FeatureLayer> layer;
+        const analysisLevel = this.appConfig.getAnalysisLevelFromLayerId(featureLayer.portalItem.id);
+        if (analysisLevel != null) {
+          this.store$.dispatch(new SetAnalysisLevel({analysisLevel: analysisLevel}));
+        }
+      }
+    }
   }
 
   private createClientGroup(groupName: string, isVisible: boolean) : void {

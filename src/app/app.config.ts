@@ -245,6 +245,21 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
     }
   }
 
+  public getAnalysisLevelFromLayerId(id: string) {
+    switch (id) {
+      case EnvironmentData.layerIds.zip.boundary:
+        return 'zip';
+      case EnvironmentData.layerIds.atz.boundary:
+        return 'atz';
+      case EnvironmentData.layerIds.dtz.boundary:
+        return 'digital atz';
+      case EnvironmentData.layerIds.pcr.boundary:
+        return 'pcr';
+      default:
+        return null;
+    }
+  }
+
   public webGLIsAvailable() : boolean {
     return this.esriConfig.dojoConfig['has'] && (this.esriConfig.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
   }
