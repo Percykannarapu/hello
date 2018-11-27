@@ -1,0 +1,3 @@
+:host >>> .ui-dialog-mask {
+    z-index: 9 !important;
+}

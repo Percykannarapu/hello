@@ -1,0 +1,78 @@
+<div class="ui-g-12">
+  <form novalidate  [formGroup]="editLocationsForm" (submit)="onSubmit(editLocationsForm.value)" autocomplete="off">
+      <div class="ui-g-4">
+        <div class="ui-inputgroup">
+          <span class="md-inputfield">
+            <input pInputText id="numberInput" class="ui-g-12" formControlName="locationNumber" maxlength="64" autocomplete="off" required/>
+            <label class="validation-float-label" for="numberInput">Number (required)</label>
+          </span>
+        </div>
+      </div>
+      <div class="ui-g-10 p-t-15">
+        <span class="md-inputfield">
+          <input pInputText id="nameInput" class="ui-g-12" formControlName="locationName" maxlength="80" autocomplete="off" />
+          <label for="nameInput">Name</label>
+        </span>
+      </div>
+      <div class="ui-g-2"></div>
+      <div class="ui-g-10 p-t-15">
+        <span class="md-inputfield">
+          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" maxlength="240" autocomplete="off" />
+          <label for="streetInput">Street</label>
+        </span>
+      </div>
+      <div class="ui-g-2"></div>
+      <div class="ui-g-12" style="padding: 0">
+          <div class="ui-g-6 p-t-15">
+              <span class="md-inputfield">
+                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" maxlength="64" autocomplete="off" />
+                <label for="cityInput">City</label>
+              </span>
+            </div>
+            <div class="ui-g-2 p-t-15">
+              <span class="md-inputfield">
+                <input pInputText id="stateInput" class="ui-g-12" formControlName="locState" maxlength="2" style="text-transform: uppercase" autocomplete="off" />
+                <label for="stateInput">State</label>
+              </span>
+            </div>
+            <div class="ui-g-2 p-t-15">
+              <span class="md-inputfield">
+                <input pInputText id="zipInput" class="ui-g-12" formControlName="locZip" maxlength="10" autocomplete="off" />
+                <label for="zipInput">ZIP Code</label>
+              </span>
+            </div>
+      </div>
+      <div class="ui-g-4 p-t-15">
+        <span class="md-inputfield">
+          <input pInputText id="marketCodeInput" class="ui-g-12" formControlName="marketCode" maxlength="80" autocomplete="off" />
+          <label for="marketCodeInput">Market Code</label>
+        </span>
+      </div>
+      <div class="ui-g-6 p-t-15">
+        <span class="md-inputfield">
+          <input pInputText id="marketInput" class="ui-g-12" formControlName="marketName" maxlength="30" autocomplete="off" />
+          <label for="marketInput">Market</label>
+        </span>
+      </div>
+      <div class="ui-g-4"></div>
+      <div class="ui-g-12 ui-g-nopad">
+         <div class="ui-g-4 p-t-15">
+            <div class="ui-inputgroup">
+               <span class="md-inputfield">
+                  <input pInputText id="latInput" class="ui-g-12" formControlName="coord" autocomplete="off" />
+                  <label for="latInput">Latitude (Y), Longitude(X)</label>
+               </span>
+            </div>
+         </div>
+         <div class="ui-g-4"></div>
+      </div>
+      <div class="ui-g-12 ui-g-nopad">
+         <div class="ui-g-4">
+            <button (click)="cancelDialog()" type="button" label="Cancel" icon="ui-icon-close" pButton class="ui-g-12"></button>
+         </div>
+         <div class="ui-g-4">
+            <button type="save" label="Save" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="editLocationsForm.invalid"></button>
+         </div>
+      </div>
+  </form>
+</div>

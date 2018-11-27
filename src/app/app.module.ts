@@ -146,6 +146,7 @@ import { MessagingModule } from './messaging/messaging.module';
 import { NotificationProviderToken } from './messaging';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
+import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
 
 @NgModule({
     imports: [
@@ -258,7 +259,8 @@ import { ConfirmationDialogComponent } from './components/common/confirmation-di
         TableFilterNumericComponent,
         SiteListContainerComponent,
         ConfirmationContainerComponent,
-        ConfirmationDialogComponent
+        ConfirmationDialogComponent,
+        EditLocationsComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

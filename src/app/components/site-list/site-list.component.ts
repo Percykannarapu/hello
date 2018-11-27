@@ -8,6 +8,11 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { map, tap, publishReplay, refCount, withLatestFrom, startWith } from 'rxjs/operators';
 import { Table } from 'primeng/table';
 import { ConfirmationService, SelectItem, MultiSelect } from 'primeng/primeng';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../state/app.interfaces';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { resolveFieldData } from '../../val-modules/common/common.utils';
 import { distinctArray, mapArray, filterArray } from '../../val-modules/common/common.rxjs';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -26,7 +31,7 @@ export class FlatSite {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListComponent implements OnInit {
-    first: number = 0;
+     first: number = 0; 
    @Input('impGeofootprintLocations')
    set locations(val: ImpGeofootprintLocation[]) {
       this.allLocationsBS$.next(val);
@@ -81,6 +86,12 @@ export class SiteListComponent implements OnInit {
    @Output()
    onZoomToLocation: EventEmitter<ImpGeofootprintLocation> = new EventEmitter<ImpGeofootprintLocation>();
 
+   @Output()
+   editLocations = new EventEmitter();
+
+   @Output()
+    resubmitFailedGrid = new EventEmitter();
+   
    // Get grid filter components to clear them
    @ViewChildren('filterMs') msFilters:QueryList<MultiSelect>;
    
@@ -104,6 +115,10 @@ export class SiteListComponent implements OnInit {
 
    public allSiteCount$: Observable<number>;
    public activeSiteCount$: Observable<number>;
+
+   hasFailures$: Observable<boolean>;
+   failures$: Observable<ImpGeofootprintLocation[]>;
+   totalCount$: Observable<number>;
 
    public currentAllAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
    public currentActiveAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
@@ -165,11 +180,21 @@ export class SiteListComponent implements OnInit {
       ];
    public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
    public selectedColumns: any[] = [];
+   public displayData: any;
+   public selectedRowData: any;
    @ViewChild('locGrid') public _locGrid: Table;
 
+   public showDialog: boolean = false;
+
+   siteTypes = ImpClientLocationTypeCodes;
+
+   private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
+
    constructor(
+      private appLocationService: AppLocationService,
       private confirmationService: ConfirmationService,
-      private cd: ChangeDetectorRef) {}
+      private cd: ChangeDetectorRef,
+      private store$: Store<AppState>) {}
 
    ngOnInit() {
       // Observe the behavior subjects on the input parameters
@@ -180,6 +205,11 @@ export class SiteListComponent implements OnInit {
       this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
       
       this.onListTypeChange('Site');
+      this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+        map(([sites, competitors]) => [...sites, ...competitors])
+      );
+      this.hasFailures$ = this.appLocationService.hasFailures$;
+      this.totalCount$ = this.appLocationService.totalCount$;
       for (const column of this.flatSiteGridColumns) {
          this.columnOptions.push({ label: column.header, value: column });
          this.selectedColumns.push(column);
@@ -257,14 +287,33 @@ export class SiteListComponent implements OnInit {
       console.log("=".padEnd(80, "="));
    }
 */
-  
+
+   remove(site: ImpGeofootprintLocation) {
+    this.appLocationService.deleteLocations([site]);
+   }
+
+   reSubmit(site: ImpGeofootprintLocation){
+    this.resubmitFailedGrid.emit(site);
+   }
+
+   accept(site: ImpGeofootprintLocation) {
+    site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
+    this.appLocationService.notifySiteChanges();
+    const metricText = AppLocationService.createMetricTextForLocation(site);
+    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
+   }
+
+   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
+    this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
+   }
+
    public onListTypeChange(data: 'Site' | 'Competitor') {
-      this.first = null;
+    this.first = null;
       setTimeout(() => {
           this.first = 0;
       }, 0);
-      
-      this.selectedListType = data;
+          
+    this.selectedListType = data;
 
       // Choose to set current observables to sites or competitors
       if (this.selectedListType === 'Site') {
@@ -375,6 +424,28 @@ export class SiteListComponent implements OnInit {
 
    public onRowSelect(event: any, isSelected: boolean) {
       this.setLocationHierarchyActiveFlag(event.data, isSelected);
+   }
+
+   public onEdit(row: ImpGeofootprintLocation) {
+    this.displayData = {
+      locationNumber: row.locationNumber,
+      locationName: row.locationName,
+      locAddress: row.locAddress,
+      locCity: row.locCity,
+      locState: row.locState,
+      locZip: row.locZip,
+      marketName: row.marketName,
+      marketCode: row.marketCode,
+      coord: row.ycoord + ',' + row.xcoord
+    };
+    this.selectedRowData = row;
+    this.showDialog = true;
+   }
+
+   public onDialogHide() {
+    this.showDialog = false;
+    this.displayData = '';
+    this.selectedRowData = '';
    }
 
    /**
