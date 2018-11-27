@@ -303,7 +303,7 @@ export class SiteListComponent implements OnInit {
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
    }
 
-   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
+   manuallyGeocode(site: ValGeocodingRequest, siteType){
     this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
    }
 
