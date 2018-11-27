@@ -7,7 +7,8 @@ import { Store, select } from '@ngrx/store';
 import { AppState, getEsriMapState, getEsriLabelConfiguration, getEsriAnalysisLevel } from '../state/esri.selectors';
 import { filter, withLatestFrom, share } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { SetAnalysisLevel } from '../state/map/esri.map.actions';
+import { EsriLabelConfiguration } from '../state/map/esri.map.reducer';
+import { SetAnalysisLevel, SetLabelConfiguration } from '../state/map/esri.map.actions';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -260,6 +261,8 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
+      const labelConfig: EsriLabelConfiguration = { font: 'sans-serif', size: 10, enabled: true };
+      this.store$.dispatch(new SetLabelConfiguration({labelConfiguration: labelConfig}));
       /*if (!layer.title.toLowerCase().includes('centroid')) {
         this.addLabels(<__esri.FeatureLayer> layer);
       }*/
@@ -287,7 +290,7 @@ export class EsriLayerService {
     textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
     //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
     textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-    textSymbol.haloSize = 2;
+    textSymbol.haloSize = 1;
     textSymbol.font = font;
     labelConfig.symbol = textSymbol;
     labelConfig.labelExpressionInfo = { expression: '$feature.geocode' };
