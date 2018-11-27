@@ -262,7 +262,13 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                      this.impGeofootprintGeoAttribService.makeDirty();  
               }
              });
-         }else {
+         }
+         if (filteredtGeos.length > 0 && isHomegeocode.length &&  !geo.isActive){
+            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            this.impGeofootprintGeoService.makeDirty();
+            this.impGeofootprintGeoAttribService.makeDirty();  
+         }
+         else {
           geo.isActive = isSelected;
           this.impGeofootprintGeoService.makeDirty();
           this.impGeofootprintGeoAttribService.makeDirty();
