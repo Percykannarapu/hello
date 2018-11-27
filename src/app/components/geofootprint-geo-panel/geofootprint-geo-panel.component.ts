@@ -264,6 +264,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
              });
          }else {
           geo.isActive = isSelected;
+          this.impGeofootprintGeoService.makeDirty();
+          this.impGeofootprintGeoAttribService.makeDirty();
          }
 
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
