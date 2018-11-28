@@ -24,8 +24,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
 
   editLocationsForm: FormGroup;
 
-  get latitude() { return this.editLocationsForm.get('latitude'); }
-  get longitude() { return this.editLocationsForm.get('longitude'); }
+  get coord() { return this.editLocationsForm.get('coord'); }
 
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
@@ -38,14 +37,14 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   }
   ngOnInit() {
     this.editLocationsForm = this.fb.group({
-      locationNumber: ['', this.alphaNumeric()],
-      locationName: ['', this.alphaNumeric()],
-      locAddress: ['', this.alphaNumeric()],
-      locCity: ['', this.alphaNumeric()],
-      locState: ['', this.alphaNumeric()],
-      locZip: ['', this.onlyNumeric()],
-      marketName: ['', this.alphaNumeric()],
-      marketCode: ['', this.alphaNumeric()],
+      locationNumber: ['', Validators.required],
+      locationName: '',
+      locAddress: '',
+      locCity: '',
+      locState: '',
+      locZip: '',
+      marketName: '',
+      marketCode: '',
       coord: ['', this.latLonValidator()]
     });
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
@@ -54,6 +53,11 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   cancelDialog() {
     this.editLocationsForm.reset();
     this.closeDialog.emit();
+  }
+
+  hasErrors(controlKey: string) : boolean {
+    const control = this.editLocationsForm.get(controlKey);
+    return (control.dirty || control.touched) && (control.errors != null);
   }
 
   onSubmit(data: any) {
@@ -78,37 +82,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     this.cancelDialog();
   }
 
-  private alphaNumeric() : ValidatorFn {
-    return (c: AbstractControl) => {
-      const enteredValue = c.value as string;
-      const regex = /^[a-zA-Z0-9\s,-]*$/ ;  
-
-      if (enteredValue && !regex.test(enteredValue)) {
-        return {
-          an: 'Should be Alphanumeric'
-        };
-      } else {
-        return null;
-      }
-    };
-  }
-
-  private onlyNumeric() : ValidatorFn {
-    return (c: AbstractControl) => {
-      const enteredValue = c.value as string;
-      const regex = /^[0-9-]*$/ ;
-      if (enteredValue && !regex.test(enteredValue)) {
-        return {
-          an: 'Should be Numeric'
-        };
-      } else {
-        return null;
-      }
-    };
-  }
-
   private latLonValidator() : ValidatorFn {
-    this.alphaNumeric();
     return (c: AbstractControl) => {
       const enteredValue = c.value as string;
       if (enteredValue == null || enteredValue.length === 0) {
@@ -123,32 +97,17 @@ export class EditLocationsComponent implements OnInit, OnChanges {
             return {
               latLon: 'Latitude is limited to +/- 90'
             };
-          } 
-          let latcount = 11, loncount = 8;
-          if (lat.toString().indexOf('.') > -1) latcount++;
-          if (lat.toString().indexOf('-') > -1) latcount++;
-          if (lon.toString().indexOf('.') > -1) loncount++;
-          if (lon.toString().indexOf('-') > -1) loncount++;
-
-          if (lat.toString().length > latcount) {
-            return {
-              latLon: 'Maximum length of Latitude is 11'
-            };
-          }
-          if (lon.toString().length > loncount) {
-            return {
-              latLon: 'Maximum length of Longitude is 8'
-            };
-          }
-          return null;
-        } else if (Number.isNaN(lat) || Number.isNaN(lon)) {
+          }          
+        return null; 
+      }  
+        if (Number.isNaN(lat) || Number.isNaN(lon)) {
           return {
             latLon: 'Value must be numeric'
           };
         }
       } else if (coords.length != 2) {
         return {
-          latLon: 'Should have 2 values'
+          latLon: 'Should have 2 values(latitude & longitude)'
         };
       }
     };
