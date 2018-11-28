@@ -248,7 +248,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          if (filteredtGeos.length > 0 && isHomegeocode.length > 0 && geo.isActive){
              this.confirmationService.confirm({
               message: 'You are about to unselect a Home Geo for at least one of the sites.  Ok to continue?',
-              header: ': Unselecting a Home Geo',
+              header: 'Unselecting a Home Geo',
               accept: () => {
                 filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
                  //This change to update Datastore to fire toggleGeoSelection DE1933
@@ -263,13 +263,9 @@ export class GeofootprintGeoPanelComponent implements OnInit {
               }
              });
          }
-         if (filteredtGeos.length > 0 && isHomegeocode.length &&  !geo.isActive){
-            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-            this.impGeofootprintGeoService.makeDirty();
-            this.impGeofootprintGeoAttribService.makeDirty();  
-         }
          else {
-          geo.isActive = isSelected;
+          //geo.isActive = isSelected;
+          filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
           this.impGeofootprintGeoService.makeDirty();
           this.impGeofootprintGeoAttribService.makeDirty();
          }
