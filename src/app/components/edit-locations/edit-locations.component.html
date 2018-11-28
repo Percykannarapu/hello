@@ -3,21 +3,25 @@
       <div class="ui-g-4">
         <div class="ui-inputgroup">
           <span class="md-inputfield">
-            <input pInputText id="numberInput" class="ui-g-12" formControlName="locationNumber" maxlength="64" autocomplete="off" required/>
+            <input pInputText id="numberInput" class="ui-g-12" formControlName="locationNumber" maxlength="64" autocomplete="off"/>
+            <span class="ui-inputgroup-addon" *ngIf="!hasErrors('locationNumber')">&nbsp;</span>
+            <span class="ui-inputgroup-addon" *ngIf="hasErrors('locationNumber')">
+              <i class="ui-icon-error error-icon" title="Site Number is required"></i>
+            </span>
             <label class="validation-float-label" for="numberInput">Number (required)</label>
           </span>
         </div>
       </div>
       <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="nameInput" class="ui-g-12" formControlName="locationName" maxlength="80" autocomplete="off" />
+          <input pInputText id="nameInput" class="ui-g-12" formControlName="locationName" autocomplete="off" />
           <label for="nameInput">Name</label>
         </span>
       </div>
       <div class="ui-g-2"></div>
       <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" maxlength="240" autocomplete="off" />
+          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" autocomplete="off" />
           <label for="streetInput">Street</label>
         </span>
       </div>
@@ -25,7 +29,7 @@
       <div class="ui-g-12" style="padding: 0">
           <div class="ui-g-6 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" maxlength="64" autocomplete="off" />
+                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" autocomplete="off" />
                 <label for="cityInput">City</label>
               </span>
             </div>
@@ -37,20 +41,20 @@
             </div>
             <div class="ui-g-2 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="zipInput" class="ui-g-12" formControlName="locZip" maxlength="10" autocomplete="off" />
+                <input pInputText id="zipInput" class="ui-g-12" formControlName="locZip" autocomplete="off" />
                 <label for="zipInput">ZIP Code</label>
               </span>
             </div>
       </div>
       <div class="ui-g-4 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="marketCodeInput" class="ui-g-12" formControlName="marketCode" maxlength="80" autocomplete="off" />
+          <input pInputText id="marketCodeInput" class="ui-g-12" formControlName="marketCode" autocomplete="off" />
           <label for="marketCodeInput">Market Code</label>
         </span>
       </div>
       <div class="ui-g-6 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="marketInput" class="ui-g-12" formControlName="marketName" maxlength="30" autocomplete="off" />
+          <input pInputText id="marketInput" class="ui-g-12" formControlName="marketName" autocomplete="off" />
           <label for="marketInput">Market</label>
         </span>
       </div>
@@ -60,6 +64,10 @@
             <div class="ui-inputgroup">
                <span class="md-inputfield">
                   <input pInputText id="latInput" class="ui-g-12" formControlName="coord" autocomplete="off" />
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('coord')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('coord')">
+                    <i class="ui-icon-error error-icon" [title]="coord.errors['latLon']"></i>
+                  </span>
                   <label for="latInput">Latitude (Y), Longitude(X)</label>
                </span>
             </div>
