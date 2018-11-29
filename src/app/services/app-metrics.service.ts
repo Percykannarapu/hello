@@ -8,6 +8,7 @@ import { filter, map } from 'rxjs/operators';
 import { isNumber } from '../app.utils';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppStateService, Season } from './app-state.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 export interface MetricDefinition<T> {
   metricValue: T;
@@ -264,8 +265,8 @@ export class ValMetricsService implements OnDestroy {
   }
 
   private getMetricObservable() : Observable<MetricDefinition<any>[]> {
-    const attribute$ = this.attributeService.storeObservable.pipe(
-      map(attributes => attributes.filter(a => a.isActive && a.impGeofootprintGeo.isActive))
+    const attribute$ = combineLatest(this.attributeService.storeObservable, this.stateService.uniqueIdentifiedGeocodes$).pipe(
+      map(([attributes]) => attributes.filter(a => a.isActive && a.impGeofootprintGeo.isActive))
     );
     return combineLatest(attribute$, this.stateService.currentProject$, this.stateService.applicationIsReady$).pipe(
       filter(([attributes, discovery, isReady]) => isReady),
