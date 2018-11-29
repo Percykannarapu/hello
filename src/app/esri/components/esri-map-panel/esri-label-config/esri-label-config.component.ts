@@ -1,11 +1,10 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { SelectItem } from 'primeng/api';
 import { Store, select } from '@ngrx/store';
-import { AppState, getEsriMapState, getEsriLabelConfiguration } from '../../../state/esri.selectors';
+import { AppState, getEsriLabelConfiguration } from '../../../state/esri.selectors';
 import { EsriLabelConfiguration } from '../../../state/map/esri.map.reducer';
 import { SetLabelConfiguration } from '../../../state/map/esri.map.actions';
 import { filter } from 'rxjs/operators';
-
 
 @Component({
   selector: 'val-esri-label-config',

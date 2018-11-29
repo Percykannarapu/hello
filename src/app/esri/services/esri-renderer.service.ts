@@ -8,7 +8,7 @@ import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, withLatestFrom, tap, share } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { Store, select } from '@ngrx/store';
-import { AppState, getEsriState, getEsriMapState, getEsriRendererNumericData, getEsriRendererTextData, getEsriViewpointState, getEsriRendererSelectedGeocodes } from '../state/esri.selectors';
+import { AppState, getEsriState, getEsriMapState, getEsriRendererNumericData, getEsriRendererTextData, getEsriViewpointState, getEsriRendererSelectedGeocodes, getEsriRendererState } from '../state/esri.selectors';
 import { EsriMapState } from '../state/map/esri.map.reducer';
 import { EsriHighlightHandler, EsriHighlightRemover, NumericShadingData, TextShadingData, Statistics } from '../state/map/esri.renderer.reducer';
 import { AddHighlightHandlers, ClearHighlightHandlers } from '../state/map/esri.renderer.actions';
@@ -340,18 +340,25 @@ export class EsriRendererService {
     return result;
   }
 
+  private unHighlightAllGeos(highlightHandlers: Array<EsriHighlightHandler>, geos: string[], currentSelectedGeos?: Set<string>) {
+    if (currentSelectedGeos == null) {
+      currentSelectedGeos = new Set<string>(geos);
+    }
+    for (const handler of highlightHandlers) {
+      if (!currentSelectedGeos.has(handler.geocode)) {
+        handler.remover.remove();
+      }
+    }
+  }
+
   /**
    * Determine if the features in the current map view are selected
    */
-  public highlightGeos(analysisLevel: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
+  private highlightGeos(analysisLevel: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
     if (!analysisLevel) return;
     const currentSelectedGeos: Set<string> = new Set(geos);
     if (remove) {
-      for (const handler of highlightHandlers) {
-        if (!currentSelectedGeos.has(handler.geocode)) {
-          handler.remover.remove();
-        }
-      }
+      this.unHighlightAllGeos(highlightHandlers, geos, currentSelectedGeos);
     }
     const layerView = this.getLayerView(analysisLevel);
     if (layerView != null) {

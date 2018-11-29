@@ -16,6 +16,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../app.interfaces';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { ClearHighlightHandlers, HighlightSelectedGeos, ClearSelectedGeos } from '../../esri/state/map/esri.renderer.actions';
 
 function isFailureAction(item: any) : item is ProjectLoadFailure | ProjectSaveFailure {
   return item.hasOwnProperty('type') && (item['type'] === DataShimActionTypes.ProjectSaveFailure || item['type'] === DataShimActionTypes.ProjectLoadFailure);
@@ -32,6 +33,7 @@ export class DataShimEffects {
       tap(projectId => this.store$.dispatch(new ProjectSaveSuccess({ projectId, isSilent: false }))),
       catchError(err => throwError(new ProjectSaveFailure({ err })))
     )),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     tap(() => this.appDataShimService.createNew()),
     map(() => new CreateNewProjectComplete()),
     catchError(err => of(isFailureAction(err) ? err : new ProjectSaveFailure({ err }))),
@@ -47,6 +49,7 @@ export class DataShimEffects {
       catchError(err => throwError(new ProjectSaveFailure({ err }))),
       map(() => action)
     )),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     tap(action => this.startBusy(`Loading Project ${action.payload.idToLoad}`)),
     mergeMap(action => this.appDataShimService.load(action.payload.idToLoad).pipe(
       map(projectId => new ProjectLoadSuccess({ projectId, isSilent: false })),
@@ -60,6 +63,7 @@ export class DataShimEffects {
   projectSaveAndReload$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectSaveAndReload),
     tap(() => this.startBusy('Saving Project')),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     mergeMap(() => this.appDataShimService.save().pipe(
       catchError(err => throwError(new ProjectSaveFailure({ err })))
     )),
@@ -76,6 +80,7 @@ export class DataShimEffects {
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     tap(action => this.startBusy(`Loading Project ${action.payload.projectId}`)),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     mergeMap(action => this.appDataShimService.load(action.payload.projectId)),
     map(projectId => new ProjectLoadSuccess({ projectId, isSilent: false })),
     catchError(err => of(new ProjectLoadFailure({ err }))),
@@ -85,6 +90,7 @@ export class DataShimEffects {
   @Effect()
   createNewProject$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectCreateNew),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     tap(() => this.appDataShimService.createNew()),
     map(() => new CreateNewProjectComplete()),
   );
