@@ -81,8 +81,11 @@ export class AddLocationsTabComponent implements OnInit {
   resubmit(site: ImpGeofootprintLocation) {
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    this.processSiteRequests(new ValGeocodingRequest(site, true), newSiteType);
+    const newRequest = new ValGeocodingRequest(site, true);
+    delete newRequest['latitude'];
+    delete newRequest['longitude'];
     this.appLocationService.deleteLocations([site]);
+    this.processSiteRequests(newRequest, newSiteType);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
   }
