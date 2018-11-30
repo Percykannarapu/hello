@@ -6,7 +6,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { Observable, combineLatest, merge } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { filter, map, startWith, tap } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { EsriApi } from '../esri/core/esri-api.service';
@@ -77,7 +77,7 @@ export class AppLocationService {
       filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
     );
     const locationsNeedingHomeGeos$ = locationsWithType$.pipe(
-      filterArray(loc => !loc.clientIdentifierTypeCode.startsWith('Failed ')),
+      filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
       filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
