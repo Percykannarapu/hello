@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, pairwise, startWith, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
@@ -139,7 +139,15 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when any geocode is added to the data store
    */
   private setupGeoAttributeUpdateObservable() : void {
-    combineLatest(this.appStateService.uniqueIdentifiedGeocodes$, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
+    const newGeocodes$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
+      startWith([]),
+      pairwise(),
+      map(([prevGeocodes, currentGeocodes]) => {
+        const prevSet = new Set(prevGeocodes);
+        return currentGeocodes.filter(geocode => !prevSet.has(geocode));
+      })
+    );
+    combineLatest(newGeocodes$, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
       .pipe(
         // halt the sequence if the project is loading
         filter(([geocodes, analysisLevel, isReady]) => isReady),

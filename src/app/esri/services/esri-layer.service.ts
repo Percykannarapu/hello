@@ -7,7 +7,8 @@ import { Store, select } from '@ngrx/store';
 import { AppState, getEsriMapState, getEsriLabelConfiguration, getEsriAnalysisLevel } from '../state/esri.selectors';
 import { filter, withLatestFrom, share } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { SetAnalysisLevel } from '../state/map/esri.map.actions';
+import { EsriLabelConfiguration } from '../state/map/esri.map.reducer';
+import { SetAnalysisLevel, SetLabelConfiguration } from '../state/map/esri.map.actions';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -37,16 +38,8 @@ export class EsriLayerService {
     // Pipe to update labels based on label config changes from the dropdown above the map
     sharedStore$.pipe(
       select(getEsriLabelConfiguration),
-      withLatestFrom(this.store$.pipe(select(getEsriMapState))),
-      filter(([labelConfig, mapState]) => labelConfig != null && mapState != null && mapState.analysisLevel != null),
-    ).subscribe(([labelConfig, mapState]) => this.addLabels(mapState.analysisLevel, labelConfig.font, labelConfig.size, labelConfig.enabled));
-
-    // Pipe to update labels based on analysis level changes
-    sharedStore$.pipe(
-      select(getEsriAnalysisLevel),
-      withLatestFrom(sharedStore$.pipe(select(getEsriLabelConfiguration))),
-      filter(([analysisLevel, labelConfig]) => labelConfig != null && analysisLevel != null),
-    ).subscribe(([analysisLevel, labelConfig]) => this.addLabels(analysisLevel, labelConfig.font, labelConfig.size, labelConfig.enabled));
+      filter(labelConfig => labelConfig != null),
+    ).subscribe(labelConfig => this.addLabels(labelConfig.font, labelConfig.size, labelConfig.enabled));
 
   }
 
@@ -115,22 +108,6 @@ export class EsriLayerService {
     });
     this.mapService.mapView.map.layers.unshift(group);
     this.portalGroupRefs.set(groupName, group);
-    EsriUtils.setupWatch(group, 'visible').pipe(filter(result => result.newValue === true)).subscribe(result => this.onLayerGroupVisible(result.target));
-  }
-
-  private onLayerGroupVisible(layerGroup: __esri.GroupLayer) {
-    const layers = layerGroup.layers.toArray();
-    for (const layer of layers) {
-      if (layer.title.toLocaleLowerCase().includes('centroid')) {
-        continue;
-      } else {
-        const featureLayer: __esri.FeatureLayer = <__esri.FeatureLayer> layer;
-        const analysisLevel = this.appConfig.getAnalysisLevelFromLayerId(featureLayer.portalItem.id);
-        if (analysisLevel != null) {
-          this.store$.dispatch(new SetAnalysisLevel({analysisLevel: analysisLevel}));
-        }
-      }
-    }
   }
 
   private createClientGroup(groupName: string, isVisible: boolean) : void {
@@ -284,39 +261,28 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
+      const labelConfig: EsriLabelConfiguration = { font: 'sans-serif', size: 10, enabled: true };
+      this.store$.dispatch(new SetLabelConfiguration({labelConfiguration: labelConfig}));
       /*if (!layer.title.toLowerCase().includes('centroid')) {
         this.addLabels(<__esri.FeatureLayer> layer);
       }*/
     }
   }
 
-  private getLayerView(analysisLevel: string = 'zip') : __esri.FeatureLayerView {
-    const layerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
-    const layer = this.getPortalLayerById(layerId);
-    let layerView: __esri.FeatureLayerView = null;
-    const layerViews = this.mapService.mapView.allLayerViews;
-    layerViews.forEach(lv => {
-      if (layer.id === lv.layer.id) {
-        layerView = <__esri.FeatureLayerView>lv;
-      }
-    });
-    return layerView;
-  }
-
-  private addLabels(analysisLevel: string, fontName: string, fontSize: number, enabled: boolean) {
+  private addLabels(fontName: string, fontSize: number, enabled: boolean) {
     const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
       labelPlacement: 'always-horizontal',
       labelExpressionInfo: {
         expression: '$feature.geocode'
       }
     });
-    const featureLayer = this.getLayerView(analysisLevel).layer;
-    if (featureLayer == null) {
-      console.warn('Unable to find feature layer for labelling');
-      return;
-    }
+    const layers = this.mapService.mapView.map.allLayers.toArray();
     if (!enabled) {
-      featureLayer.labelingInfo = null;
+      for (const layer of layers) {
+        if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
+          layer.labelingInfo = null;
+        }
+      }
       return;
     }
     const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
@@ -324,10 +290,14 @@ export class EsriLayerService {
     textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
     //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
     textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-    textSymbol.haloSize = 2;
+    textSymbol.haloSize = 1;
     textSymbol.font = font;
     labelConfig.symbol = textSymbol;
     labelConfig.labelExpressionInfo = { expression: '$feature.geocode' };
-    featureLayer.labelingInfo = [labelConfig];
+    for (const layer of layers) {
+      if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
+        layer.labelingInfo = [labelConfig];
+      }
+    }
   }
 }

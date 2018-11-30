@@ -226,46 +226,47 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       }
    }
 
-   public onSelectGeo(event: any) {
-      let geo: ImpGeofootprintGeo = event.geo as ImpGeofootprintGeo;
-      let isSelected: boolean = event.isSelected;
-
-      const currentProject = this.appStateService.currentProject$.getValue();
-
-      if (geo.isActive != isSelected)
+   public onSelectGeo({geo, isSelected}) {
+      if (geo.isActive !== isSelected)
       {
-         //geo.isActive = isSelected;
-        //US7845: changes to filter checking/unchecking geos that cover multiple stores 
-        //console.log('test data:::::100', geo);
-         const filteredtGeos = currentProject.getImpGeofootprintGeos().filter(dupGeo => geo.geocode === dupGeo.geocode);
-         const isHomegeocode = filteredtGeos.filter(homeGeo => homeGeo.geocode === homeGeo.impGeofootprintLocation.homeGeocode);
-         if (isHomegeocode.length == 0 && geo.isActive){
-            filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-            this.impGeofootprintGeoService.makeDirty();
-            this.impGeofootprintGeoAttribService.makeDirty();
-         }
-         
-         if (filteredtGeos.length > 0 && isHomegeocode.length > 0 && geo.isActive){
+         const commonGeos = this.impGeofootprintGeoService.get().filter(g => g.geocode === geo.geocode);
+         const includesHomeGeo = commonGeos.some(g => g.impGeofootprintLocation != null && g.impGeofootprintLocation.homeGeocode === g.geocode);
+         if (includesHomeGeo && geo.isActive) {
              this.confirmationService.confirm({
-              message: 'You are about to unselect a Home Geo for at least one of the sites.  Ok to continue?',
-              header: ': Unselecting a Home Geo',
-              accept: () => {
-                filteredtGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-                 //This change to update Datastore to fire toggleGeoSelection DE1933
-                 this.impGeofootprintGeoService.makeDirty();
-                 this.impGeofootprintGeoAttribService.makeDirty();
-              },
-              reject: () => {
-                     geo.isActive = true;
-                //  //This change to update Datastore to fire toggleGeoSelection DE1933
-                     this.impGeofootprintGeoService.makeDirty();
-                     this.impGeofootprintGeoAttribService.makeDirty();  
-              }
+                message: 'You are about to deselect a Home Geo for at least one of the sites.',
+                header: 'Home Geo selection',
+                acceptLabel: 'Continue',
+                rejectLabel: 'Cancel',
+                accept: () => {
+                      commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+                      setTimeout(() => {
+                        this.impGeofootprintGeoService.makeDirty();
+                      }, 0);
+                      setTimeout(() => {
+                        this.impGeofootprintGeoService.makeDirty();
+                      }, 0);
+                },
+                reject: () => {
+                       geo.isActive = true;
+                       setTimeout(() => {
+                          this.impGeofootprintGeoService.makeDirty();
+                       }, 0);
+                       setTimeout(() => {
+                         this.impGeofootprintGeoService.makeDirty();
+                       }, 0);
+                }
              });
-         }else {
-          geo.isActive = isSelected;
+         } else {
+           commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+           setTimeout(() => {
+             this.impGeofootprintGeoService.makeDirty();
+           }, 0);
+           setTimeout(() => {
+             this.impGeofootprintGeoService.makeDirty();
+           }, 0);
          }
 
+         const currentProject = this.appStateService.currentProject$.getValue();
          const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
          const amount: number = geo.hhc * cpm / 1000;
          const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
