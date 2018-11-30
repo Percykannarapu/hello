@@ -74,9 +74,10 @@ export class AppLocationService {
       filter(locations => locations != null)
     );
     const locationsWithType$ = allLocations$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0))
+      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
     );
-    const locationsNeedingHomeGeos$ = allLocations$.pipe(
+    const locationsNeedingHomeGeos$ = locationsWithType$.pipe(
+      filterArray(loc => !loc.clientIdentifierTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
       filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
