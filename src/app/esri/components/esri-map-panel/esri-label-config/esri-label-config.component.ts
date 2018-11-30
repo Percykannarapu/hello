@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, Output } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { SelectItem } from 'primeng/api';
-import { Store } from '@ngrx/store';
-import { AppState, getEsriMapState, getEsriLabelConfiguration } from '../../../state/esri.selectors';
+import { Store, select } from '@ngrx/store';
+import { AppState, getEsriLabelConfiguration } from '../../../state/esri.selectors';
 import { EsriLabelConfiguration } from '../../../state/map/esri.map.reducer';
 import { SetLabelConfiguration } from '../../../state/map/esri.map.actions';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'val-esri-label-config',
@@ -13,7 +14,8 @@ import { SetLabelConfiguration } from '../../../state/map/esri.map.actions';
 })
 export class EsriLabelConfigComponent implements OnInit {
 
-  constructor(private store$: Store<AppState>) { }
+  constructor(private store$: Store<AppState>,
+              private changeDetector: ChangeDetectorRef) { }
   
   public fonts: SelectItem[] = [
     { label: 'Serif', value: 'serif' },
@@ -45,10 +47,21 @@ export class EsriLabelConfigComponent implements OnInit {
   
   public enabled = false;
 
-  public selectedFont: string = 'serif';
-  public selectedSize: number = 12;
+  public selectedFont: string = 'sans-serif';
+  public selectedSize: number = 10;
 
   ngOnInit() {
+    this.store$.pipe(
+      select(getEsriLabelConfiguration),
+      filter(labelConfig => labelConfig != null && labelConfig.enabled != null && labelConfig.font != null && labelConfig.size != null)
+    ).subscribe(labelConfig => this.onLabelConfigChanged(labelConfig));
+  }
+
+  onLabelConfigChanged(labelConfig: EsriLabelConfiguration) {
+    this.enabled = labelConfig.enabled;
+    this.selectedFont = labelConfig.font;
+    this.selectedSize = labelConfig.size;
+    this.changeDetector.markForCheck();
   }
 
   onFontChanged(event: any) {

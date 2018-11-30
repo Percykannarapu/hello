@@ -12,11 +12,14 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { EsriMapService } from '../../esri/services/esri-map.service';
 import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { AppStateService } from '../../services/app-state.service';
-import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppState } from '../../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
 
 @Component({
   selector: 'val-site-list-container',
@@ -31,6 +34,8 @@ export class SiteListContainerComponent implements OnInit {
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
    public  allGeoAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
 
+   private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
+
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------   
@@ -41,6 +46,8 @@ export class SiteListContainerComponent implements OnInit {
       private tradeAreaService: ImpGeofootprintTradeAreaService,
       private impGeofootprintGeoService: ImpGeofootprintGeoService,
       private geoAttributeService: ImpGeofootprintGeoAttribService,
+      private appLocationService: AppLocationService,
+      private geocoderService: AppGeocodingService,
       private appStateService: AppStateService,
       private esriMapService: EsriMapService,
       private store$: Store<AppState>) {}
@@ -75,6 +82,58 @@ export class SiteListContainerComponent implements OnInit {
    // -----------------------------------------------------------
    // GRID OUTPUT EVENTS
    // -----------------------------------------------------------
+
+   resubmit(site: ImpGeofootprintLocation) {
+    const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
+    const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
+    this.processEditRequests(new ValGeocodingRequest(site, true), newSiteType, currentSiteType);
+    this.appLocationService.deleteLocations([site]);
+    const metricText = AppLocationService.createMetricTextForLocation(site);
+    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
+  }
+
+   public onEditLocations(data) {
+     const siteType = data.siteType;
+     const site = data.site;
+     const oldData = data.oldData;
+    const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
+    if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && oldData.locationNumber != site.number && siteType !== ImpClientLocationTypeCodes.Competitor){
+      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
+    } else {
+      const mktValue = site.Market != null ? `~Market=${site.Market}` : '';
+      const metricsText = `Number=${site.number}~Name=${site.name}~Street=${site.street}~City=${site.city}~State=${site.state}~ZIP=${site.zip}${mktValue}`;
+      this.store$.dispatch(new CreateLocationUsageMetric('single-site', 'add', metricsText));
+      this.processEditRequests(site,  siteType, oldData);
+      if (siteType !== ImpClientLocationTypeCodes.Competitor)     
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
+    }
+   }
+
+   processEditRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, oldData) {
+    console.log('Processing requests:', siteOrSites);
+    const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+    const pluralize = sites.length > 1 ? 's' : '';
+    this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
+    const locationCache: ImpGeofootprintLocation[] = [];
+    this.appLocationService.geocode(sites, siteType).subscribe(
+      locations => locationCache.push(...locations),
+      err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
+      () => {
+        const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
+        this.impGeofootprintLocationService.update(oldData, locationCache[0]);
+        if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+      }
+    );
+  }
+  
+  private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
+    this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
+    console.error(errorMessage, errorObject);
+  }
+
    public onDeleteLocations(event: any) {
       // console.debug("-".padEnd(80, "-"));
       // console.debug("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);
