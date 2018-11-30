@@ -307,4 +307,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          this.impGeofootprintGeoService.makeDirty();
       }
    }
+
+   public onForceRedraw() {
+      this.impGeofootprintGeoAttribService.makeDirty();
+   }
 }

@@ -95,6 +95,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    @Output()
    onSetFilteredGeos: EventEmitter<any> = new EventEmitter<any>();
 
+   @Output()
+   onForceRedraw: EventEmitter<any> = new EventEmitter<any>();
+
    // Get the grid as a view child to attach custom filters
    @ViewChild('geoGrid') public _geoGrid: Table;
 
@@ -145,6 +148,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Track unique values for text variables for filtering
    public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
+   public  variableRanges: Map<string, number[]> = new Map();
 
    // Header filter
    public  headerFilter: boolean = true;
@@ -521,6 +525,41 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Store the unique values in a map keyed by the variable pk
          this.uniqueTextVals.set(varPk.toString(), uniqueVals.map(varVal => ({ label: varVal, value: varVal} as SelectItem)));
       });
+
+      // Populate the range values for numeric variables, keyed by variable pk
+      this.variableRanges = new Map<string, number[]>();
+
+      const distinctNumVarPks: number[] = Array.from(new Set(usableGeoVars.filter(gv => gv.fieldconte != 'CHAR').map(v => v.varPk)));
+      distinctNumVarPks.forEach(varPk => {
+         console.log("processing variable: ", varPk);
+         // Filter out the variables for this pk
+         let pkVars: ImpGeofootprintVar[] = usableGeoVars.filter(gv => gv.varPk === varPk);
+         console.log ("pkVars.length = ", (pkVars != null) ? pkVars.length : null);
+
+         // Reduce the geo vars to just the min / max values
+         //min = geoGridData.reduce((min, p:FlatGeo) => p['geo.hhc'] < min ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+         //max = geoGridData.reduce((max, p:FlatGeo) => p['geo.hhc'] > max ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : max, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+         min = pkVars.reduce((min, v:ImpGeofootprintVar) => (v.valueNumber == null) ? 0 : v.valueNumber < min ? (v.valueNumber != null ? v.valueNumber : 0) : min, (pkVars != null && pkVars.length > 0) ? pkVars[0].valueNumber : 0);
+         max = pkVars.reduce((max, v:ImpGeofootprintVar) => (v.valueNumber == null) ? max : (v.valueNumber > max) ? v.valueNumber : max, (pkVars != null && pkVars.length > 0 && pkVars[0].valueNumber != null) ? pkVars[0].valueNumber : 0);
+
+         // Massage the min / max
+         min = (min != null) ? Math.trunc(min) : null; // Number(min.toFixed(0)) : null;
+         max = (max != null) ? Math.round(max) : null;
+
+         console.log("   min: ", min, ", max: ", max);
+         // Store the min / max range values in a map keyed by the variable pk
+         this.variableRanges.set(varPk.toString(), [min, max, min, max]);
+      });
+
+      // Debug
+      // console.log("-".padEnd(80, "-"));
+      // console.log("VARIABLE RANGES");
+      // console.log("-".padEnd(80, "-"));
+      // this.variableRanges.forEach((value, key, map) => console.log(`m[${key}] = ${value}`));      
+      // console.log("-".padEnd(80, "-"));
+
+      // Clear out the filtered values so it will rebuild them, especially when a filter is cleared
+      this._geoGrid.filteredValue = null;
 
       // Initialize grid totals & numDupes
       this.initializeGridTotals();
@@ -993,6 +1032,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.onFilter(null);
    }
 
+   onRemoveFilter(filterName: string) {
+      console.log("-".padEnd(80, "-"));
+      console.log("onRemoveFilter: ", filterName);
+      console.log("-".padEnd(80, "-"));
+      console.log("before: ", this._geoGrid.filters);
+      delete this._geoGrid.filters[filterName];
+      this.onForceRedraw.emit();
+      console.log("after: ", this._geoGrid.filters);
+      console.log("-".padEnd(80, "-"));
+      this._geoGrid.tableService.onSelectionChange();
+   }
+
    /**
     * Utility method used by setGridTotals to reduce the complexity of it.
     * @param totalStr The key of the map to update
@@ -1048,6 +1099,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
             {
                console.log("setGridTotals - using filtered list");
+               console.log("this.geoGrid: ", this._geoGrid);
 
                this._geoGrid.filteredValue.forEach(element => {
                   if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {

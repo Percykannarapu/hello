@@ -131,7 +131,7 @@
                </th>
                <th *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.matchType" style="background: #b3d4ed; overflow: visible;">
                   <div *ngSwitchCase="'numeric'">
-                     <val-table-filter-numeric #filterNm fieldName="{{col.header}}" (filterApplied)="geoGrid.filter($event, col.field, 'numericFilter')" operatorType="{{col.matchOper}}" [(minValue)]="investmentRanges[0]" [(maxValue)]="investmentRanges[1]"></val-table-filter-numeric>
+                     <val-table-filter-numeric #filterNm fieldName="{{col.header}}" (filterApplied)="geoGrid.filter($event, col.field, 'numericFilter')" (filterCleared)="onRemoveFilter(col.field)" operatorType="{{col.matchOper}}" [(minValue)]="variableRanges.get(col.field)[0]" [(maxValue)]="variableRanges.get(col.field)[1]"></val-table-filter-numeric>
                   </div>
                   <div *ngSwitchCase="'text'">
                      <p-multiSelect #filterMs appendTo="body" [options]="uniqueTextVals.get(col.field)" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
