@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, pairwise, startWith, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { toUniversalCoordinates } from '../app.utils';
 import { EsriUtils } from '../esri/core/esri-utils';
@@ -62,14 +62,14 @@ export class AppGeoService {
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
     const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
-    if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton != 3) {
+    if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) {
       this.deselectGeosByGeocode(geocode);
     } else if (allIdentifiedGeos.has(geocode)) {
-      if (this.appMapService.selectedButton != 8){
+      if (this.appMapService.selectedButton !== 8){
         this.reactivateGeosByGeocode(geocode);
       }
     } else {
-      if (this.appMapService.selectedButton != 8) {
+      if (this.appMapService.selectedButton !== 8) {
         this.addGeoToManualTradeArea(geocode, geometry);
       }
     }
@@ -139,20 +139,12 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when any geocode is added to the data store
    */
   private setupGeoAttributeUpdateObservable() : void {
-    const newGeocodes$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
-      startWith([]),
-      pairwise(),
-      map(([prevGeocodes, currentGeocodes]) => {
-        const prevSet = new Set(prevGeocodes);
-        return currentGeocodes.filter(geocode => !prevSet.has(geocode));
-      })
-    );
-    combineLatest(newGeocodes$, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
+    combineLatest(this.impGeoService.storeObservable, this.validAnalysisLevel$, this.appStateService.applicationIsReady$)
       .pipe(
         // halt the sequence if the project is loading
-        filter(([geocodes, analysisLevel, isReady]) => isReady),
+        filter(([geos, analysisLevel, isReady]) => isReady),
       ).subscribe(
-        ([geocodes, analysisLevel]) => this.updateAttributesFromLayer(geocodes, analysisLevel)
+        ([geos, analysisLevel]) => this.updateAttributesFromLayer(geos, analysisLevel)
       );
   }
 
@@ -166,9 +158,12 @@ export class AppGeoService {
     });
   }
 
-  private updateAttributesFromLayer(geocodes: string[], analysisLevel: string) {
+  private updateAttributesFromLayer(geos: ImpGeofootprintGeo[], analysisLevel: string) {
+    const queryableGeos = geos.filter(g => g.impGeofootprintGeoAttribs.length < layerAttributes.length); // HACK: This is to detect anyone who hasn't gone through this particular query
+    if (queryableGeos.length === 0) return;
+    const geocodes = new Set(queryableGeos.map(g => g.geocode));
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const sub = this.queryService.queryAttributeIn(portalId, 'geocode', geocodes, false, layerAttributes).subscribe(
+    const sub = this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, layerAttributes).subscribe(
       graphics => {
         const attributesForUpdate = graphics.map(g => g.attributes);
         this.updateGeoAttributes(attributesForUpdate);
