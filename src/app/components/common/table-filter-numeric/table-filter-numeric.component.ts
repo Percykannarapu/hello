@@ -21,6 +21,10 @@ export class FilterData {
       // Enforce precision if provided
       let value: number = (precision != null) ? roundTo(compareValue, precision): compareValue;
 
+// The below will include nulls in the results.  Think about including a parameter to enable this
+//      if (value == null)
+//         return true;
+
       switch (filter.rangeOperator.code) {
          case "between":
             result = value >= filter.lowValue && value <= filter.highValue;
@@ -64,6 +68,7 @@ export class TableFilterNumericComponent implements OnInit {
    @Input()  maxValue: number;
    @Input()  operatorType: string;
    @Output() filterApplied = new EventEmitter<FilterData>();
+   @Output() filterCleared = new EventEmitter<FilterData>();
 
    public  rangeStr: string = "All";
    public  rangeLbl: string = "All";
@@ -198,7 +203,11 @@ export class TableFilterNumericComponent implements OnInit {
          this.filterData.highValue = null;
 
       // Update everything
-      this.onChange('rangeOperator', null);
+      if (filterName === "all" || (filterName === "min" && this.filterData.highValue === this.maxValue)
+                               || (filterName === "max" && this.filterData.lowValue  === this.minValue))
+         this.onClearAll();
+      else
+         this.onChange('rangeOperator', null);
    }
 
    // -------------------------------------------------------------------------
@@ -208,16 +217,20 @@ export class TableFilterNumericComponent implements OnInit {
       this.updateAndValidate();
    }
 
-   onChange(fieldName: string, event: Event)
-   {
+   onChange(fieldName: string, event: Event) {
       this.updateAndValidate();
 
       // Emit the changed filter event
       this.filterApplied.emit(this.filterData);
    }
 
-  onClick(filterOP: OverlayPanel, event: any, filterTarget: any) : void {
-     event.stopPropagation();
-     filterOP.show(event, filterTarget);
-  }
+   onClearAll() {
+      // Emit the changed filter event
+      this.filterCleared.emit(this.filterData);
+   }
+
+   onClick(filterOP: OverlayPanel, event: any, filterTarget: any) : void {
+      event.stopPropagation();
+      filterOP.show(event, filterTarget);
+   }
 }
