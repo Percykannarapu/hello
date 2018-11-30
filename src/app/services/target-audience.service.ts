@@ -59,7 +59,7 @@ export class TargetAudienceService implements OnDestroy {
       map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
     );
 
-    this.newSelectedGeos$ = this.appStateService.uniqueSelectedGeocodes$.pipe(
+    this.newSelectedGeos$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
       debounceTime(500),
       map(geos => {
         const varGeos = new Set(this.varService.get().map(gv => gv.geocode));
