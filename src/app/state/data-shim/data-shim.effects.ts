@@ -16,7 +16,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../app.interfaces';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { StartBusyIndicator, StopBusyIndicator } from '../../messaging';
-import { ClearHighlightHandlers, HighlightSelectedGeos, ClearSelectedGeos } from '../../esri/state/map/esri.renderer.actions';
+import { ClearSelectedGeos } from '../../esri/state/map/esri.renderer.actions';
 
 function isFailureAction(item: any) : item is ProjectLoadFailure | ProjectSaveFailure {
   return item.hasOwnProperty('type') && (item['type'] === DataShimActionTypes.ProjectSaveFailure || item['type'] === DataShimActionTypes.ProjectLoadFailure);
