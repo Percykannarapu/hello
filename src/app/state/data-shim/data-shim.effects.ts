@@ -63,10 +63,10 @@ export class DataShimEffects {
   projectSaveAndReload$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectSaveAndReload),
     tap(() => this.startBusy('Saving Project')),
-    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     mergeMap(() => this.appDataShimService.save().pipe(
       catchError(err => throwError(new ProjectSaveFailure({ err })))
     )),
+    tap(() => this.store$.dispatch(new ClearSelectedGeos())),
     mergeMap(id => this.appDataShimService.load(id).pipe(
       tap(projectId => this.store$.dispatch(new ProjectLoadSuccess({ projectId, isSilent: true }))),
       catchError(err => throwError(new ProjectLoadFailure({ err })))
