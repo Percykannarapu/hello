@@ -239,7 +239,7 @@ export class TargetAudienceTdaService {
       if (inputData.geocodes.length > 0 && inputData.variablePks.length > 0) {
         observables.push(
           this.restService.post('v1/mediaexpress/base/geoinfo/bulklookup', inputData).pipe(
-            map(response => this.validateFuseResponse(response)),
+            map(response => this.validateFuseResponse(response, isForShading)),
             catchError( () => throwError('No Data was returned for the selected audiences'))
           )
         );
@@ -253,18 +253,20 @@ export class TargetAudienceTdaService {
     );
   }
 
-  private validateFuseResponse(response: RestResponse) {
+  private validateFuseResponse(response: RestResponse, isForShading: boolean) {
     const responseArray: TdaBulkDataResponse[] = response.payload;
-    const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
-    const audience = [];
-    if (missingCategoryIds.size > 0) {
-      missingCategoryIds.forEach(id => {
+      const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
+      const audience = [];
+      if (missingCategoryIds.size > 0) {
+          missingCategoryIds.forEach(id => {
         if (this.rawAudienceData.has(id.variablePk)) {
           audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
         }
       });
-      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-    }
+      if (!isForShading){
+          this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+      } 
+      }
     this.logger.info('Offline Audience Response:::', responseArray);
     return responseArray;
   }
