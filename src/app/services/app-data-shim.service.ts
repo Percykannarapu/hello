@@ -3,8 +3,9 @@ import { AppProjectService } from './app-project.service';
 import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { Observable } from 'rxjs';
+import { NEVER, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -40,5 +41,12 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appStateService.clearUserInterface();
     this.appProjectService.createNew();
+  }
+
+  validateProject(project: ImpProject) : void {
+    const errors = this.appProjectService.validateProject(project);
+    if (errors.length > 0) {
+      throw errors.join('\n');
+    }
   }
 }
