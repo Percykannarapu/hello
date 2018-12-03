@@ -51,22 +51,14 @@ export class EsriMapButtonEffects {
   @Effect()
   handleSelectMultiPolyButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectMultiPolySelected),
-    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
-    this.resetSketchViewGraphics(),
-    mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
-                          takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
-    mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
+    this.handleMultiPolySelection(),
     concatMap(features => [new FeaturesSelected({ features }), new SelectMultiPolySelected()])
   );
 
   @Effect()
   handleUnselectMultiPolyButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected),
-    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
-    this.resetSketchViewGraphics(),
-    mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
-                          takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
-    mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
+    this.handleMultiPolySelection(),
     concatMap(features => [new FeaturesSelected({ features }), new UnselectMultiPolySelected()])
   ); 
   
@@ -82,6 +74,18 @@ export class EsriMapButtonEffects {
         withLatestFrom(this.store$.pipe(select(getEsriSketchViewModel))),
         tap(([action, model]) => this.mapInteractionService.abortSketchModel(model)),
         map(([action]) => action)
+      );
+    };
+  }
+
+  handleMultiPolySelection<T extends Action>() : (source$: Observable<T>) => Observable<__esri.Graphic[]> {
+    return (source$: Observable<T>) : Observable<__esri.Graphic[]> => {
+      return source$.pipe(
+        tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
+        this.resetSketchViewGraphics(),
+        mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
+          takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
+        mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry))
       );
     };
   }
