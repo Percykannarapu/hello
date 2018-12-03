@@ -54,9 +54,9 @@ export class AppConfig implements EsriLoaderConfig, EsriAuthenticationConfig, Lo
       center: { longitude: -98.5795, latitude: 39.8282 },
       zoom: 4,
       highlightOptions : {
-        color: [0, 255, 0, 0.65],
+        color: [0, 255, 0, 0.80],
         fillOpacity: 0,
-        haloOpacity: 0.25
+        haloOpacity: 0.40
       },
       spatialReference: {
         wkid: 102100
