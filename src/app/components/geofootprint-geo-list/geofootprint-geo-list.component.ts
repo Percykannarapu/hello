@@ -565,6 +565,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.initializeGridTotals();
       this.dupeCount = 0;
 
+      // Create a map, keyed by geocode to store the sites in order to count them up at the end
+      let geoSites: Map<string, Set<string>> = new Map();
+
       // For every geo, create a FlatGeo to pivot up the variables and attributes
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
@@ -580,6 +583,16 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          this.flatGeoGridColumns.forEach(col => {
             gridGeo[col.field] = resolveFieldData(gridGeo, col.field) || "";
          });
+
+         // Track sites per geo, but only for deduped geos
+         if (geo.isDeduped === 0 && gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null) {
+            let id = resolveFieldData(gridGeo, "geo.impGeofootprintLocation.glId");
+            if (!geoSites.has(geo.geocode))
+               geoSites.set(geo.geocode, new Set([geo.impGeofootprintLocation.locationNumber]));
+            else
+               if (geoSites.get(geo.geocode).has(geo.impGeofootprintLocation.locationNumber) === false)
+                  geoSites.get(geo.geocode).add(geo.impGeofootprintLocation.locationNumber);
+         }
 
          if (gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null)
             gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
@@ -699,6 +712,19 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          geoGridData.push(gridGeo);
       });
+
+      // Update geos with the dupecount
+      geoGridData.forEach(flatGeo => {
+         if (geoSites != null && geoSites.has(flatGeo.geo.geocode)) {
+            flatGeo['sitesTooltip'] = flatGeo.geo.geocode + " is in " + (geoSites.get(flatGeo.geo.geocode).size + 1) + " sites";
+         }
+         else
+            flatGeo['sitesTooltip'] = flatGeo.geo.geocode + " is in 1 site";
+      });
+
+      // Clear out the temporary map of sites for geos
+      if (geoSites != null)
+         geoSites.clear();
 
       // Code changes to display variables with no data in Grid
       /* if(missingVars.length > 0 ){
