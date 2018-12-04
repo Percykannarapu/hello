@@ -16,6 +16,7 @@ import { AppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { filterArray } from '../val-modules/common/common.rxjs';
+import { EnableShading } from '../esri/state/map/esri.renderer.actions';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -321,6 +322,8 @@ export class TargetAudienceService implements OnDestroy {
           }
         }
       );
+    } else if (shadingAudience.length === 0) {
+      this.store$.dispatch(new EnableShading(false));
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process

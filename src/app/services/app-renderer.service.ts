@@ -8,7 +8,7 @@ import { AppStateService } from './app-state.service';
 import { EsriRendererService } from '../esri/services/esri-renderer.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
-import { AddNumericShadingData, AddTextShadingData, AddSelectedGeos, HighlightSelectedGeos, AddStatistics } from '../esri/state/map/esri.renderer.actions';
+import { AddNumericShadingData, AddTextShadingData, AddSelectedGeos, HighlightSelectedGeos, AddStatistics, EnableShading } from '../esri/state/map/esri.renderer.actions';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -96,8 +96,10 @@ export class AppRendererService {
     if (numericShadingData.length > 0) {
       const statistics = calculateStatistics(newData.map(d => d.data.valueNumber)); 
       this.store$.dispatch(new AddStatistics(statistics));
+      this.store$.dispatch(new EnableShading(true));
       this.store$.dispatch(new AddNumericShadingData(numericShadingData));
     } else if (textShadingData.length > 0) {
+      this.store$.dispatch(new EnableShading(true));
       const action = new AddTextShadingData(textShadingData);
       this.store$.dispatch(action);
     }

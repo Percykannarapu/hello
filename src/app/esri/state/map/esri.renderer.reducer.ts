@@ -34,6 +34,7 @@ export interface EsriRendererState {
   highlightSelectedGeos: boolean;
   highlightHandlers: Array<EsriHighlightHandler>;
   statistics: Statistics;
+  enableShading: boolean;
 }
 
 const initialState: EsriRendererState = {
@@ -42,7 +43,8 @@ const initialState: EsriRendererState = {
   selectedGeocodes: new Array<string>(),
   highlightSelectedGeos: false,
   highlightHandlers: new Array<EsriHighlightHandler>(),
-  statistics: null
+  statistics: null,
+  enableShading: false
 };
 
 export function rendererReducer(state = initialState, action: EsriRendererActions) : EsriRendererState {
@@ -83,6 +85,8 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
       return {...state, highlightHandlers: new Array<EsriHighlightHandler>()};
     case EsriRendererActionTypes.AddStatistics:
       return {...state, statistics: action.payload};
+    case EsriRendererActionTypes.EnableShading:
+      return {...state, enableShading: action.payload};
     default:
       return state;
   }

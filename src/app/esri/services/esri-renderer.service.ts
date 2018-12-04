@@ -99,6 +99,13 @@ export class EsriRendererService {
       distinctUntilChanged(),
     ).subscribe(([textData, mapState]) => this.createClassBreaksRenderer(textData, mapState));
 
+    //pipe for restoring the simple renderer when shading is disabled
+    sharedStore$.pipe(
+      select(getEsriRendererState),
+      withLatestFrom(this.store$.pipe(select(getEsriMapState))),
+      filter(([rendererState, mapState]) => mapState != null && rendererState != null && rendererState.enableShading === false && (rendererState.numericShadingData.length > 0 || rendererState.textShadingData.length > 0))
+    ).subscribe(([rendererState, mapState]) => this.restoreSimpleRenderer(mapState));
+
   }
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
@@ -156,6 +163,13 @@ export class EsriRendererService {
 
   private static rendererIsSmart(r: SmartRendererSetup | CustomRendererSetup) : r is SmartRendererSetup {
     return r != null && r.hasOwnProperty('smartTheme');
+  }
+
+  private restoreSimpleRenderer(mapState: EsriMapState) {
+    if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
+      const lv = this.getLayerView(mapState.analysisLevel);
+      lv.layer.renderer = this.simpleRenderer;
+    }
   }
 
   private isNumericShadingData(data: Array<NumericShadingData> | Array<TextShadingData>) : data is Array<NumericShadingData> {
