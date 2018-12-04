@@ -21,7 +21,7 @@
       <div class="ui-g-2"></div>
       <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" maxlength="240" autocomplete="off" />
+          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" autocomplete="off" />
           <label for="streetInput">Street</label>
         </span>
       </div>
@@ -29,7 +29,7 @@
       <div class="ui-g-12" style="padding: 0">
           <div class="ui-g-6 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" maxlength="64" autocomplete="off" />
+                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" autocomplete="off" />
                 <label for="cityInput">City</label>
               </span>
             </div>
@@ -48,13 +48,13 @@
       </div>
       <div class="ui-g-4 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="marketCodeInput" class="ui-g-12" formControlName="marketCode" maxlength="30" autocomplete="off" />
+          <input pInputText id="marketCodeInput" class="ui-g-12" formControlName="marketCode" autocomplete="off" />
           <label for="marketCodeInput">Market Code</label>
         </span>
       </div>
       <div class="ui-g-6 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="marketInput" class="ui-g-12" formControlName="marketName" maxlength="80" autocomplete="off" />
+          <input pInputText id="marketInput" class="ui-g-12" formControlName="marketName" autocomplete="off" />
           <label for="marketInput">Market</label>
         </span>
       </div>
@@ -63,7 +63,7 @@
          <div class="ui-g-4 p-t-15">
             <div class="ui-inputgroup">
                <span class="md-inputfield">
-                  <input pInputText id="latInput" class="ui-g-12" formControlName="coord" maxlength="41" autocomplete="off" />
+                  <input pInputText id="latInput" class="ui-g-12" formControlName="coord" autocomplete="off" />
                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('coord')">&nbsp;</span>
                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('coord')">
                     <i class="ui-icon-error error-icon" [title]="coord.errors['latLon']"></i>
