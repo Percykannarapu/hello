@@ -408,12 +408,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    initializeState() {
       console.log("geoGrid - initializeState - fired");
-      this.gridStats = {
-         numLocsActive: 0,
-         numGeos: 0,
-         numGeosActive: 0,
-         numGeosInactive: 0
-      }
+      //this.gridStats = {
+         //numLocsActive: 0,
+         this.gridStats.numGeos = 0;
+         this.gridStats.numGeosActive = 0;
+         this.gridStats.numGeosInactive = 0;
+      //}
    
       this.dedupeGrid = false;
       this.dupeCount = 0;
