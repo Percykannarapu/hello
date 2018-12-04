@@ -92,7 +92,8 @@ export class AddLocationsTabComponent implements OnInit {
 
   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
     //validate Manually added geocodes
-    const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
+    const locations = this.impGeofootprintLocationService.get();
+    //const locations = this.appStateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
     if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
       this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);

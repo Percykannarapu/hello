@@ -226,7 +226,7 @@ export class AppLocationService {
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
-  private queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
+  public queryAllHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) {
     let objId = 0;
     const partitionedLocations = this.partitionLocations(locations);
     const partitionedJobData = partitionedLocations.map(partition => {

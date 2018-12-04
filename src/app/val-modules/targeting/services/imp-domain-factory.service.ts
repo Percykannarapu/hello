@@ -193,10 +193,10 @@ export class ImpDomainFactoryService {
       locZip: res.ZIP,
       xcoord: Number(res.Longitude),
       ycoord: Number(res.Latitude),
-      origAddress1: res['Original Address'] != null ? res['Original Address'].trim() : '' ,
-      origCity: res['Original City'] != null ? res['Original City'] : '',
-      origState: res['Original State'] != null ? res['Original State'].trim() : '',
-      origPostalCode: res['Original ZIP'] != null ? res['Original ZIP'].trim() : '' ,
+      origAddress1: res['Original Address'] != null ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
+      origCity: res['Original City'] != null ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
+      origState: res['Original State'] != null ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
+      origPostalCode: res['Original ZIP'] != null ?  ((!res['previousZip']) ? res['Original ZIP'].trim() : res['previousZip'].trim()) : '' ,
       recordStatusCode: res['Geocode Status'],
       geocoderMatchCode: res['Match Code'],
       geocoderLocationCode: res['Match Quality'],
@@ -251,6 +251,10 @@ export class ImpDomainFactoryService {
     result.impProject = parent;
     result.impGeofootprintMaster = parent.impGeofootprintMasters[0];
     parent.impGeofootprintMasters[0].impGeofootprintLocations.push(result);
+    delete res['previousAddress1'];
+    delete res['previousCity'];
+    delete res['previousState'];
+    delete res['previousZip'];
     for (const [k, v] of Object.entries(res)) {
       if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k)) continue;
       this.createLocationAttribute(result, k, v);

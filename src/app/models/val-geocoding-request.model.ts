@@ -18,6 +18,10 @@ export class ValGeocodingRequest {
   zip: string;
   latitude?: string | null;
   longitude?: string | null;
+  previousAddress1?: string;
+  previousCity?: string;
+  previousState?: string;
+  previousZip?: string;
   [key: string] : any;
   clientIdentifierId: string;  // Mandatory DB field
   clientLocationId: number;    // Mandatory DB field
