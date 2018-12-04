@@ -144,7 +144,8 @@
          <ng-template pTemplate="body" let-flatGeo let-columns="selectedColumns">
             <tr [pSelectableRow]="flatGeo">
                <td>
-                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
+                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"
+                                   pTooltip="{{flatGeo['sitesTooltip']}}" tooltipPosition="right"></p-tableCheckbox>
                </td>
                <td [ngStyle]="{'width':'4em'}">
                   <!-- <button type="button" pButton (click)="onRowDelete(flatGeo.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button> -->
