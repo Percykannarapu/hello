@@ -19,12 +19,13 @@ import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { simpleFlatten } from '../val-modules/common/common.utils';
+import { simpleFlatten, groupBy, groupByExtended } from '../val-modules/common/common.utils';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { filter } from 'rxjs/operators';
+import { filter, max } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '../messaging';
+import { sum } from 'angular-pipes/utils/utils';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -82,6 +83,7 @@ export class ValAudienceTradeareaService {
   private audienceTaSubject: Subject<boolean> = new Subject<boolean>();
   private sortMap: Map<string, number> = new Map<string, number>();
   private taResponses: Map<string, Map<number, AudienceTradeareaResponse>> = new Map<string, Map<number, AudienceTradeareaResponse>>();
+  private locationsWithNoScores: Map<ImpGeofootprintLocation, boolean> = new Map<ImpGeofootprintLocation, boolean>();
   private mustCover: boolean;
   // variables to determine whether or not we need to fetch data from the server
   private fetchData = true;
@@ -250,7 +252,7 @@ export class ValAudienceTradeareaService {
           for (const location of allLocations) {
             const newTradeArea = this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
-          }
+          }         
           if (this.failedLocations.length > 0) {
             let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
@@ -503,12 +505,7 @@ export class ValAudienceTradeareaService {
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
-    console.log('taResponse:::', taResponseMap);
-    if (!taResponseMap) {
-      console.warn('Unable to find response for location: ', location);
-      this.failedLocations.push(location);
-      return;
-    }
+
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const taResponse = taResponseMap.get(i);
@@ -534,10 +531,23 @@ export class ValAudienceTradeareaService {
         filterReasons.push('Under Audience TA threshold');
         newGeo['filterReasons'] = filterReasons;
       }
+
+      if (!this.locationsWithNoScores.has(location)) {
+        this.locationsWithNoScores.set(location, taResponse.indexValue != null);
+      } else {
+        if (taResponse.indexValue != null && this.locationsWithNoScores.get(location) === false) {
+          this.locationsWithNoScores.set(location, true);
+        }
+      }
       newGeo.ggId = this.geoService.getNextStoreId();
       newGeos.push(newGeo);
     }
-    this.geoCache.push(...newGeos);
+    console.log('locationsWithNoScores:::', this.locationsWithNoScores);
+    if(this.locationsWithNoScores.size > 0 && this.locationsWithNoScores.get(location) === false){
+      console.warn('Unable to find response for location: ', location);
+      this.failedLocations.push(location);
+    }
+       this.geoCache.push(...newGeos);
     return newGeos;
   }
 
