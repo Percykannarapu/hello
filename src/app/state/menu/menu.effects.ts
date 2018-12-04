@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject } from './menu.actions';
-import { catchError, concatMap, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, filter, map, withLatestFrom } from 'rxjs/operators';
 import * as fromDataShims from '../data-shim/data-shim.actions';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
 import { ClearAllNotifications } from '../../messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,25 +18,23 @@ export class MenuEffects {
   saveAndReload$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndReloadProject),
     withLatestFrom(this.appStateService.currentProject$),
-    tap(([action, project]) => this.dataShimService.validateProject(project)),
-    mergeMap(() => [
+    filter(([action, project]) => this.dataShimService.validateProject(project)),
+    concatMap(() => [
       new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndReload()
-    ]),
-    catchError(err => of(new fromDataShims.ProjectSaveFailure({ err }))),
+    ])
   );
 
   @Effect()
   saveAndCreateNew$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndCreateNew),
     withLatestFrom(this.appStateService.currentProject$),
-    tap(([action, project]) => this.dataShimService.validateProject(project)),
+    filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(() => [
       new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=Yes'),
       new fromDataShims.ProjectSaveAndNew(),
     ]),
-    catchError(err => of(new fromDataShims.ProjectSaveFailure({ err }))),
   );
 
   @Effect()
@@ -54,19 +51,18 @@ export class MenuEffects {
   saveThenLoad$ = this.actions$.pipe(
     ofType<SaveThenLoadProject>(MenuActionTypes.SaveThenLoadProject),
     withLatestFrom(this.appStateService.currentProject$),
-    tap(([action, project]) => this.dataShimService.validateProject(project)),
-    mergeMap(([action]) => [
+    filter(([action, project]) => this.dataShimService.validateProject(project)),
+    concatMap(([action]) => [
       new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndLoad({ idToLoad: action.payload.projectToLoad }),
       new CloseExistingProjectDialog()
     ]),
-    catchError(err => of(new fromDataShims.ProjectSaveFailure({ err }))),
 );
 
   @Effect()
   discardThenLoad$ = this.actions$.pipe(
     ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
-    mergeMap(action => [
+    concatMap(action => [
       new ClearAllNotifications(),
       new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog()
