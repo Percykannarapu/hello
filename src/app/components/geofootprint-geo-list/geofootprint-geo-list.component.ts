@@ -770,6 +770,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
+//    this.flatGeoGridExtraColumns.forEach(col => console.log(col.sortOrder + " - " + col.field));
 
       // Update geo grid total columns
       this.setGridTotals(geoGridData);
@@ -783,7 +784,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.flatGeoGridExtraColumns.forEach(col => {
          col['sortOrder'] = (this.variableColOrder != null 
                           && this.variableColOrder instanceof Map
-                          && this.variableColOrder.hasOwnProperty('size')
+//                        && this.variableColOrder.hasOwnProperty('size')
                           && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0;
       });
 
