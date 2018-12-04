@@ -3,9 +3,12 @@ import { AppProjectService } from './app-project.service';
 import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { NEVER, Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { AppState } from '../state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { ErrorNotification } from '../messaging';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -20,7 +23,8 @@ export class AppDataShimService {
   constructor(private appProjectService: AppProjectService,
               private appStateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
-              private targetAudienceService: TargetAudienceService) { }
+              private targetAudienceService: TargetAudienceService,
+              private store$: Store<AppState>) { }
 
   save() : Observable<number> {
     return this.appProjectService.save();
@@ -43,10 +47,12 @@ export class AppDataShimService {
     this.appProjectService.createNew();
   }
 
-  validateProject(project: ImpProject) : void {
+  validateProject(project: ImpProject) : boolean {
     const errors = this.appProjectService.validateProject(project);
     if (errors.length > 0) {
-      throw errors.join('\n');
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Invalid Project', message: errors.join('\n') }));
+      return false;
     }
+    return true;
   }
 }

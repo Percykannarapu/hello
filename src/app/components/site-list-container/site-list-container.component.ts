@@ -136,6 +136,7 @@ export class SiteListContainerComponent implements OnInit {
       newLocation.marketName = siteOrSites['Market'];
       newLocation.marketCode = siteOrSites['Market Code'];
       if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']) {
+        newLocation.recordStatusCode = 'PROVIDED';
         newLocation.xcoord = Number(siteOrSites['longitude']);
         newLocation.ycoord = Number(siteOrSites['latitude']);
         // const result = new ImpGeofootprintLocation(newLocation);
