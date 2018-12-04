@@ -254,7 +254,7 @@ export class ValAudienceTradeareaService {
           if (this.failedLocations.length > 0) {
             let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
-              warningMessage += failedLoc.locationName + '\n';
+              warningMessage += failedLoc.locationNumber + '\n';
             }
             this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: warningMessage }));
             this.failedLocations = [];
@@ -503,6 +503,7 @@ export class ValAudienceTradeareaService {
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
+    console.log('taResponse:::', taResponseMap);
     if (!taResponseMap) {
       console.warn('Unable to find response for location: ', location);
       this.failedLocations.push(location);

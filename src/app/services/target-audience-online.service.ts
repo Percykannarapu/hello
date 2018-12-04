@@ -285,10 +285,10 @@ export class TargetAudienceOnlineService {
     if (numericIds.filter(n => Number.isNaN(n)).length > 0)
       return throwError({ identifiers, msg: `Some identifiers were passed into the Apio ${source} Refresh function that weren't numeric pks` });
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
+    const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes, isForShading);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
     console.log('Description Maps', descriptionMap);
     descriptionMap.forEach(id => this.audDescription[id.audienceIdentifier] = id.audienceName);
-    const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes);
     const currentProject = this.appStateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
     return merge(...observables, 4).pipe(
@@ -303,7 +303,7 @@ export class TargetAudienceOnlineService {
     const numericId = Number(identifier);
     if (Number.isNaN(numericId))
       return throwError({ identifier, msg: `An identifier was passed into the Apio National Extract Refresh function that wasn't a numeric pk` });
-    const observables = this.apioDataRefresh(source, analysisLevel, [identifier], ['*']);
+    const observables = this.apioDataRefresh(source, analysisLevel, [identifier], ['*'], false);
     const fullId = `Online/${source}/${identifier}`;
     const description = this.audienceService.getAudiences(fullId)[0];
     if (description == null)
@@ -319,7 +319,7 @@ export class TargetAudienceOnlineService {
     );
   }
 
-  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<OnlineBulkDataResponse[]>[] {
+  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<OnlineBulkDataResponse[]>[] {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
@@ -335,7 +335,7 @@ export class TargetAudienceOnlineService {
         
         observables.push(
             this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
-              map(response => this.validateFuseResponse(inputData, response)),
+              map(response => this.validateFuseResponse(inputData, response, isForShading)),
               catchError( () => throwError('No Data was returned for the selected audiences'))
           ));
         }
@@ -343,8 +343,9 @@ export class TargetAudienceOnlineService {
     return observables;
   }
 
-  private validateFuseResponse(inputData: any, response: RestResponse) {
+  private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean) {
     const responseArray: OnlineBulkDataResponse[] = response.payload.rows;
+    // if (responseArray.length > 0){
     const audData = new Set(responseArray.map(val => val.digCategoryId));
     const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
     if (missingCategoryIds.size > 0) {
@@ -353,8 +354,11 @@ export class TargetAudienceOnlineService {
       missingCategoryIds.forEach(id => {
         audience.push(this.audDescription[id.toString()]);
       });
-      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected online audiences: ' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
+      if(!isForShading){
+         this.store$.dispatch(new WarningNotification({ message: 'No data was returned within your geofootprint for the following selected online audiences: ' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
+      }
     }
+  // }
     this.logger.info('Online Audience Response:::', responseArray);
     return responseArray;
   }

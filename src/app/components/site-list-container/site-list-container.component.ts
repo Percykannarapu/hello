@@ -116,16 +116,35 @@ export class SiteListContainerComponent implements OnInit {
     const pluralize = sites.length > 1 ? 's' : '';
     this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     const locationCache: ImpGeofootprintLocation[] = [];
-    this.appLocationService.geocode(sites, siteType).subscribe(
-      locations => locationCache.push(...locations),
-      err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
-      () => {
-        const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
-        this.impGeofootprintLocationService.update(oldData, locationCache[0]);
-        if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
-        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
+      sites[0]['latitude'] = null;
+      sites[0]['longitude'] = null;
+      this.appLocationService.geocode(sites, siteType).subscribe(
+        locations => locationCache.push(...locations),
+        err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
+        () => {
+          const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
+          this.impGeofootprintLocationService.update(oldData, locationCache[0]);
+          if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
+          this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        }
+      );
+    } else {
+      const newLocation = oldData;
+      newLocation.locationNumber = siteOrSites['number'];
+      newLocation.locationName = siteOrSites['name'];
+      newLocation.marketName = siteOrSites['Market'];
+      newLocation.marketCode = siteOrSites['Market Code'];
+      if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']) {
+        newLocation.xcoord = Number(siteOrSites['longitude']);
+        newLocation.ycoord = Number(siteOrSites['latitude']);
+        // const result = new ImpGeofootprintLocation(newLocation);
+        this.appLocationService.queryAllHomeGeos([newLocation], 'ZIP');
+
       }
-    );
+      this.impGeofootprintLocationService.update(oldData, newLocation);
+      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    }
   }
   
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {

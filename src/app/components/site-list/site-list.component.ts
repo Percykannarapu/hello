@@ -304,6 +304,10 @@ export class SiteListComponent implements OnInit {
    }
 
    manuallyGeocode(site: ValGeocodingRequest, siteType){
+     site.previousAddress1 = this.selectedRowData.origAddress1;
+     site.previousCity = this.selectedRowData.origCity;
+     site.previousState = this.selectedRowData.origState;
+     site.previousZip = this.selectedRowData.origPostalCode;
     this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
    }
 

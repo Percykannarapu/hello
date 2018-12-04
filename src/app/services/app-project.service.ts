@@ -32,11 +32,6 @@ export class AppProjectService {
   save(project?: ImpProject) : Observable<number> {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
-    const errors = this.validateProject(localProject);
-    if (errors.length > 0) {
-      const message = errors.join('\n');
-      return throwError(message);
-    }
     this.cleanupProject(localProject);
     this.logger.info('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(
@@ -49,7 +44,7 @@ export class AppProjectService {
     this.impProjectService.load([newProject]);
   }
 
-  private validateProject(impProject: ImpProject) : string[] {
+  validateProject(impProject: ImpProject) : string[] {
     const errors: string[] = [];
     if (impProject.projectName == null || impProject.projectName === '')
       errors.push('imPower Project Name is required');

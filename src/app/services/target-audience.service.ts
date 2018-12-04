@@ -15,6 +15,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
+import { filterArray } from '../val-modules/common/common.rxjs';
+import { EnableShading } from '../esri/state/map/esri.renderer.actions';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
@@ -48,6 +50,8 @@ export class TargetAudienceService implements OnDestroy {
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
+  private geosRequested = new Set<string>();
+
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
               private config: AppConfig,
@@ -61,10 +65,7 @@ export class TargetAudienceService implements OnDestroy {
 
     this.newSelectedGeos$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
       debounceTime(500),
-      map(geos => {
-        const varGeos = new Set(this.varService.get().map(gv => gv.geocode));
-        return geos.filter(g => !varGeos.has(g));
-      }),
+      filterArray(geo => !this.geosRequested.has(geo)),
       filter(geos => geos.length > 0),
     );
   }
@@ -293,6 +294,7 @@ export class TargetAudienceService implements OnDestroy {
       ta.impGeofootprintVars = [];
     }
     this.varService.clearAll();
+    this.geosRequested.clear();
   }
 
   public applyAudienceSelection() : void {
@@ -320,6 +322,8 @@ export class TargetAudienceService implements OnDestroy {
           }
         }
       );
+    } else if (shadingAudience.length === 0) {
+      this.store$.dispatch(new EnableShading(false));
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process
@@ -377,8 +381,8 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private persistGeoVarData(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {
+    geos.forEach(geo => this.geosRequested.add(geo));
     const key = this.spinnerKey;
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
     const sources = new Set(selectedAudiences.map(a => this.createKey(a.audienceSourceType, a.audienceSourceName)));
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
     sources.forEach(s => {
@@ -403,6 +407,7 @@ export class TargetAudienceService implements OnDestroy {
       }
     });
     const accumulator: ImpGeofootprintVar[] = [];
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
     merge(...observables, 4).subscribe(
       vars => accumulator.push(...vars),
       err => {

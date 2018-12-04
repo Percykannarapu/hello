@@ -11,7 +11,8 @@ export enum EsriRendererActionTypes {
   HighlightSelectedGeos = '[Esri Renderer] Highlight Selected Geos',
   AddHighlightHandlers = '[Esri Renderer] Add Highlight Handlers',
   ClearHighlightHandlers = '[Esri Renderer] Clear Highlight Handlers',
-  AddStatistics = '[Esri Renderer] Add statistics'
+  AddStatistics = '[Esri Renderer] Add statistics',
+  EnableShading = 'Esri Renderer] Enable shading'
 }
 
 export class AddNumericShadingData implements Action {
@@ -60,6 +61,11 @@ export class AddStatistics implements Action {
   constructor(public payload: Statistics) { }
 }
 
+export class EnableShading implements Action {
+  readonly type = EsriRendererActionTypes.EnableShading;
+  constructor(public payload: boolean) { }
+}
+
 export type EsriRendererActions =
   AddNumericShadingData
   | AddTextShadingData
@@ -71,4 +77,5 @@ export type EsriRendererActions =
   | AddHighlightHandlers
   | ClearHighlightHandlers
   | AddStatistics
+  | EnableShading
   ;
