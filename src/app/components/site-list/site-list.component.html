@@ -219,6 +219,7 @@
    <val-failed-geocode-grid *ngIf="hasFailures$ | async"
                                [failedSites]="failures$ | async"
                                [totalCount]="totalCount$ | async"
+                               [type]="'edit'"
                                (remove)="remove($event)"
                                (resubmit)="reSubmit($event)"
                                (accept)="accept($event)">

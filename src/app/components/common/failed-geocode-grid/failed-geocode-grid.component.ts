@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output,OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
@@ -6,16 +6,30 @@ import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/I
   templateUrl: './failed-geocode-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FailedGeocodeGridComponent {
+export class FailedGeocodeGridComponent implements OnInit{
 
-  @Input() failedSites: ImpGeofootprintLocation[] = [];
+  @Input() failedSites: ImpGeofootprintLocation[];
   @Input() totalCount: number = 0;
+  @Input() type: string;
 
   @Output() resubmit = new EventEmitter<ImpGeofootprintLocation>();
   @Output() accept = new EventEmitter<ImpGeofootprintLocation>();
   @Output() remove = new EventEmitter<ImpGeofootprintLocation>();
 
   private edited = new Set<ImpGeofootprintLocation>();
+  public locFieldAddress: string = '';
+  public locFieldCity: string = '';
+  public locFieldState: string = '';
+  public locFieldZip: string = '';
+
+  ngOnInit() {
+    if (this.type == 'edit') {
+      this.locFieldAddress = 'locAddress';
+      this.locFieldCity = 'locCity';
+      this.locFieldState = 'locState';
+      this.locFieldZip = 'locZip';
+    }
+  }
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
     return site.recordStatusCode !== 'ERROR' && site.recordStatusCode !== '';
@@ -29,6 +43,7 @@ export class FailedGeocodeGridComponent {
       return `${site.ycoord},${lineBreak}${site.xcoord}`;
     }
   }
+
 
   setCoordinates(event: any, site: ImpGeofootprintLocation) : void {
     console.log('Row edited result', event);

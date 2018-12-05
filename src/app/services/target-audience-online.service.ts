@@ -132,7 +132,8 @@ export class TargetAudienceOnlineService {
   }
 
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
-    const audience: AudienceDataDefinition = {
+   TargetAudienceService.audienceCounter++;
+   const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: `${digId}`,
       audienceSourceType: 'Online',
@@ -147,7 +148,6 @@ export class TargetAudienceOnlineService {
       secondaryId: digId.toLocaleString(),
       audienceCounter: TargetAudienceService.audienceCounter
     };
-    TargetAudienceService.audienceCounter++;
     return audience;
   }
 

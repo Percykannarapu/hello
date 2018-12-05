@@ -44,7 +44,8 @@ export class TargetAudienceCustomService {
   }
 
   private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
-    const audience: AudienceDataDefinition = {
+   TargetAudienceService.audienceCounter++;
+   const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: name,
       audienceSourceType: 'Custom',
@@ -56,7 +57,6 @@ export class TargetAudienceCustomService {
       allowNationalExport: false,
       audienceCounter: TargetAudienceService.audienceCounter
     };
-    TargetAudienceService.audienceCounter++;
     return audience;
   }
 

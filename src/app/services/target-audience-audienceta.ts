@@ -154,6 +154,7 @@ export class TargetAudienceAudienceTA {
         if (audiences.length > 0) {
             audienceName = audiences[0].audienceName;
         }
+        TargetAudienceService.audienceCounter++;
         const audience: AudienceDataDefinition = {
             audienceName: `${audienceName} ${name}`,
             audienceIdentifier: this.projectVarService.getNextStoreId().toString(), // `${digId}-${name}`,
@@ -168,7 +169,6 @@ export class TargetAudienceAudienceTA {
             audienceTAConfig: audienceTAConfig,
             audienceCounter: TargetAudienceService.audienceCounter
         };
-        TargetAudienceService.audienceCounter++;
         return audience;
     }
 
