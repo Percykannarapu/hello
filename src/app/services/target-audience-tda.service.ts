@@ -98,7 +98,8 @@ export class TargetAudienceTdaService {
   }
 
   private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
-    const audience: AudienceDataDefinition = {
+   TargetAudienceService.audienceCounter++;
+   const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: pk,
       audienceSourceType: 'Offline',
@@ -110,7 +111,6 @@ export class TargetAudienceTdaService {
       allowNationalExport: false,
       audienceCounter: TargetAudienceService.audienceCounter
     };
-    TargetAudienceService.audienceCounter++;
     return audience;
   }
 

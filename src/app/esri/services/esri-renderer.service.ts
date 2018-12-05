@@ -177,6 +177,9 @@ export class EsriRendererService {
       if (datum.data == null) {
         continue;
       }
+      if (typeof datum.data === 'string') {
+        return false;
+      }
       const result = Number.isNaN(Number(data[0].data));
       return result;
     }
@@ -338,18 +341,11 @@ export class EsriRendererService {
     const themeColors: __esri.Color[] = EsriRendererService.getThemeColors(setup, dataValues.length);
     if (dataValues.length > themeColors.length) throw new Error('The data being mapped has more values than the theme for mapping');
     dataValues.forEach((value, i) => {
-      const selectedValue = `${value} (Selected)`;
-      const unselectedValue = `${value} (Unselected)`;
       result.push({
-          value: selectedValue,
+          value: value,
           symbol: EsriRendererService.createSymbol(themeColors[i], setup.outline.selectedColor, setup.outline.selectedWidth)
-        },
-        {
-          value: unselectedValue,
-          symbol: EsriRendererService.createSymbol(themeColors[i], [0, 0, 0, 1], setup.outline.defaultWidth)
         });
-      console.log('Class break value: "' + selectedValue + '"');
-      console.log('Class break value: "' + unselectedValue + '"');
+      console.log('Class break value: "' + value + '"');
     });
     return result;
   }
