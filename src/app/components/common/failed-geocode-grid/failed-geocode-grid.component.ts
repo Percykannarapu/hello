@@ -29,7 +29,6 @@ export class FailedGeocodeGridComponent implements OnInit{
       this.locFieldState = 'locState';
       this.locFieldZip = 'locZip';
     }
-    console.log(this.failedSites);
   }
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {

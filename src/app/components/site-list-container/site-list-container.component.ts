@@ -85,14 +85,12 @@ export class SiteListContainerComponent implements OnInit {
    // -----------------------------------------------------------
 
    resubmit(site: ImpGeofootprintLocation) {
-     debugger;
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
     const newRequest = new ValGeocodingRequest(site, false);
     delete newRequest['latitude'];
     delete newRequest['longitude'];
     this.processEditRequests(newRequest, newSiteType, this.oldData, true);
-    // console.log(this.impGeofootprintLocationService.get());
     this.appLocationService.deleteLocations([site]);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
