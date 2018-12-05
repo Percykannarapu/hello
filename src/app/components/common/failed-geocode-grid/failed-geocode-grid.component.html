@@ -17,10 +17,10 @@
   </p-column>
   
   <p-column field="locationNumber" header="Number" [editable]="false" [style]="{'width':'5em'}"></p-column>
-  <p-column field="origAddress1" header="Address" [editable]="true" [style]="{'width':'14em'}"></p-column>
-  <p-column field="origCity" header="City" [editable]="true" [style]="{'width':'9em'}"></p-column>
-  <p-column field="origState" header="State" [editable]="true" [style]="{'width':'3em'}"></p-column>
-  <p-column field="origPostalCode" header="ZIP" [editable]="true" [style]="{'width':'4em'}"></p-column>
+  <p-column field="{{locFieldAddress}}" header="Address" [editable]="true" [style]="{'width':'14em'}"></p-column>
+  <p-column field="{{locFieldCity}}" header="City" [editable]="true" [style]="{'width':'9em'}"></p-column>
+  <p-column field="{{locFieldState}}" header="State" [editable]="true" [style]="{'width':'3em'}"></p-column>
+  <p-column field="{{locFieldZip}}" header="ZIP" [editable]="true" [style]="{'width':'4em'}"></p-column>
   <p-column field="coordinates" header="XY" [editable]="true" [style]="{'width':'10em'}">
     <ng-template let-site="rowData" pTemplate="body">
       {{ getCoordinates(site) }}
