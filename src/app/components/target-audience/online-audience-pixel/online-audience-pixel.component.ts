@@ -53,7 +53,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     if (!ready || audiences == null || audiences.length === 0) return;
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);
-      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
+      if (node != null && node.length > 0 && this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
         this.currentSelectedNodes.push(node[0]);
       }
     }

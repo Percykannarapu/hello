@@ -148,11 +148,11 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                   varName = pvar.fieldname + ' (VLH)';
                   break;
 
-               case "ONLINE_PIXEL":
+               case "Online_Pixel":
                   varName = pvar.fieldname + ' (Pixel)';
                   break;
 
-               case "ONLINE_IN-MARKET":
+               case "Online_In-Market":
                   varName = pvar.fieldname + ' (In-Market)';
                   break;
 
@@ -160,6 +160,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                   varName = pvar.fieldname;
                   break;
             }
+            // console.log("### 1 - settingVariableOrder for varName: " + varName + " to " + pvar.sortOrder);
             newVariableColOrder.set(varName, pvar.sortOrder);
          });
 
