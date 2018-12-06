@@ -706,6 +706,7 @@ export class DataStore<T>
    {
      if (oldData != null && newData != null && oldData !== newData) {
        const index = this._dataStore.indexOf(oldData);
+       if (index == -1) { return; }
        this._dataStore = [...this._dataStore.slice(0, index),
          newData,
          ...this._dataStore.slice(index + 1)];

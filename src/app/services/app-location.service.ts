@@ -177,7 +177,7 @@ export class AppLocationService {
     );
   }
 
-  public persistLocationsAndAttributes(data: ImpGeofootprintLocation[]) : void {
+  public persistLocationsAndAttributes(data: ImpGeofootprintLocation[], isEdit?: boolean, isResubmit?: boolean, oldData?: ImpGeofootprintLocation) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
     data.forEach(l => {
@@ -208,8 +208,17 @@ export class AppLocationService {
       data
         .filter(loc => loc.locationName == null || loc.locationName.length === 0)
         .forEach(loc => loc.locationName = loc.locationNumber);
-      this.impLocationService.add(data);
-      this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+      if (isEdit) {
+        if (!isResubmit) {
+          this.impLocationService.update(oldData, data[0]);
+        } else {
+          this.impLocationService.add(data);
+          this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+        }
+      } else {
+        this.impLocationService.add(data);
+        this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+      } 
     }
   }
 

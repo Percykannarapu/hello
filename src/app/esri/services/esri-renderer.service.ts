@@ -194,6 +194,9 @@ export class EsriRendererService {
           if (numericData) {
             newPairs += `\"${datum.geocode}\":${datum.data}\,`;
           } else {
+            if (datum.data == null) {
+              continue;
+            }
             newPairs += `\"${datum.geocode}\":\"${datum.data}\"\,`;
           }
           
@@ -239,22 +242,28 @@ export class EsriRendererService {
     return newRenderer;
   }
 
-  //private createClassBreaksRenderer(defaultSymbol: __esri.SimpleFillSymbol, dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRenderer {
-  private createClassBreaksRenderer(data: Array<TextShadingData>, mapState: EsriMapState) {  
+  private createClassBreaksRenderer(data: Array<TextShadingData>, mapState: EsriMapState) {
     const arcade = this.generateArcade(data);
-    const setup = this.createRendererSetup(mapState);
-    const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline, '(No Data)', data.length > 0);
-    // Unshifting so I can keep the data values at the top, and the (no data) values at the bottom
     const dataValues: Set<string> = new Set<string>();
     for (const datum of data) {
+      if (datum.data == null) {
+        continue;
+      }
       dataValues.add(datum.data);
     }
-    baseRenderer.valueExpression = arcade;
-    baseRenderer.uniqueValueInfos.unshift(...this.generateClassBreaks(Array.from(dataValues), setup.rendererSetup));
-    // have to clone because the previous op works directly on the UVI array, and doesn't go through .addUniqueValue()
+    const setup = this.createRendererSetup(mapState);
+    const uvi = this.generateClassBreaks(Array.from(dataValues), setup.rendererSetup);
+    const sym = EsriRendererService.createSymbol([0, 255, 255, 1], [0, 255, 255, 1], 3);
+    const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 1], 3);
+    const renderer: Partial<__esri.UniqueValueRenderer> = {
+      type: 'unique-value',
+      valueExpression: arcade,
+      uniqueValueInfos: uvi,
+      defaultSymbol: defaultSymbol
+    };
     const lv = this.getLayerView(mapState.analysisLevel);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
-      lv.layer.renderer = baseRenderer.clone();
+      lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
       setTimeout(() => this.createClassBreaksRenderer(data, mapState), 0);
@@ -273,6 +282,7 @@ export class EsriRendererService {
       legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
     };
     baseRenderer.visualVariables = [colorVariable];
+    baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     const lv = this.getLayerView(mapState.analysisLevel);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
@@ -299,7 +309,7 @@ export class EsriRendererService {
         //defaultWidth: symbol.outline.width,
         defaultWidth: 2,
         selectedWidth: 4,
-        selectedColor: [86, 231, 247, 1.0]
+        selectedColor: [0, 255, 0, 0.80]
       },
       smartTheme: {
         baseMap: this.mapService.mapView.map.basemap,
@@ -343,7 +353,7 @@ export class EsriRendererService {
     dataValues.forEach((value, i) => {
       result.push({
           value: value,
-          symbol: EsriRendererService.createSymbol(themeColors[i], setup.outline.selectedColor, setup.outline.selectedWidth)
+          symbol: EsriRendererService.createSymbol(themeColors[i], [0, 0, 0, 1], setup.outline.defaultWidth)
         });
       console.log('Class break value: "' + value + '"');
     });

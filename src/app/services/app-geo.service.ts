@@ -206,7 +206,13 @@ export class AppGeoService {
     }
     merge(...queries, 4)
       .subscribe(
-        currentMap => currentMap.forEach((v, k) => locationDistanceMap.set(k, v)),
+        currentMap => currentMap.forEach((v, k) => {
+          let newValues = v;
+          if (locationDistanceMap.has(k)) {
+            newValues = [...locationDistanceMap.get(k), ...v];
+          }
+          locationDistanceMap.set(k, newValues);
+        }),
         err => {
           console.error(err);
           this.store$.dispatch(new StopBusyIndicator({ key }));

@@ -35,6 +35,7 @@ export class SiteListContainerComponent implements OnInit {
    public  allGeoAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
 
    private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
+   public oldData: any;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
@@ -86,7 +87,10 @@ export class SiteListContainerComponent implements OnInit {
    resubmit(site: ImpGeofootprintLocation) {
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    this.processEditRequests(new ValGeocodingRequest(site, true), newSiteType, currentSiteType);
+    const newRequest = new ValGeocodingRequest(site, false);
+    delete newRequest['latitude'];
+    delete newRequest['longitude'];
+    this.processEditRequests(newRequest, newSiteType, this.oldData, true);
     this.appLocationService.deleteLocations([site]);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
@@ -96,6 +100,7 @@ export class SiteListContainerComponent implements OnInit {
      const siteType = data.siteType;
      const site = data.site;
      const oldData = data.oldData;
+     this.oldData = oldData;
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
     if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && oldData.locationNumber != site.number && siteType !== ImpClientLocationTypeCodes.Competitor){
       this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
@@ -110,7 +115,7 @@ export class SiteListContainerComponent implements OnInit {
     }
    }
 
-   processEditRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, oldData) {
+   processEditRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const pluralize = sites.length > 1 ? 's' : '';
@@ -124,7 +129,7 @@ export class SiteListContainerComponent implements OnInit {
         err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
         () => {
           const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
-          this.impGeofootprintLocationService.update(oldData, locationCache[0]);
+          this.appLocationService.persistLocationsAndAttributes(locationCache, true, resubmit, oldData);
           if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
           this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
         }
