@@ -282,6 +282,7 @@ export class EsriRendererService {
       legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
     };
     baseRenderer.visualVariables = [colorVariable];
+    baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     const lv = this.getLayerView(mapState.analysisLevel);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
