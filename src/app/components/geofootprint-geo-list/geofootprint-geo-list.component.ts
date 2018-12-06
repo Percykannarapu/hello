@@ -470,6 +470,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], geoVars: ImpGeofootprintVar[]) : FlatGeo[]
    {
       console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null, ', geos: ', (geos != null) ? geos.length : null, ', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
+                 ,', geo vars: ', (geoVars != null) ? geoVars.length : null
                  ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
       if (geos == null || geos.length === 0) {
          this.initializeGridTotals();
@@ -698,9 +699,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   matchOper = "between";
                   break;
               }
-
+              
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
+                                                ,fieldname: geovar.fieldname
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? "numeric" : "text"
                                                 ,matchOper: matchOper
                                                 ,matchMode: 'contains', styleClass: colStyleClass});
@@ -770,7 +772,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
-//    this.flatGeoGridExtraColumns.forEach(col => console.log(col.sortOrder + " - " + col.field));
+      // DEBUG this.flatGeoGridExtraColumns.forEach(col => console.log(col.sortOrder + " - " + col.field));
+
+      // Rebuild Selected columns including the variable columns
+      this.selectedColumns = [];
+      for (const column of this.flatGeoGridColumns) {
+         this.selectedColumns.push(column);
+      }
+      this.flatGeoGridExtraColumns.forEach(column => this.selectedColumns.push(column));
 
       // Update geo grid total columns
       this.setGridTotals(geoGridData);
@@ -782,10 +791,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public sortFlatGeoGridExtraColumns() {
       // Add the sort order to the object
       this.flatGeoGridExtraColumns.forEach(col => {
-         col['sortOrder'] = (this.variableColOrder != null 
-                          && this.variableColOrder instanceof Map
-//                        && this.variableColOrder.hasOwnProperty('size')
-                          && this.variableColOrder.has(col.header)) ? this.variableColOrder.get(col.header) : 0;
+         if (this.variableColOrder != null  && this.variableColOrder instanceof Map) {
+            if (this.variableColOrder.has(col.header))
+               col['sortOrder'] = this.variableColOrder.get(col.header);
+            else {
+               if (this.variableColOrder.has(col.fieldname + " " + col.header))
+                  col['sortOrder'] = this.variableColOrder.get(col.fieldname + " " + col.header);
+               else
+                  col['sortOrder'] = -1;
+            }
+         } 
+         else
+            col['sortOrder'] = 0;
       });
 
       // Sort the array of columns
