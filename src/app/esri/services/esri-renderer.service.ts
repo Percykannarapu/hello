@@ -191,12 +191,12 @@ export class EsriRendererService {
       const numericData = this.isNumericShadingData(data);
       for (const datum of data) {
         try {
-          if (datum.data == null) {
-            continue;
-          }
           if (numericData) {
             newPairs += `\"${datum.geocode}\":${datum.data}\,`;
           } else {
+            if (datum.data == null) {
+              continue;
+            }
             newPairs += `\"${datum.geocode}\":\"${datum.data}\"\,`;
           }
           
