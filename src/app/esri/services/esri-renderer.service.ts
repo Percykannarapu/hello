@@ -191,12 +191,12 @@ export class EsriRendererService {
       const numericData = this.isNumericShadingData(data);
       for (const datum of data) {
         try {
-          if (datum.data == null) {
-            continue;
-          }
           if (numericData) {
             newPairs += `\"${datum.geocode}\":${datum.data}\,`;
           } else {
+            if (datum.data == null) {
+              continue;
+            }
             newPairs += `\"${datum.geocode}\":\"${datum.data}\"\,`;
           }
           
@@ -282,6 +282,7 @@ export class EsriRendererService {
       legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
     };
     baseRenderer.visualVariables = [colorVariable];
+    baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     const lv = this.getLayerView(mapState.analysisLevel);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
@@ -308,7 +309,7 @@ export class EsriRendererService {
         //defaultWidth: symbol.outline.width,
         defaultWidth: 2,
         selectedWidth: 4,
-        selectedColor: [86, 231, 247, 1.0]
+        selectedColor: [0, 255, 0, 0.80]
       },
       smartTheme: {
         baseMap: this.mapService.mapView.map.basemap,
@@ -352,7 +353,7 @@ export class EsriRendererService {
     dataValues.forEach((value, i) => {
       result.push({
           value: value,
-          symbol: EsriRendererService.createSymbol(themeColors[i], [0, 0, 0, 0], 1)
+          symbol: EsriRendererService.createSymbol(themeColors[i], [0, 0, 0, 1], setup.outline.defaultWidth)
         });
       console.log('Class break value: "' + value + '"');
     });
