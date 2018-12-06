@@ -12,7 +12,7 @@ export enum EsriRendererActionTypes {
   AddHighlightHandlers = '[Esri Renderer] Add Highlight Handlers',
   ClearHighlightHandlers = '[Esri Renderer] Clear Highlight Handlers',
   AddStatistics = '[Esri Renderer] Add statistics',
-  EnableShading = 'Esri Renderer] Enable shading'
+  EnableShading = '[Esri Renderer] Enable shading'
 }
 
 export class AddNumericShadingData implements Action {
