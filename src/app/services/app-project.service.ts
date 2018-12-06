@@ -8,6 +8,7 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Injectable()
 export class AppProjectService {
@@ -18,6 +19,7 @@ export class AppProjectService {
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService,
+              private impLocationService: ImpGeofootprintLocationService,
               private store$: Store<AppState>) {
     this.currentProject$ = this.impProjectService.storeObservable.pipe(
       filter(projects => projects != null && projects.length > 0 && projects[0] != null),
@@ -32,6 +34,7 @@ export class AppProjectService {
   save(project?: ImpProject) : Observable<number> {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
+    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     this.cleanupProject(localProject);
     this.logger.info('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(

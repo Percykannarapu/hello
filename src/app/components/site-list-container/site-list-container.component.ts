@@ -129,8 +129,7 @@ export class SiteListContainerComponent implements OnInit {
         err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
         () => {
           const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
-          if (!resubmit) this.impGeofootprintLocationService.update(oldData, locationCache[0]);
-          if (resubmit) this.impGeofootprintLocationService.add(locationCache);
+          this.appLocationService.persistLocationsAndAttributes(locationCache, true, resubmit, oldData);
           if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
           this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
         }
