@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output,OnChanges, SimpleChanges, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
@@ -17,18 +17,18 @@ export class FailedGeocodeGridComponent implements OnInit{
   @Output() remove = new EventEmitter<ImpGeofootprintLocation>();
 
   private edited = new Set<ImpGeofootprintLocation>();
-  public locFieldAddress: string = '';
-  public locFieldCity: string = '';
-  public locFieldState: string = '';
-  public locFieldZip: string = '';
+  // public locFieldAddress: string = '';
+  // public locFieldCity: string = '';
+  // public locFieldState: string = '';
+  // public locFieldZip: string = '';
 
   ngOnInit() {
-    if (this.type == 'edit') {
-      this.locFieldAddress = 'locAddress';
-      this.locFieldCity = 'locCity';
-      this.locFieldState = 'locState';
-      this.locFieldZip = 'locZip';
-    }
+    // if (this.type === 'edit') {
+    //   this.locFieldAddress = 'locAddress';
+    //   this.locFieldCity = 'locCity';
+    //   this.locFieldState = 'locState';
+    //   this.locFieldZip = 'locZip';
+    // }
   }
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
@@ -44,31 +44,31 @@ export class FailedGeocodeGridComponent implements OnInit{
     }
   }
 
-
   setCoordinates(event: any, site: ImpGeofootprintLocation) : void {
     console.log('Row edited result', event);
     const enteredValue = event.target.value as string;
-    const coords = enteredValue.split(',');
-    if (coords.length === 2) {
-      const lat = Number(coords[0]);
-      const lon = Number(coords[1]);
-      if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
-        site.recordStatusCode = 'PROVIDED';
-        site.geocoderMatchCode = '';
-        site.geocoderLocationCode = '';
-        site.xcoord = lon;
-        site.ycoord = lat;
-        this.edited.add(site);
-        return;
-      }
-    } else if (enteredValue == null || enteredValue.length === 0) {
+    if (enteredValue == null || enteredValue.length === 0) {
       site.recordStatusCode = '';
       site.geocoderMatchCode = '';
       site.geocoderLocationCode = '';
       site.xcoord = null;
       site.ycoord = null;
       this.edited.add(site);
-      return;
+    } else {
+      const coords = enteredValue.split(',');
+      if (coords.length === 2) {
+        const lat = Number(coords[0]);
+        const lon = Number(coords[1]);
+        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+          site.recordStatusCode = 'PROVIDED';
+          site.geocoderMatchCode = '';
+          site.geocoderLocationCode = '';
+          site.xcoord = lon;
+          site.ycoord = lat;
+          this.edited.add(site);
+          return;
+        }
+      }
     }
     event.target.value = ''; // clear the text area
   }
@@ -80,13 +80,10 @@ export class FailedGeocodeGridComponent implements OnInit{
     this.accept.emit(site);
   }
 
-  googleMap(site: ImpGeofootprintLocation) : void{
-    const strWindowFeatures = 'location=yes,height=570,width=520,scrollbars=yes,status=yes';
+  openGoogleMap(site: ImpGeofootprintLocation) : void {
     const googleMapUri = `https://www.google.com/maps/place/${site.locAddress},${site.locCity},${site.locState},${site.locZip}`;
-    //window.location.href = googleMapUri;
-    //window.location.href = googleMapUri;
-    window.open(googleMapUri, '_blank', 'height=1000px,width=1000px');
-
+    const strWindowFeatures = 'height=1000px,width=1000px';
+    window.open(googleMapUri, '_blank', strWindowFeatures);
   }
 }
 
