@@ -31,7 +31,7 @@
         <ng-template pTemplate="colgroup" let-columns>
            <colgroup>
               <!-- <col style="width: 30px"> -->
-              <col style="width: 4em">
+              <!--<col style="width: 4em">-->
               <col style="width: 4em">
               <col style="width: 4em">
               <col *ngFor="let col of selectedColumns" [style.width]="col.width">
@@ -56,7 +56,7 @@
         <ng-template pTemplate="header" class="ui-g ui-g-nopad .val-flush-to-edges" style="flex-wrap: nowrap !important;">
            <tr>
               <!-- <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th> -->
-              <th style="width: 4em">Edit</th>
+              <!--<th style="width: 4em">Edit</th>-->
               <th style="width: 4em">Zoom</th>
               <th style="width: 4em">Delete</th>
               <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
@@ -67,7 +67,7 @@
            <tr style="background: #b3d4ed">
               <th style="width: 30px; background: #b3d4ed"></th>
               <th style="width:  4em; background: #b3d4ed"></th>
-              <th style="width:  4em; background: #b3d4ed"></th>                
+              <!--<th style="width:  4em; background: #b3d4ed"></th>                -->
               <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="background: #b3d4ed; overflow: visible;">
                  <input *ngSwitchCase="'locationNumber'"     pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''">
                  <input *ngSwitchCase="'locationName'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''">
@@ -131,9 +131,9 @@
               <!-- <td>
                  <p-tableCheckbox [value]="flatLoc" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
               </td> -->
-              <td [ngStyle]="{'width':'5em'}">
-                <button type="button" pButton (click)="onEdit(flatLoc.loc)" icon="fa fa-pencil-square-o" style="margin: auto; display: block; width:25px;height:25px"></button>
-              </td>
+              <!--<td [ngStyle]="{'width':'5em'}">-->
+                <!--<button type="button" pButton (click)="onEdit(flatLoc.loc)" icon="fa fa-pencil-square-o" style="margin: auto; display: block; width:25px;height:25px"></button>-->
+              <!--</td>-->
               <td [ngStyle]="{'width':'5em'}">
                  <button (click)="onRowZoom(flatLoc.loc)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </td>
