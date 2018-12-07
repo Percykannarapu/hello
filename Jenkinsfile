@@ -102,10 +102,12 @@
       }
     }
     stage('SonarQube analysis') {
-      // requires SonarQube Scanner 2.8+
-      def scannerHome = tool 'SonarQube Scanner 2.8';
-      withSonarQubeEnv('sonarqube') {
-        sh "${scannerHome}/bin/sonar-scanner"
+      when { branch 'dev' }
+      steps {
+        echo 'Run Sonarqube'
+        sh '''
+           /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=impower-angular -Dsonar.sources=src/app -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=f4d79d0a078650f55c4e70d8932c76e17fb478c5
+           '''
       }
     }
   }
