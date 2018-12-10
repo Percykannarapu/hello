@@ -1,6 +1,6 @@
  pipeline {
   agent any
-  environment {
+  /*environment {
     IMPOWER_ROOT = 'src/app'
     CPQ_MAPS_ROOT = 'applications/cpq-maps'
     QUICKMAPS_ROOT = 'applications/quickmaps'
@@ -40,7 +40,7 @@
         echo "BUILD_QUICKMAPS: ${BUILD_QUICKMAPS}"
         echo "BUILD_ALL: ${BUILD_ALL}"
       }
-    }
+    }*/
     stage('install modules') {
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
