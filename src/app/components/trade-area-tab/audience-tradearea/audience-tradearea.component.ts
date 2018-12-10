@@ -1,6 +1,7 @@
 import { Component, OnInit, SimpleChanges, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
+import { ValAudienceTradeareaService } from '../../../services/app-audience-tradearea.service';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../../models/audience-data.model';
 import { AppStateService } from '../../../services/app-state.service';
 import { AppState } from '../../../state/app.interfaces';
@@ -30,6 +31,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
   constructor(private stateService: AppStateService,
     private store$: Store<AppState>,
+    private audienceTradeareaService: ValAudienceTradeareaService,
     private fb: FormBuilder) { }
 
   ngOnInit() {
@@ -58,6 +60,17 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
     this.stateService.clearUI$.subscribe(() => {
       this.clearFields();
+    });
+
+    this.stateService.analysisLevel$.subscribe(() => {
+      const config = this.audienceTradeareaService.getAudienceTAConfig();
+      let currentAnalysis = this.stateService.analysisLevel$.getValue();
+      if (currentAnalysis) currentAnalysis = currentAnalysis.toLowerCase();
+      if ( config && config.analysisLevel && config.analysisLevel != currentAnalysis) {
+        config.analysisLevel = currentAnalysis;
+        this.audienceTradeareaService.updateAudienceTAConfig(config);
+        this.runAudienceTA.emit(true);
+      }
     });
   }
 
