@@ -159,6 +159,11 @@ export class ValAudienceTradeareaService {
    */
   private validateTradeArea() : true | string[] {
     const errors: string[] = [];
+
+    if (this.locationService.get().length < 1) {
+      errors.push('You must have at least 1 site before applying a trade area');
+    }
+
     if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
       errors.push('You must select an Analysis Level before applying a trade area to Sites');
     }
