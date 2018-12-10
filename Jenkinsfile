@@ -6,19 +6,19 @@
     QUICKMAPS_ROOT = 'applications/quickmaps'
     MODULES_ROOT = 'modules/'
     BUILD_IMPOWER = sh (
-      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $IMPOWER_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep ${env.IMPOWER_ROOT} 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
       returnStdout: true
     ).trim()
     BUILD_CPQ_MAPS = sh (
-      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $CPQ_MAPS_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep ${env.CPQ_MAPS_ROOT} 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
       returnStdout: true
     ).trim()
     BUILD_QUICKMAPS = sh (
-      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $QUICKMAPS_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep ${env.QUICKMAPS_ROOT} 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
       returnStdout: true
     ).trim()
     BUILD_ALLL = sh (
-      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $MODULES_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep ${env.MODULES_ROOT} 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
       returnStdout: true
     ).trim()
   }
