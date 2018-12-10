@@ -1,6 +1,46 @@
  pipeline {
   agent any
+  environment {
+    IMPOWER_ROOT = 'src/app'
+    CPQ_MAPS_ROOT = 'applications/cpq-maps'
+    QUICKMAPS_ROOT = 'applications/quickmaps'
+    MODULES_ROOT = 'modules/'
+    BUILD_IMPOWER = sh (
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $IMPOWER_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      returnStdout: true
+    ).trim()
+    BUILD_CPQ_MAPS = sh (
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $CPQ_MAPS_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      returnStdout: true
+    ).trim()
+    BUILD_QUICKMAPS = sh (
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $QUICKMAPS_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      returnStdout: true
+    ).trim()
+    BUILD_ALLL = sh (
+      script: 'git --no-pager diff --name-only HEAD~1 HEAD | grep $MODULES_ROOT 1>/dev/null; if [[ $? == 0 ]]; then echo true; else echo false; fi',
+      returnStdout: true
+    ).trim()
+  }
   stages {
+    stage('determine build type') {
+      steps {
+        echo "**************************************"
+        echo "***"
+        echo "*** Determining Build Type"
+        echo "***"
+        echo "**************************************"
+        echo "Environment Vars:"
+        echo "IMPOWER_ROOT: ${IMPOWER_ROOT}"
+        echo "CPQ_MAPS_ROOT: ${CPQ_MAPS_ROOT}"
+        echo "QUICKMAPS_ROOT: ${QUICKMAPS_ROOT}"
+        echo "MODULES_ROOT: ${MODULES_ROOT}"
+        echo "BUILD_IMPOWER: ${BUILD_IMPOWER}"
+        echo "BUILD_CPQ_MAPS: ${BUILD_CPQ_MAPS}"
+        echo "BUILD_QUICKMAPS: ${BUILD_QUICKMAPS}"
+        echo "BUILD_ALL: ${BUILD_ALL}"
+      }
+    }
     stage('install modules') {
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
