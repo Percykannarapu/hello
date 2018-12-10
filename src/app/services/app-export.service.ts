@@ -58,7 +58,8 @@ export class AppExportService {
   private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject) : number {
     const storeFilter: (loc: ImpGeofootprintLocation) => boolean = loc => loc.clientLocationTypeCode === siteType;
     const pluralType = `${siteType}s`;
-    this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, false, storeFilter, pluralType.toUpperCase());
+    const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
+    this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
     return this.impGeofootprintLocationService.get().filter(storeFilter).length;
   }
 
