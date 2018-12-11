@@ -41,10 +41,10 @@ export class AppDataShimService {
     );
   }
 
-  createNew() : void {
+  createNew() : number {
     this.targetAudienceService.clearAll();
     this.appStateService.clearUserInterface();
-    this.appProjectService.createNew();
+    return this.appProjectService.createNew();
   }
 
   validateProject(project: ImpProject) : boolean {

@@ -11,7 +11,7 @@ import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { EsriApi } from '../esri/core/esri-api.service';
 import { EsriMapService } from '../esri/services/esri-map.service';
-import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
+import { calculateStatistics} from '../app.utils';
 import { AppStateService } from './app-state.service';
 import { groupByExtended, mapBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -28,6 +28,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '../messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
+import { toUniversalCoordinates } from '../models/coordinates';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 

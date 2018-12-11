@@ -5,7 +5,7 @@ import { EMPTY, merge, Observable, throwError } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { chunkArray } from '../app.utils';
+import { chunkArray } from '../val-modules/common/common.utils';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';

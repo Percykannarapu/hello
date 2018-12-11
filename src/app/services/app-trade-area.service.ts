@@ -13,12 +13,13 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMerge
 import { AppLayerService } from './app-layer.service';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
-import { calculateStatistics, toUniversalCoordinates } from '../app.utils';
+import { calculateStatistics} from '../app.utils';
 import { EsriMapService } from '../esri/services/esri-map.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { filterArray } from '../val-modules/common/common.rxjs';
 import { AppLoggingService } from './app-logging.service';
+import { toUniversalCoordinates } from '../models/coordinates';
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 

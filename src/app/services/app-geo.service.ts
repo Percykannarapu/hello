@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { toUniversalCoordinates } from '../app.utils';
+import { toUniversalCoordinates } from '../models/coordinates';
 import { EsriUtils } from '../esri/core/esri-utils';
 import { EsriQueryService } from '../esri/services/esri-query.service';
-import { groupBy, simpleFlatten, groupByExtended } from '../val-modules/common/common.utils';
+import { groupBy, simpleFlatten, groupByExtended, mergeArrayMaps } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -206,13 +206,7 @@ export class AppGeoService {
     }
     merge(...queries, 4)
       .subscribe(
-        currentMap => currentMap.forEach((v, k) => {
-          let newValues = v;
-          if (locationDistanceMap.has(k)) {
-            newValues = [...locationDistanceMap.get(k), ...v];
-          }
-          locationDistanceMap.set(k, newValues);
-        }),
+        currentMap => mergeArrayMaps(currentMap, locationDistanceMap),
         err => {
           console.error(err);
           this.store$.dispatch(new StopBusyIndicator({ key }));

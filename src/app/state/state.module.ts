@@ -14,6 +14,7 @@ import { DataShimEffects } from './data-shim/data-shim.effects';
 import { DataShimNotificationEffects } from './data-shim/data-shim-notification.effects';
 import { DataShimUsageEffects } from './data-shim/data-shim-usage.effects';
 import { DataShimExportEffects } from './data-shim/data-shim-export.effects';
+import { DataShimBusyEffects } from './data-shim/data-shim-busy.effects';
 
 @NgModule({
   imports: [
@@ -26,6 +27,7 @@ import { DataShimExportEffects } from './data-shim/data-shim-export.effects';
       MenuEffects,
       DataShimEffects,
       DataShimExportEffects,
+      DataShimBusyEffects,
       DataShimNotificationEffects,
       DataShimUsageEffects
     ]),

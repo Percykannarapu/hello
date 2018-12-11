@@ -7,6 +7,20 @@ declare global {
 }
 
 /**
+ * Splits an array into chunks of a maximum size
+ * @param {T[] | U[]} arr: The original array to split
+ * @param {number} chunkSize: The maximum size of each chunk in the output
+ * @returns {(T[] | U[])[]}
+ */
+export function chunkArray<T, U>(arr: T[] | U[], chunkSize: number) : (T[] | U[])[] {
+  const groups: (T[] | U[])[] = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    groups.push(arr.slice(i, i + chunkSize));
+  }
+  return groups;
+}
+
+/**
  * Groups an array by the contents of a field identified by its name
  * @param {T[]} items: The array to group
  * @param {K} fieldName: The name of the field to extract grouping info from
@@ -91,13 +105,23 @@ export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, 
   return result;
 }
 
+export function mergeArrayMaps<K, V>(newValues: Map<K, V[]>, accumulator: Map<K, V[]>) : void {
+  newValues.forEach((v, k) => {
+    let newItems = v;
+    if (accumulator.has(k)) {
+      newItems = [...accumulator.get(k), ...v];
+    }
+    accumulator.set(k, newItems);
+  });
+}
+
 /**
  * Flattens a two dimensional array. Use completeFlatten() for an 3+ or arbitrary dimensional array
  * @param {T[][]} items
  * @returns {T[]}
  */
 export function simpleFlatten<T>(items: T[][]) : T[] {
-  return [].concat(...items);
+  return items.reduce((p, c) => p.concat(c), []);
 }
 
 /**
@@ -138,7 +162,7 @@ export function resolveFieldData(data: any, field: Function | string) : any {
        if (isFunction(field)) {
            return field(data);
        }
-       else if (field.indexOf('.') == -1) {
+       else if (field.indexOf('.') === -1) {
            return data[field];
        }
        else {
@@ -158,11 +182,15 @@ export function resolveFieldData(data: any, field: Function | string) : any {
    }
 }
 
+export function roundTo(value: number, precision: number) : number {
+   const pow: number = Math.pow(10, precision);
+   return parseFloat(String(Math.round((value * pow)) / pow));
+}
+
 export function isFunction (obj: any) : obj is Function {
   return (obj && obj.constructor && obj.call && obj.apply);
 }
 
-export function roundTo(value: number, precision: number) : number {
-   const pow: number = Math.pow(10, precision);
-   return parseFloat(String(Math.round((value * pow)) / pow));
+export function isNumber(value: any) : value is number {
+  return value != null && value !== '' && !Number.isNaN(Number(value));
 }

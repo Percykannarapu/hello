@@ -38,13 +38,14 @@ export class AppProjectService {
     this.cleanupProject(localProject);
     this.logger.info('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(
-      map(response => response.payload)
+      map(response => Number(response.payload))
     );
   }
 
-  createNew() : void {
+  createNew() : number {
     const newProject = this.domainFactory.createProject();
     this.impProjectService.load([newProject]);
+    return newProject.projectId;
   }
 
   validateProject(impProject: ImpProject) : string[] {

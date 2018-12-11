@@ -17,13 +17,18 @@ import { ImpProjectVar } from '../models/ImpProjectVar';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 
 function isNumber(value: any) : value is number {
-  return value != null && value != '' && !Number.isNaN(Number(value));
+  return value != null && value !== '' && !Number.isNaN(Number(value));
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImpDomainFactoryService {
+
+  private static entityId = -1;
+  private static getNextId() : number {
+    return this.entityId--;
+  }
 
   constructor(private config: AppConfig, private userService: UserService) {}
 
@@ -43,6 +48,7 @@ export class ImpDomainFactoryService {
 
   createProject() : ImpProject {
     const result = new ImpProject({
+      projectId: ImpDomainFactoryService.getNextId(),
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       createDate: new Date(Date.now()),
@@ -68,7 +74,6 @@ export class ImpDomainFactoryService {
       isCircBudget: false,
       isDollarBudget: false,
       projectName: null,
-      projectId: null,
     });
     const master = new ImpGeofootprintMaster({
       dirty: true,

@@ -6,7 +6,7 @@ import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootpr
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { map, shareReplay, filter, catchError } from 'rxjs/operators';
 import { Observable, EMPTY, merge, forkJoin, throwError } from 'rxjs';
-import { chunkArray } from '../app.utils';
+import { chunkArray } from '../val-modules/common/common.utils';
 import { AppStateService } from './app-state.service';
 import { groupBy, simpleFlatten } from '../val-modules/common/common.utils';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';

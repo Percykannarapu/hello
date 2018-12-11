@@ -26,18 +26,18 @@ export class ProjectSaveAndNew implements Action {
   readonly type = DataShimActionTypes.ProjectSaveAndNew;
 }
 
-export class ProjectSaveAndLoad implements Action {
-  readonly type = DataShimActionTypes.ProjectSaveAndLoad;
-  constructor(public payload: { idToLoad: number }) {}
-}
-
 export class ProjectSaveAndReload implements Action {
   readonly type = DataShimActionTypes.ProjectSaveAndReload;
 }
 
+export class ProjectSaveAndLoad implements Action {
+  readonly type = DataShimActionTypes.ProjectSaveAndLoad;
+  constructor(public payload: { projectId: number }) {}
+}
+
 export class ProjectSaveSuccess implements Action {
   readonly type = DataShimActionTypes.ProjectSaveSuccess;
-  constructor(public payload: { projectId: number, isSilent: boolean }) {}
+  constructor(public payload: { projectId: number }) {}
 }
 
 export class ProjectSaveFailure implements Action {
@@ -47,17 +47,17 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
   readonly type = DataShimActionTypes.ProjectLoad;
-  constructor(public payload: { projectId: number }) {}
+  constructor(public payload: { projectId: number, isReload: boolean }) {}
 }
 
 export class ProjectLoadSuccess implements Action {
   readonly type = DataShimActionTypes.ProjectLoadSuccess;
-  constructor(public payload: { projectId: number, isSilent: boolean }) {}
+  constructor(public payload: { projectId: number, isReload: boolean }) {}
 }
 
 export class ProjectLoadFailure implements Action {
   readonly type = DataShimActionTypes.ProjectLoadFailure;
-  constructor(public payload: { err: any }) {}
+  constructor(public payload: { err: any, isReload: boolean }) {}
 }
 
 export class CreateNewProject implements Action {
@@ -66,6 +66,7 @@ export class CreateNewProject implements Action {
 
 export class CreateNewProjectComplete implements Action {
   readonly type = DataShimActionTypes.ProjectCreateNewComplete;
+  constructor(public payload: { projectId: number }) {}
 }
 
 // note: passing currentProject like this is an anti-pattern for ngrx, but we're doing it as a transitional stop-gap until it's in the Store

@@ -1,5 +1,5 @@
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { toUniversalCoordinates } from '../app.utils';
+import { toUniversalCoordinates } from './coordinates';
 import { EsriApi } from '../esri/core/esri-api.service';
 import { EsriUtils } from '../esri/core/esri-utils';
 

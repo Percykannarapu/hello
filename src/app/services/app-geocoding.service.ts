@@ -4,7 +4,7 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { map, tap } from 'rxjs/operators';
-import { chunkArray } from '../app.utils';
+import { chunkArray } from '../val-modules/common/common.utils';
 import { AppConfig } from '../app.config';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { AppStateService } from './app-state.service';

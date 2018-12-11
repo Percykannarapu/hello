@@ -15,17 +15,6 @@ import { AppDataShimService } from '../../services/app-data-shim.service';
 export class MenuEffects {
 
   @Effect()
-  saveAndReload$ = this.actions$.pipe(
-    ofType(MenuActionTypes.SaveAndReloadProject),
-    withLatestFrom(this.appStateService.currentProject$),
-    filter(([action, project]) => this.dataShimService.validateProject(project)),
-    concatMap(() => [
-      new ClearAllNotifications(),
-      new fromDataShims.ProjectSaveAndReload()
-    ])
-  );
-
-  @Effect()
   saveAndCreateNew$ = this.actions$.pipe(
     ofType(MenuActionTypes.SaveAndCreateNew),
     withLatestFrom(this.appStateService.currentProject$),
@@ -48,13 +37,24 @@ export class MenuEffects {
   );
 
   @Effect()
+  saveAndReload$ = this.actions$.pipe(
+    ofType(MenuActionTypes.SaveAndReloadProject),
+    withLatestFrom(this.appStateService.currentProject$),
+    filter(([action, project]) => this.dataShimService.validateProject(project)),
+    concatMap(() => [
+      new ClearAllNotifications(),
+      new fromDataShims.ProjectSaveAndReload()
+    ])
+  );
+
+  @Effect()
   saveThenLoad$ = this.actions$.pipe(
     ofType<SaveThenLoadProject>(MenuActionTypes.SaveThenLoadProject),
     withLatestFrom(this.appStateService.currentProject$),
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(([action]) => [
       new ClearAllNotifications(),
-      new fromDataShims.ProjectSaveAndLoad({ idToLoad: action.payload.projectToLoad }),
+      new fromDataShims.ProjectSaveAndLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog()
     ]),
 );
@@ -64,7 +64,7 @@ export class MenuEffects {
     ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
     concatMap(action => [
       new ClearAllNotifications(),
-      new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
+      new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad, isReload: false }),
       new CloseExistingProjectDialog()
     ])
   );

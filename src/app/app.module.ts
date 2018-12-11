@@ -146,6 +146,7 @@ import { MessagingModule } from './messaging/messaging.module';
 import { NotificationProviderToken } from './messaging';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
+import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
 
 @NgModule({
@@ -215,7 +216,8 @@ import { EditLocationsComponent } from './components/edit-locations/edit-locatio
         NgStringPipesModule,
         CardModule,
         EsriModule,
-        MessagingModule
+        MessagingModule,
+        ImpowerDatastoreModule
     ],
     declarations: [
         AppComponent,

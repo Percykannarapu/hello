@@ -3,7 +3,7 @@ import { combineLatest, merge, Observable } from 'rxjs';
 import { filter, finalize, tap } from 'rxjs/operators';
 import { LayerDefinition } from '../esri/layer-configuration';
 import { AppConfig } from '../app.config';
-import { toUniversalCoordinates } from '../app.utils';
+import { toUniversalCoordinates } from '../models/coordinates';
 import { EsriApi } from '../esri/core/esri-api.service';
 import { EsriLayerService } from '../esri/services/esri-layer.service';
 import { groupBy } from '../val-modules/common/common.utils';

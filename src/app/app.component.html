@@ -19,7 +19,7 @@
                         <app-menu [reset]="resetMenu"></app-menu>
                       </div>
                       <div *ngIf="currentProject$ | async as currentProject; else noProject" class="ui-g-4">
-                        <span *ngIf="currentProject.projectId" class="val-project-name">
+                        <span *ngIf="currentProject.projectId > 0" class="val-project-name">
                           {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
                         </span>
                       </div>

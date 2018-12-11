@@ -5,7 +5,7 @@ import { Subscription, Observable, combineLatest } from 'rxjs';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { filter, map } from 'rxjs/operators';
-import { isNumber } from '../app.utils';
+import { isNumber } from '../val-modules/common/common.utils';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppStateService, Season } from './app-state.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';

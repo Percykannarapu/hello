@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@angular/core';
 import { EsriLayerService } from './esri-layer.service';
-import { Observable, merge, EMPTY } from 'rxjs';
+import { EMPTY, merge, Observable } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
-import { expand, map, retryWhen, scan } from 'rxjs/operators';
-import * as utils from '../../app.utils';
+import { expand, map } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriAppSettings, EsriAppSettingsConfig, EsriAppSettingsToken } from '../configuration';
 import { retryOnTimeout } from '../../val-modules/common/common.rxjs';
+import { chunkArray } from '../../val-modules/common/common.utils';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;
 type compositeData = string[] | number[] | __esri.PointProperties[];
@@ -159,7 +159,7 @@ export class EsriQueryService {
   public queryPointWithBuffer<T>(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
     const pointArray = Array.isArray(points) ? points : [points];
     const chunkSize = EsriQueryService.calculateChunkSize(pointArray.length, returnGeometry, bufferInMiles);
-    const dataStreams: __esri.PointProperties[][] = utils.chunkArray(pointArray, chunkSize);
+    const dataStreams: __esri.PointProperties[][] = chunkArray(pointArray, chunkSize);
     const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, bufferInMiles));
     return this.query(layerId, queries, transform);
   }
@@ -168,7 +168,7 @@ export class EsriQueryService {
   public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
   public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
     const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
-    const dataStreams = utils.chunkArray<string, number>(queryData, chunkSize);
+    const dataStreams = chunkArray<string, number>(queryData, chunkSize);
     const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
     return this.query(layerId, queries, transform);
   }

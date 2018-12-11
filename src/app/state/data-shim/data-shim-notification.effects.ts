@@ -9,27 +9,29 @@ export class DataShimNotificationEffects {
 
   @Effect()
   projectSaveSuccess$ = this.actions$.pipe(
-    ofType<ProjectSaveSuccess>(DataShimActionTypes.ProjectSaveSuccess),
-    filter(action => !action.payload.isSilent),
+    ofType<ProjectSaveSuccess | ProjectLoadSuccess>(DataShimActionTypes.ProjectSaveSuccess, DataShimActionTypes.ProjectLoadSuccess),
+    filter(action => action.type === DataShimActionTypes.ProjectSaveSuccess || action.payload.isReload),
     map(action => new SuccessNotification({ message: `Project ${action.payload.projectId} was saved successfully`, notificationTitle: 'Save Project'}))
   );
 
   @Effect()
   projectLoadSuccess$ = this.actions$.pipe(
     ofType<ProjectLoadSuccess>(DataShimActionTypes.ProjectLoadSuccess),
-    filter(action => !action.payload.isSilent),
+    filter(action => !action.payload.isReload),
     map(action => new SuccessNotification({ message: `Project ${action.payload.projectId} loaded`, notificationTitle: 'Load Project'}))
   );
 
   @Effect()
   projectSaveFailure$ = this.actions$.pipe(
-    ofType<ProjectSaveFailure>(DataShimActionTypes.ProjectSaveFailure),
+    ofType<ProjectSaveFailure | ProjectLoadFailure>(DataShimActionTypes.ProjectSaveFailure, DataShimActionTypes.ProjectLoadFailure),
+    filter(action => action.type === DataShimActionTypes.ProjectSaveFailure || action.payload.isReload),
     map(action => this.processError(action.payload.err, 'Save'))
   );
 
   @Effect()
   projectLoadFailure$ = this.actions$.pipe(
     ofType<ProjectLoadFailure>(DataShimActionTypes.ProjectLoadFailure),
+    filter(action => !action.payload.isReload),
     map(action => this.processError(action.payload.err, 'Load'))
   );
 
