@@ -25,10 +25,10 @@ function isNumber(value: any) : value is number {
 })
 export class ImpDomainFactoryService {
 
-  private static entityId = -1;
-  private static getNextId() : number {
-    return this.entityId--;
-  }
+  // private static entityId = -1;
+  // private static getNextId() : number {
+  //   return this.entityId--;
+  // }
 
   constructor(private config: AppConfig, private userService: UserService) {}
 
@@ -48,7 +48,7 @@ export class ImpDomainFactoryService {
 
   createProject() : ImpProject {
     const result = new ImpProject({
-      projectId: ImpDomainFactoryService.getNextId(),
+      //projectId: ImpDomainFactoryService.getNextId(),
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       createDate: new Date(Date.now()),
