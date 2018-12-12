@@ -25,6 +25,8 @@ export class SelectedAudiencesComponent implements OnInit {
   hasAudiences: boolean = false;
   allThemes: SelectItem[] = [];
   currentTheme: string;
+  public showDialog: boolean = false;
+  public audienceUnselect: AudienceDataDefinition;
 
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
@@ -101,6 +103,14 @@ export class SelectedAudiencesComponent implements OnInit {
     this.currentTheme = event.value.toString();
   }
 
+  public closeDialog(){
+    this.audiences$.pipe(
+         map(all => all.filter(a => a.audienceIdentifier == this.audienceUnselect.audienceIdentifier)),
+         take(1),
+     ).subscribe(unMapped => unMapped.forEach(a => a.exportNationally = false   ));
+    this.showDialog = false;
+  }
+
   onMapSelected(audience: AudienceDataDefinition) : void {
     this.varService.updateProjectVars(audience);
     this.showRenderControls = audience.showOnMap;
@@ -127,11 +137,12 @@ export class SelectedAudiencesComponent implements OnInit {
    }
   
   onNationalSelected(audience: AudienceDataDefinition) : void {
+    const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
-    this.audiences$.pipe(
-      map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
-      take(1),
-    ).subscribe(unMapped => unMapped.forEach(a => a.exportNationally = false)); // with take(1), this subscription will immediately close
+    if (audiences.length > 5){
+      this.audienceUnselect = audience;
+      this.showDialog = true;
+    }
   }
 
   onIndexBaseChange(audience: AudienceDataDefinition) : void {
