@@ -29,7 +29,7 @@ interface OnlineBulkDownloadDataResponse {
   dmaScore: string;
   nationalScore: string;
   digCategoryId: string;
-  attrs: Map<string, string>();
+  attrs: Map<string, string>;
 }
 
 @Injectable({
