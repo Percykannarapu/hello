@@ -32,7 +32,9 @@ export class AppTradeAreaService {
   private mergeSpecs = new Map<(SuccessfulLocationTypeCodes), BehaviorSubject<TradeAreaMergeTypeCodes>>();
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
-
+  public cachedTradeAreas: ImpGeofootprintTradeArea[];
+  private analysisChanged: boolean = false;
+  private firstOccurenceFlag: number = 0;
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
@@ -97,6 +99,9 @@ export class AppTradeAreaService {
     this.setupAnalysisLevelGeoClearObservable();
 
     this.stateService.clearUI$.subscribe(() => this.currentDefaults.clear());
+    this.stateService.analysisLevel$.subscribe(() => {
+      this.analysisChanged = true;
+    });
   }
 
   private setupAnalysisLevelGeoClearObservable() {
@@ -116,11 +121,70 @@ export class AppTradeAreaService {
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
     if (newSites.length > 0) {
-      this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Site), newSites);
+      let radiusFlag: boolean = false;
+      for (let i = 0; i < newSites.length && !radiusFlag; i++){
+        if (newSites[i].radius1 || newSites[i].radius2 || newSites[i].radius3) {
+          radiusFlag = true;
+        }
+      }
+      if (radiusFlag && this.analysisChanged) {
+        this.firstOccurenceFlag++;
+        if (this.firstOccurenceFlag > 1) {
+          this.applyRadiusTradeAreaOnAnalysisChange(newSites);
+        }
+        this.analysisChanged = false;
+      }
+      if (!radiusFlag) {
+        this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Site), newSites);
+      } 
     }
     if (newCompetitors.length > 0) {
-      this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Competitor), newCompetitors);
+      let radiusFlag: boolean = false;
+      for (let i = 0; i < newCompetitors.length && !radiusFlag; i++){
+        if (newCompetitors[i].radius1 || newCompetitors[i].radius2 || newCompetitors[i].radius3) {
+          radiusFlag = true;
+        }
+      }
+      if (radiusFlag && this.analysisChanged) {
+        this.firstOccurenceFlag++;
+        if (this.firstOccurenceFlag > 1) {
+          this.applyRadiusTradeAreaOnAnalysisChange(newCompetitors);
+        }
+        this.analysisChanged = false;
+      }
+      if (!radiusFlag) {
+        this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Competitor), newCompetitors);
+      }
     }
+  }
+
+  private applyRadiusTradeAreaOnAnalysisChange(data: ImpGeofootprintLocation[]) : void{
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+
+    data.forEach(l => {
+      const tradeAreas: any[] = [];
+      if (l.locationNumber == null || l.locationNumber.length === 0 ){
+        l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
+      }
+      if (l.radius1 != null && Number(l.radius1) !== 0) {
+        const tradeArea1 = {radius: Number(l.radius1), selected: true };
+        tradeAreas.push(tradeArea1);
+      }
+      if (l.radius2 != null && Number(l.radius2) !== 0) {
+        const tradeArea2 = {radius: Number(l.radius2), selected: true };
+        tradeAreas.push(tradeArea2);
+      }
+      if (l.radius3 != null && Number(l.radius3) !== 0) {
+        const tradeArea3 = {radius: Number(l.radius3), selected: true };
+        tradeAreas.push(tradeArea3);
+      }
+      newTradeAreas.push(...this.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
+    });
+    this.cachedTradeAreas = newTradeAreas;
+    this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+              this.insertTradeAreas(this.cachedTradeAreas);
+              this.zoomToTradeArea();
+              this.cachedTradeAreas = [];
   }
 
   public deleteTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
