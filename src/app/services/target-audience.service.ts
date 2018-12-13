@@ -184,15 +184,16 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.update(pv, newPv);
       }
     }
-    if (audience.allowNationalExport) {
+    //for US8712 when user saves the projects checkboxes also need to save DB to maintains state
+   /* if (audience.allowNationalExport) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
         newPv.baseStatus = DAOBaseStatus.UPDATE;
-        pv.isNationalExtract = false;
+        //pv.isNationalExtract = false;
         this.projectVarService.update(pv, newPv);
       }
-    }
+    }*/
   }
 
   private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
