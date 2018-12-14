@@ -88,4 +88,22 @@
     Please select or upload Audience Data from one of the other tabs.
   </div>
 
+  <p-dialog header="Selected Audiences Error" [(visible)]="showDialog" [modal]="true" width="710" [responsive]="true" appendTo="body" >
+    <div>
+      <span>
+        Only 5 variables can be selected at one time for the National export.
+      </span>
+    </div>
+      
+    <p-footer>
+      <div class="ui-g">
+          <div class="ui-g-11"></div>
+          <div class="ui-g-1 ui-g-nopad">
+              <!-- <button pButton type="button" (click)="closeDialog()" label="Close" class="close-button"></button> -->
+              <button type="button" align="right" pButton icon="pi pi-close" (click)="closeDialog()" label="Ok" ></button>
+          </div>
+      </div>
+  </p-footer>
+ </p-dialog>
+
 </div>

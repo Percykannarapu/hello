@@ -17,9 +17,19 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../mes
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { filterArray } from '@val/common';
 import { EnableShading } from '@val/esri';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { RestResponse } from '../models/RestResponse';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string) => Observable<any[]>;
+
+interface OnlineBulkDownloadDataResponse {
+  geocode: string;
+  dmaScore: string;
+  nationalScore: string;
+  digCategoryId: string;
+  attrs: Map<string, string>;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +64,7 @@ export class TargetAudienceService implements OnDestroy {
 
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
+              private restService: RestDataService,
               private config: AppConfig,
               private projectVarService: ImpProjectVarService,
               private domainFactory: ImpDomainFactoryService,
@@ -172,15 +183,16 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.update(pv, newPv);
       }
     }
-    if (audience.allowNationalExport) {
+    //for US8712 when user saves the projects checkboxes also need to save DB to maintains state
+   /* if (audience.allowNationalExport) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
         newPv.baseStatus = DAOBaseStatus.UPDATE;
-        pv.isNationalExtract = false;
+        //pv.isNationalExtract = false;
         this.projectVarService.update(pv, newPv);
       }
-    }
+    }*/
   }
 
   private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
@@ -238,7 +250,7 @@ export class TargetAudienceService implements OnDestroy {
     if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
-      this.getNationalData(audiences[0], analysisLevel).subscribe(
+      this.getNationalData(audiences, analysisLevel).subscribe(
         data => convertedData.push(...data),
         err => {
           console.error('There was an error processing the National Extract', err);
@@ -247,10 +259,11 @@ export class TargetAudienceService implements OnDestroy {
         () => {
           try {
             const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${audiences[0].audienceIdentifier}_${fmtDate}.xlsx`.replace(/\//g, '_');
+            const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.xlsx`.replace(/\//g, '_');
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+            const sheetName = projectId.toString();
+            //audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
             XLSX.writeFile(workbook, fileName);
             const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
@@ -423,12 +436,60 @@ export class TargetAudienceService implements OnDestroy {
     );
   }
 
-  private getNationalData(audience: AudienceDataDefinition, analysisLevel: string) : Observable<any[]> {
-    const sourceKey = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
-    return this.nationalSources.get(sourceKey)(analysisLevel, audience.audienceIdentifier);
+  private getNationalData(audiences: AudienceDataDefinition[] , analysisLevel: string) : Observable<any[]> {
+    const observables: Observable<any[]>[] = this.nationalRefreshDownload(audiences , analysisLevel);
+    return merge(...observables, 4).pipe(
+      map(data => data.map(d => {
+        const result = { Geocode: d.geocode };
+        for (const key of Object.keys(d.attrs)) {
+          result[key] = Math.round(Number(d.attrs[key]));
+        }
+        return result;
+      }))
+    );
+  }
+
+  public nationalRefreshDownload(audiences: AudienceDataDefinition[], analysisLevel: string) : Observable<any[]>[] {
+    const reqInput = [];
+    const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
+    audiences.forEach(audience => {
+      let inputData;
+      const numericId = Number(audience.audienceIdentifier);
+      const duplicateCategorys = reqInput.length > 0 ? reqInput.filter( inputMap => inputMap['source'] == audience.audienceSourceName) : [];
+      if (duplicateCategorys.length > 0){
+        duplicateCategorys[0]['digCategoryIds'].push(numericId);
+      }
+      else{
+         inputData = {
+          geoType: serviceAnalysisLevel,
+          source: audience.audienceSourceName,
+          geocodes: ['*'],
+          digCategoryIds: [numericId]
+        };
+        reqInput.push(inputData);
+      }
+    });
+    console.log('reqInput:::::::', JSON.stringify(reqInput));
+    const observables: Observable<OnlineBulkDownloadDataResponse[]>[] = [];
+    if (reqInput.length > 0){
+      observables.push( this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
+       map(response => this.convertFuseResponse(response))
+     ));
+    }
+    return observables;
+  }
+
+  public convertFuseResponse(response: RestResponse) {
+    const responseArray: OnlineBulkDownloadDataResponse[] = response.payload.rows;
+    return responseArray;
   }
 
   public getShadingVar(geocode: string) : ImpGeofootprintVar {
     return this.shadingData.getValue().get(geocode);
+  }
+
+  public refreshAudiences() {
+    //this.audiences.next(this.audiences.getValue());
+    this.projectVarService.makeDirty();
   }
 }

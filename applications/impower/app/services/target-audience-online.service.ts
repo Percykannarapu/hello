@@ -323,6 +323,7 @@ export class TargetAudienceOnlineService {
     const numericIds = identifiers.map(i => Number(i));
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
+    const inputDataList = [];
     for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
@@ -330,10 +331,11 @@ export class TargetAudienceOnlineService {
         geocodes: chunk,
         digCategoryIds: numericIds
       };
+      inputDataList.push(inputData);
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
         
         observables.push(
-            this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputData).pipe(
+            this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputDataList).pipe(
               map(response => this.validateFuseResponse(inputData, response, isForShading)),
               catchError( () => throwError('No Data was returned for the selected audiences'))
           ));
