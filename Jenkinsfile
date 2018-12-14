@@ -32,11 +32,7 @@
       }
     }
     stage('build impower development') {
-      when {
-        allOf {
-          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
-        }
-      }
+      when { branch 'dev' }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'build for development'
@@ -47,11 +43,7 @@
       }
     }
     stage('build cpq-maps development') {
-      when {
-        allOf {
-          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_CPQ_MAPS'
-        }
-      }
+      when { branch 'dev' }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'build for development'
@@ -127,11 +119,7 @@
       }
     }
     stage('Deploy to development') {
-      when {
-        allOf {
-          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
-        }
-      }
+      when { branch 'dev' }
       steps {
         echo 'deploy dev'
         sh '''
@@ -143,11 +131,7 @@
       }
     }
     stage('Deploy to Salesforce DEV') {
-      when {
-        allOf {
-          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
-        }
-      }
+      when { branch 'dev' }
       steps {
         sh "/data/ant/bin/ant clean create-resources deploy"
       }
