@@ -1,6 +1,24 @@
+ def BUILD_TYPE
  pipeline {
   agent any
+  environment {
+    BUILD_TYPE = sh (
+      script: "sh /data/build-scripts/impower/build_type.sh",
+      returnStdout: true
+    ).trim()
+  }
   stages {
+    stage('determine build type') {
+      steps {
+        script {
+          BUILD_TYPE = sh (
+            script: "sh ./build_type.sh",
+            returnStdout: true
+          ).trim()
+        }
+        echo "BUILD_TYPE: ${BUILD_TYPE}"
+      }
+    }
     stage('install modules') {
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -14,7 +32,11 @@
       }
     }
     stage('build development') {
-      when { branch 'dev' }
+      when {
+        allOf {
+          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
+        }
+      }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'build for development'
@@ -90,15 +112,29 @@
       }
     }
     stage('Deploy to development') {
-      when { branch 'dev' }
+      when {
+        allOf {
+          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
+        }
+      }
       steps {
         echo 'deploy dev'
         sh '''
-                    ssh root@vallomjbs002vm rm -rf /var/www/impower/*
-                   '''
+           ssh root@vallomjbs002vm rm -rf /var/www/impower/*
+           '''
         sh '''
-                    scp -r dist/* root@vallomjbs002vm:/var/www/impower
-                   '''
+           scp -r dist/* root@vallomjbs002vm:/var/www/impower
+           '''
+      }
+    }
+    stage('Deploy to Salesforce DEV') {
+      when {
+        allOf {
+          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
+        }
+      }
+      steps {
+        sh "/data/ant/bin/ant clean create-resources deploy"
       }
     }
     stage('SonarQube analysis') {
