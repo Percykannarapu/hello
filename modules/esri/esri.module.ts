@@ -16,9 +16,9 @@ import { EsriToolbarComponent } from './src/components/esri-map-panel/esri-toolb
 import { EsriMapComponent } from './src/components/esri-map-panel/esri-map/esri-map.component';
 import { EsriDomainFactoryService, EsriGeoprocessorService, EsriIdentityService, EsriLayerService, EsriMapInteractionService, EsriMapService, EsriQueryService, EsriRendererService } from './src/services';
 
-const initializer = (store: Store<AppState>) => {
+export function initializer(store: Store<AppState>) {
   return () => store.pipe(select(selectors.getEsriFeatureReady), filter(ready => ready), take(1)).toPromise();
-};
+}
 
 const PUBLIC_COMPONENTS = [
   EsriMapPanelComponent,
@@ -56,21 +56,34 @@ export class EsriModule {
     }
   }
 
-  static forRoot(serverUrl: string, options?: { config?: Partial<EsriConfigOptions>, auth?: Partial<EsriAuthenticationParams>, app?: Partial<EsriAppSettings> }) : ModuleWithProviders {
-    const configUrls = { portalUrl: `${serverUrl}${defaultEsriUrlFragments.portal}` };
-    const authUrls = { generatorUrl: `${configUrls.portalUrl}${defaultEsriUrlFragments.generator}`, tokenServerUrl: `${configUrls.portalUrl}${defaultEsriUrlFragments.tokenServer}` };
-    const userConfig = options == null ? null : options.config;
-    const userAuth = options == null ? null : options.auth;
-    const userApp = options == null ? null : options.app;
-    const loaderProvider: EsriConfigOptions = Object.assign(defaultEsriConfig, configUrls, userConfig);
-    const authProvider: EsriAuthenticationParams = Object.assign(defaultEsriAuthParams, authUrls, userAuth);
-    const appProvider: EsriAppSettings = Object.assign(defaultEsriAppSettings, userApp);
+  static forRoot(serverUrl: string, options: { config?: Partial<EsriConfigOptions>, auth?: Partial<EsriAuthenticationParams>, app?: Partial<EsriAppSettings> } = {}) : ModuleWithProviders {
     return {
       ngModule: EsriModule,
       providers: [
-        { provide: EsriLoaderToken, useValue: loaderProvider },
-        { provide: EsriAuthenticationToken, useValue: authProvider },
-        { provide: EsriAppSettingsToken, useValue: appProvider },
+        {
+          provide: EsriLoaderToken,
+          useValue: {
+            ...defaultEsriConfig,
+            portalUrl: `${serverUrl}${defaultEsriUrlFragments.portal}`,
+            ...options.config
+          }
+        },
+        {
+          provide: EsriAuthenticationToken,
+          useValue: {
+            ...defaultEsriAuthParams,
+            generatorUrl: `${serverUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.generator}`,
+            tokenServerUrl: `${serverUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.tokenServer}`,
+            ...options.auth
+          }
+        },
+        {
+          provide: EsriAppSettingsToken,
+          useValue: {
+            ...defaultEsriAppSettings,
+            ...options.app
+          }
+        },
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] },
         EsriIdentityService,
         EsriDomainFactoryService,

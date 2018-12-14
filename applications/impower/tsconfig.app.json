@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": "",
-    "rootDir": "./",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
@@ -20,7 +19,6 @@
     }
   },
   "exclude": [
-    "../../node_modules",
     "test.ts",
     "**/*.spec.ts"
   ]
