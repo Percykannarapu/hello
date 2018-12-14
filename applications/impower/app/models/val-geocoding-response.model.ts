@@ -18,6 +18,7 @@ export class ValGeocodingResponse {
   'Geocode Status': string;
   'Match Code': string;
   'Match Quality': string;
+  'CarrierRoute': string;
   [key: string] : any;
 
   constructor(initializer: any) {

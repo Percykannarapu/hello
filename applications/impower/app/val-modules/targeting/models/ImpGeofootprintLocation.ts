@@ -58,6 +58,7 @@ export class ImpGeofootprintLocation extends BaseModel
    public radius3:                   number;         /// Radius3 for Site
    public homeCountyFip:             string;         /// 5 digit FIPS County code e.g. 26163 for WAYNE county in Michigan
    public homeDmaCode:               string;         /// 5 digit Designated Metropolitan Area e.g. 0505 for Detroit MI 
+   public carrierRoute:              string;     
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS

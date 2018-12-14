@@ -243,6 +243,9 @@ export class AppLocationService {
             ...coordinates,
             parentId: objId++,
             siteNumber: `${loc.locationNumber}`,
+            geocoderCarrierRoute: `${loc.carrierRoute}`,
+            geocoderZip: `${loc.locZip.substring(0, 5)}`
+
           }
         });
       });
