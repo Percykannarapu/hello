@@ -181,7 +181,7 @@ export class ImpDomainFactoryService {
     if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
     const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 
       'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State', 
-      'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status', 'RADIUS1', 'RADIUS2', 'RADIUS3']);
+      'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status', 'RADIUS1', 'RADIUS2', 'RADIUS3', 'CarrierRoute']);
     const result = new ImpGeofootprintLocation({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
@@ -209,6 +209,8 @@ export class ImpDomainFactoryService {
       radius1: res['RADIUS1'],
       radius2: res['RADIUS2'],
       radius3: res['RADIUS3'],
+      carrierRoute: res['CarrierRoute'],
+
       isActive: true
     });
     if (result.recordStatusCode === 'SUCCESS' || result.recordStatusCode === 'PROVIDED') {
