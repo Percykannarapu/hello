@@ -4,7 +4,6 @@
     "baseUrl": "",
     "outDir": "../../out-tsc/cpq-maps-app",
     "module": "es2015",
-    "types": [],
     "paths": {
       "@val/esri": ["../../modules/esri"],
       "@val/common": ["../../modules/common"]
