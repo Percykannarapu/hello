@@ -1,0 +1,26 @@
+{
+  "name": "@val/common",
+  "version": "2.10.3",
+  "description": "Valassis Angular Wrapper for Common Utilities and Components",
+  "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valassis/impower-angular-app.git"
+  },
+  "keywords": [
+    "Angular",
+    "imPower"
+  ],
+  "author": "Valassis",
+  "license": "Proprietary",
+  "bugs": {
+    "url": "https://rally1.rallydev.com"
+  },
+  "homepage": "https://github.com/valassis/impower-angular-app",
+  "schematics": "MODULE_SCHEMATICS_COLLECTION",
+  "ng-update": {
+    "packageGroup": "NG_UPDATE_PACKAGE_GROUP",
+    "migrations": "NG_UPDATE_MIGRATIONS"
+  },
+  "sideEffects": false
+}

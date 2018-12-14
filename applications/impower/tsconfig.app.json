@@ -1,9 +1,7 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "",
     "rootDir": "./",
-    "outDir": "../out-tsc/app",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
@@ -14,13 +12,16 @@
       "es2017",
       "dom"
     ],
+    "outDir": "../../out-tsc/impower-app",
+    "module": "es2015",
     "paths": {
-      "@val/common": ["./modules/common"],
-      "@val/esri": ["./modules/esri"],
-      "@impower/*": ["./applications/impower"]
+      "@val/esri": ["../../modules/esri"],
+      "@val/common": ["../../modules/common"]
     }
   },
   "exclude": [
-    "to-be-deleted"
+    "../../node_modules",
+    "test.ts",
+    "**/*.spec.ts"
   ]
 }
