@@ -8,7 +8,6 @@ import { AppState, getEsriMapState, getEsriRendererNumericData, getEsriRendererS
 import { EsriMapState } from '../state/map/esri.map.reducer';
 import { EsriHighlightHandler, EsriHighlightRemover, NumericShadingData, Statistics, TextShadingData } from '../state/map/esri.renderer.reducer';
 import { AddHighlightHandlers, ClearHighlightHandlers } from '../state';
-import { AppConfig } from '../../../../applications/impower/app/app.config';
 import { EsriApi, EsriUtils } from '../core';
 
 export enum SmartMappingTheme {
@@ -56,7 +55,6 @@ export class EsriRendererService {
   
   constructor(private mapService: EsriMapService, 
               private layerService: EsriLayerService,
-              //private appConfig: AppConfig,
               private queryService: EsriQueryService,
               private store$: Store<AppState>) {
 
@@ -68,14 +66,14 @@ export class EsriRendererService {
       withLatestFrom(this.store$.pipe(select(getEsriState))),
       filter(([selectedGeos, esriState]) => selectedGeos != null && esriState != null),
       filter(([selectedGeos, esriState]) => esriState.renderer.highlightSelectedGeos === true),
-    ).subscribe(([selectedGeos, esriState]) => this.highlightGeos(esriState.map.analysisLevel, selectedGeos, esriState.renderer.highlightHandlers, true));
+    ).subscribe(([selectedGeos, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, selectedGeos, esriState.renderer.highlightHandlers, true));
 
     //pipe for highlighting based on viewpoint changes
     sharedStore$.pipe(
       select(getEsriViewpointState),
       withLatestFrom(this.store$.pipe(select(getEsriState))),
       filter(([viewpointState, esriState]) => viewpointState != null && esriState != null),
-    ).subscribe(([viewpointState, esriState]) => this.highlightGeos(esriState.map.analysisLevel, esriState.renderer.selectedGeocodes, esriState.renderer.highlightHandlers));
+    ).subscribe(([viewpointState, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, esriState.renderer.selectedGeocodes, esriState.renderer.highlightHandlers));
 
     //pipe for shading the map with numeric data
     sharedStore$.pipe(
@@ -163,7 +161,7 @@ export class EsriRendererService {
 
   private restoreSimpleRenderer(mapState: EsriMapState) {
     if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
-      const lv = this.getLayerView(mapState.analysisLevel);
+      const lv = this.getLayerView(mapState.selectedLayerId);
       lv.layer.renderer = this.simpleRenderer;
     }
   }
@@ -205,8 +203,7 @@ export class EsriRendererService {
       return arcade;
   }
 
-  private getLayerView(analysisLevel: string = 'zip') : __esri.FeatureLayerView {
-    const layerId = ''; //this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
+  private getLayerView(layerId: string) : __esri.FeatureLayerView {
     const layer = this.layerService.getPortalLayerById(layerId);
     let layerView: __esri.FeatureLayerView = null;
     const layerViews = this.mapService.mapView.allLayerViews;
@@ -257,7 +254,7 @@ export class EsriRendererService {
       uniqueValueInfos: uvi,
       defaultSymbol: defaultSymbol
     };
-    const lv = this.getLayerView(mapState.analysisLevel);
+    const lv = this.getLayerView(mapState.selectedLayerId);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
     } else {
@@ -279,7 +276,7 @@ export class EsriRendererService {
     };
     baseRenderer.visualVariables = [colorVariable];
     baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
-    const lv = this.getLayerView(mapState.analysisLevel);
+    const lv = this.getLayerView(mapState.selectedLayerId);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
     } else {
@@ -290,12 +287,12 @@ export class EsriRendererService {
 
   private createRendererSetup(mapState: EsriMapState) : { rendererSetup: SmartRendererSetup | CustomRendererSetup, symbol: __esri.SimpleFillSymbol} {
     let setup: CustomRendererSetup | SmartRendererSetup;
-    const currentRenderer: __esri.Renderer = this.getLayerView(mapState.analysisLevel).layer.renderer;
+    const currentRenderer: __esri.Renderer = this.getLayerView(mapState.selectedLayerId).layer.renderer;
     let symbol: __esri.SimpleFillSymbol = new EsriApi.SimpleFillSymbol();
     if (EsriUtils.rendererIsSimple(currentRenderer) && EsriUtils.symbolIsSimpleFill(currentRenderer.symbol)) {
       symbol = currentRenderer.symbol;
       this.simpleSymbol = symbol;
-      this.simpleRenderer = this.getLayerView(mapState.analysisLevel).layer.renderer;
+      this.simpleRenderer = this.getLayerView(mapState.selectedLayerId).layer.renderer;
     } else {
       symbol = this.simpleSymbol;
     }
@@ -370,13 +367,13 @@ export class EsriRendererService {
   /**
    * Determine if the features in the current map view are selected
    */
-  private highlightGeos(analysisLevel: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
-    if (!analysisLevel) return;
+  private highlightGeos(layerId: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
+    if (!layerId) return;
     const currentSelectedGeos: Set<string> = new Set(geos);
     if (remove) {
       this.unHighlightAllGeos(highlightHandlers, geos, currentSelectedGeos);
     }
-    const layerView = this.getLayerView(analysisLevel);
+    const layerView = this.getLayerView(layerId);
     if (layerView != null) {
       const selectedFeatures: Array<{geocode: string, objectid: number}> = [];
       this.queryService.queryLayerView([layerView.layer], this.mapService.mapView.extent, false).subscribe(results => {

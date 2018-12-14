@@ -12,7 +12,7 @@ export enum EsriMapActionTypes {
   SetPopupVisibility = '[Esri Map] Set Popup Visibility',
   MapClicked = '[Esri Map] Click Event',
   FeaturesSelected = '[Esri Map] Features Selected',
-  SetAnalysisLevel = '[Esri Map] Set Analysis Level',
+  SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
   SetLabelConfiguration = '[Esri Map] Set Label Configuration'
 }
 
@@ -45,9 +45,9 @@ export class SetPopupVisibility implements Action {
   constructor(public payload: { isVisible: boolean }){}
 }
 
-export class SetAnalysisLevel implements Action {
-  readonly type = EsriMapActionTypes.SetAnalysisLevel;
-  constructor(public payload: { analysisLevel: string }){}
+export class SetSelectedLayer implements Action {
+  readonly type = EsriMapActionTypes.SetSelectedLayer;
+  constructor(public payload: { layerId: string }){}
 }
 
 export class MapClicked implements Action {
@@ -75,6 +75,6 @@ export type EsriMapActions =
   | MapClicked
   | FeaturesSelected
   | EsriMapToolbarButtonActions
-  | SetAnalysisLevel
+  | SetSelectedLayer
   | SetLabelConfiguration
   ;

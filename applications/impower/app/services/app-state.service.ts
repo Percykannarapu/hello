@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { ChangeAnalysisLevel } from '../state/app.actions';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -15,7 +16,7 @@ import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { AppLoggingService } from './app-logging.service';
-import { EsriLayerService, EsriMapService, EsriQueryService, SetAnalysisLevel } from '@val/esri';
+import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { distinctArray, filterArray, groupBy, mapArray } from '@val/common';
 
 export enum Season {
@@ -133,7 +134,7 @@ export class AppStateService {
       filter(project => project != null),
       map(project => project.methAnalysis),
       distinctUntilChanged(),
-      tap(analysisLevel => this.store$.dispatch(new SetAnalysisLevel({analysisLevel: analysisLevel})))
+      tap(analysisLevel => this.store$.dispatch(new ChangeAnalysisLevel({analysisLevel: analysisLevel})))
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
 
     // Setup trade area merge type subscriptions

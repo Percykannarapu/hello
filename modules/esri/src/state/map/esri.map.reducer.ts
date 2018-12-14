@@ -1,4 +1,4 @@
-import { SelectedButtonTypeCodes } from '../../core/esri.enums';
+import { SelectedButtonTypeCodes } from '../../core';
 import { EsriMapActions, EsriMapActionTypes } from './esri.map.actions';
 import { EsriMapToolbarButtonActionTypes } from './esri.map-button.actions';
 
@@ -17,7 +17,7 @@ export interface EsriMapState {
   popupsVisible: boolean;
   sketchView: __esri.SketchViewModel;
   selectedFeatures: __esri.Graphic[];
-  analysisLevel: string;
+  selectedLayerId: string;
   labelConfiguration: EsriLabelConfiguration;
 }
 
@@ -31,7 +31,7 @@ const initialState: EsriMapState = {
   popupsVisible: true,
   sketchView: null,
   selectedFeatures: [],
-  analysisLevel: null,
+  selectedLayerId: null,
   labelConfiguration: null
 };
 
@@ -74,8 +74,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:
       return { ...state, selectedFeatures: [ ...action.payload.features] };
-    case EsriMapActionTypes.SetAnalysisLevel:
-      return {...state, analysisLevel: action.payload.analysisLevel};
+    case EsriMapActionTypes.SetSelectedLayer:
+      return {...state, selectedLayerId: action.payload.layerId};
     default:
       return state;
   }
