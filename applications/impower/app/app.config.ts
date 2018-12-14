@@ -3,6 +3,7 @@ import { environment, EnvironmentData } from '../environments/environment';
 import { AllLayers, EsriLoaderToken, EsriConfigOptions } from '@val/esri';
 import { LoggingConfiguration, LogLevels } from './val-modules/common/services/logging.service';
 
+
 @Injectable()
 export class AppConfig implements LoggingConfiguration {
 
