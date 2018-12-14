@@ -77,7 +77,7 @@ export class ValGeocodingRequest {
     if (status === 'PROVIDED') {
       result.Address = this.street;
       result.City = this.city;
-      result.State = this.state;
+      result.LocalState = this.state;
       result.ZIP = this.zip;
     } else {
       result['Original Address'] = this.street;

@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -27,6 +28,7 @@ const PUBLIC_COMPONENTS = [
 @NgModule({
   imports: [
     CommonModule,
+    HttpClientModule,
     TreeTableModule,
     ToolbarModule,
     OverlayPanelModule,
