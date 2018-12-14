@@ -181,6 +181,98 @@
           }
         }
       }
+    },
+    "cpq-maps": {
+      "root": "applications/cpq-maps/",
+      "sourceRoot": "applications/cpq-maps/src",
+      "projectType": "application",
+      "prefix": "cpq",
+      "schematics": {},
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/cpq-maps",
+            "index": "applications/cpq-maps/src/index.html",
+            "main": "applications/cpq-maps/src/main.ts",
+            "polyfills": "applications/cpq-maps/src/polyfills.ts",
+            "tsConfig": "applications/cpq-maps/tsconfig.app.json",
+            "assets": [
+              "applications/cpq-maps/src/favicon.ico",
+              "applications/cpq-maps/src/assets"
+            ],
+            "styles": [
+              "applications/cpq-maps/src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "applications/cpq-maps/src/environments/environment.ts",
+                  "with": "applications/cpq-maps/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "cpq-maps:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "cpq-maps:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "cpq-maps:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "applications/cpq-maps/src/test.ts",
+            "polyfills": "applications/cpq-maps/src/polyfills.ts",
+            "tsConfig": "applications/cpq-maps/tsconfig.spec.json",
+            "karmaConfig": "applications/cpq-maps/karma.conf.js",
+            "styles": [
+              "applications/cpq-maps/styles.css"
+            ],
+            "scripts": [],
+            "assets": [
+              "applications/cpq-maps/src/favicon.ico",
+              "applications/cpq-maps/src/assets"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "applications/cpq-maps/tsconfig.app.json",
+              "applications/cpq-maps/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "impower",
