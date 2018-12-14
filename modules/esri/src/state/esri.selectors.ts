@@ -25,7 +25,7 @@ export const getEsriRendererTextData = createSelector(getEsriRendererState, stat
 export const getEsriRendererSelectedGeocodes = createSelector(getEsriRendererState, state => state != null ? state.selectedGeocodes : null);
 export const getEsriViewpointState = createSelector(getEsriState, state => state != null ? state.map.mapViewpoint : null);
 export const getEsriLabelConfiguration = createSelector(getEsriMapState, state => state != null ? state.labelConfiguration : null);
-export const getEsriAnalysisLevel = createSelector(getEsriMapState, state => state != null ? state.analysisLevel : null);
+export const getEsriSelectedLayer = createSelector(getEsriMapState, state => state != null ? state.selectedLayerId : null);
 
 export const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (api, auth) => api.isLoaded && auth.isAuthenticated);
 
