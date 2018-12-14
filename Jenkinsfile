@@ -31,10 +31,25 @@
         }
       }
     }
-    stage('build development') {
+    stage('build impower development') {
       when {
         allOf {
           branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_IMPOWER'
+        }
+      }
+      steps {
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+          echo 'build for development'
+          sh '''
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+             '''
+        }
+      }
+    }
+    stage('build cpq-maps development') {
+      when {
+        allOf {
+          branch 'dev'; environment name: 'BUILD_TYPE', value: 'BUILD_CPQ_MAPS'
         }
       }
       steps {
