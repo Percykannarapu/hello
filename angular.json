@@ -11,7 +11,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "impower-dist",
+            "outputPath": "dist/impower",
             "index": "applications/impower/index.html",
             "main": "applications/impower/main.ts",
             "tsConfig": "applications/impower/tsconfig.app.json",

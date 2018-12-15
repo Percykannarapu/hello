@@ -4,7 +4,7 @@
   <property name="CPQ_MAPS_DIST" value="./dist/cpq-maps"/>
   <target name="create-resources">
 
-    <mkdir dir="${CPQ_MAPS_DIST}/sfdc-deploy" />
+    <mkdir dir="${DIST_ROOT}/sfdc-deploy" />
     
     <!-- Create the assets resource -->
     <!--<delete dir="${CPQ_MAPS_DIST}/assets/sass"/>

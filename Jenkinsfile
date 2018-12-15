@@ -48,7 +48,7 @@
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'build for development'
           sh '''
-             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
              '''
         }
       }
