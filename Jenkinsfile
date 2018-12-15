@@ -31,47 +31,51 @@
         }
       }
     }
-    parallel {
-      stage('build impower development') {
-        when { branch 'dev' }
-        steps {
-          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-            echo 'build for development'
-            sh '''
-              node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
-              '''
+    stage('build dev apps') {
+      parallel {
+        stage('build impower development') {
+          when { branch 'dev' }
+          steps {
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              echo 'build for development'
+              sh '''
+                node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+                '''
+            }
           }
         }
-      }
-      stage('build cpq-maps development') {
-        when { branch 'dev' }
-        steps {
-          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-            echo 'build for development'
-            sh '''
-              node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
-              '''
+        stage('build cpq-maps development') {
+          when { branch 'dev' }
+          steps {
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              echo 'build for development'
+              sh '''
+                node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
+                '''
+            }
           }
         }
       }
     }
-    parallel {
-      stage('Deploy to development') {
-        when { branch 'dev' }
-        steps {
-          echo 'deploy dev'
-          sh '''
-            ssh root@vallomjbs002vm rm -rf /var/www/impower/*
-            '''
-          sh '''
-            scp -r dist/* root@vallomjbs002vm:/var/www/impower
-            '''
+    stage('Deploy dev apps') {
+      parallel {
+        stage('Deploy imPower dev') {
+          when { branch 'dev' }
+          steps {
+            echo 'deploy dev'
+            sh '''
+              ssh root@vallomjbs002vm rm -rf /var/www/impower/*
+              '''
+            sh '''
+              scp -r dist/* root@vallomjbs002vm:/var/www/impower
+              '''
+          }
         }
-      }
-      stage('Deploy to Salesforce DEV') {
-        when { branch 'dev' }
-        steps {
-          sh "/data/ant/bin/ant clean create-resources deploy"
+        stage('Deploy CPQ Maps dev') {
+          when { branch 'dev' }
+          steps {
+            sh "/data/ant/bin/ant clean create-resources deploy"
+          }
         }
       }
     }
