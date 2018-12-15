@@ -145,14 +145,26 @@
       }
     }
     stage('SonarQube analysis') {
-      when { branch 'dev' }
-      steps {
-        echo 'Run Sonarqube'
-        sh '''
-           /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=impower-angular -Dsonar.sources=applications/impower/app -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=f4d79d0a078650f55c4e70d8932c76e17fb478c5
-           '''
+      parallel {
+        stage('scan imPower') {
+          when { branch 'dev' }
+          steps {
+            echo 'Run Sonarqube'
+            sh '''
+              /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=impower-angular -Dsonar.sources=applications/impower/app -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=f4d79d0a078650f55c4e70d8932c76e17fb478c5
+              '''
+          }
+        }
+        stage('scan cpq-maps') {
+          when { branch 'dev' }
+          steps {
+            echo 'Run Sonarqube'
+            sh '''
+              /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=cpq-maps-angular -Dsonar.sources=applications/cpq-maps/src -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=d9215b9638829d52e61057f089badcbe482c34a9
+              '''
+          }
+        }
       }
     }
   }
 }
-
