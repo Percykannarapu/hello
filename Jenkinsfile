@@ -42,6 +42,18 @@
         }
       }
     }
+    stage('Deploy to development') {
+      when { branch 'dev' }
+      steps {
+        echo 'deploy dev'
+        sh '''
+           ssh root@vallomjbs002vm rm -rf /var/www/impower/*
+           '''
+        sh '''
+           scp -r dist/* root@vallomjbs002vm:/var/www/impower
+           '''
+      }
+    }
     stage('build cpq-maps development') {
       when { branch 'dev' }
       steps {
@@ -51,6 +63,12 @@
              node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
              '''
         }
+      }
+    }
+    stage('Deploy to Salesforce DEV') {
+      when { branch 'dev' }
+      steps {
+        sh "/data/ant/bin/ant clean create-resources deploy"
       }
     }
     stage('build for QA') {
@@ -116,24 +134,6 @@
             scp -r dist/* web-deployer@valwgpweb005vm:/var/www/impower
            '''
           */
-      }
-    }
-    stage('Deploy to development') {
-      when { branch 'dev' }
-      steps {
-        echo 'deploy dev'
-        sh '''
-           ssh root@vallomjbs002vm rm -rf /var/www/impower/*
-           '''
-        sh '''
-           scp -r dist/* root@vallomjbs002vm:/var/www/impower
-           '''
-      }
-    }
-    stage('Deploy to Salesforce DEV') {
-      when { branch 'dev' }
-      steps {
-        sh "/data/ant/bin/ant clean create-resources deploy"
       }
     }
     stage('SonarQube analysis') {
