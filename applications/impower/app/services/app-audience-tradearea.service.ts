@@ -411,7 +411,6 @@ export class ValAudienceTradeareaService {
         for (const location of this.locationService.get()) {
           const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
           this.createTradeArea(locationGeos, location);
-          // this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
         }
         obs.next(true);
