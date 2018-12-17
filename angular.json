@@ -11,7 +11,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "impower-dist",
+            "outputPath": "dist/impower",
             "index": "applications/impower/index.html",
             "main": "applications/impower/main.ts",
             "tsConfig": "applications/impower/tsconfig.app.json",
@@ -86,6 +86,15 @@
               ]
             },
             "local": {
+              "optimization": false,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": false,
               "fileReplacements": [
                 {
                   "replace": "applications/impower/environments/environment.ts",
