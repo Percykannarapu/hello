@@ -5,4 +5,14 @@ export interface EnvironmentData {
     username: string;
     password: string;
   };
+  layerIds: {
+    zip: {
+      centroid: string;
+      boundary: string;
+    };
+    atz: {
+      centroid: string;
+      boundary: string;
+    }
+  };
 }

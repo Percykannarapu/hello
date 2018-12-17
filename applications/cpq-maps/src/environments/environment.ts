@@ -17,5 +17,15 @@ export const environment: EnvironmentData = {
     portalServer: 'https://vallomimpor1vm.val.vlss.local/',
     username: 'admin',
     password: 'password'
+  },
+  layerIds: {
+    zip: {
+      boundary: '23a54308e914496aa24d94a9b36776a0',
+      centroid: '88120ac630d746239b133296e87b8e1f'
+    },
+    atz: {
+      boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
+      centroid: 'fd4b078fc2424dd5a48af860dc421431'
+    }
   }
 };

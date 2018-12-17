@@ -13,7 +13,6 @@ import { AppEffects } from './app.effects';
   imports: [
     CommonModule,
     StoreModule.forRoot(reducers, { metaReducers }),
-    !environment.production ? StoreDevtoolsModule.instrument() : [],
     EffectsModule.forRoot([AppEffects]),
     EsriModule.forRoot(environment.esri.portalServer, {
       auth: {
@@ -21,6 +20,10 @@ import { AppEffects } from './app.effects';
         password: environment.esri.password,
         referer: window.location.origin
       }
+    }),
+    StoreDevtoolsModule.instrument({
+      name: 'CPQ Maps Application',
+      logOnly: environment.production,
     }),
   ],
   declarations: [CpqMapComponent],
