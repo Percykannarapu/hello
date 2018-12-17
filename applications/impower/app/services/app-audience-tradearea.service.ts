@@ -90,6 +90,7 @@ export class ValAudienceTradeareaService {
   private lastMaxRadius: number;
   private lastDigCategoryId: number;
   private lastWeight: number;
+  private duplicateGeos: any;
   private geoCache: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
   private failedLocations: ImpGeofootprintLocation[] = [];
 
@@ -254,9 +255,45 @@ export class ValAudienceTradeareaService {
           }
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of allLocations) {
-            const newTradeArea = this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
+            this.createGeos(audienceTAConfig, location);
+          }     
+          
+          const geocodeValues = this.geoCache.map(val => val.geocode);
+          const repeatValues = [];
+          const uniqueValues = [];
+          for (let i = 0; i < geocodeValues.length; i++) {
+            if (uniqueValues.indexOf(geocodeValues[i]) == -1) {
+              uniqueValues.push(geocodeValues[i]);
+            } else {
+              repeatValues.push(geocodeValues[i]);
+            }
+          }
+
+          const duplicateVals = [];
+          for (let i = 0; i < repeatValues.length; i++) {
+            const index = [];
+            duplicateVals[i] = this.geoCache.filter((val, ind) => {
+              if ( val.geocode == repeatValues[i]) {
+                index.push(ind);
+                return val;
+              }
+            });
+
+            for (let j = 0; j < duplicateVals[i].length; j++) {
+              if (duplicateVals[i][j].isActive) {
+                for (let k = 0; k < index.length; k++) {
+                  this.geoCache[index[k]].isActive = true;
+                }
+                break;
+              }
+            }
+          }
+
+          for (const location of allLocations) {
+            const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
+            const newTradeArea = this.createTradeArea(locationGeos, location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
-          }         
+          }          
           if (this.failedLocations.length > 0) {
             let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
@@ -337,7 +374,44 @@ export class ValAudienceTradeareaService {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
-          this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
+          this.createGeos(audienceTAConfig, location);
+        }     
+        
+        const geocodeValues = this.geoCache.map(val => val.geocode);
+        const repeatValues = [];
+        const uniqueValues = [];
+        for (let i = 0; i < geocodeValues.length; i++) {
+          if (uniqueValues.indexOf(geocodeValues[i]) == -1) {
+            uniqueValues.push(geocodeValues[i]);
+          } else {
+            repeatValues.push(geocodeValues[i]);
+          }
+        }
+
+        const duplicateVals = [];
+        for (let i = 0; i < repeatValues.length; i++) {
+          const index = [];
+          duplicateVals[i] = this.geoCache.filter((val, ind) => {
+            if ( val.geocode == repeatValues[i]) {
+              index.push(ind);
+              return val;
+            }
+          });
+
+          for (let j = 0; j < duplicateVals[i].length; j++) {
+            if (duplicateVals[i][j].isActive) {
+              for (let k = 0; k < index.length; k++) {
+                this.geoCache[index[k]].isActive = true;
+              }
+              break;
+            }
+          }
+        }
+
+        for (const location of this.locationService.get()) {
+          const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
+          this.createTradeArea(locationGeos, location);
+          // this.createTradeArea(this.createGeos(audienceTAConfig, location), location);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
         }
         obs.next(true);
@@ -551,7 +625,7 @@ export class ValAudienceTradeareaService {
       console.warn('Unable to find response for location: ', location);
       this.failedLocations.push(location);
     }
-       this.geoCache.push(...newGeos);
+    this.geoCache.push(...newGeos);
     return newGeos;
   }
 
