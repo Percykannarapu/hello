@@ -1,5 +1,5 @@
+import { TokenResponse } from '../../core/esri-utils';
 import * as fromActions from './esri.auth.actions';
-import { TokenResponse } from '../../core';
 
 export interface EsriAuthState {
   isAuthenticated: boolean;

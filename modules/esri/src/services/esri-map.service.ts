@@ -1,8 +1,8 @@
 import { ElementRef, Inject, Injectable } from '@angular/core';
+import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { from, Observable } from 'rxjs';
-import { EsriApi } from '../core';
 
 @Injectable()
 export class EsriMapService {

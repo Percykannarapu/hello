@@ -1,14 +1,8 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
-import {
-  EntityCreateSuccessful,
-  EntityLoadSuccessful,
-  ImpProjectPrefActionsAffectingParent,
-  ImpProjectPrefActionTypes,
-  ImpProjectVarActionsAffectingParent,
-  ImpProjectVarActionTypes,
-  PersistentActionTypes
-} from '..';
 import { ImpProjectState } from '../../models/imp-project-state';
+import { EntityCreateSuccessful, EntityLoadSuccessful, PersistentActionTypes } from '../persistent.actions';
+import { ImpProjectPrefActionsAffectingParent, ImpProjectPrefActionTypes } from '../projectPref/imp-project-pref.actions';
+import { ImpProjectVarActionsAffectingParent, ImpProjectVarActionTypes } from '../projectVar/imp-project-var.actions';
 import { addChildIds, clearChildIds, deleteChildIds } from '../utils';
 import { ImpProjectActions, ImpProjectActionTypes } from './imp-project.actions';
 

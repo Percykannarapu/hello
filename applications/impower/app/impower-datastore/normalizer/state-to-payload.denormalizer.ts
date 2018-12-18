@@ -1,4 +1,3 @@
-import { ImpowerPersistentState } from '../state/persistent';
 import { ImpProjectPayload } from '../payload-models/imp-project-payload';
 import { ImpGeofootprintMasterPayload } from '../payload-models/imp-geofootprint-master-payload';
 import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
@@ -6,6 +5,7 @@ import { ImpGeofootprintLocationPayload } from '../payload-models/imp-geofootpri
 import { ImpProjectState } from '../state/models/imp-project-state';
 import { ImpGeofootprintLocationState } from '../state/models/imp-geofootprint-location-state';
 import { ImpGeofootprintTradeAreaPayload } from '../payload-models/imp-geofootprint-trade-area-payload';
+import { ImpowerPersistentState } from '../state/persistent/persistent.reducer';
 
 /**
  * Converts a fully normalized entity-state representation into a de-normalized full hierarchy representation

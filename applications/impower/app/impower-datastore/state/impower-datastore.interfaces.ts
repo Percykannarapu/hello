@@ -1,6 +1,6 @@
 import {ActionReducerMap, createFeatureSelector, createSelector} from '@ngrx/store';
 import * as fromRoot from '../../state/app.interfaces';
-import * as fromPersistent from './persistent';
+import * as fromPersistent from './persistent/persistent.reducer';
 
 export interface AppState extends fromRoot.LocalAppState {
   datastore: ImpowerDatastoreState;

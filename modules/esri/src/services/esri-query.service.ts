@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@angular/core';
+import { EsriApi } from '../core/esri-api.service';
+import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EMPTY, merge, Observable } from 'rxjs';
 import { expand, map } from 'rxjs/operators';
 import { EsriMapService } from './esri-map.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { EsriApi, EsriUtils } from '../core';
 import { chunkArray, retryOnTimeout } from '@val/common';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;

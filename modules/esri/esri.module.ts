@@ -6,7 +6,6 @@ import { ButtonModule, DropdownModule, InputSwitchModule, OverlayPanelModule, To
 import { select, Store, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { filter, take } from 'rxjs/operators';
-import { allEffects, AppState, esriReducers, selectors } from './src/state';
 import { EsriLabelConfigComponent } from './src/components/esri-map-panel/esri-label-config/esri-label-config.component';
 import { EsriAppSettings, EsriAppSettingsToken, EsriAuthenticationParams, EsriAuthenticationToken, EsriConfigOptions, EsriLoaderToken } from './src/configuration';
 import { defaultEsriAppSettings, defaultEsriAuthParams, defaultEsriConfig, defaultEsriUrlFragments } from './settings';
@@ -14,7 +13,17 @@ import { EsriMapPanelComponent } from './src/components/esri-map-panel/esri-map-
 import { EsriGeographyPopupComponent } from './src/components/esri-geography-popup/esri-geography-popup.component';
 import { EsriToolbarComponent } from './src/components/esri-map-panel/esri-toolbar/esri-toolbar.component';
 import { EsriMapComponent } from './src/components/esri-map-panel/esri-map/esri-map.component';
-import { EsriDomainFactoryService, EsriGeoprocessorService, EsriIdentityService, EsriLayerService, EsriMapInteractionService, EsriMapService, EsriQueryService, EsriRendererService } from './src/services';
+import { EsriDomainFactoryService } from './src/services/esri-domain-factory.service';
+import { EsriGeoprocessorService } from './src/services/esri-geoprocessor.service';
+import { EsriIdentityService } from './src/services/esri-identity.service';
+import { EsriLayerService } from './src/services/esri-layer.service';
+import { EsriMapInteractionService } from './src/services/esri-map-interaction.service';
+import { EsriMapService } from './src/services/esri-map.service';
+import { EsriQueryService } from './src/services/esri-query.service';
+import { EsriRendererService } from './src/services/esri-renderer.service';
+import { allEffects } from './src/state/esri.effects';
+import { esriReducers } from './src/state/esri.reducers';
+import { AppState, selectors } from './src/state/esri.selectors';
 
 export function initializer(store: Store<AppState>) {
   return () => store.pipe(select(selectors.getEsriFeatureReady), filter(ready => ready), take(1)).toPromise();
@@ -84,15 +93,15 @@ export class EsriModule {
             ...options.app
           }
         },
-        { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] },
-        EsriIdentityService,
         EsriDomainFactoryService,
         EsriGeoprocessorService,
+        EsriIdentityService,
         EsriLayerService,
         EsriMapService,
         EsriMapInteractionService,
         EsriQueryService,
-        EsriRendererService
+        EsriRendererService,
+        { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]
     };
   }

@@ -1,4 +1,4 @@
-import { SelectedButtonTypeCodes } from '../../core';
+import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriMapActions, EsriMapActionTypes } from './esri.map.actions';
 import { EsriMapToolbarButtonActionTypes } from './esri.map-button.actions';
 

@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
+import { AddHighlightHandlers, ClearHighlightHandlers } from '../state/map/esri.renderer.actions';
+import { EsriApi } from '../core/esri-api.service';
+import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriQueryService } from './esri-query.service';
 import { distinctUntilChanged, filter, share, withLatestFrom } from 'rxjs/operators';
 import { select, Store } from '@ngrx/store';
-import { AppState, getEsriMapState, getEsriRendererNumericData, getEsriRendererSelectedGeocodes, getEsriRendererState, getEsriRendererTextData, getEsriState, getEsriViewpointState } from '../state/esri.selectors';
+import { AppState, internalSelectors, selectors } from '../state/esri.selectors';
 import { EsriMapState } from '../state/map/esri.map.reducer';
 import { EsriHighlightHandler, EsriHighlightRemover, NumericShadingData, Statistics, TextShadingData } from '../state/map/esri.renderer.reducer';
-import { AddHighlightHandlers, ClearHighlightHandlers } from '../state';
-import { EsriApi, EsriUtils } from '../core';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -62,23 +63,23 @@ export class EsriRendererService {
 
     //pipe for highlighting based on selected geocodes
     sharedStore$.pipe(
-      select(getEsriRendererSelectedGeocodes),
-      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      select(internalSelectors.getEsriRendererSelectedGeocodes),
+      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
       filter(([selectedGeos, esriState]) => selectedGeos != null && esriState != null),
       filter(([selectedGeos, esriState]) => esriState.renderer.highlightSelectedGeos === true),
     ).subscribe(([selectedGeos, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, selectedGeos, esriState.renderer.highlightHandlers, true));
 
     //pipe for highlighting based on viewpoint changes
     sharedStore$.pipe(
-      select(getEsriViewpointState),
-      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      select(selectors.getEsriViewpointState),
+      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
       filter(([viewpointState, esriState]) => viewpointState != null && esriState != null),
     ).subscribe(([viewpointState, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, esriState.renderer.selectedGeocodes, esriState.renderer.highlightHandlers));
 
     //pipe for shading the map with numeric data
     sharedStore$.pipe(
-      select(getEsriRendererNumericData),
-      withLatestFrom(this.store$.pipe(select(getEsriState))),
+      select(internalSelectors.getEsriRendererNumericData),
+      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
       filter(([numericData, esriState]) => numericData != null && esriState != null),
       filter(([numericData, esriState]) => numericData.length > 0),
       distinctUntilChanged(),
@@ -86,8 +87,8 @@ export class EsriRendererService {
 
     //pipe for shading the map with text data
     sharedStore$.pipe(
-      select(getEsriRendererTextData),
-      withLatestFrom(this.store$.pipe(select(getEsriMapState))),
+      select(internalSelectors.getEsriRendererTextData),
+      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
       filter(([textData, mapState]) => textData != null && mapState != null),
       filter(([textData, mapState]) => textData.length > 0),
       distinctUntilChanged(),
@@ -95,8 +96,8 @@ export class EsriRendererService {
 
     //pipe for restoring the simple renderer when shading is disabled
     sharedStore$.pipe(
-      select(getEsriRendererState),
-      withLatestFrom(this.store$.pipe(select(getEsriMapState))),
+      select(internalSelectors.getEsriRendererState),
+      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
       filter(([rendererState, mapState]) => mapState != null && rendererState != null && rendererState.enableShading === false && (rendererState.numericShadingData.length > 0 || rendererState.textShadingData.length > 0))
     ).subscribe(([rendererState, mapState]) => this.restoreSimpleRenderer(mapState));
 

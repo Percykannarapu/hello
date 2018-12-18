@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
+import { SetLabelConfiguration } from '../state/map/esri.map.actions';
+import { EsriApi } from '../core/esri-api.service';
+import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { select, Store } from '@ngrx/store';
-import { AppState, getEsriLabelConfiguration } from '../state/esri.selectors';
+import { AppState, internalSelectors } from '../state/esri.selectors';
 import { filter, share } from 'rxjs/operators';
 import { EsriLabelConfiguration } from '../state/map/esri.map.reducer';
-import { SetLabelConfiguration } from '../state';
-import { EsriApi, EsriUtils } from '../core';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -32,7 +33,7 @@ export class EsriLayerService {
 
     // Pipe to update labels based on label config changes from the dropdown above the map
     sharedStore$.pipe(
-      select(getEsriLabelConfiguration),
+      select(internalSelectors.getEsriLabelConfiguration),
       filter(labelConfig => labelConfig != null),
     ).subscribe(labelConfig => this.addLabels(labelConfig.font, labelConfig.size, labelConfig.enabled));
 

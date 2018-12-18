@@ -84,7 +84,6 @@ export class EsriApi {
   public static widgets: EsriWidgets;
 
   public static initialize(config: EsriConfigOptions) : Promise<any> {
-    console.log('Loading Esri CSS and API assets', config);
     esriLoader.loadCss(`${config.url}esri/css/main.css`);
     return new Promise<any>((resolve, reject) => {
       esriLoader.loadScript(config).then(() => {
