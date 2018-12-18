@@ -211,7 +211,7 @@ export class AppConfig implements LoggingConfiguration {
   }
 
   public webGLIsAvailable() : boolean {
-    return this.esriSettings.dojoConfig['has'] && (this.esriSettings.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
+    return true;
   }
 
 }
