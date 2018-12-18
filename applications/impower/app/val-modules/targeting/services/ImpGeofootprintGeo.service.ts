@@ -374,6 +374,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           if (currentVar.isNumber) result = currentVar.valueNumber.toString();
         }
       }
+      if (!result || result == 'null') result = '';
       return result;
    }
 
@@ -414,7 +415,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
-      });
+         });
    }
 
    private sortVars(a, b) {
