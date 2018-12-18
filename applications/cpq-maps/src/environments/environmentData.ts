@@ -1,3 +1,8 @@
+export interface LayerIdDefinition {
+  centroid: string;
+  boundary: string;
+}
+
 export interface EnvironmentData {
   production: boolean;
   esri: {
@@ -6,13 +11,8 @@ export interface EnvironmentData {
     password: string;
   };
   layerIds: {
-    zip: {
-      centroid: string;
-      boundary: string;
-    };
-    atz: {
-      centroid: string;
-      boundary: string;
-    }
+    zip: LayerIdDefinition;
+    atz: LayerIdDefinition;
+    wrap: LayerIdDefinition;
   };
 }
