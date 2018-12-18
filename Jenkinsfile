@@ -67,7 +67,7 @@
               ssh root@vallomjbs002vm rm -rf /var/www/impower/*
               '''
             sh '''
-              scp -r dist/* root@vallomjbs002vm:/var/www/impower
+              scp -r dist/impower/* root@vallomjbs002vm:/var/www/impower
               '''
           }
         }
