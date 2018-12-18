@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { EsriIdentityService } from '../../services/esri-identity.service';
 import { AuthenticateFailure, AuthenticateSuccess, EsriAuthActionTypes } from './esri.auth.actions';
-import { EsriIdentityService } from '../../services';
 
 @Injectable()
 export class EsriAuthEffects {

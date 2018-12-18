@@ -15,6 +15,10 @@ export const environment: EnvironmentData = {
     atz: {
       boundary: 'dac5cea6976a42ceb3f0498d2c901447',
       centroid: '7bde296c08254ed78460accd00c8af49'
+    },
+    wrap: {
+      boundary: '8dbaa84192c94b5eab3f4e685ba93af7',
+      centroid: undefined
     }
   }
 };

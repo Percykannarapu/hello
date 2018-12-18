@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
-import { AppState, getEsriViewpointState, getMapReady } from '../../../state/esri.selectors';
+import { EsriMapService } from '../../../services/esri-map.service';
+import { AppState, selectors } from '../../../state/esri.selectors';
 import { select, Store } from '@ngrx/store';
-import { InitializeMap } from '../../../state';
-import { EsriUtils, WatchResult } from '../../../core';
-import { EsriMapService } from '../../../services';
+import { InitializeMap } from '../../../state/map/esri.map.actions';
+import { EsriUtils, WatchResult } from '../../../core/esri-utils';
 
 @Component({
   selector: 'val-esri-map',
@@ -28,7 +28,7 @@ export class EsriMapComponent implements OnInit {
   public ngOnInit() {
     this.store.dispatch(new InitializeMap({ domContainer: this.mapViewEl, baseMap: this.baseMap }));
     this.store.pipe(
-      select(getMapReady),
+      select(selectors.getMapReady),
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
@@ -37,7 +37,7 @@ export class EsriMapComponent implements OnInit {
       EsriUtils.setupWatch(this.mapService.mapView, 'updating')
       .pipe(
         filter(result => !result.newValue),
-        withLatestFrom(this.store.pipe(select(getEsriViewpointState))),
+        withLatestFrom(this.store.pipe(select(selectors.getEsriViewpointState))),
         filter(([result, viewpoint]) => this.compareViewpoints(result, viewpoint))
       ).subscribe(result => this.viewChanged.emit(result[0].target));
     });

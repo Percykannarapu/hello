@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { EsriApi } from '../core';
+import { EsriApi } from '../core/esri-api.service';
 
 @Injectable()
 export class EsriGeoprocessorService {

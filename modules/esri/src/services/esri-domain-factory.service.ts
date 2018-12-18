@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
+import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { EsriApi } from '../core';
 
 @Injectable()
 export class EsriDomainFactoryService {

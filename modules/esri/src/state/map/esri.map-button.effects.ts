@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { concatMap, map, mergeMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { MonoTypeOperatorFunction, Observable } from 'rxjs';
-import { EsriLayerService, EsriMapInteractionService, EsriMapService } from '../../services';
+import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected, UnselectMultiPolySelected } from './esri.map-button.actions';
-import { EsriGraphicTypeCodes } from '../../core';
+import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { Action, select, Store } from '@ngrx/store';
-import { AppState, getEsriSketchViewModel } from '../esri.selectors';
+import { AppState, internalSelectors } from '../esri.selectors';
 import { FeaturesSelected, SetPopupVisibility } from './esri.map.actions';
 
 const allButtonTypes = [
@@ -62,14 +62,12 @@ export class EsriMapButtonEffects {
   
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
-              private mapService: EsriMapService,
-              private layerService: EsriLayerService,
               private mapInteractionService: EsriMapInteractionService) {}
 
   resetSketchViewGraphics<T extends Action>() : MonoTypeOperatorFunction<T> {
     return (source$: Observable<T>) : Observable<T> => {
       return source$.pipe(
-        withLatestFrom(this.store$.pipe(select(getEsriSketchViewModel))),
+        withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriSketchViewModel))),
         tap(([action, model]) => this.mapInteractionService.abortSketchModel(model)),
         map(([action]) => action)
       );

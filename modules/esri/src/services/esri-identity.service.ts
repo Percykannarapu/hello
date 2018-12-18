@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { EsriApi } from '../core/esri-api.service';
+import { TokenResponse } from '../core/esri-utils';
 import { EsriAuthenticationParams, EsriAuthenticationToken } from '../configuration';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { EsriApi, TokenResponse } from '../core';
 
 @Injectable()
 export class EsriIdentityService {

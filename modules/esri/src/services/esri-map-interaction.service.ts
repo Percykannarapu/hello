@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { EMPTY, from, Observable } from 'rxjs';
+import { EsriUtils } from '../core/esri-utils';
+import { EsriGraphicTypeCodes } from '../core/esri.enums';
+import { EsriApi } from '../core/esri-api.service';
+import { CreateCompleteEvent } from '../core/esri.models';
+import { EsriState } from '../state/esri.selectors';
 import { EsriMapService } from './esri-map.service';
 import { map } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { EsriState } from '../state';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriQueryService } from './esri-query.service';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
-import { CreateCompleteEvent, EsriApi, EsriGraphicTypeCodes, EsriUtils } from '../core';
 
 @Injectable()
 export class EsriMapInteractionService {

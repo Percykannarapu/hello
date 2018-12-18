@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { SelectedButtonTypeCodes } from '../../../core';
+import { SelectedButtonTypeCodes } from '../../../core/esri.enums';
 
 @Component({
   selector: 'val-esri-toolbar',

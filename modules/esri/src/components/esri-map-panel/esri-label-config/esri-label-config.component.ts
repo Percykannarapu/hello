@@ -1,9 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { SelectItem } from 'primeng/api';
 import { Store, select } from '@ngrx/store';
-import { AppState, getEsriLabelConfiguration } from '../../../state/esri.selectors';
+import { SetLabelConfiguration } from '../../../state/map/esri.map.actions';
+import { AppState, internalSelectors } from '../../../state/esri.selectors';
 import { EsriLabelConfiguration } from '../../../state/map/esri.map.reducer';
-import { SetLabelConfiguration } from '../../../state';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -52,7 +52,7 @@ export class EsriLabelConfigComponent implements OnInit {
 
   ngOnInit() {
     this.store$.pipe(
-      select(getEsriLabelConfiguration),
+      select(internalSelectors.getEsriLabelConfiguration),
       filter(labelConfig => labelConfig != null && labelConfig.enabled != null && labelConfig.font != null && labelConfig.size != null)
     ).subscribe(labelConfig => this.onLabelConfigChanged(labelConfig));
   }

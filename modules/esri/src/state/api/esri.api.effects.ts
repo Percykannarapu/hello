@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { EsriApiActionTypes, InitializeApi, InitializeApiFailure, InitializeApiSuccess } from './esri.api.actions';
+import { Authenticate } from '../auth/esri.auth.actions';
+import { EsriApi } from '../../core/esri-api.service';
+import { EsriApiActionTypes, InitializeApiFailure, InitializeApiSuccess } from './esri.api.actions';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { from, of } from 'rxjs';
-import { Authenticate } from '..';
-import { EsriApi } from '../../core';
 import { EsriConfigOptions, EsriLoaderToken } from '../../configuration';
 
 @Injectable()

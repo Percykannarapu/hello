@@ -1,6 +1,7 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
-import { ImpGeofootprintGeoActionsAffectingParent, ImpGeofootprintGeoActionTypes, ImpGeofootprintLocationActionsAffectingChildren, ImpGeofootprintLocationActionTypes } from '..';
 import { ImpGeofootprintTradeAreaState } from '../../models/imp-geofootprint-trade-area-state';
+import { ImpGeofootprintGeoActionsAffectingParent, ImpGeofootprintGeoActionTypes } from '../geo/imp-geofootprint-geo.actions';
+import { ImpGeofootprintLocationActionsAffectingChildren, ImpGeofootprintLocationActionTypes } from '../location/imp-geofootprint-location.actions';
 import { EntityCreateSuccessful, EntityLoadSuccessful, PersistentActionTypes } from '../persistent.actions';
 import { addChildIds, clearChildIds, deleteChildIds, deleteChildrenByParentId } from '../utils';
 import { ImpGeofootprintTradeAreaActions, ImpGeofootprintTradeAreaActionTypes } from './imp-geofootprint-trade-area.actions';
