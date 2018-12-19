@@ -1,11 +1,11 @@
 import { Action } from '@ngrx/store';
 
 export enum MessagingActionTypes {
-  ErrorNotification = '[Messaging] Error Notification',
-  WarningNotification = '[Messaging] Warning Notification',
-  InfoNotification = '[Messaging] Info Notification',
-  SuccessNotification = '[Messaging] Success Notification',
-  ClearAllNotifications = '[Messaging] Clear All Notifications',
+  ErrorNotification = '[Messaging - Notification] Show Error',
+  WarningNotification = '[Messaging - Notification] Show Warning',
+  InfoNotification = '[Messaging - Notification] Show Info',
+  SuccessNotification = '[Messaging - Notification] Show Success',
+  ClearAllNotifications = '[Messaging - Notification] Clear All',
 }
 
 abstract class NotificationBase implements Action {

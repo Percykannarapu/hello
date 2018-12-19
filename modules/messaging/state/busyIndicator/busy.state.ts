@@ -13,8 +13,8 @@ const initialState: BusyState = {
 };
 
 enum BusyStateActionTypes {
-  StartBusyIndicator = '[Busy Messaging] Start Busy Indicator',
-  StopBusyIndicator = '[Busy Messaging] Stop Busy Indicator',
+  StartBusyIndicator = '[Messaging - Busy] Start Indicator',
+  StopBusyIndicator = '[Messaging - Busy] Stop Indicator',
 }
 
 export class StartBusyIndicator implements Action {

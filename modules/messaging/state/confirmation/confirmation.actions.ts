@@ -1,10 +1,10 @@
 import { Action } from '@ngrx/store';
 
 export enum ConfirmationActionTypes {
-  ShowConfirmation = '[Confirmation Messaging] Show Confirmation',
-  AcceptConfirmation = '[Confirmation Messaging] Accept Confirmation',
-  RejectConfirmation = '[Confirmation Messaging] Reject Confirmation',
-  HideConfirmation = '[Confirmation Messaging] Hide Confirmation',
+  ShowConfirmation = '[Messaging - Confirmation] Show Dialog',
+  AcceptConfirmation = '[Messaging - Confirmation] Accept',
+  RejectConfirmation = '[Messaging - Confirmation] Reject',
+  HideConfirmation = '[Messaging - Confirmation] Hide Dialog',
 }
 
 export interface ConfirmationPayload {
