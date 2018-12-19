@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { HideConfirmation, AcceptConfirmation, selectors, RejectConfirmation } from '../../../messaging';
+import { HideConfirmation, AcceptConfirmation, selectors, RejectConfirmation } from '@val/messaging';
 import { map } from 'rxjs/operators';
 
 @Component({

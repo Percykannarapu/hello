@@ -18,7 +18,7 @@ import { Store } from '@ngrx/store';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { EsriMapService } from '@val/esri';
 
 @Component({

@@ -14,7 +14,7 @@ import { TargetAudienceService } from '../../services/target-audience.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
-import { ErrorNotification, StopBusyIndicator } from '../../messaging';
+import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {

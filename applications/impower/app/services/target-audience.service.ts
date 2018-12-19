@@ -13,7 +13,7 @@ import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { filterArray } from '@val/common';
 import { EnableShading } from '@val/esri';

@@ -3,7 +3,7 @@ import { AppConfig } from '../app.config';
 import { LoggingService, LogLevels } from '../val-modules/common/services/logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, InfoNotification, WarningNotification } from '../messaging';
+import { ErrorNotification, InfoNotification, WarningNotification } from '@val/messaging';
 
 @Injectable({
   providedIn: 'root'

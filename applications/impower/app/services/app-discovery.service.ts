@@ -10,7 +10,7 @@ import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification } from '../messaging';
+import { ErrorNotification } from '@val/messaging';
 import { filterByFields, mapArray, mapBy } from '@val/common';
 
 export class RadLookupUIModel extends ImpRadLookup {

@@ -7,7 +7,7 @@ import { User } from '../../models/User';
 import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 
 @Component({
   selector: 'val-login',

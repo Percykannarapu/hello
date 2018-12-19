@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { SetSelectedLayer } from '@val/esri';
 import { of } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { ErrorNotification } from '../messaging';
+import { ErrorNotification } from '@val/messaging';
 import { AppActionTypes, ChangeAnalysisLevel } from './app.actions';
 import { AppStateService } from '../services/app-state.service';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';

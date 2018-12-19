@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { WarningNotification } from '../../../messaging';
+import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
 

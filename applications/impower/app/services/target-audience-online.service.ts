@@ -14,7 +14,7 @@ import { AppLoggingService } from './app-logging.service';
 import { RestResponse } from '../models/RestResponse';
 import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
-import { WarningNotification } from '../messaging';
+import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { chunkArray, groupBy, simpleFlatten } from '@val/common';
 

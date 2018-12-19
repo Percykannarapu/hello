@@ -4,7 +4,7 @@ import * as xlsx from 'xlsx';
 import { TargetAudienceCustomService } from '../../../services/target-audience-custom.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 
 @Component({
   selector: 'val-custom-audience',

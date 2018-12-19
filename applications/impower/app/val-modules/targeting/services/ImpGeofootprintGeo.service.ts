@@ -22,7 +22,7 @@ import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification } from '../../../messaging';
+import { ErrorNotification } from '@val/messaging';
 import { groupBy, simpleFlatten } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';

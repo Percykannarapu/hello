@@ -24,7 +24,7 @@ import { AppTradeAreaService } from './app-trade-area.service';
 import { filter } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',

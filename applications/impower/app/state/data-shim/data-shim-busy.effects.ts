@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { DataShimActionTypes, ProjectLoad } from './data-shim.actions';
 import { filter, map } from 'rxjs/operators';

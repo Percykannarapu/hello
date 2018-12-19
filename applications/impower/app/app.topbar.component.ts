@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from './services/user.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from './state/app.interfaces';
-import { ClearAllNotifications } from './messaging';
+import { ClearAllNotifications } from '@val/messaging';
 @Component({
     selector: 'val-app-topbar',
     template: `

@@ -14,7 +14,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { AppStateService } from '../../services/app-state.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 

@@ -17,6 +17,7 @@
     "paths": {
       "@val/common": ["./modules/common"],
       "@val/esri": ["./modules/esri"],
+      "@val/messaging": ["./modules/messaging"],
       "@impower/*": ["./applications/impower"]
     }
   },

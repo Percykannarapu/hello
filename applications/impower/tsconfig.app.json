@@ -15,7 +15,8 @@
     "module": "es2015",
     "paths": {
       "@val/esri": ["../../modules/esri"],
-      "@val/common": ["../../modules/common"]
+      "@val/common": ["../../modules/common"],
+      "@val/messaging": ["../../modules/messaging"]
     }
   },
   "exclude": [

@@ -13,7 +13,7 @@ import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums'
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, SuccessNotification } from '../messaging';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 
 const audienceUpload: Parser<CustomAudienceData> = {

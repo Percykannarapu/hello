@@ -1,8 +1,8 @@
 import { busyIndicatorMessage, busySlice, confirmationSlice, showBusyIndicator } from './state/messaging.selectors';
 
-export { NotificationProviderToken, NotificationProvider } from './core/notification-provider.interface';
+export { NotificationProvider } from './core/notification-provider.interface';
 export { MessagingActionTypes, ErrorNotification, WarningNotification, InfoNotification, SuccessNotification, ClearAllNotifications } from './state/messaging.actions';
-export { ShowConfirmation, AcceptConfirmation, RejectConfirmation, HideConfirmation } from './state/confirmation/confirmation.actions';
+export { ConfirmationPayload, ShowConfirmation, AcceptConfirmation, RejectConfirmation, HideConfirmation } from './state/confirmation/confirmation.actions';
 export { StartBusyIndicator, StopBusyIndicator } from './state/busyIndicator/busy.state';
 
 export const selectors = {
@@ -11,3 +11,5 @@ export const selectors = {
   showBusyIndicator,
   busyIndicatorMessage
 };
+
+export { MessagingModule } from './messaging.module';

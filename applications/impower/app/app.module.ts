@@ -1,9 +1,10 @@
-import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule, HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { MessagingModule } from '@val/messaging';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
 import {
@@ -140,8 +141,6 @@ import { TableFilterNumericComponent } from './components/common/table-filter-nu
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { StateModule } from './state/state.module';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
-import { MessagingModule } from './messaging/messaging.module';
-import { NotificationProviderToken } from './messaging';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
@@ -222,7 +221,7 @@ import { EnvironmentData } from '../environments/environment';
             referer: window.location.origin
           }
         }),
-        MessagingModule,
+        MessagingModule.forRoot(AppMessagingService),
         ImpowerDatastoreModule
     ],
     declarations: [
@@ -287,9 +286,7 @@ import { EnvironmentData } from '../environments/environment';
       AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
       AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
-      AppMapService, ValMetricsService, ValAudienceTradeareaService,
-      // for messaging module
-      { provide: NotificationProviderToken, useClass: AppMessagingService }
+      AppMapService, ValMetricsService, ValAudienceTradeareaService
     ],
     bootstrap: [AppComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]

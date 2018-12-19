@@ -3,7 +3,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { MenuItem } from 'primeng/primeng';
 import { AppComponent } from './app.component';
 import { Store } from '@ngrx/store';
-import { ShowConfirmation } from './messaging';
+import { ShowConfirmation, ConfirmationPayload } from '@val/messaging';
 import {
   DiscardAndCreateNew,
   ExportApioNationalData,
@@ -13,7 +13,6 @@ import {
   OpenExistingProjectDialog,
   SaveAndCreateNew,
   SaveAndReloadProject } from './state/menu/menu.actions';
-import { ConfirmationPayload } from './messaging/state/confirmation/confirmation.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from './val-modules/targeting/targeting.enums';
 import { LocalAppState } from './state/app.interfaces';
 

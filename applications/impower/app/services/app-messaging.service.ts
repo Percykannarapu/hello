@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { NotificationProvider } from '../messaging';
+import { NotificationProvider } from '@val/messaging';
 
 @Injectable()
 export class AppMessagingService implements NotificationProvider {

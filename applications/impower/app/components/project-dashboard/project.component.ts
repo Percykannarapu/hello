@@ -1,22 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { SelectItem } from 'primeng/primeng';
-import { RestDataService } from '../../val-modules/common/services/restdata.service';
-import { UserService } from '../../services/user.service';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { AppLocationService } from '../../services/app-location.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { Observable, forkJoin } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
-import { AppStateService } from '../../services/app-state.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
 import { select, Store } from '@ngrx/store';
+import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
+import { SelectItem } from 'primeng/primeng';
+import { forkJoin, Observable } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
+import { AppLocationService } from '../../services/app-location.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
+import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { ShowConfirmation } from '../../messaging';
+import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
 import { openExistingDialogFlag } from '../../state/menu/menu.reducer';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ConfirmationPayload } from '../../messaging/state/confirmation/confirmation.actions';
-import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
+import { RestDataService } from '../../val-modules/common/services/restdata.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     selector: 'val-project',

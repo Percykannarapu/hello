@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
-import { ErrorNotification } from '../messaging';
+import { ErrorNotification } from '@val/messaging';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data

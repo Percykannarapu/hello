@@ -20,7 +20,7 @@ import { AppStateService, Season } from './app-state.service';
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 

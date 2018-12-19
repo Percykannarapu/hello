@@ -12,7 +12,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
-import { ErrorNotification, SuccessNotification } from '../messaging';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
 
 @Injectable()
 export class AppGeocodingService {

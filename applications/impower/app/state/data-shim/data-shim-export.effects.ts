@@ -4,7 +4,7 @@ import { AppExportService } from '../../services/app-export.service';
 import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint, ExportLocations } from './data-shim.actions';
 import { catchError, filter, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { ErrorNotification, MessagingActionTypes } from '../../messaging';
+import { ErrorNotification, MessagingActionTypes } from '@val/messaging';
 import { toPayload } from '@val/common';
 
 @Injectable({ providedIn: 'root' })

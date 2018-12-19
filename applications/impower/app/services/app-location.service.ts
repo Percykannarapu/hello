@@ -19,7 +19,7 @@ import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.e
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '../messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { toUniversalCoordinates } from '../models/coordinates';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';

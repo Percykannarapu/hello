@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { DataShimActionTypes, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
 import { filter, map } from 'rxjs/operators';
-import { ErrorNotification, MessagingActionTypes, SuccessNotification } from '../../messaging';
+import { ErrorNotification, MessagingActionTypes, SuccessNotification } from '@val/messaging';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimNotificationEffects {

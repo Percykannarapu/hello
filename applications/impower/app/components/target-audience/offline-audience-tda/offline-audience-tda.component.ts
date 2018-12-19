@@ -8,7 +8,7 @@ import { TargetAudienceService } from '../../../services/target-audience.service
 import { AppStateService } from '../../../services/app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification } from '../../../messaging';
+import { ErrorNotification } from '@val/messaging';
 
 @Component({
   selector: 'val-offline-audience-tda',

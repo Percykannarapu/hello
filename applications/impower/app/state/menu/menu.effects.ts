@@ -6,7 +6,7 @@ import * as fromDataShims from '../data-shim/data-shim.actions';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
-import { ClearAllNotifications } from '../../messaging';
+import { ClearAllNotifications } from '@val/messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 
 @Injectable({

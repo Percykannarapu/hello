@@ -20,7 +20,7 @@ import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.serv
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { Action, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification, SuccessNotification } from '../../../messaging';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { simpleFlatten } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';

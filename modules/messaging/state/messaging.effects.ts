@@ -1,9 +1,9 @@
-import { Actions, Effect, ofType } from '@ngrx/effects';
-import { MessagingActionTypes, ErrorNotification, SuccessNotification, WarningNotification, InfoNotification } from './messaging.actions';
-import { tap } from 'rxjs/operators';
 import { Inject, Injectable } from '@angular/core';
-import { NotificationProvider, NotificationProviderToken } from '..';
+import { Actions, Effect, ofType } from '@ngrx/effects';
 import { toPayload } from '@val/common';
+import { tap } from 'rxjs/operators';
+import { NotificationProvider, NotificationProviderToken } from '../core/notification-provider.interface';
+import { ErrorNotification, InfoNotification, MessagingActionTypes, SuccessNotification, WarningNotification } from './messaging.actions';
 
 @Injectable()
 export class MessagingEffects {

@@ -6,7 +6,7 @@ import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 import { LocalAppState } from './state/app.interfaces';
 import { select, Store } from '@ngrx/store';
-import { selectors } from './messaging';
+import { selectors } from '@val/messaging';
 import { CreateNewProject } from './state/data-shim/data-shim.actions';
 
 enum MenuOrientation {
