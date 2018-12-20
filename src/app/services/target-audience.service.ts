@@ -203,7 +203,7 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.addDbRemove(projectVar);
         this.projectVarService.remove(projectVar);
         let hierarchyVars = this.appStateService.currentProject$.getValue().impProjectVars;
-        hierarchyVars = hierarchyVars.filter(hv => hv.source !== source && hv.varPk.toString() !== audienceIdentifier);
+        hierarchyVars = hierarchyVars.filter(hv => !(hv.source === source && hv.varPk.toString() === audienceIdentifier));
         this.appStateService.currentProject$.getValue().impProjectVars = [];
         this.appStateService.currentProject$.getValue().impProjectVars.push(...hierarchyVars);
       }
