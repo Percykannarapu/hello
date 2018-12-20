@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { Action } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
 import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppConfig } from '../app.config';
@@ -6,7 +8,7 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { CreateUsageMetric } from '../state/usage/usage.actions';
+import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
 import { TargetAudienceService } from './target-audience.service';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 
@@ -25,34 +27,64 @@ export class AppExportService {
               private targetAudienceService: TargetAudienceService,
               private config: AppConfig) { }
 
-  exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : CreateUsageMetric {
-    this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
-    const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
-    const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
-    this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
-    const metricValue = this.impGeofootprintGeoService.get().length;
-    const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
-    return new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue);
+  exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
+    return Observable.create((observer: Subject<Action>) => {
+      try {
+        this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
+        const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
+        const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
+        this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
+        const metricValue = this.impGeofootprintGeoService.get().length;
+        const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
+        observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
+        observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
+    });
   }
 
-  exportLocations(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : CreateUsageMetric {
-    const pluralType = `${siteType}s`;
-    const filename = this.impGeofootprintLocationService.getFileName(currentProject.projectId, pluralType);
-    const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, filename, currentProject);
-    return new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue);
+  exportLocations(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : Observable<CreateUsageMetric> {
+    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+      try {
+        const pluralType = `${siteType}s`;
+        const filename = this.impGeofootprintLocationService.getFileName(currentProject.projectId, pluralType);
+        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, filename, currentProject);
+        observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
+    });
   }
 
-  exportValassisDigital(currentProject: ImpProject) : CreateUsageMetric {
-    this.validateProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
-    const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
-    const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
-    const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
-    const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
-    return new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, metricValue);
+  exportValassisDigital(currentProject: ImpProject) : Observable<CreateUsageMetric> {
+    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+      try {
+        this.validateProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
+        const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
+        const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
+        const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
+        const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
+        observer.next(new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, metricValue));
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
+    });
+
   }
 
-  exportNationalExtract(currentProject: ImpProject) : void {
-    this.targetAudienceService.exportNationalExtract(currentProject.methAnalysis, currentProject.projectId);
+  exportNationalExtract(currentProject: ImpProject) : Observable<void> {
+    return Observable.create((observer: Subject<void>) => {
+      try {
+        this.targetAudienceService.exportNationalExtract(currentProject.methAnalysis, currentProject.projectId);
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
+    });
   }
 
   private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject) : number {
