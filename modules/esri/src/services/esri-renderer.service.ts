@@ -200,13 +200,10 @@ export class EsriRendererService {
         }
       }
       newPairs = newPairs.substring(0, newPairs.length - 1);
-      const arcade = `Console('getting data for geocode: ' + $feature.geocode);
-                      var geoData = {${newPairs}}; 
+      const arcade = `var geoData = {${newPairs}}; 
                       if(hasKey(geoData, $feature.geocode)) {
-                        Console('data found for geocode: ' + $feature.geocode)
                         return geoData[$feature.geocode];
                       }
-                      Console('data not found for geocode: ' + $feature.geocode)
                       return 0;`;
       return arcade;
   }
