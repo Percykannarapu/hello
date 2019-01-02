@@ -95,6 +95,12 @@ export class DataShimEffects {
     map(() => new CreateNewProjectComplete()),
   );
 
+  @Effect({ dispatch: false })
+  loadSuccess$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectLoadSuccess),
+    tap(() => this.appDataShimService.onLoadSuccess())
+  );
+
   private busyKey = 'DataShimBusyIndicator';
 
   constructor(private actions$: Actions,
