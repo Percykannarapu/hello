@@ -161,9 +161,11 @@ export class AppGeoService {
   private updateAttributesFromLayer(geos: ImpGeofootprintGeo[], analysisLevel: string) {
     const queryableGeos = geos.filter(g => g.impGeofootprintGeoAttribs.length < layerAttributes.length); // HACK: This is to detect anyone who hasn't gone through this particular query
     if (queryableGeos.length === 0) return;
+    const key = 'GeoAttributeSelectionKey';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Getting Attributes' }));
     const geocodes = new Set(queryableGeos.map(g => g.geocode));
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const sub = this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, layerAttributes).subscribe(
+    this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, layerAttributes).subscribe(
       graphics => {
         const attributesForUpdate = graphics.map(g => g.attributes);
         this.updateGeoAttributes(attributesForUpdate);
@@ -171,9 +173,10 @@ export class AppGeoService {
       err => {
         console.error(err);
         this.store$.dispatch(new ErrorNotification({ message: 'There was an error during geo selection' }));
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       },
       () => {
-        if (sub) sub.unsubscribe();
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       });
   }
 
