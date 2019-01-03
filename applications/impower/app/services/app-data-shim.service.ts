@@ -33,12 +33,12 @@ export class AppDataShimService {
   load(id: number) : Observable<number> {
     this.targetAudienceService.clearAll();
     this.appStateService.clearUserInterface();
-    return this.appProjectService.load(id).pipe(
-      tap(() => {
-        this.targetAudienceService.applyAudienceSelection();
-        this.appTradeAreaService.zoomToTradeArea();
-      })
-    );
+    return this.appProjectService.load(id);
+  }
+
+  onLoadSuccess() : void {
+    this.targetAudienceService.applyAudienceSelection();
+    this.appTradeAreaService.zoomToTradeArea();
   }
 
   createNew() : number {

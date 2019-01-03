@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
+import { CreateNewEntities, LoadEntitiesFromServer } from '../../impower-datastore/state/persistent/persistent.actions';
 import {
   CreateNewProject,
   CreateNewProjectComplete,
@@ -11,7 +12,7 @@ import {
   ProjectSaveFailure,
   ProjectSaveSuccess
 } from './data-shim.actions';
-import { catchError, concatMap, map, switchMap } from 'rxjs/operators';
+import { catchError, concatMap, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { ClearSelectedGeos } from '@val/esri';
@@ -72,6 +73,12 @@ export class DataShimEffects {
   clearGeos$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoad, DataShimActionTypes.ProjectCreateNew),
     map(() => new ClearSelectedGeos())
+  );
+
+  @Effect({ dispatch: false })
+  loadSuccess$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectLoadSuccess),
+    tap(() => this.appDataShimService.onLoadSuccess())
   );
 
   // These are for the NgRx store
