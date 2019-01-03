@@ -375,7 +375,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           if (currentVar.isNumber) result = currentVar.valueNumber.toString();
         }
       }
-      if (!result || result == 'null') result = '';
       return result;
    }
 
