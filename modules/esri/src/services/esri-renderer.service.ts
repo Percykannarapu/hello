@@ -176,7 +176,7 @@ export class EsriRendererService {
         return false;
       }
       const result = Number.isNaN(Number(data[0].data));
-      return result;
+      return !result;
     }
     return false;
   }
@@ -200,7 +200,11 @@ export class EsriRendererService {
         }
       }
       newPairs = newPairs.substring(0, newPairs.length - 1);
-      const arcade = `var data = {${newPairs}}; return data[$feature.geocode];`;
+      const arcade = `var geoData = {${newPairs}}; 
+                      if(hasKey(geoData, $feature.geocode)) {
+                        return geoData[$feature.geocode];
+                      }
+                      return 0;`;
       return arcade;
   }
 
