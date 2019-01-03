@@ -5,6 +5,7 @@ src/@types
 
 # compiled output
 /dist
+/*dist
 /tmp
 /out-tsc
 
