@@ -287,9 +287,11 @@ export class AppLocationService {
               this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
               this.appTradeAreaService.zoomToTradeArea();
               this.cachedTradeAreas = [];
+              this.appTradeAreaService.tradeareaType = 'distance';
             },
             reject: () => {
               const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
+              this.appTradeAreaService.tradeareaType = '';
               currentLocations.forEach(loc => {
                 loc.radius1 = null;
                 loc.radius2 = null;

@@ -7,6 +7,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { CreateTradeAreaUsageMetric } from '../../../state/usage/targeting-usage.actions';
+import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 
 
 @Component({
@@ -32,13 +33,14 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   constructor(private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private audienceTradeareaService: ValAudienceTradeareaService,
+    private tradeareaService: AppTradeAreaService,
     private fb: FormBuilder) { }
 
   ngOnInit() {
 
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
-
+     
     this.configForm = this.fb.group({
       'minRadius': [null, Validators.required],
       'maxRadius': [null, Validators.required],
@@ -66,7 +68,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       const config = this.audienceTradeareaService.getAudienceTAConfig();
       let currentAnalysis = this.stateService.analysisLevel$.getValue();
       if (currentAnalysis) currentAnalysis = currentAnalysis.toLowerCase();
-      if ( config && config.analysisLevel && config.analysisLevel != currentAnalysis) {
+      if ( config && config.analysisLevel && config.analysisLevel != currentAnalysis && this.tradeareaService.tradeareaType == 'audience') {
         config.analysisLevel = currentAnalysis;
         this.audienceTradeareaService.updateAudienceTAConfig(config);
         this.runAudienceTA.emit(true);
@@ -143,6 +145,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
   public onClickApply() {
     this.runAudienceTA.emit(true);
+    this.tradeareaService.tradeareaType = 'audience';
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
                         ~siteCount=${this.currentLocationsCount}
                         ~minRadius=${this.currentAudienceTAConfig.minRadius}

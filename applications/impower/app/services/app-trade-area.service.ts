@@ -30,6 +30,7 @@ export class AppTradeAreaService {
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
+  public tradeareaType: string = '';
   private analysisChanged: boolean = false;
   private firstOccurenceFlag: number = 0;
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
@@ -117,6 +118,7 @@ export class AppTradeAreaService {
     const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
+    const currentProject = this.stateService.currentProject$.getValue();
     if (newSites.length > 0) {
       let radiusFlag: boolean = false;
       for (let i = 0; i < newSites.length && !radiusFlag; i++){
@@ -126,7 +128,7 @@ export class AppTradeAreaService {
       }
       if (radiusFlag && this.analysisChanged) {
         this.firstOccurenceFlag++;
-        if (this.firstOccurenceFlag > 1) {
+        if ((this.firstOccurenceFlag > 1 && (currentProject.projectId < 0 || !currentProject.projectId)) || (this.firstOccurenceFlag > 0 && currentProject.projectId > 0)) {
           this.applyRadiusTradeAreaOnAnalysisChange(newSites);
         }
         this.analysisChanged = false;
@@ -144,7 +146,7 @@ export class AppTradeAreaService {
       }
       if (radiusFlag && this.analysisChanged) {
         this.firstOccurenceFlag++;
-        if (this.firstOccurenceFlag > 1) {
+        if ((this.firstOccurenceFlag > 1 && (currentProject.projectId < 0 || !currentProject.projectId)) || (this.firstOccurenceFlag > 0 && currentProject.projectId > 0)) {
           this.applyRadiusTradeAreaOnAnalysisChange(newCompetitors);
         }
         this.analysisChanged = false;

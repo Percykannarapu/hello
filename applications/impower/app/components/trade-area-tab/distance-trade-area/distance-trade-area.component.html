@@ -1,39 +1,40 @@
-<form novalidate [formGroup]="radiusForm" (submit)="tradeAreaApply.emit(radiusForm.value)" autocomplete="off">
-  <div class="ui-g-12" formArrayName="tradeAreas">
-    <div class="ui-g-12 ui-g-nopad" *ngFor="let tradeAreaControl of tradeAreaControls; let i = index">
-      <div class="ui-g-12 ui-g-nopad" [formGroupName]="i">
-        <div class="ui-g-4 ui-g-offset-half">
-          <div class="ui-inputgroup">
-            <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" [style]="{'width':'65px', 'float': 'right'}"></p-toggleButton>
-            <input type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
-            <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
-              <i class="fa fa-check"></i>
+<form novalidate [formGroup]="radiusForm" (submit)="distanceSubmitApply(radiusForm.value)" autocomplete="off">
+    <div class="ui-g-12" formArrayName="tradeAreas">
+      <div class="ui-g-12 ui-g-nopad" *ngFor="let tradeAreaControl of tradeAreaControls; let i = index">
+        <div class="ui-g-12 ui-g-nopad" [formGroupName]="i">
+          <div class="ui-g-4 ui-g-offset-half">
+            <div class="ui-inputgroup">
+              <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" [style]="{'width':'65px', 'float': 'right'}"></p-toggleButton>
+              <input type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
+              <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
+                <i class="fa fa-check"></i>
+              </span>
+            </div>
+          </div>
+  
+          <div class="ui-g-7">
+            &nbsp;
+            <span *ngIf="tradeAreaControl.hasError('rangeValid', ['radius'])" style="color:rgb(131,26,10)">
+              {{tradeAreaControl.get('radius').errors['rangeValid']}}
+            </span>
+            <span *ngIf="tradeAreaControl.hasError('duplicateTradeArea', ['radius'])" style="color:rgb(131,26,10)">
+              {{tradeAreaControl.get('radius').errors['duplicateTradeArea']}}
+            </span>
+            <span *ngIf="hasProvidedTradeAreas" style="color:rgb(131,26,10)">
+              Provided in Upload
             </span>
           </div>
         </div>
-
-        <div class="ui-g-7">
-          &nbsp;
-          <span *ngIf="tradeAreaControl.hasError('rangeValid', ['radius'])" style="color:rgb(131,26,10)">
-            {{tradeAreaControl.get('radius').errors['rangeValid']}}
-          </span>
-          <span *ngIf="tradeAreaControl.hasError('duplicateTradeArea', ['radius'])" style="color:rgb(131,26,10)">
-            {{tradeAreaControl.get('radius').errors['duplicateTradeArea']}}
-          </span>
-          <span *ngIf="hasProvidedTradeAreas" style="color:rgb(131,26,10)">
-            Provided in Upload
-          </span>
-        </div>
       </div>
     </div>
-  </div>
-
-  <div class="ui-g-12">
-    <div class="ui-g-6">
-      <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType"></p-selectButton>
+  
+    <div class="ui-g-12">
+      <div class="ui-g-6">
+        <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType"></p-selectButton>
+      </div>
+      <div class="ui-g-6">
+        <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid || hasProvidedTradeAreas"></button>
+      </div>
     </div>
-    <div class="ui-g-6">
-      <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid || hasProvidedTradeAreas"></button>
-    </div>
-  </div>
-</form>
+  </form>
+  

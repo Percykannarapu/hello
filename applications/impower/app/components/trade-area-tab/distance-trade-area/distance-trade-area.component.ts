@@ -4,6 +4,7 @@ import { SelectItem } from 'primeng/primeng';
 import { distinctUntilChanged, pairwise, startWith } from 'rxjs/operators';
 import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
+import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 
 const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
 
@@ -33,7 +34,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
     { label: 'Merge All', value: TradeAreaMergeTypeCodes.MergeAll }
   ];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private tradeareaService: AppTradeAreaService) {}
 
   private static processRadiusChanges(previousRadius: any, newRadius: any, tradeAreaControl: AbstractControl) : void {
     if (previousRadius === newRadius) return;
@@ -96,6 +97,11 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
         mergeType: this.currentMergeType
       });
     }
+  }
+
+  public distanceSubmitApply(formvalues) {
+    this.tradeAreaApply.emit(formvalues);
+    this.tradeareaService.tradeareaType = 'distance';
   }
 
   private isInRange(minValue: number, maxValue: number) : ValidatorFn {
