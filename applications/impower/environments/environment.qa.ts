@@ -27,7 +27,7 @@ export class EnvironmentData {
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
 
   public static esri = {
-    portalUrl:  'https://vallomimpor1vm.val.vlss.local/',
+    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
     userName: 'admin',
     password: 'password'
   };
@@ -69,6 +69,6 @@ export class EnvironmentData {
   };
 
   public static serviceUrls = {
-    homeGeocode: `${EnvironmentData.esri.portalUrl}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`
+    homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`
   };
 }
