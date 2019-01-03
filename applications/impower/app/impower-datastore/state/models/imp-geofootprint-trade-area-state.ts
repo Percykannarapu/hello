@@ -1,4 +1,4 @@
-import { BaseModelState, parseStatus } from './base-model-state';
+import { BaseModelState } from './base-model-state';
 import { ImpGeofootprintTradeAreaPayload } from '../../payload-models/imp-geofootprint-trade-area-payload';
 
 export class ImpGeofootprintTradeAreaState extends BaseModelState {
@@ -23,11 +23,12 @@ export class ImpGeofootprintTradeAreaState extends BaseModelState {
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpGeofootprintTradeAreaPayload>) {
-    super();
-    const baseStatus = { baseStatus: parseStatus(data.baseStatus) };
-    const relationships = {
-      impGeofootprintGeos: (data.impGeofootprintGeos || []).map(g => g.ggId),
-    };
-    Object.assign(this, data, baseStatus, relationships);
+    super(data);
+    if (data != null) {
+      const relationships = {
+        impGeofootprintGeos: (data.impGeofootprintGeos || []).map(g => g.ggId),
+      };
+      Object.assign(this, relationships);
+    }
   }
 }

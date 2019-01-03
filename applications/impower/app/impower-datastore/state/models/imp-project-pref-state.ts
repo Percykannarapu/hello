@@ -1,5 +1,5 @@
 import { ImpProjectPrefPayload } from '../../payload-models/imp-project-pref-payload';
-import { BaseModelState, parseStatus } from './base-model-state';
+import { BaseModelState } from './base-model-state';
 
 export class ImpProjectPrefState extends BaseModelState {
   public projectPrefId:             number;         /// Primary Key
@@ -18,8 +18,6 @@ export class ImpProjectPrefState extends BaseModelState {
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpProjectPrefPayload>) {
-    super();
-    const baseStatus = { baseStatus: parseStatus(data.baseStatus) };
-    Object.assign(this, data, baseStatus);
+    super(data);
   }
 }

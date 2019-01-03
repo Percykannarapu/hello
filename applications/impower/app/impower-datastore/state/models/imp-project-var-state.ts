@@ -1,5 +1,5 @@
 import { ImpProjectVarPayload } from '../../payload-models/imp-project-var-payload';
-import { BaseModelState, parseStatus } from './base-model-state';
+import { BaseModelState } from './base-model-state';
 
 export class ImpProjectVarState extends BaseModelState {
   public pvId:                      number;         /// Primary key, uniquely identifying a project variable aka audience
@@ -26,8 +26,6 @@ export class ImpProjectVarState extends BaseModelState {
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpProjectVarPayload>) {
-    super();
-    const baseStatus = { baseStatus: parseStatus(data.baseStatus) };
-    Object.assign(this, data, baseStatus);
+    super(data);
   }
 }

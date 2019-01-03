@@ -1,4 +1,4 @@
-import { FieldContentTypeCodes } from '../../../val-modules/targeting/targeting.enums';
+import { FieldContentTypeCodes } from './impower-model.enums';
 
 export class TransientVarDefinition {
   pk: number;
