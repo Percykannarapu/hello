@@ -276,30 +276,34 @@ export class AppLocationService {
         const responseGeocodes = [];
         atzTab14Response = response;
         console.log('second fuse service::::', response);
-        pcrTab14Response.payload.forEach(row => {
-         // filteredLoc = pointPolyNotRequiredLocations.filter(loc => loc.locZip.substring(0, 5) + loc.carrierRoute === row['geocode']);
-         filteredLoc = locDicttemp[row['geocode']];
-          const homeAtz = row['score'] != null ? row['ZIP'] + row['score'] : null;
-          attributeList.push({
-            'homeZip'     : `${row['ZIP']}`,
-            'homeCounty'  : `${row['homeCounty']}`,
-            'homeDma'     : `${row['homeDma']}`,
-            'homePcr'     : `${row['geocode']}`,
-            'homeAtz'     :  homeAtz,
-            'siteNumber'  :  filteredLoc.locationNumber 
-          });
-          responseGeocodes.push(row['geocode'].substring(0, 5));
-        });
+        if (pcrTab14Response != null && pcrTab14Response.payload.length > 0){
+          pcrTab14Response.payload.forEach(row => {
+            // filteredLoc = pointPolyNotRequiredLocations.filter(loc => loc.locZip.substring(0, 5) + loc.carrierRoute === row['geocode']);
+            filteredLoc = locDicttemp[row['geocode']];
+             const homeAtz = row['score'] != null ? row['ZIP'] + row['score'] : null;
+             attributeList.push({
+               'homeZip'     : `${row['ZIP']}`,
+               'homeCounty'  : `${row['homeCounty']}`,
+               'homeDma'     : `${row['homeDma']}`,
+               'homePcr'     : `${row['geocode']}`,
+               'homeAtz'     :  homeAtz,
+               'siteNumber'  :  filteredLoc.locationNumber 
+             });
+             responseGeocodes.push(row['geocode'].substring(0, 5));
+           });
+        }
+        
         const locNotFound = pointPolyNotRequiredLocations.filter(loc => responseGeocodes.indexOf(loc.locZip.substring(0, 5)) < 0);
         console.log('locNotFound:::::', locNotFound);
         console.log('attributeList:::::', attributeList);
         pointPolyLocations.push(...locNotFound);
         //const filteredattributeList = attributeList.filter(attribute => attribute['homeAtz'] == null);
         const atzTab14ResponseDict = {};
-        atzTab14Response.payload.forEach(row => {
-            atzTab14ResponseDict[row['geocode']] = row;
-        });
+        
         if (atzTab14Response != null && atzTab14Response.payload.length > 0){
+          atzTab14Response.payload.forEach(row => {
+            atzTab14ResponseDict[row['geocode']] = row;
+          });
           attributeList.forEach(filterAtribute => {
             if (filterAtribute['homeAtz'] == null && filterAtribute['homeZip'] in atzTab14ResponseDict) {
               console.log('atzTab14ResponseDict filtered:::', atzTab14ResponseDict[filterAtribute['homeZip']]);
@@ -355,8 +359,9 @@ export class AppLocationService {
               this.validateHomeGeoAttributes(resultAttributes, pointPolyLocations).subscribe(resp => {
                 console.log('resp subscribe::::', resp);
               }, null, () => {
-                console.log('oncomplete::');
-                resultAttributes.push(...attributeList);
+              resultAttributes.push(...attributeList);
+              console.log('oncomplete create DigitalAtz attributes::');
+              //this.determineDtzHomegeos(resultAttributes, locations); 
               this.logger.info('Home Geo service call complete');
               this.logger.debug('Home Geo service complete results', resultAttributes);
               this.processHomeGeoAttributes(resultAttributes, locations);
@@ -395,16 +400,28 @@ export class AppLocationService {
         );
       }
       else{
+        //this.determineDtzHomegeos(attributeList, pointPolyNotRequiredLocations);
         this.processHomeGeoAttributes(attributeList, pointPolyNotRequiredLocations);
         this.flagHomeGeos(pointPolyNotRequiredLocations, analysisLevel);
       }
     });
   }
 
+  private determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]){
+    const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
+    console.log('attributesByHomeZip:::', attributesByHomeZip);
+    
+    const zipGeocodeList = Array.from(attributesByHomeZip.keys());
+    return this.determineHomeGeos(zipGeocodeList, null, 'VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ').pipe(
+      map(zipResponse => {
+
+      })
+    );
+
+  }
+
   private validateHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
-    const attributesByhomePcr: Map<any, any> = mapBy(attributes, 'homePcr');
-    const attributesByhomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
     console.log('attributesBySiteNumber:::', attributesBySiteNumber);
     //const returnAttibutes = [];
     //validate PCR TAB14
