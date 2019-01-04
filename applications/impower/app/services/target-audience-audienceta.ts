@@ -213,7 +213,7 @@ export class TargetAudienceAudienceTA {
                         this.varPkCache.set(geoVarKey, varPk);
                     }
                     const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
-                    let geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
+                    let geoVar: ImpGeofootprintVar;
                     if (this.geoVarMap.get(geoVarKey) === 'string') {
                         geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'string', geoVarKey, geoResponse.categoryName, geoResponse[this.geoVarFieldMap.get(geoVarKey)]);
                     } else {
@@ -254,12 +254,15 @@ export class TargetAudienceAudienceTA {
     /**
    * Parse the response from Fuse and build the array of audienceTradeareaResponses
    * This method will also create the renderer data that is required for map shading
-   * @param restResponse The response from Fuse returned from the trade area service
    */
-    private parseResponse(restResponse: RestResponse) : Map<string, Map<number, AudienceTradeareaResponse>> {
+    private parseResponse(restResponse: RestResponse, alternateCategory: string) : Map<string, Map<number, AudienceTradeareaResponse>> {
         const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
         let count: number = 0;
-        for (const taResponse of restResponse.payload.rows) {
+        const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
+        for (const taResponse of rows) {
+            if (taResponse.categoryName == null) {
+              taResponse.categoryName = alternateCategory;
+            }
             if (taResponses.has(taResponse.locationName)) {
                 taResponses.get(taResponse.locationName).set(count, taResponse);
                 count++;
@@ -279,6 +282,7 @@ export class TargetAudienceAudienceTA {
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
         if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
         const payload = audience.audienceTAConfig;
+        const localAudienceName = payload.audienceName;
         delete payload.includeMustCover;
         delete payload.audienceName;
         if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
@@ -296,7 +300,7 @@ export class TargetAudienceAudienceTA {
         console.log('Preparing to send Audience TA payload to Fuse', payload);
         const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
         return dataObs.pipe(
-            map(res => this.createGeofootprintVars(this.parseResponse(res)))
+            map(res => this.createGeofootprintVars(this.parseResponse(res, localAudienceName)))
         );
     }
 }

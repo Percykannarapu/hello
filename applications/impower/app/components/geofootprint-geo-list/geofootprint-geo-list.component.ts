@@ -390,12 +390,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
-      if (gv.impGeofootprintTradeArea != null && 
-          TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
+      if (gv.impGeofootprintTradeArea != null && TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
          if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
-         return gv.customVarExprDisplay;
+            return gv.customVarExprDisplay;
          } else {
-         return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
+            return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
          }
       } else {
          return gv.customVarExprDisplay;
