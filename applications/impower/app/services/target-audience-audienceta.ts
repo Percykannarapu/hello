@@ -9,10 +9,11 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
 import { DAOBaseStatus } from '../val-modules/api/models/BaseModel';
@@ -65,7 +66,7 @@ export class TargetAudienceAudienceTA {
     private geoVarFieldMap: Map<string, string> = new Map<string, string>();
 
     constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-        private appStateService: AppStateService, private varService: ImpGeofootprintVarService,
+        private appStateService: AppStateService, private varService: ImpGeofootprintVarService, private factory: ImpDomainFactoryService,
         private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient) {
         this.geoVarMap.set('Index Value', 'number');
         this.geoVarMap.set('Combined Index', 'number');
@@ -239,39 +240,15 @@ export class TargetAudienceAudienceTA {
    * @param numberType If the number is a vlaue the number type, index or percent
    */
     private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
-        const newVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-        newVar.varPk = pk;
-        newVar.gvId = this.varService.getNextStoreId();
-        newVar.geocode = geocode;
-        newVar.isActive = true;
-        newVar.customVarExprDisplay = fieldDisplay;
-        newVar.fieldname = audienceName;
-        newVar.isCustom = false;
-        newVar.dirty = true;
-        newVar.baseStatus = DAOBaseStatus.INSERT;
-        if (type === 'string') {
-            newVar.valueString = valueString;
-            newVar.isString = true;
-            newVar.isNumber = false;
-            newVar.fieldconte = 'CHAR';
-        } else {
-            newVar.valueNumber = valueNumber;
-            newVar.isNumber = true;
-            newVar.isString = false;
-            if (numberType === 'index') {
-                newVar.fieldconte = 'INDEX';
-            } else {
-                newVar.fieldconte = 'PERCENT';
-            }
-        }
+        const value = valueString == null ? valueNumber : valueString;
+        const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
+        const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
         for (const audience of this.audienceService.getAudiences()) {
-            if (newVar.fieldname != null && newVar.fieldname.replace(/\s/g, '') + newVar.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
-                newVar.varPosition = audience.audienceCounter;
+            if (result.fieldname != null && result.fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+              result.varPosition = audience.audienceCounter;
             }
         }
-        newVar.impGeofootprintTradeArea = currentTradeArea;
-        currentTradeArea.impGeofootprintVars.push(newVar);
-        return newVar;
+        return result;
     }
 
     /**

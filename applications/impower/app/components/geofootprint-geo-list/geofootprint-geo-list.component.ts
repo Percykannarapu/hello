@@ -1,7 +1,8 @@
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, publishReplay, refCount, tap } from 'rxjs/operators';
+import { distinctArray, mapArray, filterArray } from '../../val-modules/common/common.rxjs';
+import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
+import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
+import { map, tap, refCount, publishReplay } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
@@ -594,10 +595,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   geoSites.get(geo.geocode).add(geo.impGeofootprintLocation.locationNumber);
          }
 
-         if (gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null)
-            gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
-         else
-            ' ';
+         if (gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null) {
+           gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
+         }
 
          // Add attributes the grid is interested in and massage them where needed
          if (attributeMap[geo.geocode] != null)
@@ -652,7 +652,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
             .forEach(geovar => {
             if (geovar.isString)                  
-                  gridGeo[geovar.varPk.toString()] = geovar.valueString != 'null' ? geovar.valueString : '';            
+                  gridGeo[geovar.varPk.toString()] = geovar.valueString !== "null" ? geovar.valueString : '';
             else
             {
                // Format them
@@ -698,7 +698,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   matchOper = 'between';
                   break;
               }
-              
+
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
                                                 , fieldname: geovar.fieldname
@@ -799,7 +799,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                else
                   col['sortOrder'] = -1;
             }
-         } 
+         }
          else
             col['sortOrder'] = 0;
       });
@@ -1038,7 +1038,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             }
          }
          else
-            console.log('No geos to set');            
+            console.log('No geos to set');
    }
 
    onClickDedupeToggle(event: any, geoGrid)
@@ -1180,7 +1180,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          this.gridTotals.set('distance', {...this.gridTotals.get('distance')
                                          , avg: this.gridTotals.get('distance').tot / numRows});
       }
-      catch (e) 
+      catch (e)
       {
          console.error('EXCEPTION: ', e);
          console.error('this._geoGrid', this._geoGrid);
