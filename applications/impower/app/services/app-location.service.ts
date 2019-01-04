@@ -246,6 +246,8 @@ export class AppLocationService {
       locDicttemp[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
     });
     const pcrGeocodeList = [];
+    const key = 'HomeGeoCalcKey';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
     pointPolyNotRequiredLocations.forEach(loc => pcrGeocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
     this.determineHomeGeos(pcrGeocodeList, analysisLevel, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
       map(res => {
@@ -305,7 +307,9 @@ export class AppLocationService {
           });
         }
       })
-    ).subscribe(null, null, () => {
+    ).subscribe(null, 
+      err => this.store$.dispatch(new StopBusyIndicator({ key })), 
+      () => {
       let objId = 0;
       if (pointPolyLocations != null && pointPolyLocations.length > 0){
         const partitionedLocations = this.partitionLocations(pointPolyLocations);
@@ -328,9 +332,10 @@ export class AppLocationService {
         const payloads = partitionedJobData.map(jobData => ({
           in_features: this.esriLayerService.createDataSet(jobData, 'parentId')
         })).filter(p => p.in_features != null);
-        const key = 'HomeGeoCalcKey';
+        
         const resultAttributes: any[] = [];
-        this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
+        //const key = 'HomeGeoCalcKey';
+        //this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
         this.logger.info('Home Geo service call initiated.');
         const observables = payloads.map(payload => this.esriGeoprocessingService.processJob<__esri.FeatureSet>(this.config.serviceUrls.homeGeocode, payload));
         merge(...observables, 4).subscribe(
@@ -391,9 +396,13 @@ export class AppLocationService {
       else{
         this.logger.info('====process DigitalAtz attributes=====');
         this.determineDtzHomegeos(attributeList, pointPolyNotRequiredLocations).
-        subscribe(null, null, () => {
+        subscribe(null, 
+        err => this.store$.dispatch(new StopBusyIndicator({ key })), 
+        () => {
           this.processHomeGeoAttributes(attributeList, pointPolyNotRequiredLocations);
           this.flagHomeGeos(pointPolyNotRequiredLocations, analysisLevel);
+          this.store$.dispatch(new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }));
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
       }
     });
