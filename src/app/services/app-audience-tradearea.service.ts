@@ -238,7 +238,7 @@ export class ValAudienceTradeareaService {
     if (this.fetchData) {
       this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
-          this.parseResponse(response);
+          this.parseResponse(response, audienceTAConfig.audienceName);
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', this.audienceTAConfig);
             this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
@@ -435,13 +435,15 @@ export class ValAudienceTradeareaService {
   /**
    * Parse the response from Fuse and build the array of audienceTradeareaResponses
    * This method will also create the renderer data that is required for map shading
-   * @param restResponse The response from Fuse returned from the trade area service
    */
-  private parseResponse(restResponse: RestResponse) {
+  private parseResponse(restResponse: RestResponse, alternateCategoryName: string) {
     this.taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
     let rendererData: Array<any> = new Array<any>();
     let count: number = 0;
     for (const taResponse of restResponse.payload.rows) {
+      if (taResponse.categoryName == null) {
+        taResponse.categoryName = alternateCategoryName;
+      }
       if (this.taResponses.has(taResponse.locationName)) {
         this.taResponses.get(taResponse.locationName).set(count, taResponse);
         count++;
