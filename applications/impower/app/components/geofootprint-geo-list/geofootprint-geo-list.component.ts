@@ -1,5 +1,4 @@
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { distinctArray, mapArray, filterArray } from '../../val-modules/common/common.rxjs';
 import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
 import { map, tap, refCount, publishReplay } from 'rxjs/operators';
@@ -451,12 +450,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    debugLogGridTotals() {
-      console.debug('total distance:             ', this.gridTotals.get('distance'));
-      console.debug('total hhc:                  ', this.gridTotals.get('hhc'));
-      console.debug('total allocated hhc:        ', this.gridTotals.get('allocHhc'));
-      console.debug('total investment:           ', this.gridTotals.get('investment'));
-      console.debug('total allocated investment: ', this.gridTotals.get('allocInvestment'));
-      console.debug('total cpm:                  ', this.gridTotals.get('cpm'));
+      console.log('total distance:             ', this.gridTotals.get('distance'));
+      console.log('total hhc:                  ', this.gridTotals.get('hhc'));
+      console.log('total allocated hhc:        ', this.gridTotals.get('allocHhc'));
+      console.log('total investment:           ', this.gridTotals.get('investment'));
+      console.log('total allocated investment: ', this.gridTotals.get('allocInvestment'));
+      console.log('total cpm:                  ', this.gridTotals.get('cpm'));
    }
 
    /**
@@ -652,7 +651,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
             .forEach(geovar => {
             if (geovar.isString)                  
-                  gridGeo[geovar.varPk.toString()] = geovar.valueString !== "null" ? geovar.valueString : '';
+                  gridGeo[geovar.varPk.toString()] = geovar.valueString !== 'null' ? geovar.valueString : '';
             else
             {
                // Format them
@@ -887,7 +886,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       if (selected) {
           const selectionIndex = this._geoGrid.findIndexInSelection(rowData);
-          this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
+          this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i !== selectionIndex);
           this._geoGrid.selectionChange.emit(this._geoGrid.selection);
 //        this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
           if (dataKeyValue) {
