@@ -282,7 +282,7 @@ export class TargetAudienceAudienceTA {
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
         if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
         const payload = audience.audienceTAConfig;
-        const localAudienceName = payload.audienceName;
+        const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
         delete payload.includeMustCover;
         delete payload.audienceName;
         if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
