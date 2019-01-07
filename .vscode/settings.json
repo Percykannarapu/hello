@@ -1,2 +1,12 @@
 {
+   "editor.tabSize": 3,
+   "workbench.colorCustomizations": {
+      "[Darktooth]": {
+          "statusBar.background": "#202020",
+          "editorIndentGuide.activeBackground": "#ffd000",
+          "editorIndentGuide.background": "#403a37",
+          "editorBracketMatch.background": "#0074aa",
+          "editorBracketMatch.border": "#000000",
+      }
+  }
 }

@@ -22,7 +22,8 @@ import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification } from '@val/messaging';
+import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
+import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
 import { groupBy, simpleFlatten } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
@@ -33,6 +34,16 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
    custom
 }
 
+interface UploadMustCoverData {
+   geocode: string;
+}
+ 
+const mustCoverUpload: Parser<UploadMustCoverData> = {
+   columnParsers: [
+      { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
+   ]
+};
+ 
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
@@ -41,6 +52,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
    private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
    private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
+
+   public  currentMustCoverFileName: string;
+   public  mustCovers: string[] = [];
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
@@ -140,6 +154,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          return EMPTY;
    }
 
+   private reportError(title: string, message: string, isError: Boolean = true) : void {
+      if (isError)
+         this.store$.dispatch(new ErrorNotification({ message, notificationTitle: title}));
+      else
+         this.store$.dispatch(new WarningNotification({ message, notificationTitle: title}));
+   }
+  
    // -----------------------------------------------------------
    // EXPORT COLUMN HANDLER METHODS
    // -----------------------------------------------------------
@@ -520,4 +541,60 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
       return exportColumns;
    }
+
+   // -----------------------------------------------------------
+   // MUST COVER METHODS
+   // -----------------------------------------------------------
+   public parseMustCoverFile(dataBuffer: string, fileName: string) {
+      const rows: string[] = dataBuffer.split(/\r\n|\n/);
+      const header: string = rows.shift();
+      const errorTitle: string = 'Must Cover Geographies Upload';
+      //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+
+      try {
+         // Parse the file data
+         const data: ParseResponse<UploadMustCoverData> = FileService.parseDelimitedData(header, rows, mustCoverUpload);
+
+         // Gather metrics about the upload
+         const failCount = data.failedRows.length;
+         const successCount = data.parsedData.length;
+
+         // If there was a problem in the upload file, notify the user
+         if (failCount > 0) {
+            console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+            this.reportError(errorTitle, `There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
+         }
+
+         // If the file did have some correct rows, begin processing them
+         if (successCount > 0) {
+            // Reduce the list of geographies down to the distinct list
+            const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
+
+            if (uniqueGeos.size !== data.parsedData.length) {
+               this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
+            }
+
+            // Keep track of the current must cover upload filename
+            this.currentMustCoverFileName = fileName;
+
+            // Create an array of must cover geographies
+            this.mustCovers = Array.from(uniqueGeos);
+
+            console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
+
+            /* // DEBUG
+            console.debug("-".padEnd(80, "-"));
+            console.debug("MUST COVER GEOS");
+            console.debug("-".padEnd(80, "-"));
+            this.mustCovers.forEach(geo => console.debug(geo));
+            console.debug("-".padEnd(80, "-"));*/
+
+            this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Must Cover Upload'}));
+         }
+      }
+      catch (e) {
+         this.reportError(errorTitle, `${e}`);
+      }
+   }
+
 }
