@@ -571,7 +571,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // For every geo, create a FlatGeo to pivot up the variables and attributes
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
-         gridGeo.geo = geo;         
+         gridGeo.geo = geo;        
          gridGeo.fgId = fgId++;
 
          gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
@@ -1156,6 +1156,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
                this._geoGrid._value.forEach(element => {
                   if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
+                     
+                    if (isNaN(element.geo.hhc)) {
+                        element.geo.hhc = 0;
+                     }
+                     
                      this.setGridTotalSet (element.geo.hhc, element['cpm'], element['investment'], element.geo.distance, element.geo.isDeduped);
                      numRows++;
                   }});
