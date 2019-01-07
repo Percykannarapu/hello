@@ -405,31 +405,7 @@ export class AppLocationService {
               });
             }
             this.store$.dispatch(new StopBusyIndicator({ key }));
-            if (this.cachedTradeAreas.length !== 0){
-              this.confirmationService.confirm({
-                message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
-                header: 'Define Trade Areas',
-                icon: 'ui-icon-project',
-                accept: () => {
-                  this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
-                  this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
-                  this.appTradeAreaService.zoomToTradeArea();
-                  this.cachedTradeAreas = [];
-                  this.appTradeAreaService.tradeareaType = 'distance';
-                },
-                reject: () => {
-                  const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
-                  this.appTradeAreaService.tradeareaType = '';
-                  currentLocations.forEach(loc => {
-                    loc.radius1 = null;
-                    loc.radius2 = null;
-                    loc.radius3 = null;
-                  });
-                  this.impLocationService.makeDirty();
-                  this.cachedTradeAreas = [];
-                }
-              });
-            }
+            this.confirmationBox();
           }
         );
       }
@@ -443,11 +419,39 @@ export class AppLocationService {
           this.flagHomeGeos(pointPolyNotRequiredLocations, analysisLevel);
           this.store$.dispatch(new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }));
           this.store$.dispatch(new StopBusyIndicator({ key }));
+          this.confirmationBox();
         });
       }
     });
   }
 
+  private confirmationBox() : void {
+    if (this.cachedTradeAreas.length !== 0){
+      this.confirmationService.confirm({
+        message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
+        header: 'Define Trade Areas',
+        icon: 'ui-icon-project',
+        accept: () => {
+          this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+          this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
+          this.appTradeAreaService.zoomToTradeArea();
+          this.cachedTradeAreas = [];
+          this.appTradeAreaService.tradeareaType = 'distance';
+        },
+        reject: () => {
+          const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
+          this.appTradeAreaService.tradeareaType = '';
+          currentLocations.forEach(loc => {
+            loc.radius1 = null;
+            loc.radius2 = null;
+            loc.radius3 = null;
+          });
+          this.impLocationService.makeDirty();
+          this.cachedTradeAreas = [];
+        }
+      });
+    }
+  }
   private determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]){
     const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
     console.log('attributesByHomeZip:::', attributesByHomeZip);
