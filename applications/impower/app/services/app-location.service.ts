@@ -622,38 +622,42 @@ export class AppLocationService {
   private processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
-    let homeGeocodeIssue = 'N';
+    let homeGeocodeIssue = 'Y';
     let warningNotificationFlag = 'N';
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
-      Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
-        if (newHomeGeoToAnalysisLevelMap[key] != null) {
-          // the service might return multiple values for a home geo (in case of overlapping geos)
-          // as csv. For now, we're only taking the first result.
-          const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
-          // validate homegeo rules
-
-          if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
-               && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
-                    homeGeocodeIssue = 'Y';   
-                    warningNotificationFlag = 'Y';
+      if (currentAttributes != null){
+        Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
+          if (newHomeGeoToAnalysisLevelMap[key] != null) {
+            // the service might return multiple values for a home geo (in case of overlapping geos)
+            // as csv. For now, we're only taking the first result.
+            const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+            // validate homegeo rules
+  
+            if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
+                 && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
+                      homeGeocodeIssue = 'Y';   
+                      warningNotificationFlag = 'Y';
+            }
+  
+            if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
+                || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
+                homeGeocodeIssue = 'Y'; 
+                warningNotificationFlag = 'Y';  
+            }
+            
+            if (currentAttributes[key] != null)   {
+                homeGeocodeIssue = 'N'; 
+                //warningNotificationFlag = 'N';  
+              const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+              impAttributesToAdd.push(newAttribute);
+            } 
           }
-
-          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
-              || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
-              homeGeocodeIssue = 'Y'; 
-              warningNotificationFlag = 'Y';  
-          }
-          
-          if (currentAttributes[key] != null)   {
-            const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-            impAttributesToAdd.push(newAttribute);
-          } 
-        }
-      });
+        });
+      }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
      impAttributesToAdd.push(newAttribute1);
-     homeGeocodeIssue = 'N';
+     homeGeocodeIssue = 'Y';
     });
     if (warningNotificationFlag === 'Y'){
       this.store$.dispatch(new WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
