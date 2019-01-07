@@ -182,7 +182,22 @@
                   <!-- Format various columns -->
                   <div *ngSwitchCase="'geo.isDeduped'">  {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
                   <div *ngSwitchCase="'geo.distance'">   {{flatGeo[col.field] | number:'1.2-2'}} </div>
-                  <div *ngSwitchCase="'geo.hhc'">        {{flatGeo['geo'].hhc | number:'1.0-0'}} </div>
+                  <!-- <div *ngSwitchCase="'geo.hhc'">        {{flatGeo['geo'].hhc | number:'1.0-0'}} </div> -->
+                  <div *ngSwitchCase="'geo.hhc'">  
+                     <ng-container
+                        *ngIf="(flatGeo['geo'].hhc === 0); then empty; else value">
+                     </ng-container>                     
+                     <ng-template #empty>
+                        <div>
+                          {{""}}
+                        </div>
+                     </ng-template>
+                     <ng-template #value>
+                        <div>
+                           {{flatGeo['geo'].hhc | number:'1.0-0'}}
+                        </div>
+                     </ng-template>  
+                  </div>
                   <div *ngSwitchCase="'allocHhc'">       {{flatGeo['allocHhc'] | number:'1.0-0'}} </div>
                   <div *ngSwitchCase="'cpm'">            {{flatGeo['cpm'] | currency}} </div>
                   <div *ngSwitchCase="'investment'">     {{flatGeo['investment'] | currency}} </div>
@@ -221,7 +236,7 @@
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('hhc').avg | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('hhc').min | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
-                     {{gridTotals.get('hhc').tot | number:'1.0-0'}}
+                                  {{gridTotals.get('hhc').tot | number:'1.0-0'}}
                   </div>
                   <div *ngSwitchCase="'allocHhc'" [escape]="false"
                         pTooltip="<table>
