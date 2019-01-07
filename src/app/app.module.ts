@@ -147,6 +147,7 @@ import { NotificationProviderToken } from './messaging';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
+import { UploadMustCoverComponent } from './components/target-audience/upload-must-cover/upload-must-cover.component';
 
 @NgModule({
     imports: [
@@ -260,6 +261,7 @@ import { EditLocationsComponent } from './components/edit-locations/edit-locatio
         SiteListContainerComponent,
         ConfirmationContainerComponent,
         ConfirmationDialogComponent,
+        UploadMustCoverComponent,
         EditLocationsComponent
     ],
     providers: [
