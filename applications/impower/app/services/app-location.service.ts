@@ -405,31 +405,7 @@ export class AppLocationService {
               });
             }
             this.store$.dispatch(new StopBusyIndicator({ key }));
-            if (this.cachedTradeAreas.length !== 0){
-              this.confirmationService.confirm({
-                message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
-                header: 'Define Trade Areas',
-                icon: 'ui-icon-project',
-                accept: () => {
-                  this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
-                  this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
-                  this.appTradeAreaService.zoomToTradeArea();
-                  this.cachedTradeAreas = [];
-                  this.appTradeAreaService.tradeareaType = 'distance';
-                },
-                reject: () => {
-                  const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
-                  this.appTradeAreaService.tradeareaType = '';
-                  currentLocations.forEach(loc => {
-                    loc.radius1 = null;
-                    loc.radius2 = null;
-                    loc.radius3 = null;
-                  });
-                  this.impLocationService.makeDirty();
-                  this.cachedTradeAreas = [];
-                }
-              });
-            }
+            this.confirmationBox();
           }
         );
       }
@@ -443,11 +419,39 @@ export class AppLocationService {
           this.flagHomeGeos(pointPolyNotRequiredLocations, analysisLevel);
           this.store$.dispatch(new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }));
           this.store$.dispatch(new StopBusyIndicator({ key }));
+          this.confirmationBox();
         });
       }
     });
   }
 
+  private confirmationBox() : void {
+    if (this.cachedTradeAreas.length !== 0){
+      this.confirmationService.confirm({
+        message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
+        header: 'Define Trade Areas',
+        icon: 'ui-icon-project',
+        accept: () => {
+          this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+          this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
+          this.appTradeAreaService.zoomToTradeArea();
+          this.cachedTradeAreas = [];
+          this.appTradeAreaService.tradeareaType = 'distance';
+        },
+        reject: () => {
+          const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
+          this.appTradeAreaService.tradeareaType = '';
+          currentLocations.forEach(loc => {
+            loc.radius1 = null;
+            loc.radius2 = null;
+            loc.radius3 = null;
+          });
+          this.impLocationService.makeDirty();
+          this.cachedTradeAreas = [];
+        }
+      });
+    }
+  }
   private determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]){
     const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
     console.log('attributesByHomeZip:::', attributesByHomeZip);
@@ -618,38 +622,42 @@ export class AppLocationService {
   private processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
-    let homeGeocodeIssue = 'N';
+    let homeGeocodeIssue = 'Y';
     let warningNotificationFlag = 'N';
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
-      Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
-        if (newHomeGeoToAnalysisLevelMap[key] != null) {
-          // the service might return multiple values for a home geo (in case of overlapping geos)
-          // as csv. For now, we're only taking the first result.
-          const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
-          // validate homegeo rules
-
-          if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
-               && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
-                    homeGeocodeIssue = 'Y';   
-                    warningNotificationFlag = 'Y';
+      if (currentAttributes != null){
+        Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
+          if (newHomeGeoToAnalysisLevelMap[key] != null) {
+            // the service might return multiple values for a home geo (in case of overlapping geos)
+            // as csv. For now, we're only taking the first result.
+            const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+            // validate homegeo rules
+  
+            if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
+                 && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
+                      homeGeocodeIssue = 'Y';   
+                      warningNotificationFlag = 'Y';
+            }
+  
+            if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
+                || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
+                homeGeocodeIssue = 'Y'; 
+                warningNotificationFlag = 'Y';  
+            }
+            
+            if (currentAttributes[key] != null)   {
+                homeGeocodeIssue = 'N'; 
+                //warningNotificationFlag = 'N';  
+              const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+              impAttributesToAdd.push(newAttribute);
+            } 
           }
-
-          if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
-              || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
-              homeGeocodeIssue = 'Y'; 
-              warningNotificationFlag = 'Y';  
-          }
-          
-          if (currentAttributes[key] != null)   {
-            const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-            impAttributesToAdd.push(newAttribute);
-          } 
-        }
-      });
+        });
+      }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
      impAttributesToAdd.push(newAttribute1);
-     homeGeocodeIssue = 'N';
+     homeGeocodeIssue = 'Y';
     });
     if (warningNotificationFlag === 'Y'){
       this.store$.dispatch(new WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
