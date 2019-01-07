@@ -50,7 +50,7 @@ export class EsriLayerService {
       const group: __esri.GroupLayer = (layer as any).parent;
       group.remove(layer);
     });
-    this.mapService.mapView.map.removeMany(groups);
+    if(this.mapService.mapView != null) this.mapService.mapView.map.removeMany(groups);
     this.layerRefs.clear();
     this.groupRefs.clear();
   }

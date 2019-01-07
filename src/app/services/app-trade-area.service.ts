@@ -283,7 +283,11 @@ export class AppTradeAreaService {
     this.logger.debug('Draw Trade Area parameters', { siteType, tradeAreas, mergeType });
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
-    if (currentTradeAreas.length === 0) return;
+    const currentLocations = this.impLocationService.get();
+    if (currentTradeAreas.length === 0 && currentLocations.length === 0) {
+        this.layerService.clearClientLayers();
+        return;
+    }
     const radii = currentTradeAreas.map(ta => ta.taRadius);
     if (mergeType !== TradeAreaMergeTypeCodes.MergeAll) {
       // all circles will be drawn
@@ -296,7 +300,7 @@ export class AppTradeAreaService {
     if (taType === TradeAreaTypeCodes.Audience) {
       drawnTradeAreas.push(...currentTradeAreas);
     }
-    this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType, taType);  
+    this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType, taType);
     // reset the defaults that get applied to new locations
     if ((this.currentDefaults.get(siteType) == null || this.currentDefaults.get(siteType).length === 0) && radii.length > 0) {
       const uniqueValues = new Set(radii.sort());
