@@ -579,6 +579,11 @@ export class ValAudienceTradeareaService {
    * @returns An array of ImpGeofootprintGeo
    */
   private createGeos(audienceTAConfig, location: ImpGeofootprintLocation) : ImpGeofootprintGeo[] {
+    // DE2124: if a location got no data back from the service we need to skip it
+    if (!this.taResponses.has(location.locationNumber)) {
+      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: `Location named ${location.locationName} has no home available data, unable to create Audience TA for this location` }));
+      return;
+    }
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const taResponseMap = this.taResponses.get(location.locationNumber);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();
