@@ -1,0 +1,7 @@
+.tf-button-background {
+   text-align: center; padding-top:0.25em; padding-bottom:0.25em; padding-right: 4px; margin-top:1em; border-style:solid; border-radius: 5px; border-width: thin; border-color:#4177a1; background-color:#CEE0F0
+}
+
+.tf-label {
+   padding-left:0.25em; padding-right:0.5em; text-emphasis: bold;
+}

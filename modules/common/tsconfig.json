@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "module": "es2015",
+    "outDir": "../../dist/packages/common",
+    "rootDir": "."
+  },
+  "files": ["index.ts"],
+  "angularCompilerOptions": {
+    "annotateForClosureCompiler": true,
+    "strictMetadataEmit": false,
+    "flatModuleOutFile": "index.js",
+    "flatModuleId": "@val/common"
+  }
+}

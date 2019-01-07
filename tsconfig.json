@@ -1,20 +1,25 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "",
+    "rootDir": "./",
+    "outDir": "../out-tsc/app",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
-    "typeRoots": [
-      "node_modules/@types",
-      "node_modules/xlsx/types"
-    ],
     "lib": [
       "es2017",
       "dom"
-    ]
+    ],
+    "paths": {
+      "@val/common": ["./modules/common"],
+      "@val/esri": ["./modules/esri"],
+      "@val/messaging": ["./modules/messaging"],
+      "@impower/*": ["./applications/impower"]
+    }
   },
   "exclude": [
     "to-be-deleted"

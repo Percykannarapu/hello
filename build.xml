@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<project name="cpq-maps" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
+  <property name="DIST_ROOT" value="./dist"/>
+  <property name="CPQ_MAPS_DIST" value="./dist/cpq-maps"/>
+  <target name="create-resources">
+
+    <mkdir dir="${DIST_ROOT}/sfdc-deploy" />
+    
+    <!-- Create the assets resource -->
+    <!--<delete dir="${CPQ_MAPS_DIST}/assets/sass"/>
+    <delete>
+      <fileset dir="${CPQ_MAPS_DIST}/assets/layout/css">
+        <include name="*.scss"/>
+      </fileset>
+    </delete>
+    <delete file="${CPQ_MAPS_DIST}/assets/layout/images/landing/landing-header.png"/>
+    <delete file="${CPQ_MAPS_DIST}/assets/layout/images/landing/promotion.png"/>
+    <copy file="${CPQ_MAPS_DIST}/assets/layout/images/favicon.png" tofile="${CPQ_MAPS_DIST}/assets/layout/images/landing/landing-header.png"/>
+    <copy file="${CPQ_MAPS_DIST}/assets/layout/images/favicon.png" tofile="${CPQ_MAPS_DIST}/assets/layout/images/landing/promotion.png"/>
+    <move file="${CPQ_MAPS_DIST}/assets" todir="${CPQ_MAPS_ROOT}/sfdc-deploy"/>
+    <zip destfile="${CPQ_MAPS_ROOT}/sfdc-deploy/assets.zip" basedir="${CPQ_MAPS_ROOT}/sfdc-deploy/assets" level="9"/>
+    <move file="${CPQ_MAPS_ROOT}/sfdc-deploy/assets.zip" tofile="${CPQ_MAPS_ROOT}/sfdc-deploy/staticresources/CPQMapsAssets.resource"/>
+    <delete dir="${CPQ_MAPS_ROOT}/sfdc-deploy/assets"/>-->
+      
+
+    <!-- Create the MainJS resource -->
+    <mkdir dir="${DIST_ROOT}/sfdc-deploy/main-js"/>
+    <move todir="${DIST_ROOT}/sfdc-deploy/main-js">
+      <fileset dir="${CPQ_MAPS_DIST}">
+        <include name="main.*"/>
+      </fileset>
+    </move>
+    <zip destfile="${DIST_ROOT}/sfdc-deploy/main-js.zip" basedir="${DIST_ROOT}/sfdc-deploy/main-js" level="9"/>
+    <move file="${DIST_ROOT}/sfdc-deploy/main-js.zip" tofile="${DIST_ROOT}/sfdc-deploy/staticresources/CPQMapsMainJS.resource"/>
+    <delete dir="${DIST_ROOT}/sfdc-deploy/main-js"/>
+
+    <!-- Create the JS resource -->
+    <mkdir dir="${DIST_ROOT}/sfdc-deploy/js"/>
+    <move todir="${DIST_ROOT}/sfdc-deploy/js">
+      <fileset dir="${CPQ_MAPS_DIST}">
+        <include name="*"/>
+      </fileset>
+    </move>
+    <zip destfile="${DIST_ROOT}/sfdc-deploy/js.zip" basedir="${DIST_ROOT}/sfdc-deploy/js" level="9"/>
+    <move file="${DIST_ROOT}/sfdc-deploy/js.zip" tofile="${DIST_ROOT}/sfdc-deploy/staticresources/CPQMapsJS.resource"/>
+    <delete dir="${DIST_ROOT}/sfdc-deploy/js"/>
+    
+    <!-- Copy the package.xml to the deployment directory -->
+    <copy file="package.xml" todir="${DIST_ROOT}/sfdc-deploy"/>
+
+  </target>
+  <target name="clean">
+    <delete failonerror="false">
+      <fileset dir="staticresources">
+        <include name="*"/>
+      </fileset>
+    </delete>
+  </target>
+  <target name="deploy">
+    <sf:deploy username="jenkins@valassis.com.dev" 
+      password="D3pl0y2018!0MWuLxisBBmrqZp6BhXDpEmU0" 
+      serverurl="https://valassis--dev.cs15.my.salesforce.com" 
+      maxPoll="10000" 
+      deployRoot="${DIST_ROOT}/sfdc-deploy" 
+      rollbackOnError="true"
+      logType="Detail"/>
+  </target>
+</project>
