@@ -25,7 +25,7 @@ import { toUniversalCoordinates } from '../models/coordinates';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { switchMap } from 'rxjs/internal/operators/switchMap';
+import { mergeMap } from 'rxjs/internal/operators/mergeMap';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 
@@ -280,7 +280,7 @@ export class AppLocationService {
         console.log('atzLocationsNotFound:::', atzLocationsNotFound);
         return atzLocationsNotFound;
       }),
-      switchMap(locs => {
+      mergeMap(locs => {
         locs.push(...pointPolyLocations);
         if (locs.length > 0) {
           const atzGeocodeList = [];
@@ -319,7 +319,7 @@ export class AppLocationService {
         }
         //return attributeList;
       }),
-      switchMap(() => {
+      mergeMap(() => {
         if (pointPolyLocations != null && pointPolyLocations.length > 0){
           const zipGeocodeList = [];
           pointPolyLocations.forEach(loc => zipGeocodeList.push(loc.locZip.substring(0, 5)));
@@ -477,7 +477,7 @@ export class AppLocationService {
         });
         return remainingAttributes;
       }),
-      switchMap(remainingAttr => {
+      mergeMap(remainingAttr => {
         if (remainingAttr.length > 0){
           const attributesByHomeAtz: Map<any, any> = mapBy(remainingAttr, 'homeAtz');
           const atzGeocodeList = Array.from(attributesByHomeAtz.keys());
@@ -506,7 +506,7 @@ export class AppLocationService {
         });
         return remainingAttributes;
       }),
-      switchMap(remainingAttr => {
+      mergeMap(remainingAttr => {
         if (remainingAttr.length > 0){
           const attributesByHomePcr: Map<any, any> = mapBy(remainingAttr, 'homePcr');
           const pcrGeocodeList = Array.from(attributesByHomePcr.keys());
@@ -558,7 +558,7 @@ export class AppLocationService {
         });
         return attributes;
       }),
-      switchMap(attributesList => {
+      mergeMap(attributesList => {
         geocodeList = [];
         pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5)));
         return this.determineHomeGeos(geocodeList, null, 'CL_ZIPTAB14', 'geocode, ZIP, DMA, COUNTY');
@@ -592,7 +592,7 @@ export class AppLocationService {
         });
         return attributes;
       }),
-      switchMap(attributeList => {
+      mergeMap(attributeList => {
         return this.determineHomeGeos(geocodeList, null, 'CL_ATZTAB14', 'geocode,ZIP'); 
       }),
       map(atzResponse => {
@@ -703,9 +703,24 @@ export class AppLocationService {
   }
 
   private determineHomeGeos(geocodeList: any[], analysisLevel: string, tableName: string, fieldNames: string) : Observable<any> {
-    const requestPayload = {'tableName': tableName, 'fieldNames': fieldNames, 'geocodeList': [] };
+    //const requestPayload = {'tableName': tableName, 'fieldNames': fieldNames, 'geocodeList': [] };
     const orginalPayload = [];
-    requestPayload['geocodeList'] = geocodeList;
+    //requestPayload['geocodeList'] = geocodeList;
+    const chunked_arr = [];
+    let index = 0;
+    while (index < geocodeList.length) {
+      chunked_arr.push(geocodeList.slice(index, 999 + index));
+      index += 999;
+    }
+    //console.log('chunked_arr size::::', chunked_arr);
+   
+    const obs = chunked_arr.map(geoList => {
+      const reqPayload = {'tableName': tableName, 'fieldNames': fieldNames, 'geocodeList': [] };
+      reqPayload['geocodeList'] = geoList;
+      //console.log('request payload::::', reqPayload);
+      return this.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode');
+    });
+    //merge(...obs, 4).subscribe(result => console.log(' test response chunk size', result));
     /*locations.forEach(loc => {
       if (tableName === 'CL_ATZTAB14'){
         requestPayload['geocodeList'].push(loc.locZip.substring(0, 5));
@@ -720,7 +735,8 @@ export class AppLocationService {
       
     });*/
     //this.logger.info('request payload:::::', requestPayload);
-    return this.getHomegeocodeData(requestPayload, 'v1/targeting/base/homegeo/homegeocode');
+    return merge(...obs, 4);
+    //this.getHomegeocodeData(requestPayload, 'v1/targeting/base/homegeo/homegeocode');
   }
 
   private getHomegeocodeData(requestPayload: any, url: string)  {
