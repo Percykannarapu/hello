@@ -369,7 +369,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => v.customVarExprDisplay === header);
+        const currentVar = vars.find(v => v.customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
         if (currentVar != null) {
           if (currentVar.isString) result = currentVar.valueString;
           if (currentVar.isNumber) result = currentVar.valueNumber.toString();
@@ -408,7 +408,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const currentProject = aGeo.impGeofootprintLocation.impProject;  //DE2106 FIX : export feature - accessing project details from impGeofootprintLocation
       const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
-                          .sort((a, b) => this.sortVars(a, b))
                           .map(pv => this.getProjectVarFieldName(pv)));
       let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
