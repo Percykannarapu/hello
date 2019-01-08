@@ -31,6 +31,7 @@ export enum TradeAreaTypeCodes {
   Custom = 'Custom',
   HomeGeo = 'HomeGeo',
   Audience = 'Audience',
+  MustCover = 'MustCover',
   Manual = 'Manual'
 }
 
