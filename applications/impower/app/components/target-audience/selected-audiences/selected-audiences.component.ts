@@ -108,8 +108,9 @@ export class SelectedAudiencesComponent implements OnInit {
          map(all => all.filter(a => a.audienceIdentifier == this.audienceUnselect.audienceIdentifier)),
          take(1),
      ).subscribe(unMapped => unMapped.forEach(a => {
+      a.exportNationally = false;
       this.varService.updateProjectVars(a);
-       a.exportNationally = false;   }));
+         }));
      
     this.showDialog = false;
   }
