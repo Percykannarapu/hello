@@ -173,7 +173,7 @@ export class ValAudienceTradeareaService {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
     if(this.audienceTAConfig.maxRadius > 100){
-      errors.push('Maximum Radius must by <= 100');
+      errors.push('Maximum Radius must be <= 100');
     }
     if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
