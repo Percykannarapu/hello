@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { AmSite } from './AmSite';
 
 export class AmProfile extends BaseModel
