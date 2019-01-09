@@ -538,7 +538,8 @@ export class AppLocationService {
     //validate PCR TAB14
     const pcrLocationsValidate = locations.filter(loc => attributesBySiteNumber.has(loc.locationNumber));
     let geocodeList = [];
-    pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
+    //pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
+    attributes.forEach(attr => geocodeList.push(attr['homePcr']));
     return this.determineHomeGeos(geocodeList, null, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
       map(response => {
         const pcrTab14ResponseDict = {};
@@ -560,7 +561,8 @@ export class AppLocationService {
       }),
       mergeMap(attributesList => {
         geocodeList = [];
-        pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5)));
+        //pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5)));
+        attributes.forEach(attr => geocodeList.push(attr['homeZip']));
         return this.determineHomeGeos(geocodeList, null, 'CL_ZIPTAB14', 'geocode, ZIP, DMA, COUNTY');
       }),
       map(zipResponse => {
@@ -578,11 +580,12 @@ export class AppLocationService {
             attribute['homeDma'] = pipAttr['homeDma'];
             attribute['homeCounty'] = pipAttr['homeCounty'];
           }
-          else if (attribute['homeZip'] in zipTab14ResponseDict && attribute['homeZip'] == null || attribute['homeZip'] == '') {
+          //&& attribute['homeZip'] == null || attribute['homeZip'] == '' need to look back
+          else if (attribute['homeZip'] in zipTab14ResponseDict ) {
             const attr = zipTab14ResponseDict[attribute['homeZip']];
             attribute['homeZip'] = attr['ZIP'];
-            attribute['homeDma'] = attr['DMA'];
-            attribute['homeCounty'] = attr['COUNTY'];
+            attribute['homeDma'] = attr['homeDma'];
+            attribute['homeCounty'] = attr['homeCounty'];
           }
           else {
             attribute['homeZip']    = '';
@@ -593,6 +596,9 @@ export class AppLocationService {
         return attributes;
       }),
       mergeMap(attributeList => {
+        geocodeList = [];
+        //pcrLocationsValidate.forEach(loc => geocodeList.push(loc.locZip.substring(0, 5)));
+        attributes.forEach(attr => geocodeList.push(attr['homeAtz']));
         return this.determineHomeGeos(geocodeList, null, 'CL_ATZTAB14', 'geocode,ZIP'); 
       }),
       map(atzResponse => {
@@ -608,7 +614,8 @@ export class AppLocationService {
           if (pipAttr != null){
             attribute['homeAtz'] = pipAttr['homeAtz'];
           }
-          else if (attribute['homeAtz'] in atzTab14ResponseDict && attribute['homeAtz'] == null || attribute['homeAtz'] == ''){
+          //&& attribute['homeAtz'] == null || attribute['homeAtz'] == ''
+          else if (attribute['homeAtz'] in atzTab14ResponseDict ){
             const attr = atzTab14ResponseDict[attribute['homeAtz']];
             attribute['homeAtz'] = attr['ZIP'];
           }else {
