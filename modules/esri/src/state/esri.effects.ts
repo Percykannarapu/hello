@@ -6,6 +6,7 @@ import { EsriApiEffects } from './api/esri.api.effects';
 import { EsriAuthEffects } from './auth/esri.auth.effects';
 import { EsriMapButtonEffects } from './map/esri.map-button.effects';
 import { EsriMapEffects } from './map/esri.map.effects';
+import { EsriRendererEffects } from './map/esri.renderer.effects';
 
 @Injectable()
 export class EsriEffects {
@@ -20,5 +21,6 @@ export const allEffects = [
   EsriAuthEffects,
   EsriMapEffects,
   EsriMapButtonEffects,
+  EsriRendererEffects,
   EsriEffects       // EsriEffects must go last since it implements init$
 ];

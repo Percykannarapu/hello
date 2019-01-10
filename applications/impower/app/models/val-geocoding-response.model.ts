@@ -19,6 +19,12 @@ export class ValGeocodingResponse {
   'Match Code': string;
   'Match Quality': string;
   'CarrierRoute': string;
+  'Home ATZ' : string;
+  'Home ZIP' : string;
+  'Home PCR' : string;
+  'Home Digital ATZ' : string;
+  'Home County' : string;
+  'Home DMA' : string;
   [key: string] : any;
 
   constructor(initializer: any) {
