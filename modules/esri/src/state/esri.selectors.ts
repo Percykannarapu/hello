@@ -20,15 +20,16 @@ const getEsriApiState = createSelector(getEsriState, state => state.api);
 const getEsriAuthState = createSelector(getEsriState, state => state.auth);
 const getEsriMapState = createSelector(getEsriState, state => state != null ? state.map : null);
 const getEsriRendererState = createSelector(getEsriState, state => state != null ? state.renderer : null);
+
 const getEsriRendererNumericData = createSelector(getEsriRendererState, state => state != null ? state.numericShadingData : null);
 const getEsriRendererTextData = createSelector(getEsriRendererState, state => state != null ? state.textShadingData : null);
-const getEsriRendererSelectedGeocodes = createSelector(getEsriRendererState, state => state != null ? state.selectedGeocodes : null);
-const getEsriViewpointState = createSelector(getEsriState, state => state != null ? state.map.mapViewpoint : null);
-const getEsriLabelConfiguration = createSelector(getEsriMapState, state => state != null ? state.labelConfiguration : null);
-const getEsriSelectedLayer = createSelector(getEsriMapState, state => state != null ? state.selectedLayerId : null);
+const getEsriRendererSelectedObjects = createSelector(getEsriRendererState, state => state.selectedObjectIds);
 
 const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (api, auth) => api.isLoaded && auth.isAuthenticated);
 
+const getEsriViewpointState = createSelector(getEsriMapState, state => state != null ? state.mapViewpoint : null);
+const getEsriLabelConfiguration = createSelector(getEsriMapState, state => state != null ? state.labelConfiguration : null);
+const getEsriSelectedLayer = createSelector(getEsriMapState, state => state != null ? state.selectedLayerId : null);
 const getEsriMapButtonState = createSelector(getEsriMapState, state => state.selectedButton);
 const getEsriMapHeight = createSelector(getEsriMapState, state => state.containerHeight);
 const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sketchView);
@@ -51,7 +52,8 @@ export const internalSelectors = {
   getEsriMapHeight,
   getEsriLabelConfiguration,
   getEsriRendererState,
-  getEsriRendererSelectedGeocodes,
   getEsriRendererNumericData,
-  getEsriRendererTextData
+  getEsriRendererTextData,
+  getEsriSelectedLayer,
+  getEsriRendererSelectedObjects
 };

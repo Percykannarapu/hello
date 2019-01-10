@@ -7,7 +7,7 @@ import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { calculateStatistics, Statistics } from '@val/common';
-import { AddNumericShadingData, AddSelectedGeos, AddStatistics, AddTextShadingData, EnableShading, EsriRendererService, HighlightSelectedGeos } from '@val/esri';
+import { AddNumericShadingData, AddSelectedGeos, AddStatistics, AddTextShadingData, ClearSelectedGeos, EnableShading, EsriRendererService } from '@val/esri';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -51,27 +51,21 @@ export class AppRendererService {
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;
 
-  private currentData: Map<string, ImpGeofootprintVar> = new Map<string, ImpGeofootprintVar>();
-  private currentStatistics: Statistics;
-  private currentSelectedGeos: Set<string> = new Set<string>();
-
-  private rendererDataReady: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-  public rendererDataReady$: Observable<number>;
-
-  constructor(private appStateService: AppStateService, 
+  constructor(private appStateService: AppStateService,
               private dataService: TargetAudienceService, 
               private esriRenderer: EsriRendererService,
               private store$: Store<LocalAppState>) {
     this.geoSubscription = this.appStateService.uniqueSelectedGeocodes$.pipe (
-      filter(geos => (geos != null) ? true : false),
-      withLatestFrom(this.appStateService.applicationIsReady$.pipe(filter(ready => ready === true)))
-    )
-    .subscribe(([geos, ready]) => {
-      this.store$.dispatch(new AddSelectedGeos(geos));
-      this.store$.dispatch(new HighlightSelectedGeos(true));
-      this.currentSelectedGeos.clear();
+      filter(geos => geos != null),
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([geos, ready]) => ready)
+    ).subscribe(([geos]) => {
+      if (geos.length === 0) {
+        this.store$.dispatch(new ClearSelectedGeos());
+      } else {
+        this.store$.dispatch(new AddSelectedGeos(geos));
+      }
     });
-
 
     this.dataSubscription = this.dataService.shadingData$.pipe(
       map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
