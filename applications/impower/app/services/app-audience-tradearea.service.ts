@@ -227,7 +227,7 @@ export class ValAudienceTradeareaService {
    }
 
     this.attachLocations();
-    if (this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
+    if (this.audienceTAConfig.analysisLevel != null && this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
       this.audienceTAConfig.analysisLevel = 'dtz';
 
     //for now we are going to force always fetching data,

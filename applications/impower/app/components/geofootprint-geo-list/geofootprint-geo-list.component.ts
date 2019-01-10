@@ -56,6 +56,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allGeosBS$.next(val);
    }    
 
+   @Input('mustCoverGeos')
+   set mustCovers(val: string[]) {
+      this.allMustCoversBS$.next(val);
+   }
+
    @Input('impGeofootprintGeoAttribs')
    set geoAttribs(val: ImpGeofootprintGeoAttrib[]) {
       this.allAttributesBS$.next(val);
@@ -109,6 +114,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private allProjectVarsBS$ = new BehaviorSubject<ImpProjectVar[]>([]);
    private allLocationsBS$   = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
    private allGeosBS$        = new BehaviorSubject<ImpGeofootprintGeo[]>([]);
+   private allMustCoversBS$  = new BehaviorSubject<string[]>([]);
    private allAttributesBS$  = new BehaviorSubject<ImpGeofootprintGeoAttrib[]>([]);
    private allVarsBS$        = new BehaviorSubject<ImpGeofootprintVar[]>([]);
    private varColOrderBS$    = new BehaviorSubject<Map<string, number>>(new Map<string, number>());
@@ -118,6 +124,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private allProjectVars$: Observable<ImpProjectVar[]>;
    private allLocations$: Observable<ImpGeofootprintLocation[]>;
    private allGeos$: Observable<ImpGeofootprintGeo[]>;
+   private allMustCovers$: Observable<string[]>;
    private allAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
    private allVars$: Observable<ImpGeofootprintVar[]>;
 
@@ -174,6 +181,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'geo.impGeofootprintLocation.locState',       header: 'State',           width: '4em',  matchMode: 'contains', styleClass: ''},
     {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',             width: '4em',  matchMode: 'contains', styleClass: ''},
     {field: 'home_geo',                                   header: 'Home Geo',        width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'isMustCover',                                header: 'Must Cover',      width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
     {field: 'geo.distance',                               header: 'Dist',            width: '4em',  matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
     {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
@@ -231,6 +239,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allProjectVars$ = this.allProjectVarsBS$.asObservable();
       this.allLocations$ = this.allLocationsBS$.asObservable();
       this.allGeos$ = this.allGeosBS$.asObservable();
+      this.allMustCovers$ = this.allMustCoversBS$.asObservable();
       this.allAttributes$ = this.allAttributesBS$.asObservable();
       this.allVars$ = this.allVarsBS$.asObservable();
       //this.varColOrder$ = this.varColOrderBS$.asObservable();
@@ -254,14 +263,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Remember that combineLatest is going to fire the pipe for each subscriber to allImpGeofootprintGeos$.  In the template, we have two | async values:
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
-      this.allImpGeofootprintGeos$ = combineLatest(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
+      type createCompositeTuple = [ImpProject, ImpProjectVar[], ImpGeofootprintGeo[], string[], ImpGeofootprintGeoAttrib[], ImpGeofootprintVar[], Map<string, number>];
+
+      this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple, createCompositeTuple>(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
                                     .pipe(tap(x => this.setGridTotals())
-                                         , tap(x => this.syncHeaderFilter())
-                                         , map(([discovery, projectVars, geos, attributes, vars]) => this.createComposite(discovery, projectVars, geos, attributes, vars))
+                                         ,tap(x => this.syncHeaderFilter())
+                                         ,map(([discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder]:createCompositeTuple) =>
+                                            this.createComposite(discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder))
                                           // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
                                           // Allows the first subscriber to run pipe and all other subscribers get the result of that
-                                         , publishReplay(1)
-                                         , refCount()       // Keeps track of all of the subscribers and tells publishReply to clean itself up
+                                         ,publishReplay(1)
+                                         ,refCount()       // Keeps track of all of the subscribers and tells publishReply to clean itself up
                                          //,tap(geoData => console.log("OBSERVABLE FIRED: allImpGeofootprintGeos$ - Geo Data changed (combineLatest)", geoData))
                                          );
 
@@ -466,11 +478,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * @param geos List of geos for the grid
     * @param geoAttributes List of geo attributes to pivot up to the geos
     */
-   createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], geoAttributes: ImpGeofootprintGeoAttrib[], geoVars: ImpGeofootprintVar[]) : FlatGeo[]
+   createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], mustCovers: string[], geoAttributes: ImpGeofootprintGeoAttrib[], geoVars: ImpGeofootprintVar[], varColOrder: Map<string, number>) : FlatGeo[]
    {
-      console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null, ', geos: ', (geos != null) ? geos.length : null, ', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
-                 , ', geo vars: ', (geoVars != null) ? geoVars.length : null
-                 , ', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
+      console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null,
+                   ', geos: ', (geos != null) ? geos.length : null
+                  ,', must covers: ', (mustCovers != null) ? mustCovers.length : null
+                  ,', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
+                  ,', geo vars: ', (geoVars != null) ? geoVars.length : null
+                  ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
       if (geos == null || geos.length === 0) {
          this.initializeGridTotals();
          return [];
@@ -575,6 +590,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo.fgId = fgId++;
 
          gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
+
+         // Is the geo a must cover?
+         if (mustCovers != null && mustCovers.includes(geo.geocode))
+            gridGeo['isMustCover'] = "1";
+         else
+            gridGeo['isMustCover'] = "0";
 
          // Count dupes for display
          this.dupeCount += (gridGeo.geo.isDeduped === 1) ? 0 : 1;
@@ -701,10 +722,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
               
               //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
-                                                , fieldname: geovar.fieldname
-                                                , matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? 'numeric' : 'text'
-                                                , matchOper: matchOper
-                                                , matchMode: 'contains', styleClass: colStyleClass});
+                                                ,fieldname: geovar.fieldname
+                                                ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? 'numeric' : 'text'
+                                                ,matchOper: matchOper
+                                                ,matchMode: 'contains', styleClass: colStyleClass});
             }
          });
 

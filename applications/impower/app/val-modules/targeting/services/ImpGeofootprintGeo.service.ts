@@ -13,7 +13,7 @@ import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { RestDataService } from '../../common/services/restdata.service';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
+import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
 import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
@@ -55,6 +55,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public  currentMustCoverFileName: string;
    public  mustCovers: string[] = [];
+   public  allMustCoverBS$ = new BehaviorSubject<string[]>([]);
+
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
@@ -580,6 +582,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
             // Create an array of must cover geographies
             this.mustCovers = Array.from(uniqueGeos);
+
+            // Alert subscribers that we have a new list of must covers
+            this.allMustCoverBS$.next(this.mustCovers);
 
             console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
 

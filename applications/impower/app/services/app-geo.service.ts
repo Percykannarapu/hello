@@ -412,6 +412,14 @@ export class AppGeoService {
    * @param geos Array of existing geos to be compared against the must cover list
    */
    public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
+      if (geos == null || geos.length === 0)
+      {
+         geos = this.impGeoService.get();
+         console.debug("Checking all " + geos.length + " geos for must covers");
+      }
+      else
+         console.debug("Checking " + geos.length + " geos for must cover");
+      
       // Determine which must covers are not in the list of geos
       let diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
 
