@@ -653,9 +653,9 @@ export class AppLocationService {
                 warningNotificationFlag = 'Y';  
             }
             
-            if (currentAttributes[key] != null)   {
+            if (currentAttributes[key] != null && currentAttributes[key] != '')   {
                 homeGeocodeIssue = 'N'; 
-                //warningNotificationFlag = 'N';  
+                warningNotificationFlag = warningNotificationFlag === 'N' ? 'N' : 'Y';   
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
               impAttributesToAdd.push(newAttribute);
             } 
