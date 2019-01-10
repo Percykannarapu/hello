@@ -243,38 +243,57 @@ export class AppLocationService {
     const pointPolyNotRequiredLocations = locations.filter(loc => loc.carrierRoute != null && loc.carrierRoute != '');
     const locDicttemp = {};
     const zipLocDictemp = {};
+    const duplicatedLocDict = {};
     locations.forEach(loc => {
-      locDicttemp[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
+      if ( Object.keys(locDicttemp).includes(loc.locZip.substring(0, 5) + loc.carrierRoute)){
+        duplicatedLocDict[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
+      } 
+      else{
+        locDicttemp[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
+      }
       zipLocDictemp[loc.locZip.substring(0, 5)] = loc;
     });
     const pcrGeocodeList = [];
     const key = 'HomeGeoCalcKey';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
     pointPolyNotRequiredLocations.forEach(loc => pcrGeocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
+    const locMap = groupByExtended(pointPolyNotRequiredLocations, loc => loc.locZip.substring(0, 5) + loc.carrierRoute);
     this.determineHomeGeos(pcrGeocodeList, analysisLevel, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
       map(res => {
         const atzLocationsNotFound = [];
         const pcrTab14Response = res;
         res.payload.forEach(row => {
-          //atzLocationsNotFound.push(pointPolyNotRequiredLocations.filter(loc => loc.locZip.substring(0, 5) + loc.carrierRoute === row['geocode'] && row['score'] == null));
           if (locDicttemp[row['geocode']] !== null && row['score'] == null) {
             atzLocationsNotFound.push(locDicttemp[row['geocode']]);
           }
           if (pcrTab14Response != null && pcrTab14Response.payload.length > 0){
-           // pcrTab14Response.payload.forEach(row => {
-              // filteredLoc = pointPolyNotRequiredLocations.filter(loc => loc.locZip.substring(0, 5) + loc.carrierRoute === row['geocode']);
              const filteredLoc = locDicttemp[row['geocode']];
-               const homeAtz = row['score'] != null ? row['ZIP'] + row['score'] : null;
-               attributeList.push({
-                 'homeZip'     : `${row['ZIP']}`,
-                 'homeCounty'  : `${row['homeCounty']}`,
-                 'homeDma'     : `${row['homeDma']}`,
-                 'homePcr'     : `${row['geocode']}`,
-                 'homeAtz'     :  homeAtz,
-                 'siteNumber'  :  filteredLoc.locationNumber 
-               });
+             const homeAtz = row['score'] != null ? row['ZIP'] + row['score'] : null;
+             if (duplicatedLocDict[row['geocode']] != null){
+                const locs = locMap.get(row['geocode']);
+                //pointPolyNotRequiredLocations.filter(loc => loc.locZip.substring(0, 5) + loc.carrierRoute === row['geocode']);
+                locs.forEach(loc => {
+                  attributeList.push({
+                    'homeZip'     : `${row['ZIP']}`,
+                    'homeCounty'  : `${row['homeCounty']}`,
+                    'homeDma'     : `${row['homeDma']}`,
+                    'homePcr'     : `${row['geocode']}`,
+                    'homeAtz'     :  homeAtz,
+                    'siteNumber'  :  loc.locationNumber 
+                  });
+                });
+             }
+             else{
+              attributeList.push({
+                'homeZip'     : `${row['ZIP']}`,
+                'homeCounty'  : `${row['homeCounty']}`,
+                'homeDma'     : `${row['homeDma']}`,
+                'homePcr'     : `${row['geocode']}`,
+                'homeAtz'     :  homeAtz,
+                'siteNumber'  :  filteredLoc.locationNumber 
+              });
+             }
                responseGeocodes.push(row['geocode'].substring(0, 5));
-           //  });
           }
         });
         console.log('atzLocationsNotFound:::', atzLocationsNotFound);
@@ -317,7 +336,6 @@ export class AppLocationService {
               });
           }
         }
-        //return attributeList;
       }),
       mergeMap(() => {
         if (pointPolyLocations != null && pointPolyLocations.length > 0){
