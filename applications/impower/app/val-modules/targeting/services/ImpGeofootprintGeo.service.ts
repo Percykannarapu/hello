@@ -391,7 +391,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => v.customVarExprDisplay === header);
+        const currentVar = vars.find(v => v.customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
         if (currentVar != null) {
           if (currentVar.isString) result = currentVar.valueString;
           if (currentVar.isNumber) result = currentVar.valueNumber.toString();

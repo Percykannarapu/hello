@@ -163,7 +163,6 @@ export class ValAudienceTradeareaService {
     if (this.locationService.get().length < 1) {
       errors.push('You must have at least 1 site before applying a trade area');
     }
-
     if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
       errors.push('You must select an Analysis Level before applying a trade area to Sites');
     }
@@ -172,6 +171,9 @@ export class ValAudienceTradeareaService {
     }
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
+    }
+    if(this.audienceTAConfig.maxRadius > 100){
+      errors.push('Maximum Radius must be <= 100');
     }
     if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');

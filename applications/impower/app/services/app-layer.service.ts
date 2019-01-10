@@ -292,7 +292,7 @@ export class AppLayerService {
     return graphic;
   }
 
-  private clearClientLayers() {
+  public clearClientLayers() {
     this.layerService.clearClientLayers();
   }
 
