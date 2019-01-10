@@ -145,6 +145,7 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
+import { UploadMustCoverComponent } from './components/target-audience/upload-must-cover/upload-must-cover.component';
 import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 
@@ -267,6 +268,7 @@ import { EnvironmentData } from '../environments/environment';
         SiteListContainerComponent,
         ConfirmationContainerComponent,
         ConfirmationDialogComponent,
+        UploadMustCoverComponent,
         EditLocationsComponent
     ],
     providers: [

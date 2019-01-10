@@ -107,7 +107,11 @@ export class SelectedAudiencesComponent implements OnInit {
     this.audiences$.pipe(
          map(all => all.filter(a => a.audienceIdentifier == this.audienceUnselect.audienceIdentifier)),
          take(1),
-     ).subscribe(unMapped => unMapped.forEach(a => a.exportNationally = false   ));
+     ).subscribe(unMapped => unMapped.forEach(a => {
+      a.exportNationally = false;
+      this.varService.updateProjectVars(a);
+         }));
+     
     this.showDialog = false;
   }
 

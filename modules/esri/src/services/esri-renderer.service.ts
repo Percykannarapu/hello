@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { AddHighlightHandlers, ClearHighlightHandlers } from '../state/map/esri.renderer.actions';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriQueryService } from './esri-query.service';
-import { distinctUntilChanged, filter, share, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, share, skipUntil, take, withLatestFrom } from 'rxjs/operators';
 import { select, Store } from '@ngrx/store';
 import { AppState, internalSelectors, selectors } from '../state/esri.selectors';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { EsriHighlightHandler, EsriHighlightRemover, NumericShadingData, Statistics, TextShadingData } from '../state/map/esri.renderer.reducer';
+import { NumericShadingData, Statistics, TextShadingData } from '../state/map/esri.renderer.reducer';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -53,6 +52,7 @@ export class EsriRendererService {
   
   private simpleSymbol: any = null;
   private simpleRenderer: any = null;
+  private highlightHandler: { remove: () => void } = null;
   
   constructor(private mapService: EsriMapService, 
               private layerService: EsriLayerService,
@@ -60,21 +60,6 @@ export class EsriRendererService {
               private store$: Store<AppState>) {
 
     const sharedStore$ = this.store$.pipe(share());
-
-    //pipe for highlighting based on selected geocodes
-    sharedStore$.pipe(
-      select(internalSelectors.getEsriRendererSelectedGeocodes),
-      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-      filter(([selectedGeos, esriState]) => selectedGeos != null && esriState != null),
-      filter(([selectedGeos, esriState]) => esriState.renderer.highlightSelectedGeos === true),
-    ).subscribe(([selectedGeos, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, selectedGeos, esriState.renderer.highlightHandlers, true));
-
-    //pipe for highlighting based on viewpoint changes
-    sharedStore$.pipe(
-      select(selectors.getEsriViewpointState),
-      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-      filter(([viewpointState, esriState]) => viewpointState != null && esriState != null),
-    ).subscribe(([viewpointState, esriState]) => this.highlightGeos(esriState.map.selectedLayerId, esriState.renderer.selectedGeocodes, esriState.renderer.highlightHandlers));
 
     //pipe for shading the map with numeric data
     sharedStore$.pipe(
@@ -358,49 +343,12 @@ export class EsriRendererService {
     return result;
   }
 
-  private unHighlightAllGeos(highlightHandlers: Array<EsriHighlightHandler>, geos: string[], currentSelectedGeos?: Set<string>) {
-    if (currentSelectedGeos == null) {
-      currentSelectedGeos = new Set<string>(geos);
-    }
-    for (const handler of highlightHandlers) {
-      if (!currentSelectedGeos.has(handler.geocode)) {
-        handler.remover.remove();
-      }
-    }
-  }
-
-  /**
-   * Determine if the features in the current map view are selected
-   */
-  private highlightGeos(layerId: string, geos: string[], highlightHandlers: Array<EsriHighlightHandler>, remove: boolean = false) {
+  public highlightSelection(layerId: string, objectIds: number[]) {
     if (!layerId) return;
-    const currentSelectedGeos: Set<string> = new Set(geos);
-    if (remove) {
-      this.unHighlightAllGeos(highlightHandlers, geos, currentSelectedGeos);
-    }
     const layerView = this.getLayerView(layerId);
     if (layerView != null) {
-      const selectedFeatures: Array<{geocode: string, objectid: number}> = [];
-      this.queryService.queryLayerView([layerView.layer], this.mapService.mapView.extent, false).subscribe(results => {
-        for (const feature of results) {
-          if (feature.getAttribute('geocode') != null && currentSelectedGeos.has(feature.getAttribute('geocode'))) {
-            feature.setAttribute('objectID', feature.getAttribute('objectid'));
-            selectedFeatures.push({geocode: feature.getAttribute('geocode'), objectid: Number(feature.getAttribute('objectID'))});
-          }
-        }
-        if (selectedFeatures.length > 0) {
-          const handlers: Array<EsriHighlightHandler> =  new Array<EsriHighlightHandler>();
-          for (const feature of selectedFeatures) {
-            const highlightRemover: EsriHighlightRemover = <EsriHighlightRemover> layerView.highlight(feature.objectid);
-            const highlightHandler: EsriHighlightHandler = { geocode: feature.geocode, remover: highlightRemover };
-            handlers.push(highlightHandler);
-          }
-          this.store$.dispatch(new ClearHighlightHandlers);
-          this.store$.dispatch(new AddHighlightHandlers(handlers));
-        } else {
-          this.store$.dispatch(new ClearHighlightHandlers);
-        }
-      });
+      if (this.highlightHandler != null) this.highlightHandler.remove();
+      if (objectIds.length > 0) this.highlightHandler = layerView.highlight(objectIds);
     }
   }
 }

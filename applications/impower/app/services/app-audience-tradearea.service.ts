@@ -163,7 +163,6 @@ export class ValAudienceTradeareaService {
     if (this.locationService.get().length < 1) {
       errors.push('You must have at least 1 site before applying a trade area');
     }
-
     if (this.stateService.analysisLevel$.getValue() == null || this.stateService.analysisLevel$.getValue().length === 0) {
       errors.push('You must select an Analysis Level before applying a trade area to Sites');
     }
@@ -172,6 +171,9 @@ export class ValAudienceTradeareaService {
     }
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
+    }
+    if(this.audienceTAConfig.maxRadius > 100){
+      errors.push('Maximum Radius must be <= 100');
     }
     if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
       errors.push('Invalid input, please enter a valid minimum trade area and a valid maximum trade area. ');
@@ -227,7 +229,7 @@ export class ValAudienceTradeareaService {
    }
 
     this.attachLocations();
-    if (this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
+    if (this.audienceTAConfig.analysisLevel != null && this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
       this.audienceTAConfig.analysisLevel = 'dtz';
 
     //for now we are going to force always fetching data,
@@ -239,7 +241,7 @@ export class ValAudienceTradeareaService {
     if (this.fetchData) {
       this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
-          this.parseResponse(response);
+          this.parseResponse(response, audienceTAConfig.audienceName);
           if (this.taResponses.size < 1) {
             console.warn('No data found when running audience trade area:', this.audienceTAConfig);
             this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
@@ -436,13 +438,15 @@ export class ValAudienceTradeareaService {
   /**
    * Parse the response from Fuse and build the array of audienceTradeareaResponses
    * This method will also create the renderer data that is required for map shading
-   * @param restResponse The response from Fuse returned from the trade area service
    */
-  private parseResponse(restResponse: RestResponse) {
+  private parseResponse(restResponse: RestResponse, alternateCategoryName: string) {
     this.taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
     let rendererData: Array<any> = new Array<any>();
     let count: number = 0;
     for (const taResponse of restResponse.payload.rows) {
+      if (taResponse.categoryName == null) {
+        taResponse.categoryName = alternateCategoryName;
+      }
       if (this.taResponses.has(taResponse.locationName)) {
         this.taResponses.get(taResponse.locationName).set(count, taResponse);
         count++;
@@ -577,6 +581,11 @@ export class ValAudienceTradeareaService {
    * @returns An array of ImpGeofootprintGeo
    */
   private createGeos(audienceTAConfig, location: ImpGeofootprintLocation) : ImpGeofootprintGeo[] {
+    // DE2124: if a location got no data back from the service we need to skip it
+    if (!this.taResponses.has(location.locationNumber)) {
+      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: `Location number ${location.locationNumber} has no available data, unable to create Audience TA for this location` }));
+      return;
+    }
     const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
     const taResponseMap = this.taResponses.get(location.locationNumber);
     const geoVarMap: Map<ImpGeofootprintGeo, ImpGeofootprintVar[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintVar[]>();

@@ -1,6 +1,6 @@
 import { ImpProjectVarService } from './../../val-modules/targeting/services/ImpProjectVar.service';
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, from, BehaviorSubject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -37,6 +37,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public  allProjectVars$: Observable<ImpProjectVar[]>;
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
+   public  allMustCovers$: Observable<string[]>;
    public  allAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
    public  allVars$: Observable<ImpGeofootprintVar[]>;
 
@@ -108,6 +109,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                                      this.rankGeographies();
                                   }
                                }));
+
+      this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
 
       this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable
                                 .pipe(map(attribs => Array.from(attribs))

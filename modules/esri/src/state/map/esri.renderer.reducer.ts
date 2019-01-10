@@ -1,13 +1,5 @@
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
 
-export interface EsriHighlightRemover { 
-  remove: () => void;
-}
-export interface EsriHighlightHandler { 
-  geocode: string; 
-  remover: EsriHighlightRemover; 
-}
-
 export interface NumericShadingData {
   geocode: string;
   data: number;
@@ -31,8 +23,7 @@ export interface EsriRendererState {
   numericShadingData: Array<NumericShadingData>;
   textShadingData: Array<TextShadingData>;
   selectedGeocodes: Array<string>;
-  highlightSelectedGeos: boolean;
-  highlightHandlers: Array<EsriHighlightHandler>;
+  selectedObjectIds: Array<number>;
   statistics: Statistics;
   enableShading: boolean;
 }
@@ -41,8 +32,7 @@ const initialState: EsriRendererState = {
   numericShadingData: new Array<NumericShadingData>(),
   textShadingData: new Array<TextShadingData>(),
   selectedGeocodes: new Array<string>(),
-  highlightSelectedGeos: false,
-  highlightHandlers: new Array<EsriHighlightHandler>(),
+  selectedObjectIds: new Array<number>(),
   statistics: null,
   enableShading: false
 };
@@ -74,15 +64,20 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
     case EsriRendererActionTypes.ClearTextShadingData:
       return {...state, textShadingData: new Array<TextShadingData>()};
     case EsriRendererActionTypes.AddSelectedGeos:
-      return {...state, selectedGeocodes: action.payload};
+      const dedupedGeocodes = Array.from(new Set(action.payload));
+      return {...state, selectedGeocodes: dedupedGeocodes};
+    case EsriRendererActionTypes.AddSelectedObjectIds:
+      const dedupedObjectIds = Array.from(new Set(action.payload.objectIds));
+      return {
+        ...state,
+        selectedObjectIds: dedupedObjectIds
+      };
     case EsriRendererActionTypes.ClearSelectedGeos:
-      return {...state, selectedGeocodes: new Array<string>()};
-    case EsriRendererActionTypes.HighlightSelectedGeos:
-      return {...state, highlightSelectedGeos: action.payload};
-    case EsriRendererActionTypes.AddHighlightHandlers:
-      return {...state, highlightHandlers: action.payload};
-    case EsriRendererActionTypes.ClearHighlightHandlers:
-      return {...state, highlightHandlers: new Array<EsriHighlightHandler>()};
+      return {
+        ...state,
+        selectedGeocodes: initialState.selectedGeocodes,
+        selectedObjectIds: initialState.selectedObjectIds
+      };
     case EsriRendererActionTypes.AddStatistics:
       return {...state, statistics: action.payload};
     case EsriRendererActionTypes.EnableShading:
