@@ -22,7 +22,7 @@ export interface EsriRendererState {
 }
 
 const initialState: EsriRendererState = {
-  shadingData: {},
+  shadingData: null,
   isNumericData: false,
   selectedGeocodes: new Array<string>(),
   statistics: null,
@@ -34,9 +34,9 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
     case EsriRendererActionTypes.SetShadingData:
       return {
         ...state,
-        shadingData: action.payload.data,
+        shadingData: { ...action.payload.data },
         isNumericData: action.payload.isNumericData,
-        statistics: action.payload.statistics,
+        statistics: { ...action.payload.statistics },
         enableShading: true,
       };
     case EsriRendererActionTypes.ClearShadingData:
