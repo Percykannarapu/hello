@@ -21,10 +21,6 @@ const getEsriAuthState = createSelector(getEsriState, state => state.auth);
 const getEsriMapState = createSelector(getEsriState, state => state != null ? state.map : null);
 const getEsriRendererState = createSelector(getEsriState, state => state != null ? state.renderer : null);
 
-const getEsriRendererNumericData = createSelector(getEsriRendererState, state => state != null ? state.numericShadingData : null);
-const getEsriRendererTextData = createSelector(getEsriRendererState, state => state != null ? state.textShadingData : null);
-const getEsriRendererSelectedObjects = createSelector(getEsriRendererState, state => state.selectedObjectIds);
-
 const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (api, auth) => api.isLoaded && auth.isAuthenticated);
 
 const getEsriViewpointState = createSelector(getEsriMapState, state => state != null ? state.mapViewpoint : null);
@@ -52,8 +48,5 @@ export const internalSelectors = {
   getEsriMapHeight,
   getEsriLabelConfiguration,
   getEsriRendererState,
-  getEsriRendererNumericData,
-  getEsriRendererTextData,
-  getEsriSelectedLayer,
-  getEsriRendererSelectedObjects
+  getEsriSelectedLayer
 };

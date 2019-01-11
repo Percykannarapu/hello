@@ -1,40 +1,20 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { ShadingData } from '../../../../modules/esri/src/state/map/esri.renderer.reducer';
 import { TargetAudienceService } from './target-audience.service';
 import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { calculateStatistics, Statistics } from '@val/common';
-import { AddNumericShadingData, AddSelectedGeos, AddStatistics, AddTextShadingData, ClearSelectedGeos, EnableShading, EsriRendererService } from '@val/esri';
+import { calculateStatistics, mapToEntity } from '@val/common';
+import { SetSelectedGeos, ClearSelectedGeos, EsriRendererService, ClearShadingData, SetShadingData } from '@val/esri';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
   AboveAndBelow = 'above-and-below',
   //CenteredOn = 'centered-on',
   Extremes = 'extremes'
-}
-
-export interface OutlineSetup {
-  defaultWidth: number;
-  selectedWidth: number;
-  selectedColor: number[] | __esri.Color;
-}
-
-export interface SmartRendererSetup {
-  rampLabel: string;
-  outline: OutlineSetup;
-  smartTheme: {
-    baseMap: __esri.Basemap;
-    theme: SmartMappingTheme;
-  };
-}
-
-export interface CustomRendererSetup {
-  rampLabel: string;
-  outline: OutlineSetup;
-  customColors?: number[][];
 }
 
 const tacticianDarkPalette = [
@@ -60,41 +40,35 @@ export class AppRendererService {
       withLatestFrom(this.appStateService.applicationIsReady$),
     ).subscribe(([geos, ready]) => {
       if (geos.length > 0) {
-        this.store$.dispatch(new AddSelectedGeos(geos));
+        this.store$.dispatch(new SetSelectedGeos(geos));
       } else if (ready) {
         this.store$.dispatch(new ClearSelectedGeos());
       }
     });
 
     this.dataSubscription = this.dataService.shadingData$.pipe(
-      map(dataMap => Array.from(dataMap.entries()).map(([key, value]) => ({ geocode: key, data: value })))
+      map(dataMap => mapToEntity(dataMap))
     ).subscribe(dataList => this.updateData(dataList));
   }
 
-  public updateData(newData: { geocode: string, data: ImpGeofootprintVar }[]) : void {
-    const numericShadingData: Array<{geocode: string, data: number}> = new Array<{geocode: string, data: number}>();
-    const textShadingData: Array<{geocode: string, data: string}> = new Array<{geocode: string, data: string}>();
-    newData.forEach(d => {
-      if (isNaN(d.data.valueNumber) || d.data.valueNumber == null) {
-        for (const data of newData) {
-          textShadingData.push({ geocode: data.geocode, data: data.data.valueString });
-        }
+  public updateData(newData: { [geocode: string] : ImpGeofootprintVar }) : void {
+    const result: ShadingData = {};
+    let isNumericData = false;
+    Object.keys(newData).forEach(geocode => {
+      if (Number.isNaN(Number(newData[geocode].valueNumber)) || newData[geocode].valueNumber == null) {
+        result[geocode] = newData[geocode].valueString;
       } else {
-        for (const data of newData) {
-          numericShadingData.push({ geocode: data.geocode, data: data.data.valueNumber });
-        }
+        result[geocode] = newData[geocode].valueNumber;
+        isNumericData = true;
       }
     });
-    if (numericShadingData.length > 0) {
-      const statistics = calculateStatistics(newData.map(d => d.data.valueNumber)); 
-      this.store$.dispatch(new AddStatistics(statistics));
-      this.store$.dispatch(new EnableShading(true));
-      this.store$.dispatch(new AddNumericShadingData(numericShadingData));
-    } else if (textShadingData.length > 0) {
-      this.store$.dispatch(new EnableShading(true));
-      const action = new AddTextShadingData(textShadingData);
-      this.store$.dispatch(action);
+
+    if (Object.keys(newData).length > 0) {
+      const newAction = new SetShadingData({ data: result, isNumericData: isNumericData });
+      if (isNumericData) newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
+      this.store$.dispatch(newAction);
+    } else {
+      this.store$.dispatch(new ClearShadingData());
     }
   }
-
 }

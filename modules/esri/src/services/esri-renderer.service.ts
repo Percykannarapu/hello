@@ -3,12 +3,8 @@ import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
-import { EsriQueryService } from './esri-query.service';
-import { distinctUntilChanged, filter, share, skipUntil, take, withLatestFrom } from 'rxjs/operators';
-import { select, Store } from '@ngrx/store';
-import { AppState, internalSelectors, selectors } from '../state/esri.selectors';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { NumericShadingData, Statistics, TextShadingData } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -55,38 +51,7 @@ export class EsriRendererService {
   private highlightHandler: { remove: () => void } = null;
   
   constructor(private mapService: EsriMapService, 
-              private layerService: EsriLayerService,
-              private queryService: EsriQueryService,
-              private store$: Store<AppState>) {
-
-    const sharedStore$ = this.store$.pipe(share());
-
-    //pipe for shading the map with numeric data
-    sharedStore$.pipe(
-      select(internalSelectors.getEsriRendererNumericData),
-      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-      filter(([numericData, esriState]) => numericData != null && esriState != null),
-      filter(([numericData, esriState]) => numericData.length > 0),
-      distinctUntilChanged(),
-    ).subscribe(([numericData, esriState]) => this.createMultiVariateRenderer(numericData, esriState.map, esriState.renderer.statistics));
-
-    //pipe for shading the map with text data
-    sharedStore$.pipe(
-      select(internalSelectors.getEsriRendererTextData),
-      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-      filter(([textData, mapState]) => textData != null && mapState != null),
-      filter(([textData, mapState]) => textData.length > 0),
-      distinctUntilChanged(),
-    ).subscribe(([textData, mapState]) => this.createClassBreaksRenderer(textData, mapState));
-
-    //pipe for restoring the simple renderer when shading is disabled
-    sharedStore$.pipe(
-      select(internalSelectors.getEsriRendererState),
-      withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-      filter(([rendererState, mapState]) => mapState != null && rendererState != null && rendererState.enableShading === false && (rendererState.numericShadingData.length > 0 || rendererState.textShadingData.length > 0))
-    ).subscribe(([rendererState, mapState]) => this.restoreSimpleRenderer(mapState));
-
-  }
+              private layerService: EsriLayerService) {}
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
   private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
@@ -145,47 +110,31 @@ export class EsriRendererService {
     return r != null && r.hasOwnProperty('smartTheme');
   }
 
-  private restoreSimpleRenderer(mapState: EsriMapState) {
+  public restoreSimpleRenderer(mapState: EsriMapState) {
     if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
       const lv = this.getLayerView(mapState.selectedLayerId);
       lv.layer.renderer = this.simpleRenderer;
     }
   }
 
-  private isNumericShadingData(data: Array<NumericShadingData> | Array<TextShadingData>) : data is Array<NumericShadingData> {
-    for (const datum of data) {
-      if (datum.data == null) {
-        continue;
-      }
-      if (typeof datum.data === 'string') {
-        return false;
-      }
-      const result = Number.isNaN(Number(data[0].data));
-      return !result;
+  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics) : void {
+    if (isNumericData) {
+      this.createMultiVariateRenderer(data, mapState, statistics);
+    } else {
+      this.createClassBreaksRenderer(data, mapState);
     }
-    return false;
   }
 
-  private generateArcade(data: Array<NumericShadingData> | Array<TextShadingData>) : string {
-      let newPairs: string = '';
-      const numericData = this.isNumericShadingData(data);
-      for (const datum of data) {
-        try {
-          if (numericData) {
-            newPairs += `\"${datum.geocode}\":${datum.data}\,`;
-          } else {
-            if (datum.data == null) {
-              continue;
-            }
-            newPairs += `\"${datum.geocode}\":\"${datum.data}\"\,`;
-          }
-          
-        } catch (error) {
-          console.error('Failed to add key');
+  private generateArcade(data: ShadingData, isNumericShadingData: boolean) : string {
+      const keyValues: Array<string> = [];
+      for (const geocode of Object.keys(data)) {
+        if (data[geocode]) {
+          const currentValue = isNumericShadingData ? `${data[geocode]}` : `\"${data[geocode]}\"`;
+          keyValues.push(`\"${geocode}\":${currentValue}`);
         }
       }
-      newPairs = newPairs.substring(0, newPairs.length - 1);
-      const arcade = `var geoData = {${newPairs}}; 
+      const arcadeValues = keyValues.join(`\,`);
+      const arcade = `var geoData = {${arcadeValues}}; 
                       if(hasKey(geoData, $feature.geocode)) {
                         return geoData[$feature.geocode];
                       }
@@ -225,18 +174,14 @@ export class EsriRendererService {
     return newRenderer;
   }
 
-  private createClassBreaksRenderer(data: Array<TextShadingData>, mapState: EsriMapState) {
-    const arcade = this.generateArcade(data);
+  private createClassBreaksRenderer(data: ShadingData, mapState: EsriMapState) {
+    const arcade = this.generateArcade(data, false);
     const dataValues: Set<string> = new Set<string>();
-    for (const datum of data) {
-      if (datum.data == null) {
-        continue;
-      }
-      dataValues.add(datum.data);
+    for (const value of Object.values(data)) {
+      if (value) dataValues.add(<string>value);
     }
     const setup = this.createRendererSetup(mapState);
     const uvi = this.generateClassBreaks(Array.from(dataValues), setup.rendererSetup);
-    const sym = EsriRendererService.createSymbol([0, 255, 255, 1], [0, 255, 255, 1], 3);
     const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 1], 3);
     const renderer: Partial<__esri.UniqueValueRenderer> = {
       type: 'unique-value',
@@ -253,8 +198,8 @@ export class EsriRendererService {
     }
   }
 
-  private createMultiVariateRenderer(data: Array<NumericShadingData>, mapState: EsriMapState, statistics: Statistics) {
-    const arcade = this.generateArcade(data);
+  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics) {
+    const arcade = this.generateArcade(data, true);
     const setup = this.createRendererSetup(mapState);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
     const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup);
@@ -346,9 +291,13 @@ export class EsriRendererService {
   public highlightSelection(layerId: string, objectIds: number[]) {
     if (!layerId) return;
     const layerView = this.getLayerView(layerId);
+    this.clearHighlight();
     if (layerView != null) {
-      if (this.highlightHandler != null) this.highlightHandler.remove();
       if (objectIds.length > 0) this.highlightHandler = layerView.highlight(objectIds);
     }
+  }
+
+  public clearHighlight() : void {
+    if (this.highlightHandler != null) this.highlightHandler.remove();
   }
 }

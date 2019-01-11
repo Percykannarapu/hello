@@ -1,70 +1,35 @@
 import { Action } from '@ngrx/store';
-import { NumericShadingData, TextShadingData, Statistics } from './esri.renderer.reducer';
+import { Statistics, ShadingData } from './esri.renderer.reducer';
 
 export enum EsriRendererActionTypes {
-  AddNumericShadingData = '[Esri Renderer] Add Numeric Shading Data',
-  AddTextShadingData = '[Esri Renderer] Add Text Shading Data',
-  ClearNumericShadingData = '[Esri Renderer] Clear Numeric Shading Data',
-  ClearTextShadingData = '[Esri Renderer] Clear Text Shading Data',
+  SetShadingData = '[Esri Renderer] Set Shading Data',
+  ClearShadingData = '[Esri Renderer] Clear Shading Data',
 
-  AddSelectedGeos = '[Esri Renderer] Add Selected Geos',
-  AddSelectedObjectIds = '[Esri Renderer] Add Selected Object Ids',
+  SetSelectedGeos = '[Esri Renderer] Set Selected Geos',
   ClearSelectedGeos = '[Esri Renderer] Clear Selected Geos',
-
-  AddStatistics = '[Esri Renderer] Add statistics',
-  EnableShading = '[Esri Renderer] Enable shading'
 }
 
-export class AddNumericShadingData implements Action {
-  readonly type = EsriRendererActionTypes.AddNumericShadingData;
-  constructor(public payload: Array<NumericShadingData>) { }
+export class SetShadingData implements Action {
+    readonly type = EsriRendererActionTypes.SetShadingData;
+    constructor(public payload: { data: ShadingData, isNumericData: boolean, statistics?: Statistics }) {}
 }
 
-export class AddTextShadingData implements Action {
-  readonly type = EsriRendererActionTypes.AddTextShadingData;
-  constructor(public payload: Array<TextShadingData>) { }
+export class ClearShadingData implements Action {
+    readonly type = EsriRendererActionTypes.ClearShadingData;
 }
 
-export class ClearNumericShadingData implements Action {
-  readonly type = EsriRendererActionTypes.ClearNumericShadingData;
-}
-
-export class ClearTextShadingData implements Action {
-  readonly type = EsriRendererActionTypes.ClearTextShadingData;
-}
-
-export class AddSelectedGeos implements Action {
-  readonly type = EsriRendererActionTypes.AddSelectedGeos;
+export class SetSelectedGeos implements Action {
+  readonly type = EsriRendererActionTypes.SetSelectedGeos;
   constructor(public payload: Array<string>) { }
-}
-
-export class AddSelectedObjectIds implements Action {
-  readonly type = EsriRendererActionTypes.AddSelectedObjectIds;
-  constructor(public payload: { objectIds: Array<number> }) {}
 }
 
 export class ClearSelectedGeos implements Action {
   readonly type = EsriRendererActionTypes.ClearSelectedGeos;
 }
 
-export class AddStatistics implements Action {
-  readonly type = EsriRendererActionTypes.AddStatistics;
-  constructor(public payload: Statistics) { }
-}
-
-export class EnableShading implements Action {
-  readonly type = EsriRendererActionTypes.EnableShading;
-  constructor(public payload: boolean) { }
-}
-
 export type EsriRendererActions =
-  AddNumericShadingData
-  | AddTextShadingData
-  | AddSelectedGeos
-  | AddSelectedObjectIds
-  | ClearNumericShadingData
-  | ClearTextShadingData
+  SetShadingData
+  | ClearShadingData
+  | SetSelectedGeos
   | ClearSelectedGeos
-  | AddStatistics
-  | EnableShading
   ;
