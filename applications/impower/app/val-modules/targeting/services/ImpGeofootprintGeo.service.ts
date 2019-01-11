@@ -588,13 +588,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
             console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
 
-            /* // DEBUG
-            console.debug("-".padEnd(80, "-"));
-            console.debug("MUST COVER GEOS");
-            console.debug("-".padEnd(80, "-"));
-            this.mustCovers.forEach(geo => console.debug(geo));
-            console.debug("-".padEnd(80, "-"));*/
-
             this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Must Cover Upload'}));
          }
       }
