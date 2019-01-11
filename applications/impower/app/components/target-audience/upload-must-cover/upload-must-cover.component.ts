@@ -5,6 +5,8 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { AppGeoService } from './../../../services/app-geo.service';
+import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 @Component({
   selector: 'val-upload-must-cover',
@@ -16,8 +18,30 @@ export class UploadMustCoverComponent {
 
    @ViewChild('mustCoverUpload') private mustCoverUploadEl: FileUpload;
  
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
+   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService            
+              ,private appGeoService: AppGeoService
+              ,private geoService: ImpGeofootprintGeoService
               ,private store$: Store<LocalAppState>) { }
+
+   private ensureMustCovers() {
+      let geosToPersist: Array<ImpGeofootprintGeo> = [];
+         // Add the must covers to geosToPersist
+         this.appGeoService.ensureMustCoversObs(null, null, null).subscribe(results=> {
+            results.forEach(result => geosToPersist.push(result));
+         }
+         ,err => {
+            console.error("Error in upload-must-cover.component.ensureMustCovers: ", err);
+            this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
+         }
+         ,() => {
+            if (geosToPersist.length > 0) {
+               console.log("Adding ", geosToPersist.length, " must covers in existing geofootprint");
+               this.geoService.add(geosToPersist);               
+            }
+            else
+               console.log("No must covers for audience TA");
+         });
+   }
 
    public uploadFile(event: any) : void {
       const reader = new FileReader();
@@ -39,6 +63,7 @@ export class UploadMustCoverComponent {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
                }
                finally {
+                  this.ensureMustCovers();
                   this.store$.dispatch(new StopBusyIndicator({ key }));
                }
             };
@@ -53,6 +78,7 @@ export class UploadMustCoverComponent {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
                }
                finally {
+                  this.ensureMustCovers();
                   this.store$.dispatch(new StopBusyIndicator({ key }));
                }
             };
