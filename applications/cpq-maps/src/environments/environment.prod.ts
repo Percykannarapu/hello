@@ -1,6 +1,9 @@
 import { EnvironmentData } from './environmentData';
 
 export const environment: EnvironmentData = {
+  debugMode: false,
+  environmentName: 'PROD',
+  fuseBaseUrl: 'https://services.valassislab.com/services/',
   production: true,
   esri: {
     portalServer: '',

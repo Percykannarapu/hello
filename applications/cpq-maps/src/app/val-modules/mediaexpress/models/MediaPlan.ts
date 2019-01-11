@@ -11,7 +11,7 @@ import { MediaPlanLineDetail } from './MediaPlanLineDetail';
 import { MediaPlanLine } from './MediaPlanLine';
 import { CbxReport } from './CbxReport';
 import { Goal } from './Goal';
-import { Objective } from './Objective'
+import { Objective } from './Objective';
 import { ProductAllocation } from './ProductAllocation';
 import { TargetAudiencePref } from './TargetAudiencePref';
 
@@ -40,16 +40,16 @@ export class MediaPlan extends BaseModel
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public commonMbus:               Array<MediaPlanCommonMbu> = new Array<MediaPlanCommonMbu>();
-   public lines:                    Array<MediaPlanLine> = new Array<MediaPlanLine>();
-   public reports:                  Array<CbxReport> = new Array<CbxReport>();
+   public commonMbus:               Array<number> = new Array<number>();
+   public lines:                    Array<number> = new Array<number>();
+   public reports:                  Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
    // ----------------------------------------------------------------------------
    // ADDITIONAL ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public productAllocations:       Array<ProductAllocation> = new Array<ProductAllocation>();
-   public targetAudiencePrefs:      Array<TargetAudiencePref> = new Array<TargetAudiencePref>();
+   public productAllocations:       Array<number> = new Array<number>();
+   public targetAudiencePrefs:      Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
    // -------------------------------------------
@@ -62,63 +62,6 @@ export class MediaPlan extends BaseModel
    constructor(data?: Partial<MediaPlan>) {
       super();
       Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      // Ask the children to set the tree property
-      this.commonMbus.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.lines.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.reports.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.productAllocations.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.targetAudiencePrefs.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.commonMbus.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.lines.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.reports.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.productAllocations.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.targetAudiencePrefs.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.commonMbus = (this.commonMbus||[]).map(ma => new MediaPlanCommonMbu(ma));
-      this.lines = (this.lines||[]).map(ma => new MediaPlanLine(ma));
-      this.reports = (this.reports||[]).map(ma => new CbxReport(ma));
-      this.productAllocations = (this.productAllocations||[]).map(ma => new ProductAllocation(ma));
-      this.targetAudiencePrefs = (this.targetAudiencePrefs||[]).map(ma => new TargetAudiencePref(ma));
-
-      // Push this as transient parent to children
-      this.commonMbus.forEach(fe => fe.mediaPlan = this);
-      this.lines.forEach(fe => fe.mediaPlan = this);
-      this.reports.forEach(fe => fe.mediaPlan = this);
-
-      // Ask the children to convert into models
-      this.commonMbus.forEach(fe => fe.convertToModel());
-      this.lines.forEach(fe => fe.convertToModel());
-      this.reports.forEach(fe => fe.convertToModel());
-      this.productAllocations.forEach(fe => fe.convertToModel());
-      this.targetAudiencePrefs.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
    }
 
    /**
