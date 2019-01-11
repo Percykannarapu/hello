@@ -82,17 +82,17 @@ export class DataShimEffects {
   );
 
   // These are for the NgRx store
-  // @Effect()
-  // loadSecondaryStore$ = this.actions$.pipe(
-  //   ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-  //   map(action => new LoadEntitiesFromServer({ projectId: action.payload.projectId }))
-  // );
-  //
-  // @Effect()
-  // newSecondaryStore$ = this.actions$.pipe(
-  //   ofType(DataShimActionTypes.ProjectCreateNew),
-  //   map(() => new CreateNewEntities())
-  // );
+  @Effect()
+  loadSecondaryStore$ = this.actions$.pipe(
+    ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
+    map(action => new LoadEntitiesFromServer({ projectId: action.payload.projectId }))
+  );
+
+  @Effect()
+  newSecondaryStore$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectCreateNew),
+    map(() => new CreateNewEntities())
+  );
 
   constructor(private actions$: Actions,
               private appDataShimService: AppDataShimService) {}

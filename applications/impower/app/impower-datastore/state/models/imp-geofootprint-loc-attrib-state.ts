@@ -1,4 +1,4 @@
-import { BaseModelState, parseStatus } from './base-model-state';
+import { BaseModelState } from './base-model-state';
 import { ImpGeofootprintLocAttribPayload } from '../../payload-models/imp-geofootprint-loc-attrib-payload';
 
 export class ImpGeofootprintLocAttribState extends BaseModelState {
@@ -18,8 +18,6 @@ export class ImpGeofootprintLocAttribState extends BaseModelState {
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpGeofootprintLocAttribPayload>) {
-    super();
-    const baseStatus = { baseStatus: parseStatus(data.baseStatus) };
-    Object.assign(this, data, baseStatus);
+    super(data);
   }
 }

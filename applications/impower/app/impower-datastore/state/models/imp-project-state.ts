@@ -1,5 +1,6 @@
-import { BaseModelState, parseStatus } from './base-model-state';
+import { BaseModelState } from './base-model-state';
 import { ImpProjectPayload } from '../../payload-models/imp-project-payload';
+import { DAOBaseStatus } from './impower-model.enums';
 
 export class ImpProjectState extends BaseModelState {
   public projectId:                 number;         /// Primary Key
@@ -67,13 +68,14 @@ export class ImpProjectState extends BaseModelState {
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpProjectPayload>) {
-    super();
-    const baseStatus = { baseStatus: parseStatus(data.baseStatus) };
-    const relationships = {
-      impGeofootprintMasters: (data.impGeofootprintMasters || []).map(m => m.cgmId),
-      impProjectPrefs: (data.impProjectPrefs || []).map(p => p.projectPrefId),
-      impProjectVars: (data.impProjectVars || []).map(v => v.pvId)
-    };
-    Object.assign(this, data, baseStatus, relationships);
+    super(data);
+    if (data != null) {
+      const relationships = {
+        impGeofootprintMasters: (data.impGeofootprintMasters || []).map(m => m.cgmId),
+        impProjectPrefs: (data.impProjectPrefs || []).map(p => p.projectPrefId),
+        impProjectVars: (data.impProjectVars || []).map(v => v.pvId)
+      };
+      Object.assign(this, relationships);
+    }
   }
 }

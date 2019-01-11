@@ -46,7 +46,7 @@ export function reducer(state = initialState, action: reducerActions) : State {
     case ImpProjectVarActionTypes.AddImpProjectVars:
       return addChildIds(adapter, state, action.payload.impProjectVars, 'impProjectVars', v => v.projectId);
 
-      case ImpProjectPrefActionTypes.DeleteImpProjectPref:
+    case ImpProjectPrefActionTypes.DeleteImpProjectPref:
       return deleteChildIds(adapter, state, [action.payload.id], 'impProjectPrefs');
     case ImpProjectPrefActionTypes.DeleteImpProjectPrefs:
       return deleteChildIds(adapter, state, action.payload.ids, 'impProjectPrefs');

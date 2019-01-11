@@ -240,11 +240,11 @@ export class TargetAudienceAudienceTA {
    */
   private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
     const value = valueString == null ? valueNumber : valueString;
-    const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
-    const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
+        const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
+        const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
     for (const audience of this.audienceService.getAudiences()) {
       if (result.fieldname != null && result.fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
-        result.varPosition = audience.audienceCounter;
+              result.varPosition = audience.audienceCounter;
       }
     }
     return result;
@@ -255,13 +255,13 @@ export class TargetAudienceAudienceTA {
    * This method will also create the renderer data that is required for map shading
    */
   private parseResponse(restResponse: RestResponse, alternateCategory: string) : Map<string, Map<number, AudienceTradeareaResponse>> {
-    const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
-    let count: number = 0;
-    const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
+        const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
+        let count: number = 0;
+        const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
     for (const taResponse of rows) {
-      if (taResponse.categoryName == null) {
-        taResponse.categoryName = alternateCategory;
-      }
+            if (taResponse.categoryName == null) {
+              taResponse.categoryName = alternateCategory;
+            }
       if (taResponses.has(taResponse.locationName)) {
         taResponses.get(taResponse.locationName).set(count, taResponse);
         count++;
@@ -278,16 +278,16 @@ export class TargetAudienceAudienceTA {
     return taResponses;
   }
 
-  private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
-    if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
-    const payload = audience.audienceTAConfig;
-    const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
-    delete payload.includeMustCover;
-    delete payload.audienceName;
-    if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
-    if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
-      payload.analysisLevel = 'dtz';
-    }
+    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
+        if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
+        const payload = audience.audienceTAConfig;
+        const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
+        delete payload.includeMustCover;
+        delete payload.audienceName;
+        if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
+        if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
+            payload.analysisLevel = 'dtz';
+        }
 
     //DE2057: If the digCategoryId is null get it from the project
     if (payload.digCategoryId == null) {
