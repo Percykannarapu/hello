@@ -58,12 +58,11 @@ export class AppRendererService {
     this.geoSubscription = this.appStateService.uniqueSelectedGeocodes$.pipe (
       filter(geos => geos != null),
       withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([geos, ready]) => ready)
-    ).subscribe(([geos]) => {
-      if (geos.length === 0) {
-        this.store$.dispatch(new ClearSelectedGeos());
-      } else {
+    ).subscribe(([geos, ready]) => {
+      if (geos.length > 0) {
         this.store$.dispatch(new AddSelectedGeos(geos));
+      } else if (ready) {
+        this.store$.dispatch(new ClearSelectedGeos());
       }
     });
 
