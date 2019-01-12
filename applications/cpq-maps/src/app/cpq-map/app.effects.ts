@@ -10,6 +10,7 @@ import { AddMediaPlanGroup } from './state/mediaPlanGroup/media-plan-group.actio
 import { AddMediaPlans } from './state/mediaPlan/media-plan.actions';
 import { AddMediaPlanCommonMbus } from './state/mediaPlanCommonMbu/media-plan-common-mbu.actions';
 import { AddMediaPlanLines } from './state/mediaPlanLine/media-plan-line.actions';
+import { AddProductAllocations } from './state/productAllocation/product-allocation.actions';
 
 @Injectable()
 export class AppEffects {
@@ -31,6 +32,7 @@ export class AppEffects {
         tap(normalizedEntities => this.store$.dispatch(new AddMediaPlans({mediaPlans: normalizedEntities.mediaPlans}))),
         tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanCommonMbus({mediaPlanCommonMbus: normalizedEntities.commonMbus}))),
         tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanLines({mediaPlanLines: normalizedEntities.lines}))),
+        tap(normalizedEntities => this.store$.dispatch(new AddProductAllocations({productAllocations: normalizedEntities.productAllocations}))),
         map(normalizedEntities => new AddMediaPlanGroup({ mediaPlanGroup: normalizedEntities.mediaPlanGroup })),
         catchError(err => of(console.error(err)))
       ))

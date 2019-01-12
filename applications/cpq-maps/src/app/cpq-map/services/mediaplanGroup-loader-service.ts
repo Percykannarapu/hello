@@ -76,6 +76,7 @@ export class MediaPlanGroupLoaderService {
       mediaPlans: this.normalizeMediaPlans(payload),
       commonMbus: this.normalizeCommonMbus(payload),
       lines: this.normalizeLines(payload),
+      productAllocations: this.normalizeProductAllocations(payload),
     };
   }
 
@@ -147,11 +148,33 @@ export class MediaPlanGroupLoaderService {
 
   private normalizeReports(payload: MediaPlanGroupPayload) : CbxReport[] {
     const reports: Array<CbxReport> = [];
+    for (let i = 0; i < payload.mediaPlans.length; i++) {
+      for (let j = 0; j < payload.mediaPlans[i].reports.length; j++) {
+        /*const report: CbxReport = Object.assign({}, payload.mediaPlans[i].reports[j], {
+          advertiserInfo: null,
+          mediaPlan: null,
+          getMpReportRuns: null
+        });*/
+      }
+    }
     return reports;
   }
 
   private normalizeProductAllocations(payload: MediaPlanGroupPayload) : ProductAllocation[] {
     const productAllocations: Array<ProductAllocation> = [];
+    for (let i = 0; i < payload.mediaPlans.length; i++) {
+      for (let j = 0; j < payload.mediaPlans[i].productAllocations.length; j++) {
+        const productAllocation: ProductAllocation = Object.assign({}, payload.mediaPlans[i].productAllocations[j], {
+          advertiserInfo: null,
+          ppToWrapPages: null,
+          baseStatus: null
+        });
+        if (payload.mediaPlans[i].productAllocations[j].ppToWrapPages != null) {
+          productAllocation.ppToWrapPages = payload.mediaPlans[i].productAllocations[j].ppToWrapPages.map(pp => pp.pptwpId);
+        }
+        productAllocations.push(productAllocation);
+      }
+    }
     return productAllocations;
   }
 
