@@ -50,20 +50,7 @@ export class MediaPlanGroupLoaderService {
     );
   }
 
-  normalizeProject(payload: MediaPlanGroupPayload) : MediaPlanGroup {
-    const mediaPlanGroup = new MediaPlanGroup();
-    mediaPlanGroup.mediaPlanGroupId = payload.mediaPlanGroupId;
-    mediaPlanGroup.createUser = payload.createUser;
-    mediaPlanGroup.createDate = payload.createDate;
-    mediaPlanGroup.groupName = payload.groupName;
-    if (payload.advertiserInfos != null)
-      payload.advertiserInfos.forEach(ai => mediaPlanGroup.advertiserInfos.push(ai.advertiserInfoId));
-    if (payload.mediaPlans != null)
-      payload.mediaPlans.forEach(mp => mediaPlanGroup.mediaPlans.push(mp.mediaPlanId));
-    return mediaPlanGroup;
-  }
-
-  normalize2(payload: MediaPlanGroupPayload) : NormalizedPayload {
+  normalize(payload: MediaPlanGroupPayload) : NormalizedPayload {
     if (payload == null) throw new Error('Cannot normalize a null or undefined payload');
     const mediaPlanGroup: MediaPlanGroup = Object.assign({}, payload, {advertiserInfos: null, mediaPlans: null, baseStatus: null});
     mediaPlanGroup.mediaPlans = payload.mediaPlans.map(m => m.mediaPlanId);

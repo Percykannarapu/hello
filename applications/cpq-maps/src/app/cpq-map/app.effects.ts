@@ -30,7 +30,7 @@ export class AppEffects {
   loadMediaPlanGroup$ = this.actions$.pipe(
     ofType<SetGroupId>(SharedActionTypes.SetGroupId),
     switchMap(action => this.mediaPlanGroupLoader.loadMediaPlanGroup(action.payload).pipe(
-      map(fuseResult => this.mediaPlanGroupLoader.normalize2(fuseResult)),
+      map(fuseResult => this.mediaPlanGroupLoader.normalize(fuseResult)),
       tap(normalizedEntities => this.populateEntities(normalizedEntities)),
       catchError(err => of(console.error(err)))
     ))
