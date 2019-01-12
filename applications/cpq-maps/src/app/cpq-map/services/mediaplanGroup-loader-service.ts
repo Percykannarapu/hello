@@ -77,7 +77,8 @@ export class MediaPlanGroupLoaderService {
       commonMbus: this.normalizeCommonMbus(payload),
       lines: this.normalizeLines(payload),
       productAllocations: this.normalizeProductAllocations(payload),
-      targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload)
+      targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload),
+      advertiserInfos: this.normalizeAdvertiserInfos(payload)
     };
   }
 
@@ -194,6 +195,30 @@ export class MediaPlanGroupLoaderService {
       }
     }
     return targetAudiencePrefs;
+  }
+
+  private normalizeAdvertiserInfos(payload: MediaPlanGroupPayload) : AdvertiserInfo[] {
+    const advertiserInfos: Array<AdvertiserInfo> = [];
+    for (const mediaPlan of payload.mediaPlans) {
+      const advertiserInfo: AdvertiserInfo = Object.assign({}, mediaPlan.advertiserInfo, {
+        goal: null,
+        mediaPlanGroup: null,
+        objective: null,
+        getMediaPlans: null,
+        getMediaPlanCommonMbus: null,
+        getMediaPlanLines: null,
+        getCbxReports: null,
+        getProductAllocations: null,
+        getTargetAudiencePrefs: null,
+        setTreeProperty: null,
+        removeTreeProperty: null,
+        convertToModel: null,
+        amProfile: null,
+        baseStatus: null
+      });
+      advertiserInfos.push(advertiserInfo);
+    }
+    return advertiserInfos;
   }
 
   /*denormalizeProject(state: MediaPlanGroup) : MediaPlanGroupPayload {

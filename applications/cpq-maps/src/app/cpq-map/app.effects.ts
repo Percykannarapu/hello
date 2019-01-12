@@ -12,33 +12,45 @@ import { AddMediaPlanCommonMbus } from './state/mediaPlanCommonMbu/media-plan-co
 import { AddMediaPlanLines } from './state/mediaPlanLine/media-plan-line.actions';
 import { AddProductAllocations } from './state/productAllocation/product-allocation.actions';
 import { AddTargetAudiences } from './state/targetAudience/target-audience.actions';
+import { AddAdvertiserInfos } from './state/advertiserInfo/advertiser-info.actions';
 
 @Injectable()
 export class AppEffects {
-  
+
   @Effect({ dispatch: false })
-   groupIdPopulated$ = this.actions$.pipe(
-      ofType<SetGroupId>(SharedActionTypes.SetGroupId),
-      filter((action) => action.payload != null),
-      tap((action) => console.log('Fired effect for app ready', action.payload)),
-      tap((action) => this.store$.dispatch(new SetAppReady(true)))
-   );
+  groupIdPopulated$ = this.actions$.pipe(
+    ofType<SetGroupId>(SharedActionTypes.SetGroupId),
+    filter((action) => action.payload != null),
+    tap((action) => console.log('Fired effect for app ready', action.payload)),
+    tap((action) => this.store$.dispatch(new SetAppReady(true)))
+  );
 
-   @Effect({ dispatch: false })
-   loadMediaPlanGroup$ = this.actions$.pipe(
-      ofType<SetGroupId>(SharedActionTypes.SetGroupId),
-      switchMap(action => this.mediaPlanGroupLoader.loadMediaPlanGroup(action.payload).pipe(
-        map(fuseResult => this.mediaPlanGroupLoader.normalize2(fuseResult)),
-        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanGroup({mediaPlanGroup: normalizedEntities.mediaPlanGroup}))),
-        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlans({mediaPlans: normalizedEntities.mediaPlans}))),
-        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanCommonMbus({mediaPlanCommonMbus: normalizedEntities.commonMbus}))),
-        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanLines({mediaPlanLines: normalizedEntities.lines}))),
-        tap(normalizedEntities => this.store$.dispatch(new AddProductAllocations({productAllocations: normalizedEntities.productAllocations}))),
-        tap(normalizedEntities => this.store$.dispatch(new AddTargetAudiences({targetAudiences: normalizedEntities.targetAudiencePrefs}))),
-        map(normalizedEntities => new AddMediaPlanGroup({ mediaPlanGroup: normalizedEntities.mediaPlanGroup })),
-        catchError(err => of(console.error(err)))
-      ))
-   );
+  @Effect({ dispatch: false })
+  loadMediaPlanGroup$ = this.actions$.pipe(
+    ofType<SetGroupId>(SharedActionTypes.SetGroupId),
+    switchMap(action => this.mediaPlanGroupLoader.loadMediaPlanGroup(action.payload).pipe(
+      map(fuseResult => this.mediaPlanGroupLoader.normalize2(fuseResult)),
+      tap(normalizedEntities => this.populateEntities(normalizedEntities)),
+      catchError(err => of(console.error(err)))
+    ))
+  );
 
-  constructor(private actions$: Actions, private store$: Store<LocalState>, private mediaPlanGroupLoader: MediaPlanGroupLoaderService) {}
+  private populateEntities(payload: NormalizedPayload) {
+    if (payload.mediaPlanGroup != null)
+      this.store$.dispatch(new AddMediaPlanGroup({ mediaPlanGroup: payload.mediaPlanGroup }));
+    if (payload.mediaPlans != null)
+      this.store$.dispatch(new AddMediaPlans({ mediaPlans: payload.mediaPlans }));
+    if (payload.commonMbus != null)
+      this.store$.dispatch(new AddMediaPlanCommonMbus({ mediaPlanCommonMbus: payload.commonMbus }));
+    if (payload.lines != null)
+      this.store$.dispatch(new AddMediaPlanLines({ mediaPlanLines: payload.lines }));
+    if (payload.productAllocations != null)
+      this.store$.dispatch(new AddProductAllocations({ productAllocations: payload.productAllocations }));
+    if (payload.targetAudiencePrefs != null)
+      this.store$.dispatch(new AddTargetAudiences({ targetAudiences: payload.targetAudiencePrefs }));
+    if (payload.advertiserInfos != null)
+      this.store$.dispatch(new AddAdvertiserInfos({ advertiserInfos: payload.advertiserInfos }));
+  }
+
+  constructor(private actions$: Actions, private store$: Store<LocalState>, private mediaPlanGroupLoader: MediaPlanGroupLoaderService) { }
 }
