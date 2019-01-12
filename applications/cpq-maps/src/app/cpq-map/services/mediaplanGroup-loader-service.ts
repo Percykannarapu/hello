@@ -77,6 +77,7 @@ export class MediaPlanGroupLoaderService {
       commonMbus: this.normalizeCommonMbus(payload),
       lines: this.normalizeLines(payload),
       productAllocations: this.normalizeProductAllocations(payload),
+      targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload)
     };
   }
 
@@ -180,6 +181,18 @@ export class MediaPlanGroupLoaderService {
 
   private normalizeTargetAudiencePrefs(payload: MediaPlanGroupPayload) : TargetAudiencePref[] {
     const targetAudiencePrefs: Array<TargetAudiencePref> = [];
+    for (let i = 0; i < payload.mediaPlans.length; i++) {
+      for (let j = 0; j < payload.mediaPlans[i].targetAudiencePrefs.length; j++) {
+        const targetAudiencePref: TargetAudiencePref = Object.assign({}, payload.mediaPlans[i].targetAudiencePrefs[j], {
+          advertiserInfo: null,
+          setTreeProperty: null,
+          removeTreeProperty: null,
+          convertToModel: null,
+          baseStatus: null
+        });
+        targetAudiencePrefs.push(targetAudiencePref);
+      }
+    }
     return targetAudiencePrefs;
   }
 
