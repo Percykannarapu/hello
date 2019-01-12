@@ -67,10 +67,6 @@ export class MediaPlanGroupLoaderService {
     if (payload == null) throw new Error('Cannot normalize a null or undefined payload');
     const mediaPlanGroup: MediaPlanGroup = Object.assign({}, payload, {advertiserInfos: null, mediaPlans: null, baseStatus: null});
     mediaPlanGroup.mediaPlans = payload.mediaPlans.map(m => m.mediaPlanId);
-    /*const flatLocations = simpleFlatten((payload.impGeofootprintMasters || []).map(m => m.impGeofootprintLocations));
-    const flatLocAttribs = simpleFlatten(flatLocations.map(l => l.impGeofootprintLocAttribs));
-    const flatTradeAreas = simpleFlatten(flatLocations.map(l => l.impGeofootprintTradeAreas));
-    const flatGeos = simpleFlatten(flatTradeAreas.map(ta => ta.impGeofootprintGeos));*/
     return {
       mediaPlanGroup: mediaPlanGroup,
       mediaPlans: this.normalizeMediaPlans(payload),
@@ -78,7 +74,8 @@ export class MediaPlanGroupLoaderService {
       lines: this.normalizeLines(payload),
       productAllocations: this.normalizeProductAllocations(payload),
       targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload),
-      advertiserInfos: this.normalizeAdvertiserInfos(payload)
+      advertiserInfos: this.normalizeAdvertiserInfos(payload),
+      reports: this.normalizeReports(payload)
     };
   }
 
@@ -152,11 +149,14 @@ export class MediaPlanGroupLoaderService {
     const reports: Array<CbxReport> = [];
     for (let i = 0; i < payload.mediaPlans.length; i++) {
       for (let j = 0; j < payload.mediaPlans[i].reports.length; j++) {
-        /*const report: CbxReport = Object.assign({}, payload.mediaPlans[i].reports[j], {
+        const report: CbxReport = Object.assign({}, payload.mediaPlans[i].reports[j], {
           advertiserInfo: null,
           mediaPlan: null,
-          getMpReportRuns: null
-        });*/
+          cbxReportType: null,
+          cbxReportParams: null,
+          baseStatus: null
+        });
+        reports.push(report);
       }
     }
     return reports;

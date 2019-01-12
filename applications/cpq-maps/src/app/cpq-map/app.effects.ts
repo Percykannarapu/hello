@@ -13,6 +13,7 @@ import { AddMediaPlanLines } from './state/mediaPlanLine/media-plan-line.actions
 import { AddProductAllocations } from './state/productAllocation/product-allocation.actions';
 import { AddTargetAudiences } from './state/targetAudience/target-audience.actions';
 import { AddAdvertiserInfos } from './state/advertiserInfo/advertiser-info.actions';
+import { AddCbxReports } from './state/cbxReport/cbx-report.actions';
 
 @Injectable()
 export class AppEffects {
@@ -50,6 +51,8 @@ export class AppEffects {
       this.store$.dispatch(new AddTargetAudiences({ targetAudiences: payload.targetAudiencePrefs }));
     if (payload.advertiserInfos != null)
       this.store$.dispatch(new AddAdvertiserInfos({ advertiserInfos: payload.advertiserInfos }));
+    if (payload.reports != null)
+      this.store$.dispatch(new AddCbxReports({ cbxReports: payload.reports }));
   }
 
   constructor(private actions$: Actions, private store$: Store<LocalState>, private mediaPlanGroupLoader: MediaPlanGroupLoaderService) { }
