@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { SharedActionTypes, SetAppReady, SetGroupId } from './state/shared/shared.actions';
-import { tap, filter, switchMap, map, catchError } from 'rxjs/operators';
+import { tap, filter, switchMap, map, catchError, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { LocalState } from './state';
@@ -26,34 +26,24 @@ export class AppEffects {
     tap((action) => this.store$.dispatch(new SetAppReady(true)))
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   loadMediaPlanGroup$ = this.actions$.pipe(
     ofType<SetGroupId>(SharedActionTypes.SetGroupId),
     switchMap(action => this.mediaPlanGroupLoader.loadMediaPlanGroup(action.payload).pipe(
       map(fuseResult => this.mediaPlanGroupLoader.normalize(fuseResult)),
-      tap(normalizedEntities => this.populateEntities(normalizedEntities)),
+      mergeMap(normalizedPayload => [
+        new AddMediaPlanGroup({ mediaPlanGroup: normalizedPayload.mediaPlanGroup }),
+        new AddMediaPlans({ mediaPlans: normalizedPayload.mediaPlans }),
+        new AddMediaPlanCommonMbus({ mediaPlanCommonMbus: normalizedPayload.commonMbus }),
+        new AddMediaPlanLines({ mediaPlanLines: normalizedPayload.lines }),
+        new AddProductAllocations({ productAllocations: normalizedPayload.productAllocations }),
+        new AddTargetAudiences({ targetAudiences: normalizedPayload.targetAudiencePrefs }),
+        new AddAdvertiserInfos({ advertiserInfos: normalizedPayload.advertiserInfos }),
+        new AddCbxReports({ cbxReports: normalizedPayload.reports })
+      ]),
       catchError(err => of(console.error(err)))
     ))
   );
-
-  private populateEntities(payload: NormalizedPayload) {
-    if (payload.mediaPlanGroup != null)
-      this.store$.dispatch(new AddMediaPlanGroup({ mediaPlanGroup: payload.mediaPlanGroup }));
-    if (payload.mediaPlans != null)
-      this.store$.dispatch(new AddMediaPlans({ mediaPlans: payload.mediaPlans }));
-    if (payload.commonMbus != null)
-      this.store$.dispatch(new AddMediaPlanCommonMbus({ mediaPlanCommonMbus: payload.commonMbus }));
-    if (payload.lines != null)
-      this.store$.dispatch(new AddMediaPlanLines({ mediaPlanLines: payload.lines }));
-    if (payload.productAllocations != null)
-      this.store$.dispatch(new AddProductAllocations({ productAllocations: payload.productAllocations }));
-    if (payload.targetAudiencePrefs != null)
-      this.store$.dispatch(new AddTargetAudiences({ targetAudiences: payload.targetAudiencePrefs }));
-    if (payload.advertiserInfos != null)
-      this.store$.dispatch(new AddAdvertiserInfos({ advertiserInfos: payload.advertiserInfos }));
-    if (payload.reports != null)
-      this.store$.dispatch(new AddCbxReports({ cbxReports: payload.reports }));
-  }
 
   constructor(private actions$: Actions, private store$: Store<LocalState>, private mediaPlanGroupLoader: MediaPlanGroupLoaderService) { }
 }
