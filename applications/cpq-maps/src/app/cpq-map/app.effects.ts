@@ -23,9 +23,9 @@ export class AppEffects {
    loadMediaPlanGroup$ = this.actions$.pipe(
       ofType<SetGroupId>(SharedActionTypes.SetGroupId),
       switchMap(action => this.mediaPlanGroupLoader.loadMediaPlanGroup(action.payload).pipe(
-        //map(fuseResult => this.mediaPlanGroupLoader.normalizeProject(fuseResult)),
-        //map(normalizedEntities => new AddMediaPlanGroup({ mediaPlanGroup: normalizedEntities })),
-        //catchError(err => of(new EntityLoadFailure({ err })))
+        map(fuseResult => this.mediaPlanGroupLoader.normalizeProject(fuseResult)),
+        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanGroup({mediaPlanGroup: normalizedEntities}))),
+        map(normalizedEntities => new AddMediaPlanGroup({ mediaPlanGroup: normalizedEntities })),
         catchError(err => of(console.error(err)))
       ))
    );

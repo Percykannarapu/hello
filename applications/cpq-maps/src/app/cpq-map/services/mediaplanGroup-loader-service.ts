@@ -28,11 +28,20 @@ export class MediaPlanGroupLoaderService {
     );
   }
 
-  /*normalizeProject(payload: MediaPlanGroupPayload) : MediaPlanGroup {
-    return normalize(payload);
+  normalizeProject(payload: MediaPlanGroupPayload) : MediaPlanGroup {
+    const mediaPlanGroup = new MediaPlanGroup();
+    mediaPlanGroup.mediaPlanGroupId = payload.mediaPlanGroupId;
+    mediaPlanGroup.createUser = payload.createUser;
+    mediaPlanGroup.createDate = payload.createDate;
+    mediaPlanGroup.groupName = payload.groupName;
+    if (payload.advertiserInfos != null)
+      payload.advertiserInfos.forEach(ai => mediaPlanGroup.advertiserInfos.push(ai.advertiserInfoId));
+    if (payload.mediaPlans != null)
+      payload.mediaPlans.forEach(mp => mediaPlanGroup.mediaPlans.push(mp.mediaPlanId));
+    return mediaPlanGroup;
   }
 
-  denormalizeProject(state: MediaPlanGroup) : MediaPlanGroupPayload {
+  /*denormalizeProject(state: MediaPlanGroup) : MediaPlanGroupPayload {
     return denormalize(state);
   }*/
 }
