@@ -4,6 +4,28 @@ import { EMPTY, Observable } from 'rxjs';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { map } from 'rxjs/operators';
 import { MediaPlanGroup } from '../../val-modules/mediaexpress/models/MediaPlanGroup';
+import { MediaPlan } from '../../val-modules/mediaexpress/models/MediaPlan';
+import { AdvertiserInfo } from '../../val-modules/mediaexpress/models/AdvertiserInfo';
+import { Objective } from '../../val-modules/mediaexpress/models/Objective';
+import { MediaPlanCommonMbu } from '../../val-modules/mediaexpress/models/MediaPlanCommonMbu';
+import { MediaPlanLine } from '../../val-modules/mediaexpress/models/MediaPlanLine';
+import { CbxReport } from '../../val-modules/mediaexpress/models/CbxReport';
+import { ProductAllocation } from '../../val-modules/mediaexpress/models/ProductAllocation';
+import { TargetAudiencePref } from '../../val-modules/mediaexpress/models/TargetAudiencePref';
+import { simpleFlatten } from '@val/common';
+
+export interface NormalizedPayload {
+  mediaPlanGroup?: MediaPlanGroup;
+  mediaPlans?: MediaPlan[];
+  //targetingProfiles: 
+  advertiserInfos?: AdvertiserInfo[];
+  objectives?: Objective[];
+  commonMbus?: MediaPlanCommonMbu[];
+  lines?: MediaPlanLine[];
+  reports?: CbxReport[];
+  productAllocations?: ProductAllocation[];
+  targetAudiencePrefs?: TargetAudiencePref[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +61,71 @@ export class MediaPlanGroupLoaderService {
     if (payload.mediaPlans != null)
       payload.mediaPlans.forEach(mp => mediaPlanGroup.mediaPlans.push(mp.mediaPlanId));
     return mediaPlanGroup;
+  }
+
+  normalize2(payload: MediaPlanGroupPayload) : NormalizedPayload {
+    if (payload == null) throw new Error('Cannot normalize a null or undefined payload');
+    const mediaPlanGroup: MediaPlanGroup = Object.assign({}, payload, {advertiserInfos: null, mediaPlans: null, baseStatus: null});
+    mediaPlanGroup.mediaPlans = payload.mediaPlans.map(m => m.mediaPlanId);
+    /*const flatLocations = simpleFlatten((payload.impGeofootprintMasters || []).map(m => m.impGeofootprintLocations));
+    const flatLocAttribs = simpleFlatten(flatLocations.map(l => l.impGeofootprintLocAttribs));
+    const flatTradeAreas = simpleFlatten(flatLocations.map(l => l.impGeofootprintTradeAreas));
+    const flatGeos = simpleFlatten(flatTradeAreas.map(ta => ta.impGeofootprintGeos));*/
+    return {
+      mediaPlanGroup: mediaPlanGroup,
+      mediaPlans: this.normalizeMediaPlans(payload),
+    };
+  }
+
+  private normalizeMediaPlans(payload: MediaPlanGroupPayload) : MediaPlan[] {
+    const mediaPlans: Array<MediaPlan> = [];
+    for (let i = 0; i < payload.mediaPlans.length; i++) {
+      const mediaPlan: MediaPlan = Object.assign({}, payload.mediaPlans[i], {
+        baseStatus: null,
+        objective: null,
+        goal: null,
+        advertiserInfo: null,
+        amProfile: null, 
+        commonMbus: null, 
+        lines: null, 
+        reports: null, 
+        productAllocations: null, 
+        targetAudiencePrefs: null, 
+        mediaPlanGroup: null
+      });
+      mediaPlan.commonMbus = payload.mediaPlans[i].commonMbus.map(m => m.commonMbuId);
+      mediaPlan.lines = payload.mediaPlans[i].lines.map(l => l.mbuHdrId);
+      mediaPlan.reports = payload.mediaPlans[i].reports.map(r => r.reportRunId);
+      mediaPlan.productAllocations = payload.mediaPlans[i].productAllocations.map(p => p.productAllocationId);
+      mediaPlan.targetAudiencePrefs = payload.mediaPlans[i].targetAudiencePrefs.map(t => t.targetAudiencePrefId);
+      mediaPlans.push(mediaPlan);
+    }
+    return mediaPlans;
+  }
+
+  private normalizeCommonMbus(payload: MediaPlanGroupPayload) : MediaPlanCommonMbu[] {
+    const commonMbus: Array<MediaPlanCommonMbu> = [];
+    return commonMbus;
+  }
+
+  private normalizeLines(payload: MediaPlanGroupPayload) : MediaPlanLine[] {
+    const lines: Array<MediaPlanLine> = [];
+    return lines;
+  }
+
+  private normalizeReports(payload: MediaPlanGroupPayload) : CbxReport[] {
+    const reports: Array<CbxReport> = [];
+    return reports;
+  }
+
+  private normalizeProductAllocations(payload: MediaPlanGroupPayload) : ProductAllocation[] {
+    const productAllocations: Array<ProductAllocation> = [];
+    return productAllocations;
+  }
+
+  private normalizeTargetAudiencePrefs(payload: MediaPlanGroupPayload) : TargetAudiencePref[] {
+    const targetAudiencePrefs: Array<TargetAudiencePref> = [];
+    return targetAudiencePrefs;
   }
 
   /*denormalizeProject(state: MediaPlanGroup) : MediaPlanGroupPayload {
