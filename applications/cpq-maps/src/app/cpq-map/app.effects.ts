@@ -8,6 +8,7 @@ import { LocalState } from './state';
 import { MediaPlanGroupLoaderService, NormalizedPayload } from './services/mediaplanGroup-loader-service';
 import { AddMediaPlanGroup } from './state/mediaPlanGroup/media-plan-group.actions';
 import { AddMediaPlans } from './state/mediaPlan/media-plan.actions';
+import { AddMediaPlanCommonMbus } from './state/mediaPlanCommonMbu/media-plan-common-mbu.actions';
 
 @Injectable()
 export class AppEffects {
@@ -27,6 +28,7 @@ export class AppEffects {
         map(fuseResult => this.mediaPlanGroupLoader.normalize2(fuseResult)),
         tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanGroup({mediaPlanGroup: normalizedEntities.mediaPlanGroup}))),
         tap(normalizedEntities => this.store$.dispatch(new AddMediaPlans({mediaPlans: normalizedEntities.mediaPlans}))),
+        tap(normalizedEntities => this.store$.dispatch(new AddMediaPlanCommonMbus({mediaPlanCommonMbus: normalizedEntities.commonMbus}))),
         map(normalizedEntities => new AddMediaPlanGroup({ mediaPlanGroup: normalizedEntities.mediaPlanGroup })),
         catchError(err => of(console.error(err)))
       ))

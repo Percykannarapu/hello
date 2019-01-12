@@ -74,6 +74,7 @@ export class MediaPlanGroupLoaderService {
     return {
       mediaPlanGroup: mediaPlanGroup,
       mediaPlans: this.normalizeMediaPlans(payload),
+      commonMbus: this.normalizeCommonMbus(payload);
     };
   }
 
@@ -105,6 +106,21 @@ export class MediaPlanGroupLoaderService {
 
   private normalizeCommonMbus(payload: MediaPlanGroupPayload) : MediaPlanCommonMbu[] {
     const commonMbus: Array<MediaPlanCommonMbu> = [];
+    for (let i = 0; i < payload.mediaPlans.length; i++) {
+      for (let j = 0; j < payload.mediaPlans[i].commonMbus.length; j++) {
+        const commonMbu: MediaPlanCommonMbu = Object.assign({}, payload.mediaPlans[i].commonMbus[j], {
+          advertiserInfo: null,
+          mediaPlan: null,
+          mpCommonVersion: null,
+          mediaPlanLine: null,
+          setTreeProperty: null,
+          removeTreeProperty: null,
+          convertToModel: null,
+          baseStatus: null
+        });
+        commonMbus.push(commonMbu);
+      }
+    }
     return commonMbus;
   }
 
