@@ -124,44 +124,52 @@ export class UploadTradeAreasComponent {
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    const uniqueRows: string[] = [];
-    const duplicateRows: string[] = [];
-    for (let i = 0; i < rows.length; i++) {
-      if (uniqueRows.indexOf(rows[i]) == -1) {
-        uniqueRows.push(rows[i]);
-      } else {
-        duplicateRows.push(rows[i]);
-        if (duplicateRows.length > 0) {
-          break;
+    if (header.split(/,/).length == 2) {
+      const uniqueRows: string[] = [];
+      const duplicateRows: string[] = [];
+      for (let i = 0; i < rows.length; i++) {
+        if (uniqueRows.indexOf(rows[i]) == -1) {
+          uniqueRows.push(rows[i]);
+        } else {
+          duplicateRows.push(rows[i]);
+          if (duplicateRows.length > 0) {
+            break;
+          }
         }
       }
-    }
-    try {
-     if (!(duplicateRows.length > 0)) {
-      const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
-      if (data != null) {
-        const failedCount = data.failedRows ? data.failedRows.length : 0;
-        const successCount = data.parsedData ? data.parsedData.length : 0;
-        this.totalUploadedRowCount = failedCount;
-        if (failedCount > 0) {
-          this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
-          console.error('Failed Trade Area Upload Rows:', data.failedRows);
+      try {
+        if (!(duplicateRows.length > 0)) {
+          const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
+          if (data != null) {
+            const failedCount = data.failedRows ? data.failedRows.length : 0;
+            const successCount = data.parsedData ? data.parsedData.length : 0;
+            this.totalUploadedRowCount = failedCount;
+            if (failedCount > 0) {
+              this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
+              console.error('Failed Trade Area Upload Rows:', data.failedRows);
+            }
+            if (successCount > 0) {
+              this.processUploadedTradeArea(data.parsedData);
+            }
+            this.store$.dispatch(new StopBusyIndicator({ key}));
+          } else {
+            this.store$.dispatch(new StopBusyIndicator({ key}));
+            this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
+          }
+        } else {
+          this.store$.dispatch(new StopBusyIndicator({ key}));
+          this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicating Site/Geo Combinations.', notificationTitle: 'Error Uploading Custom TA' }));
         }
-        if (successCount > 0) {
-          this.processUploadedTradeArea(data.parsedData);
-        }
-        this.store$.dispatch(new StopBusyIndicator({ key}));
-      } else {
-        this.store$.dispatch(new StopBusyIndicator({ key}));
-        this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
+      } catch (e) {
+          console.log('There was an error parsing the uploaded data', e);
+      } finally {
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       }
-     } else {
-       this.store$.dispatch(new StopBusyIndicator({ key}));
-       this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicating Site/Geo Combinations.', notificationTitle: 'Error Uploading Custom TA' }));
-     }
-    } catch (e) {
-      console.log('There was an error parsing the uploaded data', e);
+    } else {
+      this.store$.dispatch(new StopBusyIndicator({ key}));
+      this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
     }
+    
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
