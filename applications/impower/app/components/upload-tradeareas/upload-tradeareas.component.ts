@@ -21,7 +21,11 @@ import { LocalAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { mapBy } from '@val/common';
+<<<<<<< HEAD
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+=======
+import { AppGeoService } from './../../services/app-geo.service';
+>>>>>>> 087d61e7c35354a6f019293a0a4d7f09e0b169fd
 
 interface TradeAreaDefinition {
   store: string;
@@ -54,6 +58,7 @@ export class UploadTradeAreasComponent {
 
   constructor(private messageService: MessageService,
     private appConfig: AppConfig,
+    private appGeoService: AppGeoService,
     private stateService: AppStateService,
     private esriQueryService: EsriQueryService,
     private tradeAreaService: AppTradeAreaService,
@@ -223,6 +228,7 @@ export class UploadTradeAreasComponent {
         // stuff all the results into appropriate data stores
         this.impGeoService.add(geosToAdd);
         this.impGeofootprintTradeAreaService.add(tradeAreasToAdd);
+        this.appGeoService.ensureMustCovers();
       });
   }
 }

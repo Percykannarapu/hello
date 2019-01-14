@@ -1,19 +1,11 @@
 import { Injectable } from '@angular/core';
-import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { DAOBaseStatus } from '../../val-modules/api/models/BaseModel';
+import { AudienceDataDefinition } from '../../models/audience-data.model';
 import { ImpProjectState } from '../state/models/imp-project-state';
 import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { AudienceDataDefinition } from '../../models/audience-data.model';
-import { ImpProjectPref } from '../../val-modules/targeting/models/ImpProjectPref';
 import { ImpProjectVarState } from '../state/models/imp-project-var-state';
 import { UserService } from '../../services/user.service';
 import { ImpProjectPrefState } from '../state/models/imp-project-pref-state';
-import { ValGeocodingResponse } from '../../models/val-geocoding-response.model';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { ImpGeofootprintLocationState } from '../state/models/imp-geofootprint-location-state';
-import { ImpGeofootprintLocAttribState } from '../state/models/imp-geofootprint-loc-attrib-state';
+import { DAOBaseStatus, TradeAreaTypeCodes } from '../state/models/impower-model.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -101,7 +93,7 @@ export class StateModelFactoryService {
 
   createProjectPref(parentId: number, code: string, type: string, value: string, isActive: boolean = true) : ImpProjectPrefState {
     if (value == null) throw new Error('Project Preferences cannot have a null value');
-    return new ImpProjectPref({
+    return new ImpProjectPrefState({
       projectPrefId: StateModelFactoryService.getNextId(),
       projectId: parentId,
       dirty: true,

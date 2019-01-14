@@ -172,7 +172,7 @@ export class ValAudienceTradeareaService {
     if (!this.audienceTAConfig.minRadius || !this.audienceTAConfig.maxRadius) {
       errors.push('You must enter both a minimum must cover radius and maximum radius ');
     }
-    if(this.audienceTAConfig.maxRadius > 100){
+    if (this.audienceTAConfig.maxRadius > 100){
       errors.push('Maximum Radius must be <= 100');
     }
     if ((isNaN(this.audienceTAConfig.maxRadius) && this.audienceTAConfig.maxRadius != null) || (isNaN(this.audienceTAConfig.minRadius) && this.audienceTAConfig.minRadius != null)) {
@@ -229,7 +229,7 @@ export class ValAudienceTradeareaService {
    }
 
     this.attachLocations();
-    if (this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
+    if (this.audienceTAConfig.analysisLevel != null && this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
       this.audienceTAConfig.analysisLevel = 'dtz';
 
     //for now we are going to force always fetching data,
@@ -550,13 +550,13 @@ export class ValAudienceTradeareaService {
   /**
    * Create the rederer we will need by invoking the AppRendererService
    */
-  private createRenderer() {
-    const rendererData: Array<any> = new Array<any>();
-    for (const geofootprintVar of this.mockVars) {
-      rendererData.push({ geocode: geofootprintVar.geocode, data: geofootprintVar.valueString });
-    }
-    this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
-  }
+  // private createRenderer() {
+  //   const rendererData: Array<any> = new Array<any>();
+  //   for (const geofootprintVar of this.mockVars) {
+  //     rendererData.push({ geocode: geofootprintVar.geocode, data: geofootprintVar.valueString });
+  //   }
+  //   this.rendererService.updateData(rendererData.sort((a, b) => this.compare(a, b)));
+  // }
 
   /**
    * Create the audience trade area
@@ -629,7 +629,7 @@ export class ValAudienceTradeareaService {
       newGeos.push(newGeo);
     }
     console.log('locationsWithNoScores:::', this.locationsWithNoScores);
-    if(this.locationsWithNoScores.size > 0 && this.locationsWithNoScores.get(location) === false){
+    if (this.locationsWithNoScores.size > 0 && this.locationsWithNoScores.get(location) === false){
       console.warn('Unable to find response for location: ', location);
       this.failedLocations.push(location);
     }

@@ -4,7 +4,8 @@ import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors }
 import { filter, take, tap } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
-import { FullState } from './reducers';
+import { FullState } from './state';
+import { SetGroupId } from './state/shared/shared.actions';
 
 @Component({
   selector: 'cpq-map',

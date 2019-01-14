@@ -1,17 +1,21 @@
 import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { EsriModule } from '@val/esri';
 import { environment } from '../../environments/environment';
 import { CpqMapComponent } from './cpq-map.component';
 import { StoreModule } from '@ngrx/store';
-import { reducers, metaReducers } from './reducers';
+import { reducers, metaReducers } from './state/app.reducer';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { AppConfig } from '../app.config';
 
 @NgModule({
   imports: [
     CommonModule,
+    HttpClientModule,
     StoreModule.forRoot(reducers, { metaReducers }),
     EffectsModule.forRoot([AppEffects]),
     EsriModule.forRoot(environment.esri.portalServer, {
@@ -27,7 +31,8 @@ import { AppEffects } from './app.effects';
     }),
   ],
   declarations: [CpqMapComponent],
-  exports: [CpqMapComponent]
+  exports: [CpqMapComponent],
+  providers: [RestDataService, AppConfig]
 })
 export class CpqMapModule {
 

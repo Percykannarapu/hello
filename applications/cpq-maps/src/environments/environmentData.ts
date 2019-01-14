@@ -4,6 +4,9 @@ export interface LayerIdDefinition {
 }
 
 export interface EnvironmentData {
+  debugMode: boolean,
+  environmentName: string;
+  fuseBaseUrl: string;
   production: boolean;
   esri: {
     portalServer: string;

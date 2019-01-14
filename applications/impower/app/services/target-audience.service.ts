@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { ClearShadingData } from '@val/esri';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge } from 'rxjs';
 import { map, tap, filter, startWith, debounceTime } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -16,7 +17,6 @@ import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { filterArray } from '@val/common';
-import { EnableShading } from '@val/esri';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { RestResponse } from '../models/RestResponse';
 
@@ -336,7 +336,7 @@ export class TargetAudienceService implements OnDestroy {
         }
       );
     } else if (shadingAudience.length === 0) {
-      this.store$.dispatch(new EnableShading(false));
+      this.store$.dispatch(new ClearShadingData());
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process

@@ -31,7 +31,7 @@ export class MpCommonVersion extends BaseModel
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public commonMbus:               Array<MediaPlanCommonMbu> = new Array<MediaPlanCommonMbu>();
+   public commonMbus:               Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
 
@@ -39,45 +39,6 @@ export class MpCommonVersion extends BaseModel
    constructor(data?: Partial<MpCommonVersion>) {
       super();
       Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      // Ask the children to set the tree property
-      this.commonMbus.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.commonMbus.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.commonMbus = (this.commonMbus||[]).map(ma => new MediaPlanCommonMbu(ma));
-
-      // Push this as transient parent to children
-      this.commonMbus.forEach(fe => fe.mpCommonVersion = this);
-
-      // Ask the children to convert into models
-      this.commonMbus.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
    }
 
    /**

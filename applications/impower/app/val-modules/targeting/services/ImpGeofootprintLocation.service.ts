@@ -358,10 +358,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'TRADE_DESC1',        row: (state, data) => state.exportTradeAreaDesc(data, 0) });
             exportColumns.push({ header: 'TRADE_DESC2',        row: (state, data) => state.exportTradeAreaDesc(data, 1) });
             exportColumns.push({ header: 'TRADE_DESC3',        row: (state, data) => state.exportTradeAreaDesc(data, 2) });
-            exportColumns.push({ header: 'Home Zip Code',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
+            exportColumns.push({ header: 'Home ZIP',      row: (state, data) => state.exportHomeGeoAttribute(data, 'ZIP')});
             exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
-            exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.exportHomeGeoAttribute(data, 'PCR')});
+            exportColumns.push({ header: 'Home PCR', row: (state, data) => state.exportHomeGeoAttribute(data, 'PCR')});
             exportColumns.push({ header: 'Home Geocode Issue', row: (state, data) => state.exportHomeGeoAttribute(data, 'Geocode Issue')});
             exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
             exportColumns.push({ header: 'ATZ',                row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, true, false, false)});

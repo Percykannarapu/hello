@@ -41,7 +41,7 @@ export class ProductAllocation extends BaseModel
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public ppToWrapPages:      Array<PpToWrapPage> = new Array<PpToWrapPage>();
+   public ppToWrapPages:      Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
    // -------------------------------------------
@@ -54,45 +54,6 @@ export class ProductAllocation extends BaseModel
    constructor(data?: Partial<ProductAllocation>) {
       super();
       Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      // Ask the children to set the tree property
-      this.ppToWrapPages.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.ppToWrapPages.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.ppToWrapPages = (this.ppToWrapPages||[]).map(ma => new PpToWrapPage(ma));
-
-      // Push this as transient parent to children
-      this.ppToWrapPages.forEach(fe => fe.productAllocation = this);
-
-      // Ask the children to convert into models
-      this.ppToWrapPages.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
    }
 
    /**

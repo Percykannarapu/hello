@@ -16,6 +16,9 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { AppGeoService } from './../../services/app-geo.service';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -57,12 +60,14 @@ export class TradeAreaTabComponent implements OnInit {
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
 
   constructor(private stateService: AppStateService,
-               private tradeAreaService: AppTradeAreaService,
-               private appLocationService: AppLocationService,
-               private config: AppConfig,
-               private audienceTradeareaService: ValAudienceTradeareaService,
-               private targetAudienceService: TargetAudienceService,
-               private locationService: ImpGeofootprintLocationService,
+              private tradeAreaService: AppTradeAreaService,
+              private appLocationService: AppLocationService,
+              private config: AppConfig,
+              private audienceTradeareaService: ValAudienceTradeareaService,
+              private targetAudienceService: TargetAudienceService,
+              private locationService: ImpGeofootprintLocationService,
+              private appGeoService: AppGeoService,
+              private geoService: ImpGeofootprintGeoService,
               private store$: Store<LocalAppState>) { }
 
   ngOnInit() {
@@ -181,11 +186,32 @@ export class TradeAreaTabComponent implements OnInit {
   onRunAudienceTA(run: boolean) {
     if (!run) return;
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
-    .subscribe(null,
+    .subscribe(createTASuccessful => {
+      let geosToPersist: Array<ImpGeofootprintGeo> = [];
+      if (createTASuccessful) {
+         // Add the must covers to geosToPersist
+         this.appGeoService.ensureMustCoversObs(this.locationService.get(), new Set(this.tradeAreaService.cachedTradeAreas), null).subscribe(results=> {
+            results.forEach(result => geosToPersist.push(result));
+         }
+         ,err => {
+            console.log("ERROR occurred ensuring must covers: ", err);
+            this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
+         }
+         ,() => {
+            if (geosToPersist.length > 0) {
+               console.log("Adding ", geosToPersist.length, " must covers for audience TA");
+               this.geoService.add(geosToPersist);               
+            }
+            else
+               console.log("No must covers for audience TA");
+         });
+      }
+    },      
     error => {
       console.error('Error while creating audience tradearea', error);
       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
-    });
+   }
+   );
   }
 }

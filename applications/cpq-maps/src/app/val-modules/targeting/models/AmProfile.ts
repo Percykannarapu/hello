@@ -28,51 +28,13 @@ export class AmProfile extends BaseModel
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public sites:                  Array<AmSite> = new Array<AmSite>();
+   public sites:                  Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<AmProfile>) {
       super();
       Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      this.sites.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.sites.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.sites = (this.sites||[]).map(ma => new AmSite(ma));
-
-      // Push this as transient parent to children
-      this.sites.forEach(fe => fe.amProfile = this);
-
-      // Ask the children to convert into models
-      this.sites.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
    }
 
    /**

@@ -5,6 +5,8 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { AppGeoService } from './../../../services/app-geo.service';
+import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 @Component({
   selector: 'val-upload-must-cover',
@@ -16,7 +18,9 @@ export class UploadMustCoverComponent {
 
    @ViewChild('mustCoverUpload') private mustCoverUploadEl: FileUpload;
  
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
+   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService            
+              ,private appGeoService: AppGeoService
+              ,private geoService: ImpGeofootprintGeoService
               ,private store$: Store<LocalAppState>) { }
 
    public uploadFile(event: any) : void {
@@ -24,7 +28,7 @@ export class UploadMustCoverComponent {
       const name: string = event.files[0].name ? event.files[0].name.toLowerCase() : null;
       const key = this.spinnerId;
       if (name != null) {
-         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Audience Data'}));
+         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
          if (name.includes('.xlsx') || name.includes('.xls')) {
             reader.readAsBinaryString(event.files[0]);
             reader.onload = () => {
@@ -36,10 +40,11 @@ export class UploadMustCoverComponent {
                   this.impGeofootprintGeoService.parseMustCoverFile(csvData, name);
                }
                catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
+                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
-                  this.store$.dispatch(new StopBusyIndicator({ key }));
+                  this.store$.dispatch(new StopBusyIndicator({ key: key }));                  
+                  this.appGeoService.ensureMustCovers();
                }
             };
          }
@@ -47,13 +52,14 @@ export class UploadMustCoverComponent {
             reader.readAsText(event.files[0]);
             reader.onload = () => {
                try {
-                  this.impGeofootprintGeoService.parseMustCoverFile(reader.result, name);
+                  this.impGeofootprintGeoService.parseMustCoverFile(reader.result.toString(), name);
                }
                catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
+                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
-                  this.store$.dispatch(new StopBusyIndicator({ key }));
+                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                  this.appGeoService.ensureMustCovers();
                }
             };
          }

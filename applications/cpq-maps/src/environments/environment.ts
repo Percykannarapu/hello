@@ -12,6 +12,9 @@ import { EnvironmentData } from './environmentData';
 // The list of file replacements can be found in `angular.json`.
 
 export const environment: EnvironmentData = {
+  debugMode: true,
+  environmentName: 'DEV',
+  fuseBaseUrl: 'https://servicesdev.valassislab.com/services/',
   production: false,
   esri: {
     portalServer: 'https://vallomimpor1vm.val.vlss.local/',

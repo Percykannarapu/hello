@@ -23,8 +23,8 @@ export class MediaPlanGroup extends BaseModel
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
-   public advertiserInfos:      Array<AdvertiserInfo> = new Array<AdvertiserInfo>();
-   public mediaPlans:           Array<MediaPlan> = new Array<MediaPlan>();
+   public advertiserInfos:      Array<number> = new Array<number>();
+   public mediaPlans:           Array<number> = new Array<number>();
    // ----------------------------------------------------------------------------
 
 
@@ -32,50 +32,6 @@ export class MediaPlanGroup extends BaseModel
    constructor(data?: Partial<MediaPlanGroup>) {
       super();
       Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      // Ask the children to set the tree property
-      this.advertiserInfos.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.mediaPlans.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.advertiserInfos.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.mediaPlans.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.advertiserInfos = (this.advertiserInfos||[]).map(ma => new AdvertiserInfo(ma));
-      this.mediaPlans = (this.mediaPlans||[]).map(ma => new MediaPlan(ma));
-
-      // Push this as transient parent to children
-      this.advertiserInfos.forEach(fe => fe.mediaPlanGroup = this);
-      this.mediaPlans.forEach(fe => fe.mediaPlanGroup = this);
-
-      // Ask the children to convert into models
-      this.advertiserInfos.forEach(fe => fe.convertToModel());
-      this.mediaPlans.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
    }
 
    /**

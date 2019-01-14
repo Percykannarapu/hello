@@ -1,17 +1,14 @@
-import { DAOBaseStatus } from '../../../val-modules/api/models/BaseModel';
-
-export const parseStatus: (payloadStatus: string) => DAOBaseStatus = (payloadStatus: string) => {
-  const result: DAOBaseStatus | undefined = DAOBaseStatus[payloadStatus];
-  if (result === undefined) throw new Error(`Unknown DAOBaseStatus: ${payloadStatus}`);
-  return result;
-};
+import { BaseModelPayload } from '../../payload-models/base-model-payload';
+import { DAOBaseStatus } from './impower-model.enums';
 
 export class BaseModelState {
-  public dirty: Boolean;
-  public baseStatus: DAOBaseStatus;
+  public dirty: boolean = false;
+  public baseStatus: DAOBaseStatus = DAOBaseStatus.INSERT;
 
-  constructor() {
-    this.dirty = false;
-    this.baseStatus = DAOBaseStatus.INSERT;
+  constructor(data?: Partial<BaseModelPayload>) {
+    if (data != null) {
+      const baseStatus = { baseStatus: DAOBaseStatus.parse(data.baseStatus) };
+      Object.assign(this, data, baseStatus);
+    }
   }
 }
