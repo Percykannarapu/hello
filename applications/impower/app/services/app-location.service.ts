@@ -244,6 +244,7 @@ export class AppLocationService {
     const locDicttemp = {};
     const zipLocDictemp = {};
     const duplicatedLocDict = {};
+    const duplicatedAtzLocDict = {};
     locations.forEach(loc => {
       if ( Object.keys(locDicttemp).includes(loc.locZip.substring(0, 5) + loc.carrierRoute)){
         duplicatedLocDict[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
@@ -251,13 +252,19 @@ export class AppLocationService {
       else{
         locDicttemp[loc.locZip.substring(0, 5) + loc.carrierRoute] = loc;
       }
-      zipLocDictemp[loc.locZip.substring(0, 5)] = loc;
+      if ( Object.keys(zipLocDictemp).includes(loc.locZip.substring(0, 5))){
+        duplicatedAtzLocDict[loc.locZip.substring(0, 5)] = loc;
+      }
+      else{
+        zipLocDictemp[loc.locZip.substring(0, 5)] = loc;
+      }
     });
     const pcrGeocodeList = [];
     const key = 'HomeGeoCalcKey';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
     pointPolyNotRequiredLocations.forEach(loc => pcrGeocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
     const locMap = groupByExtended(pointPolyNotRequiredLocations, loc => loc.locZip.substring(0, 5) + loc.carrierRoute);
+    const atzLocMap = groupByExtended(pointPolyNotRequiredLocations, loc => loc.locZip.substring(0, 5));
     this.determineHomeGeos(pcrGeocodeList, analysisLevel, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
       map(res => {
         const atzLocationsNotFound = [];
@@ -318,10 +325,16 @@ export class AppLocationService {
           atzTab14Response.payload.forEach(row => {
             atzTab14ResponseDict[row['geocode']] = row;
           });
+          // if (duplicatedAtzLocDict[row['geocode']] != null){
+
+          // }
+
           attributeList.forEach(filterAtribute => {
             if (filterAtribute['homeAtz'] == null && filterAtribute['homeZip'] in atzTab14ResponseDict) {
               const attr = atzTab14ResponseDict[filterAtribute['homeZip']];
-              delete atzTab14ResponseDict[filterAtribute['homeZip']];
+              if (duplicatedAtzLocDict[filterAtribute['homeZip']] == null){
+                delete atzTab14ResponseDict[filterAtribute['homeZip']];
+              }
               filterAtribute['homeAtz'] = attr['ZIP'];
             }
           });
