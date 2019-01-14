@@ -162,14 +162,14 @@ export class UploadTradeAreasComponent {
         }
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
+          this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
       } finally {
         this.store$.dispatch(new StopBusyIndicator({ key }));
       }
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
-    }
-    
+    }    
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
