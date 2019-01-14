@@ -635,7 +635,7 @@ export class AppLocationService {
           //&& attribute['homeAtz'] == null || attribute['homeAtz'] == ''
           else if (attribute['homeAtz'] in atzTab14ResponseDict ){
             const attr = atzTab14ResponseDict[attribute['homeAtz']];
-            attribute['homeAtz'] = attr['ZIP'];
+            attribute['homeAtz'] = attr['geocode'];
           }else {
             attribute['homeAtz'] = '';
           }
