@@ -79,7 +79,7 @@ export class AppLocationService {
       filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
-      filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
+     // filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
