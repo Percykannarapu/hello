@@ -21,7 +21,11 @@ import { LocalAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { mapBy } from '@val/common';
+<<<<<<< HEAD
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+=======
 import { AppGeoService } from './../../services/app-geo.service';
+>>>>>>> 087d61e7c35354a6f019293a0a4d7f09e0b169fd
 
 interface TradeAreaDefinition {
   store: string;
@@ -119,9 +123,24 @@ export class UploadTradeAreasComponent {
   }
 
   private parseCsvFile(dataBuffer: string) {
+    const key = 'CUSTOM_TRADEAREA';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
+    const uniqueRows: string[] = [];
+    const duplicateRows: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      if (uniqueRows.indexOf(rows[i]) == -1) {
+        uniqueRows.push(rows[i]);
+      } else {
+        duplicateRows.push(rows[i]);
+        if (duplicateRows.length > 0) {
+          break;
+        }
+      }
+    }
     try {
+     if (!(duplicateRows.length > 0)) {
       const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
       if (data != null) {
         const failedCount = data.failedRows ? data.failedRows.length : 0;
@@ -134,9 +153,15 @@ export class UploadTradeAreasComponent {
         if (successCount > 0) {
           this.processUploadedTradeArea(data.parsedData);
         }
+        this.store$.dispatch(new StopBusyIndicator({ key}));
       } else {
+        this.store$.dispatch(new StopBusyIndicator({ key}));
         this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
       }
+     } else {
+       this.store$.dispatch(new StopBusyIndicator({ key}));
+       this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicating Site/Geo Combinations.', notificationTitle: 'Error Uploading Custom TA' }));
+     }
     } catch (e) {
       console.log('There was an error parsing the uploaded data', e);
     }
