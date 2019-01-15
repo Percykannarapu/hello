@@ -53,6 +53,7 @@ export class AppLocationService {
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
+  public homeGeoColumns = ['Home ATZ', 'Home ZIP', 'Home PCR', 'Home Digital ATZ', 'Home County', 'Home DMA'];
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -78,8 +79,8 @@ export class AppLocationService {
     const locationsNeedingHomeGeos$ = locationsWithType$.pipe(
       filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
-      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
-     // filterArray(loc => !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))),
+      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0), 
+      filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => this.homeGeoColumns.includes(attr.attributeCode) &&  attr.attributeValue === '')),
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
@@ -779,5 +780,9 @@ export class AppLocationService {
 
   private getHomegeocodeData(requestPayload: any, url: string)  {
     return this.restService.post('v1/targeting/base/homegeo/homegeocode', requestPayload);
+  }
+
+  private filterHomeAttributes(attr: ImpGeofootprintLocAttrib){
+    attr.attributeCode.startsWith('Home ');
   }
 }
