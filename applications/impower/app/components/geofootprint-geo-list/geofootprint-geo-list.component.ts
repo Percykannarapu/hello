@@ -591,7 +591,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
 
          // Is the geo a must cover?
-         if (mustCovers != null && mustCovers.includes(geo.geocode))
+         if (mustCovers != null && mustCovers.includes(geo.geocode) && geo.rank === 0)
             gridGeo['isMustCover'] = "1";
          else
             gridGeo['isMustCover'] = "0";
