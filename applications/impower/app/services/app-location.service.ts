@@ -80,7 +80,11 @@ export class AppLocationService {
       filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0), 
-      filterArray(loc => loc.impGeofootprintLocAttribs.length == 0 || loc.impGeofootprintLocAttribs.some(attr => attr != null && this.homeGeoColumns.includes(attr.attributeCode) &&  (attr.attributeValue != null || attr.attributeValue === ''))),
+      filterArray(loc => loc.impGeofootprintLocAttribs.length == 0  
+       || (loc.recordStatusCode === 'PROVIDED' && loc.impGeofootprintLocAttribs.some(attr => !this.homeGeoColumns.includes(attr.attributeCode)))
+       || (loc.recordStatusCode === 'PROVIDED' && loc.impGeofootprintLocAttribs.some(attr => this.homeGeoColumns.includes(attr.attributeCode) && attr.attributeValue === ''))
+       ),
+       //|| (loc.recordStatusCode === 'PROVIDED' && loc.impGeofootprintLocAttribs.some(attr => !this.homeGeoColumns.includes(attr.attributeCode)))
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
