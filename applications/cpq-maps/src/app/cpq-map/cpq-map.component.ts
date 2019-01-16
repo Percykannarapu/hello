@@ -4,8 +4,9 @@ import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors }
 import { filter, take, tap } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
-import { FullState } from './state';
-import { SetGroupId } from './state/shared/shared.actions';
+import { FullState, localSelectors } from './state';
+import { stat } from 'fs';
+import { SetActiveMediaPlanId } from './state/shared/shared.actions';
 
 @Component({
   selector: 'cpq-map',
@@ -13,6 +14,8 @@ import { SetGroupId } from './state/shared/shared.actions';
   styleUrls: ['./cpq-map.component.css']
 })
 export class CpqMapComponent implements OnInit {
+
+  mediaPlanIds: Array<Number> = [];
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -25,6 +28,21 @@ export class CpqMapComponent implements OnInit {
       filter(ready => ready),
       take(1)
     ).subscribe(() => this.setupApplication());
+
+    this.store$.select(state => state.mediaPlanGroup).pipe(
+      filter(state => state.ids.length > 0)
+    ).subscribe(state => {
+      if (state.ids.length > 1) {
+        console.warn('Multiple media plan groups loaded, this is not supported');
+      } else {
+        this.mediaPlanIds = state.entities[state.ids[0]].mediaPlans;
+      }
+    });
+
+  }
+
+  public setActiveMediaPlan(event: any) {
+    this.store$.dispatch(new SetActiveMediaPlanId({ mediaPlanId: Number(event.target.value) }));
   }
 
   private setupApplication() {

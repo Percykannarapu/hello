@@ -15,6 +15,11 @@ import { ObjectiveState } from './objective/objective.reducer';
 import { PpToWrapPageState } from './ppToWrapPage/pp-to-wrap-page.reducer';
 import { ProductAllocationState } from './productAllocation/product-allocation.reducer';
 import { TargetAudienceState } from './targetAudience/target-audience.reducer';
+import { createSelector } from '@ngrx/store';
+import { RfpUiEditDetailState } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
+import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
+import { RfpUiEditState } from './rfpUiEdit/rfp-ui-edit.reducer';
+
 
 export interface FullState extends LocalState, fromEsri.AppState {}
 
@@ -35,4 +40,16 @@ export interface LocalState {
    ppTtoWrapPage: PpToWrapPageState;
    productAllocation: ProductAllocationState;
    targetAudience: TargetAudienceState;
+   rfpUiEditDetail: RfpUiEditDetailState;
+   rfpUiReview: RfpUiReviewState;
+   rfpUiEdit: RfpUiEditState;
 }
+
+const getSharedState = (state: LocalState) => state.shared;
+const getEntitiesLoading = createSelector(getSharedState, state => state.entitiesLoading);
+const getAppReady = createSelector(getSharedState, state => state.appReady);
+
+export const localSelectors = {
+   getEntitiesLoading,
+   getAppReady
+};
