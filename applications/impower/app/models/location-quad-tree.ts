@@ -1,5 +1,5 @@
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { toUniversalCoordinates } from './coordinates';
+import { toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriUtils } from '@val/esri';
 
 export class LocationQuadTree {
