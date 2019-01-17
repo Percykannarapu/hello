@@ -17,5 +17,6 @@ export interface EnvironmentData {
     zip: LayerIdDefinition;
     atz: LayerIdDefinition;
     wrap: LayerIdDefinition;
+    dtz: LayerIdDefinition
   };
 }

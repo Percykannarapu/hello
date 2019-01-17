@@ -19,6 +19,10 @@ export const environment: EnvironmentData = {
       boundary: 'dac5cea6976a42ceb3f0498d2c901447',
       centroid: '7bde296c08254ed78460accd00c8af49'
     },
+    dtz: {
+      boundary: '9230ad1f421847f08d6bf0ae2f8ba00f',
+      centroid: 'ae57986ce91144e98a65208ef8ae5a1d'
+    },
     wrap: {
       boundary: '8dbaa84192c94b5eab3f4e685ba93af7',
       centroid: undefined
