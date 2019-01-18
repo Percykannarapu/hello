@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../../../app.config';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
@@ -306,8 +307,26 @@ export class ImpDomainFactoryService {
 
   createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
+    // All trade areas in the project
+    const allTradeAreas = new Set(parent.impProject.getImpGeofootprintTradeAreas().map(ta => ta.taNumber));
+
+    // All trade areas in the location
     const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
-    const taNumber = tradeAreaType === TradeAreaTypeCodes.Radius ? index + 1 : parent.impGeofootprintTradeAreas.length + this.config.maxRadiusTradeAreas + 1;
+
+    // Determine the ta number to use
+    let taNumber:number = 4;
+    if (tradeAreaType === TradeAreaTypeCodes.Radius)
+       taNumber = index + 1;
+    else
+    {
+       // Retrieve the TA Number from a trade area of the same type if it exists
+       const existingTradeAreasOfType = parent.impProject.getImpGeofootprintTradeAreas().filter(ta => ta.taType === tradeAreaType.toUpperCase()).map(ta => ta.taNumber);
+       if (existingTradeAreasOfType != null && existingTradeAreasOfType.length > 0)
+          taNumber = existingTradeAreasOfType[0];
+       else
+          // Calculate the next contiguous number to use
+          while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
+    }
     const result = new ImpGeofootprintTradeArea({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
@@ -320,7 +339,7 @@ export class ImpDomainFactoryService {
       impGeofootprintLocation: parent,
       isActive: parent.isActive ? isActive : parent.isActive,
       gtaId: null
-    });
+    });    
     if (existingTradeAreas.has(taNumber)) {
       console.error('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
       throw new Error('A duplicate trade area number addition was attempted');

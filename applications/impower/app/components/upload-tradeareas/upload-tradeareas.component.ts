@@ -220,7 +220,7 @@ export class UploadTradeAreasComponent {
             } else {
               // finally build the tradeArea (if necessary) and geo
               const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
-              let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType === TradeAreaTypeCodes.Custom)[0];
+              let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
               if (currentTradeArea == null) {
                 currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
                 tradeAreasToAdd.push(currentTradeArea);

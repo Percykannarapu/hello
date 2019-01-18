@@ -467,7 +467,7 @@ export class AppGeoService {
                         //console.debug("### ensureMustCoversObs - closest location to ", geoAttrib.geocode, " is ", closestLocation.locationName, " at ", minDistance);
 
                         // Assign to a new or existing MUSTCOVER trade area
-                        const mustCoverTA: ImpGeofootprintTradeArea[] = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType === 'MUSTCOVER');
+                        const mustCoverTA: ImpGeofootprintTradeArea[] = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
                         if (mustCoverTA.length === 0) {
                            const newTA = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.MustCover);
                            newTA.taName = "Must cover geographies not in an existing trade area";
