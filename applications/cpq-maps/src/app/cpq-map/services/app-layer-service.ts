@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService } from '@val/esri';
+import { EsriLayerService, MapSymbols } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 
 @Injectable({
@@ -19,13 +19,12 @@ export class AppLayerService {
                return;
             }
          }
-         this.esriLayerService.createPointLayer(groupName, layerName, coordinates);
+         this.esriLayerService.createPointLayer(groupName, layerName, coordinates, MapSymbols.STAR);
          this.currentLayerNames.get(groupName).push(layerName);
       } else {
-         this.esriLayerService.createPointLayer(groupName, layerName, coordinates);
+         this.esriLayerService.createPointLayer(groupName, layerName, coordinates, MapSymbols.STAR);
          this.currentLayerNames.set(groupName, [layerName]);
       }
-
    }
 
    public removeLocationsLayer(groupName: string, layerName: string) {
@@ -33,7 +32,6 @@ export class AppLayerService {
          let layerFound: boolean = false;
          for (let i = 0; i < this.currentLayerNames.get(groupName).length; i++) {
             const currName = this.currentLayerNames.get(groupName)[i];
-         //for (const curName of this.currentLayerNames.get(groupName)) {
             if (layerName === currName) {
                layerFound = true;
                this.esriLayerService.removeLayer(layerName);

@@ -9,6 +9,7 @@ import { AppState, internalSelectors } from '../state/esri.selectors';
 import { filter, share } from 'rxjs/operators';
 import { EsriLabelConfiguration } from '../state/map/esri.map.reducer';
 import { UniversalCoordinates } from '../../../common';
+import { MapSymbols } from '../models/map-symbols';
 
 export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
@@ -141,13 +142,14 @@ export class EsriLayerService {
     return 'x' in object && 'y' in object;
   }
 
-  private coordinatesToGrpahics(coordinates: UniversalCoordinates[]) : __esri.Graphic[] {
+  private coordinatesToGraphics(coordinates: UniversalCoordinates[], symbol?: MapSymbols) : __esri.Graphic[] {
     const graphics: Array<__esri.Graphic> = [];
     for (const coordinate of coordinates) {
       const point: __esri.Point = new EsriApi.Point();
       point.latitude = coordinate.y;
       point.longitude = coordinate.x;
       const marker: __esri.SimpleMarkerSymbol = new EsriApi.SimpleMarkerSymbol({ color: [0, 0, 255] });
+      symbol != null ? marker.path = symbol : marker.path = MapSymbols.STAR;
       const graphic: __esri.Graphic = new EsriApi.Graphic();
       graphic.geometry = point;
       graphic.symbol = marker;
@@ -156,8 +158,8 @@ export class EsriLayerService {
     return graphics;
   }
 
-  public createPointLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[]) {
-    const graphics = this.coordinatesToGrpahics(coordinates);
+  public createPointLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[], symbol?: MapSymbols) {
+    const graphics = this.coordinatesToGraphics(coordinates, symbol);
     this.createClientLayer(groupName, layerName, graphics, 'point');
   }
 

@@ -27,3 +27,4 @@ export * from './src/state/api/esri.api.actions';
 export * from './src/state/auth/esri.auth.actions';
 export * from './src/state/map/esri.map.actions';
 export * from './src/state/map/esri.renderer.actions';
+export * from './src/models/map-symbols';
