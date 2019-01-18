@@ -9,34 +9,44 @@ import { MediaPlanGroupLoaderService } from './services/mediaplanGroup-loader-se
 import { SetSelectedLayer, SetSelectedGeos } from '@val/esri';
 import { RfpUiEditDetailLoaderService } from './services/RfpUiEditDetail-loader-service';
 import { RfpUiReviewLoaderService } from './services/rfpUiReview-loader-service';
-import { AddRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { AddRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
+import { AddRfpUiEditDetails, ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { AddRfpUiReviews, ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
 import { RfpUiEditLoaderService } from './services/rfpUiEdit-loader-service';
-import { AddRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
+import { AddRfpUiEdits, ClearRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
 import { RfpUiEditDetailState } from './state/rfpUiEditDetail/rfp-ui-edit-detail.reducer';
 import { AddMediaPlanGroup } from './state/mediaPlanGroup/media-plan-group.actions';
+import { AppLayerService } from './services/app-layer-service';
+import { UniversalCoordinates } from '@val/common';
+import { RfpUiEditState } from './state/rfpUiEdit/rfp-ui-edit.reducer';
 
 @Injectable()
 export class AppEffects {
 
-  // After a media plan group ID is populated set the entities loading flag to true
-  // Not using this anymore
-  /*@Effect()
-  groupIdPopulated$ = this.actions$.pipe(
-    ofType<SetGroupId>(SharedActionTypes.SetGroupId),
-    filter((action) => action.payload != null),
-    map((action) => new EntitiesLoading({ entitiesLoading: true }))
-  );*/
+  constructor(private actions$: Actions, 
+    private store$: Store<LocalState>, 
+    private mediaPlanGroupLoader: MediaPlanGroupLoaderService,
+    private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
+    private rfpUiReviewLoader: RfpUiReviewLoaderService,
+    private rfpUiEditLoader: RfpUiEditLoaderService,
+    private appLayerService: AppLayerService,
+    private fullStore$: Store<FullState>) { }
 
+  // When a new active media plan is selected we need to clear the data stores
+  // of previous data, we also clear the locations layer on the map to get rid
+  // of any locations that may not be the same between media plans
   @Effect()
   mediaPlanIdSet$ = this.actions$.pipe(
     ofType<SetActiveMediaPlanId>(SharedActionTypes.SetActiveMediaPlanId),
     filter((action) => action.payload != null),
+    tap((action) => this.appLayerService.removeLocationsLayer('Sites', 'Project Sites')),
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
       new RfpUiEditDetailLoaded({ rfpUiEditDetailLoaded: false }),
       new RfpUiReviewLoaded({ rfpUiReviewLoaded: false }),
-      new EntitiesLoading({ entitiesLoading: true })
+      new EntitiesLoading({ entitiesLoading: true }),
+      new ClearRfpUiEdits(),
+      new ClearRfpUiEditDetails,
+      new ClearRfpUiReviews
     ])
   );
 
@@ -116,10 +126,11 @@ export class AppEffects {
   @Effect({ dispatch: false })
   setSelectedGeos$ = this.actions$.pipe(
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
-    withLatestFrom(this.store$.select(state => state.rfpUiEditDetail)),
+    withLatestFrom(this.store$.select(state => state)),
     tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedLayer({ layerId: 'c0ee701ee95f4bbdbc15ded2a37ca802' }))),
     delay(5000),
-    tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state))))
+    tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state.rfpUiEditDetail)))),
+    tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit)))
   );
 
   // After RfpUiReview is loaded check to see if the other entities have finished loading
@@ -164,6 +175,14 @@ export class AppEffects {
     catchError(err => of(console.error(err)))
   );
 
+  private parseLocations(state: RfpUiEditState) : UniversalCoordinates[] {
+    const coordinates: Array<UniversalCoordinates> = [];
+    for (const id of state.ids) {
+      coordinates.push({ x: state.entities[id].siteLong, y: state.entities[id].siteLat });
+    }
+    return coordinates;
+  }
+
   private parseGeocodes(state: RfpUiEditDetailState) {
     const geocodes: Array<string> = [];
     for (const id of state.ids) {
@@ -171,12 +190,4 @@ export class AppEffects {
     }
     return geocodes;
   }
-
-  constructor(private actions$: Actions, 
-    private store$: Store<LocalState>, 
-    private mediaPlanGroupLoader: MediaPlanGroupLoaderService,
-    private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
-    private rfpUiReviewLoader: RfpUiReviewLoaderService,
-    private rfpUiEditLoader: RfpUiEditLoaderService,
-    private fullStore$: Store<FullState>) { }
 }
