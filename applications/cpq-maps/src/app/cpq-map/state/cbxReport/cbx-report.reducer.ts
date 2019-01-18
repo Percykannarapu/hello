@@ -1,6 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { CbxReport } from '../../../val-modules/mediaexpress/models/CbxReport';
 import { CbxReportActions, CbxReportActionTypes } from './cbx-report.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface CbxReportState extends EntityState<CbxReport> {
   // additional entities state properties
@@ -15,8 +16,17 @@ export const initialState: CbxReportState = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function cbxReportReducer(state = initialState, action: CbxReportActions) : CbxReportState {
+type reducerActions = CbxReportActions | SharedActions;
+
+export function cbxReportReducer(state = initialState, action: reducerActions) : CbxReportState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph: {
+      if (action.payload.normalizedEntities.reports != null)
+        return adapter.addAll(action.payload.normalizedEntities.reports, state);
+      else
+        return state;
+    }
+
     case CbxReportActionTypes.AddCbxReport: {
       return adapter.addOne(action.payload.cbxReport, state);
     }

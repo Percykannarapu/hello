@@ -1,6 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { ProductAllocation } from '../../../val-modules/mediaexpress/models/ProductAllocation';
 import { ProductAllocationActions, ProductAllocationActionTypes } from './product-allocation.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface ProductAllocationState extends EntityState<ProductAllocation> {
   // additional entities state properties
@@ -12,8 +13,17 @@ export const initialState: ProductAllocationState = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function productAllocationReducer(state = initialState, action: ProductAllocationActions) : ProductAllocationState {
+type reducerActions = ProductAllocationActions | SharedActions;
+
+export function productAllocationReducer(state = initialState, action: reducerActions) : ProductAllocationState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph: {
+      if (action.payload.normalizedEntities.productAllocations != null)
+        return adapter.addAll(action.payload.normalizedEntities.productAllocations, state);
+      else
+        return state;
+    }
+
     case ProductAllocationActionTypes.AddProductAllocation: {
       return adapter.addOne(action.payload.productAllocation, state);
     }

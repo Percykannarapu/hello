@@ -24,6 +24,9 @@ import { objectiveReducer } from './objective/objective.reducer';
 import { ppToWrapPageReducer } from './ppToWrapPage/pp-to-wrap-page.reducer';
 import { productAllocationReducer } from './productAllocation/product-allocation.reducer';
 import { targetAudienceReducer } from './targetAudience/target-audience.reducer';
+import { rfpUiEditDetailreducer } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
+import { rfpUiReviewreducer } from './rfpUiReview/rfp-ui-review.reducer';
+import { rfpUiEditreducer } from './rfpUiEdit/rfp-ui-edit.reducer';
 
 
 export const reducers: ActionReducerMap<LocalState> = {
@@ -42,7 +45,10 @@ export const reducers: ActionReducerMap<LocalState> = {
   objective: objectiveReducer,
   ppTtoWrapPage: ppToWrapPageReducer,
   productAllocation: productAllocationReducer,
-  targetAudience: targetAudienceReducer
+  targetAudience: targetAudienceReducer,
+  rfpUiEditDetail: rfpUiEditDetailreducer,
+  rfpUiReview: rfpUiReviewreducer,
+  rfpUiEdit: rfpUiEditreducer
 };
 
 export function logger(reducer: ActionReducer<LocalState>) : ActionReducer<LocalState> {

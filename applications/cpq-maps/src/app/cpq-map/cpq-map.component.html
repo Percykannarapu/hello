@@ -1,1 +1,7 @@
 <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="false"></val-esri-map-panel>
+<div *ngIf="mediaPlanIds.length > 0">
+   <p>Media Plan IDs available</p>
+   <select (change)="setActiveMediaPlan($event)">
+      <option *ngFor="let id of mediaPlanIds">{{id}}</option>
+   </select>
+</div>

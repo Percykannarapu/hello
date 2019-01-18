@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { toUniversalCoordinates } from '../models/coordinates';
+import { toUniversalCoordinates } from '@val/common';
 import { groupBy, simpleFlatten, groupByExtended, mergeArrayMaps } from '@val/common';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';

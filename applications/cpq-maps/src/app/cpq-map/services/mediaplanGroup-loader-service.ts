@@ -6,26 +6,13 @@ import { map } from 'rxjs/operators';
 import { MediaPlanGroup } from '../../val-modules/mediaexpress/models/MediaPlanGroup';
 import { MediaPlan } from '../../val-modules/mediaexpress/models/MediaPlan';
 import { AdvertiserInfo } from '../../val-modules/mediaexpress/models/AdvertiserInfo';
-import { Objective } from '../../val-modules/mediaexpress/models/Objective';
 import { MediaPlanCommonMbu } from '../../val-modules/mediaexpress/models/MediaPlanCommonMbu';
 import { MediaPlanLine } from '../../val-modules/mediaexpress/models/MediaPlanLine';
 import { CbxReport } from '../../val-modules/mediaexpress/models/CbxReport';
 import { ProductAllocation } from '../../val-modules/mediaexpress/models/ProductAllocation';
 import { TargetAudiencePref } from '../../val-modules/mediaexpress/models/TargetAudiencePref';
-import { simpleFlatten } from '@val/common';
+import { NormalizedPayload } from '../models/NormalizedPayload';
 
-export interface NormalizedPayload {
-  mediaPlanGroup?: MediaPlanGroup;
-  mediaPlans?: MediaPlan[];
-  //targetingProfiles: 
-  advertiserInfos?: AdvertiserInfo[];
-  objectives?: Objective[];
-  commonMbus?: MediaPlanCommonMbu[];
-  lines?: MediaPlanLine[];
-  reports?: CbxReport[];
-  productAllocations?: ProductAllocation[];
-  targetAudiencePrefs?: TargetAudiencePref[];
-}
 
 @Injectable({
   providedIn: 'root'
@@ -56,13 +43,16 @@ export class MediaPlanGroupLoaderService {
     mediaPlanGroup.mediaPlans = payload.mediaPlans.map(m => m.mediaPlanId);
     return {
       mediaPlanGroup: mediaPlanGroup,
-      mediaPlans: this.normalizeMediaPlans(payload),
+      
+      // We are not using the rest of these entities right now
+      /*mediaPlans: this.normalizeMediaPlans(payload),
       commonMbus: this.normalizeCommonMbus(payload),
       lines: this.normalizeLines(payload),
       productAllocations: this.normalizeProductAllocations(payload),
       targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload),
       advertiserInfos: this.normalizeAdvertiserInfos(payload),
-      reports: this.normalizeReports(payload)
+      reports: this.normalizeReports(payload)*/
+      
     };
   }
 

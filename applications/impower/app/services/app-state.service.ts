@@ -17,7 +17,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { AppLoggingService } from './app-logging.service';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { distinctArray, filterArray, groupBy, mapArray } from '@val/common';
+import { distinctArray, filterArray, groupBy, mapArray, isNumber } from '@val/common';
 
 export enum Season {
   Summer = 'summer',
@@ -209,11 +209,11 @@ export class AppStateService {
 
   private setupProvidedTaObservables() : void {
     this.activeClientLocations$.pipe(
-      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
     this.activeCompetitorLocations$.pipe(
-      filterArray(loc => loc.radius1 != null || loc.radius2 != null || loc.radius3 != null),
+      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
   }

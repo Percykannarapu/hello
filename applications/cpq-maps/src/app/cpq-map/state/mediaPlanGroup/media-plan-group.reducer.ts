@@ -1,6 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { MediaPlanGroup } from '../../../val-modules/mediaexpress/models/MediaPlanGroup';
 import { MediaPlanGroupActions, MediaPlanGroupActionTypes } from './media-plan-group.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface MediaPlanGroupState extends EntityState<MediaPlanGroup> {
   // additional entities state properties
@@ -15,8 +16,17 @@ export const initialState: MediaPlanGroupState = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function mediaPlanGroupReducer(state = initialState, action: MediaPlanGroupActions) : MediaPlanGroupState {
+type reducerActions = MediaPlanGroupActions | SharedActions;
+
+export function mediaPlanGroupReducer(state = initialState, action: reducerActions) : MediaPlanGroupState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph: {
+      if (action.payload.normalizedEntities.mediaPlanGroup != null)
+        return adapter.addOne(action.payload.normalizedEntities.mediaPlanGroup, state);
+      else
+        return state;
+    }
+
     case MediaPlanGroupActionTypes.AddMediaPlanGroup: {
       return adapter.addOne(action.payload.mediaPlanGroup, state);
     }

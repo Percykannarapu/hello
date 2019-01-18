@@ -14,7 +14,7 @@ import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppLoggingService } from './app-logging.service';
-import { toUniversalCoordinates } from '../models/coordinates';
+import { toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
 

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { filter, finalize, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { toUniversalCoordinates } from '../models/coordinates';
+import { toUniversalCoordinates } from '@val/common';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';

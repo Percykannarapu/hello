@@ -1,6 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { AdvertiserInfo } from '../../../val-modules/mediaexpress/models/AdvertiserInfo';
 import { AdvertiserInfoActions, AdvertiserInfoActionTypes } from './advertiser-info.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface AdvertiserInfoState extends EntityState<AdvertiserInfo> {
   // additional entities state properties
@@ -15,8 +16,16 @@ export const initialState: AdvertiserInfoState = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function advertiserInfoReducer(state = initialState, action: AdvertiserInfoActions) : AdvertiserInfoState {
+type reducerActions = AdvertiserInfoActions | SharedActions;
+
+export function advertiserInfoReducer(state = initialState, action: reducerActions) : AdvertiserInfoState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph: {
+      if (action.payload.normalizedEntities.advertiserInfos != null)
+        return adapter.addAll(action.payload.normalizedEntities.advertiserInfos, state);
+      else return state;
+    }
+
     case AdvertiserInfoActionTypes.AddAdvertiserInfo: {
       return adapter.addOne(action.payload.advertiserInfo, state);
     }

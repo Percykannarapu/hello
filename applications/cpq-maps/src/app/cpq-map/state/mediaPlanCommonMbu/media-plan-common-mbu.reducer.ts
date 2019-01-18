@@ -1,6 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { MediaPlanCommonMbu } from '../../../val-modules/mediaexpress/models/MediaPlanCommonMbu';
 import { MediaPlanCommonMbuActions, MediaPlanCommonMbuActionTypes } from './media-plan-common-mbu.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface MediaPlanCommonMbuState extends EntityState<MediaPlanCommonMbu> {
   // additional entities state properties
@@ -15,8 +16,17 @@ export const initialState: MediaPlanCommonMbuState = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function mediaPlanCommonMbuReducer(state = initialState, action: MediaPlanCommonMbuActions) : MediaPlanCommonMbuState {
+type reducerActions = MediaPlanCommonMbuActions | SharedActions;
+
+export function mediaPlanCommonMbuReducer(state = initialState, action: reducerActions) : MediaPlanCommonMbuState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph: {
+      if (action.payload.normalizedEntities.commonMbus != null)
+        return adapter.addAll(action.payload.normalizedEntities.commonMbus, state);
+      else
+        return state;
+    }
+
     case MediaPlanCommonMbuActionTypes.AddMediaPlanCommonMbu: {
       return adapter.addOne(action.payload.mediaPlanCommonMbu, state);
     }

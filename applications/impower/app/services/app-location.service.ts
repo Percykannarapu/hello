@@ -21,7 +21,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
-import { toUniversalCoordinates } from '../models/coordinates';
+import { toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -37,6 +37,26 @@ const newHomeGeoToAnalysisLevelMap = {
   homePcr: getHomeGeoKey('PCR'),
   homeZip: getHomeGeoKey('ZIP')
 };
+
+function isReadyforHomegeocoding(loc: ImpGeofootprintLocation) : boolean {
+  // filterArray(loca => !loc.clientLocationTypeCode.startsWith('Failed ')),
+  // filterArray(loca => loc['homeGeoFound'] == null),
+  // filterArray(loca => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0);
+  const homeGeoColumns = ['Home ATZ', 'Home ZIP', 'Home PCR', 'Home Digital ATZ', 'Home County', 'Home DMA'];
+  const attrMap = {};
+  loc.impGeofootprintLocAttribs.forEach(attr => attrMap[attr.attributeCode] = attr.attributeValue);
+  if (loc.impGeofootprintLocAttribs.length == 0 || !loc.impGeofootprintLocAttribs.some(attr => homeGeoColumns.includes(attr.attributeCode))
+     || (attrMap['Home ATZ'] === '' && attrMap['Home ZIP'] === '' && attrMap['Home PCR'] === '' && attrMap['Home DMA'] === '' 
+     && attrMap['Home Digital ATZ'] === '' && attrMap['Home County'] === ''))
+      return true;
+ 
+  /*if (attrMap['Home ATZ'] === '' && attrMap['Home ZIP'] === '' && attrMap['Home PCR'] === '' && attrMap['Home DMA'] === '' 
+     && attrMap['Home Digital ATZ'] === '' && attrMap['Home County'] === ''){
+     return true;
+     }*/
+
+  return false;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +74,7 @@ export class AppLocationService {
   public hasFailures$: Observable<boolean>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
   public homeGeoColumns = ['Home ATZ', 'Home ZIP', 'Home PCR', 'Home Digital ATZ', 'Home County', 'Home DMA'];
+  
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -79,8 +100,10 @@ export class AppLocationService {
     const locationsNeedingHomeGeos$ = locationsWithType$.pipe(
       filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
       filterArray(loc => loc['homeGeoFound'] == null),
-      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0), 
-      filterArray(loc => loc.impGeofootprintLocAttribs.length == 0 || loc.impGeofootprintLocAttribs.some(attr => attr != null && this.homeGeoColumns.includes(attr.attributeCode) &&  (attr.attributeValue != null || attr.attributeValue === ''))),
+      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
+      //filterArray(loc => loc.impGeofootprintLocAttribs.length == 0 || loc.impGeofootprintLocAttribs.some(attr => this.homeGeoColumns.includes(attr.attributeCode) && attr.attributeValue === '')), 
+      filterArray(loc => isReadyforHomegeocoding(loc)),
+       //|| (loc.recordStatusCode === 'PROVIDED' && loc.impGeofootprintLocAttribs.some(attr => !this.homeGeoColumns.includes(attr.attributeCode)))
     );
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
