@@ -4,9 +4,9 @@ import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors }
 import { filter, take, tap } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
-import { FullState, localSelectors } from './state';
-import { stat } from 'fs';
-import { SetActiveMediaPlanId } from './state/shared/shared.actions';
+import { FullState } from './state';
+import { SetActiveMediaPlanId, SetGroupId } from './state/shared/shared.actions';
+import { ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
 
 @Component({
   selector: 'cpq-map',
@@ -16,6 +16,8 @@ import { SetActiveMediaPlanId } from './state/shared/shared.actions';
 export class CpqMapComponent implements OnInit {
 
   mediaPlanIds: Array<Number> = [];
+  loading: boolean = false;
+  groupId = null;
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -39,6 +41,16 @@ export class CpqMapComponent implements OnInit {
       }
     });
 
+    this.store$.select(state => state.shared).subscribe(state => {
+      this.loading = state.entitiesLoading;
+      this.groupId = state.groupId;
+    });
+
+  }
+
+  public onGroupIdChange(value: string) {
+    this.store$.dispatch(new ClearMediaPlanGroups);
+    this.store$.dispatch(new SetGroupId(Number(value)));
   }
 
   public setActiveMediaPlan(event: any) {

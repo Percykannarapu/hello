@@ -1,7 +1,18 @@
+<div *ngIf="loading" style="font: large; text-align: center; font-weight: bold">
+   <p>Media Plan Is Loading...</p>
+</div>
 <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="false"></val-esri-map-panel>
+<div *ngIf="groupId != null">
+   <p>Current Media Plan Group ID: {{groupId}}</p>
+   <div style="padding: 0; overflow: hidden; white-space: nowrap">
+      Update Media Plan Group ID&nbsp;&nbsp;
+      <input #box (keyup.enter)="onGroupIdChange(box.value)">
+   </div>
+</div>
+<br>
 <div *ngIf="mediaPlanIds.length > 0">
-   <p>Media Plan IDs available</p>
    <select (change)="setActiveMediaPlan($event)">
+      <option value="" disabled selected>Select a media plan</option>
       <option *ngFor="let id of mediaPlanIds">{{id}}</option>
    </select>
 </div>

@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { LocalState, FullState } from './state';
 import { MediaPlanGroupLoaderService } from './services/mediaplanGroup-loader-service';
-import { SetSelectedLayer, SetSelectedGeos } from '@val/esri';
+import { ClearSelectedGeos, SetSelectedGeos } from '@val/esri';
 import { RfpUiEditDetailLoaderService } from './services/RfpUiEditDetail-loader-service';
 import { RfpUiReviewLoaderService } from './services/rfpUiReview-loader-service';
 import { AddRfpUiEditDetails, ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
@@ -14,7 +14,7 @@ import { AddRfpUiReviews, ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-r
 import { RfpUiEditLoaderService } from './services/rfpUiEdit-loader-service';
 import { AddRfpUiEdits, ClearRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
 import { RfpUiEditDetailState } from './state/rfpUiEditDetail/rfp-ui-edit-detail.reducer';
-import { AddMediaPlanGroup } from './state/mediaPlanGroup/media-plan-group.actions';
+import { AddMediaPlanGroup, MediaPlanGroupActionTypes, ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
 import { AppLayerService } from './services/app-layer-service';
 import { UniversalCoordinates } from '@val/common';
 import { RfpUiEditState } from './state/rfpUiEdit/rfp-ui-edit.reducer';
@@ -34,16 +34,36 @@ export class AppEffects {
   // When a new active media plan is selected we need to clear the data stores
   // of previous data, we also clear the locations layer on the map to get rid
   // of any locations that may not be the same between media plans
+  // we will also unhighlight any geos that might currently be highlighted
   @Effect()
   mediaPlanIdSet$ = this.actions$.pipe(
     ofType<SetActiveMediaPlanId>(SharedActionTypes.SetActiveMediaPlanId),
     filter((action) => action.payload != null),
     tap((action) => this.appLayerService.removeLocationsLayer('Sites', 'Project Sites')),
+    tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())), 
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
       new RfpUiEditDetailLoaded({ rfpUiEditDetailLoaded: false }),
       new RfpUiReviewLoaded({ rfpUiReviewLoaded: false }),
       new EntitiesLoading({ entitiesLoading: true }),
+      new ClearRfpUiEdits(),
+      new ClearRfpUiEditDetails,
+      new ClearRfpUiReviews
+    ])
+  );
+
+  // If the media plan group data store is cleared we need to clear out all
+  // of the other entity stores and clear the map, just like we do when
+  // we change the currently selected media plan
+  @Effect()
+  mediaPlanGroupCleared = this.actions$.pipe(
+    ofType<ClearMediaPlanGroups>(MediaPlanGroupActionTypes.ClearMediaPlanGroups),
+    tap((action) => this.appLayerService.removeLocationsLayer('Sites', 'Project Sites')),
+    tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())),
+    switchMap((action) => [
+      new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
+      new RfpUiEditDetailLoaded({ rfpUiEditDetailLoaded: false }),
+      new RfpUiReviewLoaded({ rfpUiReviewLoaded: false }),
       new ClearRfpUiEdits(),
       new ClearRfpUiEditDetails,
       new ClearRfpUiReviews
@@ -75,6 +95,7 @@ export class AppEffects {
     ))
   );
 
+  // After the entities loading flag is set to true load the RfpUiEdit entity
   @Effect()
   loadRfpUiEdit$ = this.actions$.pipe(
     ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
@@ -90,6 +111,7 @@ export class AppEffects {
     ))
   );
 
+  // After the entities loading flag is set to true load the RfpUiEditDetails entity
   @Effect()
   loadRfpUiEditDetail$ = this.actions$.pipe(
     ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
@@ -105,6 +127,7 @@ export class AppEffects {
     ))
   );
 
+  // After the entities loading flag is set to true load the RfpUiReview entity
   @Effect()
   loadRfpUiReview$ = this.actions$.pipe(
     ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
@@ -127,8 +150,6 @@ export class AppEffects {
   setSelectedGeos$ = this.actions$.pipe(
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
     withLatestFrom(this.store$.select(state => state)),
-    tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedLayer({ layerId: 'c0ee701ee95f4bbdbc15ded2a37ca802' }))),
-    delay(5000),
     tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state.rfpUiEditDetail)))),
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit)))
   );
