@@ -1,5 +1,5 @@
 <div *ngIf="loading" style="font: large; text-align: center; font-weight: bold">
-   <p>Media Plan Is Loading...</p>
+   <svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
 </div>
 <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="false"></val-esri-map-panel>
 <div *ngIf="groupId != null">
