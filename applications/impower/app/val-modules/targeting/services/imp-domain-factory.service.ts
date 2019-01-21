@@ -327,6 +327,7 @@ export class ImpDomainFactoryService {
           // Calculate the next contiguous number to use
           while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
     }
+    //console.debug("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
     const result = new ImpGeofootprintTradeArea({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,

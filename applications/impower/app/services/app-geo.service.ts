@@ -124,7 +124,7 @@ export class AppGeoService {
       // keep locations that have a home geocode identified
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // keep locations that have trade areas defined
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.length > 0)),
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType != 'MUSTCOVER').length > 0)),
       // keep sites that do not already have their home geo selected
       map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
       // keep locations where finished radius count matches all radius count
@@ -217,7 +217,7 @@ export class AppGeoService {
             const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
 
             // Add the must covers to geosToPersist
-            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet, geosToPersist).subscribe(results=> {
+            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet/*, geosToPersist*/).subscribe(results=> {
                results.forEach(result => {
                   console.log("Added ", results.length, " must cover geos");
                   geosToPersist.push(result);
@@ -265,7 +265,7 @@ export class AppGeoService {
     const audienceTradeAreas = allTradeAreas.filter(ta => ta.taType === 'AUDIENCE');
     const customTradeAreas = allTradeAreas.filter(ta => ta.taType === 'CUSTOM');
     const forcedTradeAreas = allTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
-    const otherTradeAreas = allTradeAreas.filter(ta => !['RADIUS', 'AUDIENCE', 'CUSTOM', 'HOMEGEO'].includes(ta.taType));
+    const otherTradeAreas = allTradeAreas.filter(ta => !['RADIUS', 'AUDIENCE', 'CUSTOM'].includes(ta.taType));
     const tradeAreasToClear = [...otherTradeAreas];
     const tradeAreasToDelete = [...otherTradeAreas];
     if (!keepRadiusGeos) tradeAreasToClear.push(...radiusTradeAreas);
@@ -411,15 +411,15 @@ export class AppGeoService {
    * @param tradeAreaSet Set of trade areas, which new must cover TAs can get added to
    * @param geos Array of existing geos to be compared against the must cover list
    */
-   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
+   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>/*, geos: ImpGeofootprintGeo[]*/) : Observable<ImpGeofootprintGeo[]> {
       // Check all geos if none are provided
-      if (geos == null || geos.length === 0)
+/*      if (geos == null || geos.length === 0)
       {
          geos = this.impGeoService.get();
          console.debug("Checking all " + geos.length + " geos for must covers");
       }
       else
-         console.debug("Checking " + geos.length + " geos for must cover");
+         console.debug("Checking " + geos.length + " geos for must cover");*/
 
       // If no locations provided, pull them all   
       if (locations == null || locations.length === 0)
@@ -428,6 +428,10 @@ export class AppGeoService {
       // If no trade areas are provided, pull them all 
       if (tradeAreaSet == null || tradeAreaSet.size === 0)
          tradeAreaSet = new Set(this.tradeAreaService.get());
+
+      // Must check the full list of geos to ensure they are somewhere in the geofootprint
+      let geos: ImpGeofootprintGeo[] = this.impGeoService.get();
+      console.debug("Checking all " + geos.length + " geos for must covers");
 
       // Determine which must covers are not in the list of geos
       let diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
@@ -526,7 +530,7 @@ export class AppGeoService {
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
       // Add the must covers to geosToPersist
-      this.ensureMustCoversObs(null, null, null).subscribe(results=> {
+      this.ensureMustCoversObs(null, null/*, null*/).subscribe(results=> {
          results.forEach(result => geosToPersist.push(result));
       }
       ,err => {
