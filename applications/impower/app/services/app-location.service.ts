@@ -325,7 +325,7 @@ export class AppLocationService {
                 'homeCounty'  :  homeCounty  && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : `${row['homeCounty']}`,
                 'homeDma'     :  homeDma     && homeDma.attributeValue !== '' ? homeDma.attributeValue :  `${row['homeDma']}`,
                 'homePcr'     :  homePcr     && homePcr.attributeValue !== '' ? homePcr.attributeValue :  `${row['geocode']}`,
-                'homeAtz'     :  homeAtz_provided  && homeAtz_provided !== '' ? homeAtz_provided.attributeValue : homeAtz,
+                'homeAtz'     :  homeAtz_provided  && homeAtz_provided.attributeValue !== '' ? homeAtz_provided.attributeValue : homeAtz,
                 'siteNumber'  :  filteredLoc.locationNumber 
               });
              }
