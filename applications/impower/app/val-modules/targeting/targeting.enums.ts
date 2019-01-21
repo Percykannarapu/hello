@@ -35,6 +35,10 @@ export enum TradeAreaTypeCodes {
   Manual = 'Manual'
 }
 
+export enum ProjectPrefGroupCodes {
+   MustCover = 'MUSTCOVER'
+}
+
 export namespace TradeAreaTypeCodes {
   export function parse(code: string) : TradeAreaTypeCodes {
     for (const key of Object.keys(TradeAreaTypeCodes)) {
