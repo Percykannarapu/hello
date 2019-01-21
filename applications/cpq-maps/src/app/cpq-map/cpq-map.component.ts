@@ -1,23 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { merge, Observable } from 'rxjs';
 import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors } from '@val/esri';
 import { filter, take, tap } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
 import { FullState } from './state';
-import { SetActiveMediaPlanId, SetGroupId } from './state/shared/shared.actions';
-import { ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
+
+
 
 @Component({
   selector: 'cpq-map',
   templateUrl: './cpq-map.component.html',
-  styleUrls: ['./cpq-map.component.css']
+  styleUrls: ['./cpq-map.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CpqMapComponent implements OnInit {
 
-  mediaPlanIds: Array<Number> = [];
-  loading: boolean = false;
-  groupId = null;
+  rightSidebarVisible = false;
+  leftSidebarVisible = false;
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -30,31 +30,6 @@ export class CpqMapComponent implements OnInit {
       filter(ready => ready),
       take(1)
     ).subscribe(() => this.setupApplication());
-
-    this.store$.select(state => state.mediaPlanGroup).pipe(
-      filter(state => state.ids.length > 0)
-    ).subscribe(state => {
-      if (state.ids.length > 1) {
-        console.warn('Multiple media plan groups loaded, this is not supported');
-      } else {
-        this.mediaPlanIds = state.entities[state.ids[0]].mediaPlans;
-      }
-    });
-
-    this.store$.select(state => state.shared).subscribe(state => {
-      this.loading = state.entitiesLoading;
-      this.groupId = state.groupId;
-    });
-
-  }
-
-  public onGroupIdChange(value: string) {
-    this.store$.dispatch(new ClearMediaPlanGroups);
-    this.store$.dispatch(new SetGroupId(Number(value)));
-  }
-
-  public setActiveMediaPlan(event: any) {
-    this.store$.dispatch(new SetActiveMediaPlanId({ mediaPlanId: Number(event.target.value) }));
   }
 
   private setupApplication() {
