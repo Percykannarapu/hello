@@ -37,7 +37,7 @@ export class AppGeocodingService {
       } else {
         if (data.failedRows.length > 0) {
           console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-          const failedString = "\n \u2022" + data.failedRows.join("\n\n\u2022");
+          const failedString = "\n \u0007 " + data.failedRows.join("\n\n\u0007 ");
           this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n`+`${failedString }`, notificationTitle: 'Location Upload Error' }));
         } else {
           const siteNumbers = [];
