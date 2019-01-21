@@ -1,4 +1,4 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
+import { ModuleWithProviders, NgModule, Optional, SkipSelf, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { EsriModule } from '@val/esri';
@@ -11,9 +11,24 @@ import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppConfig } from '../app.config';
+import { SidebarModule } from 'primeng/sidebar';
+import { ButtonModule } from 'primeng/button';
+import { DropdownModule } from 'primeng/dropdown';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { DevToolsComponent } from './components/dev-tools/dev-tools.component';
+import { CardModule } from 'primeng/card';
 
 @NgModule({
   imports: [
+    CardModule,
+    BrowserModule,
+    FormsModule,
+    BrowserAnimationsModule,
+    DropdownModule,
+    ButtonModule,
+    SidebarModule,
     CommonModule,
     HttpClientModule,
     StoreModule.forRoot(reducers, { metaReducers }),
@@ -30,7 +45,7 @@ import { AppConfig } from '../app.config';
       logOnly: environment.production,
     }),
   ],
-  declarations: [CpqMapComponent],
+  declarations: [CpqMapComponent, DevToolsComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig]
 })
