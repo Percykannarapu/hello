@@ -33,23 +33,24 @@ export class AppGeocodingService {
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
       if (data == null ) {
-        this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Site List Upload Error' }));
+        this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
       } else {
         if (data.failedRows.length > 0) {
           console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read.`, notificationTitle: 'Geocoding Error' }));
+          const failedString = "\n \u2022" + data.failedRows.join("\n\n\u2022");
+          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n`+`${failedString }`, notificationTitle: 'Location Upload Error' }));
         } else {
           const siteNumbers = [];
           data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
           if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0  && siteType !== ImpClientLocationTypeCodes.Competitor){
-            this.store$.dispatch(new ErrorNotification({ message: 'Duplicate Site Numbers exist in your upload file.', notificationTitle: 'Geocoding Error' }));
+            this.store$.dispatch(new ErrorNotification({ message: 'Duplicate Site Numbers exist in your upload file.', notificationTitle: 'Location Upload Error' }));
             result = [];
             return result;
           }
           if (data.duplicateKeys.length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor) {
             const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
             const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
-            this.store$.dispatch(new ErrorNotification({ message: `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`, notificationTitle: 'Geocoding Error' }));
+            this.store$.dispatch(new ErrorNotification({ message: `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`, notificationTitle: 'Location Upload Error' }));
           } else {
             result = data.parsedData.map(d => new ValGeocodingRequest(d));
             result.map(r => r.number).forEach(n => {
