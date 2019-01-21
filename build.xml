@@ -28,6 +28,8 @@
     <move todir="${DIST_ROOT}/sfdc-deploy/main-js">
       <fileset dir="${CPQ_MAPS_DIST}">
         <include name="main.*"/>
+        <include name="primeicons.*"/>
+        <include name="open-sans-*.*"/>
       </fileset>
     </move>
     <zip destfile="${DIST_ROOT}/sfdc-deploy/main-js.zip" basedir="${DIST_ROOT}/sfdc-deploy/main-js" level="9"/>
