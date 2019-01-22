@@ -217,7 +217,7 @@ export class AppGeoService {
             const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
 
             // Add the must covers to geosToPersist
-            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet/*, geosToPersist*/).subscribe(results=> {
+            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet, geosToPersist).subscribe(results=> {
                results.forEach(result => {
                   console.log("Added ", results.length, " must cover geos");
                   geosToPersist.push(result);
@@ -411,16 +411,27 @@ export class AppGeoService {
    * @param tradeAreaSet Set of trade areas, which new must cover TAs can get added to
    * @param geos Array of existing geos to be compared against the must cover list
    */
-   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>/*, geos: ImpGeofootprintGeo[]*/) : Observable<ImpGeofootprintGeo[]> {
+   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
       // Check all geos if none are provided
-/*      if (geos == null || geos.length === 0)
+      if (geos == null || geos.length === 0)
       {
          geos = this.impGeoService.get();
          console.debug("Checking all " + geos.length + " geos for must covers");
       }
       else
-         console.debug("Checking " + geos.length + " geos for must cover");*/
+         console.debug("Checking " + geos.length + " geos for must cover");
 
+      // Remove existing must cover trade areas
+      let tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType === 'MUSTCOVER');
+      tradeAreasToDelete.forEach(ta => {
+         this.impGeoService.remove(ta.impGeofootprintGeos);
+         const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
+         ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
+         ta.impGeofootprintLocation = null;
+      });
+      this.tradeAreaService.remove(tradeAreasToDelete); //, InTransaction.silent);
+      //console.debug("### ensureMustCoversObs removed ", tradeAreasToDelete.length, " trade areas");
+   
       // If no locations provided, pull them all   
       if (locations == null || locations.length === 0)
          locations = this.locationService.get();
@@ -428,10 +439,6 @@ export class AppGeoService {
       // If no trade areas are provided, pull them all 
       if (tradeAreaSet == null || tradeAreaSet.size === 0)
          tradeAreaSet = new Set(this.tradeAreaService.get());
-
-      // Must check the full list of geos to ensure they are somewhere in the geofootprint
-      let geos: ImpGeofootprintGeo[] = this.impGeoService.get();
-      console.debug("Checking all " + geos.length + " geos for must covers");
 
       // Determine which must covers are not in the list of geos
       let diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
@@ -513,7 +520,7 @@ export class AppGeoService {
                   ,() => {
                         // queryResult.forEach(geoAttrib => console.log ("### geoAttrib: ", geoAttrib));
                         console.log("New must cover geos(" + numNewGeos + "): ");
-                        console.log("   ", newGeoList);
+                        if (numNewGeos > 0) console.log("###   ", newGeoList);
                         observer.complete();
                      }
                );
@@ -530,7 +537,7 @@ export class AppGeoService {
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
       // Add the must covers to geosToPersist
-      this.ensureMustCoversObs(null, null/*, null*/).subscribe(results=> {
+      this.ensureMustCoversObs(null, null, null).subscribe(results=> {
          results.forEach(result => geosToPersist.push(result));
       }
       ,err => {

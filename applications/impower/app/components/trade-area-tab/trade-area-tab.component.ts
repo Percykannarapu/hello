@@ -190,7 +190,7 @@ export class TradeAreaTabComponent implements OnInit {
       let geosToPersist: Array<ImpGeofootprintGeo> = [];
       if (createTASuccessful) {
          // Add the must covers to geosToPersist
-         this.appGeoService.ensureMustCoversObs(this.locationService.get(), new Set(this.tradeAreaService.cachedTradeAreas)/*, null*/).subscribe(results=> {
+         this.appGeoService.ensureMustCoversObs(this.locationService.get(), new Set(this.tradeAreaService.cachedTradeAreas), null).subscribe(results=> {
             results.forEach(result => geosToPersist.push(result));
          }
          ,err => {
