@@ -297,11 +297,11 @@ export class AppLocationService {
           if (locDicttemp[row['geocode']] !== null && row['score'] == null) {
             atzLocationsNotFound.push(locDicttemp[row['geocode']]);
           }
-          const homePcr = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home PCR')[0];
-          const homeDma = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
-          const homeZip = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ZIP')[0];
-          const homeAtz_provided = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0];
-          const homeCounty = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home County')[0];
+          let homePcr = null;
+          let homeDma = null;
+          let homeZip = null;
+          let homeAtz_provided = null;
+          let homeCounty = null;
           
           if (pcrTab14Response != null && pcrTab14Response.payload.length > 0){
              const filteredLoc = locDicttemp[row['geocode']];
@@ -309,6 +309,12 @@ export class AppLocationService {
              if (duplicatedLocDict[row['geocode']] != null){
                 const locs = locMap.get(row['geocode']);
                 locs.forEach(loc => {
+                  homePcr = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home PCR')[0];
+                  homeDma = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
+                  homeZip = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ZIP')[0];
+                  homeAtz_provided = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0];
+                  homeCounty = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home County')[0];
+                  //delete duplicatedLocDict[row['geocode']];
                   attributeList.push({
                     'homeZip'     :  homeZip    && homeZip.attributeValue !== '' ? homeZip.attributeValue : `${row['ZIP']}`,
                     'homeCounty'  :  homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : `${row['homeCounty']}`,
@@ -320,6 +326,11 @@ export class AppLocationService {
                 });
              }
              else{
+              homePcr = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home PCR')[0];
+              homeDma = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
+              homeZip = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ZIP')[0];
+              homeAtz_provided = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0];
+              homeCounty = locDicttemp[row['geocode']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home County')[0];
               attributeList.push({
                 'homeZip'     :  homeZip     && homeZip.attributeValue !== '' ? homeZip.attributeValue : `${row['ZIP']}`,
                 'homeCounty'  :  homeCounty  && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : `${row['homeCounty']}`,
