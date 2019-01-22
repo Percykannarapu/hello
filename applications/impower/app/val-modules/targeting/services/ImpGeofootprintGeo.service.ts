@@ -251,14 +251,23 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (a.geocode === b.geocode)
       {
-       if (a.distance === b.distance)
+         let isHomeGeoA: boolean = (a.impGeofootprintLocation != null && a.geocode === a.impGeofootprintLocation.homeGeocode) ? true : false;
+         let isHomeGeoB: boolean = (b.impGeofootprintLocation != null && b.geocode === b.impGeofootprintLocation.homeGeocode) ? true : false;
+
+         // If both a and b are home geos or both are not, disregard homegeo for comparison
+         if ((isHomeGeoA && isHomeGeoB) || (!isHomeGeoA  && !isHomeGeoB))
+         {
+            if (a.distance === b.distance)
             {
                if (a.hhc === b.hhc)
-                  if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null) {
+               {
+                  if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null)
+                  {
                      // We need a tie breaker at this point, look to the address it belongs to next
                      if (a.impGeofootprintLocation.locAddress = b.impGeofootprintLocation.locAddress)
                         return 0;
-                     else {
+                     else
+                     {
                         if (a.impGeofootprintLocation.locationIdDisplay > b.impGeofootprintLocation.locAddress)
                            return 1;
                         else
@@ -267,18 +276,28 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   }
                   else
                      return 0;
+               }
                else
                   if (a.hhc > b.hhc)
                      return -1;
                   else
                      return  1;
-            } else {
+            }
+            else
+            {
                if (a.distance > b.distance)
                   return 1;
                else
                   return -1;
             }
          }
+         else
+            // Either a or b is a home geo, but not both
+            if (isHomeGeoA)
+               return -1;
+            else
+               return  1;
+      }
       else
          if (a.geocode > b.geocode)
             return 1;
