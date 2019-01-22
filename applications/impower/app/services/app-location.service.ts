@@ -536,7 +536,7 @@ export class AppLocationService {
           });
         }
         attributes.forEach(attribute => {
-          const homeDtz = locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0];
+          const homeDtz = locTempDict.get(attribute['siteNumber']) != null ? locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0] : null;
           if (locTempDict.get(attribute['siteNumber']) != null && homeDtz && homeDtz.attributeValue != ''){
             attribute['homeDigitalAtz'] = homeDtz && homeDtz.attributeValue != '' ? homeDtz.attributeValue : '';
           }
