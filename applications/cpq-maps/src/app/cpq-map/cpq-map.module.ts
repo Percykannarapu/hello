@@ -19,9 +19,14 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { DevToolsComponent } from './components/dev-tools/dev-tools.component';
 import { CardModule } from 'primeng/card';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { GridComponent } from './components/grid/grid.component';
+import { TableModule } from 'primeng/table';
 
 @NgModule({
   imports: [
+    TableModule,
+    RadioButtonModule,
     CardModule,
     BrowserModule,
     FormsModule,
@@ -45,7 +50,7 @@ import { CardModule } from 'primeng/card';
       logOnly: environment.production,
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig]
 })

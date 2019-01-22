@@ -18,6 +18,7 @@ export class CpqMapComponent implements OnInit {
 
   rightSidebarVisible = false;
   leftSidebarVisible = false;
+  panelSize: 'small' | 'large' | 'none' = 'none';
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
