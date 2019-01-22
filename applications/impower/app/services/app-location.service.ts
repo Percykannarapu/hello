@@ -536,9 +536,9 @@ export class AppLocationService {
           });
         }
         attributes.forEach(attribute => {
-          if (locTempDict.get(attribute['siteNumber']) != null){
-            const homeDtz = locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0];
-            attribute['homeDigitalAtz'] = homeDtz.attributeValue;
+          const homeDtz = locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0];
+          if (locTempDict.get(attribute['siteNumber']) != null && homeDtz && homeDtz.attributeValue != ''){
+            attribute['homeDigitalAtz'] = homeDtz && homeDtz.attributeValue != '' ? homeDtz.attributeValue : '';
           }
           else if (attribute['homeZip'] in zipResponseDict){
             const attr = zipResponseDict[attribute['homeZip']];
