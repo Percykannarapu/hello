@@ -569,7 +569,7 @@ export class AppLocationService {
           });
         }
         attributes.forEach(attribute => {
-          if (attribute['homeAtz'] in atzResponseDict){
+          if (attribute['homeAtz'] in atzResponseDict && attribute['homeDigitalAtz'] !== ''){
             const attr = atzResponseDict[attribute['homeAtz']];
             attribute['homeDigitalAtz'] = attr['geocode'];
           }
