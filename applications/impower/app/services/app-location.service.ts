@@ -21,7 +21,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
-import { toUniversalCoordinates } from '@val/common';
+import { toUniversalCoordinates, mapByExtended } from '@val/common';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -354,10 +354,6 @@ export class AppLocationService {
           atzTab14Response.payload.forEach(row => {
             atzTab14ResponseDict[row['geocode']] = row;
           });
-          // if (duplicatedAtzLocDict[row['geocode']] != null){
-
-          // }
-
           attributeList.forEach(filterAtribute => {
             if (filterAtribute['homeAtz'] == null && filterAtribute['homeZip'] in atzTab14ResponseDict) {
               const attr = atzTab14ResponseDict[filterAtribute['homeZip']];
@@ -396,9 +392,18 @@ export class AppLocationService {
             zipTab14ResponseDict[row['geocode']] = row;
           });
         }
+        const pipAtzAttributes: Map<any, any> = mapBy(pipAttributeList, 'siteNumber');
         if (Object.keys(zipTab14ResponseDict).length > 0){
           Object.entries(zipTab14ResponseDict).forEach(([geo, value]) => {
             const filteredLoc = zipLocDictemp[value['geocode']];
+            if (pipAtzAttributes.get(filteredLoc.locationNumber) != null){
+              pipAttributeList.push({
+                'homeZip'     : `${value['ZIP']}`,
+                'homeDma'     : `${value['homeDma']}`,
+                'homeCounty'  : `${value['homeCounty']}`
+               // 'siteNumber'  :  filteredLoc.locationNumber 
+               });
+            }
             pipAttributeList.push({
               'homeZip'     : `${value['ZIP']}`,
               'homeDma'     : `${value['homeDma']}`,
@@ -518,6 +523,10 @@ export class AppLocationService {
     console.log('attributesByHomeZip:::', attributesByHomeZip);
     let remainingAttributes = [];
     const zipGeocodeList = Array.from(attributesByHomeZip.keys());
+   // const data = locations.filter(loc => loc.impGeofootprintLocAttribs.length > 0 && loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ' && attr.attributeValue !== ''));
+    const locTempDict: Map<any, any> = mapByExtended(locations.filter(loc => loc.impGeofootprintLocAttribs.length > 0 && loc.impGeofootprintLocAttribs.filter
+      (attr => attr.attributeCode === 'Home Digital ATZ' && attr.attributeValue !== '')), item => item.locationNumber);
+    console.log('digital locTempDict', locTempDict);
     return this.determineHomeGeos(zipGeocodeList, null, 'VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ').pipe(
       map(zipResponse => {
         const zipResponseDict = [];
@@ -527,7 +536,11 @@ export class AppLocationService {
           });
         }
         attributes.forEach(attribute => {
-          if (attribute['homeZip'] in zipResponseDict){
+          if (locTempDict.get(attribute['siteNumber']) != null){
+            const homeDtz = locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0];
+            attribute['homeDigitalAtz'] = homeDtz.attributeValue;
+          }
+          else if (attribute['homeZip'] in zipResponseDict){
             const attr = zipResponseDict[attribute['homeZip']];
             attribute['homeDigitalAtz'] = attr['geocode'];
           }
@@ -625,7 +638,10 @@ export class AppLocationService {
         attributes.forEach(attribute => {
           if (attribute['homePcr'] in pcrTab14ResponseDict){
             const attr = pcrTab14ResponseDict[attribute['homePcr']];
-            const homePcr = locDicttemp[attribute['homePcr'].substring(0, 5)].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home PCR')[0];
+            let homePcr = null;
+            if (locDicttemp[attribute['homePcr'].substring(0, 5)] != null && locDicttemp[attribute['homePcr'].substring(0, 5)].impGeofootprintLocAttribs.length > 0){
+              homePcr = locDicttemp[attribute['homePcr'].substring(0, 5)].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home PCR')[0];
+            }
             attribute['homePcr'] = homePcr && homePcr.attributeValue !== '' ? homePcr.attributeValue : attr['geocode'];
           }
           else {
@@ -647,13 +663,19 @@ export class AppLocationService {
             zipTab14ResponseDict[row['geocode']] = row;
           });
         }
-        const pipZipAttributes: Map<any, any> = mapBy(pipAttributes, 'homeZip');
+        const pipZipAttributes: Map<any, any> = mapBy(pipAttributes, 'siteNumber');
         attributes.forEach(attribute => {
-          const pipAttr = pipZipAttributes.get(attribute['homeZip']);
+          const pipAttr = pipZipAttributes.get(attribute['siteNumber']);
+          let homeZip = null;
+          let homeDma = null;
+          let homeCounty = null;
           if (pipAttr != null) {
-            const homeZip = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ZIP')[0];
-            const homeDma = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
-            const homeCounty = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home County')[0];
+            if (locDictZiptemp[pipAttr['homeZip']] != null ){
+              homeZip = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ZIP')[0];
+              homeDma = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
+              homeCounty = locDictZiptemp[pipAttr['homeZip']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home County')[0];
+            }
+            
             attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : pipAttr['homeZip'];
             attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : pipAttr['homeDma'];
             attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : pipAttr['homeCounty'];
@@ -661,9 +683,12 @@ export class AppLocationService {
           //&& attribute['homeZip'] == null || attribute['homeZip'] == '' need to look back
           else if (attribute['homeZip'] in zipTab14ResponseDict ) {
             const attr = zipTab14ResponseDict[attribute['homeZip']];
-            const homeZip = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ZIP')[0];
-            const homeDma = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
-            const homeCounty = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
+            if (locDictZiptemp[attr['ZIP']] != null){
+              homeZip = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ZIP')[0];
+              homeDma = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
+              homeCounty = locDictZiptemp[attr['ZIP']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
+            }
+           
             attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
             attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
             attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
@@ -689,18 +714,18 @@ export class AppLocationService {
               atzTab14ResponseDict[row['geocode']] = row;
           });
         }
-        const pipAtzAttributes: Map<any, any> = mapBy(pipAttributes, 'homeAtz');
+        const pipAtzAttributes: Map<any, any> = mapBy(pipAttributes, 'siteNumber');
         attributes.forEach(attribute => {
-          const pipAttr = pipAtzAttributes.get(attribute['homeAtz']);
+          const pipAttr = pipAtzAttributes.get(attribute['siteNumber']);
           
-          if (pipAttr != null){
-            const homeAtz = locDictZiptemp[pipAttr['homeAtz'].substring(0, 5)].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0];
+          if (pipAttr != null && pipAttr['homeAtz'] != null){
+            const homeAtz = locDictZiptemp[pipAttr['homeAtz'].substring(0, 5)] != null ? locDictZiptemp[pipAttr['homeAtz'].substring(0, 5)].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0] : null;
             attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : pipAttr['homeAtz'];
           }
           //&& attribute['homeAtz'] == null || attribute['homeAtz'] == ''
           else if (attribute['homeAtz'] in atzTab14ResponseDict ){
             const attr = atzTab14ResponseDict[attribute['homeAtz']];
-            const homeAtz = locDictZiptemp[attr['geocode'].substring(0, 5)].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ATZ')[0];
+            const homeAtz = locDictZiptemp[attr['geocode'].substring(0, 5)] != null ? locDictZiptemp[attr['geocode'].substring(0, 5)].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ATZ')[0] : null;
             attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : attr['geocode'];
           }else {
             attribute['homeAtz'] = '';
