@@ -569,12 +569,13 @@ export class AppLocationService {
           });
         }
         attributes.forEach(attribute => {
-          if (attribute['homeAtz'] in atzResponseDict && attribute['homeDigitalAtz'] !== ''){
-            const attr = atzResponseDict[attribute['homeAtz']];
-            attribute['homeDigitalAtz'] = attr['geocode'];
+          if (attribute['homeAtz'] in atzResponseDict || attribute['homeDigitalAtz'] !== ''){
+            /*const attr = atzResponseDict[attribute['homeAtz']];
+            attribute['homeDigitalAtz'] = attr['geocode'];*/
+            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : atzResponseDict[attribute['homeAtz']]['geocode']; 
           }
-          else if (attribute['homeDigitalAtz'] == null || attribute['homeDigitalAtz'] == ''){
-            attribute['homeDigitalAtz'] = ''; 
+          else {
+            attribute['homeDigitalAtz'] = '';
             remainingAttributes.push(attribute);
           }
         });
@@ -598,8 +599,9 @@ export class AppLocationService {
         }
         attributes.forEach(attribute => {
           if (attribute['homePcr'] in pctResponseDict){
-            const attr = pctResponseDict[attribute['homePcr']];
-            attribute['homeDigitalAtz'] = attr['geocode'];
+            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : pctResponseDict[attribute['homePcr']]['geocode'];
+            /*const attr = pctResponseDict[attribute['homePcr']];
+            attribute['homeDigitalAtz'] = attr['geocode'];*/
           }
         });
       })
