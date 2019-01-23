@@ -24,7 +24,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { groupBy, simpleFlatten } from '@val/common';
+import { groupBy, simpleFlatten, roundTo } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -257,21 +257,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          // If both a and b are home geos or both are not, disregard homegeo for comparison
          if ((isHomeGeoA && isHomeGeoB) || (!isHomeGeoA  && !isHomeGeoB))
          {
-            if (a.distance === b.distance)
+            if (roundTo(a.distance, 2) === roundTo(b.distance, 2))
             {
                if (a.hhc === b.hhc)
                {
                   if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null)
                   {
                      // We need a tie breaker at this point, look to the address it belongs to next
-                     if (a.impGeofootprintLocation.locAddress = b.impGeofootprintLocation.locAddress)
+                     if (a.impGeofootprintLocation.locationNumber === b.impGeofootprintLocation.locationNumber)
                         return 0;
                      else
                      {
-                        if (a.impGeofootprintLocation.locationIdDisplay > b.impGeofootprintLocation.locAddress)
+                        if (a.impGeofootprintLocation.locationNumber > b.impGeofootprintLocation.locationNumber)
                            return 1;
                         else
-                           return 1;
+                           return -1;
                      }
                   }
                   else
