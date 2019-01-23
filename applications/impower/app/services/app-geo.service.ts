@@ -12,6 +12,7 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
@@ -41,6 +42,7 @@ export class AppGeoService {
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private locationService: ImpGeofootprintLocationService,
+              private locationAttrService: ImpGeofootprintLocAttribService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private varService: ImpGeofootprintVarService,
               private impGeoService: ImpGeofootprintGeoService,
@@ -123,8 +125,10 @@ export class AppGeoService {
       map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
       // keep locations that have a home geocode identified
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
+      // keep locations that have not had a home geocoding error
+      map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geo Error').length === 0)),
       // keep locations that have trade areas defined
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType != 'MUSTCOVER').length > 0)),
+      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType !== 'MUSTCOVER').length > 0)),
       // keep sites that do not already have their home geo selected
       map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
       // keep locations where finished radius count matches all radius count
@@ -234,7 +238,7 @@ export class AppGeoService {
   }
 
   private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[]) : void {
-    console.log('Firing home geo selection', locations.map(loc => loc.impGeofootprintTradeAreas.map(ta => JSON.stringify(ta))));
+    console.log('Firing home geo selection', locations);
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const allSelectedData: __esri.Graphic[] = [];
     const key = 'selectAndPersistHomeGeos';
@@ -395,6 +399,18 @@ export class AppGeoService {
           });
         }
       });
+    } else {
+      const newLocationAttributes = [];
+      locations.forEach(l => {
+        if (l.impGeofootprintLocAttribs.filter(at => at.attributeCode === 'Home Geo Error').length === 0) {
+          newLocationAttributes.push(this.domainFactory.createLocationAttribute(l, 'Home Geo Error', 'true'));
+        }
+      });
+      if (newLocationAttributes.length > 0){
+        this.locationAttrService.add(newLocationAttributes);
+        this.locationService.makeDirty();
+        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${newLocationAttributes.length} location(s) that could not find their Home Geocode`, additionalErrorInfo: locations}));
+      }
     }
     if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
     return homeGeosToAdd;

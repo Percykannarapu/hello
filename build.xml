@@ -30,6 +30,7 @@
         <include name="main.*"/>
         <include name="primeicons.*"/>
         <include name="open-sans-*.*"/>
+        <include name="assets/*"/>
       </fileset>
     </move>
     <zip destfile="${DIST_ROOT}/sfdc-deploy/main-js.zip" basedir="${DIST_ROOT}/sfdc-deploy/main-js" level="9"/>
