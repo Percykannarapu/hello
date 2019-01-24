@@ -1,0 +1,20 @@
+<div *ngIf="loading" style="font: large; text-align: center; font-weight: bold">
+  <svg class="spinner" viewBox="0 0 50 50">
+    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+  </svg>
+</div>
+<br>
+<br>
+<p-card>
+  <div *ngIf="groupId != null">
+    <p>Current Media Plan Group ID: {{groupId}}</p>
+    <div style="padding: 0; overflow: hidden; white-space: nowrap">
+      Update Media Plan Group ID&nbsp;&nbsp;
+      <input #box (keyup.enter)="onGroupIdChange(box.value)">
+    </div>
+  </div>
+  <br>
+  <div *ngIf="mediaPlanIds.length > 0">
+    Select a Media Plan ID: <p-dropdown [options]="mediaPlanIds" (onChange)="setActiveMediaPlan($event)"></p-dropdown>
+  </div>
+</p-card>

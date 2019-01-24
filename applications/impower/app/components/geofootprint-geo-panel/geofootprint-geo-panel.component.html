@@ -1,0 +1,18 @@
+<val-geofootprint-geo-list
+   [impProject]="nonNullProject$ | async"
+   [impProjectVars]="allProjectVars$ | async"
+   [impGeofootprintLocations]="allLocations$ | async"
+   [impGeofootprintGeoAttribs]="allAttributes$ | async"
+   [impGeofootprintGeos]="allGeos$ | async"
+   [mustCoverGeos]="allMustCovers$ | async"
+   [impGeofootprintVars]="allVars$ | async"
+   [variableColOrder]="variableColOrder"
+   (onZoomGeo)="onZoomGeo($event)"
+   (onDeleteGeo)="onDeleteGeo($event)"
+   (onSelectGeo)="onSelectGeo($event)"
+   (onDedupeToggle)="onDedupeToggle($event)"
+   (onSetAllGeos)="onSetAllGeos($event)"
+   (onSetFilteredGeos)="onSetFilteredGeos($event)"
+   (onForceRedraw)="onForceRedraw()"
+>
+</val-geofootprint-geo-list>

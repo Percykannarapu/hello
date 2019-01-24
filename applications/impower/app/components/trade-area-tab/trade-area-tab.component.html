@@ -1,0 +1,43 @@
+<p-tabView class="val-child-tabs">
+  <p-tabPanel header="Audience">
+    <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
+                            [currentAudiences]="(currentAudiences$ | async)"
+                            [currentLocationsCount]="(currentLocationsCount$ | async)"
+                            (updatedFormData)="onUpdatedAudienceTAData($event)"
+                            (runAudienceTA)="onRunAudienceTA($event)">
+      Loading Audience Trade Areas...</val-audience-tradearea>
+  </p-tabPanel>
+  <p-tabPanel header="Distance">
+    <val-site-type-selector label="Define for:">
+      <site-content>
+        <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
+                                 [currentMergeType]="(siteMergeType$ | async)"
+                                 [maxRadius]="maxRadius"
+                                 [numTradeAreas]="maxTradeAreaCount"
+                                 [hasProvidedTradeAreas]="(hasSiteProvidedTradeAreas$ | async)"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Site)"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)">
+          Loading Site Trade Areas...
+        </val-distance-trade-area>
+      </site-content>
+      <competitor-content>
+        <val-distance-trade-area [currentTradeAreas]="(competitorTradeAreas$ | async)"
+                                 [currentMergeType]="(competitorMergeType$ | async)"
+                                 [maxRadius]="maxRadius"
+                                 [numTradeAreas]="maxTradeAreaCount"
+                                 [hasProvidedTradeAreas]="(hasCompetitorProvidedTradeAreas$ | async)"
+                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Competitor)"
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Competitor)">
+          Loading Competitor Trade Areas...
+        </val-distance-trade-area>
+      </competitor-content>
+    </val-site-type-selector>
+  </p-tabPanel>
+  <p-tabPanel header="Custom">
+    <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
+  </p-tabPanel>
+  <p-tabPanel header="Must Cover">
+    <label style="padding-left:10px">Upload a list of geographies that must be in the geofootprint.</label>
+    <val-upload-must-cover></val-upload-must-cover>
+  </p-tabPanel>
+</p-tabView>
