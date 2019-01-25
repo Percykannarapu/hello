@@ -1,3 +1,6 @@
+import { ProjectPrefGroupCodes } from './../../../val-modules/targeting/targeting.enums';
+import { AppStateService } from './../../../services/app-state.service';
+import { AppProjectPrefService } from './../../../services/app-project-pref.service';
 import { Component, ViewChild } from '@angular/core';
 import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
@@ -20,6 +23,8 @@ export class UploadMustCoverComponent {
  
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService            
               ,private appGeoService: AppGeoService
+              ,private appStateService: AppStateService
+              ,private appProjectPrefService: AppProjectPrefService
               ,private geoService: ImpGeofootprintGeoService
               ,private store$: Store<LocalAppState>) { }
 
@@ -27,6 +32,7 @@ export class UploadMustCoverComponent {
       const reader = new FileReader();
       const name: string = event.files[0].name ? event.files[0].name.toLowerCase() : null;
       const key = this.spinnerId;
+      const project = this.appStateService.currentProject$.getValue();
       if (name != null) {
          this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
          if (name.includes('.xlsx') || name.includes('.xls')) {
@@ -44,6 +50,7 @@ export class UploadMustCoverComponent {
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));                  
+                  this.appProjectPrefService.createPref(project, ProjectPrefGroupCodes.MustCover, "Must Cover Upload", this.impGeofootprintGeoService.mustCovers.join(", "));
                   this.appGeoService.ensureMustCovers();
                }
             };
@@ -59,6 +66,7 @@ export class UploadMustCoverComponent {
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                  this.appProjectPrefService.createPref(project, ProjectPrefGroupCodes.MustCover, "Must Cover Upload", this.impGeofootprintGeoService.mustCovers.join(", "));
                   this.appGeoService.ensureMustCovers();
                }
             };

@@ -3,36 +3,23 @@
  ** Generated from VAL_BASE_GEN - v1.06
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { ImpClientPref } from '../../client/models/ImpClientPref';
 import { ImpProject } from './ImpProject';
 
 export class ImpProjectPref extends BaseModel
 {
-   public projectPrefId:             number;         /// Primary Key
-   public createUser:                number;
-   public createDate:                Date;
-   public modifyUser:                number;
-   public modifyDate:                Date;
-   public clientPrefId:              number;
-   public projectId:                 number;
-   public clientIdentifierTypeCode:  string;
-   public clientIdentifierId:        number;
-   public attributeCode:             string;
-   public attributeType:             string;
-   public attributeValue:            string;
-   public isActive:                  boolean;
+   public projectPrefId:  number;         /// Primary Key 
+   public projectId:      number;         /// Foreign Key to IMP_PROJECTS
+   public prefGroup:      string;         /// Identifier to load preferences as a group
+   public prefType:       string;         /// The type of the preference, such as STRING, NUMBER
+   public pref:           string;         /// The key code to identify the preference
+   public val:            string;         /// The value of the preference. Must be less than 4kb
+   public largeVal:       string;         /// For values larger than 4kb
+   public isActive:       boolean;        /// 1 = Preference Active, 0 = Preference InActive
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public clientIdentifierType:        ClientIdentifierType;          /// Cbx Client Identifier Types
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impClientPref:               ImpClientPref;                 /// Client Library Preferences
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impProject:                  ImpProject;                    /// Captures Project information from the UI
+   @transient public impProject:     ImpProject;          /// Captures Project information from the UI
 
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
@@ -77,16 +64,13 @@ export class ImpProjectPref extends BaseModel
    public static getFields () : Map<string, string>
    {
       return new Map([
-         ['projectPrefId',                'number'],
-         ['createUser',                   'number'],
-         ['createDate',                   'Date'],
-         ['modifyUser',                   'number'],
-         ['modifyDate',                   'Date'],
-         ['clientIdentifierId',           'number'],
-         ['attributeCode',                'string'],
-         ['attributeType',                'string'],
-         ['attributeValue',               'string'],
-         ['isActive',                     'boolean']
+         ['projectPrefId',   'number'],
+         ['prefGroup',       'string'],
+         ['prefType',        'string'],
+         ['pref',            'string'],
+         ['val',             'string'],
+         ['largeVal',        'string'],
+         ['isActive',        'boolean']
          ]);
    }
 
@@ -100,14 +84,10 @@ export class ImpProjectPref extends BaseModel
    {
       return new Map([
          // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['impClientPref',                'ImpClientPref'],
-         ['impProject',                   'ImpProject'],
+         ['impProject',      'ImpProject'],
 
          // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['impClientPref',                'ImpClientPref'],
-         ['impProject',                   'ImpProject'],
+         ['impProject',      'ImpProject'],
       ]);
    }
 

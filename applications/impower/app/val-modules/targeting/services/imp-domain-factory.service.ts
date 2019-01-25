@@ -142,37 +142,43 @@ export class ImpDomainFactoryService {
     }
   }
 
-  createProjectPref(parent: ImpProject, code: string, type: string, value: string, isActive: boolean = true, duplicateCodesOverwrite: boolean = true) : ImpProjectPref {
-    if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
-    if (value == null) throw new Error('Project Preferences cannot have a null value');
-    const existingAttribute = parent.impProjectPrefs.find(la => la.attributeCode === code);
-    if (existingAttribute == null) {
-      const result = new ImpProjectPref({
-        dirty: true,
-        baseStatus: DAOBaseStatus.INSERT,
-        createDate: new Date(Date.now()),
-        createUser: this.userService.getUser().userId,
-        modifyDate: new Date(Date.now()),
-        modifyUser: this.userService.getUser().userId,
-        attributeCode: code,
-        attributeType: type,
-        attributeValue: value,
-        impProject: parent,
-        isActive: isActive
+   createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
+      if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
+      if (value == null) throw new Error('Project Preferences cannot have a null value');
+
+      const existingPref = parent.impProjectPrefs.find(la => la.pref === pref);
+      if (existingPref == null) {
+         const result = new ImpProjectPref({
+            dirty:         true,
+            baseStatus:    DAOBaseStatus.INSERT,
+            projectPrefId: null,
+            projectId:     parent.projectId,
+            prefGroup:     group,
+            prefType:      type,
+            pref:          pref,
+            val:           (value.length <= 4000) ? value : null,
+            largeVal:      (value.length > 4000) ? value : null,
+            isActive:      isActive,
+            impProject:    parent // Set transient property
       });
       parent.impProjectPrefs.push(result);
       return result;
-    } else {
-      if (duplicateCodesOverwrite) {
-        existingAttribute.dirty = true;
-        existingAttribute.attributeType = type;
-        existingAttribute.attributeValue = value;
-        existingAttribute.isActive = isActive;
-        existingAttribute.modifyDate = new Date(Date.now());
-        existingAttribute.modifyUser = this.userService.getUser().userId;
-        if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
-        return existingAttribute;
-      } else {
+    }
+    else {
+      if (overwriteDuplicate) {
+         existingPref.dirty = true,
+         existingPref.baseStatus  = (existingPref.baseStatus === DAOBaseStatus.UNCHANGED) ? DAOBaseStatus.UPDATE : existingPref.baseStatus;
+         existingPref.projectId   = parent.projectId,
+         existingPref.prefGroup   = group,
+         existingPref.prefType    = type,
+         existingPref.pref        = pref,
+         existingPref.val         = (value.length <= 4000) ? value : null,
+         existingPref.largeVal    = (value.length > 4000) ? value : null,
+         existingPref.isActive    = isActive,
+         existingPref.impProject  = parent // Set transient property
+         return existingPref;
+      }
+      else {
         throw new Error('A duplicate Project Pref code addition was attempted');
       }
     }

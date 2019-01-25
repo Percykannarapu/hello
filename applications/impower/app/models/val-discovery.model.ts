@@ -33,9 +33,9 @@ export class ValDiscoveryUIModel {
   }
 
   public static createFromProject(project: ImpProject, radItem: RadLookupUIModel, trackerItem: ProjectTrackerUIModel) : ValDiscoveryUIModel {
-    const cpmTypeAttribute = project.impProjectPrefs.filter(pref => pref.attributeCode === 'CPM_TYPE')[0];
+    const cpmTypeAttribute = project.impProjectPrefs.filter(pref => pref.pref === 'CPM_TYPE')[0];
     const materializedCpmType = project.estimatedBlendedCpm ? ProjectCpmTypeCodes.Blended : (project.smAnneCpm || project.smSoloCpm || project.smValassisCpm ? ProjectCpmTypeCodes.OwnerGroup : null);
-    const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.attributeValue) : materializedCpmType;
+    const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.val) : materializedCpmType;
     const newFormValues = {
       projectId: project.projectId,
       projectName: project.projectName,
@@ -86,12 +86,12 @@ export class ValDiscoveryUIModel {
     projectToUpdate.radProduct         = this.selectedRadLookup ? this.selectedRadLookup.product : null;
     projectToUpdate.impGeofootprintMasters[0].methSeason = this.selectedSeason;
 
-    let cpmTypeAttribute = projectToUpdate.impProjectPrefs.filter(pref => pref.attributeCode === 'CPM_TYPE')[0];
+    let cpmTypeAttribute = projectToUpdate.impProjectPrefs.filter(pref => pref.pref === 'CPM_TYPE')[0];
     if (cpmTypeAttribute == null) {
-      cpmTypeAttribute = new ImpProjectPref({ attributeCode: 'CPM_TYPE', isActive: true });
+      cpmTypeAttribute = new ImpProjectPref({ pref: 'CPM_TYPE', prefType: 'STRING', isActive: true });
       projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
     }
-    cpmTypeAttribute.attributeValue = this.cpmType;
+    cpmTypeAttribute.val = (this.cpmType != null) ? this.cpmType : "UNKNOWN";
     console.log('Discovery Form changed, new Project values:', projectToUpdate);
   }
 

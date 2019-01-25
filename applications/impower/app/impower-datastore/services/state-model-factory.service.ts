@@ -91,21 +91,20 @@ export class StateModelFactoryService {
     });
   }
 
-  createProjectPref(parentId: number, code: string, type: string, value: string, isActive: boolean = true) : ImpProjectPrefState {
-    if (value == null) throw new Error('Project Preferences cannot have a null value');
+  createProjectPref(parentId: number, prefGroup: string, pref: string, prefType: string, val: string, largeVal: string, isActive: boolean = true) : ImpProjectPrefState {
+    if (val == null) throw new Error('Project Preferences cannot have a null value');
     return new ImpProjectPrefState({
+
       projectPrefId: StateModelFactoryService.getNextId(),
-      projectId: parentId,
-      dirty: true,
-      baseStatus: DAOBaseStatus.INSERT,
-      createDate: new Date(Date.now()),
-      createUser: this.userService.getUser().userId,
-      modifyDate: new Date(Date.now()),
-      modifyUser: this.userService.getUser().userId,
-      attributeCode: code,
-      attributeType: type,
-      attributeValue: value,
-      isActive: isActive
+      projectId:     parentId,
+      dirty:         true,
+      baseStatus:    DAOBaseStatus.INSERT,
+      prefGroup:     prefGroup,
+      prefType:      prefType,
+      pref:          pref,
+      val:           val,
+      largeVal:      largeVal,
+      isActive:      isActive
     });
   }
 
