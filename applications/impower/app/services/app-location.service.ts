@@ -769,13 +769,13 @@ export class AppLocationService {
                 homeGeocodeIssue = 'N'; 
                 warningNotificationFlag = warningNotificationFlag === 'N' ? 'N' : 'Y';   
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-              impAttributesToAdd.push(newAttribute);
+              if (newAttribute != null) impAttributesToAdd.push(newAttribute);
             } 
           }
         });
       }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
-     impAttributesToAdd.push(newAttribute1);
+     if (newAttribute1 != null) impAttributesToAdd.push(newAttribute1);
      homeGeocodeIssue = 'Y';
     });
     if (warningNotificationFlag === 'Y'){
