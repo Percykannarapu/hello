@@ -462,7 +462,7 @@ export class TargetAudienceService implements OnDestroy {
       else{
          inputData = {
           geoType: serviceAnalysisLevel,
-          source: audience.audienceSourceName,
+          source: audience.audienceSourceName === 'In-Market' ? 'In_Market' : audience.audienceSourceName,
           geocodes: ['*'],
           digCategoryIds: [numericId]
         };
