@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { SelectItem } from 'primeng/api';
 import { Store } from '@ngrx/store';
 import { FullState } from '../../state';
 import { filter } from 'rxjs/operators';
 import { SetActiveMediaPlanId, SetGroupId } from '../../state/shared/shared.actions';
 import { ClearMediaPlanGroups } from '../../state/mediaPlanGroup/media-plan-group.actions';
+import { Dropdown } from 'primeng/primeng';
 
 @Component({
   selector: 'val-dev-tools',
@@ -13,7 +14,11 @@ import { ClearMediaPlanGroups } from '../../state/mediaPlanGroup/media-plan-grou
 })
 export class DevToolsComponent implements OnInit {
 
+  @ViewChild('mpIds')
+  mediaPlanIdDropdown: Dropdown;
+
   mediaPlanIds: Array<SelectItem> = [];
+  currentMediaPlanId: number = 0;
   loading: boolean = false;
   groupId = null;
 
@@ -35,6 +40,13 @@ export class DevToolsComponent implements OnInit {
         this.mediaPlanIds = [...newIds];
         this.cd.markForCheck();
       }
+
+      this.store$.select(sharedState => sharedState.shared).pipe(
+        filter(s => s.activeMediaPlanId != null)
+      ).subscribe(s => {
+        this.currentMediaPlanId = s.activeMediaPlanId;
+      });
+
     });
 
     this.store$.select(state => state.shared).subscribe(state => {
@@ -50,8 +62,8 @@ export class DevToolsComponent implements OnInit {
     this.store$.dispatch(new SetGroupId(Number(value)));
   }
 
-  public setActiveMediaPlan(event: any) {
-    this.store$.dispatch(new SetActiveMediaPlanId({ mediaPlanId: Number(event.value) }));
+  public setActiveMediaPlan() {
+    this.store$.dispatch(new SetActiveMediaPlanId({ mediaPlanId: Number(this.mediaPlanIdDropdown.selectedOption.value) }));
   }
 
 }

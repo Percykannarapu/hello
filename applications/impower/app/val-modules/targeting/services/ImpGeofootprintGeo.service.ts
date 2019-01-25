@@ -449,7 +449,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
       const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
-                          .sort((a, b) => this.sortVars(a, b))
                           .map(pv => this.getProjectVarFieldName(pv)));
       let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));

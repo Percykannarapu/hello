@@ -304,7 +304,7 @@ export class ImpDomainFactoryService {
         existingAttribute.modifyDate = new Date(Date.now());
         existingAttribute.modifyUser = this.userService.getUser().userId;
         if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
-        return existingAttribute;
+        return null;
       } else {
         throw new Error('A duplicate Location Attribute code addition was attempted');
       }
@@ -462,7 +462,7 @@ export class ImpDomainFactoryService {
         existingAttribute.modifyDate = new Date(Date.now());
         existingAttribute.modifyUser = this.userService.getUser().userId;
         if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
-        return existingAttribute;
+        return null;
       } else {
         throw new Error('A duplicate Geo Attribute code addition was attempted');
       }
