@@ -8,6 +8,7 @@ export interface SharedState {
    rfpUiEditLoaded: boolean;
    rfpUiEditDetailLoaded: boolean;
    activeMediaPlanId: number;
+   radius: number;
 }
 
 const initialState: SharedState = {
@@ -17,11 +18,14 @@ const initialState: SharedState = {
    rfpUiReviewLoaded: false,
    rfpUiEditLoaded: false,
    rfpUiEditDetailLoaded: false,
-   activeMediaPlanId: null
+   activeMediaPlanId: null,
+   radius: null
 };
 
 export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
    switch (action.type) {
+      case SharedActionTypes.SetRadius:
+         return { ...state, radius: action.payload.radius };
       case SharedActionTypes.SetActiveMediaPlanId:
          return { ...state, activeMediaPlanId: action.payload.mediaPlanId };
       case SharedActionTypes.RfpUiEditLoaded:

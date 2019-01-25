@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, MapSymbols } from '@val/esri';
+import { EsriLayerService, MapSymbols, EsriApi } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 
 @Injectable({
@@ -47,7 +47,34 @@ export class AppLayerService {
       }
    }
 
-   public addLayerLocations(locations: UniversalCoordinates[]) {
-
+   public addTradeAreaRings(locations: UniversalCoordinates[], radius: number) {
+      const color = new EsriApi.Color([0, 0, 255, 1]);
+      const transparent = new EsriApi.Color([0, 0, 0, 0]);
+      const symbol = new EsriApi.SimpleFillSymbol({
+         style: 'solid',
+         color: transparent,
+         outline: {
+           style: 'solid',
+           color: color,
+           width: 2
+         }
+       });
+      const points: Array<__esri.Point> = [];
+      for (const location of locations) {
+         const point: __esri.Point = new EsriApi.Point();
+         point.x = location.x;
+         point.y = location.y;
+         points.push(point);
+      }
+      EsriApi.geometryEngineAsync.geodesicBuffer(points, radius, 'miles', true).then(geoBuffer => {
+         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
+         const graphics = geometry.map(g => {
+           return new EsriApi.Graphic({
+             geometry: g,
+             symbol: symbol,
+           });
+         });
+         this.esriLayerService.addGraphicsToLayer('Project Sites', graphics);
+      });
    }
 }

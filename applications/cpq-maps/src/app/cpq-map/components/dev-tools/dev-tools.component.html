@@ -8,6 +8,7 @@
 <p-card>
   <div *ngIf="groupId != null">
     <p>Current Media Plan Group ID: {{groupId}}</p>
+    <p>Current Media Plan ID: {{currentMediaPlanId}}</p>
     <div style="padding: 0; overflow: hidden; white-space: nowrap">
       Update Media Plan Group ID&nbsp;&nbsp;
       <input #box (keyup.enter)="onGroupIdChange(box.value)">
@@ -15,6 +16,8 @@
   </div>
   <br>
   <div *ngIf="mediaPlanIds.length > 0">
-    Select a Media Plan ID: <p-dropdown [options]="mediaPlanIds" (onChange)="setActiveMediaPlan($event)"></p-dropdown>
+    <p-dropdown #mpIds [options]="mediaPlanIds" id="mpIds"></p-dropdown>&nbsp;&nbsp;
+    <button pButton type="button" label="Update Selected Media Plan" (click)="setActiveMediaPlan()" style="color: black"></button>
   </div>
+  
 </p-card>
