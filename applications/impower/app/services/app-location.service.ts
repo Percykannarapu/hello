@@ -751,10 +751,11 @@ export class AppLocationService {
   private processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
-    let homeGeocodeIssue = 'Y';
+    let homeGeocodeIssue = 'N';
     let warningNotificationFlag = 'N';
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
+
       if (currentAttributes != null){
         Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
@@ -762,31 +763,30 @@ export class AppLocationService {
             // as csv. For now, we're only taking the first result.
             const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
             // validate homegeo rules
-  
-            if ((newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' ) && loc.origPostalCode != null && loc.origPostalCode !== ''
-                 && (!loc.locZip.includes(loc.origPostalCode) || !firstHomeGeoValue.includes(loc.origPostalCode))) {
-                      homeGeocodeIssue = 'Y';   
-                      warningNotificationFlag = 'Y';
+
+            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0,5) !== loc.origPostalCode.substr(0,5))) {
+                  homeGeocodeIssue = 'Y';   
+                  warningNotificationFlag = 'Y';
             }
-  
-            if ((newHomeGeoToAnalysisLevelMap[key] === 'Home PCR' && firstHomeGeoValue.length === 5) || (currentAttributes[key] == null
-                || loc.clientLocationTypeCode === 'Failed Site' || loc.clientLocationTypeCode === 'Failed Competitor')){
+            if(newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && firstHomeGeoValue.substr(0,5) !== loc.origPostalCode.substr(0,5)))){
+                  homeGeocodeIssue = 'Y';   
+                   warningNotificationFlag = 'Y';
+            }
+            if ((currentAttributes["homePcr"] === currentAttributes["homeZip"]) || (currentAttributes[key] == null
+                || loc.geocoderMatchCode.startsWith("Z") || loc.geocoderLocationCode.startsWith("Z"))){
                 homeGeocodeIssue = 'Y'; 
                 warningNotificationFlag = 'Y';  
             }
-            
             if (currentAttributes[key] != null && currentAttributes[key] != '')   {
-                homeGeocodeIssue = 'N'; 
-                warningNotificationFlag = warningNotificationFlag === 'N' ? 'N' : 'Y';   
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
               impAttributesToAdd.push(newAttribute);
             } 
-          }
+          } 
         });
       }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
      impAttributesToAdd.push(newAttribute1);
-     homeGeocodeIssue = 'Y';
+     homeGeocodeIssue = 'N';
     });
     if (warningNotificationFlag === 'Y'){
       this.store$.dispatch(new WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
