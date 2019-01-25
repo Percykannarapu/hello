@@ -181,6 +181,9 @@ export class ValAudienceTradeareaService {
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
       errors.push('The maximum radius must be larger than the minimum radius ');
     }
+    if(this.audienceTAConfig.maxRadius > 100){
+      errors.push('Maximum Radius must be <= 100');
+    }
     if (this.audienceTAConfig.weight == null) {
       errors.push('You must enter a value for Weight % of the variable');
     }
