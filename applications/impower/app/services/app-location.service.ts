@@ -754,22 +754,23 @@ export class AppLocationService {
             const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
             // validate homegeo rules
 
-            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0,5) !== loc.origPostalCode.substr(0,5))) {
+            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
                   homeGeocodeIssue = 'Y';   
                   warningNotificationFlag = 'Y';
             }
-            if(newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && firstHomeGeoValue.substr(0,5) !== loc.origPostalCode.substr(0,5)))){
+            if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' 
+              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.origPostalCode.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.origPostalCode.substr(0, 5)))){
                   homeGeocodeIssue = 'Y';   
                    warningNotificationFlag = 'Y';
             }
-            if ((currentAttributes["homePcr"] === currentAttributes["homeZip"]) || (currentAttributes[key] == null
-                || loc.geocoderMatchCode.startsWith("Z") || loc.geocoderLocationCode.startsWith("Z"))){
+            if (currentAttributes['homePcr'] === currentAttributes['homeZip'] || (currentAttributes[key] == null
+                || loc.geocoderMatchCode != null && loc.geocoderMatchCode.startsWith('Z') || loc.geocoderLocationCode != null && loc.geocoderLocationCode.startsWith('Z'))){
                 homeGeocodeIssue = 'Y'; 
                 warningNotificationFlag = 'Y';  
             }
             if (currentAttributes[key] != null && currentAttributes[key] != '')   {
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-              if (newAttribute != null) impAttributesToAdd.push(newAttribute);
+              impAttributesToAdd.push(newAttribute);
             } 
           } 
         });
