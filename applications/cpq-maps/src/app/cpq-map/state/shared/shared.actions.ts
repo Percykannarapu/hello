@@ -11,7 +11,13 @@ export enum SharedActionTypes {
   RfpUiEditDetailLoaded = '[Shared Actions] RfpUiEditDetail Loaded',
   RfpUiReviewLoaded = '[Shared Actions] RfpUiReview Loaded',
   SetActiveMediaPlanId = '[Shared Actions] Set Active Media Plan',
-  SetRadius = '[Shared Actions] Set Radius'
+  SetRadius = '[Shared Actions] Set Radius',
+  SetAnalysisLevel = '[Shared Actions] Set Analysis Level'
+}
+
+export class SetAnalysisLevel implements Action {
+  readonly type = SharedActionTypes.SetAnalysisLevel;
+  constructor(public payload: { analysisLevel: string }) { }
 }
 
 export class SetRadius implements Action {
@@ -68,4 +74,5 @@ export type SharedActions =
   | RfpUiEditDetailLoaded
   | RfpUiReviewLoaded
   | SetActiveMediaPlanId
-  | SetRadius;
+  | SetRadius
+  | SetAnalysisLevel;

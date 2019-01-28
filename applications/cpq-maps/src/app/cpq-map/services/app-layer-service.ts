@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, MapSymbols, EsriApi } from '@val/esri';
+import { EsriLayerService, MapSymbols, EsriApi, EsriMapService } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
+import { calculateStatistics } from '@val/common';
 
 @Injectable({
    providedIn: 'root'
 })
 export class AppLayerService {
 
-   constructor(private esriLayerService: EsriLayerService) { }
+   constructor(private esriLayerService: EsriLayerService, private esriMapService: EsriMapService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
 
@@ -76,5 +77,17 @@ export class AppLayerService {
          });
          this.esriLayerService.addGraphicsToLayer('Project Sites', graphics);
       });
+   }
+
+   public zoomToTradeArea(locations: UniversalCoordinates[]) {
+      const latitudes: Array<number> = [];
+      const longitudes: Array<number> = [];
+      for (const location of locations) {
+         latitudes.push(location.y);
+         longitudes.push(location.x);
+      }
+      const xStats = calculateStatistics(longitudes);
+      const yStats = calculateStatistics(latitudes);
+      this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
    }
 }
