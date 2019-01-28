@@ -284,6 +284,7 @@ export class AppLocationService {
       }
     });
     const pcrGeocodeList = [];
+    const pcrResponseGeocodeList = [];
     const key = 'HomeGeoCalcKey';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
     pointPolyNotRequiredLocations.forEach(loc => pcrGeocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
@@ -297,6 +298,7 @@ export class AppLocationService {
           if (locDicttemp[row['geocode']] !== null && row['score'] == null) {
             atzLocationsNotFound.push(locDicttemp[row['geocode']]);
           }
+          pcrResponseGeocodeList.push(row['geocode']);
           let homePcr = null;
           let homeDma = null;
           let homeZip = null;
@@ -388,6 +390,13 @@ export class AppLocationService {
         }
       }),
       mergeMap(() => {
+        const missingZipFuseResponseLoc = pcrGeocodeList.filter(x => !pcrResponseGeocodeList.includes(x));
+        if (missingZipFuseResponseLoc.length > 0){
+          missingZipFuseResponseLoc.forEach(geo => {
+          //  console.log('geo not foount in PCR duplicates:::', geo, 'and location', locDicttemp[geo]);
+            pointPolyLocations.push(locDicttemp[geo]);
+          });
+        }
         if (pointPolyLocations != null && pointPolyLocations.length > 0){
           const zipGeocodeList = [];
           pointPolyLocations.forEach(loc => zipGeocodeList.push(loc.locZip.substring(0, 5)));
