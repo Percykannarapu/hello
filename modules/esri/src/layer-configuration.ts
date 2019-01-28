@@ -24,7 +24,7 @@ interface CustomPopUpLayer extends LayerBase {
 export type LayerDefinition = StandardPopUpLayer | CustomPopUpLayer;
 
 export interface LayerGroupDefinition {
-  group: { name: string, analysisLevelName: string };
+  group: { name: string, analysisLevelName?: string };
   centroids?: LayerDefinition;
   boundaries: LayerDefinition;
 }
