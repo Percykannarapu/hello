@@ -768,7 +768,7 @@ export class AppLocationService {
                   warningNotificationFlag = 'Y';
             }
             if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' 
-              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.origPostalCode.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.origPostalCode.substr(0, 5)))){
+              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.locZip.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.locZip.substr(0, 5)))){
                   homeGeocodeIssue = 'Y';   
                    warningNotificationFlag = 'Y';
             }

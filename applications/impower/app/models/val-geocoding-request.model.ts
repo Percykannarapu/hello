@@ -92,6 +92,7 @@ export class ValGeocodingRequest {
       result.Address = this.street;
       result.City = this.city;
       result.LocalState = this.state;
+      result.State = this.state;
       result.ZIP = this.zip;
     } else {
       result['Original Address'] = this.street;
