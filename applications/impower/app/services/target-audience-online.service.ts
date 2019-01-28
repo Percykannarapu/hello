@@ -16,7 +16,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { chunkArray, groupBy, simpleFlatten } from '@val/common';
+import { chunkArray, groupBy, simpleFlatten, mapBy } from '@val/common';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -345,8 +345,26 @@ export class TargetAudienceOnlineService {
   }
 
   private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean) {
-    const responseArray: OnlineBulkDataResponse[] = response.payload.rows;
-    // if (responseArray.length > 0){
+    const newArray = this.audienceService.convertFuseResponse(response);
+    const audiences = Array.from(this.audienceService.audienceMap.values());
+    audiences.filter(roe => roe.audienceIdentifier);
+    const audMap = mapBy(audiences, 'audienceIdentifier');
+    const responseArray = [];
+    
+    inputData.digCategoryIds.forEach(id => {
+      const audience = audMap.get(id.toString());
+      const sourceName = audience.audienceSourceName != null && audience.audienceSourceName.toLowerCase() === 'in-market' ? 'in_market' : audience.audienceSourceName;
+      const dmaKey = `${audience.audienceName}_${sourceName.toLowerCase()}_DMA`;
+      const nationalKey = `${audience.audienceName}_${sourceName.toLowerCase()}_NATIONAL`;
+      newArray.forEach(row => {
+        responseArray.push({
+            geocode : row.geocode,
+            dmaScore : row.attrs[dmaKey],
+            nationalScore: row.attrs[nationalKey],
+            digCategoryId: id.toString()
+          });
+      });
+    });
     const audData = new Set(responseArray.map(val => val.digCategoryId));
     const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
     if (missingCategoryIds.size > 0) {
