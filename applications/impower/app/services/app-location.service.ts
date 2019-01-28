@@ -284,6 +284,7 @@ export class AppLocationService {
       }
     });
     const pcrGeocodeList = [];
+    const pcrResponseGeocodeList = [];
     const key = 'HomeGeoCalcKey';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
     pointPolyNotRequiredLocations.forEach(loc => pcrGeocodeList.push(loc.locZip.substring(0, 5) + loc.carrierRoute));
@@ -297,6 +298,7 @@ export class AppLocationService {
           if (locDicttemp[row['geocode']] !== null && row['score'] == null) {
             atzLocationsNotFound.push(locDicttemp[row['geocode']]);
           }
+          pcrResponseGeocodeList.push(row['geocode']);
           let homePcr = null;
           let homeDma = null;
           let homeZip = null;
@@ -388,6 +390,13 @@ export class AppLocationService {
         }
       }),
       mergeMap(() => {
+        const missingZipFuseResponseLoc = pcrGeocodeList.filter(x => !pcrResponseGeocodeList.includes(x));
+        if (missingZipFuseResponseLoc.length > 0){
+          missingZipFuseResponseLoc.forEach(geo => {
+          //  console.log('geo not foount in PCR duplicates:::', geo, 'and location', locDicttemp[geo]);
+            pointPolyLocations.push(locDicttemp[geo]);
+          });
+        }
         if (pointPolyLocations != null && pointPolyLocations.length > 0){
           const zipGeocodeList = [];
           pointPolyLocations.forEach(loc => zipGeocodeList.push(loc.locZip.substring(0, 5)));
@@ -764,18 +773,19 @@ export class AppLocationService {
             const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
             // validate homegeo rules
 
-            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0,5) !== loc.origPostalCode.substr(0,5))) {
+            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
                   homeGeocodeIssue = 'Y';   
                   warningNotificationFlag = 'Y';
             }
-            if(newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && firstHomeGeoValue.substr(0,5) !== loc.origPostalCode.substr(0,5)))){
+            if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' 
+              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.origPostalCode.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.origPostalCode.substr(0, 5)))){
                   homeGeocodeIssue = 'Y';   
                    warningNotificationFlag = 'Y';
             }
-            if ((currentAttributes["homePcr"] === currentAttributes["homeZip"]) || (currentAttributes[key] == null
-                || loc.geocoderMatchCode.startsWith("Z") || loc.geocoderLocationCode.startsWith("Z"))){
-                homeGeocodeIssue = 'Y'; 
-                warningNotificationFlag = 'Y';  
+            if (currentAttributes['homePcr'] === currentAttributes['homeZip'] || (currentAttributes[key] == null
+              || loc.geocoderMatchCode != null && loc.geocoderMatchCode.startsWith('Z') || loc.geocoderLocationCode != null && loc.geocoderLocationCode.startsWith('Z'))){
+              homeGeocodeIssue = 'Y'; 
+              warningNotificationFlag = 'Y';  
             }
             if (currentAttributes[key] != null && currentAttributes[key] != '')   {
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
