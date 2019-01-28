@@ -19,9 +19,9 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     const groupId = Number(this.elementRef.nativeElement.getAttribute('groupId'));
     this.store$.dispatch(new SetGroupId(groupId));
-    const analysisLevel = this.elementRef.nativeElement.getAttribute('analysisLevel') || 'atz';
+    const analysisLevel: string = this.elementRef.nativeElement.getAttribute('analysisLevel') || 'atz';
     this.store$.dispatch(new SetAnalysisLevel({ analysisLevel: analysisLevel }));
-    this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel].boundaries.id }));
+    this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
     const radius = Number(this.elementRef.nativeElement.getAttribute('radius'));
     this.store$.dispatch(new SetRadius({ radius: radius }));
   }
