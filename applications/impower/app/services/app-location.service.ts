@@ -512,7 +512,7 @@ export class AppLocationService {
   }
 
   private confirmationBox() : void {
-    if (this.cachedTradeAreas.length !== 0){
+    if (this.cachedTradeAreas != null && this.cachedTradeAreas.length !== 0){
       this.confirmationService.confirm({
         message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
         header: 'Define Trade Areas',
@@ -763,7 +763,7 @@ export class AppLocationService {
             const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
             // validate homegeo rules
 
-            if (loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
+            if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
                   homeGeocodeIssue = 'Y';   
                   warningNotificationFlag = 'Y';
             }
