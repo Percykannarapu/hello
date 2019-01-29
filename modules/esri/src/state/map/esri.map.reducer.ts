@@ -6,6 +6,7 @@ export interface EsriLabelConfiguration {
   font: string;
   size: number;
   enabled: boolean;
+  pobEnabled: boolean;
 }
 export interface EsriMapState {
   mapIsInitializing: boolean;

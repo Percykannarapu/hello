@@ -46,6 +46,7 @@ export class EsriLabelConfigComponent implements OnInit {
     { label: '40', value: 40 }];
   
   public enabled = false;
+  public pobEnabled = false;
 
   public selectedFont: string = 'sans-serif';
   public selectedSize: number = 10;
@@ -68,7 +69,7 @@ export class EsriLabelConfigComponent implements OnInit {
     if (!this.enabled) {
       return;
     }
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: event.value, size: this.selectedSize };
+    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: event.value, size: this.selectedSize, pobEnabled: this.pobEnabled };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 
@@ -76,14 +77,18 @@ export class EsriLabelConfigComponent implements OnInit {
     if (!this.enabled) {
       return;
     }
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: event.value };
+    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: event.value, pobEnabled: this.pobEnabled};
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 
   onEnabledChanged(event: any) {
-    const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize };
+    const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
-
+  
+  onPOBEnabledChanged(event: any) {
+    const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled };
+    this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
+  }
 
 }
