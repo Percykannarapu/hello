@@ -651,7 +651,7 @@ export class AppLocationService {
             const attr = pcrTab14ResponseDict[attribute['homePcr']];
             let homePcr = null;
             if (locDicttemp[attribute['siteNumber']] != null && locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.length > 0){
-              homePcr = locDicttemp[attribute['siteNumber'].substring(0, 5)].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home PCR')[0];
+              homePcr = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home PCR')[0];
             }
             attribute['homePcr'] = homePcr && homePcr.attributeValue !== '' ? homePcr.attributeValue : attr['geocode'];
           }
@@ -729,7 +729,7 @@ export class AppLocationService {
         attributes.forEach(attribute => {
           const pipAttr = pipAtzAttributes.get(attribute['siteNumber']);
           
-          if (pipAttr != null && pipAttr['siteNumber'] != null){
+          if (pipAttr != null && pipAttr['siteNumber'] != null && pipAttr['homeAtz'] != null){
             const homeAtz = locDicttemp[pipAttr['siteNumber']] != null ? locDicttemp[pipAttr['siteNumber']].impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home ATZ')[0] : null;
             attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : pipAttr['homeAtz'];
           }
