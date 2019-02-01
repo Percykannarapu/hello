@@ -566,7 +566,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // MUST COVER METHODS
    // -----------------------------------------------------------
-   public parseMustCoverFile(dataBuffer: string, fileName: string) {
+   public parseMustCoverFile(dataBuffer: string, fileName: string) : string[] {
       //console.debug("### parseMustCoverFile fired");
       const rows: string[] = dataBuffer.split(/\r\n|\n/);
       const header: string = rows.shift();
@@ -610,11 +610,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
 
             this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Must Cover Upload'}));
+
+            return Array.from(uniqueGeos);
          }
       }
       catch (e) {
          this.reportError(errorTitle, `${e}`);
       }
+      return [];
    }
 
    public parseMustCoverString(mustCoverCsv: string): string[] {
