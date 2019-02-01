@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { merge, Observable } from 'rxjs';
 import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors } from '@val/esri';
-import { filter, take, tap } from 'rxjs/operators';
+import { filter, take, tap, withLatestFrom } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
 import { FullState } from './state';
@@ -28,15 +28,16 @@ export class CpqMapComponent implements OnInit {
   ngOnInit() {
     this.store$.pipe(
       select(selectors.getMapReady),
-      filter(ready => ready),
+      withLatestFrom(this.store$.select(state => state)),
+      filter(([ready, state]) => ready),
       take(1)
-    ).subscribe(() => this.setupApplication());
+    ).subscribe(([ready, state]) => this.setupApplication(state));
   }
 
-  private setupApplication() {
+  private setupApplication(state: FullState) {
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
-    this.initializeLayers().subscribe (
+    this.initializeLayers(state).subscribe (
       null,
       null,
       () => {
@@ -52,11 +53,11 @@ export class CpqMapComponent implements OnInit {
       });
   }
 
-  public initializeLayers() : Observable<__esri.FeatureLayer> {
+  public initializeLayers(state: FullState) : Observable<__esri.FeatureLayer> {
     const layerGroups = new Map<string, LayerDefinition[]>();
     for (const layerGroup of Object.values(this.config.layers)) {
       layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
-      this.setupPortalGroup(layerGroup.group.name);
+      this.setupPortalGroup(layerGroup.group.name, layerGroup.group.analysisLevelName, state);
     }
     const results: Observable<__esri.FeatureLayer>[] = [];
     layerGroups.forEach((value, key) => {
@@ -66,8 +67,15 @@ export class CpqMapComponent implements OnInit {
     return merge(...results, 2);
   }
 
-  private setupPortalGroup(groupName: string) : void {
-    this.layerService.createPortalGroup(groupName, false);
+  private setupPortalGroup(groupName: string, analysisLevelName: string, state: FullState) : void {
+    let visible = false;
+    if (analysisLevelName === state.shared.analysisLevel) {
+      visible = true;
+    }
+    if (state.shared.analysisLevel === 'atz' && analysisLevelName === 'zip') {
+      visible = true;
+    }
+    this.layerService.createPortalGroup(groupName, visible);
     const group = this.layerService.getPortalGroup(groupName);
     if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
   }

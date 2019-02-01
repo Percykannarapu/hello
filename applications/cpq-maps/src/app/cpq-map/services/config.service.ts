@@ -11,6 +11,7 @@ export class ConfigService {
     zip: {
       group: {
         name: 'Valassis ZIP',
+        analysisLevelName: 'zip'
       },
       centroids: { // ZIP_Centroids
         id: environment.layerIds.zip.centroid,
@@ -32,6 +33,7 @@ export class ConfigService {
     atz: {
       group: {
         name: 'Valassis ATZ',
+        analysisLevelName: 'atz'
       },
       centroids: { // ATZ_Centroids
         id: environment.layerIds.atz.centroid,
@@ -53,6 +55,7 @@ export class ConfigService {
     digital_atz: {
       group: {
         name: 'Valassis Digital ATZ',
+        analysisLevelName: 'dtz'
       },
       centroids: { // DIG_ATZ_Centroids
         id: environment.layerIds.dtz.centroid,
@@ -77,7 +80,8 @@ export class ConfigService {
     },
     wrap: {
       group: {
-        name: 'Valassis WRAP'
+        name: 'Valassis WRAP',
+        analysisLevelName: 'wrap'
       },
       boundaries: { // WRAP_Top_Vars
         id: environment.layerIds.wrap.boundary,

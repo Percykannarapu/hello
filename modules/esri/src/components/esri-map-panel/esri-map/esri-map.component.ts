@@ -40,6 +40,9 @@ export class EsriMapComponent implements OnInit {
         withLatestFrom(this.store.pipe(select(selectors.getEsriViewpointState))),
         filter(([result, viewpoint]) => this.compareViewpoints(result, viewpoint))
       ).subscribe(result => this.viewChanged.emit(result[0].target));
+      this.mapService.mapView.map.allLayers.forEach(layer => EsriUtils.setupWatch(layer, 'visible').subscribe(result => {
+        this.viewChanged.emit(this.mapService.mapView);
+      }));
     });
   }
 

@@ -37,7 +37,7 @@ export class EsriLayerService {
     sharedStore$.pipe(
       select(internalSelectors.getEsriLabelConfiguration),
       filter(labelConfig => labelConfig != null),
-    ).subscribe(labelConfig => this.addLabels(labelConfig.font, labelConfig.size, labelConfig.enabled));
+    ).subscribe(labelConfig => this.addLabels(labelConfig.font, labelConfig.size, labelConfig.enabled, labelConfig.pobEnabled));
 
   }
 
@@ -284,7 +284,7 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
-      const labelConfig: EsriLabelConfiguration = { font: 'sans-serif', size: 10, enabled: true };
+      const labelConfig: EsriLabelConfiguration = { font: 'sans-serif', size: 10, enabled: true, pobEnabled: false };
       this.store$.dispatch(new SetLabelConfiguration({labelConfiguration: labelConfig}));
       /*if (!layer.title.toLowerCase().includes('centroid')) {
         this.addLabels(<__esri.FeatureLayer> layer);
@@ -292,14 +292,23 @@ export class EsriLayerService {
     }
   }
 
-  private addLabels(fontName: string, fontSize: number, enabled: boolean) {
-    const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
-      labelPlacement: 'always-horizontal',
-      labelExpressionInfo: {
-        expression: '$feature.geocode'
-      }
-    });
-    const layers = this.mapService.mapView.map.allLayers.toArray();
+  private addLabels(fontName: string, fontSize: number, enabled: boolean, pobEnabled: boolean) {
+    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+    const font = new EsriApi.Font({ family: fontName, size: fontSize, weight: 'normal' });
+    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
+    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.haloSize = 1;
+    textSymbol.font = font;
+    const arcade = pobEnabled ? '$feature.geocode' : 'IIF ($feature.pob == "B", " " , $feature.geocode)';
+      const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
+        labelPlacement: 'always-horizontal',
+        labelExpressionInfo: {
+            expression: arcade     
+        },
+        symbol: textSymbol
+      });
+    const layers = this.mapService.mapView.map.allLayers.toArray();  
     if (!enabled) {
       for (const layer of layers) {
         if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
@@ -308,17 +317,12 @@ export class EsriLayerService {
       }
       return;
     }
-    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-    const font = new EsriApi.Font({ family: fontName, size: fontSize, weight: 'normal' });
-    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-    //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
-    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-    textSymbol.haloSize = 1;
-    textSymbol.font = font;
-    labelConfig.symbol = textSymbol;
-    labelConfig.labelExpressionInfo = { expression: '$feature.geocode' };
+
     for (const layer of layers) {
       if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
+        layer.labelingInfo = [labelConfig];
+      }
+      if (layer instanceof EsriApi.FeatureLayer && layer.title.toLocaleLowerCase().includes('boundaries')){
         layer.labelingInfo = [labelConfig];
       }
     }

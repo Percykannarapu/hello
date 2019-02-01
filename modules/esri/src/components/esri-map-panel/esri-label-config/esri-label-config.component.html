@@ -1,15 +1,18 @@
 <p-overlayPanel #op [style]="{'width':'20em'}">
   <div class="ui-g">
-    <div class="ui-g-3">
+    <div class="ui-g-7">
       <!--<label style="color:black;">Font</label>
       <br>
       <br>-->
       <label style="color:black;">Size</label>
       <br>
       <br>
-      <label style="color:black;">Enabled</label>
+      <label style="color:black;">Geo Labels Enabled</label>
+      <br>
+      <br>
+      <label style="color:black;">POB Labels Enabled</label>
     </div>
-    <div class="ui-g-6">
+    <div class="ui-g-3">
       <!--<p-dropdown [options]="fonts"  [(ngModel)]="selectedFont" (onChange)="onFontChanged($event)"></p-dropdown>
       <br>
       <br>-->
@@ -17,6 +20,9 @@
       <br>
       <br>
       <p-inputSwitch [(ngModel)]="enabled" (onChange)="onEnabledChanged($event)"></p-inputSwitch>
+      <br>
+      <br>
+      <p-inputSwitch [(ngModel)]="pobEnabled" (onChange)="onPOBEnabledChanged($event)"></p-inputSwitch>
     </div>
   </div>
 </p-overlayPanel>

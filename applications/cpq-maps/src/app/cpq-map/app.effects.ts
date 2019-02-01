@@ -152,7 +152,8 @@ export class AppEffects {
     withLatestFrom(this.store$.select(state => state)),
     tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state.rfpUiEditDetail)))),
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
-    tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius))
+    tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
+    tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state.rfpUiEdit))),
   );
 
   // After RfpUiReview is loaded check to see if the other entities have finished loading
