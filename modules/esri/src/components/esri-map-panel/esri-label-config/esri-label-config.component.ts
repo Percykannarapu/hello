@@ -54,12 +54,13 @@ export class EsriLabelConfigComponent implements OnInit {
   ngOnInit() {
     this.store$.pipe(
       select(internalSelectors.getEsriLabelConfiguration),
-      filter(labelConfig => labelConfig != null && labelConfig.enabled != null && labelConfig.font != null && labelConfig.size != null)
+      filter(labelConfig => labelConfig != null && labelConfig.enabled != null && labelConfig.pobEnabled != null && labelConfig.font != null && labelConfig.size != null)
     ).subscribe(labelConfig => this.onLabelConfigChanged(labelConfig));
   }
 
   onLabelConfigChanged(labelConfig: EsriLabelConfiguration) {
     this.enabled = labelConfig.enabled;
+    this.pobEnabled = labelConfig.pobEnabled;
     this.selectedFont = labelConfig.font;
     this.selectedSize = labelConfig.size;
     this.changeDetector.markForCheck();
@@ -87,7 +88,7 @@ export class EsriLabelConfigComponent implements OnInit {
   }
   
   onPOBEnabledChanged(event: any) {
-    const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled };
+    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: event.checked };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 
