@@ -144,9 +144,9 @@ export class ImpDomainFactoryService {
 
    createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
-      if (value == null) throw new Error('Project Preferences cannot have a null value');
+      if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
 
-      const existingPref = parent.impProjectPrefs.find(la => la.pref === pref);
+      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref);
       if (existingPref == null) {
          const result = new ImpProjectPref({
             dirty:         true,
@@ -186,8 +186,8 @@ export class ImpDomainFactoryService {
 
   createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string) : ImpGeofootprintLocation {
     if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
-    const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number', 
-      'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State', 
+    const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number',
+      'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State',
       'Original ZIP', 'Match Code', 'Match Quality', 'Geocode Status', 'RADIUS1', 'RADIUS2', 'RADIUS3', 'CarrierRoute']);
     const result = new ImpGeofootprintLocation({
       dirty: true,
@@ -346,7 +346,7 @@ export class ImpDomainFactoryService {
       impGeofootprintLocation: parent,
       isActive: parent.isActive ? isActive : parent.isActive,
       gtaId: null
-    });    
+    });
     if (existingTradeAreas.has(taNumber)) {
       console.error('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
       throw new Error('A duplicate trade area number addition was attempted');

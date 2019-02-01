@@ -75,7 +75,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                private confirmationService: ConfirmationService,
                private store$: Store<LocalAppState>
                ) { }
-                              
+
    ngOnInit() {
       // Subscribe to the data stores
       this.nonNullProject$ = this.appStateService.currentProject$
@@ -86,14 +86,14 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
       this.allProjectVars$ = this.impProjectVarService.storeObservable
                                  .pipe(map(pvars => Array.from(pvars))
-                                      ,tap(pvars => { 
+                                      ,tap(pvars => {
                                       // console.log("OBSERVABLE FIRED: allProjectVars");
                                          this.setVariableOrderFromProjectVars(pvars);
                                       }));
 
       this.allLocations$  = this.impGeofootprintLocationService.storeObservable
                                 .pipe(map(locs => Array.from(locs))
-                                     ,tap(locs => { 
+                                     ,tap(locs => {
                                         if (locs != null && locs.length > 0) {
                                        // console.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);
                                           this.rankGeographies();
@@ -102,14 +102,15 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable
                           .pipe(map(geos => Array.from(geos))
-                               ,tap(geos => { 
+                               ,tap(geos => {
                                   if (geos != null && geos.length > 0) {
-                                  // console.log("OBSERVABLE FIRED: impGeofootprintGeoService - Geos: ", geos);
+                                  // console.log("OBSERVABLE FIRED: impGeofootprintGeoService - " + geos.length + " Geos: ", geos);
                                      this.setVariableOrder();
                                      this.rankGeographies();
                                   }
                                }));
 
+      // The geo grid watches this for changes in must covers to set the column
       this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
 
       this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable
@@ -132,7 +133,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
       // DEBUG: See that ranking is working
       //console.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => console.log("geo: ", geo));
-   }   
+   }
 
    public setVariableOrderFromProjectVars(projectVars: ImpProjectVar[]) {
       let varName: string = null;
@@ -181,15 +182,15 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          for (const audience of this.targetAudienceService.getAudiences()) {
             if (audience.audienceSourceType === 'Online') {
                if (audience.audienceSourceName === 'Interest') {
-                  this.variableColOrder.set(audience.audienceName + ' (Interest)', audience.audienceCounter);    
-               } else if (audience.audienceSourceName === 'VLH') { 
+                  this.variableColOrder.set(audience.audienceName + ' (Interest)', audience.audienceCounter);
+               } else if (audience.audienceSourceName === 'VLH') {
                   this.variableColOrder.set(audience.audienceName + ' (VLH)', audience.audienceCounter);
-               } else if (audience.audienceSourceName === 'Pixel') { 
+               } else if (audience.audienceSourceName === 'Pixel') {
                   this.variableColOrder.set(audience.audienceName + ' (Pixel)', audience.audienceCounter);
-               } else if (audience.audienceSourceName === 'Audience-TA') { 
+               } else if (audience.audienceSourceName === 'Audience-TA') {
                   this.variableColOrder.set(audience.secondaryId, audience.audienceCounter);
                } else {
-                  this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);    
+                  this.variableColOrder.set(audience.audienceName + ' (In-Market)', audience.audienceCounter);
                }
             } else {
                this.variableColOrder.set(audience.audienceName, audience.audienceCounter);
@@ -303,7 +304,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public onSetFilteredGeos(event: any) {
       // console.log("-".padEnd(80, "-"));
       // console.log("onSetFilteredGeos - event: ", event);
-      // console.log("-".padEnd(80, "-"));      
+      // console.log("-".padEnd(80, "-"));
       if (event != null)
       {
          let eventGeos: ImpGeofootprintGeo[] = event.geos;

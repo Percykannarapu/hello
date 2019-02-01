@@ -20,8 +20,8 @@ export class UploadMustCoverComponent {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
 
    @ViewChild('mustCoverUpload') private mustCoverUploadEl: FileUpload;
- 
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService            
+
+   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
               ,private appGeoService: AppGeoService
               ,private appStateService: AppStateService
               ,private appProjectPrefService: AppProjectPrefService
@@ -49,9 +49,9 @@ export class UploadMustCoverComponent {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
-                  this.store$.dispatch(new StopBusyIndicator({ key: key }));                  
-                  this.appProjectPrefService.createPref(project, ProjectPrefGroupCodes.MustCover, "Must Cover Upload", this.impGeofootprintGeoService.mustCovers.join(", "));
-                  this.appGeoService.ensureMustCovers();
+                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                  // Create a new project pref for the upload file
+                  this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload: " + name, this.impGeofootprintGeoService.mustCovers.join(", "));
                }
             };
          }
@@ -66,13 +66,12 @@ export class UploadMustCoverComponent {
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
-                  this.appProjectPrefService.createPref(project, ProjectPrefGroupCodes.MustCover, "Must Cover Upload", this.impGeofootprintGeoService.mustCovers.join(", "));
-                  this.appGeoService.ensureMustCovers();
+                  this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload" + name, this.impGeofootprintGeoService.mustCovers.join(", "));
                }
             };
          }
       }
-      this.mustCoverUploadEl.clear();      
+      this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
    }
 }

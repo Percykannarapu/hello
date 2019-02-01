@@ -13,6 +13,7 @@ import { MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 
 @Injectable({
    providedIn: 'root'
@@ -24,7 +25,7 @@ export class AppProjectPrefService {
    public totCount$: Observable<number>;
    public actCount$: Observable<number>;
    public mustCoverPrefs$: Observable<ImpProjectPref[]>;
- 
+
    constructor(private impProjectPrefService: ImpProjectPrefService,
                private appStateService: AppStateService,
                private metricsService: MetricService,
@@ -49,22 +50,95 @@ export class AppProjectPrefService {
       // );
    }
 
-   public createPref(project: ImpProject, group: string, pref: string, value: string, type: string = "STRING") {
+   public createPref(group: string, pref: string, value: string, type: string = "STRING") {
       const currentProject = this.appStateService.currentProject$.getValue();
 
-      let impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(project, group, pref, type, value);
+      let impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(currentProject, group, pref, type, value);
       if (currentProject.impProjectPrefs.filter(p => p.prefGroup === group || p.pref === pref).length === 0)
       {
-         // console.log("### Added pref: ", impProjectPref);
+         //console.debug("### Added pref: ", impProjectPref);
          currentProject.impProjectPrefs.push(impProjectPref);
       }
-      else
-      {
-         // console.log("### Did not add pref: ", pref);
-         // console.log("### Num Project prefs for group: " + group + ", pref: " + pref + " = " + currentProject.impProjectPrefs.filter(p => p.prefGroup === group || p.pref === pref).length);
-         // console.log("### Tot Project prefs " + currentProject.impProjectPrefs.length);
-         currentProject.impProjectPrefs.forEach(pref => console.log("### pref: " + pref.pref + " = " + pref.val + ", largeVal: " + pref.largeVal));
-      }
    }
- 
+
+   private debugTestPrefs() {
+      console.log("### getPref: Must Cover Upload = " + this.getPref("Must Cover Upload"));
+      console.log("### getPref: CPM_TYPE          = " + this.getPref("CPM_TYPE"));
+      console.log("### getPref: FAKE              = " + this.getPref("fake"));
+
+      console.log("### getPrefVal: Must Cover Upload ", this.getPrefVal("Must Cover Upload",true));
+      console.log("### getPrefVal: CPM_TYPE          ", this.getPrefVal("CPM_TYPE",true));
+      console.log("### getPrefVal: FAKE              ", this.getPrefVal("FAKE",true));
+
+      console.log("### getPref:    Test Project JSON ", this.getPref("Test Project JSON"));
+      console.log("### getPrefVal: Test Project JSON ", this.getPrefVal("Test Project JSON", false));
+   }
+
+   public getPrefsByGroup(prefGroup: string, mustBeActive: boolean = true): ImpProjectPref[] {
+      let prefs: ImpProjectPref[];
+      try
+      {
+         //this.debugTestPrefs();
+         prefs = this.impProjectPrefService.get().filter(p => p.prefGroup != null && p.prefGroup.toUpperCase().trim() === prefGroup.toUpperCase().trim()
+                                                           && (mustBeActive === false || (mustBeActive && p.isActive)));
+         if (prefs === undefined)
+            prefs = null;
+      }
+      catch(e)
+      {
+         this.logger.error(e);
+         prefs = null;
+      }
+      finally
+      {
+         if (prefs === null)
+            this.logger.warn("### Could not find " + (mustBeActive ? "active" : "") + " preferences for group: [" + prefGroup + "]");
+      }
+
+      return prefs;
+   }
+
+
+   public getPref(prefKey: string, mustBeActive: boolean = true): ImpProjectPref {
+      let pref: ImpProjectPref;
+      try
+      {
+         pref = this.impProjectPrefService.get().filter(p => p.pref.toUpperCase().trim() === prefKey.toUpperCase().trim()
+                                                          && (mustBeActive === false || (mustBeActive && p.isActive)))[0];
+         if (pref === undefined)
+            pref = null;
+      }
+      catch(e)
+      {
+         this.logger.error(e);
+         pref = null;
+      }
+      finally
+      {
+         if (pref === null)
+            this.logger.warn("### Could not find " + (mustBeActive ? "an active" : "") + " preference by key: [" + prefKey + "]");
+      }
+
+      return pref;
+   }
+
+   public getPrefVal(prefKey: string, mustBeActive: boolean = true): string {
+      let pref: ImpProjectPref;
+      let prefVal: string = null;
+      try
+      {
+         pref = this.getPref(prefKey, mustBeActive);
+         if (pref === null)
+            return null;
+         else
+            prefVal = (pref.largeVal != null) ? pref.largeVal : pref.val;
+      }
+      catch(e)
+      {
+         this.logger.error(e);
+      }
+
+      return prefVal;
+   }
+
 }

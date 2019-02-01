@@ -3,6 +3,7 @@ import { AppProjectService } from './app-project.service';
 import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { AppGeoService } from './app-geo.service';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -24,6 +25,7 @@ export class AppDataShimService {
               private appStateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
               private targetAudienceService: TargetAudienceService,
+              private appGeoService: AppGeoService,
               private store$: Store<LocalAppState>) { }
 
   save() : Observable<number> {
@@ -39,6 +41,7 @@ export class AppDataShimService {
   onLoadSuccess() : void {
     this.targetAudienceService.applyAudienceSelection();
     this.appTradeAreaService.zoomToTradeArea();
+    this.appGeoService.reloadMustCovers();
   }
 
   createNew() : number {

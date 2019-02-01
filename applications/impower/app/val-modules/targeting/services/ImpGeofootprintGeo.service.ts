@@ -37,13 +37,13 @@ export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
 interface UploadMustCoverData {
    geocode: string;
 }
- 
+
 const mustCoverUpload: Parser<UploadMustCoverData> = {
    columnParsers: [
       { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
    ]
 };
- 
+
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
@@ -162,7 +162,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else
          this.store$.dispatch(new WarningNotification({ message, notificationTitle: title}));
    }
-  
+
    // -----------------------------------------------------------
    // EXPORT COLUMN HANDLER METHODS
    // -----------------------------------------------------------
@@ -482,8 +482,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // Populate the attribute cache
       this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
       for (const attr of this.impGeofootprintGeoAttribService.get()) {
-         if (this.attributeCache.has(attr.impGeofootprintGeo)) {  
-               this.attributeCache.get(attr.impGeofootprintGeo).push(attr);                     
+         if (this.attributeCache.has(attr.impGeofootprintGeo)) {
+               this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
             } else {
                   this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
          }
@@ -543,7 +543,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
             exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
-            
+
          break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT
@@ -567,6 +567,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // MUST COVER METHODS
    // -----------------------------------------------------------
    public parseMustCoverFile(dataBuffer: string, fileName: string) {
+      //console.debug("### parseMustCoverFile fired");
       const rows: string[] = dataBuffer.split(/\r\n|\n/);
       const header: string = rows.shift();
       const errorTitle: string = 'Must Cover Geographies Upload';
@@ -598,11 +599,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             // Keep track of the current must cover upload filename
             this.currentMustCoverFileName = fileName;
 
-            // Create an array of must cover geographies
-            this.mustCovers = Array.from(uniqueGeos);
+            // // Create an array of must cover geographies
+            // this.mustCovers = Array.from(uniqueGeos);
 
-            // Alert subscribers that we have a new list of must covers
-            this.allMustCoverBS$.next(this.mustCovers);
+            // // Alert subscribers that we have a new list of must covers
+            // this.allMustCoverBS$.next(this.mustCovers);
+
+            this.setMustCovers(Array.from(uniqueGeos), true);
 
             console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
 
@@ -611,6 +614,51 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
       catch (e) {
          this.reportError(errorTitle, `${e}`);
+      }
+   }
+
+   public parseMustCoverString(mustCoverCsv: string): string[] {
+      try
+      {
+         if (mustCoverCsv != null && mustCoverCsv != "")
+         {
+            return mustCoverCsv.split(new RegExp('\\s*,\\s*'));
+
+            // Split out the string into an array
+            //this.mustCovers = mustCoverCsv.split(new RegExp('\\s*,\\s*'));
+
+            // // Alert subscribers that we have a new list of must covers
+            // this.allMustCoverBS$.next(this.mustCovers);
+         }
+      }
+      catch (e) {
+         console.error("### ERROR Parsing must cover string: " + mustCoverCsv);
+         console.error(e);
+         return [];
+      }
+   }
+
+   public clearMustCovers() {
+      //console.debug("### clearMustCovers");
+      this.mustCovers = [];
+      // Alert subscribers that we have a new list of must covers
+      this.allMustCoverBS$.next(this.mustCovers);
+   }
+
+   public setMustCovers(newMustCovers: string[], append: boolean = false)
+   {
+      console.log("setMustCovers Fired - " + (newMustCovers != null ? newMustCovers.length : null) + " new must covers");
+      if (newMustCovers != null && newMustCovers.length != 0)
+      {
+         // Reduce the list of geographies down to the distinct list
+         const uniqueGeos = (append) ? new Set([...this.mustCovers, ...newMustCovers]) : new Set(newMustCovers);
+
+         //console.debug("### setMustCovers to " + uniqueGeos.size + " new mustcovers" + ((append === true) ? " (" + newMustCovers.length + " appended)":""));
+         this.mustCovers = this.mustCovers = Array.from(uniqueGeos);
+
+         // Alert subscribers that we have a new list of must covers
+         //console.debug("### setMustCovers alerting subscribers of " + this.mustCovers.length + " mustcovers");
+         this.allMustCoverBS$.next(this.mustCovers);
       }
    }
 

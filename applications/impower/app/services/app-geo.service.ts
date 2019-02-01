@@ -23,6 +23,9 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppStateService, Season } from './app-state.service';
+import { AppProjectPrefService } from './app-project-pref.service';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { InTransaction } from '../val-modules/common/services/datastore.service';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
@@ -38,6 +41,8 @@ interface AttributeDistance {
 export class AppGeoService {
 
   private validAnalysisLevel$: Observable<string>;
+  public  allMustCovers$: Observable<string[]>;
+  private processingMustCovers: boolean = false;
 
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
@@ -47,6 +52,7 @@ export class AppGeoService {
               private varService: ImpGeofootprintVarService,
               private impGeoService: ImpGeofootprintGeoService,
               private impAttributeService: ImpGeofootprintGeoAttribService,
+              private appProjectPrefService: AppProjectPrefService,
               private queryService: EsriQueryService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
@@ -58,6 +64,19 @@ export class AppGeoService {
     this.setupGeoAttributeUpdateObservable();
     this.setupFilterGeosObservable();
     this.setupMapClickEventHandler();
+
+    // Detect changes in must covers list and call ensureMustCovers
+    this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable()
+    this.allMustCovers$.subscribe(mustCovers => {
+       //mustCovers.forEach(mustCover => console.debug("### APP-GEO-SERVICE - allMustCoverObs - ", mustCover));
+       this.ensureMustCovers();
+    });
+
+    // Detect new project
+    this.appStateService.clearUI$.subscribe(() => {
+       // Clear must covers
+       this.impGeoService.clearMustCovers();
+    });
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -418,24 +437,18 @@ export class AppGeoService {
 
   /**
    * Will check a list of geos against the must cover geographies.  When geographies from the
-   * must cover list are not in the provided geos parameter, they will be created and assigned 
+   * must cover list are not in the provided geos parameter, they will be created and assigned
    * to the closest location.  If that location does not yet have a Must Cover trade area, one will
    * be created.
    * The observable will return an array of ImpGeofootprintGeos.
-   * 
+   *
    * @param locations Array of locations that must cover geos can get assigned to
    * @param tradeAreaSet Set of trade areas, which new must cover TAs can get added to
    * @param geos Array of existing geos to be compared against the must cover list
    */
    public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
-      // Check all geos if none are provided
-      if (geos == null || geos.length === 0)
-      {
-         geos = this.impGeoService.get();
-         console.log('Checking all ' + geos.length + ' geos for must covers');
-      }
-      else
-         console.log('Checking ' + geos.length + ' geos for must cover');
+      if (this.processingMustCovers)
+         return Observable.create(async observer => observer.complete());
 
       // Remove existing must cover trade areas
       const tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType === 'MUSTCOVER');
@@ -445,14 +458,24 @@ export class AppGeoService {
          ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
          ta.impGeofootprintLocation = null;
       });
-      this.tradeAreaService.remove(tradeAreasToDelete); //, InTransaction.silent);
+      this.tradeAreaService.remove(tradeAreasToDelete, InTransaction.silent);
+
+      // Check all geos if none are provided
+      if (geos == null || geos.length === 0)
+      {
+         geos = this.impGeoService.get();
+         console.log('Checking all ' + geos.length + ' geos for must covers');
+      }
+      else
+         console.log('Checking ' + geos.length + ' geos for must cover');
+
       //console.debug("### ensureMustCoversObs removed ", tradeAreasToDelete.length, " trade areas");
-   
-      // If no locations provided, pull them all   
+
+      // If no locations provided, pull them all
       if (locations == null || locations.length === 0)
          locations = this.locationService.get();
 
-      // If no trade areas are provided, pull them all 
+      // If no trade areas are provided, pull them all
       if (tradeAreaSet == null || tradeAreaSet.size === 0)
          tradeAreaSet = new Set(this.tradeAreaService.get());
 
@@ -465,13 +488,19 @@ export class AppGeoService {
 
       return Observable.create(async observer => {
          try {
-            if (this.impGeoService.mustCovers == null || this.impGeoService.mustCovers.length === 0 || geos == null || geos.length == 0 || locations == null || locations.length == 0)
+            if (this.impGeoService.mustCovers == null || this.impGeoService.mustCovers.length === 0 || diff == null || diff.length == 0 || locations == null || locations.length == 0)
             {
-               console.log('ensureMustCoversObs - Must cover criteria not met, ending observable');
+               console.debug('ensureMustCoversObs - Must cover criteria not met, ending observable');
+               // console.debug("### this.impGeoService.mustCovers: " + ((this.impGeoService.mustCovers != null) ? this.impGeoService.mustCovers.length : null));
+               // console.debug("### diff: " + ((diff != null) ? diff.length : null));
+               // console.debug("### locations: " + ((locations != null) ? locations.length : null));
                observer.complete();
+               this.processingMustCovers = false;
             }
             else
             {
+               console.log("ensureMustCoverObs - " + ((diff != null) ? diff.length : 0) + " geos not covered.");
+               this.processingMustCovers = true;
                this.getGeoAttributesObs(diff).subscribe(
                   results => {
                      const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
@@ -486,7 +515,7 @@ export class AppGeoService {
                         locations.forEach(loc => {
                            const distanceToSite = EsriUtils.getDistance(geoAttrib['longitude'], geoAttrib['latitude'], loc.xcoord, loc.ycoord);
                            if (distanceToSite < minDistance) {
-                              minDistance = distanceToSite;                      
+                              minDistance = distanceToSite;
                               closestLocation = loc;
                            }
                            // console.debug("### location: ", loc.locationName + ", loc x: ", loc.xcoord, ", loc y: ", loc.ycoord, ", geo x: ", result.xcoord, ", geo y: ", result.ycoord, ", distance: ", distanceToSite);
@@ -501,7 +530,7 @@ export class AppGeoService {
                            mustCoverTA.push(newTA);
                            newTradeAreas.push(newTA);
                         }
-                        
+
                         // Initialize the TA list of geos if necessary
                         if (mustCoverTA[0].impGeofootprintGeos == null)
                            mustCoverTA[0].impGeofootprintGeos = [];
@@ -532,28 +561,37 @@ export class AppGeoService {
                   , err => {
                         console.log('There was an error querying the ArcGIS layer for must covers', err);
                         observer.error(err);
+                        this.processingMustCovers = false;
                      }
                   , () => {
                         // queryResult.forEach(geoAttrib => console.log ("### geoAttrib: ", geoAttrib));
                         console.log('New must cover geos(' + numNewGeos + '): ');
-                        if (numNewGeos > 0) console.log('###   ', newGeoList);
+                        if (numNewGeos > 0) console.log('   ', newGeoList);
                         observer.complete();
+                        this.processingMustCovers = false;
                      }
                );
             }
          }
          catch (err) {
             observer.error(err);
+            this.processingMustCovers = false;
          }
       });
    }
 
    public ensureMustCovers() {
+      if (this.processingMustCovers) {
+         // console.debug("### mustCovers are already processing");
+         return;
+      }
+      console.debug("ensureMustCovers fired");
       const geosToPersist: Array<ImpGeofootprintGeo> = [];
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
       // Add the must covers to geosToPersist
       this.ensureMustCoversObs(null, null, null).subscribe(results => {
+         //console.debug("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
          results.forEach(result => geosToPersist.push(result));
       }
       , err => {
@@ -564,13 +602,37 @@ export class AppGeoService {
       , () => {
          if (geosToPersist.length > 0) {
             console.log('Adding', geosToPersist.length, 'must cover geographies to the data store');
-            this.impGeoService.add(geosToPersist);               
+            this.impGeoService.add(geosToPersist);
          }
          else
             console.log('No new must cover geographies');
 
          this.store$.dispatch(new StopBusyIndicator({ key: key }));
       });
+   }
+
+   /**
+    * After the project has loaded, this method will re-hydrate the must covers list
+    * by getting and parsing the MUSTCOVER project prefs
+    */
+   public reloadMustCovers() {
+      //console.debug("### reloadMustCovers fired");
+      let newMustCovers: string[] = [];
+      try {
+         let prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup('MUSTCOVER');
+         //console.debug("### prefs.Count = " + ((prefs != null) ? prefs.length : null));
+         if (prefs != null)
+         {
+            //prefs.forEach(pref => console.debug("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
+            prefs.forEach(mustCoverPref => newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(mustCoverPref.val)]);
+            this.impGeoService.setMustCovers(newMustCovers);
+         }
+         //console.log("### newMustCovers.count = " + newMustCovers.length);
+         //this.impGeoService.mustCovers.forEach(mc => console.log("### MC: " + mc));
+      }
+      catch (e) {
+         console.error ("### Error loading must covers: " + e);
+      }
    }
 
    /**
@@ -582,7 +644,7 @@ export class AppGeoService {
       const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
       const portalLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
       const queryResult = new Map<string, {latitude: number, longitude: number}>();
-                     
+
       return Observable.create(async observer => {
          try {
             this.queryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, false, attributesNames).pipe(
