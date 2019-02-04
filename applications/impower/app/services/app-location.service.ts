@@ -49,12 +49,9 @@ function isReadyforHomegeocoding(loc: ImpGeofootprintLocation) : boolean {
       attrMap[attr.attributeCode] = attr.attributeValue;
     }
   });
-  //console.log('attrMap length::::', Object.keys(attrMap).length);
-  /*if (Object.keys(attrMap).length < 6 || !loc.impGeofootprintLocAttribs.some(attr => homeGeoColumns.includes(attr.attributeCode))
-     ) {return true; }*/
       
-  if (Object.keys(attrMap).length < 5 || attrMap['Home ATZ'] === '' || attrMap['Home ZIP'] === '' || attrMap['Home PCR'] === '' || attrMap['Home DMA'] === '' 
-      || attrMap['Home County'] === '') {
+  if (Object.keys(attrMap).length < 6 || attrMap['Home ATZ'] === '' || attrMap['Home ZIP'] === '' || attrMap['Home PCR'] === '' || attrMap['Home DMA'] === '' 
+     || attrMap['Home Digital ATZ'] === '' || attrMap['Home County'] === '') {
      return true;
      }
 
