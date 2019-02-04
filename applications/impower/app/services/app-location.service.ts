@@ -53,8 +53,8 @@ function isReadyforHomegeocoding(loc: ImpGeofootprintLocation) : boolean {
   /*if (Object.keys(attrMap).length < 6 || !loc.impGeofootprintLocAttribs.some(attr => homeGeoColumns.includes(attr.attributeCode))
      ) {return true; }*/
       
-  if (Object.keys(attrMap).length < 6 || attrMap['Home ATZ'] === '' || attrMap['Home ZIP'] === '' || attrMap['Home PCR'] === '' || attrMap['Home DMA'] === '' 
-     || attrMap['Home Digital ATZ'] === '' || attrMap['Home County'] === '') {
+  if (Object.keys(attrMap).length < 5 || attrMap['Home ATZ'] === '' || attrMap['Home ZIP'] === '' || attrMap['Home PCR'] === '' || attrMap['Home DMA'] === '' 
+      || attrMap['Home County'] === '') {
      return true;
      }
 
@@ -323,7 +323,8 @@ export class AppLocationService {
                     'homeDma'     :  homeDma    && homeDma.attributeValue !== '' ? homeDma.attributeValue :  `${row['homeDma']}`,
                     'homePcr'     :  homePcr    && homePcr.attributeValue !== '' ? homePcr.attributeValue :  `${row['geocode']}`,
                     'homeAtz'     :  homeAtz_provided && homeAtz_provided.attributeValue !== '' ? homeAtz_provided.attributeValue : homeAtz,
-                    'siteNumber'  :  loc.locationNumber 
+                    'siteNumber'  :  loc.locationNumber,
+                    'abZip'       :  loc.locZip.substring(0, 5) 
                   });
                 });
              }
@@ -339,7 +340,8 @@ export class AppLocationService {
                 'homeDma'     :  homeDma     && homeDma.attributeValue !== '' ? homeDma.attributeValue :  `${row['homeDma']}`,
                 'homePcr'     :  homePcr     && homePcr.attributeValue !== '' ? homePcr.attributeValue :  `${row['geocode']}`,
                 'homeAtz'     :  homeAtz_provided  && homeAtz_provided.attributeValue !== '' ? homeAtz_provided.attributeValue : homeAtz,
-                'siteNumber'  :  filteredLoc.locationNumber 
+                'siteNumber'  :  filteredLoc.locationNumber,
+                'abZip'       :  filteredLoc.locZip.substring(0, 5) 
               });
              }
                responseGeocodes.push(row['geocode'].substring(0, 5));
@@ -368,10 +370,10 @@ export class AppLocationService {
             atzTab14ResponseDict[row['geocode']] = row;
           });
           attributeList.forEach(filterAtribute => {
-            if (filterAtribute['homeAtz'] == null && filterAtribute['homeZip'] in atzTab14ResponseDict) {
-              const attr = atzTab14ResponseDict[filterAtribute['homeZip']];
-              if (duplicatedAtzLocDict[filterAtribute['homeZip']] == null){
-                delete atzTab14ResponseDict[filterAtribute['homeZip']];
+            if (filterAtribute['homeAtz'] == null && filterAtribute['abZip'] in atzTab14ResponseDict) {
+              const attr = atzTab14ResponseDict[filterAtribute['abZip']];
+              if (duplicatedAtzLocDict[filterAtribute['abZip']] == null){
+                delete atzTab14ResponseDict[filterAtribute['abZip']];
               }
               filterAtribute['homeAtz'] = attr['ZIP'];
             }
