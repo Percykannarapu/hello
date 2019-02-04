@@ -41,12 +41,14 @@ export class AppConfig implements LoggingConfiguration {
   public layers: AllLayers = {
     dma: {
       group: {
-        name: 'Valassis DMA'
+        name: 'Valassis DMA',
+        sortOrder: 0
       },
       boundaries: { // DMA_Boundaries
         id: EnvironmentData.layerIds.dma.boundary,
         name: 'DMA Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long']
@@ -54,25 +56,44 @@ export class AppConfig implements LoggingConfiguration {
     },
     counties: {
       group: {
-        name: 'Counties'
+        name: 'Counties',
+        sortOrder: 1
       },
       boundaries: { // Counties
         id: EnvironmentData.layerIds.counties.boundary,
         name: 'County Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'County: {COUNTY_NAM}, {STATE_ABBR}',
         minScale: undefined,
         popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
       }
     },
+    wrap: {
+      group: {
+        name: 'Valassis WRAP',
+        sortOrder: 2
+      },
+      boundaries: { // WRAP_Top_Vars
+        id: EnvironmentData.layerIds.wrap.boundary,
+        name: 'Wrap Boundaries',
+        defaultVisibility: true,
+        isBoundary: true,
+        popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
+        minScale: 4622342,
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+      }
+    },
     zip: {
       group: {
         name: 'Valassis ZIP',
+        sortOrder: 3
       },
       centroids: { // ZIP_Centroids
         id: EnvironmentData.layerIds.zip.centroid,
         name: 'ZIP Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -81,6 +102,7 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.zip.boundary,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         useCustomPopUp: true,
@@ -93,11 +115,13 @@ export class AppConfig implements LoggingConfiguration {
     atz: {
       group: {
         name: 'Valassis ATZ',
+        sortOrder: 4
       },
       centroids: { // ATZ_Centroids
         id: EnvironmentData.layerIds.atz.centroid,
         name: 'ATZ Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -106,6 +130,7 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.atz.boundary,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         useCustomPopUp: true,
@@ -118,11 +143,13 @@ export class AppConfig implements LoggingConfiguration {
     digital_atz: {
       group: {
         name: 'Valassis Digital ATZ',
+        sortOrder: 5
       },
       centroids: { // DIG_ATZ_Centroids
         id: EnvironmentData.layerIds.dtz.centroid,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 577790,
         popUpFields: []
@@ -131,6 +158,7 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.dtz.boundary,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
@@ -143,11 +171,13 @@ export class AppConfig implements LoggingConfiguration {
     pcr: {
       group: {
         name: 'Valassis PCR',
+        sortOrder: 6
       },
       centroids: {
         id: EnvironmentData.layerIds.pcr.centroid,
         name: 'PCR Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 577790, // turn on at scale level 10
         popUpFields: []
@@ -156,6 +186,7 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.pcr.boundary,
         name: 'PCR Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
@@ -163,19 +194,6 @@ export class AppConfig implements LoggingConfiguration {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         }
-      }
-    },
-    wrap: {
-      group: {
-        name: 'Valassis WRAP'
-      },
-      boundaries: { // WRAP_Top_Vars
-        id: EnvironmentData.layerIds.wrap.boundary,
-        name: 'Wrap Boundaries',
-        defaultVisibility: true,
-        popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-        minScale: 4622342,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
       }
     }
   };
@@ -192,21 +210,6 @@ export class AppConfig implements LoggingConfiguration {
         return boundary ? this.layers.pcr.boundaries.id : this.layers.pcr.centroids.id;
       default:
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
-    }
-  }
-
-  public getAnalysisLevelFromLayerId(id: string) {
-    switch (id) {
-      case EnvironmentData.layerIds.zip.boundary:
-        return 'zip';
-      case EnvironmentData.layerIds.atz.boundary:
-        return 'atz';
-      case EnvironmentData.layerIds.dtz.boundary:
-        return 'digital atz';
-      case EnvironmentData.layerIds.pcr.boundary:
-        return 'pcr';
-      default:
-        return null;
     }
   }
 
