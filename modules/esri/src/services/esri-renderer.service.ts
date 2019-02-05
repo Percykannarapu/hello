@@ -131,7 +131,7 @@ export class EsriRendererService {
         rands.push(Math.floor(Math.random() * 256) + 1);
         rands.push(Math.floor(Math.random() * 256) + 1);
         rands.push(Math.floor(Math.random() * 256) + 1);
-        EsriRendererService.randomSeeds[i] = rands;
+        EsriRendererService.randomSeeds.push(rands);
       }
       red = (EsriRendererService.randomSeeds[i][0] + 255) / 2;
       green = (EsriRendererService.randomSeeds[i][1] + 255) / 2;
