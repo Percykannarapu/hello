@@ -10,6 +10,7 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { ErrorNotification } from '@val/messaging';
+import { TargetAudienceCustomService } from './target-audience-custom.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -25,6 +26,7 @@ export class AppDataShimService {
               private appStateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
               private targetAudienceService: TargetAudienceService,
+              private targetAudienceCustomService: TargetAudienceCustomService,
               private appGeoService: AppGeoService,
               private store$: Store<LocalAppState>) { }
 
@@ -42,6 +44,7 @@ export class AppDataShimService {
     this.targetAudienceService.applyAudienceSelection();
     this.appTradeAreaService.zoomToTradeArea();
     this.appGeoService.reloadMustCovers();
+    this.targetAudienceCustomService.reloadCustomVars();
   }
 
   createNew() : number {

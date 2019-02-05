@@ -36,7 +36,8 @@ export enum TradeAreaTypeCodes {
 }
 
 export enum ProjectPrefGroupCodes {
-   MustCover = 'MUSTCOVER'
+   MustCover = 'MUSTCOVER',
+   CustomVar = 'CUSTOMVAR'
 }
 
 export namespace TradeAreaTypeCodes {

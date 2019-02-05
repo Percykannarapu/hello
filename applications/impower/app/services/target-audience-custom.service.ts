@@ -15,6 +15,9 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { ProjectPrefGroupCodes } from './../val-modules/targeting/targeting.enums';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -39,6 +42,7 @@ export class TargetAudienceCustomService {
               private stateService: AppStateService,
               private domainFactory: ImpDomainFactoryService,
               private varService: ImpGeofootprintVarService,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<LocalAppState>) {
     this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
@@ -172,6 +176,21 @@ export class TargetAudienceCustomService {
     } catch (e) {
       this.handleError(`${e}`);
     }
+  }
+
+  public reloadCustomVars() {
+      //console.debug("### reloadCustomVars fired");
+      try {
+         let prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
+         //console.debug("### custom var prefs.Count = " + ((prefs != null) ? prefs.length : null));
+         if (prefs != null)
+         {
+            prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), name));
+         }
+      }
+      catch (e) {
+         console.error ("### Error loading custom vars: " + e);
+      }
   }
 
   private buildGeoCache() : Map<string, ImpGeofootprintGeo[]> {

@@ -5,6 +5,8 @@ import { TargetAudienceCustomService } from '../../../services/target-audience-c
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ProjectPrefGroupCodes } from './../../../val-modules/targeting/targeting.enums';
+import { AppProjectPrefService } from './../../../services/app-project-pref.service';
 
 @Component({
   selector: 'val-custom-audience',
@@ -16,12 +18,14 @@ export class CustomAudienceComponent {
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
 
   constructor(private audienceService: TargetAudienceCustomService,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<LocalAppState>) { }
 
   public uploadFile(event: any) : void {
     const reader = new FileReader();
     const name: string = event.files[0].name ? event.files[0].name.toLowerCase() : null;
     const key = this.spinnerId;
+    let csvData: string;
     if (name != null) {
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Audience Data'}));
       if (name.includes('.xlsx') || name.includes('.xls')) {
@@ -31,23 +35,27 @@ export class CustomAudienceComponent {
             const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
             const worksheetName: string = wb.SheetNames[0];
             const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
-            const csvData  = xlsx.utils.sheet_to_csv(ws);
+            csvData  = xlsx.utils.sheet_to_csv(ws);
             this.audienceService.parseFileData(csvData, name);
           } catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
           } finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
+            if (csvData != null)
+               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, "Custom Var Upload: " + name, csvData);
           }
         };
       } else {
         reader.readAsText(event.files[0]);
         reader.onload = () => {
           try {
-            this.audienceService.parseFileData(reader.result, name);
+            this.audienceService.parseFileData(reader.result.toString(), name);
           } catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
           } finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
+            if (reader.result != null)
+               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, "Custom Var Upload: " + name, reader.result.toString());
           }
         };
       }
