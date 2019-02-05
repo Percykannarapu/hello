@@ -136,7 +136,7 @@ export class EsriRendererService {
       red = (EsriRendererService.randomSeeds[i][0] + 255) / 2;
       green = (EsriRendererService.randomSeeds[i][1] + 255) / 2;
       blue = (EsriRendererService.randomSeeds[i][2] + 255) / 2;
-      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 1 });
+      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.65 });
       result.push(color);
     }
     return result;
