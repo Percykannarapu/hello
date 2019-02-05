@@ -42,6 +42,7 @@ export class AppGeoService {
 
   private validAnalysisLevel$: Observable<string>;
   public  allMustCovers$: Observable<string[]>;
+  public  locMustCovers$: Observable<string[]>;
   private processingMustCovers: boolean = false;
 
   constructor(private appStateService: AppStateService,
@@ -69,6 +70,10 @@ export class AppGeoService {
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable()
     this.allMustCovers$.subscribe(mustCovers => {
        //mustCovers.forEach(mustCover => console.debug("### APP-GEO-SERVICE - allMustCoverObs - ", mustCover));
+       this.ensureMustCovers();
+    });
+
+    this.locationService.storeObservable.subscribe(l => {
        this.ensureMustCovers();
     });
 

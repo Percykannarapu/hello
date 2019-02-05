@@ -39,7 +39,9 @@ export class ManualEntryComponent implements OnInit {
       { label: 'VPW', icon: 'ui-icon-map', command: () => this.loadVPW() },
       { label: 'Sky Zone', icon: 'ui-icon-map', command: () => this.loadData(Presets.SkyZone) },
       { label: 'Tecumseh', icon: 'ui-icon-map', command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
-      { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' }
+      { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' },
+      { label: "Nancy's", icon: 'ui-icon-map', command: () => this.loadData(Presets.Nancys), title: 'Close to VPW, for testing overlaping radiuses' },
+      { label: "Erin's", icon: 'ui-icon-map', command: () => this.loadData(Presets.Erins), title: 'Very close to VPW, for testing overlaping radiuses' }
     ];
   }
 

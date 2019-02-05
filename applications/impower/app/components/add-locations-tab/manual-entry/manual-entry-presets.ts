@@ -42,3 +42,27 @@ export const Madison = {
   latitude: '38.05773',
   longitude: '-81.825'
 };
+
+export const Nancys = {
+   number: '50',
+   name: "Nancy's House",
+   street: '9628 Sunnywood Trail',
+   city: 'South Lyon',
+   state: 'MI',
+   zip: '48178',
+   Market: 'Test Market',
+   latitude: '42.465074',
+   longitude: '-83.675303'
+ };
+
+export const Erins = {
+   number: '60',
+   name: "Erin's House",
+   street: '21610 Manchester Ct',
+   city: 'Farmington Hills',
+   state: 'MI',
+   zip: '48335',
+   Market: 'Test Market',
+   latitude: '42.448518',
+   longitude: '-83.412142'
+ };
