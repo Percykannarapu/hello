@@ -11,12 +11,14 @@ export class ConfigService {
     zip: {
       group: {
         name: 'Valassis ZIP',
+        sortOrder: 0,
         analysisLevelName: 'zip'
       },
       centroids: { // ZIP_Centroids
         id: environment.layerIds.zip.centroid,
         name: 'ZIP Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -25,6 +27,7 @@ export class ConfigService {
         id: environment.layerIds.zip.boundary,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         popUpFields: []
@@ -33,12 +36,14 @@ export class ConfigService {
     atz: {
       group: {
         name: 'Valassis ATZ',
+        sortOrder: 1,
         analysisLevelName: 'atz'
       },
       centroids: { // ATZ_Centroids
         id: environment.layerIds.atz.centroid,
         name: 'ATZ Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -47,6 +52,7 @@ export class ConfigService {
         id: environment.layerIds.atz.boundary,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         popUpFields: []
@@ -55,12 +61,14 @@ export class ConfigService {
     digital_atz: {
       group: {
         name: 'Valassis Digital ATZ',
+        sortOrder: 2,
         analysisLevelName: 'dtz'
       },
       centroids: { // DIG_ATZ_Centroids
         id: environment.layerIds.dtz.centroid,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
+        isBoundary: false,
         popupTitle: '',
         minScale: 577790,
         popUpFields: []
@@ -69,6 +77,7 @@ export class ConfigService {
         id: environment.layerIds.dtz.boundary,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
@@ -81,12 +90,14 @@ export class ConfigService {
     wrap: {
       group: {
         name: 'Valassis WRAP',
+        sortOrder: 3,
         analysisLevelName: 'wrap'
       },
       boundaries: { // WRAP_Top_Vars
         id: environment.layerIds.wrap.boundary,
         name: 'Wrap Boundaries',
         defaultVisibility: true,
+        isBoundary: true,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 577790,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']

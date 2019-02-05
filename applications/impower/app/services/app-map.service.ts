@@ -13,11 +13,6 @@ import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 
-export interface Coordinates {
-  xcoord: number;
-  ycoord: number;
-}
-
 export interface GeoClickEvent {
   geocode: string;
   geometry?: {
@@ -34,9 +29,6 @@ export class AppMapService implements OnDestroy {
   private currentGeocodes = new Set<string>();
   private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
-  private highlightHandler: any;
-  private defaultSymbol: __esri.SimpleFillSymbol;
-  private rendererRetries: number = 0;
 
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
   public selectedButton: number;

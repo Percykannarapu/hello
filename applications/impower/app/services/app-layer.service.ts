@@ -196,15 +196,13 @@ export class AppLayerService {
   }
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {
-    const layerGroups = new Map<string, LayerDefinition[]>();
-    for (const layerGroup of Object.values(this.appConfig.layers)) {
-      layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
-      this.setupPortalGroup(layerGroup.group.name);
-    }
-    this.pauseLayerWatch(this.pausableWatches);
+    const sortedLayers = Object.values(this.appConfig.layers);
+    sortedLayers.sort((a, b) => a.group.sortOrder - b.group.sortOrder);
     const results: Observable<__esri.FeatureLayer>[] = [];
-    layerGroups.forEach((value, key) => {
-      const layerObservables = this.setupLayerGroup(key, value.filter(l => l != null));
+    sortedLayers.forEach(layerGroup => {
+      this.setupPortalGroup(layerGroup.group.name);
+      const currentLayers = [ layerGroup.centroids, layerGroup.boundaries ];
+      const layerObservables = this.setupLayerGroup(layerGroup.group.name, currentLayers.filter(l => l != null));
       results.push(...layerObservables);
     });
     return merge(...results, 2).pipe(
@@ -222,7 +220,11 @@ export class AppLayerService {
         tap(newLayer => {
           this.setupLayerPopup(newLayer, layerDef);
           this.pausableWatches.push(EsriApi.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
-          group.add(newLayer);
+          if (layerDef.isBoundary) {
+            group.layers.unshift(newLayer); // unshift adds to the beginning of the collection (i.e. bottom of the list)
+          } else {
+            group.layers.push(newLayer); // push adds to the end of the collection
+          }
         })
       );
       layerObservables.push(current);
@@ -234,7 +236,9 @@ export class AppLayerService {
     this.layerService.createPortalGroup(groupName, false);
     const group = this.layerService.getPortalGroup(groupName);
     if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
-    this.pausableWatches.push(EsriApi.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group)));
+    const currentWatch = EsriApi.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group));
+    currentWatch.pause();
+    this.pausableWatches.push(currentWatch);
   }
 
   private setupLayerPopup(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {

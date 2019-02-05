@@ -7,6 +7,7 @@ interface LayerBase {
   id: string;
   name: string;
   defaultVisibility: boolean;
+  isBoundary: boolean;
   popupTitle: string;
   minScale: number;
 }
@@ -24,7 +25,7 @@ interface CustomPopUpLayer extends LayerBase {
 export type LayerDefinition = StandardPopUpLayer | CustomPopUpLayer;
 
 export interface LayerGroupDefinition {
-  group: { name: string, analysisLevelName?: string };
+  group: { name: string, sortOrder: number, analysisLevelName?: string };
   centroids?: LayerDefinition;
   boundaries: LayerDefinition;
 }

@@ -46,9 +46,12 @@ export class EsriRendererService {
 
   public static currentDefaultTheme: SmartMappingTheme = SmartMappingTheme.HighToLow;
   
+  private static randomSeeds: Array<Array<number>> = [];
+
   private simpleSymbol: any = null;
   private simpleRenderer: any = null;
   private highlightHandler: { remove: () => void } = null;
+  
   
   constructor(private mapService: EsriMapService, 
               private layerService: EsriLayerService) {}
@@ -98,6 +101,43 @@ export class EsriRendererService {
       result.push(...rendererSetup.customColors.map(rgba => new EsriApi.Color(rgba)));
     } else {
       result.push(...tacticianDarkPalette.map(rgba => new EsriApi.Color(rgba)));
+    }
+    return result;
+  }
+
+  /*private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
+    const result: Array<__esri.Color> = [];
+    for (let i = 0; i < dataLength; i++ ) {
+      let red: number = Math.floor(Math.random() * 256) + 1;
+      let blue: number = Math.floor(Math.random() * 256) + 1;
+      let green: number = Math.floor(Math.random() * 256) + 1;
+      red = (red + 255) / 2;
+      green = (green + 255) / 2;
+      blue = (blue + 255) / 2;
+      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 1 });
+      result.push(color);
+    }
+    return result;
+  }*/
+  
+  private static getRandomColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
+    const result: Array<__esri.Color> = [];
+    for (let i = 0; i < dataLength; i++ ) {
+      let red: number = null;
+      let blue: number = null;
+      let green: number = null;
+      if (EsriRendererService.randomSeeds.length < dataLength) {
+        const rands = [];
+        rands.push(Math.floor(Math.random() * 256) + 1);
+        rands.push(Math.floor(Math.random() * 256) + 1);
+        rands.push(Math.floor(Math.random() * 256) + 1);
+        EsriRendererService.randomSeeds[i] = rands;
+      }
+      red = (EsriRendererService.randomSeeds[i][0] + 255) / 2;
+      green = (EsriRendererService.randomSeeds[i][1] + 255) / 2;
+      blue = (EsriRendererService.randomSeeds[i][2] + 255) / 2;
+      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.65 });
+      result.push(color);
     }
     return result;
   }
@@ -276,7 +316,7 @@ export class EsriRendererService {
   private generateClassBreaks(dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRendererUniqueValueInfos[] {
     if (dataValues == null || dataValues.length === 0) return [];
     const result: __esri.UniqueValueRendererUniqueValueInfos[] = [];
-    const themeColors: __esri.Color[] = EsriRendererService.getThemeColors(setup, dataValues.length);
+    const themeColors: __esri.Color[] = EsriRendererService.getRandomColors(setup, dataValues.length);
     if (dataValues.length > themeColors.length) throw new Error('The data being mapped has more values than the theme for mapping');
     dataValues.forEach((value, i) => {
       result.push({
