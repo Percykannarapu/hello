@@ -77,7 +77,7 @@ export class EsriRendererService {
     });
   }
 
-  /*private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
+  private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
     const result = [];
     if (this.rendererIsSmart(rendererSetup)) {
       const smartTheme = rendererSetup.smartTheme.theme || this.currentDefaultTheme;
@@ -103,7 +103,7 @@ export class EsriRendererService {
       result.push(...tacticianDarkPalette.map(rgba => new EsriApi.Color(rgba)));
     }
     return result;
-  }*/
+  }
 
   /*private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
     const result: Array<__esri.Color> = [];
@@ -120,7 +120,7 @@ export class EsriRendererService {
     return result;
   }*/
   
-  private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
+  private static getRandomColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
     const result: Array<__esri.Color> = [];
     for (let i = 0; i < dataLength; i++ ) {
       let red: number = null;
@@ -316,7 +316,7 @@ export class EsriRendererService {
   private generateClassBreaks(dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRendererUniqueValueInfos[] {
     if (dataValues == null || dataValues.length === 0) return [];
     const result: __esri.UniqueValueRendererUniqueValueInfos[] = [];
-    const themeColors: __esri.Color[] = EsriRendererService.getThemeColors(setup, dataValues.length);
+    const themeColors: __esri.Color[] = EsriRendererService.getRandomColors(setup, dataValues.length);
     if (dataValues.length > themeColors.length) throw new Error('The data being mapped has more values than the theme for mapping');
     dataValues.forEach((value, i) => {
       result.push({
