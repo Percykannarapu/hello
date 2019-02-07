@@ -186,6 +186,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return varValue;
    }
 
+
+
    public rank(arr, f) {
       return arr
       .map((x, i) => [x, i])
@@ -350,6 +352,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public sort(comparatorMethod)
    {
      return this.get().sort((a, b) => comparatorMethod(a, b));
+   }
+
+   public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo ){
+   return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? "1" : "0" ;
    }
 
    public exportVarStreetAddress(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
@@ -537,7 +543,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
             exportColumns.push({ header: 'Is User Home Geocode',         row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
-            exportColumns.push({ header: 'Is Must Cover',                row: 0});
+            exportColumns.push({ header: 'Is Must Cover',                row: (state, data) => this.exportMustCoverFlag });
             exportColumns.push({ header: 'Owner Trade Area',             row: this.exportVarOwnerTradeArea});
             exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
@@ -567,7 +573,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // MUST COVER METHODS
    // -----------------------------------------------------------
    public parseMustCoverFile(dataBuffer: string, fileName: string) : string[] {
-      //console.debug("### parseMustCoverFile fired");
+      //console.debug("### parseMustCoverFile fired");z
       const rows: string[] = dataBuffer.split(/\r\n|\n/);
       const header: string = rows.shift();
       const errorTitle: string = 'Must Cover Geographies Upload';
