@@ -12,6 +12,7 @@ export interface EsriLabelConfiguration {
 export interface EsriLabelLayerOptions {
   expression: string;
   fontSizeOffset: number;
+  colorOverride?: {a: number, r: number, g: number, b: number};
 }
 
 export interface EsriMapState {
@@ -44,7 +45,7 @@ const initialState: EsriMapState = {
   selectedLayerId: null,
   labelConfiguration: {
     font: 'sans-serif',
-    size: 10,
+    size: 12,
     enabled: true,
     pobEnabled: false
   },
