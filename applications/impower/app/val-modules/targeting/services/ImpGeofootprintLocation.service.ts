@@ -364,7 +364,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Home BG',            row: (state, data) => null});
             exportColumns.push({ header: 'Home Carrier Route', row: (state, data) => state.exportHomeGeoAttribute(data, 'PCR')});
             exportColumns.push({ header: 'Home Geocode Issue', row: (state, data) => state.exportHomeGeoAttribute(data, 'Geocode Issue')});
-            exportColumns.push({ header: 'Carrier Route',      row: (state, data) => state.getGeocodeAs(data.locZip, false, false, true, false)});
+            exportColumns.push({ header: 'Carrier Route',      row: (state, data) => data.carrierRoute});
             exportColumns.push({ header: 'ATZ',                row: (state, data) => state.getGeocodeAs(data.homeGeocode, false, true, false, false)});
             exportColumns.push({ header: 'Block Group',        row: (state, data) => null});
             exportColumns.push({ header: 'Unit',               row: (state, data) => null});
