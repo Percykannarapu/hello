@@ -14,7 +14,7 @@ import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { groupBy, mapToEntity, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
 
-const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
+const starPath: string = 'M16 4.588l2.833 8.719H28l-7.416 5.387 2.832 8.719L16 22.023l-7.417 5.389 2.833-8.719L4 13.307h9.167L16 4.588z';
 
 const defaultLocationPopupFields = [
   { fieldName: 'locationNumber', label: 'Location Number' },
