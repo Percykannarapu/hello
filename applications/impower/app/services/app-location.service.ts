@@ -710,7 +710,7 @@ export class AppLocationService {
           }
           else if (attribute['homePcr'] != null && attribute['homePcr'] !== '' && attribute['homePcr'].split(',').length > 1 && attribute['homePcr'].includes(attribute['geocoderZip'])){
             attribute['homePcr'].split(',').forEach(pcr => {
-              if (pcr in pcrTab14ResponseDict && attribute['homePcr'].includes(attribute['geocoderZip'])){
+              if (pcr in pcrTab14ResponseDict && attribute['homePcr'].includes(attribute['geocoderZip']) && pcr.substring(0, 5) === attribute['geocoderZip']){
                 const attr = pcrTab14ResponseDict[pcr];
                 let homePcr = null;
                 if (locDicttemp[attribute['siteNumber']] != null && locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.length > 0){
@@ -833,7 +833,7 @@ export class AppLocationService {
           }
           else if (attribute['homeAtz'] != null && attribute['homeAtz'] !== '' &&  attribute['homeAtz'].split(',').length > 1 && attribute['homeAtz'].includes(attribute['geocoderZip'])){
             attribute['homeAtz'].split(',').forEach(atz => {
-              if (atz in atzTab14ResponseDict && attribute['homeAtz'].includes(attribute['geocoderZip'])){
+              if (atz in atzTab14ResponseDict && attribute['homeAtz'].includes(attribute['geocoderZip']) && atz.substring(0, 5) === attribute['geocoderZip']){
                 const attr = atzTab14ResponseDict[atz];
                 const homeAtz = locDicttemp[attribute['siteNumber']] != null ? locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ATZ')[0] : null;
                 attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : attr['geocode'];
