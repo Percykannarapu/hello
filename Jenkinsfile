@@ -108,6 +108,12 @@
       when {branch 'dev'}
       steps {
         echo 'run unit tests'
+        sh '''
+          cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+          git pull
+          xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
+          '''
+        echo 'Test completed'
         /*
         sh '''
             node --max-old-space-size=8192  ./node_modules/.bin/ng test
