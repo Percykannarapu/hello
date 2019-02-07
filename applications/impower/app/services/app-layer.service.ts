@@ -1,19 +1,18 @@
 import { Inject, Injectable } from '@angular/core';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { filter, finalize, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { toUniversalCoordinates } from '@val/common';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
+import { select, Store } from '@ngrx/store';
+import { FullAppState } from '../state/app.interfaces';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriLayerService, LayerDefinition } from '@val/esri';
-import { groupBy } from '@val/common';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { groupBy, mapToEntity, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
 
 const starPath: string = 'M 240.000 260.000 L 263.511 272.361 L 259.021 246.180 L 278.042 227.639 L 251.756 223.820 L 240.000 200.000 L 228.244 223.820 L 201.958 227.639 L 220.979 246.180 L 216.489 272.361 L 240.000 260.000';
 
@@ -40,13 +39,14 @@ export class AppLayerService {
   static ObjectIdCache = 0;
 
   private analysisLevelToGroupNameMap = {
-    'ZIP': 'zip',
-    'ATZ': 'atz',
-    'Digital ATZ': 'digital_atz',
-    'PCR': 'pcr'
+    'ZIP': ['zip'],
+    'ATZ': ['atz', 'zip'],
+    'Digital ATZ': ['digital_atz', 'zip'],
+    'PCR': ['pcr', 'zip']
   };
 
   private pausableWatches: __esri.PausableWatchHandle[] = [];
+  private layersWithPOBs = new Set(['ZIP Boundaries', 'ATZ Boundaries', 'Digital ATZ Boundaries', 'PCR Boundaries']);
 
   constructor(private layerService: EsriLayerService,
               private appStateService: AppStateService,
@@ -54,7 +54,7 @@ export class AppLayerService {
               private logger: AppLoggingService,
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<FullAppState>) {
     this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
     this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
@@ -184,60 +184,82 @@ export class AppLayerService {
     this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
-      const groupKey = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-      this.logger.debug('New visible groupKey', groupKey);
-      if (groupKey != null) {
-        const layerGroup = this.appConfig.layers[groupKey];
-        if (layerGroup != null && this.layerService.portalGroupExists(layerGroup.group.name)) {
-          this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
+      const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
+      this.logger.debug('New visible groups', groupKeys);
+      if (groupKeys != null && groupKeys.length > 0) {
+        const layerGroups = groupKeys.map(g => this.appConfig.layers[g]);
+        if (layerGroups != null && layerGroups.length > 0) {
+          layerGroups.forEach(layerGroup => {
+            if (this.layerService.portalGroupExists(layerGroup.group.name)) {
+              this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
+            }
+          });
         }
       }
     }
   }
 
   public initializeLayers() : Observable<__esri.FeatureLayer> {
-    const sortedLayers = Object.values(this.appConfig.layers);
-    sortedLayers.sort((a, b) => a.group.sortOrder - b.group.sortOrder);
+    const sortedLayerDefs = Object.values(this.appConfig.layers);
+    sortedLayerDefs.sort((a, b) => a.group.sortOrder - b.group.sortOrder);
     const results: Observable<__esri.FeatureLayer>[] = [];
-    sortedLayers.forEach(layerGroup => {
-      this.setupPortalGroup(layerGroup.group.name);
-      const currentLayers = [ layerGroup.centroids, layerGroup.boundaries ];
-      const layerObservables = this.setupLayerGroup(layerGroup.group.name, currentLayers.filter(l => l != null));
+    sortedLayerDefs.forEach(layerGroup => {
+      const layerObservables = this.initializeLayerGroup(layerGroup);
       results.push(...layerObservables);
     });
     return merge(...results, 2).pipe(
       finalize(() => {
+        this.updateLabelExpressions(false);
         this.resumeLayerWatch(this.pausableWatches);
+        // set up sub for future label expression changes
+        this.store$.pipe(
+          select(selectors.getEsriLabelConfiguration),
+          map(config => config.pobEnabled),
+          distinctUntilChanged()
+        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
       })
     );
   }
 
-  private setupLayerGroup(groupName: string, layerDefinitions: LayerDefinition[]) : Observable<__esri.FeatureLayer>[]{
-    const group = this.layerService.getPortalGroup(groupName);
+  private initializeLayerGroup(groupDefinition: LayerGroupDefinition) : Observable<__esri.FeatureLayer>[] {
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
+    const group = this.layerService.createPortalGroup(groupDefinition.group.name, false);
+    this.addVisibilityWatch(group);
+    const layerDefinitions = [ groupDefinition.centroids, groupDefinition.boundaries ].filter(l => l != null);
     layerDefinitions.forEach(layerDef => {
-      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
-        tap(newLayer => {
-          this.setupLayerPopup(newLayer, layerDef);
-          this.pausableWatches.push(EsriApi.watchUtils.pausable(newLayer, 'visible', () => this.collectLayerUsage(newLayer)));
-          if (layerDef.isBoundary) {
-            group.layers.unshift(newLayer); // unshift adds to the beginning of the collection (i.e. bottom of the list)
-          } else {
-            group.layers.push(newLayer); // push adds to the end of the collection
-          }
-        })
+      const layerSortIndex = layerDef.sortOrder || 0;
+      const layerPipeline = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+        tap(layer => this.setupLayerPopup(layer, layerDef)),
+        tap(layer => this.addVisibilityWatch(layer)),
+        tap(layer => group.add(layer, layerSortIndex)),
       );
-      layerObservables.push(current);
+      layerObservables.push(layerPipeline);
     });
     return layerObservables;
   }
 
-  private setupPortalGroup(groupName: string) : void {
-    this.layerService.createPortalGroup(groupName, false);
-    const group = this.layerService.getPortalGroup(groupName);
-    if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
-    const currentWatch = EsriApi.watchUtils.pausable(group, 'visible', () => this.collectLayerUsage(group));
-    currentWatch.pause();
+  private updateLabelExpressions(showPOBs: boolean) : void {
+    const groupDefs = Object.values(this.appConfig.layers);
+    const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
+    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset }));
+    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+  }
+
+  private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {
+    if (this.layersWithPOBs.has(l.name)) {
+      if (showPOBs) {
+        return l.labelExpression;
+      } else {
+        return `IIF($feature.pob == "B", "", ${l.labelExpression})`;
+      }
+    } else {
+      return l.labelExpression;
+    }
+  }
+
+  private addVisibilityWatch(layer: __esri.Layer, startPaused: boolean = true) : void {
+    const currentWatch = EsriApi.watchUtils.pausable(layer, 'visible', () => this.collectLayerUsage(layer));
+    if (startPaused) currentWatch.pause();
     this.pausableWatches.push(currentWatch);
   }
 
@@ -307,16 +329,6 @@ export class AppLayerService {
   private collectLayerUsage(layer: __esri.Layer) {
     const actionName = layer.visible ? 'activated' : 'deactivated';
     this.store$.dispatch(new CreateMapUsageMetric('layer-visibility', actionName, layer.title));
-  }
-
-  /**
-   * Stop the ESRI watchUtils from watching the visible property on a layer
-   * @argument pausableWatches An array of __esri.PausableWatchHandle
-   */
-  private pauseLayerWatch(pausableWatches: Array<__esri.PausableWatchHandle>) {
-    for (const watch of pausableWatches) {
-      watch.pause();
-    }
   }
 
   /**

@@ -8,6 +8,12 @@ export interface EsriLabelConfiguration {
   enabled: boolean;
   pobEnabled: boolean;
 }
+
+export interface EsriLabelLayerOptions {
+  expression: string;
+  fontSizeOffset: number;
+}
+
 export interface EsriMapState {
   mapIsInitializing: boolean;
   mapIsReady: boolean;
@@ -20,6 +26,9 @@ export interface EsriMapState {
   selectedFeatures: __esri.Graphic[];
   selectedLayerId: string;
   labelConfiguration: EsriLabelConfiguration;
+  layerExpressions: {
+    [layerId: string] : EsriLabelLayerOptions
+  };
 }
 
 const initialState: EsriMapState = {
@@ -33,7 +42,13 @@ const initialState: EsriMapState = {
   sketchView: null,
   selectedFeatures: [],
   selectedLayerId: null,
-  labelConfiguration: null
+  labelConfiguration: {
+    font: 'sans-serif',
+    size: 10,
+    enabled: true,
+    pobEnabled: false
+  },
+  layerExpressions: null
 };
 
 export function mapReducer(state = initialState, action: EsriMapActions) : EsriMapState {
@@ -71,6 +86,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
       return { ...state, popupsVisible: action.payload.isVisible };
     case EsriMapActionTypes.SetLabelConfiguration:
       return { ...state, labelConfiguration: action.payload.labelConfiguration };
+    case EsriMapActionTypes.SetLayerLabelExpressions:
+      return { ...state, layerExpressions: action.payload.expressions };
 
     // Other actions
     case EsriMapActionTypes.FeaturesSelected:
