@@ -68,9 +68,9 @@ export class OfflineAudienceTdaComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    this.stateService.clearUI$.subscribe(() => {
-      this.clearSelections();
-    });
+    // this.stateService.clearUI$.subscribe(() => {
+    //   this.clearSelections();
+    // });
   }
 
   private filterNodes(term: string) {

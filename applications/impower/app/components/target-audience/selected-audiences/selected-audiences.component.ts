@@ -60,7 +60,7 @@ export class SelectedAudiencesComponent implements OnInit {
       this.onLoadProject();
     });
 
-    this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
+    // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
   }
 
   private onLoadProject() {
