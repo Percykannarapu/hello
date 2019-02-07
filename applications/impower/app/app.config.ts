@@ -145,7 +145,8 @@ export class AppConfig implements LoggingConfiguration {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         },
-        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     },
     digital_atz: {
@@ -175,7 +176,8 @@ export class AppConfig implements LoggingConfiguration {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         },
-        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     },
     pcr: {
@@ -205,7 +207,8 @@ export class AppConfig implements LoggingConfiguration {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
         },
-        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     }
   };

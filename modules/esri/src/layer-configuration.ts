@@ -12,6 +12,7 @@ interface LayerBase {
   minScale: number;
   labelExpression?: string;
   labelFontSizeOffset?: number;
+  labelColorOverride?: { a: number, r: number, g: number, b: number };
 }
 
 interface StandardPopUpLayer extends LayerBase {

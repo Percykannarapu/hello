@@ -241,7 +241,7 @@ export class AppLayerService {
   private updateLabelExpressions(showPOBs: boolean) : void {
     const groupDefs = Object.values(this.appConfig.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
-    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset }));
+    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
     this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
   }
 

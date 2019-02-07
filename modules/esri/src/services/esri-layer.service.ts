@@ -284,11 +284,14 @@ export class EsriLayerService {
     const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
     const offset = layerOptions.fontSizeOffset || 0;
     const font = new EsriApi.Font({ family: fontName, size: (fontSize + offset), weight: 'normal' });
-    let labelColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
-      labelColor = layer.renderer.symbol.outline.color;
+      textSymbol.color = layer.renderer.symbol.outline.color;
+    } else {
+      textSymbol.color = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
     }
-    textSymbol.color = labelColor;
+    if (layerOptions.colorOverride != null) {
+      textSymbol.color = new EsriApi.Color(layerOptions.colorOverride);
+    }
     textSymbol.haloColor = new EsriApi.Color({ r: 255, g: 255, b: 255, a: 1 });
     textSymbol.haloSize = 1;
     textSymbol.font = font;
