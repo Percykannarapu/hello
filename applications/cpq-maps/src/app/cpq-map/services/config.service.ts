@@ -18,7 +18,7 @@ export class ConfigService {
         id: environment.layerIds.zip.centroid,
         name: 'ZIP Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -27,10 +27,12 @@ export class ConfigService {
         id: environment.layerIds.zip.boundary,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: '$feature.geocode',
+        labelFontSizeOffset: 2
       }
     },
     atz: {
@@ -43,7 +45,7 @@ export class ConfigService {
         id: environment.layerIds.atz.centroid,
         name: 'ATZ Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
         popUpFields: []
@@ -52,10 +54,11 @@ export class ConfigService {
         id: environment.layerIds.atz.boundary,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       }
     },
     digital_atz: {
@@ -68,7 +71,7 @@ export class ConfigService {
         id: environment.layerIds.dtz.centroid,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 577790,
         popUpFields: []
@@ -77,14 +80,15 @@ export class ConfigService {
         id: environment.layerIds.dtz.boundary,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
-        }
+        },
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       }
     },
     wrap: {
@@ -97,10 +101,12 @@ export class ConfigService {
         id: environment.layerIds.wrap.boundary,
         name: 'Wrap Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 577790,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
+        labelExpression: '$feature.geocode',
+        labelFontSizeOffset: 2
       }
     }
   };
