@@ -8,10 +8,12 @@ import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operator
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
+import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
@@ -22,10 +24,8 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
-import { AppStateService, Season } from './app-state.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { InTransaction } from '../val-modules/common/services/datastore.service';
+import { AppStateService, Season } from './app-state.service';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
@@ -676,15 +676,17 @@ export class AppGeoService {
   private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
     console.log('Filtering Geos Based on Flags');
     const currentProject = this.appStateService.currentProject$.getValue();
-    if (currentProject == null || geos == null || geos.length === 0) return;
+    // filter out geos belonging to audience trade areas
+    const currentGeos = geos.filter(g => TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType) !== TradeAreaTypeCodes.Audience);
+    if (currentProject == null || currentGeos == null || currentGeos.length === 0) return;
 
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
 
     if (ownerGroupGeosMap.has('VALASSIS')) {
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {

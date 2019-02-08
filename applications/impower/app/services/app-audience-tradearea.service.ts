@@ -33,7 +33,7 @@ export enum SmartTile {
   AVERAGE = 'Average',
   BELOW_AVERAGE = 'Below Average',
   LOW = 'Low',
-  EXTREMELY_LOW = 'Extrememly Low'
+  EXTREMELY_LOW = 'Extremely Low'
 }
 
 interface AudienceTradeareaResponse {
@@ -181,7 +181,7 @@ export class ValAudienceTradeareaService {
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
       errors.push('The maximum radius must be larger than the minimum radius ');
     }
-    if(this.audienceTAConfig.maxRadius > 100){
+    if (this.audienceTAConfig.maxRadius > 100){
       errors.push('Maximum Radius must be <= 100');
     }
     if (this.audienceTAConfig.weight == null) {
@@ -262,37 +262,11 @@ export class ValAudienceTradeareaService {
           for (const location of allLocations) {
             this.createGeos(audienceTAConfig, location);
           }     
-          
-          const geocodeValues = this.geoCache.map(val => val.geocode);
-          const repeatValues = [];
-          const uniqueValues = [];
-          for (let i = 0; i < geocodeValues.length; i++) {
-            if (uniqueValues.indexOf(geocodeValues[i]) == -1) {
-              uniqueValues.push(geocodeValues[i]);
-            } else {
-              repeatValues.push(geocodeValues[i]);
-            }
-          }
 
-          const duplicateVals = [];
-          for (let i = 0; i < repeatValues.length; i++) {
-            const index = [];
-            duplicateVals[i] = this.geoCache.filter((val, ind) => {
-              if ( val.geocode == repeatValues[i]) {
-                index.push(ind);
-                return val;
-              }
-            });
-
-            for (let j = 0; j < duplicateVals[i].length; j++) {
-              if (duplicateVals[i][j].isActive) {
-                for (let k = 0; k < index.length; k++) {
-                  this.geoCache[index[k]].isActive = true;
-                }
-                break;
-              }
-            }
-          }
+          const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
+          this.geoCache.forEach(g => {
+            if (selectedGeocodes.has(g.geocode)) g.isActive = true;
+          });
 
           for (const location of allLocations) {
             const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
@@ -312,6 +286,7 @@ export class ValAudienceTradeareaService {
           this.appTradeAreaService.zoomToTradeArea();
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
+          console.log('Geos before finalizing Audience TA', this.geoCache.map(g => ({ geocode: g.geocode, isActive: g.isActive })));
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
           this.store$.dispatch(new StopBusyIndicator({ key }));
@@ -368,50 +343,18 @@ export class ValAudienceTradeareaService {
   /**
    * Recreate trade areas without requesting data again from the Fuse service
    * We can do this as long as no locations have changed since the last run
-   * @param minRadius The minimum, must cover radius, for the trade areas
-   * @param maxRadius The maximum radius for the trade areas
-   * @param tiles The currently active smart tile values selected by the user
-   * @param digCategoryId The digital category ID seledcted by the user
-   * @param weight The weight of the selected variable vs the distance
-   * @param scoreType The score type, DMA or National
    */
   private rerunTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
     return Observable.create(obs => {
       try {
         for (const location of this.locationService.get()) {
           this.createGeos(audienceTAConfig, location);
-        }     
-        
-        const geocodeValues = this.geoCache.map(val => val.geocode);
-        const repeatValues = [];
-        const uniqueValues = [];
-        for (let i = 0; i < geocodeValues.length; i++) {
-          if (uniqueValues.indexOf(geocodeValues[i]) == -1) {
-            uniqueValues.push(geocodeValues[i]);
-          } else {
-            repeatValues.push(geocodeValues[i]);
-          }
         }
 
-        const duplicateVals = [];
-        for (let i = 0; i < repeatValues.length; i++) {
-          const index = [];
-          duplicateVals[i] = this.geoCache.filter((val, ind) => {
-            if ( val.geocode == repeatValues[i]) {
-              index.push(ind);
-              return val;
-            }
-          });
-
-          for (let j = 0; j < duplicateVals[i].length; j++) {
-            if (duplicateVals[i][j].isActive) {
-              for (let k = 0; k < index.length; k++) {
-                this.geoCache[index[k]].isActive = true;
-              }
-              break;
-            }
-          }
-        }
+        const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
+        this.geoCache.forEach(g => {
+          if (selectedGeocodes.has(g.geocode)) g.isActive = true;
+        });
 
         for (const location of this.locationService.get()) {
           const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
@@ -595,6 +538,7 @@ export class ValAudienceTradeareaService {
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
 
+    console.log('taResponses', taResponseMap);
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const taResponse = taResponseMap.get(i);
