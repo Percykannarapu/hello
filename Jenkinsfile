@@ -167,22 +167,24 @@
             echo 'exception in test cases'
           }
           finally{
+            echo 'publish reports'
+            step(
+              [
+                $class : 'RobotPublisher',
+                outputPath : '/robotTestcases/jenkins/reportLogs',
+                outputFileName : "output.xml",
+                disableArchiveOutput : false,
+                passThreshold : 100,
+                unstableThreshold: 95.0,
+                otherFiles : "*.png",
+              ]
+            )
             echo 'send email'
             emailext attachmentsPattern: '**/log.html', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com'
             echo 'Test completed'
           } 
         }
-        step(
-            [
-              $class : 'RobotPublisher',
-              outputPath : '/robotTestcases/jenkins/reportLogs',
-              outputFileName : "output.xml",
-              disableArchiveOutput : false,
-              passThreshold : 100,
-              unstableThreshold: 95.0,
-              otherFiles : "*.png",
-            ]
-        )
+        
         
           
          /* need to get baseUrl: <empty>, teamDomain: <empty>, channel: #general, color: good, botUser: false, tokenCredentialId: <empty> 
