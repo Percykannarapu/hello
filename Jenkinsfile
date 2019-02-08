@@ -167,7 +167,7 @@
 
           slackSend channel: '#general',
                     color: 'good',
-                    message: "The pipeline jenkins'  
+                    message: "The pipeline jenkins'
 
         echo 'Test completed'
         /*
