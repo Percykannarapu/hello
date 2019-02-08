@@ -21,7 +21,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
-import { toUniversalCoordinates, mapByExtended } from '@val/common';
+import { toUniversalCoordinates, mapByExtended, isNumber } from '@val/common';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -109,6 +109,12 @@ export class AppLocationService {
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
       filterArray(loc => isReadyforHomegeocoding(loc)),
     );
+           
+    const locationsWithHomeGeos$ = locationsWithType$.pipe(
+      filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
+      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3) )
+    );
+
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
     );
@@ -140,6 +146,12 @@ export class AppLocationService {
     ).subscribe(
       ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
     );
+
+    combineLatest(locationsWithHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
+      filter(([locations, level, isReady]) => locations.length > 0 && level != null && level.length > 0 && isReady)
+    ).subscribe(() => this.confirmationBox());
+
+    
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -328,7 +340,7 @@ export class AppLocationService {
           this.flagHomeGeos(locations, analysisLevel);
           this.store$.dispatch(new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }));
           this.store$.dispatch(new StopBusyIndicator({ key }));
-          this.confirmationBox();
+          // this.confirmationBox();
         });
     }
     if (pointPolyNotRequiredLocations.length > 0 || pointPolyLocations.length > 0){
@@ -536,7 +548,7 @@ export class AppLocationService {
                 });
               }
               this.store$.dispatch(new StopBusyIndicator({ key }));
-              this.confirmationBox();
+              // this.confirmationBox();
             }
           );
         }
@@ -550,7 +562,7 @@ export class AppLocationService {
             this.flagHomeGeos(pointPolyNotRequiredLocations, analysisLevel);
             this.store$.dispatch(new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }));
             this.store$.dispatch(new StopBusyIndicator({ key }));
-            this.confirmationBox();
+            // this.confirmationBox();
           });
         }
       });
