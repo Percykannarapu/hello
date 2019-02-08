@@ -168,7 +168,7 @@
           }
           finally{
             echo 'send email'
-            emailext attachLog: true, attachmentsPattern: 'robotTestcases/jenkins/reportLogs/*.*', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com'
+            emailext attachmentsPattern: '**/log.html', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com, KannarapuP@valassis.com',
             echo 'Test completed'
           } 
         }
