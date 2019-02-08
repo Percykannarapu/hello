@@ -168,7 +168,7 @@
           }
           finally{
             echo 'send email'
-            emailext attachmentsPattern: '**/log.html', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com, KannarapuP@valassis.com',
+            emailext attachmentsPattern: '**/log.html', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com KannarapuP@valassis.com',
             echo 'Test completed'
           } 
         }
