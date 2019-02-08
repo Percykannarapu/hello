@@ -168,16 +168,24 @@
           }
           finally{
             echo 'send email'
-            emailext attachmentsPattern: '/robotTestcases/jenkins/reportLogs/*.*', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com'
+            emailext attachLog: true, attachmentsPattern: 'robotTestcases/jenkins/reportLogs/*.*', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com'
             echo 'Test completed'
           } 
         }
+        step(
+            [
+              $class : 'RobotPublisher',
+              outputPath : '/robotTestcases/jenkins/reportLogs',
+              outputFileName : "output.xml",
+              disableArchiveOutput : false,
+              passThreshold : 100,
+              unstableThreshold: 95.0,
+              otherFiles : "*.png",
+            ]
+        )
         
           
-         /* mail to: 'reddyn@valassis.com',
-               subject: 'test robot email',
-               body: 'test data body'
-
+         /* need to get baseUrl: <empty>, teamDomain: <empty>, channel: #general, color: good, botUser: false, tokenCredentialId: <empty> 
           slackSend channel: '#general',
                     color: 'good',
                     message: 'The pipeline jenkins'*/
