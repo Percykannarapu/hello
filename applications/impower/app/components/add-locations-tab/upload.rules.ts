@@ -98,9 +98,9 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
     { headerIdentifier: ['radius1', 'radius 1', 'RADIUS1', 'RADIUS 1', 'Radius1', 'Radius 1'], outputFieldName: 'RADIUS1' },
     { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
     { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' },
-    { headerIdentifier: ['Home Zip Code','home zip code', 'Home ZIP Code', 'Home Zip', 'Home ZIP'], outputFieldName: 'Home ZIP' },
+    { headerIdentifier: ['Home Zip Code','home zip code', 'Home ZIP Code', 'Home Zip', 'Home ZIP'], outputFieldName: 'Home Zip Code' },
     { headerIdentifier: ['Home ATZ','home ATZ', 'home atz'], outputFieldName: 'Home ATZ' },
-    { headerIdentifier: ['Home Carrier Route', 'Home PCR', 'home pcr', 'Home pcr', 'home cr', 'Home cr', 'Home CR'], outputFieldName: 'Home PCR' },
+    { headerIdentifier: ['Home Carrier Route', 'Home PCR', 'home pcr', 'Home pcr', 'home cr', 'Home cr', 'Home CR'], outputFieldName: 'Home Carrier Route' },
     { headerIdentifier: ['Home Digital ATZ', 'Home DTZ', 'home dtz', 'Home dtz' ,'home digital atz'], outputFieldName: 'Home Digital ATZ' },
     { headerIdentifier: ['Home County','home county'], outputFieldName: 'Home County' },
     { headerIdentifier: ['Home DMA', 'home dma', 'Home dma'], outputFieldName: 'Home DMA' }

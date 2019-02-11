@@ -20,8 +20,8 @@ export class ValGeocodingResponse {
   'Match Quality': string;
   'CarrierRoute': string;
   'Home ATZ' : string;
-  'Home ZIP' : string;
-  'Home PCR' : string;
+  'Home Zip Code':string;
+  'Home Carrier Route': string; 
   'Home Digital ATZ' : string;
   'Home County' : string;
   'Home DMA' : string;
