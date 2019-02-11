@@ -197,8 +197,7 @@
             echo 'send slack notifications'
             slackSend channel: '#testjenkins',
                       color: color,
-                      message: "Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} Result ${currentBuild.currentResult}\n 
-                                More info at: ${env.BUILD_URL}"
+                      message: "Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} Result ${currentBuild.currentResult}\nMore info at: ${env.BUILD_URL}"
           }
         }
       }
