@@ -252,12 +252,14 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   public deleteCustomTradeArea() : void {
+    console.log(this.impGeofootprintTradeAreaService.get());
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete your custom trade area?',
       header: 'Delete Custom TA',
       key: 'delete',
       accept: () => {
-        this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM'));
+        this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || 'HOMEGEO'));
+        this.uploadFailures = [];
         this.appGeoService.ensureMustCovers();
         this.isCustomTAExists = false;
         if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {  
