@@ -163,7 +163,7 @@
               xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
               '''
             /* need to enable one we verify the test cases*/  
-            /*step(
+            step(
               [
                 $class : 'RobotPublisher',
                 outputPath : '/robotTestcases/jenkins/reportLogs',
@@ -173,23 +173,22 @@
                 unstableThreshold: 95.0,
                 otherFiles : "*.png",
               ]
-            ) */ 
+            )
           }
           catch (Exception ex){
             echo 'exception in test cases'
+            echo "current build number: ${currentBuild.number} ${env.JOB_NAME}"
+            sh '''
+              cd /robotTestcases/jenkins/reportLogs
+            '''
+            emailext attachmentsPattern: 'log.html report.html', 
+                     body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
+                     mimeType: 'text/html', attachLog: true, 
+                     subject:  "${currentBuild.number}-${env.JOB_NAME} - Test conditions filed", 
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
+            echo 'Test completed'
           }
-          finally{
-              echo 'send email'
-              emailext attachmentsPattern: 'robotTestcases/jenkins/reportLogs/log.html', body: '${FILE,path="robotTestcases/jenkins/reportLogs/log.html"}', 
-                       mimeType: 'text/html', attachLog: true, 
-                       subject: '${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}', 
-                       to: 'reddyn@valassis.com KannarapuP@valassis.com'
-              echo 'Test completed'
-            }   
         }
-        
-        
-          
          /* need to get baseUrl: <empty>, teamDomain: <empty>, channel: #general, color: good, botUser: false, tokenCredentialId: <empty> 
           slackSend channel: '#general',
                     color: 'good',
