@@ -157,11 +157,14 @@
         script {
           try {
             echo 'run unit tests'
+            def color
+            
             sh '''
               cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
               git pull
               xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
               '''
+            color = '#BDFFC3'  
           }
           catch (Exception ex){
             echo 'exception in test cases'
@@ -169,11 +172,13 @@
             sh '''
               cd /robotTestcases/jenkins/reportLogs
             '''
+            color = '#FFFE89'
             emailext attachmentsPattern: 'log.html', 
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
-                     subject:  "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME} - Test conditions filed", 
-                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com'
+                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions filed", 
+                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com 
+                          KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com'
             echo 'Test completed'
           }
           finally{
@@ -192,8 +197,9 @@
             )*/
             echo 'send slack notifications'
             slackSend channel: '#testjenkins',
-                      color: 'good',
-                      message: "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME}"
+                      color: color,
+                      message: "Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} Result ${currentBuild.currentResult}\n 
+                                More info at: ${env.BUILD_URL}"
           }
         }
       }
