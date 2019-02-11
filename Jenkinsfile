@@ -181,27 +181,38 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             emailext attachmentsPattern: 'log.html', 
-                     body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
+                     body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
-                     subject:  "Failed-${env.JOB_NAME} - Test conditions filed", 
+                     subject:  "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME} - Test conditions filed", 
                      to: 'reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
+          finally{
+            echo 'finally publish reports'
+            /*temporarily suspended , until test scripts corrected*/
+            /*step(
+              [
+                $class : 'RobotPublisher',
+                outputPath : '/robotTestcases/jenkins/reportLogs',
+                outputFileName : "output.xml",
+                disableArchiveOutput : false,
+                passThreshold : 100,
+                unstableThreshold: 95.0,
+                otherFiles : "*.png",
+              ]
+            )*/
+            echo 'send slack notifications'
+            slackSend channel: '#testjenkins',
+                      color: 'good',
+                      message: "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME}"
+          }
         }
+
          /* need to get baseUrl: <empty>, teamDomain: <empty>, channel: #general, color: good, botUser: false, tokenCredentialId: <empty> 
           slackSend channel: '#general',
                     color: 'good',
                     message: 'The pipeline jenkins'*/
-        /*
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng test
-            '''
-        echo 'run end to end tests'
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng serve
-            node --max-old-space-size=8192  ./node_modules/.bin/ng e2e
-            '''
-         */
+       
       }
     }
   }
