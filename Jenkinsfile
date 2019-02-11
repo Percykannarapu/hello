@@ -177,8 +177,7 @@
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions filed", 
-                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com 
-                          KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com'
+                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com'
             echo 'Test completed'
           }
           finally{
