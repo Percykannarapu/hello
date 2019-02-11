@@ -152,16 +152,31 @@
       }
     }
     stage('Run Tests') {
-      when {branch 'dev'}
+     // when {branch 'dev'}
       steps {
         script {
           try {
             echo 'run unit tests'
             def color
-            
+            if (env.BRANCH_NAME == 'qa'){
+                  echo 'Automation test cases for QA'
+                  sh '''
+                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+                    git pull
+                    git checkout qa
+                    git pull
+                  '''
+            }
+            else if (env.BRANCH_NAME == 'dev'){
+                  echo 'Automation test cases for Dev'
+                  sh '''
+                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+                    git pull
+                    git checkout dev
+                    git pull
+                  '''
+            }
             sh '''
-              cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-              git pull
               xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
               '''
             color = '#BDFFC3'  
@@ -197,7 +212,7 @@
             echo 'send slack notifications'
             slackSend channel: '#testjenkins',
                       color: color,
-                      message: "Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} Result ${currentBuild.currentResult}\nMore info at: ${env.BUILD_URL}"
+                      message: "Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER} Result: ${currentBuild.currentResult}\nMore info at: ${env.BUILD_URL}"
           }
         }
       }
