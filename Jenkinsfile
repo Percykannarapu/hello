@@ -162,7 +162,9 @@
               git pull
               xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
               '''
-            /* need to enable one we verify the test cases*/  
+          }
+          catch (Exception ex){
+            echo 'exception in test cases'
             step(
               [
                 $class : 'RobotPublisher',
@@ -174,9 +176,6 @@
                 otherFiles : "*.png",
               ]
             )
-          }
-          catch (Exception ex){
-            echo 'exception in test cases'
             echo "current build number: ${currentBuild.number} ${env.JOB_NAME}"
             sh '''
               cd /robotTestcases/jenkins/reportLogs
