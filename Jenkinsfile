@@ -181,10 +181,10 @@
             sh '''
               cd /robotTestcases/jenkins/reportLogs
             '''
-            emailext attachmentsPattern: 'log.html report.html', 
+            emailext attachmentsPattern: 'log.html', 
                      body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
-                     subject:  "${currentBuild.number}-${env.JOB_NAME} - Test conditions filed", 
+                     subject:  "Failed-${env.JOB_NAME} - Test conditions filed", 
                      to: 'reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
