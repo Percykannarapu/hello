@@ -162,13 +162,8 @@
               git pull
               xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
               '''
-          }
-          catch (Exception ex){
-            echo 'exception in test cases'
-          }
-          finally{
-            echo 'publish reports'
-            step(
+            /* need to enable one we verify the test cases*/  
+            /*step(
               [
                 $class : 'RobotPublisher',
                 outputPath : '/robotTestcases/jenkins/reportLogs',
@@ -178,11 +173,19 @@
                 unstableThreshold: 95.0,
                 otherFiles : "*.png",
               ]
-            )
-            echo 'send email'
-            emailext attachmentsPattern: '**/log.html', body: 'imPowerTestResults', subject: 'imPowerTestResults', to: 'reddyn@valassis.com'
-            echo 'Test completed'
-          } 
+            ) */ 
+          }
+          catch (Exception ex){
+            echo 'exception in test cases'
+          }
+          finally{
+              echo 'send email'
+              emailext attachmentsPattern: 'robotTestcases/jenkins/reportLogs/log.html', body: '${FILE,path="robotTestcases/jenkins/reportLogs/log.html"}', 
+                       mimeType: 'text/html', attachLog: true, 
+                       subject: '${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}', 
+                       to: 'reddyn@valassis.com KannarapuP@valassis.com'
+              echo 'Test completed'
+            }   
         }
         
         
