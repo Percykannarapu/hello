@@ -165,17 +165,6 @@
           }
           catch (Exception ex){
             echo 'exception in test cases'
-            step(
-              [
-                $class : 'RobotPublisher',
-                outputPath : '/robotTestcases/jenkins/reportLogs',
-                outputFileName : "output.xml",
-                disableArchiveOutput : false,
-                passThreshold : 100,
-                unstableThreshold: 95.0,
-                otherFiles : "*.png",
-              ]
-            )
             echo "current build number: ${currentBuild.number} ${env.JOB_NAME}"
             sh '''
               cd /robotTestcases/jenkins/reportLogs
@@ -184,7 +173,7 @@
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
                      subject:  "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME} - Test conditions filed", 
-                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
+                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
           finally{
@@ -207,12 +196,6 @@
                       message: "Build Number - ${currentBuild.number}-${currentBuild.currentResult}-${env.JOB_NAME}"
           }
         }
-
-         /* need to get baseUrl: <empty>, teamDomain: <empty>, channel: #general, color: good, botUser: false, tokenCredentialId: <empty> 
-          slackSend channel: '#general',
-                    color: 'good',
-                    message: 'The pipeline jenkins'*/
-       
       }
     }
   }
