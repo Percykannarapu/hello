@@ -257,8 +257,7 @@ export class UploadTradeAreasComponent implements OnInit {
       header: 'Delete Custom TA',
       key: 'delete',
       accept: () => {
-        this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || 'HOMEGEO'));
-        this.uploadFailures = [];
+        this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
         this.appGeoService.ensureMustCovers();
         this.isCustomTAExists = false;
         if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {  
@@ -270,7 +269,8 @@ export class UploadTradeAreasComponent implements OnInit {
                 this.appGeoService.ensureMustCovers();
             }
           });              
-        }        
+        }  
+        this.uploadFailures = [];
       }
     }); 
   }
