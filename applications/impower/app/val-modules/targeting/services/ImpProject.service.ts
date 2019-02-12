@@ -42,10 +42,10 @@ export class ImpProjectService extends DataStore<ImpProject>
 
    load(items: ImpProject[]) : void {
      // load the data stores
-     super.load(items);
      this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
      this.impProjectVarService.load(simpleFlatten(items.map(p => p.impProjectVars)));
      this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
+     super.load(items);
    }
 
    loadFromServer(id: number) : Observable<number> {

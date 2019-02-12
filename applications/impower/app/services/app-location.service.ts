@@ -6,7 +6,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { combineLatest, merge, Observable, EMPTY, of } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { filter, map, pairwise, startWith } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
@@ -118,6 +118,12 @@ export class AppLocationService {
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
     );
+
+    this.totalCount$.pipe(
+      pairwise(),
+      filter(([prev, curr]) => prev > 0 && curr === 0)
+    ).subscribe(() => this.esriLayerService.clearClientLayers());
+
     this.failedClientLocations$ = locationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === 'Failed Site'))
     );
@@ -188,10 +194,11 @@ export class AppLocationService {
          const tradeAreas = simpleFlatten(nonNullSites.map(l => l.impGeofootprintTradeAreas || []));
          const attributes = simpleFlatten(nonNullSites.map(l => l.impGeofootprintLocAttribs || []));
 
-         // remove from the data stores in top-down order to avoid home geos and default trade areas from getting applied
-         this.impLocationService.remove(nonNullSites);
+
         if (attributes.length > 0) this.impLocAttributeService.remove(attributes);
         this.appTradeAreaService.deleteTradeAreas(tradeAreas);
+        // remove from the data stores in top-down order to avoid home geos and default trade areas from getting applied
+        this.impLocationService.remove(nonNullSites);
         const convertSiteTypesToEnum = (loc) => ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode));
         const locationGroups = groupByExtended(nonNullSites, convertSiteTypesToEnum, loc => loc.locationNumber);
         Array.from(locationGroups.entries()).forEach(([siteType, siteNumbers]) => {

@@ -52,9 +52,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
         loc.impProject = loc.impGeofootprintMaster.impProject;
       });
       // load data stores
-      super.load(items);
       this.impGeoFootprintLocAttribService.load(simpleFlatten(items.map(l => l.impGeofootprintLocAttribs)));
       this.impGeofootprintTradeAreaService.load(simpleFlatten(items.map(l => l.impGeofootprintTradeAreas)));
+      super.load(items);
     }
 
    // -----------------------------------------------------------

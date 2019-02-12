@@ -31,8 +31,8 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
    }
 
     load(items: ImpGeofootprintMaster[]) : void {
-      super.load(items);
       this.impGeofootprintLocationService.load(simpleFlatten(items.map(m => m.impGeofootprintLocations)));
+      super.load(items);
     }
 
    // Get a count of DB removes from children of these parents

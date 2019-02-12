@@ -74,8 +74,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         geo.impProject = geo.impGeofootprintMaster.impProject;
       });
       // load data stores
-      super.load(items);
       this.impGeofootprintGeoAttribService.load(simpleFlatten(items.map(geo => geo.impGeofootprintGeoAttribs)));
+      super.load(items);
    }
 
    // -----------------------------------------------------------

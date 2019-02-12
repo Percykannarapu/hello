@@ -62,9 +62,10 @@ export class AppLayerService {
     //.pipe(filter(al => al != null && al.length > 0))
       .subscribe(al => this.setDefaultLayerVisibility(al));
 
-    combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$)
-      .pipe(filter(([appIsReady, layersReady]) => !appIsReady && layersReady))
-      .subscribe(() => this.clearClientLayers());
+    combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
+      filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
+      distinctUntilChanged()
+    ).subscribe(() => this.clearClientLayers());
   }
 
   public updateSiteLayer(siteType: SuccessfulLocationTypeCodes, sites: ImpGeofootprintLocation[]) : void {
@@ -99,7 +100,7 @@ export class AppLayerService {
   }
 
   public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes, taType?: TradeAreaTypeCodes) : void {
-    const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge;
+    const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge || taType === TradeAreaTypeCodes.Audience;
     tradeAreas.sort((a, b) => a.taName.localeCompare(b.taName));
     let pointMap: Map<string, {p: __esri.Point, r: number}[]> = new Map<string, {p: __esri.Point, r: number}[]>();
     if (taType === TradeAreaTypeCodes.Audience) {
@@ -146,37 +147,20 @@ export class AppLayerService {
     pointMap.forEach((pointData, name) => {
       const points = pointData.map(pd => pd.p);
       const radii = pointData.map(pd => pd.r);
-      if (taType === TradeAreaTypeCodes.Audience) {
-          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', true).then(geoBuffer => {
-            const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-            const graphics = geometry.map(g => {
-              return new EsriApi.Graphic({
-                geometry: g,
-                symbol: symbol,
-                attributes: { parentId: (++layerId).toString() }
-              });
-            });
-            const groupName = `${siteType}s`;
-            const layerName = `${siteType} - ${name}`;
-            this.layerService.removeLayer(layerName);
-            this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-            });
-        } else {
-          EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
-            const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-            const graphics = geometry.map(g => {
-              return new EsriApi.Graphic({
-                geometry: g,
-                symbol: symbol,
-                attributes: { parentId: (++layerId).toString() }
-              });
-            });
-            const groupName = `${siteType}s`;
-            const layerName = `${siteType} - ${name}`;
-            this.layerService.removeLayer(layerName);
-            this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
+        const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
+        const graphics = geometry.map(g => {
+          return new EsriApi.Graphic({
+            geometry: g,
+            symbol: symbol,
+            attributes: { parentId: (++layerId).toString() }
           });
-        }  
+        });
+        const groupName = `${siteType}s`;
+        const layerName = `${siteType} - ${name}`;
+        this.layerService.removeLayer(layerName);
+        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+      });
     });
   }
 

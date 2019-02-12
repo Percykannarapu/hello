@@ -111,11 +111,11 @@ export class AppGeoService {
     // remove from data stores
     const attributes = simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs));
     geos.forEach(geo => geo.impGeofootprintGeoAttribs = []);
-    this.impGeoService.remove(geos);
     if (attributes.length > 0) {
       attributes.forEach(a => a.impGeofootprintGeo = null);
       this.impAttributeService.remove(attributes);
     }
+    this.impGeoService.remove(geos);
   }
 
   /**

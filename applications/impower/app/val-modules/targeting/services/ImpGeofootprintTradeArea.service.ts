@@ -41,9 +41,9 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
         ta.impProject = ta.impGeofootprintMaster.impProject;
       });
       // load data stores
-      super.load(items);
       this.impGeofootprintVarService.load(simpleFlatten(items.map(ta => ta.impGeofootprintVars)));
       this.impGeofootprintGeoService.load(simpleFlatten(items.map(ta => ta.impGeofootprintGeos)));
+      super.load(items);
     }
 
    // Get a count of DB removes from children of these parents

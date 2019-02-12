@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -14,7 +14,7 @@ import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppLoggingService } from './app-logging.service';
-import { toUniversalCoordinates } from '@val/common';
+import { distinctUntilArrayContentsChanged, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
 
@@ -50,8 +50,8 @@ export class AppTradeAreaService {
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
     this.validAnalysisLevel$ = this.stateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-    this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable();
-    this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable();
+    this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable().pipe(distinctUntilChanged());
+    this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable().pipe(distinctUntilChanged());
 
     combineLatest(this.impLocationService.storeObservable, this.stateService.applicationIsReady$)
       .pipe(
@@ -60,20 +60,23 @@ export class AppTradeAreaService {
       .subscribe(([locations]) => this.onLocationChange(locations));
 
     this.impTradeAreaService.storeObservable.pipe(
-        map((tradeAreas) => tradeAreas.filter(ta => ta.taType === 'AUDIENCE'))
+        map((tradeAreas) => tradeAreas.filter(ta => ta.taType === 'AUDIENCE')),
+        filter(tas => tas.length > 0)
       ).subscribe(tradeAreas => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, tradeAreas, null, TradeAreaTypeCodes.Audience));
         
 
     const radiusTradeAreas$ = this.impTradeAreaService.storeObservable.pipe(
       filter(tradeAreas => tradeAreas != null),
-      filterArray(ta => ta.taType.toUpperCase() === 'RADIUS')
+      distinctUntilChanged(),
+      filterArray(ta => ta.taType.toUpperCase() === 'RADIUS'),
+      filter(tas => tas.length > 0)
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site')
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
     const competitorTradeAreas$ = radiusTradeAreas$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor')
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
       // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
 
@@ -91,10 +94,20 @@ export class AppTradeAreaService {
       distinctUntilChanged()
     ).subscribe(mt => this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).next(mt));
 
-    combineLatest(siteTradeAreas$, this.siteTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, ta, m));
-    combineLatest(competitorTradeAreas$, this.competitorTradeAreaMerge$).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Competitor, ta, m));
+    siteTradeAreas$.pipe(
+      withLatestFrom(this.siteTradeAreaMerge$)
+    ).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Site, ta, m));
+    competitorTradeAreas$.pipe(
+      withLatestFrom(this.competitorTradeAreaMerge$)
+    ).subscribe(([ta, m]) => this.drawTradeAreas(ImpClientLocationTypeCodes.Competitor, ta, m));
 
     this.setupAnalysisLevelGeoClearObservable();
+
+    radiusTradeAreas$.pipe(
+      map(tas => tas.length),
+      pairwise(),
+      filter(([prev, curr]) => prev > 0 && curr === 0)
+    ).subscribe(() => this.layerService.clearClientLayers());
 
     this.stateService.clearUI$.subscribe(() => this.currentDefaults.clear());
     this.stateService.analysisLevel$.subscribe(() => {
@@ -201,9 +214,9 @@ export class AppTradeAreaService {
       ta.impGeofootprintVars = [];
     });
     varsToRemove.forEach(v => v.impGeofootprintTradeArea = null);
-    this.impTradeAreaService.remove(tradeAreas);
     if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
     this.appGeoService.deleteGeos(geosToRemove);
+    this.impTradeAreaService.remove(tradeAreas);
   }
 
   public insertTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
@@ -347,34 +360,27 @@ export class AppTradeAreaService {
     this.logger.debug('Draw Trade Area parameters', { siteType, tradeAreas, mergeType });
     const drawnTradeAreas: ImpGeofootprintTradeArea[] = [];
     const currentTradeAreas = tradeAreas.filter(ta => ta.isActive === true);
-    const currentLocations = this.impLocationService.get();
-   
-    if (currentTradeAreas.length === 0 && currentLocations.length === 0) {
-        this.layerService.clearClientLayers();
-        return;
-    }
-      
-    const radii = currentTradeAreas.map(ta => ta.taRadius);
-    if (mergeType !== TradeAreaMergeTypeCodes.MergeAll) {
-      // all circles will be drawn
-      drawnTradeAreas.push(...currentTradeAreas);
-    } else {
-      // only the largest circle will be drawn
-      const maxRadius = Math.max(...radii);
-      drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
-    }
-    if (taType === TradeAreaTypeCodes.Audience) {
-      drawnTradeAreas.push(...currentTradeAreas);
-    }
-    this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType, taType);
-    // reset the defaults that get applied to new locations
-    if ((this.currentDefaults.get(siteType) == null || this.currentDefaults.get(siteType).length === 0) && radii.length > 0) {
-      const uniqueValues = new Set(radii.sort());
-      const taValues: any[] = [];
-      uniqueValues.forEach(radius => {
-        taValues.push({radius: radius , selected: true });
-      });
-      this.currentDefaults.set(siteType, taValues);
+
+    if (currentTradeAreas.length > 0) {
+      const radii = currentTradeAreas.map(ta => ta.taRadius);
+      if (mergeType !== TradeAreaMergeTypeCodes.MergeAll || taType === TradeAreaTypeCodes.Audience) {
+        // all circles will be drawn
+        drawnTradeAreas.push(...currentTradeAreas);
+      } else {
+        // only the largest circle will be drawn
+        const maxRadius = Math.max(...radii);
+        drawnTradeAreas.push(...currentTradeAreas.filter(ta => ta.taRadius === maxRadius));
+      }
+      this.layerService.addToTradeAreaLayer(siteType, drawnTradeAreas, mergeType, taType);
+      // reset the defaults that get applied to new locations
+      if ((this.currentDefaults.get(siteType) == null || this.currentDefaults.get(siteType).length === 0) && radii.length > 0) {
+        const uniqueValues = new Set(radii.sort());
+        const taValues: any[] = [];
+        uniqueValues.forEach(radius => {
+          taValues.push({radius: radius , selected: true });
+        });
+        this.currentDefaults.set(siteType, taValues);
+      }
     }
   }
 }
