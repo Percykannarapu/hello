@@ -4,6 +4,13 @@ export interface ShadingData {
   [geocode: string] : string | number;
 }
 
+export enum HighlightMode {
+  OUTLINE,
+  SHADE,
+  OUTLINE_GROUPS,
+  SHADE_GROUPS
+}
+
 export interface Statistics {
   mean: number;
   sum: number;
@@ -19,6 +26,9 @@ export interface EsriRendererState {
   selectedGeocodes: Array<string>;
   statistics: Statistics;
   enableShading: boolean;
+  highlightMode: HighlightMode;
+  highlighLayer: string;
+  highlightLayerGroup: string;
 }
 
 const initialState: EsriRendererState = {
@@ -26,7 +36,10 @@ const initialState: EsriRendererState = {
   isNumericData: false,
   selectedGeocodes: new Array<string>(),
   statistics: null,
-  enableShading: false
+  enableShading: false,
+  highlightMode: HighlightMode.OUTLINE,
+  highlighLayer: null,
+  highlightLayerGroup: null
 };
 
 export function rendererReducer(state = initialState, action: EsriRendererActions) : EsriRendererState {
@@ -49,7 +62,14 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
       };
 
     case EsriRendererActionTypes.SetSelectedGeos:
-      return {...state, selectedGeocodes: action.payload};
+      return { ...state, selectedGeocodes: action.payload };
+    case EsriRendererActionTypes.SetHighlightOptions:
+      return { 
+        ...state, 
+        highlightMode: action.payload.higlightMode, 
+        highlightLayerGroup: action.payload.layerGroup, 
+        highlighLayer: action.payload.layer 
+      };
     case EsriRendererActionTypes.ClearSelectedGeos:
       return {
         ...state,

@@ -22,6 +22,8 @@ import { CardModule } from 'primeng/card';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { GridComponent } from './components/grid/grid.component';
 import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
+
 
 @NgModule({
   imports: [
@@ -35,6 +37,7 @@ import { TableModule } from 'primeng/table';
     ButtonModule,
     SidebarModule,
     CommonModule,
+    InputTextModule,
     HttpClientModule,
     StoreModule.forRoot(reducers, { metaReducers }),
     EffectsModule.forRoot([AppEffects]),

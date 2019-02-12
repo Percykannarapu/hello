@@ -4,7 +4,7 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics, HighlightMode } from '../state/map/esri.renderer.reducer';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -326,6 +326,21 @@ export class EsriRendererService {
       console.log('Class break value: "' + value + '"');
     });
     return result;
+  }
+
+  public shadeSelection(featureSet: __esri.FeatureSet, groupName: string, layerName: string) {
+    const graphics: Array<__esri.Graphic> = [];
+    for (const feature of featureSet.features) {
+      const symbol = EsriRendererService.createSymbol([0, 255, 0, 0.65], [0, 0, 0, 0.65], 1);
+      const graphic: __esri.Graphic = new EsriApi.Graphic();
+      graphic.symbol = symbol;
+      graphic.geometry = feature.geometry;
+      graphics.push(graphic);
+    }
+    if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
+      this.layerService.removeLayer(layerName);
+    }
+    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
   }
 
   public highlightSelection(layerId: string, objectIds: number[]) {

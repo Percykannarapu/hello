@@ -1,10 +1,4 @@
 <div class="ui-g">
-   <div class="ui-g-6 ui-g-nopad">
-      <button pbutton type="text" (click)="leftSidebarVisible = !leftSidebarVisible" pButton icon="pi pi-angle-right" style="color: black;"></button>
-   </div>
-   <div class="ui-g-6 ui-g-nopad">
-      <button pbutton type="text" (click)="rightSidebarVisible = !rightSidebarVisible" pButton icon="pi pi-angle-left" style="float: right; color: black;"></button>
-   </div>
    <div class="ui-g-1 ui-g-nopad">
          <p-radioButton name="panel size" value="small"  label="Show small panel" [(ngModel)]="panelSize"></p-radioButton>
    </div>
@@ -14,14 +8,17 @@
    <div class="ui-g-1 ui-g-nopad">
          <p-radioButton name="panel size" value="none" label="Hide panel" [(ngModel)]="panelSize"></p-radioButton>
    </div>
+   <div class="ui-g-9 ui-g-nopad">
+      <button pbutton type="text"  (click)="rightSidebarVisible = !rightSidebarVisible" pButton icon="pi pi-angle-left" style="float: right;"></button>
+   </div>
 </div>
 
 <div style="overflow: hidden;">
-   <div *ngIf="panelSize === 'small'" style="background-color: grey; width: 20%; float: left; padding-bottom: 100%; margin-bottom: -100%;">
-      <val-grid [columns]="['Product', 'Geocode', 'City', 'Code']"></val-grid>
+   <div *ngIf="panelSize === 'small'" style="width: 20%; float: left; height: 750px;">
+      <val-grid [smallSizeTable]=true></val-grid>
    </div>
-   <div *ngIf="panelSize === 'large'" style="background-color: grey; width: 33%; float: left; padding-bottom: 100%; margin-bottom: -100%;">
-      <val-grid [columns]="['Product', 'Geocode', 'City', 'Code']"></val-grid>
+   <div *ngIf="panelSize === 'large'" style="width: 33%; float: left; height: 750px;">
+      <val-grid [smallSizeTable]=false></val-grid>
    </div>
    <div style="overflow: hidden;">
       <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true"></val-esri-map-panel>

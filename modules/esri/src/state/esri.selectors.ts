@@ -43,6 +43,7 @@ export const selectors = {
 };
 
 export const internalSelectors = {
+  getEsriState,
   getEsriMapState,
   getEsriMapButtonState,
   getEsriSketchViewModel,

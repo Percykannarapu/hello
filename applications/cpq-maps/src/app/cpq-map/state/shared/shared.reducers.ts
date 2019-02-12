@@ -10,6 +10,7 @@ export interface SharedState {
    activeMediaPlanId: number;
    radius: number;
    analysisLevel: string;
+   isWrap: boolean;
 }
 
 const initialState: SharedState = {
@@ -21,11 +22,14 @@ const initialState: SharedState = {
    rfpUiEditDetailLoaded: false,
    activeMediaPlanId: null,
    radius: null,
-   analysisLevel: null
+   analysisLevel: null,
+   isWrap: false
 };
 
 export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
    switch (action.type) {
+      case SharedActionTypes.SetIsWrap:
+         return { ...state, isWrap: action.payload.isWrap };
       case SharedActionTypes.SetAnalysisLevel:
          return { ...state, analysisLevel: action.payload.analysisLevel };
       case SharedActionTypes.SetRadius:

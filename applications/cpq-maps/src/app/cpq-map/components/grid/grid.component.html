@@ -1,17 +1,30 @@
-<p-table [value]="rows" [scrollable]="true" scrollHeight="690px">
-    <ng-template pTemplate="header">
-        <tr>
-            <th *ngFor="let column of columns">
-                {{column}}
-            </th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-row>
-        <tr>
-            <td>{{row.productName}}</td>
-            <td>{{row.geocode}}</td>
-            <td>{{row.cityName}}</td>
-            <td>{{row.sfdcProductCode}}</td>
-        </tr>
-    </ng-template>
-</p-table>
+<div style="height: 100%;">
+    <p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollWidth="100%" scrollHeight="100%" [style]="{'font-size':'1em'}"
+        [resizableColumns]="true" columnResizeMode="expand">
+        <ng-template pTemplate="caption">
+            <div style="text-align: left">
+                <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+                <input type="text" pInputText size="50" placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
+            </div>
+        </ng-template>
+        <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+                <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns style="width: 100%">
+            <tr>
+                <th *ngFor="let col of columns" [pSortableColumn]="col.field">
+                    {{col.header}}
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr>
+                <td *ngFor="let col of columns" style="border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px">
+                    {{rowData[col.field]}}
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

@@ -28,7 +28,7 @@ export class AppLayerService {
       }
    }
 
-   public removeLocationsLayer(groupName: string, layerName: string) {
+   public removeLayer(groupName: string, layerName: string) {
       if (this.currentLayerNames.has(groupName)) {
          let layerFound: boolean = false;
          for (let i = 0; i < this.currentLayerNames.get(groupName).length; i++) {
@@ -41,11 +41,19 @@ export class AppLayerService {
             }
          }
          if (!layerFound) {
-            console.warn('Attempted to remove layer that does not exist: ', layerName);
+            this.forceLayerRemoval(layerName);
          }
       } else {
-         console.warn('Layer group not found when attempting to remove layer: ', groupName);
+         this.forceLayerRemoval(layerName);
       }
+   }
+
+   private forceLayerRemoval(layerName: string) : boolean {
+      if (this.esriLayerService.getAllLayerNames().filter(l => l === layerName).length > 0) {
+         this.esriLayerService.removeLayer(layerName);
+         return true;
+      }
+      return false;
    }
 
    public addTradeAreaRings(locations: UniversalCoordinates[], radius: number) {
