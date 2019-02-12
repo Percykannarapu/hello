@@ -83,13 +83,12 @@ export class EsriLabelConfigComponent implements OnInit {
   }
 
   onEnabledChanged(event: any) {
-    this.pobEnabled = event.checked ? this.pobEnabled : false;
     const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
   
   onPOBEnabledChanged(event: any) {
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: event.checked && this.enabled };
+    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: event.checked };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 
