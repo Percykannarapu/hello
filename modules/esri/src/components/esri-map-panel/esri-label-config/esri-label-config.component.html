@@ -22,7 +22,7 @@
       <p-inputSwitch [(ngModel)]="enabled" (onChange)="onEnabledChanged($event)"></p-inputSwitch>
       <br>
       <br>
-      <p-inputSwitch [(ngModel)]="pobEnabled" (onChange)="onPOBEnabledChanged($event)"></p-inputSwitch>
+      <p-inputSwitch [(ngModel)]="pobEnabled" (onChange)="onPOBEnabledChanged($event)" [disabled]="!enabled"></p-inputSwitch>
     </div>
   </div>
 </p-overlayPanel>
