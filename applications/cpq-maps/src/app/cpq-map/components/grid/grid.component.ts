@@ -9,7 +9,7 @@ class CompositeRow extends RfpUiEditDetail {
 }
 
 class WrapCompositeRow extends RfpUiEditWrap {
-  //custom extensions for the grid would go here
+  public distance?: number;
 }
 
 @Component({
@@ -95,6 +95,12 @@ export class GridComponent implements OnInit, OnChanges {
     const newRows: Array<WrapCompositeRow> = [];
     for (const id of state.rfpUiEditWrap.ids) {
       const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
+      const siteId: number = newRow.siteId;
+      for (const j of state.rfpUiEdit.ids) {
+        if (state.rfpUiEditDetail.entities[j].fkSite === siteId) {
+          newRow.distance = state.rfpUiEditDetail.entities[j].distance;
+        }
+      }
       newRows.push(newRow);
     }
     this.rows = [...newRows];
