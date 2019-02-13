@@ -3,8 +3,13 @@ import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiE
 import { Store } from '@ngrx/store';
 import { LocalState } from '../../state';
 import { filter } from 'rxjs/operators';
+import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
 class CompositeRow extends RfpUiEditDetail {
   public siteName?: string;
+}
+
+class WrapCompositeRow extends RfpUiEditWrap {
+  //custom extensions for the grid would go here
 }
 
 @Component({
@@ -20,17 +25,18 @@ export class GridComponent implements OnInit, OnChanges {
   @Input()
   smallSizeTable: boolean;
 
-  rows: Array<CompositeRow> = [];
-  isWrap: boolean = false;
+  rows: Array<CompositeRow | WrapCompositeRow> = [];
+  isWrap: boolean = true;
 
   constructor(private store$: Store<LocalState>) { }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.smallSizeTable.currentValue === true) {
+    /*if (changes.smallSizeTable.currentValue === true) {
       this.createColumns(true, false);
     } else {
       this.createColumns(false, false);
-    }
+    }*/
+    this.smallSizeTable = changes.smallSizeTable.currentValue;
   }
 
   ngOnInit() {
@@ -46,23 +52,29 @@ export class GridComponent implements OnInit, OnChanges {
   }
 
   private createColumns(small: boolean, isWrap: boolean) {
+    this.columns = []; //reset the columns
     if (small) {
-      if (isWrap) this.columns.push({field: 'wrapZone', header: 'Zone', width: '8em'});
-      else this.columns.push({field: 'geocode', header: 'Zone', width: '8em'});
+      if (isWrap) 
+        this.columns.push({field: 'wrapZone', header: 'Zone', width: '15em'});
+      else 
+        this.columns.push({field: 'geocode', header: 'Zone', width: '8em'});
       this.columns.push({field: 'distribution', header: 'Distr Qty', width: '8em'});
-      this.columns.push({field: 'investment', header: 'Investment', width: '8em'});
+      this.columns.push({field: 'investment', header: 'Investment', width: '10em'});
     } else {
       this.columns.push({field: 'siteName', header: 'Site Name', width: '15em'});
-      if (isWrap) this.columns.push({field: 'wrapZone', header: 'Zone', width: '8em'});
-      else this.columns.push({field: 'geocode', header: 'Zone', width: '8em'})
+      if (isWrap) 
+        this.columns.push({field: 'wrapZone', header: 'Zone', width: '15em'});
+      else 
+        this.columns.push({field: 'geocode', header: 'Zone', width: '8em'});
       this.columns.push({field: 'distribution', header: 'Distr Qty', width: '7.5em'});
       this.columns.push({field: 'distance', header: 'Distance', width: '7.5em'});
       this.columns.push({field: 'ownerGroup', header: 'Owner', width: '7.5em'});
-      this.columns.push({field: 'investment', header: 'Investment', width: '7.5em'});
+      this.columns.push({field: 'investment', header: 'Investment', width: '10em'});
     }
   }
 
   private createNonWrapRows(state: LocalState) {
+    this.createColumns(this.smallSizeTable, false);
     const newRows: Array<CompositeRow> = [];
     for (const id of state.rfpUiEditDetail.ids) {
       const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
@@ -79,7 +91,13 @@ export class GridComponent implements OnInit, OnChanges {
 
   private createWrapRows(state: LocalState) {
     this.isWrap = true;
-    console.warn('WOULD CREATE WRAP DATA ROWS HERE');
+    this.createColumns(this.smallSizeTable, true);
+    const newRows: Array<WrapCompositeRow> = [];
+    for (const id of state.rfpUiEditWrap.ids) {
+      const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
+      newRows.push(newRow);
+    }
+    this.rows = [...newRows];
   }
 
 }

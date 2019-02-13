@@ -10,6 +10,7 @@ import { MediaPlan } from '../../val-modules/mediaexpress/models/MediaPlan';
 import { AdvertiserInfo } from '../../val-modules/mediaexpress/models/AdvertiserInfo';
 import { Objective } from '../../val-modules/mediaexpress/models/Objective';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
+import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWrap';
 
 export interface NormalizedPayload {
    mediaPlanGroup?: MediaPlanGroup;
@@ -25,4 +26,5 @@ export interface NormalizedPayload {
    rfpUiReviews?: RfpUiReview[];
    rfpUiEditDetails?: RfpUiEditDetail[];
    rfpUiEdits?: RfpUiEdit[];
+   rfpUiEditWraps?: RfpUiEditWrap[];
  }

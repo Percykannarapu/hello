@@ -27,6 +27,7 @@ import { targetAudienceReducer } from './targetAudience/target-audience.reducer'
 import { rfpUiEditDetailreducer } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
 import { rfpUiReviewreducer } from './rfpUiReview/rfp-ui-review.reducer';
 import { rfpUiEditreducer } from './rfpUiEdit/rfp-ui-edit.reducer';
+import { rfpUiEditWrapReducer } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 
 
 export const reducers: ActionReducerMap<LocalState> = {
@@ -48,7 +49,8 @@ export const reducers: ActionReducerMap<LocalState> = {
   targetAudience: targetAudienceReducer,
   rfpUiEditDetail: rfpUiEditDetailreducer,
   rfpUiReview: rfpUiReviewreducer,
-  rfpUiEdit: rfpUiEditreducer
+  rfpUiEdit: rfpUiEditreducer,
+  rfpUiEditWrap: rfpUiEditWrapReducer
 };
 
 export function logger(reducer: ActionReducer<LocalState>) : ActionReducer<LocalState> {

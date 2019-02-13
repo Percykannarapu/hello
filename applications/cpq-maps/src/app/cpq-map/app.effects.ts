@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId, SetIsWrap } from './state/shared/shared.actions';
+import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId, SetIsWrap, RfpUiEditWrapLoaded } from './state/shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, delay, withLatestFrom, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
@@ -8,6 +8,7 @@ import { LocalState, FullState } from './state';
 import { MediaPlanGroupLoaderService } from './services/mediaplanGroup-loader-service';
 import { ClearSelectedGeos, SetSelectedGeos, SetHighlightOptions, HighlightMode, SetSelectedLayer } from '@val/esri';
 import { RfpUiEditDetailLoaderService } from './services/RfpUiEditDetail-loader-service';
+import { RfpUiEditWrapLoaderService } from './services/rfpUiEditWrap-loader-service';
 import { RfpUiReviewLoaderService } from './services/rfpUiReview-loader-service';
 import { AddRfpUiEditDetails, ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { AddRfpUiReviews, ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
@@ -19,6 +20,7 @@ import { AppLayerService } from './services/app-layer-service';
 import { UniversalCoordinates } from '@val/common';
 import { RfpUiEditState } from './state/rfpUiEdit/rfp-ui-edit.reducer';
 import { ConfigService } from './services/config.service';
+import { AddRfpUiEditWraps } from './state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 
 @Injectable()
 export class AppEffects {
@@ -29,6 +31,7 @@ export class AppEffects {
     private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
     private rfpUiReviewLoader: RfpUiReviewLoaderService,
     private rfpUiEditLoader: RfpUiEditLoaderService,
+    private rfpUiEditWrapLoader: RfpUiEditWrapLoaderService,
     private appLayerService: AppLayerService,
     private fullStore$: Store<FullState>,
     private configService: ConfigService) { }
@@ -131,6 +134,22 @@ export class AppEffects {
     ))
   );
 
+  // After the entities loading flag is set to true load the RfpUiEditWrap entity
+  @Effect()
+  loadRfpUiEditWrap$ = this.actions$.pipe(
+    ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
+    withLatestFrom(this.store$.select(state => state.shared)),
+    filter(([action, state]) => action.payload.entitiesLoading === true),
+    switchMap(([action, state]) => this.rfpUiEditWrapLoader.loadRfpUiEditWrap(state.activeMediaPlanId).pipe(
+      map(fuseResult => this.rfpUiEditWrapLoader.normalize(fuseResult)),
+      mergeMap(normalizedEntities => [
+        new AddRfpUiEditWraps({ rfpUiEditWraps: normalizedEntities.rfpUiEditWraps }),
+        new RfpUiEditWrapLoaded({ rfpUiEditWrapLoaded: true })
+      ]),
+      catchError(err => of(console.error(err)))
+    ))
+  );
+
   // After the entities loading flag is set to true load the RfpUiReview entity
   @Effect()
   loadRfpUiReview$ = this.actions$.pipe(
@@ -167,7 +186,7 @@ export class AppEffects {
   rfpUiReviewLoaded$ = this.actions$.pipe(
     ofType<RfpUiReviewLoaded>(SharedActionTypes.RfpUiReviewLoaded),
     withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
+    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true && state.rfpUiEditWrapLoaded === true),
     switchMap(([action, state]) => [
       new EntitiesLoading({ entitiesLoading: false }),
       new SetAppReady(true)
@@ -181,7 +200,7 @@ export class AppEffects {
   rfpUiEditLoaded$ = this.actions$.pipe(
     ofType<RfpUiEditLoaded>(SharedActionTypes.RfpUiEditLoaded),
     withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
+    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true && state.rfpUiEditWrapLoaded === true),
     switchMap(([action, state]) => [
       new EntitiesLoading({ entitiesLoading: false }),
       new SetAppReady(true)
@@ -210,7 +229,21 @@ export class AppEffects {
   rfpUiEditDetailLoaded$ = this.actions$.pipe(
     ofType<RfpUiEditDetailLoaded>(SharedActionTypes.RfpUiEditDetailLoaded),
     withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
+    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true && state.rfpUiEditWrapLoaded === true),
+    switchMap(([action, state]) => [
+      new EntitiesLoading({ entitiesLoading: false }),
+      new SetAppReady(true)
+    ]),
+    catchError(err => of(console.error(err)))
+  );
+
+  // After RfpUiEditWrap is loaded check to see if the other entities have finished loading
+  // if they have finished we can set the AppReady flag to true
+  @Effect()
+  rfpUiEditWrapLoaded$ = this.actions$.pipe(
+    ofType<RfpUiEditWrapLoaded>(SharedActionTypes.RfpUiEditWrapLoaded),
+    withLatestFrom(this.store$.select(state => state.shared)),
+    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true && state.rfpUiEditWrapLoaded === true),
     switchMap(([action, state]) => [
       new EntitiesLoading({ entitiesLoading: false }),
       new SetAppReady(true)

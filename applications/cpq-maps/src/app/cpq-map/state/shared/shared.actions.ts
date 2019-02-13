@@ -8,12 +8,18 @@ export enum SharedActionTypes {
   LoadEntityGraph = '[Shared Actions] Load Entity Graph',
   EntitiesLoading = '[Shared Actions] Entities Loading',
   RfpUiEditLoaded = '[Shared Actions] RfpUiEdit Loaded',
+  RfpUiEditWrapLoaded = '[Shared Actions] RfpUiEditWrap Loaded',
   RfpUiEditDetailLoaded = '[Shared Actions] RfpUiEditDetail Loaded',
   RfpUiReviewLoaded = '[Shared Actions] RfpUiReview Loaded',
   SetActiveMediaPlanId = '[Shared Actions] Set Active Media Plan',
   SetRadius = '[Shared Actions] Set Radius',
   SetAnalysisLevel = '[Shared Actions] Set Analysis Level',
   SetIsWrap = '[Shared Actions] Set isWrap'
+}
+
+export class RfpUiEditWrapLoaded implements Action {
+  readonly type = SharedActionTypes.RfpUiEditWrapLoaded;
+  constructor(public payload: { rfpUiEditWrapLoaded: boolean }) { }
 }
 
 export class SetIsWrap implements Action {
@@ -77,6 +83,7 @@ export type SharedActions =
   | LoadEntityGraph
   | EntitiesLoading
   | RfpUiEditLoaded
+  | RfpUiEditWrapLoaded
   | RfpUiEditDetailLoaded
   | RfpUiReviewLoaded
   | SetActiveMediaPlanId

@@ -6,6 +6,7 @@ export interface SharedState {
    entitiesLoading: boolean;
    rfpUiReviewLoaded: boolean;
    rfpUiEditLoaded: boolean;
+   rfpUiEditWrapLoaded: boolean;
    rfpUiEditDetailLoaded: boolean;
    activeMediaPlanId: number;
    radius: number;
@@ -19,6 +20,7 @@ const initialState: SharedState = {
    entitiesLoading: false,
    rfpUiReviewLoaded: false,
    rfpUiEditLoaded: false,
+   rfpUiEditWrapLoaded: false,
    rfpUiEditDetailLoaded: false,
    activeMediaPlanId: null,
    radius: null,
@@ -38,6 +40,8 @@ export function sharedReducer(state = initialState, action: SharedActions) : Sha
          return { ...state, activeMediaPlanId: action.payload.mediaPlanId };
       case SharedActionTypes.RfpUiEditLoaded:
          return { ...state, rfpUiEditLoaded: action.payload.rfpUiEditLoaded };
+      case SharedActionTypes.RfpUiEditWrapLoaded:
+         return { ...state, rfpUiEditWrapLoaded: action.payload.rfpUiEditWrapLoaded };
       case SharedActionTypes.RfpUiEditDetailLoaded:
          return { ...state, rfpUiEditDetailLoaded: action.payload.rfpUiEditDetailLoaded };
       case SharedActionTypes.RfpUiReviewLoaded:

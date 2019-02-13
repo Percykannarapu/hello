@@ -19,6 +19,7 @@ import { createSelector } from '@ngrx/store';
 import { RfpUiEditDetailState } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
 import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
 import { RfpUiEditState } from './rfpUiEdit/rfp-ui-edit.reducer';
+import { RfpUiEditWrapState } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 
 
 export interface FullState extends LocalState, fromEsri.AppState {}
@@ -43,6 +44,7 @@ export interface LocalState {
    rfpUiEditDetail: RfpUiEditDetailState;
    rfpUiReview: RfpUiReviewState;
    rfpUiEdit: RfpUiEditState;
+   rfpUiEditWrap: RfpUiEditWrapState;
 }
 
 const getSharedState = (state: LocalState) => state.shared;
