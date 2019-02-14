@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { Store } from '@ngrx/store';
 import { LocalState } from '../../state';
@@ -10,9 +10,6 @@ class CompositeRow extends RfpUiEditDetail {
 
 class WrapCompositeRow extends RfpUiEditWrap {
   public distance?: number;
-  public var1Name?: string;
-  public var2Name?: string;
-  public var3Name?: string;
 }
 
 @Component({
@@ -31,7 +28,7 @@ export class GridComponent implements OnInit, OnChanges {
   rows: Array<CompositeRow | WrapCompositeRow> = [];
   isWrap: boolean = true;
 
-  constructor(private store$: Store<LocalState>) { }
+  constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnChanges(changes: SimpleChanges) {
     this.smallSizeTable = changes.smallSizeTable.currentValue;
@@ -78,14 +75,11 @@ export class GridComponent implements OnInit, OnChanges {
   }
 
   private createNonWrapRows(state: LocalState) {
+    this.rows = []; // reset the rows
     this.createColumns(this.smallSizeTable, false);
     const newRows: Array<CompositeRow> = [];
-    let var1: boolean = false;
-    let var2: boolean = false;
-    let var3: boolean = false;
-    let heading1: string = '';
-    let heading2: string = '';
-    let heading3: string = '';
+    let var1: boolean, var2: boolean, var3: boolean;
+    let heading1: string, heading2: string, heading3: string;
     for (const id of state.rfpUiEditDetail.ids) {
       const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
       const siteId = newRow.fkSite;
@@ -95,6 +89,8 @@ export class GridComponent implements OnInit, OnChanges {
       heading1 = state.rfpUiEditDetail.entities[id].var1Name;
       heading2 = state.rfpUiEditDetail.entities[id].var2Name;
       heading3 = state.rfpUiEditDetail.entities[id].var3Name;
+      newRow.distance = Number(state.rfpUiEditDetail.entities[id].distance.toFixed(2));
+      newRow.investment = Number(state.rfpUiEditDetail.entities[id].investment.toFixed(2));
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEdit.entities[j].siteId === siteId) {
           newRow.siteName = state.rfpUiEdit.entities[j].siteName;
@@ -106,15 +102,18 @@ export class GridComponent implements OnInit, OnChanges {
       this.addVariableColumns(var1, var2, var3, heading1, heading2, heading3);
     }
     this.rows = [...newRows];
+    this.cd.markForCheck();
   }
 
   private createWrapRows(state: LocalState) {
+    this.rows = []; // reset the rows
     this.isWrap = true;
     this.createColumns(this.smallSizeTable, true);
     const newRows: Array<WrapCompositeRow> = [];
     for (const id of state.rfpUiEditWrap.ids) {
       const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
       const siteId: number = newRow.siteId;
+      newRow.investment = Number(state.rfpUiEditWrap.entities[id].investment.toFixed(2));
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEditDetail.entities[j].fkSite === siteId) {
           newRow.distance = state.rfpUiEditDetail.entities[j].distance;
@@ -122,18 +121,8 @@ export class GridComponent implements OnInit, OnChanges {
       }
       newRows.push(newRow);
     }
-    let var1: boolean = false;
-    let var2: boolean = false;
-    let var3: boolean = false;
-    for (const id of state.rfpUiEditDetail.ids) {
-      var1 = state.rfpUiEditDetail.entities[id].var1Name != null ? true : false;
-      var2 = state.rfpUiEditDetail.entities[id].var2Name != null ? true : false;
-      var3 = state.rfpUiEditDetail.entities[id].var3Name != null ? true : false;
-    }
-    if (!this.smallSizeTable && (var1 || var2 || var3)) {
-      //this.addVariableColumns(var1, var2, var3);
-    }
     this.rows = [...newRows];
+    this.cd.markForCheck();
   }
 
 }
