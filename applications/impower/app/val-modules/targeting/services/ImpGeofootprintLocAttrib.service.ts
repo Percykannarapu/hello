@@ -27,6 +27,15 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
       super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintLocAttrib');
    }
 
+   load(items: ImpGeofootprintLocAttrib[]) : void {
+     
+      items.forEach(item => {
+      if (item.attributeCode === 'Home PCR') item.attributeCode = 'Home Carrier Route';
+      if(item.attributeCode === 'Home ZIP') item.attributeCode = 'Home Zip Code';
+     }); 
+      super.load(items);
+   }
+
    // Get a count of DB removes from children of these parents
    public getTreeRemoveCount(impGeofootprintLocAttribs: ImpGeofootprintLocAttrib[]) : number {
       let count: number = 0;

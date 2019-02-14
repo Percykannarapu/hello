@@ -33,7 +33,7 @@ export class EsriRendererEffects {
     map(action => action.payload.map(geo => `'${geo}'`).join(',')),
     map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    filter(([query, state]) => state.renderer.highlightMode === HighlightMode.OUTLINE || state.renderer.highlightMode == HighlightMode.OUTLINE_GROUPS),
+    filter(([query, state]) => (state.renderer.highlightMode === HighlightMode.OUTLINE || state.renderer.highlightMode == HighlightMode.OUTLINE_GROUPS) && state.map.selectedLayerId != null),
     switchMap(([query, state]) => this.queryService.executeObjectIdQuery(state.map.selectedLayerId, query).pipe(
       tap(objectIds => this.rendererService.highlightSelection(state.map.selectedLayerId, objectIds))
     ))
