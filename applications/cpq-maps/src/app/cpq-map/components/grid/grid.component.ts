@@ -10,6 +10,9 @@ class CompositeRow extends RfpUiEditDetail {
 
 class WrapCompositeRow extends RfpUiEditWrap {
   public distance?: number;
+  public var1Name?: string;
+  public var2Name?: string;
+  public var3Name?: string;
 }
 
 @Component({
@@ -31,11 +34,6 @@ export class GridComponent implements OnInit, OnChanges {
   constructor(private store$: Store<LocalState>) { }
 
   ngOnChanges(changes: SimpleChanges) {
-    /*if (changes.smallSizeTable.currentValue === true) {
-      this.createColumns(true, false);
-    } else {
-      this.createColumns(false, false);
-    }*/
     this.smallSizeTable = changes.smallSizeTable.currentValue;
   }
 
@@ -73,18 +71,33 @@ export class GridComponent implements OnInit, OnChanges {
     }
   }
 
+  private addVariableColumns(var1: boolean, var2: boolean, var3: boolean) {
+    if (var1) this.columns.push({field: 'var1Name', header: 'Var 1', width: '15em'});
+    if (var2) this.columns.push({field: 'var2Name', header: 'Var 2', width: '15em'});
+    if (var3) this.columns.push({field: 'var3Name', header: 'Var 3', width: '15em'});
+  }
+
   private createNonWrapRows(state: LocalState) {
     this.createColumns(this.smallSizeTable, false);
     const newRows: Array<CompositeRow> = [];
+    let var1: boolean = false;
+    let var2: boolean = false;
+    let var3: boolean = false;
     for (const id of state.rfpUiEditDetail.ids) {
       const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
       const siteId = newRow.fkSite;
+      var1 = state.rfpUiEditDetail.entities[id].var1Name != null ? true : false;
+      var2 = state.rfpUiEditDetail.entities[id].var2Name != null ? true : false;
+      var3 = state.rfpUiEditDetail.entities[id].var3Name != null ? true : false;
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEdit.entities[j].siteId === siteId) {
           newRow.siteName = state.rfpUiEdit.entities[j].siteName;
         }
       }
       newRows.push(state.rfpUiEditDetail.entities[id]);
+    }
+    if (!this.smallSizeTable && (var1 || var2 || var3)) {
+      this.addVariableColumns(var1, var2, var3);
     }
     this.rows = [...newRows];
   }
