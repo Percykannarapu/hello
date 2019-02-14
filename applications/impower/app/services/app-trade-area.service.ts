@@ -14,7 +14,7 @@ import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppLoggingService } from './app-logging.service';
-import { distinctUntilArrayContentsChanged, toUniversalCoordinates } from '@val/common';
+import { distinctUntilArrayContentsChanged, toUniversalCoordinates, isNumber } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
 
@@ -31,8 +31,6 @@ export class AppTradeAreaService {
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
   public tradeareaType: string = '';
-  private analysisChanged: boolean = false;
-  private firstOccurenceFlag: number = 0;
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
@@ -52,12 +50,6 @@ export class AppTradeAreaService {
     this.validAnalysisLevel$ = this.stateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable().pipe(distinctUntilChanged());
     this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable().pipe(distinctUntilChanged());
-
-    combineLatest(this.impLocationService.storeObservable, this.stateService.applicationIsReady$)
-      .pipe(
-        filter(([locations, isReady]) => isReady), // don't fire sub if project is loading
-      )
-      .subscribe(([locations]) => this.onLocationChange(locations));
 
     this.impTradeAreaService.storeObservable.pipe(
         map((tradeAreas) => tradeAreas.filter(ta => ta.taType === 'AUDIENCE')),
@@ -109,10 +101,6 @@ export class AppTradeAreaService {
       filter(([prev, curr]) => prev > 0 && curr === 0)
     ).subscribe(() => this.layerService.clearClientLayers());
 
-    this.stateService.clearUI$.subscribe(() => this.currentDefaults.clear());
-    this.stateService.analysisLevel$.subscribe(() => {
-      this.analysisChanged = true;
-    });
   }
 
   private setupAnalysisLevelGeoClearObservable() {
@@ -127,44 +115,36 @@ export class AppTradeAreaService {
     ).subscribe(() => this.clearAll());
   }
 
-  private onLocationChange(locations: ImpGeofootprintLocation[]) {
+  public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
     const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
-    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
-    const currentProject = this.stateService.currentProject$.getValue();
+    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
     if (newSites.length > 0) {
-      let radiusFlag: boolean = false;
-      for (let i = 0; i < newSites.length && !radiusFlag; i++){
-        if (newSites[i].radius1 || newSites[i].radius2 || newSites[i].radius3) {
-          radiusFlag = true;
-        }
-      }
-      if (radiusFlag && this.analysisChanged) {
-        this.firstOccurenceFlag++;
-        if ((this.firstOccurenceFlag > 1 && (currentProject.projectId < 0 || !currentProject.projectId)) || (this.firstOccurenceFlag > 0 && currentProject.projectId > 0)) {
-          this.applyRadiusTradeAreaOnAnalysisChange(newSites);
-        }
-        this.analysisChanged = false;
-      }
-      if (!radiusFlag) {
         this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Site), newSites);
-      } 
     }
     if (newCompetitors.length > 0) {
-      let radiusFlag: boolean = false;
-      for (let i = 0; i < newCompetitors.length && !radiusFlag; i++){
-        if (newCompetitors[i].radius1 || newCompetitors[i].radius2 || newCompetitors[i].radius3) {
-          radiusFlag = true;
-        }
+        this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Competitor), newCompetitors);
+    }
+  }
+
+  public onAnalysisLevelChange() : void{
+    const locations = this.impLocationService.get();
+    const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
+    const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
+    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
+    if (newSites.length > 0) {
+      const siteRadiusFlag: boolean = newSites.filter(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)).length > 0;
+      if (siteRadiusFlag) {
+        this.applyRadiusTradeAreaOnAnalysisChange(newSites);
+      } else {
+        this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Site), newSites);
       }
-      if (radiusFlag && this.analysisChanged) {
-        this.firstOccurenceFlag++;
-        if ((this.firstOccurenceFlag > 1 && (currentProject.projectId < 0 || !currentProject.projectId)) || (this.firstOccurenceFlag > 0 && currentProject.projectId > 0)) {
-          this.applyRadiusTradeAreaOnAnalysisChange(newCompetitors);
-        }
-        this.analysisChanged = false;
-      }
-      if (!radiusFlag) {
+    }
+    if (newCompetitors.length > 0) {
+      const competitorRadiusFlag: boolean = newCompetitors.filter(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)).length > 0;
+      if (competitorRadiusFlag) {
+        this.applyRadiusTradeAreaOnAnalysisChange(newCompetitors);
+      } else {
         this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Competitor), newCompetitors);
       }
     }

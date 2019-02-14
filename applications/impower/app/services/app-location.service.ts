@@ -115,6 +115,11 @@ export class AppLocationService {
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3) )
     );
 
+    const locationsWithoutRadius$ = locationsWithType$.pipe(
+      filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
+      filterArray(loc => !(isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)) )
+    );
+
     this.totalCount$ = allLocations$.pipe(
       map(locations => locations.length)
     );
@@ -153,10 +158,17 @@ export class AppLocationService {
       ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
     );
 
-    combineLatest(locationsWithHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
-      filter(([locations, level, isReady]) => locations.length > 0 && level != null && level.length > 0 && isReady)
+   combineLatest(locationsWithHomeGeos$, this.appStateService.applicationIsReady$).pipe(
+      filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(() => this.confirmationBox());
 
+    combineLatest(locationsWithoutRadius$, this.appStateService.applicationIsReady$).pipe(
+      filter(([locations, isReady]) => locations.length > 0 && isReady)
+    ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
+
+    combineLatest(this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
+      filter(([level, isReady]) => level != null && level.length > 0 && isReady)
+    ).subscribe(([]) => this.appTradeAreaService.onAnalysisLevelChange());
     
   }
 
