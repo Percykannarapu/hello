@@ -71,10 +71,10 @@ export class GridComponent implements OnInit, OnChanges {
     }
   }
 
-  private addVariableColumns(var1: boolean, var2: boolean, var3: boolean) {
-    if (var1) this.columns.push({field: 'var1Name', header: 'Var 1', width: '15em'});
-    if (var2) this.columns.push({field: 'var2Name', header: 'Var 2', width: '15em'});
-    if (var3) this.columns.push({field: 'var3Name', header: 'Var 3', width: '15em'});
+  private addVariableColumns(var1: boolean, var2: boolean, var3: boolean, heading1: string, heading2: string, heading3: string) {
+    if (var1) this.columns.push({field: 'var1Value', header: heading1, width: '15em'});
+    if (var2) this.columns.push({field: 'var2Value', header: heading2, width: '15em'});
+    if (var3) this.columns.push({field: 'var3Value', header: heading3, width: '15em'});
   }
 
   private createNonWrapRows(state: LocalState) {
@@ -83,12 +83,18 @@ export class GridComponent implements OnInit, OnChanges {
     let var1: boolean = false;
     let var2: boolean = false;
     let var3: boolean = false;
+    let heading1: string = '';
+    let heading2: string = '';
+    let heading3: string = '';
     for (const id of state.rfpUiEditDetail.ids) {
       const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
       const siteId = newRow.fkSite;
       var1 = state.rfpUiEditDetail.entities[id].var1Name != null ? true : false;
       var2 = state.rfpUiEditDetail.entities[id].var2Name != null ? true : false;
       var3 = state.rfpUiEditDetail.entities[id].var3Name != null ? true : false;
+      heading1 = state.rfpUiEditDetail.entities[id].var1Name;
+      heading2 = state.rfpUiEditDetail.entities[id].var2Name;
+      heading3 = state.rfpUiEditDetail.entities[id].var3Name;
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEdit.entities[j].siteId === siteId) {
           newRow.siteName = state.rfpUiEdit.entities[j].siteName;
@@ -97,7 +103,7 @@ export class GridComponent implements OnInit, OnChanges {
       newRows.push(state.rfpUiEditDetail.entities[id]);
     }
     if (!this.smallSizeTable && (var1 || var2 || var3)) {
-      this.addVariableColumns(var1, var2, var3);
+      this.addVariableColumns(var1, var2, var3, heading1, heading2, heading3);
     }
     this.rows = [...newRows];
   }
@@ -115,6 +121,17 @@ export class GridComponent implements OnInit, OnChanges {
         }
       }
       newRows.push(newRow);
+    }
+    let var1: boolean = false;
+    let var2: boolean = false;
+    let var3: boolean = false;
+    for (const id of state.rfpUiEditDetail.ids) {
+      var1 = state.rfpUiEditDetail.entities[id].var1Name != null ? true : false;
+      var2 = state.rfpUiEditDetail.entities[id].var2Name != null ? true : false;
+      var3 = state.rfpUiEditDetail.entities[id].var3Name != null ? true : false;
+    }
+    if (!this.smallSizeTable && (var1 || var2 || var3)) {
+      //this.addVariableColumns(var1, var2, var3);
     }
     this.rows = [...newRows];
   }
