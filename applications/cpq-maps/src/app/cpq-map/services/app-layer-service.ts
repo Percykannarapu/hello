@@ -140,11 +140,12 @@ export class AppLayerService {
       const selectedGeos: Set<string> = new Set<string>();
       for (const wrapId of state.rfpUiEditWrap.ids) {
          const geos: Set<string> = new Set<string>();
-         const siteId = state.rfpUiEditWrap.entities[wrapId].siteId;
+         //const siteId = state.rfpUiEditWrap.entities[wrapId].siteId;
          const siteName = state.rfpUiEditWrap.entities[wrapId].siteName;
+         const zoneId = state.rfpUiEditWrap.entities[wrapId].wrapZoneId;
          for (const detailId of state.rfpUiEditDetail.ids) {
             if (!state.rfpUiEditDetail.entities[detailId].isSelected) continue;
-            if (siteId === state.rfpUiEditDetail.entities[detailId].fkSite) {
+            if (zoneId === state.rfpUiEditDetail.entities[detailId].wrapZoneId) {
                let wrapZone: string = state.rfpUiEditDetail.entities[detailId].wrapZone;
                wrapZone = wrapZone.replace(new RegExp(/\ /, 'g'), '');
                wrapZone = wrapZone.replace(new RegExp(/\//, 'g'), '');
