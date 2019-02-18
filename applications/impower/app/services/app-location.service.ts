@@ -934,8 +934,15 @@ export class AppLocationService {
       const currentLocations = this.impLocationService.get();
       currentLocations.forEach(l => l.homeGeocode = null);
     } else {
-      const homeGeoKey = getHomeGeoKey(analysisLevel);
-      const currentAttributes = this.impLocAttributeService.get().filter(a => a.attributeCode === homeGeoKey);
+      let homeGeoKey = '';
+    
+      if(analysisLevel === "ZIP"){
+        homeGeoKey = getHomeGeoKey('Zip Code');
+      } else if(analysisLevel === "PCR"){
+        homeGeoKey = getHomeGeoKey('Carrier Route');
+      } else{
+        homeGeoKey = getHomeGeoKey(analysisLevel);
+      }      const currentAttributes = this.impLocAttributeService.get().filter(a => a.attributeCode === homeGeoKey);
       for (const attribute of currentAttributes) {
         if (attribute.impGeofootprintLocation != null) {
           attribute.impGeofootprintLocation.homeGeocode = attribute.attributeValue;
@@ -951,7 +958,14 @@ export class AppLocationService {
 
   private flagHomeGeos(locations: ImpGeofootprintLocation[], currentAnalysisLevel: string) : void {
     this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
-    const homeKey = getHomeGeoKey(currentAnalysisLevel);
+    let homeKey = '';
+    if(currentAnalysisLevel === "ZIP"){
+       homeKey = getHomeGeoKey('Zip Code');
+    } else if(currentAnalysisLevel === "PCR"){
+       homeKey = getHomeGeoKey('Carrier Route');
+    } else{
+     homeKey = getHomeGeoKey(currentAnalysisLevel);
+    }
     locations.forEach(loc => {
       if (loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0 &&
         !loc.impGeofootprintLocAttribs.some(attr => attr.attributeCode.startsWith('Home '))) {
