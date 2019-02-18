@@ -87,8 +87,9 @@ export class EsriQueryService {
     return featureSet.features.map(f => transform(f));
   }
 
-  public executeQuery(layerId: string, query: __esri.Query, returnGeometry = false) : Observable<__esri.FeatureSet> {
+  public executeQuery(layerId: string, query: __esri.Query, returnGeometry = false, outFields = null) : Observable<__esri.FeatureSet> {
     if (returnGeometry) query.returnGeometry = true;
+    if (outFields != null) query.outFields = outFields;
     return this.paginateEsriQuery(layerId, query);
   }
 

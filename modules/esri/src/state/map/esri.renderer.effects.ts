@@ -46,9 +46,22 @@ export class EsriRendererEffects {
     map(action => action.payload.map(geo => `'${geo}'`).join(',')),
     map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE || state.renderer.highlightMode == HighlightMode.SHADE_GROUPS),
+    filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE),
     switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true).pipe(
       tap(features => this.rendererService.shadeSelection(features, state.renderer.highlightLayerGroup, state.renderer.highlighLayer))
+    ))
+  );
+
+  @Effect({ dispatch: false })
+  shadeSelectedGeoGroups$ = this.actions$.pipe(
+    ofType<SetSelectedGeos>(EsriRendererActionTypes.SetSelectedGeos),
+    filter(action => action.payload.length > 0),
+    map(action => action.payload.map(geo => `'${geo}'`).join(',')),
+    map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
+    withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
+    filter(([query, state]) => state.renderer.highlightMode == HighlightMode.SHADE_GROUPS),
+    switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true, 'geocode').pipe(
+      tap(features => this.rendererService.shadeGroups(features, state.renderer.highlightLayerGroup, state.renderer.highlighLayer, state.renderer.shadingGroups))
     ))
   );
 

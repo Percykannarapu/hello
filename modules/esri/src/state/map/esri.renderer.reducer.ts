@@ -29,6 +29,7 @@ export interface EsriRendererState {
   highlightMode: HighlightMode;
   highlighLayer: string;
   highlightLayerGroup: string;
+  shadingGroups: { groupName: string, ids: string[] }[];
 }
 
 const initialState: EsriRendererState = {
@@ -39,7 +40,8 @@ const initialState: EsriRendererState = {
   enableShading: false,
   highlightMode: HighlightMode.OUTLINE,
   highlighLayer: null,
-  highlightLayerGroup: null
+  highlightLayerGroup: null,
+  shadingGroups: null
 };
 
 export function rendererReducer(state = initialState, action: EsriRendererActions) : EsriRendererState {
@@ -68,7 +70,8 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
         ...state, 
         highlightMode: action.payload.higlightMode, 
         highlightLayerGroup: action.payload.layerGroup, 
-        highlighLayer: action.payload.layer 
+        highlighLayer: action.payload.layer,
+        shadingGroups: action.payload.groups
       };
     case EsriRendererActionTypes.ClearSelectedGeos:
       return {

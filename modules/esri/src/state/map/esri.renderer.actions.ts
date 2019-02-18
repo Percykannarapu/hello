@@ -12,7 +12,7 @@ export enum EsriRendererActionTypes {
 
 export class SetHighlightOptions implements Action {
   readonly type = EsriRendererActionTypes.SetHighlightOptions;
-  constructor(public payload: { higlightMode: HighlightMode, layerGroup: string, layer: string }){}
+  constructor(public payload: { higlightMode: HighlightMode, layerGroup: string, layer: string, groups?: { groupName: string, ids: string[] }[] }){}
 }
 
 export class SetShadingData implements Action {

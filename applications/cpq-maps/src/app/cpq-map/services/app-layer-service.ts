@@ -1,14 +1,19 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, MapSymbols, EsriApi, EsriMapService } from '@val/esri';
+import { EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
+import { Store } from '@ngrx/store';
+import { HighlightMode } from '@val/esri';
+import { LocalState, FullState } from '../state';
 
 @Injectable({
    providedIn: 'root'
 })
 export class AppLayerService {
 
-   constructor(private esriLayerService: EsriLayerService, private esriMapService: EsriMapService) { }
+   constructor(private esriLayerService: EsriLayerService, 
+      private esriMapService: EsriMapService,
+      private store$: Store<FullState>) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
 
@@ -97,5 +102,71 @@ export class AppLayerService {
       const xStats = calculateStatistics(longitudes);
       const yStats = calculateStatistics(latitudes);
       this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
+   }
+
+   public shadeBySite(state: LocalState) {
+      let shadingConfig: { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} = null;
+      if (state.shared.isWrap) {
+         shadingConfig = this.getWrapShadingGroups(state);
+      } else {
+         shadingConfig = this.getShadingGroups(state);   
+      }
+      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Sites', layer: 'Selected Geos', groups: shadingConfig.shadingGroups }));
+      this.store$.dispatch(new SetSelectedGeos(shadingConfig.selectedGeos));
+      
+   }
+
+   private getShadingGroups(state: LocalState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
+      const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
+      const selectedGeos: Array<string> = [];
+      for (const site of state.rfpUiEdit.ids) {
+         const geos: Array<string> = [];
+         const siteId = state.rfpUiEdit.entities[site].siteId;
+         const siteName = state.rfpUiEdit.entities[site].siteName;
+         for (const detail of state.rfpUiEditDetail.ids) {
+            if (!state.rfpUiEditDetail.entities[detail].isSelected) continue;
+            if (siteId === state.rfpUiEditDetail.entities[detail].fkSite) {
+               geos.push(state.rfpUiEditDetail.entities[detail].geocode);
+               selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode); 
+            }
+         }
+         shadingGroups.push({ groupName: siteName, ids: geos });
+      }
+      return { selectedGeos: selectedGeos, shadingGroups: shadingGroups };
+   }
+
+   private getWrapShadingGroups(state: LocalState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
+      const shadingGroups: Map<string, Set<string>> = new Map<string, Set<string>>();
+      const selectedGeos: Set<string> = new Set<string>();
+      for (const wrapId of state.rfpUiEditWrap.ids) {
+         const geos: Set<string> = new Set<string>();
+         const siteId = state.rfpUiEditWrap.entities[wrapId].siteId;
+         const siteName = state.rfpUiEditWrap.entities[wrapId].siteName;
+         for (const detailId of state.rfpUiEditDetail.ids) {
+            if (!state.rfpUiEditDetail.entities[detailId].isSelected) continue;
+            if (siteId === state.rfpUiEditDetail.entities[detailId].fkSite) {
+               let wrapZone: string = state.rfpUiEditDetail.entities[detailId].wrapZone;
+               wrapZone = wrapZone.replace(new RegExp(/\ /, 'g'), '');
+               wrapZone = wrapZone.replace(new RegExp(/\//, 'g'), '');
+               wrapZone = wrapZone.toUpperCase();
+               wrapZone = wrapZone.substr(0, 8);
+               selectedGeos.add(wrapZone); 
+               geos.add(wrapZone);
+            }
+         }
+         if (shadingGroups.has(siteName)) {
+            const ids = shadingGroups.get(siteName);
+            geos.forEach(geo => ids.add(geo));
+         } else {
+            shadingGroups.set(siteName, geos);
+         }
+      }
+      const data: Array<{ groupName: string, ids: Array<string> }> = [];
+      for (const groupName of Array.from(shadingGroups.keys())) {
+         const ids: Array<string> = Array.from(shadingGroups.get(groupName));
+         const datum = { groupName: groupName, ids: ids };
+         data.push(datum);
+      }
+      return { selectedGeos: Array.from(selectedGeos), shadingGroups: data };
    }
 }

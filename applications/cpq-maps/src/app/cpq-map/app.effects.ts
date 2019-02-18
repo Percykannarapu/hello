@@ -173,8 +173,7 @@ export class AppEffects {
   setSelectedGeos$ = this.actions$.pipe(
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
     withLatestFrom(this.store$.select(state => state)),
-    tap(([action, state]) => this.fullStore$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE, layerGroup: 'Sites', layer: 'Selected Geos' }))),
-    tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state.rfpUiEditDetail)))),
+    tap(([action, state]) => this.appLayerService.shadeBySite(state)),
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
     tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
     tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state.rfpUiEdit))),
@@ -257,26 +256,5 @@ export class AppEffects {
       coordinates.push({ x: state.entities[id].siteLong, y: state.entities[id].siteLat });
     }
     return coordinates;
-  }
-
-  private parseGeocodes(state: RfpUiEditDetailState) {
-    const geocodes: Array<string> = [];
-    if (state.entities[state.ids[0]].productCd === 'WRAP') {
-      for (const id of state.ids) {
-        if (!state.entities[id].isSelected) continue;
-        let wrapZone: string = state.entities[id].wrapZone;
-        wrapZone = wrapZone.replace(new RegExp(/\ /, 'g'), '');
-        wrapZone = wrapZone.replace(new RegExp(/\//, 'g'), '');
-        wrapZone = wrapZone.toUpperCase();
-        wrapZone = wrapZone.substr(0, 8);
-        geocodes.push(wrapZone);
-      }  
-    } else {
-      for (const id of state.ids) {
-        if (!state.entities[id].isSelected) continue;
-        geocodes.push(state.entities[id].geocode);
-      }
-    }
-    return geocodes;
   }
 }

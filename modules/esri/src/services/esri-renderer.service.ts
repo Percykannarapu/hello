@@ -343,6 +343,29 @@ export class EsriRendererService {
     this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
   }
 
+  public shadeGroups(featureSet: __esri.FeatureSet, groupName: string, layerName: string, shadingGroups: { groupName: string, ids: string[] }[]) {
+    const colors: Array<__esri.Color> = EsriRendererService.getRandomColors(null, shadingGroups.length);
+    const graphics: Array<__esri.Graphic> = [];
+    for (let i = 0; i < shadingGroups.length; i++) {
+      const idSet: Set<string> = new Set(shadingGroups[i].ids);
+      const siteGraphics: Array<__esri.Graphic> = [];
+      for (const feature of featureSet.features) {
+        if (idSet.has(feature.getAttribute('geocode'))) {
+          const symbol = EsriRendererService.createSymbol(colors[i], [0, 0, 0, 0.65], 1);
+          const graphic: __esri.Graphic = new EsriApi.Graphic();
+          graphic.symbol = symbol;
+          graphic.geometry = feature.geometry;
+          siteGraphics.push(graphic);
+        }
+      }
+      graphics.push(...siteGraphics);
+    }
+    if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
+      this.layerService.removeLayer(layerName);
+    }
+    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+  }
+
   public highlightSelection(layerId: string, objectIds: number[]) {
     if (!layerId) return;
     const layerView = this.getLayerView(layerId);
