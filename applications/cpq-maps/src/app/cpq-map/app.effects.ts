@@ -208,7 +208,7 @@ export class AppEffects {
   );
 
   // After RfpUiEdit is loaded check to see if we have loaded a wrap plan
-  // if the plan is wrap we need to set the wrap boundary layer as the selected layer
+  // if the plan is wrap we need to set the zip boundary layer as the selected layer
   // we also set the isWrap flag in the shared state
   @Effect()
   planIsWrap$ = this.actions$.pipe(
@@ -216,7 +216,7 @@ export class AppEffects {
     withLatestFrom(this.store$.select(state => state)),
     filter(([action, state]) => state.shared.rfpUiEditLoaded === true && state.rfpUiEdit.entities[state.rfpUiEdit.ids[0]].sfdcProductCode === 'WRAP'),
     switchMap(([action, state]) => [
-      new SetSelectedLayer({ layerId: this.configService.layers['wrap'].boundaries.id }),
+      new SetSelectedLayer({ layerId: this.configService.layers['zip'].boundaries.id }),
       new SetIsWrap({ isWrap: true })
     ]),
     catchError(err => of(console.error(err)))

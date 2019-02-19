@@ -105,18 +105,6 @@ export class AppLayerService {
    }
 
    public shadeBySite(state: LocalState) {
-      let shadingConfig: { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} = null;
-      if (state.shared.isWrap) {
-         shadingConfig = this.getWrapShadingGroups(state);
-      } else {
-         shadingConfig = this.getShadingGroups(state);   
-      }
-      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Sites', layer: 'Selected Geos', groups: shadingConfig.shadingGroups }));
-      this.store$.dispatch(new SetSelectedGeos(shadingConfig.selectedGeos));
-      
-   }
-
-   private getShadingGroups(state: LocalState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
       const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
       const selectedGeos: Array<string> = [];
       for (const site of state.rfpUiEdit.ids) {
@@ -132,7 +120,8 @@ export class AppLayerService {
          }
          shadingGroups.push({ groupName: siteName, ids: geos });
       }
-      return { selectedGeos: selectedGeos, shadingGroups: shadingGroups };
+      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Sites', layer: 'Selected Geos', groups: shadingGroups }));
+      this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
    private getWrapShadingGroups(state: LocalState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
@@ -140,7 +129,6 @@ export class AppLayerService {
       const selectedGeos: Set<string> = new Set<string>();
       for (const wrapId of state.rfpUiEditWrap.ids) {
          const geos: Set<string> = new Set<string>();
-         //const siteId = state.rfpUiEditWrap.entities[wrapId].siteId;
          const siteName = state.rfpUiEditWrap.entities[wrapId].siteName;
          const zoneId = state.rfpUiEditWrap.entities[wrapId].wrapZoneId;
          for (const detailId of state.rfpUiEditDetail.ids) {
