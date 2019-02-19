@@ -80,7 +80,7 @@ export class AppLayerService {
          point.y = location.y;
          points.push(point);
       }
-      EsriApi.geometryEngineAsync.geodesicBuffer(points, radius, 'miles', true).then(geoBuffer => {
+      EsriApi.geometryEngineAsync.geodesicBuffer(points, radius, 'miles', false).then(geoBuffer => {
          const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
          const graphics = geometry.map(g => {
            return new EsriApi.Graphic({
