@@ -59,10 +59,11 @@ export class GridComponent implements OnInit, OnChanges {
       this.columns.push({field: 'siteName', header: 'Site Name', width: '15em'});
       if (isWrap) 
         this.columns.push({field: 'wrapZone', header: 'Zone', width: '15em'});
-      else 
+      else {
         this.columns.push({field: 'geocode', header: 'Zone', width: '8em'});
+        this.columns.push({field: 'distance', header: 'Distance', width: '7.5em'});  
+      }
       this.columns.push({field: 'distribution', header: 'Distr Qty', width: '7.5em'});
-      this.columns.push({field: 'distance', header: 'Distance', width: '7.5em'});
       this.columns.push({field: 'ownerGroup', header: 'Owner', width: '7.5em'});
       this.columns.push({field: 'investment', header: 'Investment', width: '10em'});
     }
