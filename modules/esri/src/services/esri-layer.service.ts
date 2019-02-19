@@ -94,14 +94,19 @@ export class EsriLayerService {
     return group;
   }
 
-  private createClientGroup(groupName: string, isVisible: boolean) : void {
+  public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : void {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriApi.GroupLayer({
       title: groupName,
       listMode: 'show-children',
       visible: isVisible
     });
-    this.mapService.mapView.map.layers.add(group);
+    if (bottom) {
+      this.mapService.mapView.map.layers.add(group, 0);
+    } else {
+      this.mapService.mapView.map.layers.add(group);
+    }
+    
     this.groupRefs.set(groupName, group);
   }
 

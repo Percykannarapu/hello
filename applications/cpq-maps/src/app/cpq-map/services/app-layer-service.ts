@@ -120,7 +120,8 @@ export class AppLayerService {
          }
          shadingGroups.push({ groupName: siteName, ids: geos });
       }
-      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Sites', layer: 'Selected Geos', groups: shadingGroups }));
+      this.esriLayerService.createClientGroup('Shading', true, true);
+      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', groups: shadingGroups }));
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
