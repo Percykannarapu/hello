@@ -352,7 +352,7 @@ export class EsriRendererService {
       const siteGraphics: Array<__esri.Graphic> = [];
       for (const feature of featureSet.features) {
         if (idSet.has(feature.getAttribute('geocode')) && !shadedFeatures.has(feature.getAttribute('geocode'))) {
-          const symbol = EsriRendererService.createSymbol(colors[i], [0, 0, 0, 0.65], 1);
+          const symbol = EsriRendererService.createSymbol(colors[i], [0, 0, 0, 0], 1);
           const graphic: __esri.Graphic = new EsriApi.Graphic();
           graphic.symbol = symbol;
           graphic.geometry = feature.geometry;
