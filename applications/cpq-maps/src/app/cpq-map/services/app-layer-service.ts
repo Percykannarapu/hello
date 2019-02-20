@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos } from '@val/esri';
+import { EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
 import { HighlightMode } from '@val/esri';
 import { LocalState, FullState } from '../state';
+import { ConfigService } from './config.service';
 
 @Injectable({
    providedIn: 'root'
@@ -13,7 +14,8 @@ export class AppLayerService {
 
    constructor(private esriLayerService: EsriLayerService, 
       private esriMapService: EsriMapService,
-      private store$: Store<FullState>) { }
+      private store$: Store<FullState>,
+      private configService: ConfigService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
 
@@ -104,7 +106,7 @@ export class AppLayerService {
       this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
    }
 
-   public shadeBySite(state: LocalState) {
+   public shadeBySite(state: FullState) {
       const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
       const selectedGeos: Array<string> = [];
       for (const site of state.rfpUiEdit.ids) {
@@ -125,7 +127,7 @@ export class AppLayerService {
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
-   private getWrapShadingGroups(state: LocalState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
+   private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
       const shadingGroups: Map<string, Set<string>> = new Map<string, Set<string>>();
       const selectedGeos: Set<string> = new Set<string>();
       for (const wrapId of state.rfpUiEditWrap.ids) {
@@ -158,5 +160,55 @@ export class AppLayerService {
          data.push(datum);
       }
       return { selectedGeos: Array.from(selectedGeos), shadingGroups: data };
+   }
+
+   public updateLabels(state: FullState) {
+      let newExpression: string = '';
+      let updateId: string = '';
+      switch (state.shared.analysisLevel) {
+         case 'zip':
+            updateId = this.configService.layers['zip'].boundaries.id;
+            newExpression = `var geoData = ${this.createArcadeDictionary(state)};
+                             var distrQty = "";
+                             if(hasKey(geoData, $feature.geocode)) {
+                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                             }
+                             return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
+            break;
+         case 'atz':
+            updateId = this.configService.layers['atz'].boundaries.id;
+            newExpression = `var geoData = ${this.createArcadeDictionary(state)};
+                             var id = iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "");
+                             var distrQty = "";
+                             if(hasKey(geoData, $feature.geocode)) {
+                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                             }
+                             return Concatenate([id, distrQty], TextFormatting.NewLine);`;
+            break;
+         case 'wrap':
+            updateId = this.configService.layers['zip'].boundaries.id; // yes, we update the zip labels if we are at wrap level
+            newExpression = `var geoData = ${this.createArcadeDictionary(state)};
+                             var distrQty = "";
+                             if(hasKey(geoData, $feature.geocode)) {
+                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                             }
+                             return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
+            break;
+      }
+      const layerExpressions: any = state.esri.map.layerExpressions;
+      layerExpressions[updateId].expression = newExpression;
+      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+   }
+
+   private createArcadeDictionary(state: FullState) : string {
+      let dictionary: string = '{';
+      for (const id of state.rfpUiEditDetail.ids) {
+         const geocode: string = state.rfpUiEditDetail.entities[id].geocode;
+         const distrQty: number = state.rfpUiEditDetail.entities[id].distribution;
+         dictionary = `${dictionary}"${geocode}":${distrQty},`;
+      }
+      dictionary = dictionary.substring(0, dictionary.length - 1);
+      dictionary = `${dictionary}}`;
+      return dictionary;
    }
 }
