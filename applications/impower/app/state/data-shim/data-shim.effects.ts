@@ -15,7 +15,7 @@ import {
 import { catchError, concatMap, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { ClearSelectedGeos } from '@val/esri';
+import { ResetMapState } from '@val/esri';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -72,7 +72,7 @@ export class DataShimEffects {
   @Effect()
   clearGeos$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoad, DataShimActionTypes.ProjectCreateNew),
-    map(() => new ClearSelectedGeos())
+    map(() => new ResetMapState())
   );
 
   @Effect({ dispatch: false })

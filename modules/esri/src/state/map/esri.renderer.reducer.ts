@@ -1,3 +1,4 @@
+import { EsriMapActionTypes, ResetMapState } from './esri.map.actions';
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
 
 export interface ShadingData {
@@ -27,7 +28,7 @@ export interface EsriRendererState {
   statistics: Statistics;
   enableShading: boolean;
   highlightMode: HighlightMode;
-  highlighLayer: string;
+  highlightLayer: string;
   highlightLayerGroup: string;
   shadingGroups: { groupName: string, ids: string[] }[];
 }
@@ -39,13 +40,19 @@ const initialState: EsriRendererState = {
   statistics: null,
   enableShading: false,
   highlightMode: HighlightMode.OUTLINE,
-  highlighLayer: null,
+  highlightLayer: null,
   highlightLayerGroup: null,
   shadingGroups: null
 };
 
-export function rendererReducer(state = initialState, action: EsriRendererActions) : EsriRendererState {
+type ReducerActions = EsriRendererActions | ResetMapState;
+
+export function rendererReducer(state = initialState, action: ReducerActions) : EsriRendererState {
   switch (action.type) {
+    case EsriMapActionTypes.ResetMapState:
+      return {
+        ...initialState
+      };
     case EsriRendererActionTypes.SetShadingData:
       return {
         ...state,
@@ -70,7 +77,7 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
         ...state, 
         highlightMode: action.payload.higlightMode, 
         highlightLayerGroup: action.payload.layerGroup, 
-        highlighLayer: action.payload.layer,
+        highlightLayer: action.payload.layer,
         shadingGroups: action.payload.groups
       };
     case EsriRendererActionTypes.ClearSelectedGeos:

@@ -33,7 +33,7 @@ export class EsriRendererEffects {
     map(action => action.payload.map(geo => `'${geo}'`).join(',')),
     map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    filter(([query, state]) => (state.renderer.highlightMode === HighlightMode.OUTLINE || state.renderer.highlightMode == HighlightMode.OUTLINE_GROUPS) && state.map.selectedLayerId != null),
+    filter(([query, state]) => (state.renderer.highlightMode === HighlightMode.OUTLINE || state.renderer.highlightMode === HighlightMode.OUTLINE_GROUPS) && state.map.selectedLayerId != null),
     switchMap(([query, state]) => this.queryService.executeObjectIdQuery(state.map.selectedLayerId, query).pipe(
       tap(objectIds => this.rendererService.highlightSelection(state.map.selectedLayerId, objectIds))
     ))
@@ -48,7 +48,7 @@ export class EsriRendererEffects {
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
     filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE),
     switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true).pipe(
-      tap(features => this.rendererService.shadeSelection(features, state.renderer.highlightLayerGroup, state.renderer.highlighLayer))
+      tap(features => this.rendererService.shadeSelection(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer))
     ))
   );
 
@@ -59,9 +59,9 @@ export class EsriRendererEffects {
     map(action => action.payload.map(geo => `'${geo}'`).join(',')),
     map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    filter(([query, state]) => state.renderer.highlightMode == HighlightMode.SHADE_GROUPS),
+    filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE_GROUPS),
     switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true, 'geocode').pipe(
-      tap(features => this.rendererService.shadeGroups(features, state.renderer.highlightLayerGroup, state.renderer.highlighLayer, state.renderer.shadingGroups))
+      tap(features => this.rendererService.shadeGroups(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer, state.renderer.shadingGroups))
     ))
   );
 

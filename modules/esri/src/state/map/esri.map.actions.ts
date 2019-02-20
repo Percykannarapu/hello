@@ -16,6 +16,8 @@ export enum EsriMapActionTypes {
   SetLabelConfiguration = '[Esri Map] Set Label Configuration',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
+
+  ResetMapState = '[Esri Map] Reset State'
 }
 
 export class InitializeMap implements Action {
@@ -72,6 +74,10 @@ export class SetLayerLabelExpressions implements Action {
   constructor(public payload: { expressions: { [layerId: string] : EsriLabelLayerOptions } }) {}
 }
 
+export class ResetMapState implements Action {
+    readonly type = EsriMapActionTypes.ResetMapState;
+}
+
 export type EsriMapActions =
   InitializeMap
   | InitializeMapSuccess
@@ -85,4 +91,5 @@ export type EsriMapActions =
   | SetSelectedLayer
   | SetLabelConfiguration
   | SetLayerLabelExpressions
+  | ResetMapState
   ;

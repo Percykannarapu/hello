@@ -54,6 +54,10 @@ const initialState: EsriMapState = {
 
 export function mapReducer(state = initialState, action: EsriMapActions) : EsriMapState {
   switch (action.type) {
+    case EsriMapActionTypes.ResetMapState:
+      return {
+        ...initialState
+      };
     // Initialization/startup actions
     case EsriMapActionTypes.InitializeMap:
       return { ...state, mapIsInitializing: true };
