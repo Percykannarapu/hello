@@ -288,7 +288,7 @@ export class EsriLayerService {
     if (layerOptions == null) return null;
     const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
     const offset = layerOptions.fontSizeOffset || 0;
-    const font = new EsriApi.Font({ family: fontName, size: (fontSize + offset), weight: 'normal' });
+    const font = new EsriApi.Font({ family: fontName, size: (fontSize + offset), weight: 'bold' });
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
       textSymbol.color = layer.renderer.symbol.outline.color;
     } else {

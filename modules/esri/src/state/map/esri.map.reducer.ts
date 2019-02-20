@@ -45,7 +45,7 @@ const initialState: EsriMapState = {
   selectedLayerId: null,
   labelConfiguration: {
     font: 'sans-serif',
-    size: 12,
+    size: 10,
     enabled: true,
     pobEnabled: false
   },
