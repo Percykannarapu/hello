@@ -366,6 +366,7 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
     if (source != null) {
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
       const currentShadingData = this.shadingData.getValue();
       // this is an http call, no need for an unsub
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
